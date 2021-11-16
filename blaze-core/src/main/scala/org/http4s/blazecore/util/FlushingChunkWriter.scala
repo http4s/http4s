@@ -19,21 +19,20 @@ package blazecore
 package util
 
 import cats.effect.Async
-import fs2._
-import java.nio.ByteBuffer
-
 import cats.effect.std.Dispatcher
+import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 
+import java.nio.ByteBuffer
 import scala.concurrent._
 
 private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
     implicit
     protected val F: Async[F],
     protected val ec: ExecutionContext,
-    protected val dispatcher: Dispatcher[F])
-    extends Http1Writer[F] {
+    protected val dispatcher: Dispatcher[F],
+) extends Http1Writer[F] {
   import ChunkWriter._
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
@@ -50,5 +49,6 @@ private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], tra
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     // It may be a while before we get another chunk, so we flush now
     pipe.channelWrite(
-      List(Http1Writer.headersToByteBuffer(headerWriter.result), TransferEncodingChunked))
+      List(Http1Writer.headersToByteBuffer(headerWriter.result), TransferEncodingChunked)
+    )
 }

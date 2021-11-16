@@ -18,11 +18,14 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.kernel.Async
 import cats.syntax.all._
-import java.nio.file.{Path, Paths}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+
+import java.nio.file.Path
+import java.nio.file.Paths
 import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
@@ -37,7 +40,8 @@ class WebjarServiceBuilder[F[_]] private (
     webjarAssetFilter: WebjarServiceBuilder.WebjarAssetFilter,
     cacheStrategy: CacheStrategy[F],
     classLoader: Option[ClassLoader],
-    preferGzipped: Boolean) {
+    preferGzipped: Boolean,
+) {
 
   import WebjarServiceBuilder.{WebjarAsset, WebjarAssetFilter, serveWebjarAsset}
 
@@ -45,7 +49,8 @@ class WebjarServiceBuilder[F[_]] private (
       webjarAssetFilter: WebjarAssetFilter = webjarAssetFilter,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
       classLoader: Option[ClassLoader] = classLoader,
-      preferGzipped: Boolean = preferGzipped) =
+      preferGzipped: Boolean = preferGzipped,
+  ) =
     new WebjarServiceBuilder[F](webjarAssetFilter, cacheStrategy, classLoader, preferGzipped)
 
   def withWebjarAssetFilter(webjarAssetFilter: WebjarAssetFilter): WebjarServiceBuilder[F] =
@@ -121,7 +126,8 @@ object WebjarServiceBuilder {
       webjarAssetFilter = _ => true,
       cacheStrategy = NoopCacheStrategy[F],
       classLoader = None,
-      preferGzipped = false)
+      preferGzipped = false,
+    )
 
   /** A filter callback for Webjar asset
     * It's a function that takes the WebjarAsset and returns whether or not the asset
@@ -158,14 +164,15 @@ object WebjarServiceBuilder {
       cacheStrategy: CacheStrategy[F],
       classLoader: Option[ClassLoader],
       request: Request[F],
-      preferGzipped: Boolean)(webjarAsset: WebjarAsset)(implicit
-      F: Async[F]): OptionT[F, Response[F]] =
+      preferGzipped: Boolean,
+  )(webjarAsset: WebjarAsset)(implicit F: Async[F]): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(
         webjarAsset.pathInJar,
         Some(request),
         classloader = classLoader,
-        preferGzipped = preferGzipped)
+        preferGzipped = preferGzipped,
+      )
       .semiflatMap(cacheStrategy.cache(request.pathInfo, _))
 }
 
@@ -179,7 +186,8 @@ object WebjarService {
     */
   final case class Config[F[_]](
       filter: WebjarAssetFilter = _ => true,
-      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
+      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+  )
 
   /** Contains the information about an asset inside a webjar
     *
@@ -258,7 +266,8 @@ object WebjarService {
     * @return Either the the Asset, if it exist, or Pass
     */
   private def serveWebjarAsset[F[_]: Async](config: Config[F], request: Request[F])(
-      webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
+      webjarAsset: WebjarAsset
+  ): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))
       .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))

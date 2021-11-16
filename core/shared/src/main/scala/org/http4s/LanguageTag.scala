@@ -26,7 +26,9 @@
 
 package org.http4s
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
 import scala.annotation.tailrec
 
 object LanguageTag {
@@ -42,8 +44,8 @@ object LanguageTag {
 final case class LanguageTag(
     primaryTag: String,
     q: QValue = QValue.One,
-    subTags: List[String] = Nil)
-    extends Renderable {
+    subTags: List[String] = Nil,
+) extends Renderable {
 
   def withQValue(q: QValue): LanguageTag = copy(q = q)
 

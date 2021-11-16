@@ -18,9 +18,12 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0 => P0, Parser => P}
+import cats.parse.Numbers
+import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 // See https://tools.ietf.org/html/rfc7233
@@ -100,7 +103,7 @@ object Range {
             writer
           }
         },
-      parse
+      parse,
     )
 
 }

@@ -16,17 +16,20 @@
 
 package org.http4s.server.middleware
 
-import java.time.{Clock, Instant, ZoneId}
-import java.util.concurrent.atomic.AtomicLong
-
 import cats.arrow.FunctionK
 import cats.effect.IO
 import org.http4s._
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
-import org.http4s.headers.{Location, Referer}
+import org.http4s.headers.Location
+import org.http4s.headers.Referer
 import org.http4s.server.middleware.CSRF.unlift
+import org.http4s.syntax.all._
 import org.typelevel.ci._
+
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.util.concurrent.atomic.AtomicLong
 
 class CSRFSuite extends Http4sSuite {
 
@@ -77,7 +80,8 @@ class CSRFSuite extends Http4sSuite {
       _.withClock(testClock)
         .withCookieName(cookieName)
         .withCSRFCheck(CSRF.checkCSRFinHeaderAndForm[IO, IO](headerName.toString, FunctionK.id))
-        .build)
+        .build
+    )
 
   private val csrfCatchFailureIO: IO[CSRF[IO, IO]] = CSRF
     .withGeneratedKey[IO, IO](defaultOriginCheck)
@@ -88,9 +92,10 @@ class CSRFSuite extends Http4sSuite {
           Response[IO](status = Status.SeeOther, headers = Headers(Location(uri"/")))
             .removeCookie(cookieName)
         )
-        .build)
+        .build
+    )
 
-  ///
+  // /
 
   test("pass through and embed a new token for a safe, fresh request if set") {
     for {
@@ -120,7 +125,7 @@ class CSRFSuite extends Http4sSuite {
       t <- csrf.generateToken[IO]
       req = csrf.embedInRequestCookie(dummyRequest, t)
       newToken <- csrf.refreshedToken[IO](req).valueOrF(IO.raiseError)
-      //Checks whether it was properly signed
+      // Checks whether it was properly signed
     } yield assert(csrf.extractRaw(unlift(newToken)).isRight)
   }
 
@@ -163,7 +168,7 @@ class CSRFSuite extends Http4sSuite {
         .validate()(dummyRoutes)(passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
     } yield {
       assertEquals(response.status, Status.Forbidden) // Must fail
-      assert(!response.cookies.exists(_.name == cookieName)) //Must not embed a new token
+      assert(!response.cookies.exists(_.name == cookieName)) // Must not embed a new token
     }
   }
 
@@ -215,7 +220,8 @@ class CSRFSuite extends Http4sSuite {
         csrf.embedInRequestCookie(
           Request[IO](POST)
             .putHeaders(headerName.toString -> unlift(token), Referer(uri"http://localhost/lol")),
-          token)
+          token,
+        )
       )
     } yield assertEquals(res.status, Status.Ok)
   }
@@ -238,7 +244,8 @@ class CSRFSuite extends Http4sSuite {
           .putHeaders(
             headerName.toString -> unlift(token),
             "Origin" -> "http://example.com",
-            Referer(uri"http://example.com/lol"))
+            Referer(uri"http://example.com/lol"),
+          )
           .addCookie(cookieName, unlift(token))
       )
     } yield assertEquals(res.status, Status.Forbidden)
@@ -334,7 +341,8 @@ class CSRFSuite extends Http4sSuite {
       for {
         csrfCatchFailure <- csrfCatchFailureIO
         response <- csrfCatchFailure.validate()(dummyRoutes)(
-          passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE")))
+          passThroughRequest.addCookie(RequestCookie(cookieName, "MOOSE"))
+        )
       } yield {
         assertEquals(response.status, Status.SeeOther)
         assert(response.cookies.exists(_.name == cookieName))
@@ -348,7 +356,8 @@ class CSRFSuite extends Http4sSuite {
         oldToken <- csrfCatchFailure.generateToken[IO]
         oldRaw <- IO.fromEither(csrfCatchFailure.extractRaw(unlift(oldToken)))
         response <- csrfCatchFailure.validate()(dummyRoutes)(
-          csrf.embedInRequestCookie(passThroughRequest, oldToken))
+          csrf.embedInRequestCookie(passThroughRequest, oldToken)
+        )
         newCookie =
           response.cookies
             .find(_.name == cookieName)
@@ -387,7 +396,8 @@ class CSRFSuite extends Http4sSuite {
             .putHeaders(
               headerName.toString -> unlift(token),
               "Origin" -> "http://example.com",
-              Referer(uri"http://example.com/lol"))
+              Referer(uri"http://example.com/lol"),
+            )
             .addCookie(cookieName, unlift(token))
         )
       } yield assertEquals(res.status, Status.SeeOther)

@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Eq, Show}
+import cats.Eq
+import cats.Show
 import org.http4s.util._
 
 sealed abstract class CharsetRange extends HasQValue with Renderable {
@@ -36,7 +37,7 @@ sealed abstract class CharsetRange extends HasQValue with Renderable {
 
 object CharsetRange {
   sealed case class `*`(qValue: QValue) extends CharsetRange {
-    final override def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
+    override final def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
 
     final def render(writer: Writer): writer.type = writer << "*" << qValue
   }

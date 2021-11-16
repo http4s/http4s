@@ -157,8 +157,10 @@ class BlazeClient213Suite extends BlazeClientBase {
         val s = Stream(
           Stream.eval(
             client.expect[String](Request[IO](uri = uris(0)))
-          )).repeat.take(10).parJoinUnbounded ++ Stream.eval(
-          client.expect[String](Request[IO](uri = uris(1))))
+          )
+        ).repeat.take(10).parJoinUnbounded ++ Stream.eval(
+          client.expect[String](Request[IO](uri = uris(1)))
+        )
         s.compile.lastOrError
       }
       .assertEquals("simple path")

@@ -16,17 +16,23 @@
 
 package org.http4s
 
-import cats.{Applicative, Functor, Monad, SemigroupK}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.SemigroupK
 import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
-import fs2.io.file.{Files, Path}
-import java.io.File
-import org.http4s.multipart.{Multipart, MultipartDecoder}
+import fs2.io.file.Files
+import fs2.io.file.Path
+import org.http4s.Charset.`UTF-8`
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
 
+import java.io.File
 import scala.annotation.implicitNotFound
-import cats.effect.Resource
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -37,7 +43,8 @@ import cats.effect.Resource
   * @tparam T result type produced by the decoder
   */
 @implicitNotFound(
-  "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
+  "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found."
+)
 trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
@@ -69,22 +76,25 @@ trait EntityDecoder[F[_], T] { self =>
       case r @ Right(_) => r
     }
 
-  def handleErrorWith(f: DecodeFailure => DecodeResult[F, T])(implicit
-      F: Monad[F]): EntityDecoder[F, T] =
+  def handleErrorWith(
+      f: DecodeFailure => DecodeResult[F, T]
+  )(implicit F: Monad[F]): EntityDecoder[F, T] =
     transformWith {
       case Left(e) => f(e)
       case Right(r) => DecodeResult.successT(r)
     }
 
   def bimap[T2](f: DecodeFailure => DecodeFailure, s: T => T2)(implicit
-      F: Functor[F]): EntityDecoder[F, T2] =
+      F: Functor[F]
+  ): EntityDecoder[F, T2] =
     transform {
       case Left(e) => Left(f(e))
       case Right(r) => Right(s(r))
     }
 
-  def transform[T2](t: Either[DecodeFailure, T] => Either[DecodeFailure, T2])(implicit
-      F: Functor[F]): EntityDecoder[F, T2] =
+  def transform[T2](
+      t: Either[DecodeFailure, T] => Either[DecodeFailure, T2]
+  )(implicit F: Functor[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
@@ -93,14 +103,16 @@ trait EntityDecoder[F[_], T] { self =>
     }
 
   def biflatMap[T2](f: DecodeFailure => DecodeResult[F, T2], s: T => DecodeResult[F, T2])(implicit
-      F: Monad[F]): EntityDecoder[F, T2] =
+      F: Monad[F]
+  ): EntityDecoder[F, T2] =
     transformWith {
       case Left(e) => f(e)
       case Right(r) => s(r)
     }
 
-  def transformWith[T2](f: Either[DecodeFailure, T] => DecodeResult[F, T2])(implicit
-      F: Monad[F]): EntityDecoder[F, T2] =
+  def transformWith[T2](
+      f: Either[DecodeFailure, T] => DecodeResult[F, T2]
+  )(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
@@ -143,7 +155,8 @@ object EntityDecoder {
     new SemigroupK[EntityDecoder[F, *]] {
       override def combineK[T](
           a: EntityDecoder[F, T],
-          b: EntityDecoder[F, T]): EntityDecoder[F, T] =
+          b: EntityDecoder[F, T],
+      ): EntityDecoder[F, T] =
         new EntityDecoder[F, T] {
           override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] = {
             val mediaType = m.contentType.fold(UndefinedMediaType)(_.mediaType)
@@ -174,7 +187,8 @@ object EntityDecoder {
     * system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
-      f: Media[F] => DecodeResult[F, T]): EntityDecoder[F, T] =
+      f: Media[F] => DecodeResult[F, T]
+  ): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         if (strict)
@@ -200,10 +214,11 @@ object EntityDecoder {
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
-      m: Media[F])(implicit F: Concurrent[F], defaultCharset: Charset = DefaultCharset): F[String] =
+      m: Media[F]
+  )(implicit F: Concurrent[F], defaultCharset: Charset = `UTF-8`): F[String] =
     m.bodyText.compile.string
 
-  /////////////////// Instances //////////////////////////////////////////////
+  // ///////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
@@ -224,10 +239,13 @@ object EntityDecoder {
 
   implicit def text[F[_]](implicit
       F: Concurrent[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
+      defaultCharset: Charset = `UTF-8`,
+  ): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
-        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)
+      )
+    )
 
   implicit def charArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
@@ -292,14 +310,15 @@ object EntityDecoder {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false,
-      chunkSize: Int = 8192
+      chunkSize: Int = 8192,
   ): Resource[F, EntityDecoder[F, Multipart[F]]] =
     MultipartDecoder.mixedMultipartResource(
       headerLimit,
       maxSizeBeforeWrite,
       maxParts,
       failOnLimit,
-      chunkSize)
+      chunkSize,
+    )
 
   /** Multipart decoder that streams all parts past a threshold
     * (anything above maxSizeBeforeWrite) into a temporary file.
@@ -332,7 +351,8 @@ object EntityDecoder {
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
-      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+      failOnLimit: Boolean = false,
+  ): EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
   /** An entity decoder that ignores the content and returns unit. */

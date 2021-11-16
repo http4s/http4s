@@ -17,9 +17,10 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser0
 import cats.parse.Numbers
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser0
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `X-B3-Flags` {
@@ -79,7 +80,7 @@ object `X-B3-Flags` {
             writer.append(h.flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
 
         },
-      parse
+      parse,
     )
 
 }

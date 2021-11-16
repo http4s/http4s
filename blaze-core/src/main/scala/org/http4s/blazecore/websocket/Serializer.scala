@@ -16,14 +16,18 @@
 
 package org.http4s.blazecore.websocket
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.Execution._
-import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.Duration
+
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /** Combined [[WriteSerializer]] and [[ReadSerializer]] */
 private trait Serializer[I] extends WriteSerializer[I] with ReadSerializer[I]
@@ -31,12 +35,12 @@ private trait Serializer[I] extends WriteSerializer[I] with ReadSerializer[I]
 /** Serializes write requests, storing intermediates in a queue */
 private trait WriteSerializer[I] extends TailStage[I] { self =>
 
-  ////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////
 
   private var serializerWriteQueue = new ArrayBuffer[I]
   private var serializerWritePromise: Promise[Unit] = null
 
-  ///  channel writing bits //////////////////////////////////////////////
+  // /  channel writing bits //////////////////////////////////////////////
   override def channelWrite(data: I): Future[Unit] =
     channelWrite(data :: Nil)
 
@@ -100,7 +104,7 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
 trait ReadSerializer[I] extends TailStage[I] {
   private val serializerReadRef = new AtomicReference[Future[I]](null)
 
-  ///  channel reading bits //////////////////////////////////////////////
+  // /  channel reading bits //////////////////////////////////////////////
 
   override def channelRead(size: Int = -1, timeout: Duration = Duration.Inf): Future[I] = {
     val p = Promise[I]()
@@ -131,7 +135,7 @@ trait ReadSerializer[I] extends TailStage[I] {
       .onComplete { t =>
         serializerReadRef.compareAndSet(
           p.future,
-          null
+          null,
         ) // don't hold our reference if the queue is idle
         p.complete(t)
       }(directec)

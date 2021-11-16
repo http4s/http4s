@@ -19,8 +19,8 @@ package client
 package middleware
 
 import cats.effect._
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
+import org.http4s.syntax.all._
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
@@ -84,7 +84,7 @@ class LoggerSuite extends Http4sSuite {
     val _ = Logger.colored[IO](
       logHeaders = true,
       logBody = false,
-      logAction = Some(s => IO(println(s)))
+      logAction = Some(s => IO(println(s))),
     ) _
   }
 }

@@ -18,17 +18,22 @@ package org.http4s
 package asynchttpclient
 package client
 
-import cats.effect.{IO, Resource}
+import cats.effect.IO
+import cats.effect.Resource
 import org.asynchttpclient.DefaultAsyncHttpClient
 import org.asynchttpclient.HostStats
-import org.http4s.client.{Client, ClientRouteTestBattery, DefaultClient, defaults}
+import org.http4s.client.Client
+import org.http4s.client.ClientRouteTestBattery
+import org.http4s.client.DefaultClient
+import org.http4s.client.defaults
 
 class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSuite {
 
   def clientResource: Resource[IO, Client[IO]] = AsyncHttpClient.resource[IO]()
 
   test(
-    "AsyncHttpClient configure should evaluate to the defaultConfiguration given the identity function as the configuration function") {
+    "AsyncHttpClient configure should evaluate to the defaultConfiguration given the identity function as the configuration function"
+  ) {
     val defaultConfig = AsyncHttpClient.defaultConfig
     val customConfig = AsyncHttpClient.configure(identity)
 
@@ -79,8 +84,8 @@ class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") wit
     val clientWithStats: Resource[IO, Client[IO]] =
       for {
         httpClient <- Resource.make(
-          IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig)))(client =>
-          IO(client.close()))
+          IO.delay(new DefaultAsyncHttpClient(AsyncHttpClient.defaultConfig))
+        )(client => IO(client.close()))
         client <- AsyncHttpClient.fromClient[IO](httpClient)
       } yield new ClientWithStats(client, new AsyncHttpClientStats[IO](httpClient.getClientStats))
 
@@ -90,7 +95,8 @@ class AsyncHttpClientSuite extends ClientRouteTestBattery("AsyncHttpClient") wit
 
     def extractStats[Stats](
         stats: Resource[IO, AsyncHttpClientStats[IO]],
-        f: AsyncHttpClientStats[IO] => IO[Stats]): IO[Stats] =
+        f: AsyncHttpClientStats[IO] => IO[Stats],
+    ): IO[Stats] =
       stats.map(f).use(identity)
 
     extractStats(clientStats, _.getTotalIdleConnectionCount).assertEquals(0L) *>

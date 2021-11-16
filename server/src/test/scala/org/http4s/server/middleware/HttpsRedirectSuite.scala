@@ -18,13 +18,15 @@ package org.http4s
 package server
 package middleware
 
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
-import org.http4s.Uri.{Authority, RegName, Scheme}
 
 class HttpsRedirectSuite extends Http4sSuite {
   val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
@@ -38,7 +40,7 @@ class HttpsRedirectSuite extends Http4sSuite {
     List(
       HttpsRedirect(innerRoutes).orNotFound,
       HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
-      HttpsRedirect.httpApp(innerRoutes.orNotFound)
+      HttpsRedirect.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       val expectedAuthority = Authority(host = RegName("example.com"))
       val expectedLocation =
@@ -46,7 +48,9 @@ class HttpsRedirectSuite extends Http4sSuite {
           Uri(
             path = Uri.Path.Root,
             scheme = Some(Scheme.https),
-            authority = Some(expectedAuthority)))
+            authority = Some(expectedAuthority),
+          )
+        )
       val expectedHeaders = Headers(expectedLocation, `Content-Type`(MediaType.text.xml) :: Nil)
       app(req).map(_.status).assertEquals(Status.MovedPermanently) *>
         app(req).map(_.headers).assertEquals(expectedHeaders)
@@ -57,7 +61,7 @@ class HttpsRedirectSuite extends Http4sSuite {
     List(
       HttpsRedirect(innerRoutes).orNotFound,
       HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
-      HttpsRedirect.httpApp(innerRoutes.orNotFound)
+      HttpsRedirect.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       val noHeadersReq = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root))
       app(noHeadersReq).map(_.status).assertEquals(Status.Ok) *>

@@ -23,7 +23,9 @@ import org.http4s.HttpApp
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.metrics.dropwizard._
-import org.http4s.server.{HttpMiddleware, Router, Server}
+import org.http4s.server.HttpMiddleware
+import org.http4s.server.Router
+import org.http4s.server.Server
 import org.http4s.server.middleware.Metrics
 
 class BlazeMetricsExample extends IOApp {
@@ -37,7 +39,7 @@ object BlazeMetricsExampleApp {
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
     Router(
       "/http4s" -> metrics(ExampleService[F].routes),
-      "/http4s/metrics" -> metricsService[F](metricsRegistry)
+      "/http4s/metrics" -> metricsService[F](metricsRegistry),
     ).orNotFound
   }
 

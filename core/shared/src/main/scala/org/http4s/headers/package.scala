@@ -16,8 +16,9 @@
 
 package org.http4s
 
-import java.lang.{Long => JLong}
 import org.http4s.util.Writer
+
+import java.lang.{Long => JLong}
 
 package object headers {
   private val XB3Id64BitCharLength: Int = 16
@@ -28,7 +29,8 @@ package object headers {
   private[headers] def xB3RenderValueImpl(
       writer: Writer,
       idMostSigBits: Long,
-      idLeastSigBits: Option[Long] = None): writer.type =
+      idLeastSigBits: Option[Long] = None,
+  ): writer.type =
     idLeastSigBits match {
       case Some(idLsb) =>
         if (idMostSigBits == 0L && idLsb == 0L)

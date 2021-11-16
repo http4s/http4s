@@ -18,9 +18,10 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
+import org.typelevel.ci._
+
 import scala.concurrent.duration._
 import scala.util.Try
-import org.typelevel.ci._
 
 object Age {
   def fromLong(age: Long): ParseResult[Age] =
@@ -44,7 +45,7 @@ object Age {
     Header.createRendered(
       ci"Age",
       _.age,
-      parse
+      parse,
     )
 }
 

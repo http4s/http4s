@@ -20,7 +20,9 @@ package jawn
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
-import org.typelevel.jawn.{AsyncParser, Facade, ParseException}
+import org.typelevel.jawn.AsyncParser
+import org.typelevel.jawn.Facade
+import org.typelevel.jawn.ParseException
 import org.typelevel.jawn.fs2._
 
 trait JawnInstances {
@@ -34,7 +36,8 @@ trait JawnInstances {
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Concurrent, J: Facade](
-      m: Media[F]): DecodeResult[F, J] =
+      m: Media[F]
+  ): DecodeResult[F, J] =
     DecodeResult {
       m.body.chunks
         .parseJson(AsyncParser.SingleValue)

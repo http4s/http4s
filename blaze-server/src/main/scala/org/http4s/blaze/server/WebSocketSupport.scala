@@ -17,25 +17,28 @@
 package org.http4s.blaze.server
 
 import cats.effect._
+import cats.effect.std.Dispatcher
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2.concurrent.SignallingRef
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets._
-import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
+import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketHandshake
 import org.typelevel.ci._
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
-import cats.effect.std.{Dispatcher, Semaphore}
 import org.typelevel.vault.Key
-import org.http4s.websocket.WebSocketContext
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
+import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit val F: Async[F]
+  implicit protected val F: Async[F]
 
   protected def webSocketKey: Key[WebSocketContext[F]]
 
@@ -46,7 +49,8 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   override protected def renderResponse(
       req: Request[F],
       resp: Response[F],
-      cleanup: () => Future[ByteBuffer]): Unit = {
+      cleanup: () => Future[ByteBuffer],
+  ): Unit = {
     val ws = resp.attributes.lookup(webSocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
@@ -63,8 +67,9 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   .map(
                     _.withHeaders(
                       Connection(ci"close"),
-                      "Sec-WebSocket-Version" -> "13"
-                    ))
+                      "Sec-WebSocket-Version" -> "13",
+                    )
+                  )
                   .attempt
                   .flatMap {
                     case Right(resp) =>
@@ -106,7 +111,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                         sentClose,
                         deadSignal,
                         writeSemaphore,
-                        dispatcher
+                        dispatcher,
                       )
                     ) // TODO: there is a constructor
                       .prepend(new WSFrameAggregator)

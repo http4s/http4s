@@ -17,7 +17,10 @@
 package org.http4s
 
 import com.comcast.ip4s._
-import org.http4s.Uri.{Authority, RegName, Scheme, UserInfo}
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
+import org.http4s.Uri.UserInfo
 import org.http4s.UriTemplate._
 import org.typelevel.ci._
 
@@ -68,17 +71,20 @@ class UriTemplateSpec extends Http4sSuite {
     test("UriTemplate should render /orders{/id}") {
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), PathExp("id"))).toString,
-        "/orders{/id}")
+        "/orders{/id}",
+      )
     }
     test("UriTemplate should render /orders{/id,item}") {
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), PathExp("id", "item"))).toString,
-        "/orders{/id,item}")
+        "/orders{/id,item}",
+      )
     }
     test("UriTemplate should render /orders{id}") {
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), VarExp("id"))).toString,
-        "/orders{id}")
+        "/orders{id}",
+      )
     }
     test("UriTemplate should render {id,item}") {
       assertEquals(UriTemplate(path = List(VarExp("id", "item"))).toString, "{id,item}")
@@ -86,17 +92,20 @@ class UriTemplateSpec extends Http4sSuite {
     test("UriTemplate should render /orders{id,item}") {
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), VarExp("id", "item"))).toString,
-        "/orders{id,item}")
+        "/orders{id,item}",
+      )
     }
     test("UriTemplate should render /some/test{rel}") {
       assertEquals(
         UriTemplate(path = List(PathElm("some"), PathElm("test"), VarExp("rel"))).toString,
-        "/some/test{rel}")
+        "/some/test{rel}",
+      )
     }
     test("UriTemplate should render /some{rel}/test") {
       assertEquals(
         UriTemplate(path = List(PathElm("some"), VarExp("rel"), PathElm("test"))).toString,
-        "/some{rel}/test")
+        "/some{rel}/test",
+      )
     }
     test("UriTemplate should render /some{rel}/test{?id}") {
       val path = List(PathElm("some"), VarExp("rel"), PathElm("test"))
@@ -148,14 +157,16 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamExp("start", "limit"), ParamElm("item", List("2", "4")))
       assertEquals(
         UriTemplate(path = path, query = query).toString,
-        "/orders?item=2&item=4{&start,limit}")
+        "/orders?item=2&item=4{&start,limit}",
+      )
     }
     test("UriTemplate should render /orders?item=2&item=4{&start}{&limit}") {
       val path = List(PathElm("orders"))
       val query = List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit"))
       assertEquals(
         UriTemplate(path = path, query = query).toString,
-        "/orders?item=2&item=4{&start}{&limit}")
+        "/orders?item=2&item=4{&start}{&limit}",
+      )
     }
     test("UriTemplate should render /search?option{&term}") {
       val path = List(PathElm("search"))
@@ -185,7 +196,8 @@ class UriTemplateSpec extends Http4sSuite {
       val fragment = List(SimpleFragmentExp("section"))
       assertEquals(
         UriTemplate(path = path, query = query, fragment = fragment).toString,
-        "{path}/search{?term}{#section}")
+        "{path}/search{?term}{#section}",
+      )
     }
     test("UriTemplate should render {+path}/search{?term}{#section}") {
       val path = List(ReservedExp("path"), PathElm("search"))
@@ -193,7 +205,8 @@ class UriTemplateSpec extends Http4sSuite {
       val fragment = List(SimpleFragmentExp("section"))
       assertEquals(
         UriTemplate(path = path, query = query, fragment = fragment).toString,
-        "{+path}/search{?term}{#section}")
+        "{+path}/search{?term}{#section}",
+      )
     }
     test("UriTemplate should render {+var}") {
       val path = List(ReservedExp("var"))
@@ -210,7 +223,8 @@ class UriTemplateSpec extends Http4sSuite {
       val fragment = List(FragmentElm(""))
       assertEquals(
         UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toString,
-        "/?#")
+        "/?#",
+      )
     }
     test("UriTemplate should render /#") {
       val fragment = List(FragmentElm(""))
@@ -224,7 +238,8 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("bar", "baz"))
       assertEquals(
         UriTemplate(scheme, authority, path, query).toString,
-        "http://[1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab]/foo?bar=baz")
+        "http://[1ab:1ab:1ab:1ab:1ab:1ab:1ab:1ab]/foo?bar=baz",
+      )
     }
     test("UriTemplate should render http://www.foo.com/foo?bar=baz") {
       val scheme = Some(Scheme.http)
@@ -234,7 +249,8 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("bar", "baz"))
       assertEquals(
         UriTemplate(scheme, authority, path, query).toString,
-        "http://www.foo.com/foo?bar=baz")
+        "http://www.foo.com/foo?bar=baz",
+      )
     }
     test("UriTemplate should render http://www.foo.com:80") {
       val scheme = Some(Scheme.http)
@@ -247,14 +263,17 @@ class UriTemplateSpec extends Http4sSuite {
     test("UriTemplate should render http://www.foo.com") {
       assertEquals(
         UriTemplate(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com")))).toString,
-        "http://www.foo.com")
+        "http://www.foo.com",
+      )
     }
     test("UriTemplate should render http://192.168.1.1") {
       assertEquals(
         UriTemplate(
           Some(Scheme.http),
-          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1")))).toString,
-        "http://192.168.1.1")
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"))),
+        ).toString,
+        "http://192.168.1.1",
+      )
     }
     test("UriTemplate should render http://192.168.1.1:8080") {
       val scheme = Some(Scheme.http)
@@ -272,7 +291,8 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       assertEquals(
         UriTemplate(scheme, authority, path, query).toString,
-        "http://192.168.1.1:80/c?GB=object&Class=one")
+        "http://192.168.1.1:80/c?GB=object&Class=one",
+      )
     }
     test("UriTemplate should render http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080") {
       val scheme = Some(Scheme.http)
@@ -280,7 +300,8 @@ class UriTemplateSpec extends Http4sSuite {
       val authority = Some(Authority(host = host, port = Some(8080)))
       assertEquals(
         UriTemplate(scheme, authority).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080",
+      )
     }
     test("UriTemplate should render http://[2001:db8::7]") {
       val scheme = Some(Scheme.http)
@@ -296,23 +317,24 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       assertEquals(
         UriTemplate(scheme, authority, path, query).toString,
-        "http://[2001:db8::7]/c?GB=object&Class=one")
+        "http://[2001:db8::7]/c?GB=object&Class=one",
+      )
     }
     test("UriTemplate should render http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]") {
       assertEquals(
         UriTemplate(
           Some(Scheme.http),
-          Some(
-            Authority(host =
-              Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344")))).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]"
+          Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))),
+        ).toString,
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]",
       )
     }
     test("UriTemplate should render email address (not supported at the moment)") {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(Some(scheme"mailto"), path = List(PathElm("John.Doe@example.com"))).toString,
-        "mailto:/John.Doe@example.com")
+        "mailto:/John.Doe@example.com",
+      )
       // but should be "mailto:John.Doe@example.com"
     }
     test("UriTemplate should render http://username:password@some.example.com") {
@@ -321,13 +343,16 @@ class UriTemplateSpec extends Http4sSuite {
       val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       assertEquals(
         UriTemplate(scheme, authority).toString,
-        "http://username:password@some.example.com")
+        "http://username:password@some.example.com",
+      )
       assertEquals(
         UriTemplate(scheme, authority, Nil).toString,
-        "http://username:password@some.example.com")
+        "http://username:password@some.example.com",
+      )
     }
     test(
-      "UriTemplate should render http://username:password@some.example.com/some/path?param1=5&param-without-value") {
+      "UriTemplate should render http://username:password@some.example.com/some/path?param1=5&param-without-value"
+    ) {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
@@ -335,7 +360,8 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       assertEquals(
         UriTemplate(scheme, authority, path, query).toString,
-        "http://username:password@some.example.com/some/path?param1=5&param-without-value")
+        "http://username:password@some.example.com/some/path?param1=5&param-without-value",
+      )
     }
   }
 
@@ -384,7 +410,8 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(query = List(ParamElm("switch", List("foo", "bar")))).toUriIfPossible.get,
-        uri"?switch=foo&switch=bar")
+        uri"?switch=foo&switch=bar",
+      )
     }
     test("UriTemplate.toUriIfPossible should convert /{?id} to UriTemplate") {
       val tpl = UriTemplate(query = List(ParamExp("id")))
@@ -409,7 +436,8 @@ class UriTemplateSpec extends Http4sSuite {
       assert(tpl.toUriIfPossible.isFailure)
     }
     test(
-      "UriTemplate.toUriIfPossible should convert /orders?item=2&item=4{&start,limit} to UriTemplate") {
+      "UriTemplate.toUriIfPossible should convert /orders?item=2&item=4{&start,limit} to UriTemplate"
+    ) {
       val path = List(PathElm("orders"))
       val query = List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit"))
       val tpl = UriTemplate(path = path, query = query)
@@ -435,10 +463,12 @@ class UriTemplateSpec extends Http4sSuite {
       val fragment = List(FragmentElm("test"))
       assertEquals(
         UriTemplate(fragment = fragment).toUriIfPossible.get,
-        Uri(fragment = Some("test")))
+        Uri(fragment = Some("test")),
+      )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert {path}/search{?term}{#section} to UriTemplate") {
+      "UriTemplate.toUriIfPossible should convert {path}/search{?term}{#section} to UriTemplate"
+    ) {
       val path = List(VarExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
       val fragment = List(SimpleFragmentExp("section"))
@@ -446,7 +476,8 @@ class UriTemplateSpec extends Http4sSuite {
       assert(tpl.toUriIfPossible.isFailure)
     }
     test(
-      "UriTemplate.toUriIfPossible should convert {+path}/search{?term}{#section} to UriTemplate") {
+      "UriTemplate.toUriIfPossible should convert {+path}/search{?term}{#section} to UriTemplate"
+    ) {
       val path = List(ReservedExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
       val fragment = List(SimpleFragmentExp("section"))
@@ -456,20 +487,23 @@ class UriTemplateSpec extends Http4sSuite {
     test("UriTemplate.toUriIfPossible should convert /? to Uri") {
       assertEquals(
         UriTemplate(query = List(ParamElm("", Nil)), fragment = Nil).toUriIfPossible.get,
-        Uri(query = Query.unsafeFromString("")))
+        Uri(query = Query.unsafeFromString("")),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert /?# to Uri") {
       val fragment = List(FragmentElm(""))
       assertEquals(
         UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toUriIfPossible.get,
-        Uri(query = Query.unsafeFromString(""), fragment = Some("")))
+        Uri(query = Query.unsafeFromString(""), fragment = Some("")),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert /# to Uri") {
       val fragment = List(FragmentElm(""))
       assertEquals(UriTemplate(fragment = fragment).toUriIfPossible.get, Uri(fragment = Some("")))
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/{rel}/search{?term}{#section} to UriTemplate") {
+      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/{rel}/search{?term}{#section} to UriTemplate"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab")
       val authority = Some(Authority(host = host))
@@ -480,7 +514,8 @@ class UriTemplateSpec extends Http4sSuite {
       assert(tpl.toUriIfPossible.isFailure)
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]:8080/{rel}/search{?term}{#section} to UriTemplate") {
+      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]:8080/{rel}/search{?term}{#section} to UriTemplate"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab")
       val authority = Some(Authority(host = host, port = Some(8080)))
@@ -491,7 +526,8 @@ class UriTemplateSpec extends Http4sSuite {
       assert(tpl.toUriIfPossible.isFailure)
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz Uri") {
+      "UriTemplate.toUriIfPossible should convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab")
       val authority = Some(Authority(host = host))
@@ -500,7 +536,8 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")))
+        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com/foo?bar=baz to Uri") {
       val scheme = Some(Scheme.http)
@@ -511,7 +548,8 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")))
+        Uri(scheme, authority, path"/foo", Query.unsafeFromString("bar=baz")),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com:80 to Uri") {
       val scheme = Some(Scheme.http)
@@ -520,7 +558,8 @@ class UriTemplateSpec extends Http4sSuite {
       val path = Nil
       assertEquals(
         UriTemplate(scheme, authority, path).toUriIfPossible.get,
-        Uri(scheme, authority, Uri.Path.empty))
+        Uri(scheme, authority, Uri.Path.empty),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert http://www.foo.com to Uri") {
       val scheme = Some(Scheme.http)
@@ -529,8 +568,10 @@ class UriTemplateSpec extends Http4sSuite {
       assertEquals(
         UriTemplate(
           Some(Scheme.http),
-          Some(Authority(host = RegName(ci"www.foo.com")))).toUriIfPossible.get,
-        Uri(scheme, authority))
+          Some(Authority(host = RegName(ci"www.foo.com"))),
+        ).toUriIfPossible.get,
+        Uri(scheme, authority),
+      )
     }
     test("UriTemplate.toUriIfPossible should convert http://192.168.1.1 to Uri") {
       val scheme = Some(Scheme.http)
@@ -545,13 +586,16 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(ParamElm("", Nil))
       assertEquals(
         UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get,
-        Uri(scheme, authority, Uri.Path.empty, Query.unsafeFromString("")))
+        Uri(scheme, authority, Uri.Path.empty, Query.unsafeFromString("")),
+      )
       assertEquals(
         UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get,
-        Uri(scheme, authority, Uri.Path.empty, Query.empty))
+        Uri(scheme, authority, Uri.Path.empty, Query.empty),
+      )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://192.168.1.1:80/c?GB=object&Class=one to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://192.168.1.1:80/c?GB=object&Class=one to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv4Address(ipv4"192.168.1.1")
       val authority = Some(Authority(host = host, port = Some(80)))
@@ -560,10 +604,12 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")))
+        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")),
+      )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[2001:db8::7]/c?GB=object&Class=one to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://[2001:db8::7]/c?GB=object&Class=one to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"2001:db8::7")
       val authority = Some(Authority(host = host))
@@ -572,33 +618,39 @@ class UriTemplateSpec extends Http4sSuite {
       import org.http4s.syntax.all._
       assertEquals(
         UriTemplate(scheme, authority, path, query).toUriIfPossible.get,
-        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")))
+        Uri(scheme, authority, path"/c", Query.unsafeFromString("GB=object&Class=one")),
+      )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344] to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344] to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"2001:0db8:85a3:08d3:1319:8a2e:0370:7344")
       val authority = Some(Authority(None, host, None))
       assertEquals(UriTemplate(scheme, authority).toUriIfPossible.get, Uri(scheme, authority))
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080 to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080 to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = Uri.Ipv6Address(ipv6"2001:0db8:85a3:08d3:1319:8a2e:0370:7344")
       val authority = Some(Authority(None, host, Some(8080)))
       assertEquals(UriTemplate(scheme, authority).toUriIfPossible.get, Uri(scheme, authority))
     }
     test(
-      "UriTemplate.toUriIfPossible should convert https://username:password@some.example.com to Uri") {
+      "UriTemplate.toUriIfPossible should convert https://username:password@some.example.com to Uri"
+    ) {
       val scheme = Some(Scheme.https)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
       assertEquals(
         UriTemplate(scheme, authority, Nil, Nil, Nil).toUriIfPossible.get,
-        Uri(scheme, authority))
+        Uri(scheme, authority),
+      )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://username:password@some.example.com/some/path?param1=5&param-without-value to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://username:password@some.example.com/some/path?param1=5&param-without-value to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
@@ -611,11 +663,13 @@ class UriTemplateSpec extends Http4sSuite {
           scheme,
           authority,
           path"/some/path",
-          Query.unsafeFromString("param1=5&param-without-value"))
+          Query.unsafeFromString("param1=5&param-without-value"),
+        ),
       )
     }
     test(
-      "UriTemplate.toUriIfPossible should convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri") {
+      "UriTemplate.toUriIfPossible should convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri"
+    ) {
       val scheme = Some(Scheme.http)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some(UserInfo("username", Some("password"))), host, None))
@@ -630,7 +684,8 @@ class UriTemplateSpec extends Http4sSuite {
           authority,
           path"/some/path",
           Query.unsafeFromString("param1=5&param-without-value"),
-          Some("sec-1.2"))
+          Some("sec-1.2"),
+        ),
       )
     }
   }
@@ -640,57 +695,67 @@ class UriTemplateSpec extends Http4sSuite {
       val path = List(VarExp("path"))
       assertEquals(
         UriTemplate(path = path).expandAny("path", "123"),
-        UriTemplate(path = List(PathElm("123"))))
+        UriTemplate(path = List(PathElm("123"))),
+      )
     }
     test("UriTemplate.expandAny should expand {+path} to /123") {
       val path = List(ReservedExp("path"))
       assertEquals(
         UriTemplate(path = path).expandAny("path", "123"),
-        UriTemplate(path = List(PathElm("123"))))
+        UriTemplate(path = List(PathElm("123"))),
+      )
     }
     test("UriTemplate.expandAny should expand /?ref={path} to /?ref=123") {
       val query = List(ParamVarExp("ref", "path"))
       assertEquals(
         UriTemplate(query = query).expandAny("path", "123"),
-        UriTemplate(query = List(ParamElm("ref", "123"))))
+        UriTemplate(query = List(ParamElm("ref", "123"))),
+      )
     }
     test("UriTemplate.expandAny should expand /?ref={file,folder} to /?ref=123&ref={folder}") {
       val query = List(ParamVarExp("ref", List("file", "folder")))
       assertEquals(
         UriTemplate(query = query).expandAny("file", "123"),
-        UriTemplate(query = List(ParamElm("ref", "123"), ParamVarExp("ref", "folder"))))
+        UriTemplate(query = List(ParamElm("ref", "123"), ParamVarExp("ref", "folder"))),
+      )
     }
     test("UriTemplate.expandAny should expand /?ref={+path} to /?ref=123") {
       val query = List(ParamReservedExp("ref", "path"))
       assertEquals(
         UriTemplate(query = query).expandAny("path", "123"),
-        UriTemplate(query = List(ParamElm("ref", "123"))))
+        UriTemplate(query = List(ParamElm("ref", "123"))),
+      )
     }
     test("UriTemplate.expandAny should expand /?ref={+file,folder} to /?ref=123&ref={+folder}") {
       val query = List(ParamReservedExp("ref", List("file", "folder")))
       assertEquals(
         UriTemplate(query = query).expandAny("file", "123"),
-        UriTemplate(query = List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder"))))
+        UriTemplate(query = List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder"))),
+      )
     }
     test("UriTemplate.expandAny should expand {/id} to /123") {
       val path = List(PathExp("id"))
       assertEquals(
         UriTemplate(path = path).expandAny("id", "123"),
-        UriTemplate(path = List(PathElm("123"))))
+        UriTemplate(path = List(PathElm("123"))),
+      )
     }
     test("UriTemplate.expandAny should expand /id{/id} to /id/123") {
       val path = List(PathElm("id"), VarExp("id"))
       assertEquals(
         UriTemplate(path = path).expandAny("id", "123"),
-        UriTemplate(path = List(PathElm("id"), PathElm("123"))))
+        UriTemplate(path = List(PathElm("id"), PathElm("123"))),
+      )
     }
     test(
-      "UriTemplate.expandAny should expand /orders{/id,item} to UriTemplate /orders/123{/item}") {
+      "UriTemplate.expandAny should expand /orders{/id,item} to UriTemplate /orders/123{/item}"
+    ) {
       val id = VarExp("id")
       val item = VarExp("item")
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), id, item)).expandAny("id", "123"),
-        UriTemplate(path = List(PathElm("orders"), PathElm("123"), item)))
+        UriTemplate(path = List(PathElm("orders"), PathElm("123"), item)),
+      )
     }
     test("UriTemplate.expandAny should expand nothing") {
       val tpl = UriTemplate()
@@ -703,33 +768,39 @@ class UriTemplateSpec extends Http4sSuite {
       val path = List(VarExp("id"))
       assertEquals(
         UriTemplate(path = path).expandPath("id", "123"),
-        UriTemplate(path = List(PathElm("123"))))
+        UriTemplate(path = List(PathElm("123"))),
+      )
     }
     test("UriTemplate.expandPath should expand {+path} to /foo/bar") {
       val path = List(ReservedExp("path"))
       assertEquals(
         UriTemplate(path = path).expandPath("path", List("foo", "bar")),
-        UriTemplate(path = List(PathElm("foo"), PathElm("bar"))))
+        UriTemplate(path = List(PathElm("foo"), PathElm("bar"))),
+      )
     }
     test("UriTemplate.expandPath should expand {/id} to /123") {
       val path = List(PathExp("id"))
       assertEquals(
         UriTemplate(path = path).expandPath("id", "123"),
-        UriTemplate(path = List(PathElm("123"))))
+        UriTemplate(path = List(PathElm("123"))),
+      )
     }
     test("UriTemplate.expandPath should expand /id{/id} to /id/123") {
       val path = List(PathElm("id"), VarExp("id"))
       assertEquals(
         UriTemplate(path = path).expandPath("id", "123"),
-        UriTemplate(path = List(PathElm("id"), PathElm("123"))))
+        UriTemplate(path = List(PathElm("id"), PathElm("123"))),
+      )
     }
     test(
-      "UriTemplate.expandPath should expand /orders{/id,item} to UriTemplate /orders/123{/item}") {
+      "UriTemplate.expandPath should expand /orders{/id,item} to UriTemplate /orders/123{/item}"
+    ) {
       val id = VarExp("id")
       val item = VarExp("item")
       assertEquals(
         UriTemplate(path = List(PathElm("orders"), id, item)).expandPath("id", "123"),
-        UriTemplate(path = List(PathElm("orders"), PathElm("123"), item)))
+        UriTemplate(path = List(PathElm("orders"), PathElm("123"), item)),
+      )
     }
     test("UriTemplate.expandPath should expand nothing") {
       val path = List(PathElm("id"), VarExp("id"))
@@ -744,31 +815,36 @@ class UriTemplateSpec extends Http4sSuite {
       val query = List(exp)
       assertEquals(
         UriTemplate(query = query).expandQuery("start", 123),
-        UriTemplate(query = List(ParamElm("start", "123"))))
+        UriTemplate(query = List(ParamElm("start", "123"))),
+      )
     }
     test("UriTemplate.expandQuery should expand /{?switch} to /?switch") {
       val query = List(ParamExp("switch"))
       assertEquals(
         UriTemplate(query = query).expandQuery("switch"),
-        UriTemplate(query = List(ParamElm("switch"))))
+        UriTemplate(query = List(ParamElm("switch"))),
+      )
     }
     test("UriTemplate.expandQuery should expand /{?term} to /?term=") {
       val query = List(ParamExp("term"))
       assertEquals(
         UriTemplate(query = query).expandQuery("term", ""),
-        UriTemplate(query = List(ParamElm("term", List("")))))
+        UriTemplate(query = List(ParamElm("term", List("")))),
+      )
     }
     test("UriTemplate.expandQuery should expand /?={path} to /?=123") {
       val query = List(ParamVarExp("", "path"))
       assertEquals(
         UriTemplate(query = query).expandQuery("path", 123L),
-        UriTemplate(query = List(ParamElm("", "123"))))
+        UriTemplate(query = List(ParamElm("", "123"))),
+      )
     }
     test("UriTemplate.expandQuery should expand /?={path} to /?=25.1&=56.9") {
       val query = List(ParamVarExp("", "path"))
       assertEquals(
         UriTemplate(query = query).expandQuery("path", List(25.1, 56.9)),
-        UriTemplate(query = List(ParamElm("", List("25.1", "56.9")))))
+        UriTemplate(query = List(ParamElm("", List("25.1", "56.9")))),
+      )
     }
     test("UriTemplate.expandQuery should expand /orders{?start} to /orders?start=123&start=456") {
       val exp = ParamExp("start")
@@ -776,16 +852,19 @@ class UriTemplateSpec extends Http4sSuite {
       val path = List(PathElm("orders"))
       assertEquals(
         UriTemplate(path = path, query = query).expandQuery("start", List("123", "456")),
-        UriTemplate(path = path, query = List(ParamElm("start", List("123", "456")))))
+        UriTemplate(path = path, query = List(ParamElm("start", List("123", "456")))),
+      )
     }
     test(
-      "UriTemplate.expandQuery should expand /orders{?start,limit} to UriTemplate /orders?start=123{&limit}") {
+      "UriTemplate.expandQuery should expand /orders{?start,limit} to UriTemplate /orders?start=123{&limit}"
+    ) {
       val start = ParamExp("start")
       val limit = ParamExp("limit")
       val path = List(PathElm("orders"))
       assertEquals(
         UriTemplate(path = path, query = List(start, limit)).expandQuery("start", List("123")),
-        UriTemplate(path = path, query = List(ParamElm("start", "123"), limit)))
+        UriTemplate(path = path, query = List(ParamElm("start", "123"), limit)),
+      )
     }
     test("UriTemplate.expandQuery should expand nothing") {
       val tpl = UriTemplate(query = List(ParamExp("some")))
@@ -804,7 +883,8 @@ class UriTemplateSpec extends Http4sSuite {
 
       assertEquals(
         UriTemplate(path = path, query = List(types)).expandQuery("type", Foo("whee"))(qpe),
-        UriTemplate(path = path, query = List(ParamElm("type", "whee"))))
+        UriTemplate(path = path, query = List(ParamElm("type", "whee"))),
+      )
     }
   }
 
@@ -813,25 +893,29 @@ class UriTemplateSpec extends Http4sSuite {
       val fragment = List(SimpleFragmentExp("section"))
       assertEquals(
         UriTemplate(fragment = fragment).expandFragment("section", "sec2.1"),
-        UriTemplate(fragment = List(FragmentElm("sec2.1"))))
+        UriTemplate(fragment = List(FragmentElm("sec2.1"))),
+      )
     }
     test("UriTemplate.expandFragment should expand /{#x,y} to /#23{#y}") {
       val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y")))
       assertEquals(
         tpl.expandFragment("x", "23"),
-        UriTemplate(fragment = List(FragmentElm("23"), MultiFragmentExp("y"))))
+        UriTemplate(fragment = List(FragmentElm("23"), MultiFragmentExp("y"))),
+      )
     }
     test("UriTemplate.expandFragment should expand /{#x,y} to UriTemplate /#42{#x}") {
       val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y")))
       assertEquals(
         tpl.expandFragment("y", "42"),
-        UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x"))))
+        UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x"))),
+      )
     }
     test("UriTemplate.expandFragment should expand /{#x,y,z} to UriTemplate /#42{#x,z}") {
       val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y", "z")))
       assertEquals(
         tpl.expandFragment("y", "42"),
-        UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x", "z"))))
+        UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x", "z"))),
+      )
     }
     test("UriTemplate.expandFragment should expand nothing") {
       val fragment = List(FragmentElm("sec1.2"), SimpleFragmentExp("section"))

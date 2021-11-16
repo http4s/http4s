@@ -18,10 +18,12 @@ package org.http4s
 package headers
 
 import cats.Applicative
-import cats.parse.{Parser0, Rfc5234}
-import org.http4s.parser.ZipkinHeader
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser0
+import cats.parse.Rfc5234
 import org.http4s.Header
+import org.http4s.parser.ZipkinHeader
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `X-B3-ParentSpanId` {
@@ -44,7 +46,7 @@ object `X-B3-ParentSpanId` {
           def render(writer: Writer): writer.type =
             xB3RenderValueImpl(writer, h.id)
         },
-      parse
+      parse,
     )
 
 }

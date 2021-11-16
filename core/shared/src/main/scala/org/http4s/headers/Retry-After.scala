@@ -17,10 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.util.Renderable._
-import scala.concurrent.duration.FiniteDuration
 import org.typelevel.ci._
+
+import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
@@ -32,7 +34,8 @@ object `Retry-After` {
     else
       ParseResult.fail(
         "Invalid retry value",
-        s"Retry param $retry must be more or equal than 0 seconds")
+        s"Retry param $retry must be more or equal than 0 seconds",
+      )
 
   def unsafeFromLong(retry: Long): `Retry-After` =
     fromLong(retry).fold(throw _, identity)
@@ -59,7 +62,7 @@ object `Retry-After` {
     Header.createRendered(
       ci"Retry-After",
       _.retry,
-      parse
+      parse,
     )
 
 }

@@ -20,7 +20,8 @@ package middleware
 
 import cats.Applicative
 import cats.data.Kleisli
-import org.http4s.Status.{BadRequest, NotFound}
+import org.http4s.Status.BadRequest
+import org.http4s.Status.NotFound
 import org.http4s.headers.Host
 
 /** Middleware for virtual host mapping
@@ -45,7 +46,8 @@ object VirtualHost {
   def exact[F[_], G[_]](
       http: Http[F, G],
       requestHost: String,
-      port: Option[Int] = None): HostService[F, G] =
+      port: Option[Int] = None,
+  ): HostService[F, G] =
     HostService(http, h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
 
   /** Create a [[HostService]] that will match based on the host string allowing
@@ -55,7 +57,8 @@ object VirtualHost {
   def wildcard[F[_], G[_]](
       http: Http[F, G],
       wildcardHost: String,
-      port: Option[Int] = None): HostService[F, G] =
+      port: Option[Int] = None,
+  ): HostService[F, G] =
     regex(http, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
   /** Create a [[HostService]] that uses a regular expression to match the host
@@ -65,16 +68,19 @@ object VirtualHost {
   def regex[F[_], G[_]](
       http: Http[F, G],
       hostRegex: String,
-      port: Option[Int] = None): HostService[F, G] = {
+      port: Option[Int] = None,
+  ): HostService[F, G] = {
     val r = hostRegex.r
     HostService(
       http,
-      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
+      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port),
+    )
   }
 
   def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(implicit
       F: Applicative[F],
-      W: EntityEncoder[G, String]): Http[F, G] =
+      W: EntityEncoder[G, String],
+  ): Http[F, G] =
     Kleisli { req =>
       req.headers
         .get[Host]

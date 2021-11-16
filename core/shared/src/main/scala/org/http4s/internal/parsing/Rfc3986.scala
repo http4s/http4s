@@ -17,10 +17,14 @@
 package org.http4s
 package internal.parsing
 
-import cats.parse.Parser.{char, charIn, string}
 import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser.string
 import cats.syntax.all._
-import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Ipv6Address
+
 import java.nio.ByteBuffer
 
 /** Common rules defined in Rfc3986
@@ -80,7 +84,9 @@ private[http4s] object Rfc3986 {
   }
 
   val ipv4Address: Parser[Ipv4Address] =
-    ipv4Bytes.map { case (a, b, c, d) => Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt) }
+    ipv4Bytes.map { case (a, b, c, d) =>
+      Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
+    }.backtrack
 
   val ipv6Address: Parser[Ipv6Address] = {
     import cats.parse.{Parser => P}

@@ -17,21 +17,22 @@
 package org.http4s.ember.client.internal
 
 import com.comcast.ip4s.Host
+import com.comcast.ip4s.Hostname
+import com.comcast.ip4s.IDN
+import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.SocketAddress
 import fs2.io.net.tls.TLSParameters
-import com.comcast.ip4s.Hostname
-import scala.annotation.tailrec
-import com.comcast.ip4s.IpAddress
-import com.comcast.ip4s.IDN
 
 import scala.annotation.nowarn
+import scala.annotation.tailrec
 
 private[internal] trait ClientHelpersPlatform {
 
-  @nowarn // ("cat=unused"), but Scala 3 doesn't implement this category
+  @nowarn("msg=never used")
   private[internal] def mkTLSParameters(
       address: Option[SocketAddress[Host]],
-      enableEndpointValidation: Boolean): TLSParameters =
+      enableEndpointValidation: Boolean,
+  ): TLSParameters =
     TLSParameters(
       servername = address.map(a => extractHostname(a.host))
     ) // TODO how to enable endpoint validation?

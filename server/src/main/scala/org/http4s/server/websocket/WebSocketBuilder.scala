@@ -19,7 +19,8 @@ package server.websocket
 
 import cats.Applicative
 import cats.syntax.all._
-import fs2.{Pipe, Stream}
+import fs2.Pipe
+import fs2.Stream
 import org.http4s.websocket.WebSocketFrame
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -32,13 +33,14 @@ import org.http4s.websocket.WebSocketFrame
   */
 @deprecated(
   "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
-  "0.23.5")
+  "0.23.5",
+)
 final case class WebSocketBuilder[F[_]: Applicative](
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
-    filterPingPongs: Boolean
+    filterPingPongs: Boolean,
 ) {
 
   private lazy val delegate: WebSocketBuilder2[F] =
@@ -95,18 +97,21 @@ final case class WebSocketBuilder[F[_]: Applicative](
     */
   def build(
       send: Stream[F, WebSocketFrame],
-      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] =
+      receive: Pipe[F, WebSocketFrame, Unit],
+  ): F[Response[F]] =
     delegate.build(send, receive)
 
 }
 
 @deprecated(
   "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
-  "0.23.5")
+  "0.23.5",
+)
 object WebSocketBuilder {
   @deprecated(
     "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
-    "0.23.5")
+    "0.23.5",
+  )
   def apply[F[_]: Applicative]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
@@ -115,6 +120,6 @@ object WebSocketBuilder {
       onHandshakeFailure =
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
-      filterPingPongs = true
+      filterPingPongs = true,
     )
 }

@@ -19,7 +19,9 @@ package headers
 
 import cats.parse.Parser
 import org.http4s
-import org.http4s.EntityTag.{Strong, Weakness, parser => entityTagParser}
+import org.http4s.EntityTag.Strong
+import org.http4s.EntityTag.Weakness
+import org.http4s.EntityTag.{parser => entityTagParser}
 import org.typelevel.ci._
 
 object ETag {
@@ -44,7 +46,7 @@ object ETag {
     Header.create(
       ci"ETag",
       _.tag.toString,
-      parse
+      parse,
     )
 }
 

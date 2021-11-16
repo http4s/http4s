@@ -21,16 +21,18 @@ package util
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
-import scala.concurrent.{ExecutionContext, Future}
+
+import java.nio.ByteBuffer
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(implicit
     protected val F: Async[F],
-    protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    protected val ec: ExecutionContext,
+) extends Http1Writer[F] {
 
   private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null

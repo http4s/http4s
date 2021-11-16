@@ -35,13 +35,15 @@ import scala.collection.JavaConverters._
 
 object RoutesToNettyAdapter {
   def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): F[ChannelInboundHandler] =
+      F: Async[F]
+  ): F[ChannelInboundHandler] =
     RoutesToHandlerAdapter[F](routes, dispatcher).flatMap(HandlersToNettyAdapter[F](Map.empty, _))
 }
 
 object RoutesToHandlerAdapter {
   def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): F[RoutesToHandlerAdapter[F]] =
+      F: Async[F]
+  ): F[RoutesToHandlerAdapter[F]] =
     for {
       initialDummyQueue <- Queue.unbounded[F, Option[Chunk[Byte]]]
       requestBodyQueue <- Ref[F].of(initialDummyQueue)
@@ -51,7 +53,7 @@ object RoutesToHandlerAdapter {
 class RoutesToHandlerAdapter[F[_]](
     routes: HttpRoutes[F],
     dispatcher: Dispatcher[F],
-    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]]
+    requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]],
 )(implicit F: Async[F])
     extends Handler {
 
@@ -74,7 +76,8 @@ class RoutesToHandlerAdapter[F[_]](
 
   private def processRequest(
       ctx: ChannelHandlerContext,
-      http4sRequest: http4s.Request[F]): F[Unit] =
+      http4sRequest: http4s.Request[F],
+  ): F[Unit] =
     for {
       response <- routes.run(http4sRequest).value
       _ <- response.fold(
@@ -96,7 +99,7 @@ class RoutesToHandlerAdapter[F[_]](
           ctx,
           HttpResponseStatus.valueOf(response.status.code),
           Unpooled.copiedBuffer(bodyBytes),
-          makeNettyHeaders(response.headers)
+          makeNettyHeaders(response.headers),
         )
       ).liftToF
     }
@@ -108,13 +111,14 @@ class RoutesToHandlerAdapter[F[_]](
           HandlerHelpers.sendChunkedResponseHead(
             ctx,
             HttpResponseStatus.valueOf(response.status.code),
-            makeNettyHeaders(response.headers)
+            makeNettyHeaders(response.headers),
           )
         )
         .liftToF
       _ <- response.body.chunks
         .evalMap(chunk =>
-          F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF)
+          F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF
+        )
         .compile
         .drain
       _ <- F.delay(HandlerHelpers.sendEmptyLastChunk(ctx)).liftToF
@@ -132,7 +136,8 @@ class RoutesToHandlerAdapter[F[_]](
   override def onContent(
       ctx: ChannelHandlerContext,
       request: HttpRequest,
-      content: HttpContent): Unit = {
+      content: HttpContent,
+  ): Unit = {
     val bytes = new Array[Byte](content.content().readableBytes())
     content.content().readBytes(bytes)
     dispatcher.unsafeRunSync(requestBodyQueue.get.flatMap(_.offer(Some(Chunk.array(bytes)))))

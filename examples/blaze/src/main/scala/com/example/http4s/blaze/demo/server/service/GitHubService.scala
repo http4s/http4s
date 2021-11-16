@@ -21,10 +21,10 @@ import cats.syntax.functor._
 import com.example.http4s.blaze.demo.server.endpoints.ApiVersion
 import fs2.Stream
 import io.circe.generic.auto._
+import org.http4s.Request
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.Request
 import org.http4s.syntax.literals._
 
 // See: https://developer.github.com/apps/building-oauth-apps/authorization-options-for-oauth-apps/#web-application-flow
@@ -35,7 +35,7 @@ class GitHubService[F[_]: Concurrent](client: Client[F]) extends Http4sClientDsl
 
   private val RedirectUri = s"http://localhost:8080/$ApiVersion/login/github"
 
-  case class AccessTokenResponse(access_token: String)
+  private case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
     val uri = uri"https://github.com"

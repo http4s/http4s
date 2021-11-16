@@ -50,5 +50,6 @@ object QueryParamCodecLaws extends Laws {
       "decode . emapValidatedNel(InvalidNel) . encode == failedNel" -> forAll { (value: T) =>
         (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
           .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
-      })
+      },
+    )
 }

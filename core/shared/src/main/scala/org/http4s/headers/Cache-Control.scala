@@ -19,11 +19,13 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse._
-import java.util.concurrent.TimeUnit
 import org.http4s.CacheDirective._
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
-import org.http4s.parser.{AdditionalRules}
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
+
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control") {
@@ -44,7 +46,8 @@ object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control")
         Parser.ignoreCase("no-transform").as(`no-transform`) ::
         Parser.ignoreCase("max-age=") *> DeltaSeconds.map(s => `max-age`(s)) ::
         Parser.ignoreCase("max-stale") *> (Parser.string("=") *> DeltaSeconds).?.map(s =>
-          `max-stale`(s)) ::
+          `max-stale`(s)
+        ) ::
         Parser.ignoreCase("min-fresh=") *> DeltaSeconds.map(s => `min-fresh`(s)) ::
         Parser.ignoreCase("only-if-cached").as(`only-if-cached`) ::
         Parser.ignoreCase("public").as(`public`) ::
@@ -56,11 +59,12 @@ object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control")
         Parser.ignoreCase("s-maxage=") *> DeltaSeconds.map(s => `s-maxage`(s)) ::
         Parser.ignoreCase("stale-if-error=") *> DeltaSeconds.map(s => `stale-if-error`(s)) ::
         Parser.ignoreCase("stale-while-revalidate=") *> DeltaSeconds.map(s =>
-          `stale-while-revalidate`(s)) ::
-        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map({
+          `stale-while-revalidate`(s)
+        ) ::
+        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map {
           case (name: String, arg: Option[String]) =>
             org.http4s.CacheDirective(CIString(name), arg)
-        }) :: Nil
+        } :: Nil
     )
 
   private[http4s] val parser: Parser[`Cache-Control`] =

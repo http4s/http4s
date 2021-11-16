@@ -16,14 +16,16 @@
 
 package org.http4s
 
-import java.util.Locale
-
 import cats.Hash
-import cats.syntax.all._
 import cats.kernel.laws.discipline._
+import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, forAllNoShrink, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.forAllNoShrink
+import org.scalacheck.Prop.propBoolean
+
+import java.util.Locale
 
 class MethodSuite extends Http4sSuite {
   import Method._
@@ -50,7 +52,7 @@ class MethodSuite extends Http4sSuite {
         Gen
           .oneOf(
             Gen.choose('\u0000', '\u001F'),
-            Gen.oneOf("()<>@,;:\\\"/[]?={} \t\u007F")
+            Gen.oneOf("()<>@,;:\\\"/[]?={} \t\u007F"),
           )
           .map(_.toString)
 

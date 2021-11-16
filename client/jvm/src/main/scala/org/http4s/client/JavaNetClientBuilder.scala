@@ -17,17 +17,26 @@
 package org.http4s
 package client
 
-import cats.effect.{Async, Resource, Sync}
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.{readInputStream, writeOutputStream}
-import java.io.IOException
-import java.net.{HttpURLConnection, Proxy, URL}
-import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import fs2.io.readInputStream
+import fs2.io.writeOutputStream
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.typelevel.ci.CIString
-import scala.concurrent.duration.{Duration, FiniteDuration}
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.Proxy
+import java.net.URL
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLSocketFactory
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -46,7 +55,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val readTimeout: Duration,
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
-    val sslSocketFactory: Option[SSLSocketFactory]
+    val sslSocketFactory: Option[SSLSocketFactory],
 )(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
@@ -54,14 +63,14 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       readTimeout: Duration = readTimeout,
       proxy: Option[Proxy] = proxy,
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
   ): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
       hostnameVerifier = hostnameVerifier,
-      sslSocketFactory = sslSocketFactory
+      sslSocketFactory = sslSocketFactory,
     ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder[F] =
@@ -78,7 +87,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withProxyOption(None)
 
   def withHostnameVerifierOption(
-      hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder[F] =
+      hostnameVerifier: Option[HostnameVerifier]
+  ): JavaNetClientBuilder[F] =
     copy(hostnameVerifier = hostnameVerifier)
   def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder[F] =
     withHostnameVerifierOption(Some(hostnameVerifier))
@@ -86,7 +96,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withHostnameVerifierOption(None)
 
   def withSslSocketFactoryOption(
-      sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder[F] =
+      sslSocketFactory: Option[SSLSocketFactory]
+  ): JavaNetClientBuilder[F] =
     copy(sslSocketFactory = sslSocketFactory)
   def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(Some(sslSocketFactory))
@@ -139,7 +150,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .filter(_._1 != null)
             .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
-        ))
+        )
+      )
     } yield Response(status = status, headers = headers, body = readBody(conn))
 
   private def timeoutMillis(d: Duration): Int =
@@ -208,6 +220,6 @@ object JavaNetClientBuilder {
       readTimeout = defaults.RequestTimeout,
       proxy = None,
       hostnameVerifier = None,
-      sslSocketFactory = None
+      sslSocketFactory = None,
     ) {}
 }

@@ -370,7 +370,7 @@ class TlsSuite extends Http4sSuite {
     "TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256" -> 128,
     "TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384" -> 256,
     "TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256" -> 128,
-    "TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256" -> 128
+    "TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256" -> 128,
   )
 
   cipherSuiteMap.foreach { case (name, expectedValue) =>

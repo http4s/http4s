@@ -16,15 +16,16 @@
 
 package org.http4s.client.oauth1
 
-import org.http4s.crypto.HmacAlgorithm
-import org.http4s.crypto.Hmac
 import cats.MonadThrow
-import cats.syntax.all._
-import org.http4s.client.oauth1.SignatureAlgorithm.Names._
-import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
-import scodec.bits.ByteVector
-import org.http4s.crypto.SecretKeySpec
 import cats.effect.SyncIO
+import cats.syntax.all._
+import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
+import org.http4s.client.oauth1.SignatureAlgorithm.Names._
+import org.http4s.crypto.Hmac
+import org.http4s.crypto.HmacAlgorithm
+import org.http4s.crypto.SecretKeySpec
+import scodec.bits.ByteVector
+
 import scala.annotation.nowarn
 
 object SignatureAlgorithm {
@@ -53,8 +54,11 @@ object SignatureAlgorithm {
   private[oauth1] def unsafeFromMethod(method: SignatureMethod): SignatureAlgorithm =
     AllMethods
       .find(_.name == method.headerValue)
-      .getOrElse(throw new IllegalArgumentException(
-        s"Unrecognized headerValue '${method.headerValue}', Valid options are: ${AllMethods.map(_.name)}"))
+      .getOrElse(
+        throw new IllegalArgumentException(
+          s"Unrecognized headerValue '${method.headerValue}', Valid options are: ${AllMethods.map(_.name)}"
+        )
+      )
 
 }
 
@@ -82,7 +86,8 @@ trait SignatureAlgorithm {
   private[oauth1] def generateHMAC[F[_]: MonadThrow: Hmac](
       input: String,
       algorithm: HmacAlgorithm,
-      secretKey: String): F[String] =
+      secretKey: String,
+  ): F[String] =
     for {
       keyData <- ByteVector.encodeUtf8(secretKey).liftTo[F]
       sk = SecretKeySpec(keyData, algorithm)

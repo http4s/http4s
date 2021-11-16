@@ -17,8 +17,9 @@
 package org.http4s
 package parser
 
+import org.http4s.Uri.Ipv4Address
+import org.http4s.Uri.Ipv6Address
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.Uri.{Ipv4Address, Ipv6Address}
 import org.scalacheck.Prop
 
 class Rfc3986ParserSpec extends Http4sSuite {
@@ -115,25 +116,29 @@ class Rfc3986ParserSpec extends Http4sSuite {
   }
 
   test(
-    "Rfc3986 ipv6 parser should not parse an invalid ipv6 address containing an invalid letter such as 'O'") {
+    "Rfc3986 ipv6 parser should not parse an invalid ipv6 address containing an invalid letter such as 'O'"
+  ) {
     val invalidIp = "1200:0000:AB00:1234:O000:2552:7777:1313"
     assert(Ipv6Address.fromString(invalidIp).isLeft)
   }
 
   test(
-    "Rfc3986 ipv6 parser should only parse part of an invalid ipv6 address where a single section is shortened (must be 2 or more)") {
+    "Rfc3986 ipv6 parser should only parse part of an invalid ipv6 address where a single section is shortened (must be 2 or more)"
+  ) {
     val invalidIp = "2001:db8::1:1:1:1:1"
     assert(Ipv6Address.fromString(invalidIp).map(_.value).isLeft)
   }
 
   test(
-    "Rfc3986 ipv6 parser should only parse part of an ipv6 address where multiple sections are shortened (only 1 allowed)") {
+    "Rfc3986 ipv6 parser should only parse part of an ipv6 address where multiple sections are shortened (only 1 allowed)"
+  ) {
     val invalidIp = "56FE::2159:5BBC::6594"
     assert(Ipv6Address.fromString(invalidIp).map(_.value).isLeft)
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse an ipv6 address which is too long (only parse what can be used)") {
+    "Rfc3986 ipv6 parser should parse an ipv6 address which is too long (only parse what can be used)"
+  ) {
     val ipv6 = "56FE:2159:5BBC:6594:1234:5678:9018:0123:2020"
     assert(Ipv6Address.fromString(ipv6).map(_.value).isLeft)
   }
@@ -144,43 +149,50 @@ class Rfc3986ParserSpec extends Http4sSuite {
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 6 sections and then ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 6 sections and then ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "2001:db8:0:0:0:0:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("2001:db8::7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 4 sections + a shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 4 sections + a shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "2001:db8:0:0::127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("2001:db8::7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 3 sections + a shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 3 sections + a shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "2001:db8:0::0:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("2001:db8::7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 2 sections + a shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 2 sections + a shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "2001:db8::0:0:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("2001:db8::7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 1 section + a shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 1 section + a shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "2001::db8:0:0:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("2001::db8:0:0:7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 0 sections + a shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 0 sections + a shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "::2001:db8:0:0:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("::2001:db8:0:0:7f00:1"))
   }
 
   test(
-    "Rfc3986 ipv6 parser should parse ipv6 address with 0 sections + a single shortened section + ipv4 address for the last 32 bits") {
+    "Rfc3986 ipv6 parser should parse ipv6 address with 0 sections + a single shortened section + ipv4 address for the last 32 bits"
+  ) {
     val ipv6 = "::ffff:127.0.0.1"
     assertEquals(Ipv6Address.fromString(ipv6).map(_.value), Right("::ffff:7f00:1"))
   }

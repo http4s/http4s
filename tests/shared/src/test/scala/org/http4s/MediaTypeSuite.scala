@@ -16,10 +16,10 @@
 
 package org.http4s
 
-import cats.syntax.show._
 import cats.kernel.laws.discipline.EqTests
-import org.http4s.laws.discipline.arbitrary._
+import cats.syntax.show._
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
 
 class MediaTypeSuite extends Http4sSuite {
@@ -35,7 +35,8 @@ class MediaTypeSuite extends Http4sSuite {
       MediaType.text.html
         .withExtensions(Map("foo" -> "bar"))
         .show,
-      """text/html; foo="bar"""")
+      """text/html; foo="bar"""",
+    )
   }
 
   test("MediaType should Encode extensions with special characters") {
@@ -43,7 +44,8 @@ class MediaTypeSuite extends Http4sSuite {
       MediaType.text.html
         .withExtensions(Map("foo" -> ";"))
         .show,
-      """text/html; foo=";"""")
+      """text/html; foo=";"""",
+    )
   }
 
   test("MediaType should Escape special chars in media range extensions") {
@@ -51,12 +53,14 @@ class MediaTypeSuite extends Http4sSuite {
       MediaType.text.html
         .withExtensions(Map("foo" -> "\\"))
         .show,
-      """text/html; foo="\\"""")
+      """text/html; foo="\\"""",
+    )
     assertEquals(
       MediaType.text.html
         .withExtensions(Map("foo" -> "\""))
         .show,
-      """text/html; foo="\""""")
+      """text/html; foo="\""""",
+    )
   }
 
   test("MediaType should reject invalid literals") {

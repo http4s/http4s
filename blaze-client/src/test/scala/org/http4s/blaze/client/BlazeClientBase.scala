@@ -40,7 +40,7 @@ trait BlazeClientBase extends Http4sSuite {
       responseHeaderTimeout: Duration = 30.seconds,
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
-      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
+      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO]
@@ -63,11 +63,14 @@ trait BlazeClientBase extends Http4sSuite {
           HttpRoutes.of[IO] { case _ @(Method.GET -> path) =>
             GetRoutes.getPaths.getOrElse(path.toString, NotFound())
           },
-          dispatcher))
+          dispatcher,
+        )
+      )
       scaffold <- ServerScaffold[IO](
         num,
         secure,
-        HandlersToNettyAdapter[IO](postHandlers, getHandler))
+        HandlersToNettyAdapter[IO](postHandlers, getHandler),
+      )
     } yield scaffold
 
   private def postHandlers: Map[(HttpMethod, String), Handler] =
@@ -79,7 +82,8 @@ trait BlazeClientBase extends Http4sSuite {
             ctx,
             HttpResponseStatus.OK,
             HandlerHelpers.utf8Text("a"),
-            closeConnection = true)
+            closeConnection = true,
+          )
           ()
         }
 
@@ -100,7 +104,7 @@ trait BlazeClientBase extends Http4sSuite {
           HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
           ()
         }
-      }
+      },
     )
 
   val server = resourceSuiteFixture("http", makeScaffold(2, false))

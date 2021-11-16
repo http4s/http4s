@@ -20,7 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.CharsetRange.{Atom, `*`}
+import org.http4s.CharsetRange.*
+import org.http4s.CharsetRange.Atom
 import org.typelevel.ci._
 
 object `Accept-Charset` {
@@ -56,7 +57,7 @@ object `Accept-Charset` {
     Header.createRendered(
       ci"Accept-Charset",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Charset`] =

@@ -36,14 +36,14 @@ object HandlersToNettyAdapter {
 
   def apply[F[_]](
       handlers: Map[(HttpMethod, String), Handler],
-      fallbackHandler: Handler = defaultFallbackHandler
+      fallbackHandler: Handler = defaultFallbackHandler,
   )(implicit F: Sync[F]): F[ChannelInboundHandler] =
     F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
 }
 
 class HandlersToNettyAdapter private (
     handlers: Map[(HttpMethod, String), Handler],
-    fallbackHandler: Handler
+    fallbackHandler: Handler,
 ) extends SimpleChannelInboundHandler[HttpObject] {
 
   private val logger = getLogger(this.getClass)
@@ -56,14 +56,15 @@ class HandlersToNettyAdapter private (
     msg match {
       case request: HttpRequest =>
         logger.trace(
-          s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}].")
+          s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}]."
+        )
         if (HttpUtil.is100ContinueExpected(request)) {
           ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
         } else {
           currentRequest = request
           currentHandler = handlers.getOrElse(
             (request.method(), new URI(request.uri()).getPath()),
-            fallbackHandler
+            fallbackHandler,
           )
           currentHandler.onRequestStart(ctx, currentRequest)
         }
@@ -104,12 +105,14 @@ trait Handler {
 
   def onRequestStart(
       @deprecated("unused", "") ctx: ChannelHandlerContext,
-      @deprecated("unused", "") request: HttpRequest): Unit = ()
+      @deprecated("unused", "") request: HttpRequest,
+  ): Unit = ()
 
   def onContent(
       @deprecated("unused", "") ctx: ChannelHandlerContext,
       @deprecated("unused", "") request: HttpRequest,
-      @deprecated("unused", "") content: HttpContent): Unit = ()
+      @deprecated("unused", "") content: HttpContent,
+  ): Unit = ()
 
   def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit
 
@@ -122,7 +125,8 @@ object HandlerHelpers {
       status: HttpResponseStatus,
       content: ByteBuf = Unpooled.buffer(0),
       headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
-      closeConnection: Boolean = false): ChannelFuture = {
+      closeConnection: Boolean = false,
+  ): ChannelFuture = {
     val response = new DefaultFullHttpResponse(HTTP_1_1, status, content)
     response.headers().setAll(headers)
     response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
@@ -134,7 +138,7 @@ object HandlerHelpers {
   def sendChunkedResponseHead(
       ctx: ChannelHandlerContext,
       status: HttpResponseStatus,
-      headers: HttpHeaders = EmptyHttpHeaders.INSTANCE
+      headers: HttpHeaders = EmptyHttpHeaders.INSTANCE,
   ): ChannelFuture = {
     val response = new DefaultHttpResponse(HTTP_1_1, status)
     response.headers().setAll(headers)

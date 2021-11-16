@@ -20,12 +20,13 @@ package middleware
 
 import cats.Applicative
 import cats.data.Kleisli
-import fs2.Stream._
-import fs2.Chunk
-import java.nio.charset.StandardCharsets
 import cats.syntax.all._
+import fs2.Chunk
+import fs2.Stream._
 import org.http4s.headers._
 import org.log4s.getLogger
+
+import java.nio.charset.StandardCharsets
 
 /** Middleware to support wrapping json responses in jsonp.
   *

@@ -41,7 +41,7 @@ trait TestServer[F[_]] {
 
 class NettyTestServer[F[_]](
     establishedConnectionsRef: Ref[F, Long],
-    val localAddress: SocketAddress[IpAddress]
+    val localAddress: SocketAddress[IpAddress],
 ) extends TestServer[F] {
   def establishedConnections: F[Long] = establishedConnectionsRef.get
   def resetEstablishedConnections: F[Unit] = establishedConnectionsRef.set(0L)
@@ -54,7 +54,7 @@ object NettyTestServer {
       port: Int,
       makeHandler: F[ChannelInboundHandler],
       sslContext: Option[SSLContext],
-      dispatcher: Dispatcher[F]
+      dispatcher: Dispatcher[F],
   ): Resource[F, NettyTestServer[F]] = for {
     bossGroup <- nioEventLoopGroup[F]
     workerGroup <- nioEventLoopGroup[F]
@@ -90,13 +90,15 @@ object NettyTestServer {
     Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
-      F: Async[F]): Resource[F, Channel] =
+      F: Async[F]
+  ): Resource[F, Channel] =
     Resource.make[F, Channel](
       F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
   private def toSocketAddress(
-      addr: InetSocketAddress): Either[Exception, SocketAddress[IpAddress]] =
+      addr: InetSocketAddress
+  ): Either[Exception, SocketAddress[IpAddress]] =
     for {
       ip <- IpAddress
         .fromString(addr.getAddress.getHostAddress)

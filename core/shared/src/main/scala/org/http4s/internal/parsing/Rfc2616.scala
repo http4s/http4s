@@ -17,8 +17,11 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Parser.{char, charIn, string}
-import cats.parse.Rfc5234.{digit, sp}
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser.string
+import cats.parse.Rfc5234.digit
+import cats.parse.Rfc5234.sp
 
 /** Common rules defined in RFC2616.  This RFC is now obsolete,
   * but some other active ones still refer to it.
@@ -51,7 +54,8 @@ private[http4s] object Rfc2616 {
       year: Int,
       hour: Int,
       min: Int,
-      sec: Int)
+      sec: Int,
+  )
 
   val rfc1123Date: Parser[Rfc1123Date] = {
     /* wkday        = "Mon" | "Tue" | "Wed"
@@ -82,7 +86,8 @@ private[http4s] object Rfc2616 {
         "Sep",
         "Oct",
         "Nov",
-        "Dec").zipWithIndex
+        "Dec",
+      ).zipWithIndex
         .map { case (s, i) => string(s).as(i + 1) }
         .reduceLeft(_.orElse(_))
 

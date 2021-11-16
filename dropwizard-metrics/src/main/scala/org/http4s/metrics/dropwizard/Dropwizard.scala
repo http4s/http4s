@@ -18,12 +18,16 @@ package org.http4s.metrics.dropwizard
 
 import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
-import java.util.concurrent.TimeUnit
-
-import org.http4s.{Method, Status}
+import org.http4s.Method
+import org.http4s.Status
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
+import org.http4s.metrics.TerminationType.Abnormal
+import org.http4s.metrics.TerminationType.Canceled
+import org.http4s.metrics.TerminationType.Error
+import org.http4s.metrics.TerminationType.Timeout
+
+import java.util.concurrent.TimeUnit
 
 /** [[MetricsOps]] algebra capable of recording Dropwizard metrics
   *
@@ -78,7 +82,8 @@ object Dropwizard {
     * @param prefix a prefix that will be added to all metrics
     */
   def apply[F[_]](registry: MetricRegistry, prefix: String = "org.http4s.server")(implicit
-      F: Sync[F]): MetricsOps[F] =
+      F: Sync[F]
+  ): MetricsOps[F] =
     new MetricsOps[F] {
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
         F.delay {
@@ -93,7 +98,8 @@ object Dropwizard {
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
-          classifier: Option[String]): F[Unit] =
+          classifier: Option[String],
+      ): F[Unit] =
         F.delay {
           registry
             .timer(s"${namespace(prefix, classifier)}.requests.headers")
@@ -104,7 +110,8 @@ object Dropwizard {
           method: Method,
           status: Status,
           elapsed: Long,
-          classifier: Option[String]): F[Unit] =
+          classifier: Option[String],
+      ): F[Unit] =
         F.delay {
           registry
             .timer(s"${namespace(prefix, classifier)}.requests.total")
@@ -118,7 +125,8 @@ object Dropwizard {
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
-          classifier: Option[String]): F[Unit] =
+          classifier: Option[String],
+      ): F[Unit] =
         terminationType match {
           case Abnormal(_) => recordAbnormal(elapsed, classifier)
           case Error(_) => recordError(elapsed, classifier)

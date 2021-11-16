@@ -16,8 +16,10 @@
 
 package org.http4s
 
-import cats.{Applicative, Monad}
-import cats.data.{Kleisli, OptionT}
+import cats.Applicative
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 
 object AuthedRoutes {
@@ -32,7 +34,8 @@ object AuthedRoutes {
     * @return an [[AuthedRoutes]] that wraps `run`
     */
   def apply[T, F[_]](run: AuthedRequest[F, T] => OptionT[F, Response[F]])(implicit
-      F: Monad[F]): AuthedRoutes[T, F] =
+      F: Monad[F]
+  ): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(F.unit >> run(req).value))
 
   /** Lifts a partial function into an [[AuthedRoutes]].  The application of the
@@ -45,7 +48,8 @@ object AuthedRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(implicit
-      FA: Monad[F]): AuthedRoutes[T, F] =
+      FA: Monad[F]
+  ): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(FA.unit >> pf.lift(req).sequence))
 
   /** The empty service (all requests fallthrough).

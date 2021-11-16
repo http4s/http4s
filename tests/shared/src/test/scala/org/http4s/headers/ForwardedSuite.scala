@@ -16,14 +16,16 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
-
 import cats.instances.string._
 import cats.syntax.option._
+import org.http4s.ParseFailure
+import org.http4s.Uri
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.{ParseFailure, Uri}
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 import org.scalacheck.Prop._
+
+import java.nio.charset.StandardCharsets
 
 class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenerators {
 
@@ -37,14 +39,15 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
       ("1.2.3.4", Name.ofIpv4Address(1, 2, 3, 4)),
       ("[1:2:3::4:5:6]", Name.ofIpv6Address(1, 2, 3, 0, 0, 4, 5, 6)),
       ("_a.b1-r2a_", Obfuscated("_a.b1-r2a_")),
-      ("unknown", Name.Unknown)
+      ("unknown", Name.Unknown),
     ).foreach { case (nameStr, parsedName) =>
       assertEquals(Node.fromString(nameStr), Right(Node(parsedName)))
 
       List(
         ("000", Port(0)),
         ("567", Port(567)),
-        ("__k3a.d4ab5.r6a-", Obfuscated("__k3a.d4ab5.r6a-")))
+        ("__k3a.d4ab5.r6a-", Obfuscated("__k3a.d4ab5.r6a-")),
+      )
         .foreach { case (portStr, parsedPort) =>
           assertEquals(Node.fromString(s"$nameStr:$portStr"), Right(Node(parsedName, parsedPort)))
         }
@@ -70,7 +73,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
       "_foo~bar", // illegal char '~' in obfuscated name
       "unknown:_foo~bar", // illegal char '~' in the obfuscated node port
       "http4s.org", // reg-name is not allowed
-      ":567" // node name is missed
+      ":567", // node name is missed
     )
 
     invalidNodes.foreach { nodeStr =>
@@ -92,7 +95,8 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
     }
   }
   test(
-    "Node.Obfuscated fromString should fail to parse obfuscated values that don't start with '_'") {
+    "Node.Obfuscated fromString should fail to parse obfuscated values that don't start with '_'"
+  ) {
     val obfGen =
       for {
         firstCh <- obfuscatedCharGen if firstCh != '_'
@@ -109,7 +113,8 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
     }
   }
   test(
-    "Node.Obfuscated fromString should fail to parse obfuscated values that contain invalid symbols") {
+    "Node.Obfuscated fromString should fail to parse obfuscated values that contain invalid symbols"
+  ) {
     val obfGen =
       for {
         initChs <- Gen.listOf(obfuscatedCharGen)
@@ -145,9 +150,11 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
 
     forAll { (genUri: Uri, portNum: Int) =>
       val newUri =
-        genUri.copy(authority = genUri.authority
-          .map(_.copy(port = Some(portNum)))
-          .orElse(Some(Uri.Authority(port = Some(portNum)))))
+        genUri.copy(authority =
+          genUri.authority
+            .map(_.copy(port = Some(portNum)))
+            .orElse(Some(Uri.Authority(port = Some(portNum))))
+        )
 
       Host.fromUri(newUri) match {
         case Left(p: ParseFailure) => assertEquals(p.sanitized, "invalid port number")
@@ -167,7 +174,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
               assertEquals(
                 actual.toString,
                 // TODO: `Uri.decode` should not be necessary here. Remove when #1651 (or #2012) get fixed.
-                Uri.decode(expected.toString, StandardCharsets.ISO_8859_1)
+                Uri.decode(expected.toString, StandardCharsets.ISO_8859_1),
               )
             case _ => assertEquals(host.host, uriAuth.host)
           }
@@ -187,7 +194,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
       "aaa.bbb :12", // whitespace
       "aaa.bbb: 12", // whitespace
       "aaa.bbb:12 ", // whitespace
-      "aaa?bbb" // illegal symbol
+      "aaa?bbb", // illegal symbol
     )
 
     invalidHosts.foreach { hostStr =>

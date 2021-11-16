@@ -16,18 +16,21 @@
 
 package org.http4s.blaze.server
 
-import java.net.ProtocolException
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.server.WSFrameAggregator.Accumulator
 import org.http4s.blaze.util.Execution._
 import org.http4s.internal.bug
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
+import scodec.bits.ByteVector
+
+import java.net.ProtocolException
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.concurrent.{Future, Promise}
-import scala.util.{Failure, Success}
-import scodec.bits.ByteVector
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.util.Failure
+import scala.util.Success
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
   def name: String = "WebSocket Frame Aggregator"
@@ -51,7 +54,8 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
       case c: Continuation =>
         if (accumulator.isEmpty) {
           val e = new ProtocolException(
-            "Invalid state: Received a Continuation frame without accumulated state.")
+            "Invalid state: Received a Continuation frame without accumulated state."
+          )
           logger.error(e)("Invalid state")
           p.failure(e)
           ()

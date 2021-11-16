@@ -16,16 +16,17 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import fs2.Stream
 import org.http4s._
-import org.http4s.server.Server
-import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.implicits._
+import org.http4s.server.Server
 
-import java.net.{BindException, ConnectException}
+import java.net.BindException
+import java.net.ConnectException
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -56,7 +57,8 @@ class EmberServerSuite extends Http4sSuite {
       .default[IO]
       .withHttpApp(service[IO])
       .withReceiveBufferSize(receiveBufferSize)
-      .build)
+      .build
+  )
 
   def fixture(receiveBufferSize: Int = 256 * 1024) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))

@@ -35,7 +35,8 @@ object ServerScaffold {
 
   // high-level API
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
-      F: Async[F]): Resource[F, ServerScaffold[F]] =
+      F: Async[F]
+  ): Resource[F, ServerScaffold[F]] =
     for {
       dispatcher <- Dispatcher[F]
       scaffold <- apply(num, secure, RoutesToNettyAdapter[F](routes, dispatcher))
@@ -43,12 +44,14 @@ object ServerScaffold {
 
   // mid-level API
   def apply[F[_]](num: Int, secure: Boolean, handlers: Map[(HttpMethod, String), Handler])(implicit
-      F: Async[F]): Resource[F, ServerScaffold[F]] =
+      F: Async[F]
+  ): Resource[F, ServerScaffold[F]] =
     apply[F](num, secure, HandlersToNettyAdapter(handlers))
 
   // low-level API
   def apply[F[_]](num: Int, secure: Boolean, makeHandler: F[ChannelInboundHandler])(implicit
-      F: Async[F]): Resource[F, ServerScaffold[F]] =
+      F: Async[F]
+  ): Resource[F, ServerScaffold[F]] =
     for {
       dispatcher <- Dispatcher[F]
       maybeSsl <-
@@ -65,7 +68,8 @@ object ServerScaffold {
 
     val kmf = KeyManagerFactory.getInstance(
       Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-        .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+        .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+    )
 
     kmf.init(ks, "secure".toCharArray)
 

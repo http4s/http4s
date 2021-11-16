@@ -20,8 +20,9 @@ import cats.effect._
 import com.codahale.metrics.MetricRegistry
 import com.example.http4s.ExampleService
 import org.http4s.metrics.dropwizard.Dropwizard
-import org.http4s.server.{HttpMiddleware, Server}
 import org.http4s.metrics.dropwizard._
+import org.http4s.server.HttpMiddleware
+import org.http4s.server.Server
 import org.http4s.server.middleware.Metrics
 import org.http4s.tomcat.server.TomcatBuilder
 

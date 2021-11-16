@@ -29,7 +29,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
       RequestLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -41,7 +41,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     ResponseLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
       RequestLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -52,8 +52,8 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
 
@@ -63,7 +63,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       requestColor: String = RequestLogger.defaultRequestColor,
       responseColor: Response[F] => String = ResponseLogger.defaultResponseColor[F] _,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     ResponseLogger.colored(logHeaders, logBody, redactHeadersWhen, responseColor, logAction)(
       RequestLogger.colored(logHeaders, logBody, redactHeadersWhen, requestColor, logAction)(

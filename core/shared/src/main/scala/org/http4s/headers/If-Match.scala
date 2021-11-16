@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.parse._
 import cats.syntax.foldable._
 import org.http4s.internal.parsing.Rfc7230
-
 import org.typelevel.ci._
 
 object `If-Match` {
@@ -50,7 +49,7 @@ object `If-Match` {
         case Some(nel) => nel.mkString_("", ",", "")
 
       },
-      parse
+      parse,
     )
 
 }

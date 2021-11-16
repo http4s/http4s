@@ -17,8 +17,8 @@
 package org.http4s.circe
 
 import cats.data.NonEmptyList
-import io.circe.DecodingFailure
 import cats.syntax.show._
+import io.circe.DecodingFailure
 
 /** Wraps a list of decoding failures as an [[java.lang.Exception]] when using
   * [[accumulatingJsonOf]] to decode JSON messages.

@@ -16,11 +16,13 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
-import cats.syntax.all._
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
-import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
+import cats.parse.{Parser => P}
+import cats.syntax.all._
 import org.http4s.util._
 
 /** HTTP's version number consists of two decimal digits separated by
@@ -143,7 +145,7 @@ object HttpVersion {
     `HTTP/1.0`,
     `HTTP/1.1`,
     `HTTP/2`,
-    `HTTP/3`
+    `HTTP/3`,
   )
 
   private[this] val right_1_0 = Right(`HTTP/1.0`)

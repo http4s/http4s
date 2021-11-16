@@ -35,7 +35,9 @@ package object scaffold {
               cf.cancel(true)
               ()
             })
-          }))
+          }
+        )
+      )
   }
 
   implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](val ff: F[A])
@@ -52,6 +54,8 @@ package object scaffold {
               f.cancel(true)
               ()
             })
-          }))
+          }
+        )
+      )
   }
 }

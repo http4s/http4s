@@ -21,8 +21,8 @@ import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.std.Supervisor
 import cats.syntax.all._
-import fs2.io.file.Files
 import fs2.Pipe
+import fs2.io.file.Files
 
 private[http4s] object MultipartDecoder {
   def decoder[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
@@ -65,7 +65,7 @@ private[http4s] object MultipartDecoder {
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
       failOnLimit: Boolean = false,
-      chunkSize: Int = 8192
+      chunkSize: Int = 8192,
   ): Resource[F, EntityDecoder[F, Multipart[F]]] =
     Supervisor[F].map { supervisor =>
       makeDecoder(
@@ -76,7 +76,7 @@ private[http4s] object MultipartDecoder {
           maxSizeBeforeWrite,
           maxParts,
           failOnLimit,
-          chunkSize
+          chunkSize,
         )
       )
     }
@@ -112,14 +112,15 @@ private[http4s] object MultipartDecoder {
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
-      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+      failOnLimit: Boolean = false,
+  ): EntityDecoder[F, Multipart[F]] =
     makeDecoder(
       MultipartParser.parseToPartsStreamedFile[F](
         _,
         headerLimit,
         maxSizeBeforeWrite,
         maxParts,
-        failOnLimit
+        failOnLimit,
       )
     )
 
@@ -135,7 +136,8 @@ private[http4s] object MultipartDecoder {
               .compile
               .toVector
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
+                Right(Multipart(parts, Boundary(boundary)))
+              )
               .handleError {
                 case e: InvalidMessageBodyFailure => Left(e)
                 case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
@@ -143,7 +145,8 @@ private[http4s] object MultipartDecoder {
           }
         case None =>
           DecodeResult.failureT(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+            InvalidMessageBodyFailure("Missing boundary extension to Content-Type")
+          )
       }
     }
 }

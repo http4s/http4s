@@ -16,13 +16,14 @@
 
 package org.http4s.server.middleware.authentication
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.server.AuthMiddleware
+import org.http4s.syntax.all._
 
 class AuthMiddlewareSuite extends Http4sSuite {
   type User = Long
@@ -243,17 +244,17 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    //Unauthenticated
+    // Unauthenticated
     (service <+> regularRoutes)
       .orNotFound(Request[IO](method = Method.POST))
       .map(_.status)
       .assertEquals(NotFound) *>
-      //Matched normally
+      // Matched normally
       (service <+> regularRoutes)
         .orNotFound(Request[IO](method = Method.GET))
         .map(_.status)
         .assertEquals(Ok) *>
-      //Unmatched
+      // Unmatched
       (service <+> regularRoutes)
         .orNotFound(Request[IO](method = Method.PUT))
         .map(_.status)

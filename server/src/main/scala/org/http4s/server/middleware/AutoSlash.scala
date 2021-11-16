@@ -18,7 +18,8 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Monad, MonoidK}
+import cats.Monad
+import cats.MonoidK
 import cats.data.Kleisli
 import cats.syntax.all._
 
@@ -29,8 +30,9 @@ import cats.syntax.all._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B])(implicit
-      F: MonoidK[F]): Kleisli[F, Request[G], B] =
+  def apply[F[_], G[_], B](
+      http: Kleisli[F, Request[G], B]
+  )(implicit F: MonoidK[F]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       http(req) <+> {
         val pathInfo = req.pathInfo

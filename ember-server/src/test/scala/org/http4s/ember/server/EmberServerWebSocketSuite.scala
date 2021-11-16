@@ -16,24 +16,26 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
-import cats.effect.std.{Dispatcher, Queue}
-import fs2.{Pipe, Stream}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
+import cats.syntax.all._
+import fs2.Pipe
+import fs2.Stream
 import org.http4s._
-import org.http4s.server.Server
-import org.http4s.implicits._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits._
+import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder2
-
-import org.java_websocket.client.WebSocketClient
-import java.net.URI
-import org.java_websocket.handshake.ServerHandshake
 import org.java_websocket.WebSocket
+import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
+import org.java_websocket.handshake.ServerHandshake
+
+import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
@@ -68,13 +70,14 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
-  case class Client(
+  sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
-      client: WebSocketClient) {
+      client: WebSocketClient,
+  ) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def close: IO[Unit] =
@@ -129,7 +132,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
+        dispatcher,
+      )
       _ <- client.connect
       _ <- client.close
     } yield ()
@@ -139,7 +143,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
+        dispatcher,
+      )
       _ <- client.connect
       _ <- client.send("foo")
       msg <- client.messages.take
@@ -151,7 +156,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher)
+        dispatcher,
+      )
       _ <- client.connect
       _ <- client.ping("hello")
       data <- client.pongs.take
@@ -163,7 +169,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
-        dispatcher)
+        dispatcher,
+      )
       _ <- client.connect
       _ <- client.messages.take
       _ <- client.remoteClosed.get

@@ -18,14 +18,17 @@ package org.http4s
 package blaze
 package client
 
-import cats.syntax.all._
 import cats.effect._
-import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
-import java.time.Instant
-import org.http4s.client.{Connection, ConnectionBuilder, RequestKey}
+import cats.effect.syntax.all._
+import cats.syntax.all._
+import org.http4s.client.Connection
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.RequestKey
 import org.http4s.internal.CollectionCompat
 import org.log4s.getLogger
+
+import java.time.Instant
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -43,12 +46,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
     semaphore: Semaphore[F],
-    implicit private val executionContext: ExecutionContext)(implicit F: Async[F])
+    implicit private val executionContext: ExecutionContext,
+)(implicit F: Async[F])
     extends ConnectionManager.Stateful[F, A] { self =>
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],
-      at: Instant)
+      at: Instant,
+  )
 
   private[this] val logger = getLogger
 
@@ -122,7 +127,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           }
           .evalOn(executionContext)
       }.void,
-      addToWaitQueue(key, callback)
+      addToWaitQueue(key, callback),
     )
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
@@ -132,7 +137,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
         ()
       } else {
         logger.error(
-          s"Max wait queue for limit of $maxWaitQueueLimit for $key reached, not scheduling.")
+          s"Max wait queue for limit of $maxWaitQueueLimit for $key reached, not scheduling."
+        )
         callback(Left(WaitQueueFullFailure()))
       }
     }
@@ -180,8 +186,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
               case None if numConnectionsCheckHolds(key) =>
                 F.delay(
-                  logger.debug(
-                    s"Active connection not found for $key. Creating new one. $stats")) *>
+                  logger.debug(s"Active connection not found for $key. Creating new one. $stats")
+                ) *>
                   createConnection(key, callback)
 
               case None if maxConnectionsPerRequestKey(key) <= 0 =>
@@ -190,26 +196,35 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if curTotal == maxTotal =>
                 val keys = idleQueues.keys
                 if (keys.nonEmpty)
-                  F.delay(logger.debug(
-                    s"No connections available for the desired key, $key. Evicting random and creating a new connection: $stats")) *>
+                  F.delay(
+                    logger.debug(
+                      s"No connections available for the desired key, $key. Evicting random and creating a new connection: $stats"
+                    )
+                  ) *>
                     F.delay(keys.iterator.drop(Random.nextInt(keys.size)).next()).flatMap {
                       randKey =>
                         getConnectionFromQueue(randKey).map(
                           _.fold(
-                            logger.warn(s"No connection to evict from the idleQueue for $randKey"))(
-                            _.shutdown())) *>
+                            logger.warn(s"No connection to evict from the idleQueue for $randKey")
+                          )(_.shutdown())
+                        ) *>
                           decrConnection(randKey)
                     } *>
                     createConnection(key, callback)
                 else
-                  F.delay(logger.debug(
-                    s"No connections available for the desired key, $key. Adding to waitQueue: $stats")) *>
+                  F.delay(
+                    logger.debug(
+                      s"No connections available for the desired key, $key. Adding to waitQueue: $stats"
+                    )
+                  ) *>
                     addToWaitQueue(key, callback)
 
               case None => // we're full up. Add to waiting queue.
                 F.delay(
                   logger.debug(
-                    s"No connections available for $key.  Waiting on new connection: $stats")) *>
+                    s"No connections available for $key.  Waiting on new connection: $stats"
+                  )
+                ) *>
                   addToWaitQueue(key, callback)
             }
 
@@ -261,14 +276,20 @@ private final class PoolManager[F[_], A <: Connection[F]](
       } *>
       findFirstAllowedWaiter.flatMap {
         case Some(Waiting(k, callback, _)) =>
-          F.delay(logger
-            .debug(
-              s"Connection returned could not be recycled, new connection needed for $key: $stats")) *>
+          F.delay(
+            logger
+              .debug(
+                s"Connection returned could not be recycled, new connection needed for $key: $stats"
+              )
+          ) *>
             createConnection(k, callback)
 
         case None =>
-          F.delay(logger.debug(
-            s"Connection could not be recycled for $key, no pending requests. Shrinking pool: $stats"))
+          F.delay(
+            logger.debug(
+              s"Connection could not be recycled for $key, no pending requests. Shrinking pool: $stats"
+            )
+          )
       }
 
   /** This is how connections are returned to the ConnectionPool.
@@ -328,13 +349,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
         findFirstAllowedWaiter.flatMap {
           case Some(Waiting(k, callback, _)) =>
             F.delay(
-              logger.debug(s"Invalidated connection for $key, new connection needed: $stats")) *>
+              logger.debug(s"Invalidated connection for $key, new connection needed: $stats")
+            ) *>
               createConnection(k, callback)
 
           case None =>
             F.delay(
               logger.debug(
-                s"Invalidated connection for $key, no pending requests. Shrinking pool: $stats"))
+                s"Invalidated connection for $key, no pending requests. Shrinking pool: $stats"
+              )
+            )
         }
     }
 

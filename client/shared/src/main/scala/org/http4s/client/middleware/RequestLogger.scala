@@ -18,12 +18,12 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect._
 import cats.effect.Ref
+import cats.effect._
 import cats.syntax.all._
 import fs2._
-import org.log4s.getLogger
 import org.http4s.internal.{Logger => InternalLogger}
+import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging Requests As They Are Processed
@@ -37,13 +37,13 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { request =>
       Logger.logMessage[F, Request[F]](request)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
@@ -51,28 +51,29 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { request =>
       InternalLogger.logMessageWithBodyText[F, Request[F]](request)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
   def customized[F[_]: Async](
       client: Client[F],
       logBody: Boolean = true,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(requestToText: Request[F] => F[String]): Client[F] =
     impl(client, logBody) { request =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       requestToText(request).flatMap(log)
     }
 
-  private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Request[F] => F[Unit])(
-      implicit F: Async[F]): Client[F] =
+  private def impl[F[_]](client: Client[F], logBody: Boolean)(
+      logMessage: Request[F] => F[Unit]
+  )(implicit F: Async[F]): Client[F] =
     Client { req =>
       if (!logBody)
         Resource.eval(logMessage(req)) *> client
@@ -110,7 +111,7 @@ object RequestLogger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       color: String = defaultRequestColor,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F])(implicit F: Async[F]): Client[F] =
     customized(client, logBody, logAction) { request =>
       import Console._

@@ -1,0 +1,3 @@
+fix.GeneralLinters
+fix.UseLiteralsSyntax
+fix.Fs2Linters

@@ -16,21 +16,21 @@
 
 package org.http4s.ember.server
 
-import fs2.Stream
 import cats.effect._
 import com.comcast.ip4s
+import fs2.Chunk
+import fs2.Stream
+import fs2.io.net._
 import org.http4s._
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
 import org.typelevel.ci._
 
 import scala.concurrent.duration._
-import fs2.Chunk
-import fs2.io.net._
-import org.http4s.ember.core.Parser
-import org.http4s.ember.core.Encoder
-import org.http4s.ember.core.EmberException
 
 class ConnectionSuite extends Http4sSuite {
 
@@ -55,7 +55,8 @@ class ConnectionSuite extends Http4sSuite {
 
   def serverResource(
       idleTimeout: FiniteDuration,
-      headerTimeout: FiniteDuration): Resource[IO, Server] =
+      headerTimeout: FiniteDuration,
+  ): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service)
@@ -63,7 +64,7 @@ class ConnectionSuite extends Http4sSuite {
       .withRequestHeaderReceiveTimeout(headerTimeout)
       .build
 
-  case class TestClient(client: Socket[IO]) {
+  sealed case class TestClient(client: Socket[IO]) {
     val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
@@ -86,7 +87,8 @@ class ConnectionSuite extends Http4sSuite {
 
   def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
-      headerTimeout: FiniteDuration = 60.seconds) = ResourceFixture(
+      headerTimeout: FiniteDuration = 60.seconds,
+  ) = ResourceFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
       client <- clientResource(ip4s.SocketAddress.fromInetSocketAddress(server.address))
@@ -129,7 +131,7 @@ class ConnectionSuite extends Http4sSuite {
         "POST /echo HTTP/1.1\r\n",
         "Accept: text/plain\r\n",
         "Content-Length: 100\r\n\r\n",
-        "less than 100 bytes"
+        "less than 100 bytes",
       )
       (for {
         _ <- client.writes(fs2.text.utf8.encode(request))
@@ -153,7 +155,7 @@ class ConnectionSuite extends Http4sSuite {
         "POST /unread HTTP/1.1\r\n",
         "Accept: text/plain\r\n",
         "Content-Length: 100\r\n\r\n",
-        "not enough bytes"
+        "not enough bytes",
       )
       for {
         _ <- client.writes(fs2.text.utf8.encode(request))

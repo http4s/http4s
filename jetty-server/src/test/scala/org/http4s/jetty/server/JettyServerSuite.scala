@@ -18,13 +18,16 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{IO, Temporal}
+import cats.effect.IO
+import cats.effect.Temporal
 import cats.syntax.all._
-import java.net.{HttpURLConnection, URL}
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
 import org.http4s.server.Server
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.io.Source
 
@@ -54,7 +57,7 @@ class JettyServerSuite extends Http4sSuite {
           case GET -> Root / "slow" =>
             Temporal[IO].sleep(50.millis) *> Ok("slow")
         },
-        "/"
+        "/",
       )
       .resource
 
@@ -65,7 +68,8 @@ class JettyServerSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   def post(server: Server, path: String, body: String): IO[String] =
     IO.blocking {

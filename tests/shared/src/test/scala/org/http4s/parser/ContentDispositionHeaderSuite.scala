@@ -33,10 +33,12 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
 
     assertEquals(
       wrongEncoding.renderString,
-      """Content-Disposition: form-data; filename="http4s ??"; filename*=UTF-8''http4s%20%C5%82%C5%82""")
+      """Content-Disposition: form-data; filename="http4s ??"; filename*=UTF-8''http4s%20%C5%82%C5%82""",
+    )
     assertEquals(
       correctOrder.renderString,
-      """Content-Disposition: form-data; filename="value2"; filename*=UTF-8''value1""")
+      """Content-Disposition: form-data; filename="value2"; filename*=UTF-8''value1""",
+    )
   }
 
 }

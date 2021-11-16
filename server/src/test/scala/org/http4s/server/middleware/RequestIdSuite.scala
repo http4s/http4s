@@ -22,6 +22,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
+
 import java.util.UUID
 
 class RequestIdSuite extends Http4sSuite {
@@ -31,7 +32,8 @@ class RequestIdSuite extends Http4sSuite {
         Ok(show"request-id: ${req.headers.get(headerKey).fold("None")(_.head.value)}")
       case req @ GET -> Root / "attribute" =>
         Ok(
-          show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}")
+          show"request-id: ${req.attributes.lookup(RequestId.requestIdAttrKey).getOrElse[String]("None")}"
+        )
     }
 
   private def requestIdFromBody(resp: Response[IO]) =
@@ -78,7 +80,8 @@ class RequestIdSuite extends Http4sSuite {
   test("propagate custom request id header from request to response") {
     val req = Request[IO](
       uri = uri"/request",
-      headers = Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"))
+      headers = Headers("X-Request-ID" -> "123", "X-Correlation-ID" -> "abc"),
+    )
     RequestId
       .httpRoutes(ci"X-Correlation-ID")(testService(ci"X-Correlation-ID"))
       .orNotFound(req)
@@ -129,7 +132,8 @@ class RequestIdSuite extends Http4sSuite {
       .orNotFound(req)
       .flatMap { resp =>
         requestIdFromBody(resp).map(
-          _ -> resp.attributes.lookup(RequestId.requestIdAttrKey).getOrElse("None"))
+          _ -> resp.attributes.lookup(RequestId.requestIdAttrKey).getOrElse("None")
+        )
       }
       .map { case (reqReqId, respReqId) =>
         reqReqId === "123" && respReqId === "123"

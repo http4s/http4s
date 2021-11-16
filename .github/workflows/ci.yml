@@ -36,6 +36,18 @@ jobs:
             java: adoptium@11
           - ci: ciNodeJS
             java: adoptium@17
+          - ci: ciJVM
+            scala: 2.12.15
+            java: adoptium@11
+          - ci: ciJVM
+            scala: 2.12.15
+            java: adoptium@17
+          - ci: ciJVM
+            scala: 3.1.0
+            java: adoptium@11
+          - ci: ciJVM
+            scala: 3.1.0
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -64,14 +76,17 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.1.0'
-        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' headerCheck test:headerCheck'
 
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' test:compile'
+
+      - name: Check Scalafix rules
+        if: matrix.scala != '3.1.0'
+        run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' 'scalafixAll --check'
 
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' mimaReportBinaryIssues
@@ -130,13 +145,6 @@ jobs:
       - if: startsWith(github.ref, 'refs/tags/v')
         run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Publish website
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -146,7 +154,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.15 website/makeSite website/ghpagesPushSite
+          sbt ++2.12.15 website/laikaSite website/ghpagesPushSite
 
                 
 
@@ -169,15 +177,8 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Build website
-        run: sbt ++${{ matrix.scala }} website/makeSite
+        run: sbt ++${{ matrix.scala }} website/laikaSite
 
   docs:
     name: Build docs
@@ -198,15 +199,8 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Build docs
-        run: sbt ++${{ matrix.scala }} docs/makeSite
+        run: sbt ++${{ matrix.scala }} docs/mdoc docs/laikaSite
 
   scalafix:
     name: Scalafix

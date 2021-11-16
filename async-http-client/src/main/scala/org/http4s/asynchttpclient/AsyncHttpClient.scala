@@ -18,20 +18,25 @@ package org.http4s
 package asynchttpclient
 package client
 
+import _root_.io.netty.buffer.Unpooled
+import _root_.io.netty.handler.codec.http.DefaultHttpHeaders
+import _root_.io.netty.handler.codec.http.HttpHeaders
 import cats.effect._
-import cats.effect.kernel.{Async, Resource}
+import cats.effect.kernel.Async
+import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
-import _root_.io.netty.handler.codec.http.{DefaultHttpHeaders, HttpHeaders}
-import _root_.io.netty.buffer.Unpooled
+import fs2.interop.reactivestreams.StreamSubscriber
+import fs2.interop.reactivestreams.StreamUnicastPublisher
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
+import org.asynchttpclient.request.body.generator.BodyGenerator
+import org.asynchttpclient.request.body.generator.ReactiveStreamsBodyGenerator
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.http4s.client.{Client, defaults}
+import org.http4s.client.Client
+import org.http4s.client.defaults
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
@@ -55,9 +60,10 @@ object AsyncHttpClient {
     Dispatcher[F].flatMap { dispatcher =>
       val client = Client[F] { req =>
         Resource(F.async[(Response[F], F[Unit])] { cb =>
-          F.delay(httpClient
-            .executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher)))
-            .as(None)
+          F.delay(
+            httpClient
+              .executeRequest(toAsyncRequest(req, dispatcher), asyncHandler(cb, dispatcher))
+          ).as(None)
         })
       }
 
@@ -67,15 +73,17 @@ object AsyncHttpClient {
   /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
   def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: Async[F]): F[(Client[F], F[Unit])] =
+      F: Async[F]
+  ): F[(Client[F], F[Unit])] =
     resource(config).allocated
 
   /** Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
     */
-  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: Async[F]): Resource[F, Client[F]] =
+  def resource[F[_]](
+      config: AsyncHttpClientConfig = defaultConfig
+  )(implicit F: Async[F]): Resource[F, Client[F]] =
     Resource.make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close())).flatMap {
       httpClient =>
         fromClient(httpClient)
@@ -88,7 +96,8 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: Async[F]): Stream[F, Client[F]] =
+      F: Async[F]
+  ): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
   /** Create a custom AsyncHttpClientConfig
@@ -104,7 +113,8 @@ object AsyncHttpClient {
   }
 
   private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])], dispatcher: Dispatcher[F])(
-      implicit F: Async[F]) =
+      implicit F: Async[F]
+  ) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -158,7 +168,8 @@ object AsyncHttpClient {
         val fa = onStreamCalled.get
           .ifM(
             ifTrue = deferredThrowable.complete(throwable).void,
-            ifFalse = invokeCallbackF(cb(Left(throwable))))
+            ifFalse = invokeCallbackF(cb(Left(throwable))),
+          )
 
         dispatcher.unsafeRunSync(fa)
       }
@@ -177,7 +188,8 @@ object AsyncHttpClient {
 
   private def toAsyncRequest[F[_]: Async](
       request: Request[F],
-      dispatcher: Dispatcher[F]): AsyncRequest = {
+      dispatcher: Dispatcher[F],
+  ): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers.headers)
       headers.add(h.name.toString, h.value)
@@ -190,10 +202,12 @@ object AsyncHttpClient {
 
   private def getBodyGenerator[F[_]: Async](
       req: Request[F],
-      dispatcher: Dispatcher[F]): BodyGenerator = {
+      dispatcher: Dispatcher[F],
+  ): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
       req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)),
-      dispatcher)
+      dispatcher,
+    )
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
       req.contentLength match {
