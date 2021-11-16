@@ -16,19 +16,19 @@
 
 package org.http4s.client
 
+import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.Sync
-import cats.effect.IO
-import cats.implicits._
 import cats.effect.concurrent.Ref
+import cats.implicits._
+import org.eclipse.jetty
+import org.eclipse.jetty.io.EndPoint
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty
-import org.eclipse.jetty.io.EndPoint
-import org.http4s.client.JettyScaffold._
 import org.http4s.Uri
+import org.http4s.client.JettyScaffold._
 
 import java.net.InetSocketAddress
 import java.security.KeyStore
@@ -50,10 +50,11 @@ object JettyScaffold {
       private[JettyScaffold] val server: JServer,
       val address: InetSocketAddress,
       val secure: Boolean,
-      private val connectionsCounter: Ref[IO, Int]
+      private val connectionsCounter: Ref[IO, Int],
   ) {
     def uri = Uri.unsafeFromString(
-      s"${if (secure) "https" else "http"}://${address.getHostName}:${address.getPort}")
+      s"${if (secure) "https" else "http"}://${address.getHostName}:${address.getPort}"
+    )
 
     def numberOfEstablishedConnections: IO[Int] = connectionsCounter.get
 
@@ -130,7 +131,7 @@ class JettyScaffold private (num: Int, secure: Boolean) {
 
   private class CountingHttpConnectionFactory(
       config: HttpConfiguration,
-      connectionsCounter: Ref[IO, Int]
+      connectionsCounter: Ref[IO, Int],
   ) extends HttpConnectionFactory(config) {
     override def newConnection(connector: Connector, endPoint: EndPoint): jetty.io.Connection = {
       connectionsCounter.update(_ + 1).unsafeRunSync()

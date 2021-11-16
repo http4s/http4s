@@ -17,12 +17,12 @@
 package org.http4s.blaze
 package client
 
-import cats.implicits._
 import cats.effect._
+import cats.implicits._
 import fs2.Stream
 import org.http4s.Method._
-import org.http4s.client.JettyScaffold.JettyTestServer
 import org.http4s._
+import org.http4s.client.JettyScaffold.JettyTestServer
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
@@ -42,7 +42,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should reuse the connection after a successful request with large response".fail) {
+    "BlazeClient should reuse the connection after a successful request with large response".fail
+  ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -54,7 +55,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient.status should reuse the connection after receiving a response without an entity".flaky) {
+    "BlazeClient.status should reuse the connection after receiving a response without an entity".flaky
+  ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -73,7 +75,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   // In particular, responses not bigger than `bufferSize` will lead to reuse of the connection.
 
   test(
-    "BlazeClient.status shouldn't wait for an infinite response entity and shouldn't reuse the connection") {
+    "BlazeClient.status shouldn't wait for an infinite response entity and shouldn't reuse the connection"
+  ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -102,7 +105,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  //// Decoding failures ////
+  // // Decoding failures ////
 
   test("BlazeClient should reuse the connection after response decoding failed".flaky) {
     // This will work regardless of whether we drain the entity or not,
@@ -121,7 +124,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained".fail) {
+    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained".fail
+  ) {
     val drainThenFail = EntityDecoder.error[IO, String](new Exception())
     builder().resource.use { client =>
       for {
@@ -136,7 +140,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient shouldn't reuse the connection after response decoding failed and the (large) entity wasn't drained") {
+    "BlazeClient shouldn't reuse the connection after response decoding failed and the (large) entity wasn't drained"
+  ) {
     val failWithoutDraining = new EntityDecoder[IO, String] {
       override def decode(m: Media[IO], strict: Boolean): DecodeResult[IO, String] =
         DecodeResult[IO, String](IO.raiseError(new Exception()))
@@ -154,14 +159,15 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  //// Requests with an entity ////
+  // // Requests with an entity ////
 
   test("BlazeClient should reuse the connection after a request with an entity".flaky) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
         _ <- client.expect[String](
-          Request[IO](POST, servers(0).uri / "process-request-entity").withEntity("entity"))
+          Request[IO](POST, servers(0).uri / "process-request-entity").withEntity("entity")
+        )
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
       } yield ()
@@ -169,23 +175,26 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused.") {
+    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused."
+  ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
         _ <- client.expect[String](
           Request[IO](POST, servers(0).uri / "respond-and-close-immediately")
-            .withBodyStream(Stream(0.toByte).repeat))
+            .withBodyStream(Stream(0.toByte).repeat)
+        )
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- servers(0).numberOfEstablishedConnections.assertEquals(2)
       } yield ()
     }
   }
 
-  //// Load tests ////
+  // // Load tests ////
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".flaky) {
+    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".flaky
+  ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -200,7 +209,8 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)".fail) {
+    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)".fail
+  ) {
     for {
       servers <- makeServers()
       _ <- builder().resource
@@ -220,7 +230,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     jettyScafold.resetCounters().as(jettyScafold.servers)
   }
 
-  private implicit class ParReplicateASyntax[A](ioa: IO[A]) {
+  implicit private class ParReplicateASyntax[A](ioa: IO[A]) {
     def parReplicateA(n: Int): IO[List[A]] = List.fill(n)(ioa).parSequence
   }
 }
