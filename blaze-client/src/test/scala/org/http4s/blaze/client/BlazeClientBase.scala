@@ -21,7 +21,9 @@ import cats.effect._
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
 import io.netty.channel.ChannelHandlerContext
-import io.netty.handler.codec.http.{HttpMethod, HttpRequest, HttpResponseStatus}
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.scaffold._

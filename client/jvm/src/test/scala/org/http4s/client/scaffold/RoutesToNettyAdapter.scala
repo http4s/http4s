@@ -19,16 +19,21 @@ package org.http4s.client.scaffold
 import cats.effect.Ref
 import cats.effect.implicits.genSpawnOps
 import cats.effect.kernel.Async
-import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import cats.implicits._
 import fs2.Chunk
 import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelHandlerContext, ChannelInboundHandler}
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandler
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http._
 import org.http4s
+import org.http4s.Headers
+import org.http4s.HttpRoutes
+import org.http4s.Method
+import org.http4s.Response
 import org.http4s.headers.`Transfer-Encoding`
-import org.http4s.{Headers, HttpRoutes, Method, Response}
 
 import scala.annotation.nowarn
 import scala.collection.JavaConverters._

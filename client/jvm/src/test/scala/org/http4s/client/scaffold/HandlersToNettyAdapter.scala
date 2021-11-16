@@ -17,7 +17,8 @@
 package org.http4s.client.scaffold
 
 import cats.effect.Sync
-import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.netty.channel._
 import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpResponseStatus._

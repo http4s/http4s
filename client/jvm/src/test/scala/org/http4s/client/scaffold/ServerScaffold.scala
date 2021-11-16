@@ -16,16 +16,21 @@
 
 package org.http4s.client.scaffold
 
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import cats.effect.{Async, Resource, Sync}
-
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import com.comcast.ip4s.{IpAddress, SocketAddress}
-import org.http4s.HttpRoutes
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.SocketAddress
 import io.netty.channel.ChannelInboundHandler
 import io.netty.handler.codec.http.HttpMethod
+import org.http4s.HttpRoutes
+
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 
 class ServerScaffold[F[_]] private (val servers: Vector[TestServer[F]]) {
   def addresses: Vector[SocketAddress[IpAddress]] = servers.map(_.localAddress)

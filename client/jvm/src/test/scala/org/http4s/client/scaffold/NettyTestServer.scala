@@ -16,21 +16,27 @@
 
 package org.http4s.client.scaffold
 
+import cats.effect.Ref
+import cats.effect.Resource
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.effect.{Ref, Resource}
 import cats.implicits._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel._
 import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.nio.{NioServerSocketChannel, NioSocketChannel}
+import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
-import io.netty.handler.logging.{LogLevel, LoggingHandler}
+import io.netty.handler.logging.LogLevel
+import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import org.log4s.getLogger
 
-import java.net.{InetAddress, InetSocketAddress}
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import javax.net.ssl.SSLContext
 
 trait TestServer[F[_]] {

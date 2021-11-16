@@ -18,7 +18,8 @@ package org.http4s.client
 
 import cats.effect.Async
 import cats.implicits._
-import io.netty.channel.{Channel, ChannelFuture}
+import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
 
 package object scaffold {
 
