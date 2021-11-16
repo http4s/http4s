@@ -55,10 +55,8 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, "active_requests", "client"), 0.0)
       assertEquals(count(registry, "4xx_headers_duration", "client"), 0.05)
       assertEquals(count(registry, "4xx_total_duration", "client"), 0.1)
-      assert(resp match {
-        case Left(UnexpectedStatus(Status.BadRequest, _, _)) => true
-        case _ => false
-      })
+      val Left(UnexpectedStatus(status, _, _)) = resp
+      assertEquals(status, Status.BadRequest)
     }
   }
 
@@ -70,10 +68,8 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, "active_requests", "client"), 0.0)
       assertEquals(count(registry, "5xx_headers_duration", "client"), 0.05)
       assertEquals(count(registry, "5xx_total_duration", "client"), 0.1)
-      assert(resp match {
-        case Left(UnexpectedStatus(Status.InternalServerError, _, _)) => true
-        case _ => false
-      })
+      val Left(UnexpectedStatus(status, _, _)) = resp
+      assertEquals(status, Status.InternalServerError)
     }
   }
 
@@ -82,7 +78,6 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   ) { case (registry, client) =>
     client.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
-
       assertEquals(count(registry, "2xx_responses", "client", "get"), 1.0)
       assertEquals(count(registry, "active_requests", "client", "get"), 0.0)
       assertEquals(count(registry, "2xx_headers_duration", "client", "get"), 0.05)
@@ -95,7 +90,6 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
   ) { case (registry, client) =>
     client.expect[String](Request[IO](POST, uri"/ok")).attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))
-
       assertEquals(count(registry, "2xx_responses", "client", "post"), 1.0)
       assertEquals(count(registry, "active_requests", "client", "post"), 0.0)
       assertEquals(count(registry, "2xx_headers_duration", "client", "post"), 0.05)
@@ -133,10 +127,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
     "A http client with a prometheus metrics middleware should register an error"
   ) { case (registry, client) =>
     client.expect[String]("/error").attempt.map { resp =>
-      assert(resp match {
-        case Left(_: IOException) => true
-        case _ => false
-      })
+      val Left(_: IOException) = resp
 
       assertEquals(count(registry, "errors", "client", cause = "java.io.IOException"), 1.0)
       assertEquals(count(registry, "active_requests", "client"), 0.0)
@@ -147,10 +138,7 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
     "A http client with a prometheus metrics middleware should register a timeout"
   ) { case (registry, client) =>
     client.expect[String]("/timeout").attempt.map { resp =>
-      assert(resp match {
-        case Left(_: TimeoutException) => true
-        case _ => false
-      })
+      val Left(_: TimeoutException) = resp
 
       assertEquals(count(registry, "timeouts", "client"), 1.0)
       assertEquals(count(registry, "active_requests", "client"), 0.0)
