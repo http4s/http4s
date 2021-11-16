@@ -52,13 +52,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -77,13 +77,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -103,13 +103,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -128,19 +128,19 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.get-requests"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -159,19 +159,19 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.post-requests"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -190,19 +190,19 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.put-requests"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -221,19 +221,19 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.default.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.delete-requests"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
@@ -283,13 +283,13 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
         valuesOf(registry, Timer("client.get.requests.headers"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(50000000L)
+        List(50000000L),
       )
       assertEquals(
         valuesOf(registry, Timer("client.get.requests.total"))
           .getOrElse(Array.empty[Long])
           .toList,
-        List(100000000L)
+        List(100000000L),
       )
     }
   }
