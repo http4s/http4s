@@ -818,6 +818,24 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     } yield Uri(scheme, authority, path, query, fragment)
   }
 
+  /** Creates an `Arbitrary[Url]` with checking that a URI is converting to String
+    * and back to URI safely.
+    * Use this Arbitrary with cautions - it may lead to tests performance degradation.
+    */
+  def createArbitraryUri: Arbitrary[Uri] =
+    Arbitrary(
+      http4sTestingArbitraryForUri.arbitrary.filter { uri =>
+        // Uri.renderString encode special chars in the fragment
+        // and after converting the Uri to Json, the fragment will be encoded
+        val convertedBackToUriWithFragment =
+          (f: Uri.Fragment) => Uri.fromString(uri.withoutFragment.toString).map(_.withFragment(f))
+        val parsedUri =
+          uri.fragment.fold(Uri.fromString(uri.toString))(convertedBackToUriWithFragment)
+
+        parsedUri == Right(uri)
+      }
+    )
+
   implicit val http4sTestingArbitraryForLink: Arbitrary[LinkValue] = Arbitrary {
     for {
       uri <- http4sTestingArbitraryForUri.arbitrary
