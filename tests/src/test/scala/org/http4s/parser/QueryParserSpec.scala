@@ -17,8 +17,9 @@
 package org.http4s
 package parser
 
-import java.nio.CharBuffer
 import org.http4s.internal.CollectionCompat
+
+import java.nio.CharBuffer
 import scala.io.Codec
 
 class QueryParserSpec extends Http4sSuite {
@@ -29,14 +30,16 @@ class QueryParserSpec extends Http4sSuite {
     assertEquals(parseQueryString("key=value"), Right(Query("key" -> Some("value"))))
     assertEquals(
       parseQueryString("key=value&key2=value2"),
-      Right(Query("key" -> Some("value"), "key2" -> Some("value2"))))
+      Right(Query("key" -> Some("value"), "key2" -> Some("value2"))),
+    )
   }
 
   test("The QueryParser should decode URL-encoded keys and values") {
     assertEquals(parseQueryString("ke%25y=value"), Right(Query("ke%y" -> Some("value"))))
     assertEquals(
       parseQueryString("key=value%26&key2=value2"),
-      Right(Query("key" -> Some("value&"), "key2" -> Some("value2"))))
+      Right(Query("key" -> Some("value&"), "key2" -> Some("value2"))),
+    )
   }
 
   test("The QueryParser should return an empty Map for an empty query string") {
@@ -44,14 +47,16 @@ class QueryParserSpec extends Http4sSuite {
   }
 
   test(
-    "The QueryParser should return an empty value for keys without a value following the '=' and keys without following '='") {
+    "The QueryParser should return an empty value for keys without a value following the '=' and keys without following '='"
+  ) {
     assertEquals(parseQueryString("key=&key2"), Right(Query("key" -> Some(""), "key2" -> None)))
   }
 
   test("The QueryParser should accept empty key value pairs") {
     assertEquals(
       parseQueryString("&&b&"),
-      Right(Query("" -> None, "" -> None, "b" -> None, "" -> None)))
+      Right(Query("" -> None, "" -> None, "b" -> None, "" -> None)),
+    )
   }
 
   test("The QueryParser should Handle '=' in a query string") {
@@ -69,7 +74,8 @@ class QueryParserSpec extends Http4sSuite {
   test("The QueryParser should Allow PHP-style [] in keys") {
     assertEquals(
       parseQueryString("a[]=b&a[]=c"),
-      Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))))
+      Right(Query("a[]" -> Some("b"), "a[]" -> Some("c"))),
+    )
   }
 
   test("The QueryParser should QueryParser using QChars doesn't allow PHP-style [] in keys") {
@@ -77,7 +83,8 @@ class QueryParserSpec extends Http4sSuite {
     assert(
       new QueryParser(Codec.UTF8, true, QueryParser.QChars)
         .decode(CharBuffer.wrap(queryString), true)
-        .isLeft)
+        .isLeft
+    )
   }
 
   test("The QueryParser should Reject a query with invalid char") {

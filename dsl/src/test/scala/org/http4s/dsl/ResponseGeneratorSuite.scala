@@ -20,9 +20,13 @@ package dsl
 import cats.Monad
 import cats.effect.IO
 import cats.syntax.all._
-import org.http4s.dsl.io._
 import org.http4s.MediaType
-import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
+import org.http4s.dsl.io._
+import org.http4s.headers.Accept
+import org.http4s.headers.Location
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Content-Type`
+import org.http4s.syntax.literals._
 
 class ResponseGeneratorSuite extends Http4sSuite {
   test("Add the EntityEncoder headers along with a content-length header") {
@@ -40,13 +44,15 @@ class ResponseGeneratorSuite extends Http4sSuite {
         .assertEquals(
           `Content-Length`
             .fromLong(body.getBytes.length.toLong)
-            .toOption)
+            .toOption
+        )
   }
 
   test("Not duplicate headers when not provided") {
     val w =
       EntityEncoder.encodeBy[IO, String](
-        EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.`audio/*`)))(
+        EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.`audio/*`))
+      )(
         EntityEncoder.stringEncoder[IO].toEntity(_)
       )
 
@@ -57,7 +63,8 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("Explicitly added headers have priority") {
     val w: EntityEncoder[IO, String] = EntityEncoder.encodeBy[IO, String](
-      EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.text.html)))(
+      EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.text.html))
+    )(
       EntityEncoder.stringEncoder[IO].toEntity(_)
     )
 
@@ -123,7 +130,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
   }
 
   test("MovedPermanently() generates expected headers without body") {
-    val location = Location(Uri.unsafeFromString("http://foo"))
+    val location = Location(uri"http://foo")
     val resp = MovedPermanently(location, (), Accept(MediaRange.`audio/*`))
     resp
       .map(_.headers.headers)
@@ -131,12 +138,13 @@ class ResponseGeneratorSuite extends Http4sSuite {
         Headers(
           location,
           Accept(MediaRange.`audio/*`),
-          `Content-Length`.zero
-        ).headers)
+          `Content-Length`.zero,
+        ).headers
+      )
   }
 
   test("MovedPermanently() generates expected headers with body") {
-    val location = Location(Uri.unsafeFromString("http://foo"))
+    val location = Location(uri"http://foo")
     val body = "foo"
     val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
     resp
@@ -146,7 +154,8 @@ class ResponseGeneratorSuite extends Http4sSuite {
           `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),
-          `Content-Length`.unsafeFromLong(3)
-        ).headers)
+          `Content-Length`.unsafeFromLong(3),
+        ).headers
+      )
   }
 }

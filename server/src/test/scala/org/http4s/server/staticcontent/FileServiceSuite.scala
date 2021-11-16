@@ -21,17 +21,19 @@ package staticcontent
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
+import org.http4s.headers.Range.SubRange
+import org.http4s.headers.`Content-Range`
+import org.http4s.server.middleware.TranslateUri
+import org.http4s.syntax.all._
+
 import java.io.File
 import java.nio.file._
-import org.http4s.syntax.all._
-import org.http4s.headers.`Content-Range`
-import org.http4s.headers.Range.SubRange
-import org.http4s.server.middleware.TranslateUri
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
   val defaultSystemPath = org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath
   val routes = fileService(
-    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker))
+    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker)
+  )
 
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
@@ -73,8 +75,9 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       FileService.Config[IO](
         systemPath = defaultSystemPath,
         blocker = testBlocker,
-        pathPrefix = "/path-prefix"
-      ))
+        pathPrefix = "/path-prefix",
+      )
+    )
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
     val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
     val req = Request[IO](uri = uri)
@@ -92,8 +95,9 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val s0 = fileService(
       FileService.Config[IO](
         systemPath = systemPath.toString,
-        blocker = testBlocker
-      ))
+        blocker = testBlocker,
+      )
+    )
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
   }
@@ -109,7 +113,8 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial system path prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial system path prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
 
@@ -118,14 +123,16 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     val s0 = fileService(
       FileService.Config[IO](
         systemPath = Paths.get(defaultSystemPath).resolve("test").toString,
-        blocker = testBlocker
-      ))
+        blocker = testBlocker,
+      )
+    )
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultSystemPath).resolve(relativePath).toFile
 
@@ -135,8 +142,9 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       FileService.Config[IO](
         systemPath = defaultSystemPath,
         pathPrefix = "/prefix",
-        blocker = testBlocker
-      ))
+        blocker = testBlocker,
+      )
+    )
     IO(file.exists()).assert *>
       s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
   }
@@ -252,7 +260,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
       headers.Range(2, 1),
       headers.Range(200),
       headers.Range(200, 201),
-      headers.Range(-200)
+      headers.Range(-200),
     )
     val size = new File(getClass.getResource("/testresource.txt").toURI).length
     val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))

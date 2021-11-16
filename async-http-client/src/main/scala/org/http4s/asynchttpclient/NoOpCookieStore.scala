@@ -16,10 +16,11 @@
 
 package org.http4s.asynchttpclient.client
 
-import java.util.concurrent.atomic.AtomicInteger
 import _root_.io.netty.handler.codec.http.cookie.Cookie
 import org.asynchttpclient.cookie.CookieStore
 import org.asynchttpclient.uri.Uri
+
+import java.util.concurrent.atomic.AtomicInteger
 
 private[asynchttpclient] class NoOpCookieStore extends CookieStore {
   private def empty: java.util.List[Cookie] = java.util.Collections.emptyList[Cookie]

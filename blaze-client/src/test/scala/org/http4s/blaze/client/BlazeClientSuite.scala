@@ -23,16 +23,20 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
-import java.net.{InetSocketAddress, SocketException}
-import java.util.concurrent.TimeoutException
-import org.http4s.client.{ConnectionFailure, RequestKey}
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
 import org.http4s.syntax.all._
+
+import java.net.InetSocketAddress
+import java.net.SocketException
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class BlazeClientSuite extends BlazeClientBase {
 
   test(
-    "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key") {
+    "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key"
+  ) {
     val sslAddress = jettySslServer().addresses.head
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
@@ -122,7 +126,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should stop sending data when the server sends response and closes connection") {
+    "Blaze Http1Client should stop sending data when the server sends response and closes connection"
+  ) {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     val addresses = jettyServer().addresses
     val address = addresses.head
@@ -134,7 +139,7 @@ class BlazeClientSuite extends BlazeClientBase {
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,
-            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo
+            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo,
           ).withBodyStream(body)
           client.status(req) >> reqClosed.get
         }
@@ -143,7 +148,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should stop sending data when the server sends response without body and closes connection") {
+    "Blaze Http1Client should stop sending data when the server sends response without body and closes connection"
+  ) {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     // Receiving a response with and without body exercises different execution path in blaze client.
 
@@ -157,7 +163,7 @@ class BlazeClientSuite extends BlazeClientBase {
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,
-            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo
+            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo,
           ).withBodyStream(body)
           client.status(req) >> reqClosed.get
         }
@@ -166,7 +172,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should fail with request timeout if the request body takes too long to send") {
+    "Blaze Http1Client should fail with request timeout if the request body takes too long to send"
+  ) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -176,7 +183,7 @@ class BlazeClientSuite extends BlazeClientBase {
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
           method = Method.POST,
-          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
+          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo,
         ).withBodyStream(body)
         client.status(req)
       }
@@ -189,7 +196,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should fail with response header timeout if the request body takes too long to send") {
+    "Blaze Http1Client should fail with response header timeout if the request body takes too long to send"
+  ) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -199,7 +207,7 @@ class BlazeClientSuite extends BlazeClientBase {
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
           method = Method.POST,
-          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
+          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo,
         ).withBodyStream(body)
         client.status(req)
       }
@@ -211,7 +219,7 @@ class BlazeClientSuite extends BlazeClientBase {
       .assert
   }
 
-  test("Blaze Http1Client should doesn't leak connection on timeout") {
+  test("Blaze Http1Client should doesn't leak connection on timeout".flaky) {
     val addresses = jettyServer().addresses
     val address = addresses.head
     val name = address.getHostName
@@ -259,8 +267,8 @@ class BlazeClientSuite extends BlazeClientBase {
           Stream
             .eval(builder(1).resource.use { client =>
               interceptMessageIO[SocketException](
-                s"HTTP connection closed: ${RequestKey.fromRequest(req)}")(
-                client.expect[String](req))
+                s"HTTP connection closed: ${RequestKey.fromRequest(req)}"
+              )(client.expect[String](req))
             })
             .concurrently(sockets.evalMap(_.use(_.close)))
             .compile
@@ -274,7 +282,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val address = addresses.head
     val name = address.getHostName
     val port = address.getPort
-    val uri = Uri.fromString(s"http://$name:$port/simple").yolo
+    val uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
     builder(1, requestTimeout = 2.seconds).resourceWithState.use { case (client, state) =>
       for {
         // We're not thoroughly exercising the pool stats.  We're doing a rudimentary check.
@@ -282,7 +290,8 @@ class BlazeClientSuite extends BlazeClientBase {
         reading <- Deferred[IO, Unit]
         done <- Deferred[IO, Unit]
         body = Stream.eval(reading.complete(())) *> (Stream.empty: EntityBody[IO]) <* Stream.eval(
-          done.get)
+          done.get
+        )
         req = Request[IO](Method.POST, uri = uri).withEntity(body)
         _ <- client.status(req).start
         _ <- reading.get

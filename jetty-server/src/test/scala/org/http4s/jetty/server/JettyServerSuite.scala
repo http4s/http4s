@@ -18,13 +18,17 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.ContextShift
+import cats.effect.IO
+import cats.effect.Timer
 import cats.syntax.all._
-import java.net.{HttpURLConnection, URL}
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
 import org.http4s.server.Server
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.io.Source
 
@@ -55,7 +59,7 @@ class JettyServerSuite extends Http4sSuite {
           case GET -> Root / "slow" =>
             implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
         },
-        "/"
+        "/",
       )
       .resource
 
@@ -67,7 +71,9 @@ class JettyServerSuite extends Http4sSuite {
         Source
           .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
           .getLines()
-          .mkString))
+          .mkString
+      )
+    )
 
   def post(server: Server, path: String, body: String): IO[String] =
     testBlocker.blockOn(IO {
@@ -87,7 +93,8 @@ class JettyServerSuite extends Http4sSuite {
   }
 
   jettyServer.test(
-    "ChannelOptions should should execute the service task on the service executor") { server =>
+    "ChannelOptions should should execute the service task on the service executor"
+  ) { server =>
     get(server, "/thread/effect").map(_.startsWith("http4s-suite-")).assert
   }
 

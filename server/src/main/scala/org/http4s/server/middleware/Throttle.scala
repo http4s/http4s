@@ -17,13 +17,17 @@
 package org.http4s.server.middleware
 
 import cats._
-import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
-import cats.effect.{Clock, Sync}
+import cats.effect.Clock
+import cats.effect.Sync
 import cats.effect.concurrent.Ref
-import scala.concurrent.duration.FiniteDuration
 import cats.syntax.all._
+import org.http4s.Http
+import org.http4s.Response
+import org.http4s.Status
+
 import java.util.concurrent.TimeUnit.NANOSECONDS
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
 /** Transform a service to reject any calls the go over a given rate.
@@ -56,7 +60,8 @@ object Throttle {
       */
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
         F: Sync[F],
-        clock: Clock[F]): F[TokenBucket[F]] = {
+        clock: Clock[F],
+    ): F[TokenBucket[F]] = {
       def getTime = clock.monotonic(NANOSECONDS)
       val bucket = getTime.flatMap(time => Ref[F].of((capacity.toDouble, time)))
 
@@ -103,7 +108,8 @@ object Throttle {
     * @return a task containing the transformed service.
     */
   def apply[F[_], G[_]](amount: Int, per: FiniteDuration)(
-      http: Http[F, G])(implicit F: Sync[F], timer: Clock[F]): F[Http[F, G]] = {
+      http: Http[F, G]
+  )(implicit F: Sync[F], timer: Clock[F]): F[Http[F, G]] = {
     val refillFrequency = per / amount.toLong
     val createBucket = TokenBucket.local(amount, refillFrequency)
     createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
@@ -123,8 +129,8 @@ object Throttle {
     */
   def apply[F[_], G[_]](
       bucket: TokenBucket[F],
-      throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _)(
-      http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
+      throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _,
+  )(http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
     Kleisli { req =>
       bucket.takeToken.flatMap {
         case TokenAvailable => http(req)

@@ -17,8 +17,9 @@
 package org.http4s
 package headers
 
-import java.nio.charset.StandardCharsets
 import org.typelevel.ci._
+
+import java.nio.charset.StandardCharsets
 
 object `Content-Location` {
   def parse(s: String): ParseResult[`Content-Location`] =
@@ -33,7 +34,7 @@ object `Content-Location` {
     Header.create(
       ci"Content-Location",
       _.uri.toString,
-      parse
+      parse,
     )
 }
 

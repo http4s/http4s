@@ -17,7 +17,8 @@
 package org.http4s.servlet
 
 import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /** Mainly a convenience for our servlet examples, but, hey, why not.
   */
@@ -26,10 +27,11 @@ trait DefaultFilter extends Filter {
 
   override def destroy(): Unit = {}
 
-  final override def doFilter(
+  override final def doFilter(
       request: ServletRequest,
       response: ServletResponse,
-      chain: FilterChain): Unit =
+      chain: FilterChain,
+  ): Unit =
     (request, response) match {
       case (httpReq: HttpServletRequest, httpRes: HttpServletResponse) =>
         doHttpFilter(httpReq, httpRes, chain)
@@ -39,5 +41,6 @@ trait DefaultFilter extends Filter {
   def doHttpFilter(
       request: HttpServletRequest,
       response: HttpServletResponse,
-      chain: FilterChain): Unit
+      chain: FilterChain,
+  ): Unit
 }

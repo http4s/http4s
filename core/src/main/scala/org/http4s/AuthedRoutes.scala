@@ -16,8 +16,10 @@
 
 package org.http4s
 
-import cats.{Applicative, Defer}
-import cats.data.{Kleisli, OptionT}
+import cats.Applicative
+import cats.Defer
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 
 object AuthedRoutes {
@@ -32,7 +34,8 @@ object AuthedRoutes {
     * @return an [[AuthedRoutes]] that wraps `run`
     */
   def apply[T, F[_]](run: AuthedRequest[F, T] => OptionT[F, Response[F]])(implicit
-      F: Defer[F]): AuthedRoutes[T, F] =
+      F: Defer[F]
+  ): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(run(req).value)))
 
   /** Lifts a partial function into an [[AuthedRoutes]].  The application of the
@@ -44,9 +47,9 @@ object AuthedRoutes {
     * @return An [[AuthedRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(implicit
-      F: Defer[F],
-      FA: Applicative[F]): AuthedRoutes[T, F] =
+  def of[T, F[_]](
+      pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]]
+  )(implicit F: Defer[F], FA: Applicative[F]): AuthedRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
   /** The empty service (all requests fallthrough).

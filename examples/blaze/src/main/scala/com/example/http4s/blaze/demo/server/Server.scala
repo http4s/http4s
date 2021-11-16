@@ -22,6 +22,7 @@ import org.http4s.HttpApp
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
+
 import scala.concurrent.ExecutionContext.global
 
 object Server extends IOApp {
@@ -35,7 +36,7 @@ object HttpServer {
       s"/${endpoints.ApiVersion}/protected" -> ctx.basicAuthHttpEndpoint,
       s"/${endpoints.ApiVersion}" -> ctx.fileHttpEndpoint,
       s"/${endpoints.ApiVersion}/nonstream" -> ctx.nonStreamFileHttpEndpoint,
-      "/" -> ctx.httpServices
+      "/" -> ctx.httpServices,
     ).orNotFound
 
   def stream[F[_]: ConcurrentEffect: ContextShift: Timer]: Stream[F, ExitCode] =

@@ -17,7 +17,8 @@
 package org.http4s.client.oauth1
 
 import cats.data.NonEmptyList
-import cats.effect.{IO, Timer}
+import cats.effect.IO
+import cats.effect.Timer
 import org.http4s.Credentials.AuthParams
 import org.http4s._
 import org.http4s.client.oauth1
@@ -40,7 +41,7 @@ class OAuthSuite extends Http4sSuite {
 
   val userParams = List(
     "file" -> "vacation.jpg",
-    "size" -> "original"
+    "size" -> "original",
   )
 
   val allParams = List(
@@ -49,7 +50,7 @@ class OAuthSuite extends Http4sSuite {
     "oauth_signature_method" -> `HMAC-SHA1`,
     "oauth_timestamp" -> "1191242096",
     "oauth_nonce" -> "kllo9940pd9333jh",
-    "oauth_version" -> "1.0"
+    "oauth_version" -> "1.0",
   ) ++ userParams
 
   val params2 = List(
@@ -63,7 +64,7 @@ class OAuthSuite extends Http4sSuite {
     "oauth_timestamp" -> Some("137131201"),
     "oauth_nonce" -> Some("7d8f3e4a"),
     "c2" -> None,
-    "a3" -> Some("2 q")
+    "a3" -> Some("2 q"),
   )
 
   val specBaseString =
@@ -78,7 +79,8 @@ class OAuthSuite extends Http4sSuite {
   test("OAuth support should generate a correct HMAC-SHA1 signature") {
     assertIO(
       oauth1.makeSHASig[IO](specBaseString, consumer.secret, Some(token.secret), HmacSha1),
-      "tR3+Ty81lMeYAr/Fid0kMTYa/WM=")
+      "tR3+Ty81lMeYAr/Fid0kMTYa/WM=",
+    )
   }
 
   test("OAuth support should generate a Authorization header with config") {
@@ -95,7 +97,7 @@ class OAuthSuite extends Http4sSuite {
         nonceGenerator = Nonce.now[IO],
         callback = None,
         verifier = None,
-        userParams.map { case (k, v) => Custom(k, v) }
+        userParams.map { case (k, v) => Custom(k, v) },
       )
       .map { auth =>
         val creds = auth.credentials
@@ -120,8 +122,9 @@ class OAuthSuite extends Http4sSuite {
           "c@" -> "",
           "a2" -> "r b",
           "c2" -> "",
-          "a3" -> "2 q"
-        ).sorted)
+          "a3" -> "2 q",
+        ).sorted
+      )
     }
   }
 
@@ -129,21 +132,24 @@ class OAuthSuite extends Http4sSuite {
     signRequestWith(
       method = SignatureMethod(),
       expectedAlgorithm = `HMAC-SHA1`,
-      expectedSignature = "dzirhDxkLGCZEH/LnVin6zoalUk=")
+      expectedSignature = "dzirhDxkLGCZEH/LnVin6zoalUk=",
+    )
   }
 
   test("signRequest should sign with HMAC-SHA1") {
     signRequestWith(
       method = SignatureMethod(`HMAC-SHA1`),
       expectedAlgorithm = `HMAC-SHA1`,
-      expectedSignature = "dzirhDxkLGCZEH/LnVin6zoalUk=")
+      expectedSignature = "dzirhDxkLGCZEH/LnVin6zoalUk=",
+    )
   }
 
   test("signRequest should sign with HMAC-SHA256") {
     signRequestWith(
       method = SignatureMethod(`HMAC-SHA256`),
       expectedAlgorithm = `HMAC-SHA256`,
-      expectedSignature = "gzBSlXIQTJyfbzwFv3+4sXZlE6Jh6g/yfq4CB/StKSA=")
+      expectedSignature = "gzBSlXIQTJyfbzwFv3+4sXZlE6Jh6g/yfq4CB/StKSA=",
+    )
   }
 
   test("signRequest should sign with HMAC-SHA512") {
@@ -151,7 +157,7 @@ class OAuthSuite extends Http4sSuite {
       method = SignatureMethod(`HMAC-SHA512`),
       expectedAlgorithm = `HMAC-SHA512`,
       expectedSignature =
-        "7ZO6N+8QMQAPjBbBPJsRmUD11jd5bL7ldwg+ObOFyBqKN0vEFiv2ItlrO2Oly68K7k63whUlsu0f0a/6uAHSxw=="
+        "7ZO6N+8QMQAPjBbBPJsRmUD11jd5bL7ldwg+ObOFyBqKN0vEFiv2ItlrO2Oly68K7k63whUlsu0f0a/6uAHSxw==",
     )
   }
 
@@ -159,7 +165,8 @@ class OAuthSuite extends Http4sSuite {
   def signRequestWith(
       method: SignatureMethod,
       expectedAlgorithm: String,
-      expectedSignature: String): IO[Unit] = {
+      expectedSignature: String,
+  ): IO[Unit] = {
 
     def fixedTS: IO[Timestamp] = IO(Timestamp("1628332200"))
     def fixedNonce: IO[Nonce] = IO(Nonce("123456789"))
@@ -176,7 +183,7 @@ class OAuthSuite extends Http4sSuite {
         version = Version(),
         nonceGenerator = fixedNonce,
         callback = None,
-        verifier = None
+        verifier = None,
       )
       .map { req =>
         val expectedSigEncoded = URLEncoder.encode(expectedSignature, UTF_8.name)
@@ -194,11 +201,11 @@ class OAuthSuite extends Http4sSuite {
                   "oauth_timestamp" -> "1628332200",
                   "oauth_nonce" -> "123456789",
                   "oauth_version" -> "1.0",
-                  "oauth_token" -> "quack%27s-token"
-                )
+                  "oauth_token" -> "quack%27s-token",
+                ),
               )
             )
-          )
+          ),
         )
       }
 

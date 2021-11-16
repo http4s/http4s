@@ -19,14 +19,18 @@ package blazecore
 
 import cats.effect.IO
 import fs2.concurrent.Queue
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
+import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
-import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success, Try}
 import scodec.bits.ByteVector
+
+import java.nio.ByteBuffer
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scala.concurrent.duration.Duration
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private var acc = ByteVector.empty
@@ -89,7 +93,8 @@ final class QueueTestHead(queue: Queue[IO, Option[ByteBuffer]]) extends TestHead
           case Some(bb) => IO.pure(bb)
           case None => IO.raiseError(EOF)
         }
-        .unsafeToFuture())
+        .unsafeToFuture()
+    )
     p.completeWith(closedP.future)
     p.future
   }
@@ -142,7 +147,8 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
                   }
                 }
             },
-            pause)
+            pause,
+          )
 
           p.future
       }

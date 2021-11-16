@@ -1,8 +1,5 @@
----
-menu: methods
-weight: 115
-title: HTTP Methods
----
+
+# HTTP Methods
 
 For a REST API, your service will want to support different verbs/methods.
 Http4s has a list of all the [methods] you're familiar with, and a few more.

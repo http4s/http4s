@@ -18,9 +18,15 @@ package org.http4s.circe
 
 import cats.data.EitherT
 import cats.effect.IO
-import io.circe.{Decoder, HCursor, Json}
+import io.circe.Decoder
+import io.circe.HCursor
+import io.circe.Json
 import io.circe.syntax._
-import org.http4s.{DecodeFailure, Http4sSuite, InvalidMessageBodyFailure, Response, Status}
+import org.http4s.DecodeFailure
+import org.http4s.Http4sSuite
+import org.http4s.InvalidMessageBodyFailure
+import org.http4s.Response
+import org.http4s.Status
 
 object CirceSensitiveDataEntityDecoderSpec {
 
@@ -40,7 +46,8 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
   import CirceSensitiveDataEntityDecoder.circeEntityDecoder
 
   test(
-    "should not include the JSON when failing to decode due to wrong data type of JSON key's value") {
+    "should not include the JSON when failing to decode due to wrong data type of JSON key's value"
+  ) {
     val json: Json = Json.obj("ssn" := 123456789)
     val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
     val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]

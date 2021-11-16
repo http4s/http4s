@@ -18,8 +18,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.foldable._
 import cats.parse._
+import cats.syntax.foldable._
 import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
@@ -58,7 +58,7 @@ object `If-None-Match` {
         case None => "*"
         case Some(tags) => tags.mkString_("", ",", "")
       },
-      parse
+      parse,
     )
 }
 

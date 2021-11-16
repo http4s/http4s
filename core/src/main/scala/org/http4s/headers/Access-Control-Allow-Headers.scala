@@ -17,10 +17,10 @@
 package org.http4s
 package headers
 
-import org.http4s.Header
-import org.typelevel.ci._
-import org.http4s.internal.parsing.Rfc7230
 import cats.data.NonEmptyList
+import org.http4s.Header
+import org.http4s.internal.parsing.Rfc7230
+import org.typelevel.ci._
 
 object `Access-Control-Allow-Headers` {
   def apply(head: CIString, tail: CIString*): `Access-Control-Allow-Headers` =
@@ -36,7 +36,7 @@ object `Access-Control-Allow-Headers` {
     Header.createRendered(
       ci"Access-Control-Allow-Headers",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Headers`] =

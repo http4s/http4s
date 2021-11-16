@@ -16,8 +16,8 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline._
+import org.http4s.laws.discipline.arbitrary._
 
 final class ResponsePreludeSuite extends Http4sSuite {
   checkAll("Hash[ResponsePrelude]", HashTests[ResponsePrelude].hash)

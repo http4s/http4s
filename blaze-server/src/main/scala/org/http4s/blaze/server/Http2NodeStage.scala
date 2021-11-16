@@ -18,24 +18,33 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.ConcurrentEffect
+import cats.effect.IO
+import cats.effect.Sync
+import cats.effect.Timer
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import java.util.Locale
-import java.util.concurrent.TimeoutException
+import org.http4s.blaze.http.HeaderNames
+import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http2._
-import org.http4s.blaze.http.{HeaderNames, Headers}
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
-import org.http4s.blazecore.util.{End, Http2Writer}
+import org.http4s.blazecore.util.End
+import org.http4s.blazecore.util.Http2Writer
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.{Method => HMethod}
 import org.typelevel.vault._
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+
+import java.util.Locale
+import java.util.concurrent.TimeoutException
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util._
 
 private class Http2NodeStage[F[_]](
@@ -47,7 +56,8 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor,
+)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -246,8 +256,10 @@ private class Http2NodeStage[F[_]](
       // Connection related headers must be removed from the message because
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
-      if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != Header[headers.Connection].name) {
+      if (
+        h.name != headers.`Transfer-Encoding`.name &&
+        h.name != Header[headers.Connection].name
+      ) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }

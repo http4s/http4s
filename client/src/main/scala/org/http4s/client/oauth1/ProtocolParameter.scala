@@ -16,10 +16,11 @@
 
 package org.http4s.client.oauth1
 
+import cats.Functor
+import cats.Show
 import cats.effect.Clock
 import cats.kernel.Order
 import cats.syntax.all._
-import cats.{Functor, Show}
 import org.http4s.client.oauth1.SignatureAlgorithm.Names.`HMAC-SHA1`
 
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ sealed trait ProtocolParameter {
 }
 
 object ProtocolParameter {
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
   case class Consumer(override val headerValue: String, secret: String) extends ProtocolParameter {
     override val headerName: String = "oauth_consumer_key"
   }
@@ -80,6 +82,7 @@ object ProtocolParameter {
   case class Verifier(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_verifier"
   }
+  // scalafix:on
 
   implicit val http4sClientOauth1SortForProtocolParameters: Order[ProtocolParameter] =
     new Order[ProtocolParameter] {

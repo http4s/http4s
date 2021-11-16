@@ -21,6 +21,7 @@ package util
 import cats.effect._
 import cats.syntax.all._
 import fs2._
+
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {

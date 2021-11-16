@@ -20,10 +20,15 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8Decode
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
-import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
-import scala.concurrent.ExecutionContext
 import munit._
+import org.http4s.internal.threads.newBlockingPool
+import org.http4s.internal.threads.newDaemonPool
+import org.http4s.internal.threads.threadFactory
+
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import scala.concurrent.ExecutionContext
 
 /** Common stack for http4s' munit based tests
   */
@@ -43,7 +48,8 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   }
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource))
+    ResourceSuiteLocalFixture(name, resource)
+  )
 
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 

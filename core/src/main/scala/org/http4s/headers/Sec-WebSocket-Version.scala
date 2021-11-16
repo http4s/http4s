@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci._
 import org.http4s.parser.AdditionalRules
+import org.typelevel.ci._
 
 object `Sec-WebSocket-Version` {
 
@@ -28,7 +28,8 @@ object `Sec-WebSocket-Version` {
     else
       ParseResult.fail(
         "Invalid version value",
-        s"Version $version must be greater than or equal to 0")
+        s"Version $version must be greater than or equal to 0",
+      )
 
   def unsafeFromLong(version: Long): `Sec-WebSocket-Version` =
     fromLong(version).fold(throw _, identity)
@@ -42,9 +43,11 @@ object `Sec-WebSocket-Version` {
     Header.createRendered(
       ci"Sec-WebSocket-Version",
       _.version,
-      parse
+      parse,
     )
 
 }
 
-final case class `Sec-WebSocket-Version` private (version: Long)
+final case class `Sec-WebSocket-Version` private (
+    version: Long
+) // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0

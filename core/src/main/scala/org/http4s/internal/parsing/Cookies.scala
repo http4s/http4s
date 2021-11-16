@@ -16,8 +16,9 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn}
 import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
 import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
@@ -52,7 +53,8 @@ private[http4s] object Rfc6265
           Set(0x23.toChar to 0x2b.toChar: _*) ++
           Set(0x2d.toChar to 0x3a.toChar: _*) ++
           Set(0x3c.toChar to 0x5b.toChar: _*) ++
-          Set(0x5d.toChar to 0x7e.toChar: _*))
+          Set(0x5d.toChar to 0x7e.toChar: _*)
+      )
     )
 
 /* This is a relaxed implementation, in response to user feedback. */
@@ -64,5 +66,6 @@ private[http4s] object RelaxedCookies
           Set(0x23.toChar to 0x2b.toChar: _*) ++
           Set(0x2d.toChar to 0x3a.toChar: _*) ++
           Set(0x3c.toChar to 0x5b.toChar: _*) ++
-          Set(0x5d.toChar to 0x7e.toChar: _*))
+          Set(0x5d.toChar to 0x7e.toChar: _*)
+      )
     )

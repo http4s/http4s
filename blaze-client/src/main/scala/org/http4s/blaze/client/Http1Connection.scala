@@ -22,33 +22,41 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.util.Http1Writer
+import org.http4s.client.RequestKey
+import org.http4s.headers.Connection
+import org.http4s.headers.Host
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.CharPredicate
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
+import org.typelevel.vault._
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import org.http4s.Uri.{Authority, RegName}
-import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
-import org.http4s.blazecore.util.Http1Writer
-import org.http4s.client.RequestKey
-import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
-import org.http4s.internal.CharPredicate
-import org.http4s.util.{StringWriter, Writer}
-import org.typelevel.vault._
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 private final class Http1Connection[F[_]](
     val requestKey: RequestKey,
-    protected override val executionContext: ExecutionContext,
+    override protected val executionContext: ExecutionContext,
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
     override val chunkBufferMaxSize: Int,
     parserMode: ParserMode,
     userAgent: Option[`User-Agent`],
-    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]]
+    idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]],
 )(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
@@ -182,7 +190,8 @@ private final class Http1Connection[F[_]](
 
   private def executeRequest(
       req: Request[F],
-      idleRead: Option[Future[ByteBuffer]]): F[Resource[F, Response[F]]] = {
+      idleRead: Option[Future[ByteBuffer]],
+  ): F[Resource[F, Response[F]]] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e) =>
@@ -231,10 +240,12 @@ private final class Http1Connection[F[_]](
                   mustClose,
                   doesntHaveBody = req.method == Method.HEAD,
                   idleTimeoutS,
-                  idleRead
+                  idleRead,
                   // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
                 ).map(response =>
-                  Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response))) {
+                  Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response)
+                )
+              ) {
                 case (_, ExitCase.Completed) => F.unit
                 case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
               }
@@ -255,14 +266,16 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       idleTimeoutS: F[Either[Throwable, Unit]],
-      idleRead: Option[Future[ByteBuffer]]): F[Response[F]] =
+      idleRead: Option[Future[ByteBuffer]],
+  ): F[Response[F]] =
     F.async[Response[F]](cb =>
       idleRead match {
         case Some(read) =>
           handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
         case None =>
           handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
-      })
+      }
+    )
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParsePrelude(
@@ -270,7 +283,8 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       phase: String,
-      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
+      idleTimeoutS: F[Either[Throwable, Unit]],
+  ): Unit =
     handleRead(channelRead(), cb, closeOnFinish, doesntHaveBody, phase, idleTimeoutS)
 
   private def handleRead(
@@ -279,7 +293,8 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       phase: String,
-      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
+      idleTimeoutS: F[Either[Throwable, Unit]],
+  ): Unit =
     read.onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
       case Failure(EOF) =>
@@ -300,7 +315,8 @@ private final class Http1Connection[F[_]](
       closeOnFinish: Boolean,
       doesntHaveBody: Boolean,
       cb: Callback[Response[F]],
-      idleTimeoutS: F[Either[Throwable, Unit]]): Unit =
+      idleTimeoutS: F[Either[Throwable, Unit]],
+  ): Unit =
     try if (!parser.finishedResponseLine(buffer))
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
     else if (!parser.finishedHeaders(buffer))
@@ -351,8 +367,10 @@ private final class Http1Connection[F[_]](
                 else
                   F.raiseError(
                     new IllegalStateException(
-                      "Attempted to collect trailers before the body was complete."))
-              }
+                      "Attempted to collect trailers before the body was complete."
+                    )
+                  )
+              },
             )
 
             (() => trailers.set(parser.getHeaders()), attrs)
@@ -361,7 +379,8 @@ private final class Http1Connection[F[_]](
               { () =>
                 ()
               },
-              Vault.empty)
+              Vault.empty,
+            )
         }
 
         if (parser.contentComplete()) {
@@ -385,15 +404,17 @@ private final class Http1Connection[F[_]](
             httpVersion = httpVersion,
             headers = headers,
             body = body.interruptWhen(idleTimeoutS),
-            attributes = attributes)
-        ))
+            attributes = attributes,
+          )
+        )
+      )
     } catch {
       case t: Throwable =>
         logger.error(t)("Error during client request decode loop")
         cb(Left(t))
     }
 
-  ///////////////////////// Private helpers /////////////////////////
+  // /////////////////////// Private helpers /////////////////////////
 
   /** Validates the request, attempting to fix it if possible,
     * returning an Exception if invalid, None otherwise
@@ -428,7 +449,8 @@ private final class Http1Connection[F[_]](
   private def getChunkEncoder(
       req: Request[F],
       closeHeader: Boolean,
-      rr: StringWriter): Http1Writer[F] =
+      rr: StringWriter,
+  ): Http1Writer[F] =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 
@@ -448,8 +470,10 @@ private object Http1Connection {
   private def encodeRequestLine[F[_]](req: Request[F], writer: Writer): writer.type = {
     val uri = req.uri
     writer << req.method << ' ' << uri.toOriginForm << ' ' << req.httpVersion << "\r\n"
-    if (getHttpMinor(req) == 1 &&
-      req.headers.get[Host].isEmpty) { // need to add the host header for HTTP/1.1
+    if (
+      getHttpMinor(req) == 1 &&
+      req.headers.get[Host].isEmpty
+    ) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>
           writer << "Host: " << host.value
@@ -464,5 +488,5 @@ private object Http1Connection {
     } else writer
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }

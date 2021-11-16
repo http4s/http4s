@@ -25,18 +25,26 @@ import com.comcast.ip4s.SocketAddress
 import fs2.Stream
 import fs2.io.tcp._
 import fs2.io.tls._
-import java.net.InetSocketAddress
 import org.http4s._
+import org.http4s.ember.core.Drain
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
-import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Read}
+import org.http4s.headers.Connection
 import org.http4s.headers.Date
-import org.http4s.internal.tls.{deduceKeyLength, getCertChain}
-import org.http4s.server.{SecureSession, ServerRequestKeys}
+import org.http4s.internal.tls.deduceKeyLength
+import org.http4s.internal.tls.getCertChain
+import org.http4s.server.SecureSession
+import org.http4s.server.ServerRequestKeys
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Vault
-import scala.concurrent.duration._
 import scodec.bits.ByteVector
-import org.http4s.headers.Connection
+
+import java.net.InetSocketAddress
+import java.nio.channels.InterruptedByTimeoutException
+import scala.concurrent.duration._
 
 private[server] object ServerHelpers {
 
@@ -59,13 +67,14 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       additionalSocketOptions: List[SocketOptionMapping[_]] = List.empty,
-      logger: Logger[F]
+      logger: Logger[F],
   )(implicit F: Concurrent[F], T: Timer[F]): Stream[F, Nothing] = {
 
     val server: Stream[F, Resource[F, Socket[F]]] =
       Stream
         .resource(
-          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions))
+          sg.serverResource[F](bindAddress, additionalSocketOptions = additionalSocketOptions)
+        )
         .attempt
         .evalTap(e => ready.complete(e.void))
         .rethrow
@@ -87,8 +96,9 @@ private[server] object ServerHelpers {
                 requestHeaderReceiveTimeout,
                 httpApp,
                 errorHandler,
-                onWriteFailure
-              ))
+                onWriteFailure,
+              )
+            )
 
         handler.handleErrorWith { t =>
           Stream.eval(logger.error(t)("Request handler failed with exception")).drain
@@ -111,7 +121,7 @@ private[server] object ServerHelpers {
   private[internal] def upgradeSocket[F[_]: Concurrent: ContextShift](
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext, TLSParameters)],
-      logger: Logger[F]
+      logger: Logger[F],
   ): Resource[F, Socket[F]] =
     tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
       context
@@ -126,7 +136,8 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[Response[F]],
-      socket: Socket[F]): F[(Request[F], Response[F], Drain[F])] = {
+      socket: Socket[F],
+  ): F[(Request[F], Response[F], Drain[F])] = {
     val parse = Parser.Request.parser(maxHeaderSize)(buffer, read)
     val parseWithHeaderTimeout =
       durationToFinite(requestHeaderReceiveTimeout).fold(parse)(duration =>
@@ -134,10 +145,11 @@ private[server] object ServerHelpers {
           duration,
           Concurrent[F].defer(
             ApplicativeThrow[F].raiseError(
-              new java.util.concurrent.TimeoutException(
-                s"Timed Out on EmberServer Header Receive Timeout: $duration"))
-          )
-        ))
+              EmberException.RequestHeadersTimeout(requestHeaderReceiveTimeout)
+            )
+          ),
+        )
+      )
 
     for {
       tmp <- parseWithHeaderTimeout
@@ -154,7 +166,8 @@ private[server] object ServerHelpers {
       request: Option[Request[F]],
       resp: Response[F],
       idleTimeout: Duration,
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]): F[Unit] =
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+  ): F[Unit] =
     Encoder
       .respToBytes[F](resp)
       .through(socket.writes(durationToFinite(idleTimeout)))
@@ -169,7 +182,8 @@ private[server] object ServerHelpers {
 
   private[internal] def postProcessResponse[F[_]: Timer: Monad](
       req: Request[F],
-      resp: Response[F]): F[Response[F]] = {
+      resp: Response[F],
+  ): F[Response[F]] = {
     val connection = connectionFor(req.httpVersion, req.headers)
     for {
       date <- HttpDate.current[F].map(Date(_))
@@ -185,11 +199,16 @@ private[server] object ServerHelpers {
       requestHeaderReceiveTimeout: Duration,
       httpApp: HttpApp[F],
       errorHandler: Throwable => F[org.http4s.Response[F]],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
-    val read: Read[F] = socket.read(receiveBufferSize, durationToFinite(idleTimeout))
+    val read: Read[F] = socket
+      .read(receiveBufferSize, durationToFinite(idleTimeout))
+      .adaptError {
+        // TODO MERGE: Replace with TimeoutException on series/0.23+.
+        case _: InterruptedByTimeoutException => EmberException.ReadTimeout(idleTimeout)
+      }
     Stream
       .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
         case (buffer, reuse) =>
@@ -199,10 +218,11 @@ private[server] object ServerHelpers {
           } else if (reuse) {
             // the connection is keep-alive, but we don't have any bytes.
             // we want to be on the idle timeout until the next request is received.
-            read.flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
+            read
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
           } else {
             // first request begins immediately
             Array.emptyByteArray.pure[F]
@@ -216,7 +236,8 @@ private[server] object ServerHelpers {
               requestHeaderReceiveTimeout,
               httpApp,
               errorHandler,
-              socket)
+              socket,
+            )
           }
 
           result.attempt.flatMap {
@@ -237,10 +258,11 @@ private[server] object ServerHelpers {
                           idleTimeout,
                           onWriteFailure,
                           errorHandler,
-                          logger)
+                          logger,
+                        )
                         .as(None)
                     case None =>
-                      Concurrent[F].pure(None)
+                      Applicative[F].pure(None)
                   }
                 case None =>
                   for {
@@ -251,7 +273,8 @@ private[server] object ServerHelpers {
               }
             case Left(err) =>
               err match {
-                case EmberException.EmptyStream() =>
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
@@ -278,8 +301,8 @@ private[server] object ServerHelpers {
           Request.Connection(
             local = SocketAddress.fromInetSocketAddress(local),
             remote = SocketAddress.fromInetSocketAddress(remote),
-            secure = socket.isInstanceOf[TLSSocket[F]]
-          )
+            secure = socket.isInstanceOf[TLSSocket[F]],
+          ),
         )
       case _ =>
         Vault.empty
@@ -294,7 +317,7 @@ private[server] object ServerHelpers {
               Option(session.getId).map(ByteVector(_).toHex),
               Option(session.getCipherSuite),
               Option(session.getCipherSuite).map(deduceKeyLength),
-              Some(getCertChain(session))
+              Some(getCertChain(session)),
             ).mapN(SecureSession.apply)
           }
           .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))

@@ -17,87 +17,62 @@
 package org.http4s
 package syntax
 
-import scala.quoted._
+import org.typelevel.literally.Literally
+
 import scala.language.`3.0`
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
-    inline def uri(args: Any*): Uri = ${LiteralsSyntax.validateUri('{ctx}, '{args})}
-    inline def path(args: Any*): Uri.Path = ${LiteralsSyntax.validatePath('{ctx}, '{args})}
-    inline def scheme(args: Any*): Uri.Scheme = ${LiteralsSyntax.validateUriScheme('{ctx}, '{args})}
-    inline def mediaType(args: Any*): MediaType = ${LiteralsSyntax.validateMediatype('{ctx}, '{args})}
-    inline def qValue(args: Any*): QValue = ${LiteralsSyntax.validateQvalue('{ctx}, '{args})}
+    inline def uri(inline args: Any*): Uri = ${ LiteralsSyntax.UriLiteral('ctx, 'args) }
+    inline def path(inline args: Any*): Uri.Path = ${ LiteralsSyntax.UriPathLiteral('ctx, 'args) }
+    inline def scheme(inline args: Any*): Uri.Scheme = ${
+      LiteralsSyntax.UriSchemeLiteral('ctx, 'args)
+    }
+    inline def mediaType(inline args: Any*): MediaType = ${
+      LiteralsSyntax.MediaTypeLiteral('ctx, 'args)
+    }
+    inline def qValue(inline args: Any*): QValue = ${ LiteralsSyntax.QValueLiteral('ctx, 'args) }
   }
 }
 
 private[syntax] object LiteralsSyntax {
-
-  trait Validator[A] {
-    def validate(s: String): Option[ParseFailure]
-    def construct(s: String)(using Quotes): Expr[A]
-  }
-
-  def validateUri(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(uri, strCtxExpr, argsExpr)
-  def validateUriScheme(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(urischeme, strCtxExpr, argsExpr)
-  def validatePath(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(uripath, strCtxExpr, argsExpr)
-  def validateMediatype(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(mediatype, strCtxExpr, argsExpr)
-  def validateQvalue(strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Quotes) =
-    validate(qvalue, strCtxExpr, argsExpr)
-
-  def validate[A](validator: Validator[A], strCtxExpr: Expr[StringContext], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    val sc = strCtxExpr.valueOrError
-    validate(validator, sc.parts, argsExpr)
-  }
-
-  private def validate[A](validator: Validator[A], parts: Seq[String], argsExpr: Expr[Seq[Any]])(using Type[A])(using Quotes): Expr[A] = {
-    if (parts.size == 1) {
-      val literal = parts.head
-      validator.validate(literal) match {
-        case Some(err) =>
-          quotes.reflect.report.throwError(err.message)
-        case None => validator.construct(literal)
+  object UriLiteral extends Literally[Uri] {
+    def validate(s: String)(using Quotes) =
+      Uri.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid URI: ${parsingFailure.details}")
+        case Right(_) => Right('{ Uri.unsafeFromString(${ Expr(s) }) })
       }
-    } else {
-      quotes.reflect.report.throwError("interpolation not supported", argsExpr)
-    }
   }
 
-  object uri extends Validator[Uri] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri] =
-      '{Uri.unsafeFromString(${Expr(literal)})}
+  object UriSchemeLiteral extends Literally[Uri.Scheme] {
+    def validate(s: String)(using Quotes) =
+      Uri.Scheme.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid Scheme: ${parsingFailure.details}")
+        case Right(_) => Right('{ Uri.Scheme.unsafeFromString(${ Expr(s) }) })
+      }
   }
 
-  object urischeme extends Validator[Uri.Scheme] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.Scheme.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Scheme] =
-      '{Uri.Scheme.unsafeFromString(${Expr(literal)})}
+  object UriPathLiteral extends Literally[Uri.Path] {
+    def validate(s: String)(using Quotes) =
+      Uri.fromString(s).map(_.path) match {
+        case Left(parsingFailure) => Left(s"invalid Path: ${parsingFailure.details}")
+        case Right(_) => Right('{ Uri.Path.unsafeFromString(${ Expr(s) }) })
+      }
   }
 
-  object uripath extends Validator[Uri.Path] {
-    override def validate(literal: String): Option[ParseFailure] = Uri.fromString(literal).map(_.path).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[Uri.Path] =
-      '{Uri.unsafeFromString(${Expr(literal)}).path}
+  object MediaTypeLiteral extends Literally[MediaType] {
+    def validate(s: String)(using Quotes) =
+      MediaType.parse(s) match {
+        case Left(parsingFailure) => Left(s"invalid MediaType: ${parsingFailure.details}")
+        case Right(_) => Right('{ MediaType.unsafeParse(${ Expr(s) }) })
+      }
   }
 
-  object mediatype extends Validator[MediaType] {
-    override def validate(literal: String): Option[ParseFailure] = MediaType.parse(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[MediaType] =
-      '{MediaType.unsafeParse(${Expr(literal)})}
-  }
-
-  object qvalue extends Validator[QValue] {
-    override def validate(literal: String): Option[ParseFailure] = QValue.fromString(literal).swap.toOption
-
-    override def construct(literal: String)(using Quotes): Expr[QValue] =
-      '{QValue.unsafeFromString(${Expr(literal)})}
+  object QValueLiteral extends Literally[QValue] {
+    def validate(s: String)(using Quotes) =
+      QValue.fromString(s) match {
+        case Left(parsingFailure) => Left(s"invalid QValue: ${parsingFailure.details}")
+        case Right(_) => Right('{ QValue.unsafeFromString(${ Expr(s) }) })
+      }
   }
 }

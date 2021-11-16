@@ -19,13 +19,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.{FlatMap, ~>}
+import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, NonEmptyList, OptionT}
-import cats.effect.{IO, Sync}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all._
+import cats.~>
 import org.typelevel.ci._
 import org.typelevel.vault.Key
+
 import java.util.UUID
 
 /** Propagate a `X-Request-Id` header to the response, generate a UUID
@@ -58,7 +63,7 @@ object RequestId {
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
-      genReqId: F[UUID]
+      genReqId: F[UUID],
   )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
@@ -82,7 +87,7 @@ object RequestId {
 
     def apply[F[_]: Sync](
         headerName: CIString = requestIdHeader,
-        genReqId: F[UUID]
+        genReqId: F[UUID],
     )(httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(FunctionK.id[F], headerName, genReqId)(httpApp)
   }
@@ -98,7 +103,7 @@ object RequestId {
 
     def apply[F[_]: Sync](
         headerName: CIString = requestIdHeader,
-        genReqId: F[UUID]
+        genReqId: F[UUID],
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
   }

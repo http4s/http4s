@@ -21,16 +21,20 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io._
-import java.util.Locale
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
+import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.multipart.{Multipart, Part}
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
 import org.typelevel.ci._
-import scala.concurrent.duration._
+
 import java.util.Arrays
+import java.util.Locale
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
   val timeout = 20.seconds
@@ -105,7 +109,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test(s"$name POST a chunked body".flaky) {
     val address = jetty().addresses.head
     val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-    val req = POST(Stream("This is chunked.").covary[IO], uri)
+    val req = POST(Stream.emits("This is chunked.".toSeq.map(_.toString)).covary[IO], uri)
     val body = client().expect[String](req)
     body.assertEquals("This is chunked.")
   }
@@ -140,8 +144,10 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       uri = Uri(
         authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
         path = Uri.Path.Root / Uri.Path.Segment.encoded(
-          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
-      ))
+          "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"
+        ),
+      )
+    )
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
@@ -149,10 +155,13 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val name = address.getHostName
     val port = address.getPort
-    val req = Request[IO](uri = Uri(
-      authority =
-        Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
-      path = path"/request-splitting"))
+    val req = Request[IO](uri =
+      Uri(
+        authority =
+          Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+        path = path"/request-splitting",
+      )
+    )
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
 
@@ -160,7 +169,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val req = Request[IO](
       uri =
-        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo
+    )
       .putHeaders(Header.Raw(ci"Fine:\r\nEvil:true\r\n", "oops"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
@@ -169,7 +179,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     val address = jetty().addresses.head
     val req = Request[IO](
       uri =
-        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo)
+        Uri.fromString(s"http://${address.getHostName}:${address.getPort}/request-splitting").yolo
+    )
       .putHeaders(Header.Raw(ci"X-Carrier", "\r\nEvil:true\r\n"))
     client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
   }
@@ -199,7 +210,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }
     resp.body
       .through(
-        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false))
+        writeOutputStream[IO](IO.pure(srv.getOutputStream), testBlocker, closeAfterUse = false)
+      )
       .compile
       .drain
   }

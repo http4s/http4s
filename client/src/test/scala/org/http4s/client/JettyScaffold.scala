@@ -16,24 +16,31 @@
 
 package org.http4s.client
 
-import cats.effect.concurrent.Ref
-import cats.effect.{IO, Resource, Sync}
+import cats.effect.Resource
+import cats.effect.Sync
+import cats.effect.IO
 import cats.implicits._
-import java.net.{InetSocketAddress}
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
-import javax.servlet.http.HttpServlet
+import cats.effect.concurrent.Ref
 import org.eclipse.jetty.server.{Server => JServer, _}
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty
 import org.eclipse.jetty.io.EndPoint
 import org.http4s.client.JettyScaffold._
 import org.http4s.Uri
 
+import java.net.InetSocketAddress
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.servlet.http.HttpServlet
+
 object JettyScaffold {
   def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(implicit
-      F: Sync[F]): Resource[F, JettyScaffold] =
+      F: Sync[F]
+  ): Resource[F, JettyScaffold] =
     Resource.make(F.delay {
       val scaffold = new JettyScaffold(num, secure)
       scaffold.startServers(testServlet)
@@ -78,7 +85,8 @@ class JettyScaffold private (num: Int, secure: Boolean) {
 
           val kmf = KeyManagerFactory.getInstance(
             Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-              .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+              .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+          )
 
           kmf.init(ks, "secure".toCharArray)
 
@@ -96,8 +104,10 @@ class JettyScaffold private (num: Int, secure: Boolean) {
             server,
             new SslConnectionFactory(
               sslContextFactory,
-              org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
-            connectionFactory)
+              org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString(),
+            ),
+            connectionFactory,
+          )
         } else {
           val httpConfig = new HttpConfiguration()
           val connectionFactory = new CountingHttpConnectionFactory(httpConfig, connectionsCounter)
@@ -109,7 +119,8 @@ class JettyScaffold private (num: Int, secure: Boolean) {
 
       val address = new InetSocketAddress(
         "localhost",
-        server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort)
+        server.getConnectors.head.asInstanceOf[ServerConnector].getLocalPort,
+      )
 
       new JettyTestServer(server, address, secure, connectionsCounter)
     }.toVector

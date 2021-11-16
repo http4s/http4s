@@ -16,24 +16,25 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
-import fs2.{Pipe, Stream}
-import org.http4s._
-import org.http4s.server.Server
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.websocket.WebSocketFrame
-import org.http4s.server.websocket.WebSocketBuilder
-
-import org.java_websocket.client.WebSocketClient
-import java.net.URI
 import cats.effect.concurrent.Deferred
-import org.java_websocket.handshake.ServerHandshake
+import cats.syntax.all._
+import fs2.Pipe
+import fs2.Stream
 import fs2.concurrent.Queue
+import org.http4s._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits._
+import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.websocket.WebSocketFrame
 import org.java_websocket.WebSocket
+import org.java_websocket.client.WebSocketClient
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
+import org.java_websocket.handshake.ServerHandshake
+
+import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
@@ -68,13 +69,14 @@ class EmberServerWebSocketSuite extends Http4sSuite {
 
   def fixture = ResourceFixture(serverResource)
 
-  case class Client(
+  sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
-      client: WebSocketClient) {
+      client: WebSocketClient,
+  ) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def close: IO[Unit] =
@@ -123,7 +125,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("open and close connection to server") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.close
     } yield ()
@@ -132,7 +135,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("send and receive a message") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.send("foo")
       msg <- client.messages.dequeue1
@@ -143,7 +147,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("respond to pings") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.ping("hello")
       data <- client.pongs.dequeue1
@@ -154,7 +159,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("initiate close sequence on stream termination") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close")
+      )
       _ <- client.connect
       _ <- client.messages.dequeue1
       _ <- client.remoteClosed.get

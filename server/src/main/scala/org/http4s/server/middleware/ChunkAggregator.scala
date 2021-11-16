@@ -18,19 +18,24 @@ package org.http4s
 package server
 package middleware
 
+import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.{FlatMap, ~>}
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all._
+import cats.~>
 import fs2._
 import org.http4s.headers._
 import org.typelevel.ci._
+
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {
-  def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
-      http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
+  def apply[F[_]: FlatMap, G[_]: Sync, A](
+      f: G ~> F
+  )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
         response.body.chunks.compile.toVector
@@ -39,7 +44,8 @@ object ChunkAggregator {
             response
               .withBodyStream(Stream.chunk(body))
               .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
-          })
+          }
+      )
     }
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =

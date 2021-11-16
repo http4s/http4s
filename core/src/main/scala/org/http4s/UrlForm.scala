@@ -16,13 +16,16 @@
 
 package org.http4s
 
-import cats.{Eq, Monoid}
+import cats.Eq
+import cats.Monoid
 import cats.data.Chain
 import cats.effect.Sync
 import cats.syntax.all._
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
+
 import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
@@ -59,7 +62,8 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
     */
   def updateFormField[T](key: String, value: Option[T])(implicit
-      ev: QueryParamEncoder[T]): UrlForm =
+      ev: QueryParamEncoder[T]
+  ): UrlForm =
     value.fold(this)(updateFormField(key, _))
 
   /** @param key name of the field
@@ -97,8 +101,7 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
+  implicit def entityEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, UrlForm] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
@@ -106,7 +109,8 @@ object UrlForm {
 
   implicit def entityDecoder[F[_]](implicit
       F: Sync[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+      defaultCharset: Charset = `UTF-8`,
+  ): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
@@ -127,8 +131,9 @@ object UrlForm {
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(
-      urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
+  def decodeString(
+      charset: Charset
+  )(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))

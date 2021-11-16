@@ -19,8 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7235
 import org.http4s.Header
+import org.http4s.internal.parsing.Rfc7235
 import org.typelevel.ci._
 
 object `WWW-Authenticate` {
@@ -38,7 +38,7 @@ object `WWW-Authenticate` {
     Header.createRendered(
       ci"WWW-Authenticate",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =

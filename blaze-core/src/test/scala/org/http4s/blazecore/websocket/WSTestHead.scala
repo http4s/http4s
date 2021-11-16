@@ -16,13 +16,16 @@
 
 package org.http4s.blazecore.websocket
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.ContextShift
+import cats.effect.IO
+import cats.effect.Timer
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -41,7 +44,8 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
+    outQueue: Queue[IO, WebSocketFrame],
+)(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
 
   private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()

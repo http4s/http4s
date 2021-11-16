@@ -20,8 +20,10 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent._
 import org.http4s._
-import org.http4s.headers.{Connection, Date, `User-Agent`}
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool.Reusable
 
@@ -42,7 +44,8 @@ class ClientHelpersSuite extends Http4sSuite {
         Request[IO](
           headers = Headers(Date(HttpDate.Epoch))
         ),
-        None)
+        None,
+      )
       .map { req =>
         req.headers.get[Date].map { case d: Date =>
           d.date
@@ -65,7 +68,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(
         Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
-        None
+        None,
       )
       .map { req =>
         req.headers.get[Connection].map { case c: Connection =>
@@ -91,7 +94,8 @@ class ClientHelpersSuite extends Http4sSuite {
         Request[IO](
           headers = Headers(`User-Agent`(ProductId(name, None)))
         ),
-        EmberClientBuilder.default[IO].userAgent)
+        EmberClientBuilder.default[IO].userAgent,
+      )
       .map { req =>
         req.headers.get[`User-Agent`].map { case e =>
           e.product.value
@@ -111,7 +115,7 @@ class ClientHelpersSuite extends Http4sSuite {
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
-          reuse
+          reuse,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.Reuse)
@@ -129,7 +133,7 @@ class ClientHelpersSuite extends Http4sSuite {
         Response[IO](),
         IO.pure(Some(Array[Byte](1, 2, 3))),
         nextBytes,
-        reuse
+        reuse,
       )
       drained <- nextBytes.get
     } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
@@ -145,7 +149,7 @@ class ClientHelpersSuite extends Http4sSuite {
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
-          reuse
+          reuse,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -163,7 +167,7 @@ class ClientHelpersSuite extends Http4sSuite {
           Response[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
-          reuse
+          reuse,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -181,7 +185,7 @@ class ClientHelpersSuite extends Http4sSuite {
           Response[IO](),
           IO.pure(None),
           nextBytes,
-          reuse
+          reuse,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)

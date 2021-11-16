@@ -17,8 +17,8 @@
 package org.http4s.dsl
 
 import org.http4s.Method
-import org.http4s.dsl.impl._
 import org.http4s.Uri
+import org.http4s.dsl.impl._
 
 trait RequestDsl extends Methods with Auth {
   import Http4sDsl._

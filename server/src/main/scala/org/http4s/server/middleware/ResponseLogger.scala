@@ -18,15 +18,20 @@ package org.http4s
 package server
 package middleware
 
-import cats.~>
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
-import cats.effect.{BracketThrow, Concurrent, ExitCase, Sync}
-import cats.effect.implicits._
+import cats.data.Kleisli
+import cats.data.OptionT
+import cats.effect.BracketThrow
+import cats.effect.Concurrent
+import cats.effect.ExitCase
+import cats.effect.Sync
 import cats.effect.Sync._
 import cats.effect.concurrent.Ref
+import cats.effect.implicits._
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import cats.~>
+import fs2.Chunk
+import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
@@ -40,9 +45,10 @@ object ResponseLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(http: Kleisli[G, A, Response[F]])(implicit
-      G: BracketThrow[G],
-      F: Concurrent[F]): Kleisli[G, A, Response[F]] =
+      logAction: Option[String => F[Unit]] = None,
+  )(
+      http: Kleisli[G, A, Response[F]]
+  )(implicit G: BracketThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] =
     impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
   private[server] def impl[G[_], F[_], A](
@@ -50,9 +56,10 @@ object ResponseLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]])(http: Kleisli[G, A, Response[F]])(implicit
-      G: BracketThrow[G],
-      F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
+      logAction: Option[String => F[Unit]],
+  )(
+      http: Kleisli[G, A, Response[F]]
+  )(implicit G: BracketThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
     val log = logAction.fold(fallback)(identity)
 
@@ -107,37 +114,39 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(
-      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+      logAction: Option[String => F[Unit]] = None,
+  )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
   def httpAppLogBodyText[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(
-      httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+      logAction: Option[String => F[Unit]] = None,
+  )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
-      httpApp)
+      httpApp
+    )
 
   def httpRoutes[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(
-      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+      logAction: Option[String => F[Unit]] = None,
+  )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
   def httpRoutesLogBodyText[F[_]: Concurrent, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None)(
-      httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+      logAction: Option[String => F[Unit]] = None,
+  )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     impl[OptionT[F, *], F, A](
       logHeaders,
       Right(logBody),
       OptionT.liftK[F],
       redactHeadersWhen,
-      logAction)(httpRoutes)
+      logAction,
+    )(httpRoutes)
 }

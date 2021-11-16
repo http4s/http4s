@@ -19,10 +19,12 @@ package servlet
 package syntax
 
 import cats.effect._
-import javax.servlet.{ServletContext, ServletRegistration}
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.defaults
 import org.http4s.syntax.all._
+
+import javax.servlet.ServletContext
+import javax.servlet.ServletRegistration
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
@@ -38,18 +40,20 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   def mountService[F[_]: ConcurrentEffect](
       name: String,
       service: HttpRoutes[F],
-      mapping: String = "/*"): ServletRegistration.Dynamic =
+      mapping: String = "/*",
+  ): ServletRegistration.Dynamic =
     mountHttpApp(name, service.orNotFound, mapping)
 
   def mountHttpApp[F[_]: ConcurrentEffect](
       name: String,
       service: HttpApp[F],
-      mapping: String = "/*"): ServletRegistration.Dynamic = {
+      mapping: String = "/*",
+  ): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
       asyncTimeout = defaults.ResponseTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
-      serviceErrorHandler = DefaultServiceErrorHandler[F]
+      serviceErrorHandler = DefaultServiceErrorHandler[F],
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)

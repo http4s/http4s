@@ -17,8 +17,9 @@
 package org.http4s
 
 import cats.Applicative
+import cats.data.Chain
 import cats.data.Validated.Valid
-import cats.data.{Chain, ValidatedNel}
+import cats.data.ValidatedNel
 import cats.effect.Sync
 import cats.syntax.all._
 
@@ -178,7 +179,8 @@ object FormDataDecoder {
         .get(key + "[]")
         .orElse(data.get(key))
         .getOrElse(Chain.empty)
-        .traverse(v => qd.decode(QueryParameterValue(v))))
+        .traverse(v => qd.decode(QueryParameterValue(v)))
+    )
 
   def chainEither[A](
       key: String

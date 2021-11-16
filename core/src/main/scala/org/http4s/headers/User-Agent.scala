@@ -17,8 +17,10 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Renderer, Writer}
 import org.http4s.Header
+import org.http4s.util.Renderable
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `User-Agent` {
@@ -52,11 +54,12 @@ object `User-Agent` {
           }
 
         },
-      parse
+      parse,
     )
 
   implicit def convert(implicit
-      select: Header.Select.Aux[`User-Agent`, cats.Id]): Renderer[`User-Agent`] =
+      select: Header.Select.Aux[`User-Agent`, cats.Id]
+  ): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {
       override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }

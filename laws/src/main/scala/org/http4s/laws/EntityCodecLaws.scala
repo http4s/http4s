@@ -17,10 +17,10 @@
 package org.http4s
 package laws
 
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.implicits._
 import cats.laws._
+import cats.syntax.all._
 
 trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
   implicit def F: Effect[F]
@@ -39,7 +39,8 @@ object EntityCodecLaws {
   def apply[F[_], A](implicit
       F0: Effect[F],
       entityEncoderFA: EntityEncoder[F, A],
-      entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] =
+      entityDecoderFA: EntityDecoder[F, A],
+  ): EntityCodecLaws[F, A] =
     new EntityCodecLaws[F, A] {
       val F = F0
       val encoder = entityEncoderFA

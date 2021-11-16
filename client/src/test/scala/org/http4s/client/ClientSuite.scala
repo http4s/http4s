@@ -17,15 +17,16 @@
 package org.http4s
 package client
 
-import cats.effect.concurrent.Deferred
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.syntax.all._
-import java.io.IOException
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.AllSyntax
+
+import java.io.IOException
 
 class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
   private val app = HttpApp[IO] { r =>
@@ -101,7 +102,8 @@ class ClientSuite extends Http4sSuite with Http4sDsl[IO] with AllSyntax {
               .guaranteeCase(exitCase.complete)
               .start
               .flatTap(fiber =>
-                cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+                cancelSignal.get >> fiber.cancel
+              ) // don't cancel until the returned resource is in use
           }
           .flatMap(_.get)
       }

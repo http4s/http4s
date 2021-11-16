@@ -127,7 +127,8 @@ object CharPredicate {
 
   object ApplyMagnet {
     implicit def fromPredicate(predicate: Char => Boolean): ApplyMagnet = new ApplyMagnet(
-      from(predicate))
+      from(predicate)
+    )
     implicit def fromChar(c: Char): ApplyMagnet = fromChars(c :: Nil)
     implicit def fromCharArray(array: Array[Char]): ApplyMagnet = fromChars(array.toIndexedSeq)
     implicit def fromString(chars: String): ApplyMagnet = fromChars(chars)
@@ -143,12 +144,14 @@ object CharPredicate {
       }
   }
 
-  ///////////////////////// PRIVATE ////////////////////////////
+  // /////////////////////// PRIVATE ////////////////////////////
 
   private def unmaskable(c: Char) = c >= 128
 
+  // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+
   // efficient handling of 7bit-ASCII chars
-  case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
+  final case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
       extends CharPredicate {
 
     def apply(c: Char): Boolean = {
@@ -219,7 +222,7 @@ object CharPredicate {
         highMask,
         64,
         java.lang.Long.numberOfTrailingZeros(highMask),
-        rec(lowMask, 0, java.lang.Long.numberOfTrailingZeros(lowMask), startIx)
+        rec(lowMask, 0, java.lang.Long.numberOfTrailingZeros(lowMask), startIx),
       )
       ()
     }
@@ -227,7 +230,7 @@ object CharPredicate {
     override def toString(): String = "CharPredicate.MaskBased(" + new String(toArray) + ')'
   }
 
-  class RangeBased private[CharPredicate] (private val range: NumericRange[Char])
+  final class RangeBased private[CharPredicate] (private val range: NumericRange[Char])
       extends CharPredicate {
     def apply(c: Char): Boolean = range contains c
 
@@ -260,7 +263,8 @@ object CharPredicate {
         s"step = ${range.step.toInt}, inclusive = ${range.isInclusive})"
   }
 
-  class ArrayBased private[CharPredicate] (private val chars: Array[Char]) extends CharPredicate {
+  final class ArrayBased private[CharPredicate] (private val chars: Array[Char])
+      extends CharPredicate {
     import java.util.Arrays._
     sort(chars)
 
@@ -301,7 +305,8 @@ object CharPredicate {
     override def toString(): String = "CharPredicate.ArrayBased(" + new String(chars) + ')'
   }
 
-  case class General private[CharPredicate] (predicate: Char => Boolean) extends CharPredicate {
+  final case class General private[CharPredicate] (predicate: Char => Boolean)
+      extends CharPredicate {
     def apply(c: Char) = predicate(c)
 
     def ++(that: CharPredicate): CharPredicate =
@@ -339,4 +344,6 @@ object CharPredicate {
 
     override def toString(): String = "CharPredicate.General@" + System.identityHashCode(this)
   }
+
+  // scalafix:on
 }

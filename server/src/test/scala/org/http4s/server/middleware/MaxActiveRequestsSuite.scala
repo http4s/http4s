@@ -16,10 +16,10 @@
 
 package org.http4s.server.middleware
 
-import cats.implicits._
-import cats.effect._
 import cats.data._
+import cats.effect._
 import cats.effect.concurrent._
+import cats.implicits._
 import org.http4s._
 import org.http4s.syntax.all._
 
@@ -32,7 +32,8 @@ class MaxActiveRequestsSuite extends Http4sSuite {
         case other if other.method == Method.PUT => OptionT.none[IO, Response[IO]]
         case _ =>
           OptionT.liftF(
-            startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO])
+            startedGate.complete(()) >> deferred.get >> Response[IO](Status.Ok).pure[IO]
+          )
       }
     }
 

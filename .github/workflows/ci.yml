@@ -28,8 +28,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.2]
         java: [adoptium@8, adoptium@11, adoptium@17]
+        exclude:
+          - scala: 2.12.15
+            java: adoptium@11
+          - scala: 2.12.15
+            java: adoptium@17
+          - scala: 3.0.2
+            java: adoptium@11
+          - scala: 3.0.2
+            java: adoptium@17
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
@@ -58,14 +67,17 @@ jobs:
         run: sbt ++${{ matrix.scala }} githubWorkflowCheck
 
       - name: Check formatting
-        if: matrix.scala != '3.0.1'
-        run: sbt ++${{ matrix.scala }} scalafmtCheckAll
+        run: sbt ++${{ matrix.scala }} scalafmtCheckAll scalafmtSbtCheck
 
       - name: Check headers
         run: 'sbt ++${{ matrix.scala }} headerCheck test:headerCheck'
 
       - name: Compile
         run: 'sbt ++${{ matrix.scala }} test:compile'
+
+      - name: Check Scalafix rules
+        if: matrix.scala != '3.0.2'
+        run: sbt ++${{ matrix.scala }} 'scalafixAll --check'
 
       - name: Check binary compatibility
         run: sbt ++${{ matrix.scala }} mimaReportBinaryIssues
@@ -119,13 +131,6 @@ jobs:
       - if: startsWith(github.ref, 'refs/tags/v')
         run: sbt ++${{ matrix.scala }} sonatypeBundleRelease
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Publish website
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -135,20 +140,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.15 website/makeSite website/ghpagesPushSite
-
-                
-
-      - name: Publish docs
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-
-          eval "$(ssh-agent -s)"
-          echo "$SSH_PRIVATE_KEY" | ssh-add -
-          git config --global user.name "GitHub Actions CI"
-          git config --global user.email "ghactions@invalid"
-          sbt ++2.12.15 docs/makeSite docs/ghpagesPushSite
+          sbt ++2.12.15 website/laikaSite website/ghpagesPushSite
 
                 
 
@@ -171,15 +163,8 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Build website
-        run: sbt ++${{ matrix.scala }} website/makeSite
+        run: sbt ++${{ matrix.scala }} website/laikaSite
 
   docs:
     name: Build docs
@@ -200,22 +185,15 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: Setup Hugo
-        run: |
-
-          echo "$HOME/bin" > $GITHUB_PATH
-          HUGO_VERSION=0.26 scripts/install-hugo
-
-      
       - name: Build docs
-        run: sbt ++${{ matrix.scala }} docs/makeSite
+        run: sbt ++${{ matrix.scala }} docs/mdoc docs/laikaSite
 
   scalafix:
     name: Scalafix
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.6, 2.12.15, 3.0.1]
+        scala: [2.13.6, 2.12.15, 3.0.2]
         java: [adoptium@8]
     runs-on: ${{ matrix.os }}
     steps:

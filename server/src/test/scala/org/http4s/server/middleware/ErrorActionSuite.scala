@@ -18,9 +18,11 @@ package org.http4s.server.middleware
 
 import cats.effect.IO
 import cats.effect.concurrent.Ref
-import com.comcast.ip4s.{Ipv4Address, Port, SocketAddress}
-import org.http4s._
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s.Request.Connection
+import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.typelevel.vault.Vault
@@ -41,13 +43,14 @@ class ErrorActionSuite extends Http4sSuite {
       Connection(
         SocketAddress(Ipv4Address.fromBytes(127, 0, 0, 1), Port.fromInt(80).get),
         SocketAddress(remote, Port.fromInt(80).get),
-        false
-      )
-    )
+        false,
+      ),
+    ),
   )
 
   def testApp(app: Ref[IO, Vector[String]] => HttpApp[IO], expected: Vector[String])(
-      req: Request[IO]) =
+      req: Request[IO]
+  ) =
     (for {
       logsRef <- Ref.of[IO, Vector[String]](Vector.empty)
       _ <- app(logsRef).run(req).attempt
@@ -56,7 +59,7 @@ class ErrorActionSuite extends Http4sSuite {
 
   def testHttpRoutes(
       httpRoutes: Ref[IO, Vector[String]] => HttpRoutes[IO],
-      expected: Vector[String]
+      expected: Vector[String],
   ) =
     testApp(logsRef => httpRoutes(logsRef).orNotFound, expected)(_)
 
@@ -65,9 +68,9 @@ class ErrorActionSuite extends Http4sSuite {
       logsRef =>
         ErrorAction(
           httpRoutes().orNotFound,
-          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void
+          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void,
         ),
-      Vector("Error was handled")
+      Vector("Error was handled"),
     )(req)
   }
 
@@ -76,9 +79,9 @@ class ErrorActionSuite extends Http4sSuite {
       logsRef =>
         ErrorAction.httpApp(
           httpRoutes().orNotFound,
-          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void
+          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void,
         ),
-      Vector("Error was handled")
+      Vector("Error was handled"),
     )(req)
   }
 
@@ -87,9 +90,9 @@ class ErrorActionSuite extends Http4sSuite {
       logsRef =>
         ErrorAction.httpRoutes(
           httpRoutes(),
-          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void
+          (_: Request[IO], _) => logsRef.getAndUpdate(_ :+ "Error was handled").void,
         ),
-      Vector("Error was handled")
+      Vector("Error was handled"),
     )(req)
   }
 
@@ -99,9 +102,9 @@ class ErrorActionSuite extends Http4sSuite {
         ErrorAction.log(
           httpRoutes().orNotFound,
           (_, _) => IO.unit,
-          (_, message) => logsRef.getAndUpdate(_ :+ message).void
+          (_, message) => logsRef.getAndUpdate(_ :+ message).void,
         ),
-      Vector(s"Error servicing request: GET /error from $remote")
+      Vector(s"Error servicing request: GET /error from $remote"),
     )(req)
   }
 
@@ -111,9 +114,9 @@ class ErrorActionSuite extends Http4sSuite {
         ErrorAction.log(
           httpRoutes(ParseFailure("some-erroneous-message", "error")).orNotFound,
           (_, message) => logsRef.getAndUpdate(_ :+ message).void,
-          (_, _) => IO.unit
+          (_, _) => IO.unit,
         ),
-      Vector(s"Message failure handling request: GET /error from $remote")
+      Vector(s"Message failure handling request: GET /error from $remote"),
     )(req)
   }
 
@@ -123,9 +126,9 @@ class ErrorActionSuite extends Http4sSuite {
         ErrorAction.httpRoutes.log(
           httpRoutes(),
           (_, _) => IO.unit,
-          (_, message) => logsRef.getAndUpdate(_ :+ message).void
+          (_, message) => logsRef.getAndUpdate(_ :+ message).void,
         ),
-      Vector(s"Error servicing request: GET /error from $remote")
+      Vector(s"Error servicing request: GET /error from $remote"),
     )(req)
   }
 }

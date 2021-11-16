@@ -19,7 +19,9 @@ package headers
 
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci.CIStringSyntax
-import scala.concurrent.duration.{DurationLong, FiniteDuration}
+
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 /** The `Access-Control-Max-Age` header. */
@@ -28,13 +30,13 @@ trait `Access-Control-Max-Age`
 object `Access-Control-Max-Age` {
 
   /** A value of -1 of the age parameter will disable caching. */
-  final case object NoCaching extends `Access-Control-Max-Age`
+  case object NoCaching extends `Access-Control-Max-Age`
 
   /** The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[`Access-Control-Allow-Headers`]] headers) can be cached.
     *
     * @param age age of the response (in seconds)
     */
-  final case class Cache private (age: Long) extends `Access-Control-Max-Age` {
+  final case class Cache private (age: Long) extends `Access-Control-Max-Age` { // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
     def duration: Option[FiniteDuration] = Try(age.seconds).toOption
     def unsafeDuration: FiniteDuration = age.seconds
   }
@@ -47,7 +49,8 @@ object `Access-Control-Max-Age` {
     } else {
       ParseResult.fail(
         "Invalid age value",
-        s"Access-Control-Max-Age param $age must be greater or equal to 0 seconds or -1")
+        s"Access-Control-Max-Age param $age must be greater or equal to 0 seconds or -1",
+      )
     }
 
   def unsafeFromDuration(age: FiniteDuration): `Access-Control-Max-Age` =
@@ -68,6 +71,6 @@ object `Access-Control-Max-Age` {
         case Cache(age) => age
         case NoCaching => -1
       },
-      parse
+      parse,
     )
 }

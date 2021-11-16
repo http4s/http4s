@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.Status._
+
 import scala.concurrent.duration._
 
 object GetRoutes {
@@ -48,6 +49,6 @@ object GetRoutes {
       NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
       EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
-      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
+      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO],
     )
 }

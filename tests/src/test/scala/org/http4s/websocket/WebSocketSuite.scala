@@ -17,14 +17,15 @@
 package org.http4s.websocket
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.UTF_8
+import org.http4s.Http4sSuite
 import org.http4s.websocket.WebSocketFrame._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
-import org.http4s.Http4sSuite
 import scodec.bits.ByteVector
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.UTF_8
 
 class WebSocketSuite extends Http4sSuite {
   def helloTxtMasked =
@@ -85,7 +86,7 @@ class WebSocketSuite extends Http4sSuite {
 
   test("WebSocket decoder should encode a close message") {
     val reasonGen = for {
-      length <- choose(0, 30) //UTF-8 chars are at most 4 bytes, byte limit is 123
+      length <- choose(0, 30) // UTF-8 chars are at most 4 bytes, byte limit is 123
       chars <- listOfN(length, arbitrary[Char])
     } yield chars.mkString
 
@@ -108,7 +109,8 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test(
-    "WebSocket decoder should refuse to encode a close message with a reason that is too large") {
+    "WebSocket decoder should refuse to encode a close message with a reason that is too large"
+  ) {
     val validCloseCode = 1000
 
     forAll { (reason: String) =>

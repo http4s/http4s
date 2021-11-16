@@ -16,30 +16,35 @@
 
 package org.http4s.ember.client.internal
 
-import org.http4s.ember.client._
-import fs2.io.tcp._
+import _root_.fs2.io.tcp.SocketGroup
+import _root_.fs2.io.tls._
+import _root_.org.http4s.ember.core.Encoder
+import _root_.org.http4s.ember.core.Parser
+import _root_.org.http4s.ember.core.Util._
 import cats._
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.concurrent._
+import cats.effect.implicits._
 import cats.syntax.all._
-import scala.concurrent.duration._
-import java.net.InetSocketAddress
+import fs2.io.tcp._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
+import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
+import org.http4s.headers.Connection
+import org.http4s.headers.Date
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
-import _root_.org.http4s.ember.core.{Encoder, Parser}
-import _root_.fs2.io.tcp.SocketGroup
-import _root_.fs2.io.tls._
 import org.typelevel.keypool._
-import javax.net.ssl.SNIHostName
-import org.http4s.headers.{Connection, Date, `Idempotency-Key`, `User-Agent`}
-import _root_.org.http4s.ember.core.Util._
-import java.nio.channels.ClosedChannelException
+
 import java.io.IOException
+import java.net.InetSocketAddress
+import java.nio.channels.ClosedChannelException
+import javax.net.ssl.SNIHostName
+import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
 
@@ -48,7 +53,7 @@ private[client] object ClientHelpers {
       tlsContextOpt: Option[TLSContext],
       enableEndpointValidation: Boolean,
       sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      additionalSocketOptions: List[SocketOptionMapping[_]],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
@@ -56,7 +61,7 @@ private[client] object ClientHelpers {
       tlsContextOpt,
       enableEndpointValidation,
       sg,
-      additionalSocketOptions
+      additionalSocketOptions,
     )
   }
 
@@ -65,7 +70,7 @@ private[client] object ClientHelpers {
       tlsContextOpt: Option[TLSContext],
       enableEndpointValidation: Boolean,
       sg: SocketGroup,
-      additionalSocketOptions: List[SocketOptionMapping[_]]
+      additionalSocketOptions: List[SocketOptionMapping[_]],
   ): Resource[F, RequestKeySocket[F]] =
     for {
       address <- Resource.eval(getAddress(requestKey))
@@ -83,7 +88,8 @@ private[client] object ClientHelpers {
                 TLSParameters(
                   serverNames = Some(List(new SNIHostName(address.getHostName))),
                   endpointIdentificationAlgorithm =
-                    if (enableEndpointValidation) Some("HTTPS") else None)
+                    if (enableEndpointValidation) Some("HTTPS") else None,
+                ),
               )
               .widen[Socket[F]]
           }
@@ -98,13 +104,14 @@ private[client] object ClientHelpers {
       maxResponseHeaderSize: Int,
       idleTimeout: Duration,
       timeout: Duration,
-      userAgent: Option[`User-Agent`]
+      userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
     def writeRequestToSocket(
         req: Request[F],
         socket: Socket[F],
-        timeout: Option[FiniteDuration]): F[Unit] =
+        timeout: Option[FiniteDuration],
+    ): F[Unit] =
       Encoder
         .reqToBytes(req)
         .through(socket.writes(timeout))
@@ -117,16 +124,21 @@ private[client] object ClientHelpers {
           val finiteDuration = durationToFinite(timeout)
           val parse = Parser.Response.parser(maxResponseHeaderSize)(
             head,
-            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout))
+            connection.keySocket.socket.read(chunkSize, durationToFinite(idleTimeout)),
           )
 
           finiteDuration.fold(parse)(duration =>
             parse.timeoutTo(
               duration,
               Concurrent[F].defer(
-                ApplicativeThrow[F].raiseError(new java.util.concurrent.TimeoutException(
-                  s"Timed Out on EmberClient Header Receive Timeout: $duration")))
-            ))
+                ApplicativeThrow[F].raiseError(
+                  new java.util.concurrent.TimeoutException(
+                    s"Timed Out on EmberClient Header Receive Timeout: $duration"
+                  )
+                )
+              ),
+            )
+          )
         }
 
     for {
@@ -144,7 +156,8 @@ private[client] object ClientHelpers {
 
   private[internal] def preprocessRequest[F[_]: Monad: Clock](
       req: Request[F],
-      userAgent: Option[`User-Agent`]): F[Request[F]] = {
+      userAgent: Option[`User-Agent`],
+  ): F[Request[F]] = {
     val connection = req.headers
       .get[Connection]
       .fold(Connection(NonEmptyList.of(ci"keep-alive")))(identity)
@@ -161,7 +174,8 @@ private[client] object ClientHelpers {
       resp: Response[F],
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
-      canBeReused: Ref[F, Reusable])(implicit F: Concurrent[F]): F[Unit] =
+      canBeReused: Ref[F, Reusable],
+  )(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
         val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
@@ -184,7 +198,8 @@ private[client] object ClientHelpers {
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
   private[client] def getValidManaged[F[_]: Sync](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
-      request: Request[F]): Resource[F, Managed[F, EmberConnection[F]]] =
+      request: Request[F],
+  ): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
         .eval(managed.value.keySocket.socket.isOpen)
@@ -197,8 +212,10 @@ private[client] object ClientHelpers {
             Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
               getValidManaged(pool, request)
           } else
-            Resource.eval(Sync[F].raiseError(
-              new java.net.SocketException("Fresh connection from pool was not open")))
+            Resource.eval(
+              Sync[F]
+                .raiseError(new java.net.SocketException("Fresh connection from pool was not open"))
+            ),
         )
     }
 
@@ -211,7 +228,8 @@ private[client] object ClientHelpers {
 
     def emberDeadFromPoolPolicy[F[_]](
         req: Request[F],
-        result: Either[Throwable, Response[F]]): Boolean =
+        result: Either[Throwable, Response[F]],
+    ): Boolean =
       (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
         isRetryableError(result)
 

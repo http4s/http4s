@@ -19,8 +19,11 @@ package org.http4s.ember.core
 import cats.ApplicativeThrow
 import fs2._
 import org.http4s._
-import org.http4s.headers.{Host, `Content-Length`}
-import org.http4s.internal.{CharPredicate, appendSanitized}
+import org.http4s.headers.Host
+import org.http4s.headers.`Content-Length`
+import org.http4s.internal.CharPredicate
+import org.http4s.internal.appendSanitized
+
 import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
@@ -83,7 +86,8 @@ private[ember] object Encoder {
 
   def reqToBytes[F[_]: ApplicativeThrow](
       req: Request[F],
-      writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+      writeBufferSize: Int = 32 * 1024,
+  ): Stream[F, Byte] = {
     val uriOriginFormString = req.uri.toOriginForm.renderString
 
     if (uriOriginFormString.exists(ForbiddenUriCharacters)) {
@@ -149,5 +153,5 @@ private[ember] object Encoder {
     }
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, ' ', '\r', '\n')
+  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }

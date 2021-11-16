@@ -16,13 +16,14 @@
 
 package org.http4s.ember.server.internal
 
-import cats.syntax.all._
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.concurrent._
+import cats.effect.implicits._
+import cats.syntax.all._
 import fs2.Stream
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 private[server] abstract class Shutdown[F[_]] {
   def await: F[Unit]
@@ -44,7 +45,8 @@ private[server] object Shutdown {
     }
 
   private def timedShutdown[F[_]](
-      timeout: Duration)(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
+      timeout: Duration
+  )(implicit F: Concurrent[F], timer: Timer[F]): F[Shutdown[F]] = {
     case class State(isShutdown: Boolean, active: Int)
 
     for {

@@ -18,7 +18,8 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
-import cats.parse.Parser.{char, string}
+import cats.parse.Parser.char
+import cats.parse.Parser.string
 import org.typelevel.ci._
 
 sealed abstract class DNT(val value: String) extends Product with Serializable
@@ -45,6 +46,6 @@ object DNT {
     Header.create(
       ci"DNT",
       _.value,
-      parse
+      parse,
     )
 }

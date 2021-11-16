@@ -17,14 +17,15 @@
 package org.http4s
 package client
 
-import cats.~>
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
+import cats.~>
 import fs2._
-import java.io.IOException
 import org.http4s.headers.Host
+
+import java.io.IOException
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -84,7 +85,8 @@ trait Client[F[_]] {
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
@@ -93,12 +95,14 @@ trait Client[F[_]] {
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
@@ -107,7 +111,8 @@ trait Client[F[_]] {
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
@@ -116,7 +121,8 @@ trait Client[F[_]] {
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[Option[A]]
+      d: EntityDecoder[F, A]
+  ): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
@@ -176,12 +182,14 @@ trait Client[F[_]] {
       run(
         req.mapK(gK)
       ).mapK(fk)
-        .map(_.mapK(fk)))
+        .map(_.mapK(fk))
+    )
 }
 
 object Client {
-  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: BracketThrow[F]): Client[F] =
+  def apply[F[_]](
+      f: Request[F] => Resource[F, Response[F]]
+  )(implicit F: BracketThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }

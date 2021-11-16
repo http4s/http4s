@@ -17,23 +17,25 @@
 package org.http4s.blaze.client
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.parser.Http1ClientParser
 import org.typelevel.ci.CIString
+
+import java.nio.ByteBuffer
 import scala.collection.mutable.ListBuffer
 
 private[blaze] final class BlazeHttp1ClientParser(
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
-    parserMode: ParserMode)
-    extends Http1ClientParser(
+    parserMode: ParserMode,
+) extends Http1ClientParser(
       maxResponseLineSize,
       maxHeaderLength,
       2 * 1024,
       maxChunkSize,
-      parserMode == ParserMode.Lenient) {
+      parserMode == ParserMode.Lenient,
+    ) {
   private val headers = new ListBuffer[Header.Raw]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
@@ -74,7 +76,8 @@ private[blaze] final class BlazeHttp1ClientParser(
       reason: String,
       scheme: String,
       majorversion: Int,
-      minorversion: Int): Unit = {
+      minorversion: Int,
+  ): Unit = {
     val _ = reason
     status = Status.fromInt(code).valueOr(throw _)
     httpVersion =
