@@ -45,10 +45,11 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.2xx-responses")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
         assert(
           valuesOf(registry, Timer("server.default.get-requests"))
