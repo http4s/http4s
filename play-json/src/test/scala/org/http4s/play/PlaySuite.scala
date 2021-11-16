@@ -22,8 +22,9 @@ import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
-import org.http4s.laws.discipline.arbitrary._
+import org.http4s.laws.discipline.arbitrary
 import org.http4s.play._
+import org.scalacheck.Arbitrary
 import org.scalacheck.Prop.forAll
 
 // Originally based on CirceSpec
@@ -63,6 +64,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   }
 
   property("Uri codec round trip") {
+    implicit val arbitraryUri: Arbitrary[Uri] = arbitrary.createArbitraryUri
+
     forAll { (uri: Uri) =>
       // Uri.renderString encode special chars in the fragment
       // and after converting the Uri to Json, the fragment will be encoded

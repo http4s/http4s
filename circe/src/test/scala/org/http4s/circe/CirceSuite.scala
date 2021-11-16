@@ -33,11 +33,11 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
 import org.http4s.laws.discipline.arbitrary
+import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.jawn.ParseException
-import java.nio.charset.StandardCharsets
 
-import org.scalacheck.Arbitrary
+import java.nio.charset.StandardCharsets
 
 class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
