@@ -48,9 +48,9 @@ class EmberServerMtlsSuite extends Http4sSuite {
             .lookup(ServerRequestKeys.SecureSession)
             .flatten
             .map { session =>
-              assert(session.sslSessionId != "")
-              assert(session.cipherSuite != "")
-              assert(session.keySize != 0)
+              assertNotEquals(session.sslSessionId, "")
+              assertNotEquals(session.cipherSuite, "")
+              assertNotEquals(session.keySize, 0)
 
               session.X509Certificate.head.getSubjectX500Principal.getName
             }
@@ -61,10 +61,10 @@ class EmberServerMtlsSuite extends Http4sSuite {
             .lookup(ServerRequestKeys.SecureSession)
             .flatten
             .foreach { session =>
-              assert(session.sslSessionId != "")
-              assert(session.cipherSuite != "")
-              assert(session.keySize != 0)
-              assert(session.X509Certificate.isEmpty)
+              assertNotEquals(session.sslSessionId, "")
+              assertNotEquals(session.cipherSuite, "")
+              assertNotEquals(session.keySize, 0)
+              assertNotEquals(session.X509Certificate.isEmpty, true)
             }
 
           Ok("success")
