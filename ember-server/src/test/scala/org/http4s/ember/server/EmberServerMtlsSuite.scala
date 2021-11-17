@@ -64,7 +64,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
               assertNotEquals(session.sslSessionId, "")
               assertNotEquals(session.cipherSuite, "")
               assertNotEquals(session.keySize, 0)
-              assertNotEquals(session.X509Certificate.isEmpty, true)
+              assertEquals(session.X509Certificate.isEmpty, true)
             }
 
           Ok("success")
