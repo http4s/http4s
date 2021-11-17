@@ -91,7 +91,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(Ping())
       p <- socket.pollOutbound(2).map(_.exists(_ == Pong()))
       _ <- socket.sendInbound(Close())
-    } yield assert(p)
+    } yield assertEquals(p, true)
   }
 
   test("Http4sWSStage should not write any more frames after close frame sent") {
@@ -102,7 +102,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       p2 <- socket.pollOutbound().map(_.contains(Close()))
       p3 <- socket.pollOutbound().map(_.isEmpty)
       _ <- socket.sendInbound(Close())
-    } yield assert(p1 && p2 && p3)
+    } yield assertEquals(p1 && p2 && p3, true)
   }
 
   test(
@@ -113,7 +113,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(Close())
       p1 <- socket.pollBatchOutputbound(2, 2).map(_ == List(Close()))
       p2 <- socket.wasCloseHookCalled().map(_ == true)
-    } yield assert(p1 && p2)
+    } yield assertEquals(p1 && p2, true)
   }
 
   test("Http4sWSStage should not send two close frames".flaky) {
@@ -123,7 +123,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(Close())
       p1 <- socket.pollBatchOutputbound(2).map(_ == List(Close()))
       p2 <- socket.wasCloseHookCalled()
-    } yield assert(p1 && p2)
+    } yield assertEquals(p1 && p2, true)
   }
 
   test("Http4sWSStage should ignore pong frames") {
@@ -132,7 +132,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(Pong())
       p <- socket.pollOutbound().map(_.isEmpty)
       _ <- socket.sendInbound(Close())
-    } yield assert(p)
+    } yield assertEquals(p, true)
   }
 
   test("Http4sWSStage should send a ping frames to backend") {
@@ -144,7 +144,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(pingWithBytes)
       p2 <- socket.pollBackendInbound().map(_.contains(pingWithBytes))
       _ <- socket.sendInbound(Close())
-    } yield assert(p1 && p2)
+    } yield assertEquals(p1 && p2, true)
   }
 
   test("Http4sWSStage should send a pong frames to backend") {
@@ -156,7 +156,7 @@ class Http4sWSStageSpec extends Http4sSuite {
       _ <- socket.sendInbound(pongWithBytes)
       p2 <- socket.pollBackendInbound().map(_.contains(pongWithBytes))
       _ <- socket.sendInbound(Close())
-    } yield assert(p1 && p2)
+    } yield assertEquals(p1 && p2, true)
   }
 
   test("Http4sWSStage should not fail on pending write request") {
@@ -173,6 +173,6 @@ class Http4sWSStageSpec extends Http4sSuite {
           .compile
           .toList
           .timeout(5.seconds)
-    } yield assert(reasonReceived == List(reasonSent))
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }
