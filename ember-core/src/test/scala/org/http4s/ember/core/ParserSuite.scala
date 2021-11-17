@@ -378,10 +378,11 @@ class ParsingSuite extends Http4sSuite {
     Parser.HeaderP.parseHeaders[IO](bv, 0, 4096).map {
       case Right(headerP) =>
         assertEquals(
-          headerP.headers.headers, List(
+          headerP.headers.headers,
+          List(
             Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
             Header.Raw(ci"Content-Length", "11"),
-          )
+          ),
         )
         assertEquals(headerP.chunked, false)
         assertEquals(headerP.contentLength, Some(11L))
