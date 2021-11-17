@@ -77,9 +77,10 @@ class EntityEncoderSpec extends Http4sSuite {
 
     test("EntityEncoder should render entity bodies with chunked transfer encoding") {
       assertEquals(
-        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`], Some(
+        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`],
+        Some(
           `Transfer-Encoding`(TransferCoding.chunked)
-        )
+        ),
       )
     }
 
