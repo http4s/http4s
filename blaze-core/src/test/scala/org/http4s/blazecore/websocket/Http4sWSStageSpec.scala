@@ -173,6 +173,6 @@ class Http4sWSStageSpec extends Http4sSuite {
           .compile
           .toList
           .timeout(5.seconds)
-    } yield assert(reasonReceived == List(reasonSent))
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }

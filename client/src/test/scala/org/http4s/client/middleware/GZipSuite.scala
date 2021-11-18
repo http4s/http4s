@@ -36,14 +36,14 @@ class GZipSuite extends Http4sSuite {
   test("Client Gzip should return data correctly") {
     gzipClient
       .get(uri"/gziptest") { response =>
-        assert(response.status == Status.Ok)
-        assert(response.headers.get[`Content-Encoding`].isEmpty)
-        assert(response.headers.get[`Content-Length`].isEmpty)
+        assertEquals(response.status, Status.Ok)
+        assertEquals(response.headers.get[`Content-Encoding`], None)
+        assertEquals(response.headers.get[`Content-Length`], None)
 
         response.as[String]
       }
       .map { body =>
-        assert(body == "Dummy response")
+        assertEquals(body, "Dummy response")
       }
   }
 
@@ -52,14 +52,14 @@ class GZipSuite extends Http4sSuite {
     gzipClient
       .run(request)
       .use { response =>
-        assert(response.status == Status.Ok)
-        assert(response.headers.get[`Content-Encoding`].isEmpty)
-        assert(response.headers.get[`Content-Length`].isEmpty)
+        assertEquals(response.status, Status.Ok)
+        assertEquals(response.headers.get[`Content-Encoding`], None)
+        assertEquals(response.headers.get[`Content-Length`], None)
 
         response.as[String]
       }
       .map { body =>
-        assert(body == "")
+        assertEquals(body, "")
       }
   }
 }

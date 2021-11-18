@@ -88,7 +88,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
           .compile
           .toList
           .attempt
-    } yield assert(att == Left(WaitQueueFullFailure()))
+    } yield assertEquals(att, Left(WaitQueueFullFailure()))
   }
 
   test("A pool manager should wake up a waiting connection on release") {
@@ -118,9 +118,9 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       result2 <- waiting2.join.void.attempt
       result3 <- waiting3.join.void.attempt
     } yield {
-      assert(result1 == Left(WaitQueueTimeoutException))
-      assert(result2 == Left(WaitQueueTimeoutException))
-      assert(result3.isRight)
+      assertEquals(result1, Left(WaitQueueTimeoutException))
+      assertEquals(result2, Left(WaitQueueTimeoutException))
+      assertEquals(result3, Right(()))
     }
   }
 

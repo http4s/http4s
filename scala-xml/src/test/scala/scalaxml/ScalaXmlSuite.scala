@@ -55,10 +55,12 @@ class ScalaXmlSuite extends Http4sSuite {
       strBody("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>""")
     )
     // https://github.com/http4s/http4s/issues/1209
-    ((0 to 5).toList)
+    (0 to 5).toList
       .parTraverse(_ => server(req).flatMap(r => getBody(r.body)))
       .map { bodies =>
-        assert(bodies.forall(_ == "html"))
+        bodies.foreach { body =>
+          assertEquals(body, "html")
+        }
       }
   }
 
