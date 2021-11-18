@@ -107,7 +107,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       runRequest(tickwheel, Seq(req), routes, maxReqLine = 1).result.map { buff =>
         val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
         // make sure we don't have signs of chunked encoding.
-        assertEquals(str.contains("400 Bad Request"), true)
+        assert(str.contains("400 Bad Request"))
       }
   }
 
@@ -116,7 +116,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       runRequest(tickwheel, Seq(req), routes, maxHeaders = 1).result.map { buff =>
         val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
         // make sure we don't have signs of chunked encoding.
-        assertEquals(str.contains("400 Bad Request"), true)
+        assert(str.contains("400 Bad Request"))
       }
   }
 
@@ -168,7 +168,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   tickWheel.test("Http1ServerStage: Errors should Deal with synchronous errors") { tw =>
     val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assertEquals(c, true)
+      assert(c)
       assertEquals(s, InternalServerError)
     }
   }
@@ -177,7 +177,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       runError(tw, path).map { case (s, c, _) =>
-        assertEquals(c, false)
+        assert(!c)
         assertEquals(s, UnprocessableEntity)
       }
   }
@@ -185,7 +185,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   tickWheel.test("Http1ServerStage: Errors should Deal with asynchronous errors") { tw =>
     val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assertEquals(c, true)
+      assert(c)
       assertEquals(s, InternalServerError)
     }
   }
@@ -194,7 +194,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       runError(tw, path).map { case (s, c, _) =>
-        assertEquals(c, false)
+        assert(!c)
         assertEquals(s, UnprocessableEntity)
       }
   }
@@ -202,7 +202,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   tickWheel.test("Http1ServerStage: Errors should Handle parse error") { tw =>
     val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
     runError(tw, path).map { case (s, c, _) =>
-      assertEquals(c, true)
+      assert(c)
       assertEquals(s, BadRequest)
     }
   }
@@ -226,11 +226,11 @@ class Http1ServerStageSpec extends Http4sSuite {
     runRequest(tw, Seq(req), routes).result.map { buff =>
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
-      assertEquals(str.contains("0\r\n\r\n"), false)
-      assertEquals(str.contains("hello world"), true)
+      assert(!str.contains("0\r\n\r\n"))
+      assert(str.contains("hello world"))
 
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assertEquals(hdrs.exists(_.name == `Transfer-Encoding`.name), false)
+      assert(!hdrs.exists(_.name == `Transfer-Encoding`.name))
     }
   }
 
@@ -252,7 +252,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     runRequest(tw, Seq(req), routes).result.map { buf =>
       val (status, hs, body) = ResponseParser.parseBuffer(buf)
       hs.foreach { h =>
-        assertEquals(`Content-Length`.parse(h.value).isLeft, true)
+        assert(`Content-Length`.parse(h.value).isLeft)
       }
       assertEquals(body, "")
       assertEquals(status, Status.NotModified)
@@ -272,7 +272,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     runRequest(tw, Seq(req1), routes).result.map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      assertEquals(hdrs.exists(_.name == Header[Date].name), true)
+      assert(hdrs.exists(_.name == Header[Date].name))
     }
   }
 

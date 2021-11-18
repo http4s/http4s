@@ -384,7 +384,7 @@ class ParsingSuite extends Http4sSuite {
             Header.Raw(ci"Content-Length", "11"),
           ),
         )
-        assertEquals(headerP.chunked, false)
+        assert(!headerP.chunked)
         assertEquals(headerP.contentLength, Some(11L))
       case Left(_) => fail("Headers were not right")
     }

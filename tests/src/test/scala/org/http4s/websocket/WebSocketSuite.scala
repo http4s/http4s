@@ -60,11 +60,11 @@ class WebSocketSuite extends Http4sSuite {
 
   test("WebSocket decoder should decode a hello world message") {
     val result = decode(helloTxtMasked, false)
-    assertEquals(result.last, true)
+    assert(result.last)
     assertEquals(new String(result.data.toArray, UTF_8), "Hello")
 
     val result2 = decode(helloTxt, true)
-    assertEquals(result2.last, true)
+    assert(result2.last)
     assertEquals(new String(result2.data.toArray, UTF_8), "Hello")
   }
 
@@ -72,7 +72,7 @@ class WebSocketSuite extends Http4sSuite {
     val frame = Text(ByteVector.view("Hello".getBytes(UTF_8)), false)
     val msg = decode(encode(frame, true), false)
     assertEquals(msg, frame)
-    assertEquals(msg.last, false)
+    assert(!msg.last)
     assertEquals(new String(msg.data.toArray, UTF_8), "Hello")
   }
 
@@ -80,7 +80,7 @@ class WebSocketSuite extends Http4sSuite {
     val frame = Continuation(ByteVector.view("Hello".getBytes(UTF_8)), true)
     val msg = decode(encode(frame, true), false)
     assertEquals(msg, frame)
-    assertEquals(msg.last, true)
+    assert(msg.last)
     assertEquals(new String(msg.data.toArray, UTF_8), "Hello")
   }
 
@@ -94,7 +94,7 @@ class WebSocketSuite extends Http4sSuite {
       val frame = Close(validCloseCode, validReason).valueOr(throw _)
       val msg = decode(encode(frame, true), false)
       assertEquals(msg, frame)
-      assertEquals(msg.last, true)
+      assert(msg.last)
       val closeCode = msg.data.slice(0, 2)
       assertEquals((closeCode(0) << 8 & 0xff00) | (closeCode(1) & 0xff), validCloseCode)
       val reason = msg.data.slice(2, msg.data.length)

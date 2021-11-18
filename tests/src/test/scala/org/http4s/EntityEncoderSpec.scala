@@ -80,7 +80,7 @@ class EntityEncoderSpec extends Http4sSuite {
         EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`],
         Some(
           `Transfer-Encoding`(TransferCoding.chunked)
-        ),
+        )
       )
     }
 
