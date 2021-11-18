@@ -23,7 +23,7 @@ import org.http4s.parser.AdditionalRules
   * that gives an upper bound on how many times the request can be
   * forwarded by a proxy before it is rejected.
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-5.1.2 RFC-7231]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-5.1.2 RFC-7231]]
   */
 sealed abstract case class `Max-Forwards`(count: Long)
 

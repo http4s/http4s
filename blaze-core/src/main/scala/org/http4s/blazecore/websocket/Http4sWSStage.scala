@@ -139,7 +139,7 @@ private[http4s] class Http4sWSStage[F[_]](
   /** The websocket input stream
     *
     * Note: On receiving a close, we MUST send a close back, as stated in section
-    * 5.5.1 of the websocket spec: https://tools.ietf.org/html/rfc6455#section-5.5.1
+    * 5.5.1 of the websocket spec: https://datatracker.ietf.org/doc/html/rfc6455#section-5.5.1
     *
     * @return
     */

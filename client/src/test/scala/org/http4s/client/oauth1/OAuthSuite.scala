@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
-  // http://tools.ietf.org/html/rfc5849
+  // https://datatracker.ietf.org/doc/html/rfc5849
   implicit val timer: Timer[IO] = Http4sSuite.TestTimer
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")

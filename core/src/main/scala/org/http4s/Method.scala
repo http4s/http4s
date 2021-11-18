@@ -40,7 +40,7 @@ import scala.util.hashing.MurmurHash3
   * intended effect on the server of multiple identical requests with that
   * method is the same as the effect for a single such request.
   *
-  * @see [[http://tools.ietf.org/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
   * @see [[http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]]
   */
 final class Method private (val name: String, val isSafe: Boolean, val isIdempotent: Boolean)

@@ -70,7 +70,7 @@ object `Accept-Charset` {
   *   This field allows user agents capable of understanding more
   * }}}
   *
-  * From [http//tools.ietf.org/html/rfc7231#section-5.3.3 RFC-7231].
+  * From [https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.3 RFC-7231].
   */
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) {
 

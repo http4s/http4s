@@ -46,7 +46,7 @@ object Link {
     final case class Title(value: String) extends LinkParam
     final case class Type(value: MediaRange) extends LinkParam
 
-    // https://tools.ietf.org/html/rfc3986#section-4.1
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-4.1
     val linkValue: Parser0[LinkValue] =
       Uri.Parser.uriReference(StandardCharsets.UTF_8).map { uri =>
         headers.LinkValue(uri)

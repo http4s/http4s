@@ -134,7 +134,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse UTF-8 charset with explicit encoding") {
-    // https://tools.ietf.org/html/rfc7303#section-8.1
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.1
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
@@ -147,7 +147,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse UTF-8 charset with no encoding") {
-    // https://tools.ietf.org/html/rfc7303#section-8.1
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.1
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)
@@ -158,7 +158,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse UTF-16 charset with explicit encoding") {
-    // https://tools.ietf.org/html/rfc7303#section-8.2
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.2
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
@@ -171,7 +171,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse UTF-16 charset with no encoding") {
-    // https://tools.ietf.org/html/rfc7303#section-8.2
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.2
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16)
@@ -182,7 +182,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse omitted charset and 8-Bit MIME Entity") {
-    // https://tools.ietf.org/html/rfc7303#section-8.3
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.3
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="iso-8859-1"?><hello name="Günther"/>""".getBytes(
@@ -195,7 +195,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse omitted charset and 16-Bit MIME Entity") {
-    // https://tools.ietf.org/html/rfc7303#section-8.4
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.4
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="utf-16"?><hello name="Günther"/>""".getBytes(
@@ -208,7 +208,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse omitted charset, no internal encoding declaration") {
-    // https://tools.ietf.org/html/rfc7303#section-8.5
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.5
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_8)
@@ -219,7 +219,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse utf-16be charset") {
-    // https://tools.ietf.org/html/rfc7303#section-8.6
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.6
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0"?><hello name="Günther"/>""".getBytes(StandardCharsets.UTF_16BE)
@@ -230,7 +230,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse non-utf charset") {
-    // https://tools.ietf.org/html/rfc7303#section-8.7
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.7
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="iso-2022-kr"?><hello name="문재인"/>""".getBytes(
@@ -243,7 +243,7 @@ class ScalaXmlSuite extends Http4sSuite {
   }
 
   test("parse conflicting charset and internal encoding") {
-    // https://tools.ietf.org/html/rfc7303#section-8.8
+    // https://datatracker.ietf.org/doc/html/rfc7303#section-8.8
     encodingTest(
       Chunk.bytes(
         """<?xml version="1.0" encoding="utf-8"?><hello name="Günther"/>""".getBytes(
