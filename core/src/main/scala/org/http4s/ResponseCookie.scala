@@ -132,7 +132,7 @@ object ResponseCookie {
 
     /* domain-av         = "Domain=" domain-value
      *
-     * But https://tools.ietf.org/html/rfc6265#section-5.2.3 mandates
+     * But https://datatracker.ietf.org/doc/html/rfc6265#section-5.2.3 mandates
      * a leading dot, which is invalid per domain-value.
      */
     val domainAv = ignoreCase("Domain=") *> (char('.').? ~ domainValue).string.map {

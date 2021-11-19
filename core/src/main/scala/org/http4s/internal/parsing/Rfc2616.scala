@@ -26,7 +26,7 @@ import cats.parse.Rfc5234.sp
 /** Common rules defined in RFC2616.  This RFC is now obsolete,
   * but some other active ones still refer to it.
   *
-  * @see [[https://tools.ietf.org/html/rfc2616#section-2.2] RFC2616, Basic Rules]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc2616#section-2.2] RFC2616, Basic Rules]
   */
 private[http4s] object Rfc2616 {
   /* CHAR           = <any US-ASCII character (octets 0 - 127)>
