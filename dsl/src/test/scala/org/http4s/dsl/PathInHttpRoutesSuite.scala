@@ -320,7 +320,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
   test("Path DSL within HttpService should default parameter present with incorrect format") {
     val response =
       serve(
-        Request(GET, Uri(path = path"/default", query = Query.unsafeFromString("counter=john"))))
+        Request(GET, Uri(path = path"/default", query = Query.unsafeFromString("counter=john")))
+      )
     response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should optional flag parameter when present") {
