@@ -192,9 +192,12 @@ Apache License 2.0.
 * We encourage the addition of arbitrary instances to
   `org.http4s.testing.Http4sArbitraries` to support richer property
   testing.
+* For assertions in tests using `assertEquals()` more preferable than `assert()`. 
+  It brings nice diffs on assertions failures. For more details, see the [MUnit docs].
 
 [MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
+[MUnit docs]: https://scalameta.org/munit/docs/assertions.html#assertequals
 
 ## Documentation
 
