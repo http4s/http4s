@@ -32,7 +32,8 @@ import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
-import org.http4s.syntax.all._
+import org.http4s.laws.discipline.arbitrary
+import org.scalacheck.Prop._
 import org.typelevel.jawn.ParseException
 
 import java.nio.charset.StandardCharsets
@@ -351,10 +352,13 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     )
   }
 
-  test("Uri codec round trip") {
-    // TODO would benefit from Arbitrary[Uri]
-    val uri = uri"http://www.example.com/"
-    assertEquals(uri.asJson.as[Uri], Right(uri))
+  property("Uri codec round trip") {
+    forAll(arbitrary.createGenUri) { (uri: Uri) =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val preparedUri = uri.fragment.fold(uri)(f => uri.withFragment(Uri.encode(f)))
+      assertEquals(uri.asJson.as[Uri], Right(preparedUri))
+    }
   }
 
   test("Message[F].decodeJson[A] should decode json from a message") {
