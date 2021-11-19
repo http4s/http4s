@@ -54,7 +54,7 @@ object Expires {
   * However, it is a usual practice to set it to the past of far in the future
   * Thus any instant is in practice allowed
   *
-  * [[https://tools.ietf.org/html/rfc7234#section-5.3 RFC-7234 Section 5.3]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7234#section-5.3 RFC-7234 Section 5.3]]
   *
   * @param expirationDate the date of expiration. The RFC has a warning, that using large values
   * can cause problems due to integer or clock overflows.

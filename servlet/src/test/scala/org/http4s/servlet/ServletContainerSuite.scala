@@ -21,10 +21,10 @@ class ServletContainerSuite extends Http4sSuite {
   import ServletContainer.prefixMapping
 
   test("prefixMapping should append /* when prefix does not have trailing slash") {
-    assert(prefixMapping("/foo") == "/foo/*")
+    assertEquals(prefixMapping("/foo"), "/foo/*")
   }
 
   test("prefixMapping should append * when prefix has trailing slash") {
-    assert(prefixMapping("/") == "/*")
+    assertEquals(prefixMapping("/"), "/*")
   }
 }

@@ -43,7 +43,7 @@ object Part {
   private val ChunkSize = 8192
 
   @deprecated(
-    """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
+    """Empty parts are not allowed by the multipart spec, see: https://datatracker.ietf.org/doc/html/rfc7578#section-4.2
 
 Moreover, it allows the creation of potentially incorrect multipart bodies""",
     "0.18.12",

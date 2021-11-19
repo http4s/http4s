@@ -53,5 +53,5 @@ object `Content-Language` {
     (a, b) => `Content-Language`(a.values.concatNel(b.values))
 }
 
-//RFC - https://tools.ietf.org/html/rfc3282#page-2
+// RFC - https://datatracker.ietf.org/doc/html/rfc3282#page-2
 final case class `Content-Language`(values: NonEmptyList[LanguageTag])
