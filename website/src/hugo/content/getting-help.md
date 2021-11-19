@@ -7,8 +7,7 @@
 The discussion forum for http4s is [http4s/http4s on the Typelevel
 Discord][Discord].  This Discord is open to user questions of all
 levels of experience.  There you will also find channels for questions
-and discussion about Cats, FS2, skunk, and much more.  Please try to
-keep your questions and contributions in these channels topical.
+and discussion about Cats, FS2, skunk, and much more!
 
 The contributors also use this channel to discuss development.  Please
 do not hesitate to interject with support questions or weigh in on
