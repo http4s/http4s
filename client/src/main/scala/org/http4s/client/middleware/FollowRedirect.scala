@@ -42,7 +42,7 @@ import org.typelevel.vault._
   * - the redirect is not followed otherwise
   *
   * Whenever we follow with a GET or HEAD, an empty body is sent, and
-  * all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
+  * all payload headers defined in https://datatracker.ietf.org/doc/html/rfc7231#section-3.3
   * are stripped.
   *
   * If the response does not contain a valid Location header, the redirect is
@@ -62,7 +62,7 @@ object FollowRedirect {
         method: Method,
         cookies: List[ResponseCookie],
     ): Request[F] = {
-      // https://tools.ietf.org/html/rfc7231#section-7.1.
+      // https://datatracker.ietf.org/doc/html/rfc7231#section-7.1
       val nextUri = uri.copy(
         scheme = uri.scheme.orElse(req.uri.scheme),
         authority = uri.authority.orElse(req.uri.authority),

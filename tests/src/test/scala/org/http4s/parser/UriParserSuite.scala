@@ -33,7 +33,7 @@ class UriParserSuite extends Http4sSuite {
       }
 
     // RFC 3986 examples
-    // http://tools.ietf.org/html/rfc3986#section-1.1.2
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-1.1.2
 
     // http://www.ietf.org/rfc/rfc2396.txt
 

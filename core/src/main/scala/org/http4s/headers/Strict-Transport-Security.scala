@@ -28,7 +28,7 @@ import org.typelevel.ci._
 
 import scala.concurrent.duration.FiniteDuration
 
-/** Defined by http://tools.ietf.org/html/rfc6797
+/** Defined by https://datatracker.ietf.org/doc/html/rfc6797
   */
 object `Strict-Transport-Security` {
   private[headers] class StrictTransportSecurityImpl(

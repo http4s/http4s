@@ -35,6 +35,6 @@ object `Idempotency-Key` {
 
 /** Request header defines request to be idempotent used by client retry middleware.
   *
-  *  [[https://tools.ietf.org/html/draft-idempotency-header-00#section-2.1 idempotency-header]]
+  *  [[https://datatracker.ietf.org/doc/html/draft-idempotency-header-00#section-2.1 idempotency-header]]
   */
 final case class `Idempotency-Key`(key: String)

@@ -669,7 +669,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     )
   }
 
-  // https://tools.ietf.org/html/rfc2234#section-6
+  // https://datatracker.ietf.org/doc/html/rfc2234#section-6
   val genHexDigit: Gen[Char] = oneOf(
     List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
   )
@@ -798,7 +798,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
     Cogen[String].contramap(_.renderString)
 
-  /** https://tools.ietf.org/html/rfc3986 */
+  /** https://datatracker.ietf.org/doc/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)

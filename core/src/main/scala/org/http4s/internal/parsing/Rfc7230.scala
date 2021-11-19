@@ -30,7 +30,7 @@ import cats.parse.Rfc5234.vchar
 
 /** Common rules defined in RFC7230
   *
-  * @see [[https://tools.ietf.org/html/rfc7230#appendix-B]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7230#appendix-B]]
   */
 private[http4s] object Rfc7230 {
   /* `tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
@@ -47,7 +47,7 @@ private[http4s] object Rfc7230 {
   /* `OWS = *( SP / HTAB )` */
   val ows: Parser0[Unit] = sp.orElse(htab).rep0.void
 
-  /*https://tools.ietf.org/html/rfc7230#section-3.2.3 last paragraph */
+  /*https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.3 last paragraph */
   val bws: Parser0[Unit] = ows
 
   /*   qdtext         = HTAB / SP /%x21 / %x23-5B / %x5D-7E / obs-text */

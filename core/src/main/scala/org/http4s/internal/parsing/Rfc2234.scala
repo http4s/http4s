@@ -21,7 +21,7 @@ import cats.parse.Parser.charIn
 
 /** Common rules defined in RFC2234.
   *
-  * @see [[https://tools.ietf.org/html/rfc2234] RFC2234, Augmented BNF for Syntax Specifications: ABNF]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc2234] RFC2234, Augmented BNF for Syntax Specifications: ABNF]
   */
 private[http4s] object Rfc2234 {
   /* ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z */

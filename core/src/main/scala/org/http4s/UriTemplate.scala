@@ -465,11 +465,11 @@ object UriTemplate {
     * The default expression type is simple string expansion (Level 1), wherein a
     * single named variable is replaced by its value as a string after
     * pct-encoding any characters not in the set of unreserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-1.5">Section 1.5</a>).
     *
     * Level 2 templates add the plus ("+") operator, for expansion of values that
     * are allowed to include reserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-1.5">Section 1.5</a>),
     * and the crosshatch ("#") operator for expansion of fragment identifiers.
     *
     * Level 3 templates allow multiple variables per expression, each
@@ -487,7 +487,7 @@ object UriTemplate {
   final case class FragmentElm(value: String) extends FragmentDef
 
   /** Fragment expansion, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class SimpleFragmentExp(name: String) extends FragmentDef {
     require(name.nonEmpty, "at least one character must be set")
@@ -495,10 +495,10 @@ object UriTemplate {
   }
 
   /** Level 1 allows string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     *
     * Level 3 allows string expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     */
   final case class VarExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -509,10 +509,10 @@ object UriTemplate {
   }
 
   /** Level 2 allows reserved string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     *
     * Level 3 allows reserved expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     */
   final case class ReservedExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -523,7 +523,7 @@ object UriTemplate {
   }
 
   /** Fragment expansion with multiple variables, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class MultiFragmentExp(names: List[String]) extends FragmentDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -534,7 +534,7 @@ object UriTemplate {
   }
 
   /** Path segments, slash-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
     */
   final case class PathExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -545,7 +545,7 @@ object UriTemplate {
   }
 
   /** Form-style query, ampersand-separated
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
     */
   final case class ParamExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")
@@ -559,7 +559,7 @@ object UriTemplate {
   }
 
   /** Form-style query continuation
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
     */
   final case class ParamContExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")
