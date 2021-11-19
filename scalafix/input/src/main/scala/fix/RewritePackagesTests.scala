@@ -1,6 +1,6 @@
 /*
 rule = v0_22
- */
+*/
 package fix
 
 import org.http4s.client.blaze._

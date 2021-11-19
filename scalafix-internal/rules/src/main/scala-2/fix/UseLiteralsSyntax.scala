@@ -25,12 +25,12 @@ class UseLiteralsSyntax extends SemanticRule("Http4sUseLiteralsSyntax") {
     doc.tree.collect {
       case t @ Term.Apply(
             Uri_unsafeFromString_M(_),
-            List(lit @ Lit.String(_)),
+            List(lit @ Lit.String(_))
           ) =>
         Patch.replaceTree(t, s"uri$lit") + importLiteralsIfNeeded
       case t @ Term.Apply(
             Path_unsafeFromString_M(_),
-            List(lit @ Lit.String(_)),
+            List(lit @ Lit.String(_))
           ) =>
         Patch.replaceTree(t, s"path$lit") + importLiteralsIfNeeded
       case t if t.syntax == """Uri.Path.unsafeFromString("foo/bar")""" => show(t)
@@ -49,18 +49,17 @@ class UseLiteralsSyntax extends SemanticRule("Http4sUseLiteralsSyntax") {
       case Importer(
             Term.Select(
               Term.Select(Term.Name("org"), Term.Name("http4s")),
-              Term.Name("implicits"),
+              Term.Name("implicits")
             ),
-            List(Importee.Wildcard()),
-          ) | Importer(
+            List(Importee.Wildcard())) | Importer(
             Term.Select(
               Term.Select(
                 Term.Select(Term.Name("org"), Term.Name("http4s")),
-                Term.Name("syntax"),
+                Term.Name("syntax")
               ),
-              Term.Name("all" | "literals"),
+              Term.Name("all" | "literals")
             ),
-            List(Importee.Wildcard()),
+            List(Importee.Wildcard())
           ) =>
         true
       case _ => false

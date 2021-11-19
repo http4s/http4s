@@ -1,6 +1,6 @@
 /*
 rule = v0_22
- */
+*/
 
 import org.http4s.{Header, Headers}
 import org.http4s.headers.{AgentProduct, `User-Agent`}

@@ -1,6 +1,6 @@
 /*
 rule = Http4sUseLiteralsSyntax
- */
+*/
 
 package fix
 
