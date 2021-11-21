@@ -19,10 +19,10 @@ package blazecore
 package util
 
 import cats.effect.kernel.Outcome
+import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
-import cats.effect.syntax.monadCancel._
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
