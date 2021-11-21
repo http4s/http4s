@@ -288,7 +288,7 @@ lazy val client = libraryProject("client")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       nettyBuffer % Test,
-      nettyCodecHttp % Test
+      nettyCodecHttp % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
