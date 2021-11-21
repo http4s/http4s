@@ -37,7 +37,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key"
   ) {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.host
     val port = sslAddress.port
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -46,7 +46,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should make simple https requests") {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.host
     val port = sslAddress.port
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -55,7 +55,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
-    val sslAddress = jettySslServer().addresses.head
+    val sslAddress = secureServer().addresses.head
     val name = sslAddress.host
     val port = sslAddress.port
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
@@ -70,7 +70,7 @@ class BlazeClientSuite extends BlazeClientBase {
 
   test("Blaze Http1Client should obey response header timeout") {
 
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -83,7 +83,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should unblock waiting connections") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -100,7 +100,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should drain waiting connections after shutdown") {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -129,7 +129,7 @@ class BlazeClientSuite extends BlazeClientBase {
     "Blaze Http1Client should stop sending data when the server sends response and closes connection"
   ) {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -153,7 +153,7 @@ class BlazeClientSuite extends BlazeClientBase {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     // Receiving a response with and without body exercises different execution path in blaze client.
 
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -174,7 +174,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with request timeout if the request body takes too long to send"
   ) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -198,7 +198,7 @@ class BlazeClientSuite extends BlazeClientBase {
   test(
     "Blaze Http1Client should fail with response header timeout if the request body takes too long to send"
   ) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -220,7 +220,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should doesn't leak connection on timeout".flaky) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
@@ -278,7 +278,7 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test("Keeps stats".flaky) {
-    val addresses = jettyServer().addresses
+    val addresses = server().addresses
     val address = addresses.head
     val name = address.host
     val port = address.port
