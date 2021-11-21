@@ -34,8 +34,8 @@ class BlazeClient213Suite extends BlazeClientBase {
   test("reset request timeout".flaky) {
     val addresses = jettyServer().addresses
     val address = addresses.head
-    val name = address.getHostName
-    val port = address.getPort
+    val name = address.host
+    val port = address.port
 
     Ref[IO]
       .of(0L)
@@ -52,8 +52,8 @@ class BlazeClient213Suite extends BlazeClientBase {
   test("Blaze Http1Client should behave and not deadlock") {
     val addresses = jettyServer().addresses
     val hosts = addresses.map { address =>
-      val name = address.getHostName
-      val port = address.getPort
+      val name = address.host
+      val port = address.port
       Uri.fromString(s"http://$name:$port/simple").yolo
     }
 
@@ -71,14 +71,14 @@ class BlazeClient213Suite extends BlazeClientBase {
     val addresses = jettyServer().addresses
     builder(3).resource.use { client =>
       val failedHosts = addresses.map { address =>
-        val name = address.getHostName
-        val port = address.getPort
+        val name = address.host
+        val port = address.port
         Uri.fromString(s"http://$name:$port/internal-server-error").yolo
       }
 
       val successHosts = addresses.map { address =>
-        val name = address.getHostName
-        val port = address.getPort
+        val name = address.host
+        val port = address.port
         Uri.fromString(s"http://$name:$port/simple").yolo
       }
 
@@ -108,14 +108,14 @@ class BlazeClient213Suite extends BlazeClientBase {
     val addresses = jettyServer().addresses
     builder(3).resource.use { client =>
       val failedHosts = addresses.map { address =>
-        val name = address.getHostName
-        val port = address.getPort
+        val name = address.host
+        val port = address.port
         Uri.fromString(s"http://$name:$port/internal-server-error").yolo
       }
 
       val successHosts = addresses.map { address =>
-        val name = address.getHostName
-        val port = address.getPort
+        val name = address.host
+        val port = address.port
         Uri.fromString(s"http://$name:$port/simple").yolo
       }
 
@@ -145,8 +145,8 @@ class BlazeClient213Suite extends BlazeClientBase {
     builder(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5).resource
       .use { client =>
         val uris = addresses.take(2).map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/simple").yolo
         }
         val s = Stream(
