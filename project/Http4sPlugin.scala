@@ -221,7 +221,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "1.0.9"
     val netty = "4.1.70.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.2"
+    val okhttp = "4.9.3"
     val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
