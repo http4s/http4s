@@ -731,6 +731,9 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForUserInfo: Cogen[Uri.UserInfo] =
     Cogen.tuple2[String, Option[String]].contramap(u => (u.username, u.password))
 
+  def genMaybePort: Gen[Option[Int]] =
+    Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
+
   implicit val http4sTestingArbitraryForAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
       maybeUserInfo <- Gen.frequency(
@@ -738,7 +741,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         1 -> getArbitrary[Uri.UserInfo].map(Some(_)),
       )
       host <- http4sTestingArbitraryForUriHost.arbitrary
-      maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
+      maybePort <- genMaybePort
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
   }
 
@@ -1084,6 +1087,26 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       if timeout.isDefined || max.isDefined || l.nonEmpty // One of these fields is necessary to be valid.
     } yield `Keep-Alive`.unsafeApply(timeout, max, l)
   }
+
+  implicit val http4sTestingArbitraryOriginHost: Arbitrary[Origin.Host] =
+    Arbitrary(
+      for {
+        scheme <- http4sTestingArbitraryForScheme.arbitrary
+        host <- http4sTestingArbitraryForUriHost.arbitrary
+        maybePort <- genMaybePort
+      } yield Origin.Host(scheme, host, maybePort)
+    )
+
+  implicit val http4sTestingArbitraryAccessControlAllowOrigin
+      : Arbitrary[`Access-Control-Allow-Origin`] =
+    Arbitrary {
+      val nullHost = Gen.const(`Access-Control-Allow-Origin`.Null)
+      val wildcardHost = Gen.const(`Access-Control-Allow-Origin`.Wildcard)
+      val originHost =
+        http4sTestingArbitraryOriginHost.arbitrary.map(`Access-Control-Allow-Origin`.Host)
+
+      Gen.oneOf(nullHost, wildcardHost, originHost)
+    }
 
   val genCustomStatusReason: Gen[String] = {
     val word = poisson(5).flatMap(stringOfN(_, alphaChar))
