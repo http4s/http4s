@@ -25,7 +25,6 @@ import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.headers.Authorization
 import org.typelevel.ci._
-import scala.collection.immutable
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
@@ -113,7 +112,7 @@ class OAuthSuite extends Http4sSuite {
     oauth1.getUserParams(req).map { case (_, v) =>
       assertEquals(
         v.sorted,
-        immutable
+        scala.collection.immutable
           .Seq(
             "b5" -> "=%3D",
             "a3" -> "a",
