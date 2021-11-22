@@ -1,5 +1,5 @@
 import org.http4s.syntax.all._
-import org.typelevel.ci.{ CIString, _ }
+import org.typelevel.ci.{CIString, _}
 
 class CIStringTests {
   val s = "bar"
