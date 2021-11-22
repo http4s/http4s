@@ -50,7 +50,13 @@ object Origin {
       toUri.render(writer)
   }
 
-  private[http4s] val parser: Parser0[Origin] = {
+  private[http4s] val nullHostParser: Parser0[Origin.Null.type] = {
+    import Parser.{`end`, string}
+
+    (string("null") *> `end`).as(Origin.Null)
+  }
+
+  private[http4s] val singleHostParser: Parser[Origin.Host] = {
     import Parser.{`end`, char, string, until}
     import Rfc5234.{alpha, digit}
 
@@ -66,13 +72,16 @@ object Origin {
     val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
     val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
     val port = char(':') *> digit.rep.string.map(_.toInt)
-    val nullHost = (string("null") *> `end`).as(Origin.Null)
 
-    val singleHost = ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
+    ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
       Origin.Host(sch, host, port)
     }
+  }
 
-    nullHost.orElse(singleHost.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
+  private[http4s] val parser: Parser0[Origin] = {
+    import Parser.char
+
+    nullHostParser.orElse(singleHostParser.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
   }
 
   def parse(s: String): ParseResult[Origin] =
