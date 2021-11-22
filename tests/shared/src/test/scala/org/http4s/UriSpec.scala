@@ -38,6 +38,7 @@ import org.scalacheck.Prop._
 import org.typelevel.ci._
 
 import java.nio.file.Paths
+import scala.collection.immutable.Seq
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {
@@ -94,7 +95,8 @@ class UriSpec extends Http4sSuite {
         test("Uri fromString should parse port correctly if there is a valid (non-negative) one") {
           forAll(Gen.choose[Int](0, Int.MaxValue)) { (nonNegative: Int) =>
             val uri = getUri(s"http://localhost:$nonNegative/")
-            (uri.port == Some(nonNegative))
+
+            assertEquals(uri.port, Some(nonNegative))
           }
         }
         test("Uri fromString should parse port correctly if there is none") {
@@ -193,7 +195,7 @@ class UriSpec extends Http4sSuite {
         Map("x" -> "abc", "y" -> "ijk"),
       )
       assertEquals(getQueryParams("http://localhost:8080/blah?"), Map("" -> ""))
-      assert(getQueryParams("http://localhost:8080/blah") == Map.empty)
+      assertEquals(getQueryParams("http://localhost:8080/blah"), Map.empty[String, String])
     }
 
     test("Uri Query decoding should Handle queries with spaces properly") {
@@ -642,7 +644,7 @@ class UriSpec extends Http4sSuite {
   {
     test("Uri.params.- should not do anything on an URI without a query") {
       val i = Uri(query = Query.empty).params - "param"
-      assert(i == Map())
+      assertEquals(i, Map.empty[String, String])
     }
     test("Uri.params.- should not reduce a map if parameter does not match") {
       val i = Uri(query = Query.unsafeFromString("param1")).params - "param2"
@@ -650,7 +652,7 @@ class UriSpec extends Http4sSuite {
     }
     test("Uri.params.- should reduce a map if matching parameter found") {
       val i = Uri(query = Query.unsafeFromString("param")).params - "param"
-      assert(i == Map())
+      assertEquals(i, Map.empty[String, String])
     }
   }
 
@@ -692,56 +694,57 @@ class UriSpec extends Http4sSuite {
           "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"
         )
       )
-      assert(
-        u.multiParams ==
-          Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5"))
+      assertEquals(
+        u.multiParams,
+        Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")),
       )
     }
     test("Uri.multiParams should find parameter with empty key and a value") {
       val u = Uri(query = Query.unsafeFromString("param1=&=value-of-empty-key&param2=value"))
-      assert(
-        u.multiParams ==
-          Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value"))
+      assertEquals(
+        u.multiParams,
+        Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")),
       )
     }
     test("Uri.multiParams should find first value of parameter with empty key") {
-      assert(
-        Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams ==
-          (Map("" -> Seq("value1", "value2")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams,
+        Map("" -> Seq("value1", "value2")),
       )
-      assert(
-        Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams ==
-          (Map("" -> Seq("value1", "value2")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams,
+        Map("" -> Seq("value1", "value2")),
       )
-      assert(
-        Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams ==
-          (Map("" -> Seq("value1", "value2", "")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams,
+        Map("" -> Seq("value1", "value2", "")),
       )
     }
     test("Uri.multiParams should find parameter with empty key and without value") {
-      assert(Uri(query = Query.unsafeFromString("&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.unsafeFromString("&&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.unsafeFromString("&&&")).multiParams == (Map("" -> Seq())))
+      assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq()))
     }
     test("Uri.multiParams should find parameter with an empty value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1=")).multiParams == (Map("param1" -> Seq("")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=")).multiParams,
+        Map("param1" -> Seq("")),
       )
-      assert(
-        Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams ==
-          (Map("param1" -> Seq(""), "param2" -> Seq("")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams,
+        Map("param1" -> Seq(""), "param2" -> Seq("")),
       )
     }
     test("Uri.multiParams should find parameter with single value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams ==
-          (Map("param1" -> Seq("value1"), "param2" -> Seq("value2")))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams,
+        Map("param1" -> Seq("value1"), "param2" -> Seq("value2")),
       )
     }
     test("Uri.multiParams should find parameter without value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams ==
-          (Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
+        Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
       )
     }
   }
@@ -1200,7 +1203,7 @@ class UriSpec extends Http4sSuite {
   }
 
   test("Uri.equals should be false between an empty path and a trailing slash after an authority") {
-    assert(uri"http://example.com" != uri"http://example.com/")
+    assertNotEquals(uri"http://example.com", uri"http://example.com/")
   }
 
   {

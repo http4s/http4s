@@ -1,6 +1,5 @@
 # Streaming
 
-
 Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
 is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both http4s' service support and its client support.

@@ -1,7 +1,6 @@
 
 # Static Files
 
-
 Http4s can serve static files, subject to a configuration policy. There are three
 locations that Http4s can serve static content from: the filesystem, resources
 using the classloader, and WebJars.
@@ -84,6 +83,8 @@ only files matching a list of extensions are served. Append to the `List` as nee
 ```scala mdoc:nest
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
+
+val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 
 val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 

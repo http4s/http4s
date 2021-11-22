@@ -246,9 +246,6 @@ val server = BlazeServerBuilder[IO](global)
   .withHttpApp(jsonApp)
   .resource
 
-// This is typically provided by IOApp
-implicit val runtime: cats.effect.unsafe.IORuntime = 
-  cats.effect.unsafe.IORuntime.global
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 

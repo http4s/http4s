@@ -29,8 +29,6 @@ import org.http4s.metrics.dropwizard.util._
 import org.http4s.server.middleware.Metrics
 import org.http4s.syntax.all._
 
-import java.util.Arrays
-
 class DropwizardServerMetricsSuite extends Http4sSuite {
   test("register a 2xx response") {
     implicit val clock: Clock[IO] = FakeClock[IO]
@@ -45,20 +43,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.2xx-responses")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -78,20 +79,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.4xx-responses")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.4xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -110,20 +114,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.5xx-responses")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.5xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -142,20 +149,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.get-requests")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -174,20 +184,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.post-requests")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.post-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -206,20 +219,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.put-requests")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.put-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -238,20 +254,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.default.delete-requests")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.delete-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -264,19 +283,21 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
     val req = Request[IO](method = GET, uri = uri"/error")
 
     meteredRoutes.orNotFound(req).attempt.map { resp =>
-      assert(resp.isLeft)
+      val Left(_) = resp
       assertEquals(count(registry, Timer("server.default.errors")), 1L)
       assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
       assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("server.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false)
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
       )
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("server.default.get-requests"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false)
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
       )
     }
   }
@@ -290,19 +311,21 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
     meteredRoutes.orNotFound(req).flatMap { resp =>
       resp.body.attempt.compile.lastOrError.map { b =>
         assertEquals(resp.status, Status.Ok)
-        assert(b.isLeft)
+        val Left(_) = b
         assertEquals(count(registry, Timer("server.default.abnormal-terminations")), 1L)
         assertEquals(count(registry, Counter("server.default.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.default.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.default.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }
@@ -323,20 +346,23 @@ class DropwizardServerMetricsSuite extends Http4sSuite {
         assertEquals(count(registry, Timer("server.classifier.2xx-responses")), 1L)
         assertEquals(count(registry, Counter("server.classifier.active-requests")), 0L)
         assertEquals(count(registry, Timer("server.classifier.requests.total")), 1L)
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.classifier.requests.headers"))
-            .map(Arrays.equals(_, (Array(50000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(50000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.classifier.get-requests"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
-        assert(
+        assertEquals(
           valuesOf(registry, Timer("server.classifier.2xx-responses"))
-            .map(Arrays.equals(_, (Array(100000000L))))
-            .getOrElse(false)
+            .getOrElse(Array.empty[Long])
+            .toList,
+          List(100000000L),
         )
       }
     }

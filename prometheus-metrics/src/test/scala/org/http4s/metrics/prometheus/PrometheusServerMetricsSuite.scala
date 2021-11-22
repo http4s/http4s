@@ -166,7 +166,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
     val req = Request[IO](method = GET, uri = uri"/error")
 
     routes.run(req).attempt.map { r =>
-      assert(r.isLeft)
+      val Left(_) = r
 
       assertEquals(count(registry, "errors", "server", cause = "java.io.IOException"), 1.0)
       assertEquals(count(registry, "active_requests", "server"), 0.0)
@@ -183,7 +183,7 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
     routes.run(req).flatMap { r =>
       r.body.attempt.compile.lastOrError.map { b =>
         assertEquals(r.status, Status.Ok)
-        assert(b.isLeft)
+        val Left(_) = b
 
         assertEquals(
           count(registry, "abnormal_terminations", "server", cause = "java.lang.RuntimeException"),

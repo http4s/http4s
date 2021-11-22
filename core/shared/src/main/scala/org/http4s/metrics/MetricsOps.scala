@@ -133,7 +133,7 @@ object MetricsOps {
 sealed trait TerminationType
 
 object TerminationType {
-  // scalafix:off Http4sGeneralLinters.noCaseClassWithoutAccessModifier; bincompat until 1.0
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
 
   /** Signals just a generic abnormal termination */
   case class Abnormal(rootCause: Throwable) extends TerminationType
