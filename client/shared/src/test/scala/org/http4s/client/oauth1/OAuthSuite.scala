@@ -113,14 +113,16 @@ class OAuthSuite extends Http4sSuite {
     oauth1.getUserParams(req).map { case (_, v) =>
       assertEquals(
         v.sorted,
-        immutable.Seq(
-          "b5" -> "=%3D",
-          "a3" -> "a",
-          "c@" -> "",
-          "a2" -> "r b",
-          "c2" -> "",
-          "a3" -> "2 q",
-        ).sorted,
+        immutable
+          .Seq(
+            "b5" -> "=%3D",
+            "a3" -> "a",
+            "c@" -> "",
+            "a2" -> "r b",
+            "c2" -> "",
+            "a3" -> "2 q",
+          )
+          .sorted,
       )
     }
   }
