@@ -31,7 +31,7 @@ import org.typelevel.ci._
   * via returning the literal value of the [[Origin.Host]] request header,
   * `null` or `*` in a response.
   *
-  * For more details, see https://fetch.spec.whatwg.org/#http-access-control-allow-origin.
+  * @see [[https://fetch.spec.whatwg.org/#http-access-control-allow-origin CORS protocol, HTTP responses, Access-Control-Allow-Origin]].
   */
 sealed abstract class `Access-Control-Allow-Origin` extends Product with Serializable
 
