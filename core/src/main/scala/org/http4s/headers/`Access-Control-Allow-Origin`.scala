@@ -22,7 +22,6 @@ import cats.parse.Parser0
 import cats.syntax.show._
 import org.http4s.Header
 import org.http4s.ParseResult
-import org.http4s.Uri
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -48,14 +47,8 @@ object `Access-Control-Allow-Origin` {
   }
 
   final case class Host(origin: Origin.Host) extends `Access-Control-Allow-Origin` with Renderable {
-    def toUri: Uri =
-      Uri(
-        scheme = Some(origin.scheme),
-        authority = Some(Uri.Authority(host = origin.host, port = origin.port)),
-      )
-
     def render(writer: Writer): writer.type =
-      toUri.render(writer)
+      origin.render(writer)
   }
 
   /** Based on the [[Origin.Host]] header parser. */
