@@ -16,11 +16,9 @@
 
 package org.http4s.headers
 
-import cats.Show
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.parse.Parser0
-import cats.syntax.show._
 import org.http4s.Header
 import org.http4s.ParseResult
 import org.http4s.util.Renderable
@@ -37,14 +35,12 @@ sealed abstract class `Access-Control-Allow-Origin` extends Product with Seriali
 
 object `Access-Control-Allow-Origin` {
 
-  case object Null extends `Access-Control-Allow-Origin` {
-    implicit val showInstance: Show[Null.type] =
-      Show.show(_ => "null")
+  case object `null` extends `Access-Control-Allow-Origin` {
+    override val toString: String = "null"
   }
 
-  case object Wildcard extends `Access-Control-Allow-Origin` {
-    implicit val showInstance: Show[Wildcard.type] =
-      Show.show(_ => "*")
+  case object wildcard extends `Access-Control-Allow-Origin` {
+    override val toString: String = "wildcard"
   }
 
   final case class HostList(hosts: NonEmptyList[Origin.Host])
@@ -63,8 +59,9 @@ object `Access-Control-Allow-Origin` {
   private[http4s] val parser: Parser0[`Access-Control-Allow-Origin`] = {
     import Parser.{`end`, string}
 
-    val nullHost = (string(Null.show) *> `end`).as(`Access-Control-Allow-Origin`.Null)
-    val wildCardHost = (string(Wildcard.show) *> `end`).as(`Access-Control-Allow-Origin`.Wildcard)
+    val nullHost = (string(`null`.toString) *> `end`).as(`Access-Control-Allow-Origin`.`null`)
+    val wildCardHost =
+      (string(wildcard.toString) *> `end`).as(`Access-Control-Allow-Origin`.`wildcard`)
 
     wildCardHost.orElse(nullHost).orElse(Origin.hostListParser.map(HostList))
   }
@@ -81,10 +78,10 @@ object `Access-Control-Allow-Origin` {
         new Renderable {
           def render(writer: Writer): writer.type =
             v match {
-              case Null =>
-                writer << Null.show
-              case Wildcard =>
-                writer << Wildcard.show
+              case `null` =>
+                writer << `null`.toString
+              case `wildcard` =>
+                writer << wildcard.toString
               case host: HostList =>
                 writer << host
             }
