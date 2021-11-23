@@ -466,16 +466,16 @@ object Uri extends UriPlatform {
       def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
         segmentEncoder
 
-      def instance[A](f: A => Segment): SegmentEncoder[A] = f.apply
+      def instance[A](f: A => Segment): SegmentEncoder[A] = f.apply _
 
       def fromToString[A]: SegmentEncoder[A] = v => Segment(v.toString())
       def fromShow[A](implicit show: Show[A]): SegmentEncoder[A] =
         v => Segment(show.show(v))
 
-      implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity
+      implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity[Segment] _
 
       implicit val charSegmentEncoder: SegmentEncoder[Char] = fromToString
-      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply
+      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply _
 
       implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = fromToString
 
