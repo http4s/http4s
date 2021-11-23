@@ -51,8 +51,12 @@ object Origin {
 
     val nullP = (string("null") *> `end`).as(Origin.`null`)
 
-    val hostP = ((scheme <* string("://")) ~ host ~ (char(':') *> port).?.map(_.flatten)).map {
-      case ((sch, host), port) => Origin.Host(sch, host, port)
+    val portP = (char(':') *> port).?.map(_.flatten)
+
+    val trailingSlashP = char('/').?
+
+    val hostP = ((scheme <* string("://")) ~ host ~ portP ~ trailingSlashP).map {
+      case (((sch, host), port), _) => Origin.Host(sch, host, port)
     }
 
     nullP | hostP
