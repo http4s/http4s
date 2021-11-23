@@ -42,14 +42,12 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 Finish setting up our server:
 
 ```scala mdoc:nest
-import scala.concurrent.ExecutionContext.global
-
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global)
+val server = BlazeServerBuilder[IO]
   .bindHttp(8080, "localhost")
   .withHttpApp(app)
   .resource
@@ -71,11 +69,10 @@ A good default choice is the `BlazeClientBuilder`.  The
 ```scala mdoc
 import org.http4s.blaze.client._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.global
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO](global).resource.use { client =>
+BlazeClientBuilder[IO].resource.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.

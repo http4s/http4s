@@ -20,7 +20,6 @@ import cats.effect._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -28,7 +27,7 @@ object SimpleHttpServer extends IOApp {
 
   val app: Resource[IO, Server] =
     for {
-      server <- BlazeServerBuilder[IO](global)
+      server <- BlazeServerBuilder[IO]
         .bindHttp(8080)
         .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
         .resource
@@ -83,8 +82,6 @@ only files matching a list of extensions are served. Append to the `List` as nee
 ```scala mdoc:nest
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
-
-val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 
 val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 

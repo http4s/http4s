@@ -77,10 +77,9 @@ import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
 import fs2.io.stdout
-import fs2.text.{lines, utf8Encode}
+import fs2.text.{lines, utf8}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
-import scala.concurrent.ExecutionContext.global
 
 class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
@@ -105,7 +104,7 @@ class TWStream[F[_]: Async] {
                    accessToken: String, accessSecret: String)
                   (req: Request[F]): Stream[F, Json] =
     for {
-      client <- BlazeClientBuilder(global).stream
+      client <- BlazeClientBuilder[F].stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
@@ -120,7 +119,7 @@ class TWStream[F[_]: Async] {
                 uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
                 "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout)
+    s.map(_.spaces2).through(lines).through(utf8.encode).through(stdout)
   }
 
   /** Compile our stream down to an effect to make it runnable */
