@@ -1,7 +1,6 @@
 
 # Static Files
 
-
 Http4s can serve static files, subject to a configuration policy. There are three
 locations that Http4s can serve static content from: the filesystem, resources
 using the classloader, and WebJars.
@@ -21,7 +20,6 @@ import cats.effect._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -29,7 +27,7 @@ object SimpleHttpServer extends IOApp {
 
   val app: Resource[IO, Server] =
     for {
-      server <- BlazeServerBuilder[IO](global)
+      server <- BlazeServerBuilder[IO]
         .bindHttp(8080)
         .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
         .resource

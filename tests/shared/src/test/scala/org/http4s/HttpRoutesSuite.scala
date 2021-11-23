@@ -24,6 +24,6 @@ class HttpRoutesSuite extends Http4sSuite {
       Response[Id](Status.Ok)
     }
     val req = Request[Id](Method.GET)
-    assert(route.run(req).map(_.status).value == Some(Status.Ok))
+    assertEquals(route.run(req).map(_.status).value, Some(Status.Ok))
   }
 }

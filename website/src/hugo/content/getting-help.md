@@ -1,7 +1,6 @@
 
 # Getting Help
 
-
 ## Gitter
 
 The discussion forum for http4s is [http4s/http4s on Gitter][Gitter].

@@ -178,8 +178,8 @@ val cookieResp = {
   for {
     resp <- Ok("Ok response.")
     now <- HttpDate.current[IO]
-} yield resp.addCookie(ResponseCookie("foo", "bar", 
-    expires = Some(now), httpOnly = true, secure = true))
+  } yield resp.addCookie(ResponseCookie("foo", "bar", 
+      expires = Some(now), httpOnly = true, secure = true))
 }
 cookieResp.unsafeRunSync().headers
 ```
@@ -498,7 +498,7 @@ def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Doub
 val averageTemperatureService = HttpRoutes.of[IO] {
   case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year) =>
     Ok(getAverageTemperatureForCountryAndYear(country, year)
-      .map(s"Average temperature for $country in $year was: " + _))  
+      .map(s"Average temperature for $country in $year was: " + _))
 }
 ```
 

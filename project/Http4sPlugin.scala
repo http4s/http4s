@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.6"
+  val scala_213 = "2.13.7"
   val scala_212 = "2.12.15"
   val scala_3 = "3.1.0"
 
@@ -143,12 +143,12 @@ object Http4sPlugin extends AutoPlugin {
       val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
       WorkflowStep.Run(
         List(s"""
-       |eval "$$(ssh-agent -s)"
-       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-       |git config --global user.name "GitHub Actions CI"
-       |git config --global user.email "ghactions@invalid"
-       |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
-       |
+          |eval "$$(ssh-agent -s)"
+          |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+          |git config --global user.name "GitHub Actions CI"
+          |git config --global user.email "ghactions@invalid"
+          |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+          |
       """.stripMargin),
         name = Some(s"Publish $subproject"),
         env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
@@ -202,7 +202,7 @@ object Http4sPlugin extends AutoPlugin {
     val caseInsensitive = "1.2.0"
     val cats = "2.6.1"
     val catsEffect = "3.2.9"
-    val catsParse = "0.3.5"
+    val catsParse = "0.3.6"
     val circe = "0.14.1"
     val circe15 = "0.15.0-M1"
     val crypto = "0.2.0"
@@ -212,7 +212,7 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "3.2.2"
     val ip4s = "3.1.1"
     val javaWebSocket = "1.5.2"
-    val jawn = "1.2.0"
+    val jawn = "1.3.0"
     val jawnFs2 = "2.1.0"
     val jetty = "9.4.44.v20210927"
     val jnrUnixSocket = "0.38.13"
@@ -240,7 +240,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.54"
+    val tomcat = "9.0.55"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.1.0"

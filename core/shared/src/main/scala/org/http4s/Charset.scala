@@ -35,6 +35,7 @@ import java.nio.charset.{Charset => NioCharset}
 import java.util.HashMap
 import java.util.Locale
 
+// scalafix:off Http4sGeneralLinters; bincompat until 1.0
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)

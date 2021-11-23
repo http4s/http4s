@@ -30,8 +30,8 @@ import org.typelevel.ci._
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = SocketAddress(ipv4"127.0.0.1", port"8080")
-  val remote = SocketAddress(ipv4"192.168.0.1", port"45444")
+  private val local = SocketAddress(ipv4"127.0.0.1", port"8080")
+  private val remote = SocketAddress(ipv4"192.168.0.1", port"45444")
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
@@ -206,8 +206,7 @@ class MessageSuite extends Http4sSuite {
     )
   }
 
-  // todo compiles on dotty
-  test("covary should disallow unrelated effects".ignore) {
+  test("covary should disallow unrelated effects") {
     assert(
       compileErrors("Request[Option]().covary[IO]").nonEmpty
     )
@@ -296,8 +295,7 @@ class MessageSuite extends Http4sSuite {
     assertEquals(resp.body.through(fs2.text.utf8.decode).toList.mkString(""), "Not found")
   }
 
-  // todo compiles on dotty
-  test("covary should disallow unrelated effects".ignore) {
+  test("covary should disallow unrelated effects") {
     assert(
       compileErrors("Response[Option]().covary[IO]").nonEmpty
     )

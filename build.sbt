@@ -15,13 +15,13 @@ ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
 ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !isScala3.value)
+ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !isDotty.value)
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isScala3.value
-ThisBuild / ScalafixConfig / skip := isScala3.value
+ThisBuild / scalafixAll / skip := isDotty.value
+ThisBuild / ScalafixConfig / skip := isDotty.value
 
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -140,6 +140,8 @@ lazy val jvmModules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalInput,
+  scalafixInternalOutput,
   scalafixInternalTests,
 )
 
@@ -225,8 +227,10 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
 
-      // private constructor so effectively final already
+      // private constructors so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
@@ -944,7 +948,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isScala3.value)
+    ).filter(_ => !isDotty.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -969,7 +973,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isScala3.value),
+    ).filter(_ => !isDotty.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -1046,8 +1050,6 @@ lazy val commonSettings = Seq(
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
-val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
-
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
@@ -1064,10 +1066,10 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt",
+  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )

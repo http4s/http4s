@@ -1,9 +1,9 @@
 
-#Versions
+# Versions
 
 ## Release lifecycle
 
-* @:style(version-label, dev)Milestone@:@ releases are published for early adopters who need the latest dependencies or new features.  
+* @:style(version-label, dev)Milestone@:@ releases are published for early adopters who need the latest dependencies or new features.
   We will try to deprecate responsibly, but no binary compatibility is guaranteed.
 * @:style(version-label, stable)Stable@:@ releases are recommended for production use. 
   Backward binary compatibility is preserved across the minor version. 
