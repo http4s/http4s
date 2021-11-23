@@ -21,7 +21,6 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.parse.Parser0
 import cats.parse.Rfc5234
-import org.http4s.Uri.RegName
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -57,23 +56,16 @@ object Origin {
   }
 
   private[http4s] val singleHostParser: Parser[Origin.Host] = {
-    import Parser.{`end`, char, string, until}
-    import Rfc5234.{alpha, digit}
+    import Parser.{char, string}
+    import Rfc5234.digit
 
-    val unknownScheme =
-      alpha ~ Parser.oneOf(List(alpha, digit, char('+'), char('-'), char('.'))).rep0
-    val http = string("http")
-    val https = string("https")
-    val scheme = List(https, http, unknownScheme)
-      .reduceLeft(_ orElse _)
-      .string
-      .map(Uri.Scheme.unsafeFromString)
-    val stringHost = until(char(':').orElse(`end`)).map(RegName.apply)
-    val bracketedIpv6 = char('[') *> Uri.Parser.ipv6Address <* char(']')
-    val host = List(bracketedIpv6, Uri.Parser.ipv4Address, stringHost).reduceLeft(_ orElse _)
+    val scheme = Uri.Parser.scheme
+
+    val host = Uri.Parser.host
+
     val port = char(':') *> digit.rep.string.map(_.toInt)
 
-    ((scheme <* string("://")) ~ host ~ port.?).map { case ((sch, host), port) =>
+    ((scheme <* string("://")) ~ host ~ port.? ~ char('/').?).map { case (((sch, host), port), _) =>
       Origin.Host(sch, host, port)
     }
   }
