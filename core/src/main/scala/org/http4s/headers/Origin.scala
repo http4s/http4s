@@ -78,11 +78,14 @@ object Origin {
     }
   }
 
-  private[http4s] val parser: Parser0[Origin] = {
-    import Parser.char
+  private[http4s] val hostListParser: Parser[NonEmptyList[Origin.Host]] = {
+    import cats.parse.Rfc5234.sp
 
-    nullHostParser.orElse(singleHostParser.repSep(char(' ')).map(hosts => Origin.HostList(hosts)))
+    singleHostParser.repSep(sp)
   }
+
+  private[http4s] val parser: Parser0[Origin] =
+    nullHostParser.orElse(hostListParser.map(hosts => Origin.HostList(hosts)))
 
   def parse(s: String): ParseResult[Origin] =
     ParseResult.fromParser(parser, "Invalid Origin header")(s)
