@@ -237,14 +237,9 @@ object CORS {
 
         varyHeader(allowCredentialsHeader(withMethodBasedHeader))
           .putHeaders(
-            // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
-              _.mkString("", ", ", "")
-            ),
-            // TODO model me
-            "Access-Control-Allow-Origin" -> origin.value,
-            // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString,
+            `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
+            `Access-Control-Allow-Origin`.fromOrigin(origin),
+            `Access-Control-Max-Age`.unsafeFromDuration(config.maxAge),
           )
       }
 

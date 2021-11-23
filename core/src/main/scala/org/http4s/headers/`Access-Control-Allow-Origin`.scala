@@ -56,6 +56,12 @@ object `Access-Control-Allow-Origin` {
     }
   }
 
+  def fromOrigin(origin: Origin): `Access-Control-Allow-Origin` =
+    origin match {
+      case Origin.Null => `null`
+      case Origin.HostList(hosts) => HostList(hosts)
+    }
+
   private[http4s] val parser: Parser0[`Access-Control-Allow-Origin`] = {
     import Parser.{`end`, string}
 
