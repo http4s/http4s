@@ -39,8 +39,8 @@ object `Access-Control-Allow-Origin` {
     override val toString: String = "null"
   }
 
-  case object wildcard extends `Access-Control-Allow-Origin` {
-    override val toString: String = "wildcard"
+  case object `*` extends `Access-Control-Allow-Origin` {
+    override val toString: String = "*"
   }
 
   final case class HostList(hosts: NonEmptyList[Origin.Host])
@@ -66,10 +66,10 @@ object `Access-Control-Allow-Origin` {
     import Parser.{`end`, string}
 
     val nullHost = (string(`null`.toString) *> `end`).as(`Access-Control-Allow-Origin`.`null`)
-    val wildCardHost =
-      (string(wildcard.toString) *> `end`).as(`Access-Control-Allow-Origin`.`wildcard`)
+    val wildcardHost =
+      (string(`*`.toString) *> `end`).as(`Access-Control-Allow-Origin`.`*`)
 
-    wildCardHost.orElse(nullHost).orElse(Origin.hostListParser.map(HostList))
+    wildcardHost.orElse(nullHost).orElse(Origin.hostListParser.map(HostList))
   }
 
   def parse(s: String): ParseResult[`Access-Control-Allow-Origin`] =
@@ -86,8 +86,8 @@ object `Access-Control-Allow-Origin` {
             v match {
               case `null` =>
                 writer << `null`.toString
-              case `wildcard` =>
-                writer << wildcard.toString
+              case `*` =>
+                writer << `*`.toString
               case host: HostList =>
                 writer << host
             }

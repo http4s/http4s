@@ -1101,7 +1101,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       : Arbitrary[`Access-Control-Allow-Origin`] =
     Arbitrary {
       val nullHost = Gen.const(`Access-Control-Allow-Origin`.`null`)
-      val wildcardHost = Gen.const(`Access-Control-Allow-Origin`.wildcard)
+      val wildcardHost = Gen.const(`Access-Control-Allow-Origin`.`*`)
       val originsHost =
         http4sTestingArbitraryForNonEmptyList[Origin.Host].arbitrary.map(
           `Access-Control-Allow-Origin`.HostList
