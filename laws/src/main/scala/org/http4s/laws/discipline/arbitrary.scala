@@ -1112,4 +1112,20 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  val genObsText = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
+  val genVcharExceptDquote = genVchar.filter(_ != 0x22.toChar)
+
+  val genEntityTag: Gen[EntityTag] =
+    for {
+      tag <- Gen.oneOf(genObsText, genVcharExceptDquote.map(_.toString))
+      strength <- Gen.oneOf(EntityTag.Weak, EntityTag.Strong)
+    } yield EntityTag(tag, strength)
+
+  implicit val http4sTestingArbitraryForIfRangeLastModified: Arbitrary[`If-Range`] = Arbitrary {
+    Gen.oneOf(
+      genHttpDate.map(`If-Range`.LastModified),
+      genEntityTag.map(`If-Range`.ETag)
+    )
+  }
 }
