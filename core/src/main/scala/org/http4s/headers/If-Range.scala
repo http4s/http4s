@@ -22,7 +22,7 @@ import org.typelevel.ci._
 
 // https://datatracker.ietf.org/doc/html/rfc7233#section-3.2
 
-sealed abstract class `If-Range`
+sealed abstract class `If-Range` extends Product with Serializable
 
 object `If-Range` {
   final case class LastModified(date: HttpDate) extends `If-Range`
