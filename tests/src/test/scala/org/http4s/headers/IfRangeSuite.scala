@@ -30,16 +30,17 @@ class IfRangeSuite extends HeaderLaws {
   test("parse If-Range with an etag") {
     assertEquals(
       Header[`If-Range`].parse("\"foobar\""),
-      Right(`If-Range`.ETag(EntityTag("foobar", EntityTag.Strong)))
+      Right(`If-Range`.ETag(EntityTag("foobar", EntityTag.Strong))),
     )
   }
 
   test("parse If-Range with a date") {
     val rfc7232Example = HttpDate.unsafeFromZonedDateTime(
-      ZonedDateTime.of(1994, Month.OCTOBER.getValue, 29, 19, 43, 31, 0, ZoneOffset.UTC))
+      ZonedDateTime.of(1994, Month.OCTOBER.getValue, 29, 19, 43, 31, 0, ZoneOffset.UTC)
+    )
     assertEquals(
       Header[`If-Range`].parse("Sat, 29 Oct 1994 19:43:31 GMT"),
-      Right(`If-Range`.LastModified(rfc7232Example))
+      Right(`If-Range`.LastModified(rfc7232Example)),
     )
   }
 

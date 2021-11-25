@@ -1125,7 +1125,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   implicit val http4sTestingArbitraryForIfRangeLastModified: Arbitrary[`If-Range`] = Arbitrary {
     Gen.oneOf(
       genHttpDate.map(`If-Range`.LastModified),
-      genEntityTag.map(`If-Range`.ETag)
+      genEntityTag.map(`If-Range`.ETag),
     )
   }
 }

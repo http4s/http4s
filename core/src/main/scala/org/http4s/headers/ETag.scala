@@ -46,7 +46,7 @@ object ETag {
     Header.createRendered(
       ci"ETag",
       _.tag,
-      parse
+      parse,
     )
 }
 

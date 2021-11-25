@@ -43,6 +43,6 @@ object `If-Range` {
         case LastModified(date) => date
         case ETag(tag) => tag
       },
-      parse
+      parse,
     )
 }
