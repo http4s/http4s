@@ -18,7 +18,8 @@ package org.http4s
 
 import cats.parse.Parser
 import cats.parse.Parser0
-import org.http4s.internal.parsing.Rfc8941
+import cats.parse.Rfc5234
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import scodec.bits.ByteVector
@@ -39,14 +40,12 @@ object StructuredField {
 
   object BareItem {
     val parser: Parser[BareItem] =
-      Rfc8941.bareItem(
-        SfInteger.parser,
-        SfDecimal.parser,
-        SfString.parser,
-        SfToken.parser,
-        SfBinary.parser,
-        SfBoolean.parser,
-      )
+      SfDecimal.parser.backtrack
+        .orElse(SfInteger.parser)
+        .orElse(SfString.parser)
+        .orElse(SfToken.parser)
+        .orElse(SfBinary.parser)
+        .orElse(SfBoolean.parser)
   }
 
   sealed abstract case class SfInteger(value: Long) extends BareItem {
@@ -68,8 +67,12 @@ object StructuredField {
     def fromInt(i: Int): SfInteger =
       unsafeFromLong(i.toLong)
 
-    val parser: Parser[SfInteger] =
-      Rfc8941.sfInteger.map(unsafeFromLong)
+    val parser: Parser[SfInteger] = {
+      import Parser.char, Rfc5234.digit
+      val pos = digit.rep(1, 15).string
+      val neg = (char('-') *> pos).string
+      (pos | neg).map(s => unsafeFromLong(s.toLong))
+    }
   }
 
   sealed abstract case class SfDecimal(value: BigDecimal) extends BareItem {
@@ -93,8 +96,14 @@ object StructuredField {
     def fromBigDecimal(d: BigDecimal): Option[SfDecimal] =
       if (d < MinValue || d > MaxValue) None else Some(unsafeFromBigDecimal(d))
 
-    val parser: Parser[SfDecimal] =
-      Rfc8941.sfDecimal.map(unsafeFromBigDecimal)
+    val parser: Parser[SfDecimal] = {
+      import Parser.char, Rfc5234.digit
+      val num = digit.rep(1, 12)
+      val dec = digit.rep(1, 3)
+      val pos = (num *> char('.') *> dec).string
+      val neg = (char('-') *> pos).string
+      (pos | neg).map(s => unsafeFromBigDecimal(BigDecimal(s)))
+    }
   }
 
   sealed abstract case class SfString(value: String) extends BareItem {
@@ -115,8 +124,16 @@ object StructuredField {
         .parseAll(s)
         .toOption
 
-    val parser: Parser[SfString] =
-      Rfc8941.sfString.map(unsafeFromString)
+    val parser: Parser[SfString] = {
+      import Parser.{char, charIn}, Rfc5234.dquote
+      val escaped = char('\\') *> charIn('\\', '"')
+      val unescaped =
+        charIn(0x20.toChar to 0x21.toChar)
+          .orElse(charIn(0x23.toChar to 0x5b.toChar))
+          .orElse(charIn(0x5d.toChar to 0x7e.toChar))
+      val chr = unescaped | escaped
+      (dquote *> chr.rep0 <* dquote).map(xs => unsafeFromString(xs.mkString))
+    }
   }
 
   sealed abstract case class SfToken(value: String) extends BareItem {
@@ -131,8 +148,12 @@ object StructuredField {
     def fromString(s: String): Option[SfToken] =
       parser.parseAll(s).toOption
 
-    val parser: Parser[SfToken] =
-      Rfc8941.sfToken.map(unsafeFromString)
+    val parser: Parser[SfToken] = {
+      import Parser.{char, charIn}, Rfc5234.alpha, Rfc7230.tchar
+      val head = alpha | char('*')
+      val tail = (tchar | charIn(':', '/')).rep0
+      (head *> tail).string.map(unsafeFromString)
+    }
   }
 
   final case class SfBinary(value: ByteVector) extends BareItem {
@@ -141,10 +162,11 @@ object StructuredField {
   }
 
   object SfBinary {
-    val parser: Parser[SfBinary] =
-      Rfc8941.sfBinary
-        .mapFilter(ByteVector.fromBase64(_))
-        .map(apply)
+    val parser: Parser[SfBinary] = {
+      import Parser.{char, charIn}, Rfc5234.{alpha, digit}
+      val base64 = (alpha | digit | charIn('+', '/', '=')).rep0.string
+      (char(':') *> base64 <* char(':')).mapFilter(ByteVector.fromBase64(_)).map(apply)
+    }
   }
 
   final case class SfBoolean(value: Boolean) extends BareItem {
@@ -156,8 +178,10 @@ object StructuredField {
   }
 
   object SfBoolean {
-    val parser: Parser[SfBoolean] =
-      Rfc8941.sfBoolean.map(apply)
+    val parser: Parser[SfBoolean] = {
+      import Parser.char
+      (char('?') *> (char('0').as(false) | char('1').as(true))).map(apply)
+    }
   }
 
   // key & parameters
@@ -174,8 +198,13 @@ object StructuredField {
     def fromString(s: String): Option[Key] =
       parser.parseAll(s).toOption
 
-    val parser: Parser[Key] =
-      Rfc8941.key.map(unsafeFromString)
+    val parser: Parser[Key] = {
+      import Parser.{char, charIn}, Rfc5234.digit
+      val lcalpha = charIn('a' to 'z')
+      val head = lcalpha | char('*')
+      val tail = (lcalpha | digit | charIn('_', '-', '.', '*')).rep0
+      (head *> tail).string.map(unsafeFromString)
+    }
   }
 
   final case class Parameters(values: List[(Key, BareItem)]) extends Renderable {
@@ -195,11 +224,13 @@ object StructuredField {
   }
 
   object Parameters {
-    val parser: Parser0[Parameters] =
-      Rfc8941
-        .parameters(Key.parser, BareItem.parser)
+    val parser: Parser0[Parameters] = {
+      import Parser.char, Rfc5234.sp
+      val params = (char(';') *> sp.rep0 *> (Key.parser ~ (char('=') *> BareItem.parser).?)).rep0
+      params
         .map(_.map(kv => (kv._1, kv._2.fold[BareItem](SfBoolean(true))(identity))))
         .map(apply)
+    }
   }
 
   // members
@@ -208,7 +239,7 @@ object StructuredField {
 
   object Member {
     val parser: Parser[Member] =
-      Rfc8941.member(SfItem.parser, InnerList.parser)
+      SfItem.parser | InnerList.parser
   }
 
   final case class SfItem(value: BareItem, params: Parameters) extends Member with StructuredField {
@@ -218,7 +249,7 @@ object StructuredField {
 
   object SfItem {
     val parser: Parser[SfItem] =
-      Rfc8941.sfItem(BareItem.parser, Parameters.parser).map(t => apply(t._1, t._2))
+      (BareItem.parser ~ Parameters.parser).map(t => apply(t._1, t._2))
   }
 
   final case class InnerList(values: List[SfItem], params: Parameters) extends Member {
@@ -227,8 +258,11 @@ object StructuredField {
   }
 
   object InnerList {
-    val parser: Parser[InnerList] =
-      Rfc8941.innerList(SfItem.parser, Parameters.parser).map(t => apply(t._1, t._2))
+    val parser: Parser[InnerList] = {
+      import Parser.char, Rfc5234.sp
+      val items = char('(') *> sp.rep0 *> SfItem.parser.repSep0(sp.rep) <* sp.rep0 <* char(')')
+      (items ~ Parameters.parser).map(t => apply(t._1, t._2))
+    }
   }
 
   // containers
@@ -239,8 +273,13 @@ object StructuredField {
   }
 
   object SfList {
-    val parser: Parser[SfList] =
-      Rfc8941.sfList(Member.parser).map(apply)
+    val parser: Parser[SfList] = {
+      import Parser.char, Rfc7230.ows
+      val list = Member.parser ~ (ows.with1 *> char(',') *> ows *> Member.parser).rep0
+      list
+        .map(t => t._1 +: t._2)
+        .map(apply)
+    }
   }
 
   final case class SfDictionary(values: List[(Key, Member)]) extends StructuredField {
@@ -260,10 +299,14 @@ object StructuredField {
   }
 
   object SfDictionary {
-    val parser: Parser[SfDictionary] =
-      Rfc8941
-        .sfDictionary(Key.parser, Parameters.parser, Member.parser)
+    val parser: Parser[SfDictionary] = {
+      import Parser.char, Rfc7230.ows
+      val pair = Key.parser ~ (char('=') *> Member.parser).eitherOr(Parameters.parser)
+      val dict = pair ~ (ows.with1 *> char(',') *> ows *> pair).rep0
+      dict
+        .map(t => t._1 +: t._2)
         .map(_.map(kv => (kv._1, kv._2.fold(p => SfItem(SfBoolean(true), p), identity))))
         .map(apply)
+    }
   }
 }
