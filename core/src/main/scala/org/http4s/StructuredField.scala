@@ -32,13 +32,15 @@ sealed trait StructuredField extends Renderable
 
 object StructuredField {
 
-  // 3 top-level types: SfItem, SfList, SfDictionary
-
-  // bare items
+  /* bare items */
 
   sealed trait BareItem extends Renderable
 
   object BareItem {
+
+    /* bare-item = sf-integer / sf-decimal / sf-string / sf-token
+     *           / sf-binary / sf-boolean
+     */
     val parser: Parser[BareItem] =
       SfDecimal.parser.backtrack
         .orElse(SfInteger.parser)
@@ -67,6 +69,8 @@ object StructuredField {
     def fromInt(i: Int): SfInteger =
       unsafeFromLong(i.toLong)
 
+    /* sf-integer = ["-"] 1*15DIGIT
+     */
     val parser: Parser[SfInteger] = {
       import Parser.char, Rfc5234.digit
       val pos = digit.rep(1, 15).string
@@ -96,6 +100,8 @@ object StructuredField {
     def fromBigDecimal(d: BigDecimal): Option[SfDecimal] =
       if (d < MinValue || d > MaxValue) None else Some(unsafeFromBigDecimal(d))
 
+    /* sf-decimal = ["-"] 1*12DIGIT "." 1*3DIGIT
+     */
     val parser: Parser[SfDecimal] = {
       import Parser.char, Rfc5234.digit
       val num = digit.rep(1, 12)
@@ -124,6 +130,11 @@ object StructuredField {
         .parseAll(s)
         .toOption
 
+    /* sf-string = DQUOTE *chr DQUOTE
+     * chr       = unescaped / escaped
+     * unescaped = %x20-21 / %x23-5B / %x5D-7E
+     * escaped   = "\" ( DQUOTE / "\" )
+     */
     val parser: Parser[SfString] = {
       import Parser.{char, charIn}, Rfc5234.dquote
       val escaped = char('\\') *> charIn('\\', '"')
@@ -148,6 +159,8 @@ object StructuredField {
     def fromString(s: String): Option[SfToken] =
       parser.parseAll(s).toOption
 
+    /* sf-token = ( ALPHA / "*" ) *( tchar / ":" / "/" )
+     */
     val parser: Parser[SfToken] = {
       import Parser.{char, charIn}, Rfc5234.alpha, Rfc7230.tchar
       val head = alpha | char('*')
@@ -162,6 +175,10 @@ object StructuredField {
   }
 
   object SfBinary {
+
+    /* sf-binary = ":" *(base64) ":"
+     * base64    = ALPHA / DIGIT / "+" / "/" / "="
+     */
     val parser: Parser[SfBinary] = {
       import Parser.{char, charIn}, Rfc5234.{alpha, digit}
       val base64 = (alpha | digit | charIn('+', '/', '=')).rep0.string
@@ -178,13 +195,17 @@ object StructuredField {
   }
 
   object SfBoolean {
+
+    /* sf-boolean = "?" boolean
+     * boolean    = "0" / "1"
+     */
     val parser: Parser[SfBoolean] = {
       import Parser.char
       (char('?') *> (char('0').as(false) | char('1').as(true))).map(apply)
     }
   }
 
-  // key & parameters
+  /* key & parameters */
 
   sealed abstract case class Key(value: String) extends Renderable {
     override def render(writer: Writer): writer.type =
@@ -198,6 +219,9 @@ object StructuredField {
     def fromString(s: String): Option[Key] =
       parser.parseAll(s).toOption
 
+    /* key      = ( lcalpha / "*" ) *( lcalpha / DIGIT / "_" / "-" / "." / "*" )
+     * lcalpha  = %x61-7A ; a-z
+     */
     val parser: Parser[Key] = {
       import Parser.{char, charIn}, Rfc5234.digit
       val lcalpha = charIn('a' to 'z')
@@ -224,6 +248,10 @@ object StructuredField {
   }
 
   object Parameters {
+
+    /* parameters = *( ";" *SP parameter )
+     * parameter  = key [ "=" bare-item ]
+     */
     val parser: Parser0[Parameters] = {
       import Parser.char, Rfc5234.sp
       val params = (char(';') *> sp.rep0 *> (Key.parser ~ (char('=') *> BareItem.parser).?)).rep0
@@ -233,11 +261,14 @@ object StructuredField {
     }
   }
 
-  // members
+  /* members */
 
   sealed trait Member extends Renderable
 
   object Member {
+
+    /* member = sf-item / inner-list
+     */
     val parser: Parser[Member] =
       SfItem.parser | InnerList.parser
   }
@@ -248,6 +279,9 @@ object StructuredField {
   }
 
   object SfItem {
+
+    /* sf-item = bare-item parameters
+     */
     val parser: Parser[SfItem] =
       (BareItem.parser ~ Parameters.parser).map(t => apply(t._1, t._2))
   }
@@ -258,6 +292,9 @@ object StructuredField {
   }
 
   object InnerList {
+
+    /* inner-list = "(" *SP [ sf-item *( 1*SP sf-item ) *SP ] ")" parameters
+     */
     val parser: Parser[InnerList] = {
       import Parser.char, Rfc5234.sp
       val items = char('(') *> sp.rep0 *> SfItem.parser.repSep0(sp.rep) <* sp.rep0 <* char(')')
@@ -265,7 +302,7 @@ object StructuredField {
     }
   }
 
-  // containers
+  /* containers */
 
   final case class SfList(values: List[Member]) extends StructuredField {
     override def render(writer: Writer): writer.type =
@@ -273,6 +310,9 @@ object StructuredField {
   }
 
   object SfList {
+
+    /* sf-list = member *( OWS "," OWS member )
+     */
     val parser: Parser[SfList] = {
       import Parser.char, Rfc7230.ows
       val list = Member.parser ~ (ows.with1 *> char(',') *> ows *> Member.parser).rep0
@@ -299,6 +339,10 @@ object StructuredField {
   }
 
   object SfDictionary {
+
+    /* sf-dictionary = dict-member *( OWS "," OWS dict-member )
+     * dict-member   = key ( parameters / ( "=" member ))
+     */
     val parser: Parser[SfDictionary] = {
       import Parser.char, Rfc7230.ows
       val pair = Key.parser ~ (char('=') *> Member.parser).eitherOr(Parameters.parser)
