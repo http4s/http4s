@@ -34,7 +34,7 @@ object Trailer {
 
   val name: CIString = ci"Trailer"
 
-  implicit val headerInstance: Header[Trailer, Header.Single] =
+  implicit val headerInstance: Header[Trailer, Header.Recurring] =
     Header.createRendered(
       name,
       _.headers,
