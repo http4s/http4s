@@ -31,8 +31,6 @@ import scala.concurrent.duration._
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
-    // val ctx = TestContext()
-
     val someRefillTime = 1234.milliseconds
     val capacity = 5
     val createBucket =
@@ -42,7 +40,7 @@ class ThrottleSuite extends Http4sSuite {
       val takeFiveTokens: IO[List[TokenAvailability]] =
         (1 to 5).toList.traverse(_ => testee.takeToken)
       val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
       (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
         .mapN(_ && _)
     }.assert
@@ -128,7 +126,8 @@ class ThrottleSuite extends Http4sSuite {
       }
     }.assert
   }
-  val alwaysOkApp = HttpApp[IO] { _ =>
+
+  private val alwaysOkApp = HttpApp[IO] { _ =>
     Ok()
   }
 
@@ -140,7 +139,7 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.Ok).assert
+    testee(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test(" Throttle / should deny a request when the rate limit had been reached") {
@@ -151,6 +150,6 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.TooManyRequests).assert
+    testee(req).map(_.status).assertEquals(Status.TooManyRequests)
   }
 }
