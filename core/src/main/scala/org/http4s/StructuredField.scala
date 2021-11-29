@@ -104,9 +104,7 @@ object StructuredField {
      */
     val parser: Parser[SfDecimal] = {
       import Parser.char, Rfc5234.digit
-      val num = digit.rep(1, 12)
-      val dec = digit.rep(1, 3)
-      val pos = (num *> char('.') *> dec).string
+      val pos = (digit.rep(1, 12) *> char('.') *> digit.rep(1, 3)).string
       val neg = (char('-') *> pos).string
       (pos | neg).map(s => unsafeFromBigDecimal(BigDecimal(s)))
     }
@@ -232,19 +230,19 @@ object StructuredField {
   }
 
   final case class Parameters(values: List[(Key, BareItem)]) extends Renderable {
-    private def toRenderable(kv: (Key, BareItem)): Renderable =
-      new Renderable {
-        def render(writer: Writer): writer.type =
-          kv match {
-            case (key, SfBoolean(true)) =>
-              writer << ';' << key
-            case (key, value) =>
-              writer << ';' << key << '=' << value
-          }
-      }
-
-    override def render(writer: Writer): writer.type =
+    override def render(writer: Writer): writer.type = {
+      def toRenderable(kv: (Key, BareItem)): Renderable =
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            kv match {
+              case (key, SfBoolean(true)) =>
+                writer << ';' << key
+              case (key, value) =>
+                writer << ';' << key << '=' << value
+            }
+        }
       writer.addList(values.map(toRenderable), "", "", "")
+    }
   }
 
   object Parameters {
@@ -323,19 +321,19 @@ object StructuredField {
   }
 
   final case class SfDictionary(values: List[(Key, Member)]) extends StructuredField {
-    private def toRenderable(kv: (Key, Member)): Renderable =
-      new Renderable {
-        def render(writer: Writer): writer.type =
-          kv match {
-            case (key, SfItem(SfBoolean(true), params)) =>
-              writer << key << params
-            case (key, value) =>
-              writer << key << '=' << value
-          }
-      }
-
-    override def render(writer: Writer): writer.type =
+    override def render(writer: Writer): writer.type = {
+      def toRenderable(kv: (Key, Member)): Renderable =
+        new Renderable {
+          def render(writer: Writer): writer.type =
+            kv match {
+              case (key, SfItem(SfBoolean(true), params)) =>
+                writer << key << params
+              case (key, value) =>
+                writer << key << '=' << value
+            }
+        }
       writer.addList(values.map(toRenderable), ", ", "", "")
+    }
   }
 
   object SfDictionary {
