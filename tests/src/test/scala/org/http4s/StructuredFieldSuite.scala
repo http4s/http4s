@@ -24,22 +24,20 @@ class StructuredFieldSuite extends Http4sSuite {
 
   import StructuredField._
 
-  // Generators
-
-  val genSfInteger =
+  private val genSfInteger: Gen[String] =
     for {
       s <- Gen.oneOf("-", "")
       n <- Gen.resize(15, Gen.nonEmptyListOf(Gen.numChar)).map(_.mkString)
     } yield s"${s}${n}"
 
-  val genSfDecimal =
+  private val genSfDecimal: Gen[String] =
     for {
       s <- Gen.oneOf("-", "")
       n <- Gen.resize(12, Gen.nonEmptyListOf(Gen.numChar)).map(_.mkString)
       d <- Gen.resize(3, Gen.nonEmptyListOf(Gen.numChar)).map(_.mkString)
     } yield s"${s}${n}.${d}"
 
-  val genSfString = {
+  private val genSfString: Gen[String] = {
     val unescaped = Gen
       .oneOf(
         (0x20.toChar to 0x21.toChar) ++ (0x23.toChar to 0x5b.toChar) ++ (0x5d.toChar to 0x7e.toChar)
@@ -49,51 +47,51 @@ class StructuredFieldSuite extends Http4sSuite {
     Gen.listOf(Gen.frequency((16, unescaped), (1, escaped))).map(xs => s""""${xs.mkString}"""")
   }
 
-  val genSfStringUnescaped =
+  private val genSfStringUnescaped: Gen[String] =
     Gen.stringOf(Gen.oneOf(0x20.toChar to 0x21.toChar))
 
-  val genSfToken =
+  private val genSfToken: Gen[String] =
     for {
       h <- Gen.oneOf(Gen.alphaChar, Gen.const('*'))
       t <- Gen.listOf(Gen.frequency((16, arbitrary.genTchar), (1, Gen.oneOf(':', '/'))))
     } yield (h +: t).mkString
 
-  val genSfBinary =
+  private val genSfBinary: Gen[String] =
     Gen
       .listOf(Gen.alphaNumChar)
       .map(_.mkString)
       .map(s => ByteVector(s.getBytes("UTF-8")).toBase64)
       .map(s => s":$s:")
 
-  val genSfBoolean =
+  private val genSfBoolean: Gen[String] =
     Gen.oneOf("?0", "?1")
 
-  val genBareItem =
+  private val genBareItem: Gen[String] =
     Gen.oneOf(genSfInteger, genSfDecimal, genSfString, genSfToken, genSfBinary, genSfBoolean)
 
-  val genKey =
+  private val genKey: Gen[String] =
     for {
       h <- Gen.oneOf(Gen.alphaLowerChar, Gen.const('*'))
       t <- Gen.listOf(Gen.oneOf(Gen.alphaLowerChar, Gen.numChar, Gen.oneOf('_', '-', '.', '*')))
     } yield (h +: t).mkString
 
-  val genParameter =
+  private val genParameter: Gen[String] =
     for {
       k <- genKey
       s <- Gen.stringOf(' ')
       v <- Gen.oneOf(genBareItem.map(i => s"=$i"), Gen.const(""))
     } yield s";${s}${k}${v}"
 
-  val genParameters =
+  private val genParameters: Gen[String] =
     Gen.resize(16, Gen.listOf(genParameter)).map(_.mkString)
 
-  val genSfItem =
+  private val genSfItem: Gen[String] =
     for {
       b <- genBareItem
       p <- genParameters
     } yield s"${b}${p}"
 
-  val genInnerList =
+  private val genInnerList: Gen[String] =
     for {
       pr <- genParameters
       ss <- Gen.resize(8, Gen.stringOf(' '))
@@ -101,36 +99,36 @@ class StructuredFieldSuite extends Http4sSuite {
       ls <- Gen.resize(16, Gen.listOf(genSfItem)).map(_.mkString(ss, sp, ss))
     } yield s"($ls)$pr"
 
-  val genMember =
+  private val genMember: Gen[String] =
     Gen.oneOf(genSfItem, genInnerList)
 
-  val genOws =
+  private val genOws: Gen[String] =
     Gen.listOf(Gen.oneOf(" \t".toList)).map(_.mkString)
 
-  val genSfList =
+  private val genSfList: Gen[String] =
     for {
       s <- genOws
       h <- genMember
       t <- Gen.resize(16, Gen.listOf(genMember))
     } yield (h +: t).mkString(s",${s}")
 
-  val genDictMember =
+  private val genDictMember: Gen[String] =
     for {
       k <- genKey
       v <- Gen.oneOf(genMember.map(m => s"=$m"), genParameters)
     } yield s"${k}${v}"
 
-  val genSfDictionary =
+  private val genSfDictionary: Gen[String] =
     for {
       s <- genOws
       h <- genDictMember
       t <- Gen.resize(16, Gen.listOf(genDictMember))
     } yield (h +: t).mkString(s",${s}")
 
-  val genString =
+  private val genString: Gen[String] =
     Gen.stringOf(Gen.alphaNumChar)
 
-  // SfInteger
+  /* SfInteger */
 
   test("SfInteger.parser should parse valid strings") {
     Prop.forAll(genSfInteger) { s =>
@@ -175,7 +173,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfInteger.fromInt(999).value == 999L)
   }
 
-  // SfDecimal
+  /* SfDecimal */
 
   test("SfDecimal.parser should parse valid strings") {
     Prop.forAll(genSfDecimal) { s =>
@@ -226,7 +224,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfDecimal.fromBigDecimal(BigDecimal("99")).map(_.renderString) == Some("99.0"))
   }
 
-  // SfString
+  /* SfString */
 
   test("SfString.parser should parse valid strings") {
     Prop.forAll(genSfString) { s =>
@@ -271,7 +269,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfString.fromString("123\tabc") == None)
   }
 
-  // SfToken
+  /* SfToken */
 
   test("SfToken.parser should parse valid strings") {
     Prop.forAll(genSfToken) { s =>
@@ -312,7 +310,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfToken.fromString("123abc") == None)
   }
 
-  // SfBinary
+  /* SfBinary */
 
   test("SfBinary.parser should parse valid strings") {
     Prop.forAll(genSfBinary) { s =>
@@ -344,7 +342,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // SfBoolean
+  /* SfBoolean */
 
   test("SfBoolean.parser should parse valid strings") {
     assert(SfBoolean.parser.parseAll("?0") == Right(SfBoolean(false)))
@@ -360,7 +358,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(SfBoolean(true).renderString == "?1")
   }
 
-  // BareItem
+  /* BareItem */
 
   test("BareItem.parser should parse SfInteger") {
     Prop.forAll(genSfInteger) { s =>
@@ -416,7 +414,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // Key
+  /* Key */
 
   test("Key.parser should parse valid strings") {
     Prop.forAll(genKey) { s =>
@@ -457,7 +455,7 @@ class StructuredFieldSuite extends Http4sSuite {
     assert(Key.fromString("invalid-Key") == None)
   }
 
-  // Parameters
+  /* Parameters */
 
   test("Parameters.parser should parse valid strings") {
     Prop.forAll(genParameters) { s =>
@@ -468,7 +466,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  test("Parameters.parser should parse empty values as boolean true") {
+  test("Parameters.parser should parse empty values as a boolean true") {
     assert {
       Parameters.parser.parseAll(";p1;p2=?1") match {
         case Right(Parameters(List((_, SfBoolean(true)), (_, SfBoolean(true))))) => true
@@ -490,7 +488,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // SfItem
+  /* SfItem */
 
   test("SfItem.parser should parse valid strings") {
     Prop.forAll(genSfItem) { s =>
@@ -514,7 +512,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // InnerList
+  /* InnerList */
 
   test("InnerList.parser should parse valid strings") {
     Prop.forAll(genInnerList) { s =>
@@ -538,7 +536,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // Member
+  /* Member */
 
   test("Member.parser should parse SfItem") {
     Prop.forAll(genSfItem) { s =>
@@ -558,7 +556,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // SfList
+  /* SfList */
 
   test("SfList.parser should parse valid strings") {
     Prop.forAll(genSfList) { s =>
@@ -582,7 +580,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  // SfDictionary
+  /* SfDictionary */
 
   test("SfDictionary.parser should parse valid strings") {
     Prop.forAll(genSfDictionary) { s =>
@@ -593,7 +591,7 @@ class StructuredFieldSuite extends Http4sSuite {
     }
   }
 
-  test("SfDictionary.parser should parse empty values as boolean true") {
+  test("SfDictionary.parser should parse empty values as a boolean true") {
     assert {
       SfDictionary.parser.parseAll("k1;p1=1, k2=?1;p2=2") match {
         case Right(
