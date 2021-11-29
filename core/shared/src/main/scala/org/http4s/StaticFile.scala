@@ -347,6 +347,6 @@ object StaticFile {
   private[http4s] val staticPathKey = Key.newKey[SyncIO, Path].unsafeRunSync()
 
   @deprecated("Use staticPathKey", since = "0.23.5")
-  private[http4s] val staticFileKey: Key[File] =
+  private[http4s] lazy val staticFileKey: Key[File] =
     staticPathKey.imap(_.toNioPath.toFile)(f => Path.fromNioPath(f.toPath))
 }
