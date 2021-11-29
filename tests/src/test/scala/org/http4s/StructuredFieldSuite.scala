@@ -125,9 +125,6 @@ class StructuredFieldSuite extends Http4sSuite {
       t <- Gen.resize(16, Gen.listOf(genDictMember))
     } yield (h +: t).mkString(s",${s}")
 
-  private val genString: Gen[String] =
-    Gen.stringOf(Gen.alphaNumChar)
-
   /* SfInteger */
 
   test("SfInteger.parser should parse valid strings") {
