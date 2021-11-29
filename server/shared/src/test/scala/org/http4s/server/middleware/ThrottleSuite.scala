@@ -62,7 +62,7 @@ class ThrottleSuite extends Http4sSuite {
 
     takeTokenAfterRefill
       .map { result =>
-        ctx.tick(101.milliseconds)
+        ctx.advanceAndTick(101.milliseconds)
         result
       }
       .assertEquals(TokenAvailable)
@@ -83,7 +83,7 @@ class ThrottleSuite extends Http4sSuite {
 
     takeExtraToken
       .map { result =>
-        ctx.tick(300.milliseconds)
+        ctx.advanceAndTick(300.milliseconds)
         result
       }
       .map(_.isInstanceOf[TokenUnavailable])
@@ -121,7 +121,7 @@ class ThrottleSuite extends Http4sSuite {
     }
 
     takeTwoTokens.map { result =>
-      ctx.tick(75.milliseconds)
+      ctx.advanceAndTick(75.milliseconds)
       result match {
         case TokenUnavailable(t) => t.exists(_ <= 25.milliseconds)
         case _ => false
