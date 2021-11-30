@@ -79,12 +79,4 @@ class LoggerSuite extends Http4sSuite {
     res.map(_.status).assertEquals(Status.Ok)
     res.flatMap(_.as[String]).assertEquals(expectedBody)
   }
-
-  private def loggerColoredCompiles(): Unit = {
-    val _ = Logger.colored[IO](
-      logHeaders = true,
-      logBody = false,
-      logAction = Some(s => IO(println(s))),
-    ) _
-  }
 }
