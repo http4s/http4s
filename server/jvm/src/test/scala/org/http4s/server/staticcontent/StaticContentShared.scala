@@ -21,6 +21,7 @@ package staticcontent
 import cats.effect.IO
 import fs2._
 import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -32,10 +33,14 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   lazy val testResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream("/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
-    val bytes = scala.io.Source
-      .fromInputStream(s)
-      .mkString
-      .getBytes(StandardCharsets.UTF_8)
+    val bytes =
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
 
     Chunk.array(bytes)
   }
@@ -54,11 +59,13 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.array(
-      scala.io.Source
-        .fromInputStream(s)
-        .mkString
-        .getBytes(StandardCharsets.UTF_8)
-    )
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      ))
   }
 
   lazy val testWebjarResourceGzipped: Chunk[Byte] = {
@@ -77,11 +84,13 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.array(
-      scala.io.Source
-        .fromInputStream(s)
-        .mkString
-        .getBytes(StandardCharsets.UTF_8)
-    )
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      ))
   }
 
   def runReq(
