@@ -25,7 +25,7 @@ import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.dsl.io._
 import org.http4s.multipart.Multipart
 import org.http4s.server.Server
-import org.http4s.testing.ClosableResource
+import org.http4s.testing.AutoCloseableResource
 
 import java.net.HttpURLConnection
 import java.net.URL
@@ -79,10 +79,10 @@ class BlazeServerSuite extends Http4sSuite {
   // This should be in IO and shifted but I'm tired of fighting this.
   private def get(server: Server, path: String): IO[String] =
     IO(
-      ClosableResource.resource(
+      AutoCloseableResource.resource(
         Source
           .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-      )(_.getLines().mkString)(_.close())
+      )(_.getLines().mkString)
     )
 
   // This should be in IO and shifted but I'm tired of fighting this.
@@ -105,9 +105,9 @@ class BlazeServerSuite extends Http4sSuite {
     conn.setDoOutput(true)
     conn.getOutputStream.write(bytes)
 
-    ClosableResource.resource(
+    AutoCloseableResource.resource(
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
-    )(_.getLines().mkString)(_.close())
+    )(_.getLines().mkString)
   }
 
   // This too
@@ -127,9 +127,9 @@ class BlazeServerSuite extends Http4sSuite {
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
 
-      ClosableResource.resource(
+      AutoCloseableResource.resource(
         Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
-      )(_.getLines().mkString)(_.close())
+      )(_.getLines().mkString)
     }
 
   blazeServer.test("route requests on the service executor".flaky) { server =>

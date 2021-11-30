@@ -25,7 +25,7 @@ import cats.syntax.all._
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 import org.http4s.dsl.io._
 import org.http4s.server.Server
-import org.http4s.testing.ClosableResource
+import org.http4s.testing.AutoCloseableResource
 
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -79,10 +79,10 @@ class TomcatServerSuite extends Http4sSuite {
   private def get(server: Server, path: String): IO[String] =
     testBlocker.blockOn(
       IO(
-        ClosableResource.resource(
+        AutoCloseableResource.resource(
           Source
             .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-        )(_.getLines().mkString)(_.close())
+        )(_.getLines().mkString)
       )
     )
 
@@ -96,10 +96,10 @@ class TomcatServerSuite extends Http4sSuite {
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
 
-      ClosableResource.resource(
+      AutoCloseableResource.resource(
         Source
           .fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
-      )(_.getLines().mkString)(_.close())
+      )(_.getLines().mkString)
     })
 
   tomcatServer.test("server should route requests on the service executor".flaky) { server =>
