@@ -143,7 +143,7 @@ class BlazeServerSuite extends Http4sSuite {
       Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
     )(_.getLines().mkString)(_.close())
   }
-  
+
   private def postChunkedMultipart(
       server: Server,
       path: String,
