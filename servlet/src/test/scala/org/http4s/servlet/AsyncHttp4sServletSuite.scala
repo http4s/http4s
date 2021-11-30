@@ -30,7 +30,7 @@ import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.syntax.all._
-import org.http4s.testing.ClosableResource
+import org.http4s.testing.AutoCloseableResource
 
 import java.net.URL
 import scala.concurrent.duration._
@@ -54,10 +54,10 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
 
   private def get(serverPort: Int, path: String): IO[String] =
     IO.blocking[String](
-      ClosableResource.resource(
+      AutoCloseableResource.resource(
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
-      )(_.getLines().mkString)(_.close())
+      )(_.getLines().mkString)
     )
 
   servletServer.test("AsyncHttp4sServlet handle GET requests") { server =>

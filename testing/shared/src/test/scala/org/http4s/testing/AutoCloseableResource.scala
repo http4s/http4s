@@ -16,7 +16,7 @@
 
 package org.http4s.testing
 
-object ClosableResource {
+object AutoCloseableResource {
 
   /** Performs an operation using a resource, and then releases the resource,
     * even if the operation throws an exception. This method behaves similarly
@@ -25,13 +25,12 @@ object ClosableResource {
     *
     * @param resource the resource
     * @param body     the operation to perform with the resource
-    * @param release  the operation to perform on the finally case
     * @tparam R the type of the resource
     * @tparam A the return type of the operation
     * @return the result of the operation, if neither the operation nor
     *         releasing the resource throws
     */
-  def resource[R, A](resource: R)(body: R => A)(release: R => Unit): A = {
+  def resource[R <: AutoCloseable, A](resource: R)(body: R => A): A = {
     if (resource == null) throw new NullPointerException("null resource")
 
     var toThrow: Throwable = null
@@ -41,9 +40,9 @@ object ClosableResource {
       case t: Throwable =>
         toThrow = t
         null.asInstanceOf[A]
-    } finally if (toThrow eq null) release(resource)
+    } finally if (toThrow eq null) resource.close()
     else {
-      try release(resource)
+      try resource.close()
       finally throw toThrow
     }
   }
