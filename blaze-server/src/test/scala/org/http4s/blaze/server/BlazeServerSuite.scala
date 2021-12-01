@@ -29,6 +29,7 @@ import org.http4s.dsl.io._
 import org.http4s.internal.threads._
 import org.http4s.multipart.Multipart
 import org.http4s.server.Server
+import org.http4s.testing.AutoCloseableResource
 
 import java.net.HttpURLConnection
 import java.net.URL
@@ -72,11 +73,11 @@ class BlazeServerSuite extends Http4sSuite {
 
   override def afterAll(): Unit = munitIoRuntime.shutdown()
 
-  def builder =
+  private def builder =
     BlazeServerBuilder[IO]
       .withResponseHeaderTimeout(1.second)
 
-  val service: HttpApp[IO] = HttpApp {
+  private val service: HttpApp[IO] = HttpApp {
     case GET -> Root / "thread" / "routing" =>
       val thread = Thread.currentThread.getName
       Ok(thread)
@@ -98,27 +99,27 @@ class BlazeServerSuite extends Http4sSuite {
     case _ => NotFound()
   }
 
-  val serverR =
+  private val serverR =
     builder
       .bindAny()
       .withHttpApp(service)
       .resource
 
-  val blazeServer =
+  private val blazeServer =
     ResourceFixture[Server](
       serverR,
       (_: TestOptions, _: Server) => IO.unit,
       (_: Server) => IO.sleep(100.milliseconds) *> IO.unit,
     )
 
-  def get(server: Server, path: String): IO[String] = IO.blocking {
-    Source
-      .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-      .getLines()
-      .mkString
+  private def get(server: Server, path: String): IO[String] = IO.blocking {
+    AutoCloseableResource.resource(
+      Source
+        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+    )(_.getLines().mkString)
   }
 
-  def getStatus(server: Server, path: String): IO[Status] = {
+  private def getStatus(server: Server, path: String): IO[Status] = {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     for {
       conn <- IO.blocking(url.openConnection().asInstanceOf[HttpURLConnection])
@@ -129,7 +130,7 @@ class BlazeServerSuite extends Http4sSuite {
     } yield status
   }
 
-  def post(server: Server, path: String, body: String): IO[String] = IO.blocking {
+  private def post(server: Server, path: String, body: String): IO[String] = IO.blocking {
     val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     val bytes = body.getBytes(StandardCharsets.UTF_8)
@@ -137,10 +138,13 @@ class BlazeServerSuite extends Http4sSuite {
     conn.setRequestProperty("Content-Length", bytes.size.toString)
     conn.setDoOutput(true)
     conn.getOutputStream.write(bytes)
-    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
+
+    AutoCloseableResource.resource(
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
+    )(_.getLines().mkString)
   }
 
-  def postChunkedMultipart(
+  private def postChunkedMultipart(
       server: Server,
       path: String,
       boundary: String,
@@ -155,7 +159,10 @@ class BlazeServerSuite extends Http4sSuite {
       conn.setRequestProperty("Content-Type", s"""multipart/form-data; boundary="$boundary"""")
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
+
+      AutoCloseableResource.resource(
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
+      )(_.getLines().mkString)
     }
 
   blazeServer.test("route requests on the service executor".flaky) { server =>
