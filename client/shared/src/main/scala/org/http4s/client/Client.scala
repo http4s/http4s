@@ -170,18 +170,21 @@ trait Client[F[_]] {
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
   @deprecated("use public method with MonadCancelThrow instead", since = "2021-Dec")
-  private[client] def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F)(implicit
-      F: MonadCancelThrow[F]): Client[G] =
+  private[client] def translate[G[_]: Async](
+      fk: F ~> G
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
       ).mapK(fk)
-        .map(_.mapK(fk)))
+        .map(_.mapK(fk))
+    )
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: MonadCancelThrow](fk: F ~> G)(gK: G ~> F)(implicit
-      F: MonadCancelThrow[F]): Client[G] =
+  def translate[G[_]: MonadCancelThrow](
+      fk: F ~> G
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
