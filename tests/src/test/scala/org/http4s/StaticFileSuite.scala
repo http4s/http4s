@@ -21,6 +21,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import org.http4s.Status._
 import org.http4s.headers._
+import org.http4s.testing.AutoCloseableResource
 
 import java.io.File
 import java.net.URL
@@ -266,7 +267,8 @@ class StaticFileSuite extends Http4sSuite {
 
   test("Read from a URL") {
     val url = getClass.getResource("/lorem-ipsum.txt")
-    val expected = scala.io.Source.fromURL(url, "utf-8").mkString
+    val expected =
+      AutoCloseableResource.resource(scala.io.Source.fromURL(url, "utf-8"))(_.mkString)
     val s = StaticFile
       .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlocker)
       .value

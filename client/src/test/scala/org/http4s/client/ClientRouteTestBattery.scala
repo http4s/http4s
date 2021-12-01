@@ -27,6 +27,7 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.Part
+import org.http4s.testing.AutoCloseableResource
 import org.typelevel.ci._
 
 import java.util.Arrays
@@ -61,7 +62,8 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
 
       override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
         srv.setStatus(200)
-        val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+        val s = AutoCloseableResource
+          .resource(scala.io.Source.fromInputStream(req.getInputStream))(_.mkString)
         srv.getWriter.print(s)
         srv.getWriter.flush()
       }
