@@ -18,6 +18,7 @@ package org.http4s.testing
 
 private[http4s] object AutoCloseableResource {
 
+  // TODO: Consider using [[munit.CatsEffectFixtures]] or [[cats.effect.Resource.fromAutoCloseable]] instead
   /** Performs an operation using a resource, and then releases the resource,
     * even if the operation throws an exception. This method behaves similarly
     * to Java's try-with-resources.
