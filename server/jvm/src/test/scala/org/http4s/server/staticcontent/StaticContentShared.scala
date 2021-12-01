@@ -65,7 +65,8 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       )(
         _.mkString
           .getBytes(StandardCharsets.UTF_8)
-      ))
+      )
+    )
   }
 
   lazy val testWebjarResourceGzipped: Chunk[Byte] = {
@@ -90,7 +91,8 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       )(
         _.mkString
           .getBytes(StandardCharsets.UTF_8)
-      ))
+      )
+    )
   }
 
   def runReq(
