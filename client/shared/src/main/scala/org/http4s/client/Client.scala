@@ -171,9 +171,8 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Async](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancel[F, Throwable]): Client[G] =
+  def translate[G[_]: MonadCancelThrow](fk: F ~> G)(gK: G ~> F)(implicit
+      F: MonadCancelThrow[F]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
