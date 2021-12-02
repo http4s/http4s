@@ -30,8 +30,8 @@ class ClearSiteDataSuite extends HeaderLaws {
   test("render should render unknown directives") {
     assertEquals(
       `Clear-Site-Data`(
-        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownA"),
-        `Clear-Site-Data`.UnknownType.unsafeFromString("unknownB"),
+        UnknownType.unsafeFromString("unknownA"),
+        UnknownType.unsafeFromString("unknownB"),
       ).renderString,
       """Clear-Site-Data: "unknownA", "unknownB"""",
     )
