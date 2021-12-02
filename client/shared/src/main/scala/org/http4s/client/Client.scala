@@ -169,7 +169,7 @@ trait Client[F[_]] {
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  @deprecated("use public method with MonadCancelThrow instead", since = "2021-Dec")
+  @deprecated("use public method with MonadCancelThrow instead", since = "0.23.7")
   private[client] def translate[G[_]: Async](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
