@@ -106,7 +106,7 @@ object SiteConfig {
       "The e-book contains the same documentation as the website."
     )
     val downloadDocURL =
-      s"http://localhost:4242/${versions.current.pathSegment}/downloads/"
+      s"https://http4s.org/${versions.current.pathSegment}/downloads/"
     val epubMetadataDesc: Option[String] = Some("A minimal, idiomatic Scala interface for HTTP.")
   }
 
