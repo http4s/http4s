@@ -34,7 +34,7 @@ object `Content-Location` {
     Header.create(
       ci"Content-Location",
       _.uri.toString,
-      parse
+      parse,
     )
 }
 

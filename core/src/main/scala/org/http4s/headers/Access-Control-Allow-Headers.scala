@@ -36,7 +36,7 @@ object `Access-Control-Allow-Headers` {
     Header.createRendered(
       ci"Access-Control-Allow-Headers",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Allow-Headers`] =

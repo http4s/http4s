@@ -49,7 +49,8 @@ class UrlFormSpec extends Http4sSuite {
           .success(
             Request[IO]()
               .withEntity(urlForm)(UrlForm.entityEncoder(charset))
-              .pure[IO])
+              .pure[IO]
+          )
           .flatMap { req =>
             UrlForm.entityDecoder[IO].decode(req, strict = false)
           }
@@ -88,13 +89,15 @@ class UrlFormSpec extends Http4sSuite {
       assertEquals(
         UrlForm(Map("key" -> Chain("a", "b", "c")))
           .getOrElse("key", Chain("d")),
-        Chain("a", "b", "c"))
+        Chain("a", "b", "c"),
+      )
     }
 
     test("UrlForm should getOrElse returns default if no matching key") {
       assertEquals(
         UrlForm(Map("key" -> Chain("a", "b", "c"))).getOrElse("notFound", Chain("d")),
-        Chain("d"))
+        Chain("d"),
+      )
     }
 
     test("UrlForm should getFirstOrElse returns first element matching key") {
@@ -106,20 +109,23 @@ class UrlFormSpec extends Http4sSuite {
     }
 
     test(
-      "UrlForm should withFormField encodes T properly if QueryParamEncoder[T] can be resolved") {
+      "UrlForm should withFormField encodes T properly if QueryParamEncoder[T] can be resolved"
+    ) {
       assertEquals(UrlForm.empty.updateFormField("foo", 1).get("foo"), Chain("1"))
       assertEquals(UrlForm.empty.updateFormField("bar", Some(true)).get("bar"), Chain("true"))
       assertEquals(UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar"), Chain())
       assertEquals(
         UrlForm.empty.updateFormFields("dummy", Chain("a", "b", "c")).get("dummy"),
-        Chain("a", "b", "c"))
+        Chain("a", "b", "c"),
+      )
     }
 
     test(
-      "UrlForm should withFormField is effectively equal to factory constructor that takes a Map") {
+      "UrlForm should withFormField is effectively equal to factory constructor that takes a Map"
+    ) {
       assertEquals(
         UrlForm.empty.+?("foo", 1).+?("bar", Some(true)).++?("dummy", Chain("a", "b", "c")),
-        UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c")))
+        UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c"))),
       )
 
       assertEquals(
@@ -128,9 +134,10 @@ class UrlFormSpec extends Http4sSuite {
           .+?(
             "bar",
             Option
-              .empty[Boolean])
+              .empty[Boolean],
+          )
           .++?("dummy", Chain("a", "b", "c")),
-        UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c")))
+        UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c"))),
       )
     }
 
@@ -142,12 +149,14 @@ class UrlFormSpec extends Http4sSuite {
           v <- vs.toList
         } yield k -> v
         UrlForm(flattened: _*) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
+        )
       }
     }
 
     test(
-      "UrlForm should construct consistently from Chain of kv-pairs and Map[String, Chain[String]]") {
+      "UrlForm should construct consistently from Chain of kv-pairs and Map[String, Chain[String]]"
+    ) {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
@@ -157,7 +166,8 @@ class UrlFormSpec extends Http4sSuite {
           v <- Chain.fromSeq(vs.toList)
         } yield k -> v
         UrlForm.fromChain(flattened) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
+        )
       }
     }
   }

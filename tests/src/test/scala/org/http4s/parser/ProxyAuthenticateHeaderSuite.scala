@@ -50,7 +50,8 @@ class ProxyAuthenticateHeaderSuite
   }
 
   test(
-    "Proxy-Authenticate Header parser shouldparse mulmultiple concatenated authentications with params") {
+    "Proxy-Authenticate Header parser shouldparse mulmultiple concatenated authentications with params"
+  ) {
     val twowparams =
       "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::

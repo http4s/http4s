@@ -46,7 +46,7 @@ trait EntityEncoderLaws[F[_], A] {
 object EntityEncoderLaws {
   def apply[F[_], A](implicit
       F0: Effect[F],
-      entityEncoderFA: EntityEncoder[F, A]
+      entityEncoderFA: EntityEncoder[F, A],
   ): EntityEncoderLaws[F, A] =
     new EntityEncoderLaws[F, A] {
       val F = F0

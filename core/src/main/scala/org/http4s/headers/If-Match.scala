@@ -49,7 +49,7 @@ object `If-Match` {
         case Some(nel) => nel.mkString_("", ",", "")
 
       },
-      parse
+      parse,
     )
 
 }

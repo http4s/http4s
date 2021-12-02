@@ -59,7 +59,8 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
       Source
         .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
   def post(serverPort: Int, path: String, body: String): IO[String] =
     testBlocker.delay[IO, String] {
@@ -88,7 +89,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
   lazy val servlet = new BlockingHttp4sServlet[IO](
     service = service,
     servletIo = org.http4s.servlet.BlockingServletIo(4096, testBlocker),
-    serviceErrorHandler = DefaultServiceErrorHandler
+    serviceErrorHandler = DefaultServiceErrorHandler,
   )
 
   lazy val serverPortR = Resource

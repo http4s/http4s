@@ -20,6 +20,7 @@ import cats.MonadThrow
 import fs2.RaiseThrowable
 import fs2.Stream
 import fs2.text.utf8Decode
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 
 trait Media[F[_]] {
@@ -29,7 +30,8 @@ trait Media[F[_]] {
 
   final def bodyText(implicit
       RT: RaiseThrowable[F],
-      defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+      defaultCharset: Charset = `UTF-8`,
+  ): Stream[F, String] =
     charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition

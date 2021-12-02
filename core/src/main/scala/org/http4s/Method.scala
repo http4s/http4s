@@ -56,7 +56,7 @@ final class Method private (val name: String, val isSafe: Boolean, val isIdempot
 
   override def toString(): String = name
 
-  final override def render(writer: Writer): writer.type = writer << name
+  override final def render(writer: Writer): writer.type = writer << name
 }
 
 object Method {
@@ -153,7 +153,7 @@ object Method {
     UNLINK,
     UNLOCK,
     UPDATEREDIRECTREF,
-    `VERSION-CONTROL`
+    `VERSION-CONTROL`,
   )
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap

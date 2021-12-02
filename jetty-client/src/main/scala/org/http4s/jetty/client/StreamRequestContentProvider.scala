@@ -29,8 +29,8 @@ import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
 
 private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(implicit
-    F: Effect[F])
-    extends DeferredContentProvider {
+    F: Effect[F]
+) extends DeferredContentProvider {
   import StreamRequestContentProvider.logger
 
   def write(req: Request[F]): F[Unit] =

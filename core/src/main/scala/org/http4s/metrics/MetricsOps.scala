@@ -56,7 +56,8 @@ trait MetricsOps[F[_]] {
       method: Method,
       status: Status,
       elapsed: Long,
-      classifier: Option[String]): F[Unit]
+      classifier: Option[String],
+  ): F[Unit]
 
   /** Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
     *
@@ -67,7 +68,8 @@ trait MetricsOps[F[_]] {
   def recordAbnormalTermination(
       elapsed: Long,
       terminationType: TerminationType,
-      classifier: Option[String]): F[Unit]
+      classifier: Option[String],
+  ): F[Unit]
 }
 
 object MetricsOps {
@@ -104,7 +106,7 @@ object MetricsOps {
   def classifierFMethodWithOptionallyExcludedPath[F[_]](
       exclude: String => Boolean,
       excludedValue: String = "*",
-      pathSeparator: String = "_"
+      pathSeparator: String = "_",
   ): Request[F] => Option[String] = { (request: Request[F]) =>
     val initial: String = request.method.name
 
