@@ -38,10 +38,10 @@ class ReferrerPolicySuite extends HeaderLaws {
   }
 
   test("parse should parse unknown directives") {
-    val unknownA = UnknownPolicy.unsafeFromString("unknown-policy-a")
-    val unknownB = UnknownPolicy.unsafeFromString("unknown-policy-b")
+    val unknownA = UnknownPolicy.unsafeFromString("unknown-a")
+    val unknownB = UnknownPolicy.unsafeFromString("unknown-b")
     assertEquals(
-      `Referrer-Policy`.parse("unknown-policy-a, unknown-policy-b").map(_.values),
+      `Referrer-Policy`.parse("unknown-a, unknown-b").map(_.values),
       Right(NonEmptyList.of(unknownA, unknownB)),
     )
   }
