@@ -98,7 +98,7 @@ class ReferrerPolicySuite extends HeaderLaws {
 
   test("Directive.fromString should parse unknown directives") {
     val unknown = UnknownPolicy.unsafeFromString("unknown-policy")
-    Directive.fromString(unknown.value.toString) == Right(unknown)
+    assertEquals(Directive.fromString(unknown.value.toString), Right(unknown))
   }
 
   test("Directive.fromString should fail with invalid directives") {
