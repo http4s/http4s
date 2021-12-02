@@ -601,8 +601,7 @@ lazy val scalatags = http4sProject("scalatags")
     startYear := Some(2018),
     libraryDependencies ++= Seq(
       scalatagsApi.cross(CrossVersion.for3Use2_13)
-    ),
-    publish / skip := isDotty.value
+    )
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
