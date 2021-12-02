@@ -8,6 +8,7 @@ import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
 import laika.helium.config.{HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
 import laika.rewrite.link.LinkConfig
+import laika.rewrite.nav.CoverImage
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
 import laika.theme.ThemeProvider
@@ -63,6 +64,8 @@ object SiteConfig {
       TextLink.internal(Root / "adopters" / "README.md", "Adopters"),
       TextLink.internal(Root / "code-of-conduct" / "README.md", "Code of Conduct"),
       TextLink.internal(Root / "further-reading" / "README.md", "Further Reading"),
+      // TODO: the internal reference is not resolving for now
+      TextLink.external(epub.downloadDocURL, "Download (EPUB)")
     )
   }
 
@@ -94,6 +97,14 @@ object SiteConfig {
     } ++ all.map { v =>
       Root / v.pathSegment / "index.html"
     }
+  }
+
+  object epub {
+    val downloadPageDesc: Option[String] = Some(
+      "The e-book contains the same documentation as the website.")
+    val downloadDocURL =
+      s"http://localhost:4242/${versions.v1_0.pathSegment}/downloads/"
+    val epubMetadataDesc: Option[String] = Some("A minimal, idiomatic Scala interface for HTTP.")
   }
 
   // This kind of variable generator used to live in Http4sPlugin, but it's not used by anything other than Laika.
@@ -128,6 +139,7 @@ object SiteConfig {
     val config = variables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
       builder.withValue(key, value)
     }
+
     LaikaConfig(
       configBuilder = config
         .withValue(LaikaKeys.versioned, versioned)
@@ -221,10 +233,30 @@ object SiteConfig {
           ),
           IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
           IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter),
-        ),
+          // TODO: the internal reference is not resolving for now
+          IconLink.external(epub.downloadDocURL, HeliumIcon.download)
+        )
       )
       .site
       .versions(versions.config(currentVersion))
+      .site
+      .downloadPage(
+        title = "Documentation Downloads",
+        description = epub.downloadPageDesc,
+        includeEPUB = true,
+        includePDF = false
+      )
+      .epub
+      .metadata(
+        title = Some("http4s"),
+        description = epub.epubMetadataDesc,
+        version = Some(versions.v1_0.displayValue),
+        language = Some("en")
+      )
+      .epub
+      .coverImages(CoverImage(Root / "images" / "http4s-logo-text-dark-2.svg"))
+      .epub
+      .tableOfContent("Table of Content", 3)
       .build
 
     HeliumExtensions.applyTo(fullTheme, variables, versions.paths)

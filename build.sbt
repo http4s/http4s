@@ -667,6 +667,8 @@ lazy val docs = http4sProject("docs")
       includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
+    laikaIncludeEPUB := true,
+    laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
     ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
