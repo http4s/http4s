@@ -83,7 +83,7 @@ class ClearSiteDataSuite extends HeaderLaws {
     val unknownA = UnknownType.unsafeFromString("unknownA")
     val unknownB = UnknownType.unsafeFromString("unknownB")
     val expected = Right(NonEmptyList.of(unknownA, unknownB))
-    assert(`Clear-Site-Data`.parse(""""unknownA", "unknownB"""").map(_.values) == expected)
+    assertEquals(`Clear-Site-Data`.parse(""""unknownA", "unknownB"""").map(_.values), expected)
   }
 
   test("parse should fail with an empty string") {
@@ -106,7 +106,7 @@ class ClearSiteDataSuite extends HeaderLaws {
 
   test("Directive.fromString should parse unknown directives") {
     val unknown = UnknownType.unsafeFromString("unknown")
-    assert(Directive.fromString(s""""${unknown.value}"""") == Right(unknown))
+    assertEquals(Directive.fromString(s""""${unknown.value}""""), Right(unknown))
   }
 
   test("Directive.fromString should fail with invalid directives (not quoted)") {
