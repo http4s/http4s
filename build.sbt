@@ -656,7 +656,7 @@ lazy val docs = http4sProject("docs")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v1_0,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false
@@ -704,7 +704,7 @@ lazy val website = http4sProject("website")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = false).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v1_0,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = true
