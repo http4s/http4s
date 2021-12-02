@@ -86,6 +86,8 @@ object SiteConfig {
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
+    val current: Version = v0_22
+
     def config(current: Version): Versions = Versions(
       currentVersion = current,
       olderVersions = all.dropWhile(_ != current).drop(1),
@@ -103,7 +105,7 @@ object SiteConfig {
     val downloadPageDesc: Option[String] = Some(
       "The e-book contains the same documentation as the website.")
     val downloadDocURL =
-      s"http://localhost:4242/${versions.v1_0.pathSegment}/downloads/"
+      s"http://localhost:4242/${versions.current.pathSegment}/downloads/"
     val epubMetadataDesc: Option[String] = Some("A minimal, idiomatic Scala interface for HTTP.")
   }
 
@@ -144,7 +146,7 @@ object SiteConfig {
       configBuilder = config
         .withValue(LaikaKeys.versioned, versioned)
         .withValue(LinkConfig(excludeFromValidation = Seq(Root / "api")))
-        .withValue(LaikaKeys.artifactBaseName, s"http4s-${versions.v1_0.displayValue}")
+        .withValue(LaikaKeys.artifactBaseName, s"http4s-${versions.current.displayValue}")
     )
   }
 
@@ -251,7 +253,7 @@ object SiteConfig {
       .metadata(
         title = Some("http4s"),
         description = epub.epubMetadataDesc,
-        version = Some(versions.v1_0.displayValue),
+        version = Some(versions.current.displayValue),
         language = Some("en")
       )
       .epub
