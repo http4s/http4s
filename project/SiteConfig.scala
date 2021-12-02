@@ -144,6 +144,7 @@ object SiteConfig {
       configBuilder = config
         .withValue(LaikaKeys.versioned, versioned)
         .withValue(LinkConfig(excludeFromValidation = Seq(Root / "api")))
+        .withValue(LaikaKeys.artifactBaseName, s"http4s-${versions.v1_0.displayValue}")
     )
   }
 
