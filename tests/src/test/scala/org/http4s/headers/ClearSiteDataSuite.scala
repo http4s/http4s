@@ -27,25 +27,6 @@ class ClearSiteDataSuite extends HeaderLaws {
 
   import `Clear-Site-Data`.{Directive, UnknownType}
 
-  test("render should render a single directive") {
-    Prop.forAll { (a: Directive) =>
-      `Clear-Site-Data`(a).renderString == s"""Clear-Site-Data: "${a.value}""""
-    }
-  }
-
-  test("render should render multiple directives") {
-    assertEquals(
-      `Clear-Site-Data`(
-        `Clear-Site-Data`.`*`,
-        `Clear-Site-Data`.cache,
-        `Clear-Site-Data`.cookies,
-        `Clear-Site-Data`.storage,
-        `Clear-Site-Data`.executionContexts,
-      ).renderString,
-      """Clear-Site-Data: "*", "cache", "cookies", "storage", "executionContexts"""",
-    )
-  }
-
   test("render should render unknown directives") {
     assertEquals(
       `Clear-Site-Data`(
@@ -53,29 +34,6 @@ class ClearSiteDataSuite extends HeaderLaws {
         `Clear-Site-Data`.UnknownType.unsafeFromString("unknownB"),
       ).renderString,
       """Clear-Site-Data: "unknownA", "unknownB"""",
-    )
-  }
-
-  test("parse should parse a single directive") {
-    Prop.forAll { (a: Directive) =>
-      `Clear-Site-Data`.parse(s""""${a.value}"""").map(_.values) == Right(NonEmptyList.one(a))
-    }
-  }
-
-  test("parse should parse multiple directives") {
-    assertEquals(
-      `Clear-Site-Data`
-        .parse(""""*", "cache", "cookies", "storage", "executionContexts"""")
-        .map(_.values),
-      Right(
-        NonEmptyList.of(
-          `Clear-Site-Data`.`*`,
-          `Clear-Site-Data`.cache,
-          `Clear-Site-Data`.cookies,
-          `Clear-Site-Data`.storage,
-          `Clear-Site-Data`.executionContexts,
-        )
-      ),
     )
   }
 
@@ -90,12 +48,9 @@ class ClearSiteDataSuite extends HeaderLaws {
     assert(`Clear-Site-Data`.parse("").isLeft)
   }
 
-  test("parse should fail with a single invalid directive (not quoted)") {
+  test("parse should fail with invalid directives (not quoted)") {
     assert(`Clear-Site-Data`.parse("cookies").isLeft)
-  }
-
-  test("parse should fail when some directives are invalid (not quoted)") {
-    assert(`Clear-Site-Data`.parse(""""cache", cookies, "storage", "executionContexts"""").isLeft)
+    assert(`Clear-Site-Data`.parse(""""cache", cookies, "storage"""").isLeft)
   }
 
   test("Directive.fromString should parse all known directives") {
