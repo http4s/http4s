@@ -45,9 +45,9 @@ class ReferrerPolicySuite extends HeaderLaws {
     assertEquals(
       `Referrer-Policy`(
         `Referrer-Policy`.UnknownPolicy.unsafeFromString("unknown-a"),
-        `Referrer-Policy`.UnknownPolicy.unsafeFromString("unknown-b")
+        `Referrer-Policy`.UnknownPolicy.unsafeFromString("unknown-b"),
       ).renderString,
-      "Referrer-Policy: unknown-a, unknown-b"
+      "Referrer-Policy: unknown-a, unknown-b",
     )
   }
 
@@ -78,7 +78,7 @@ class ReferrerPolicySuite extends HeaderLaws {
     val unknownB = UnknownPolicy.unsafeFromString("unknown-policy-b")
     assertEquals(
       `Referrer-Policy`.parse("unknown-policy-a, unknown-policy-b").map(_.values),
-      Right(NonEmptyList.of(unknownA, unknownB))
+      Right(NonEmptyList.of(unknownA, unknownB)),
     )
   }
 

@@ -72,7 +72,7 @@ object `Referrer-Policy` {
       `same-origin`,
       `strict-origin`,
       `strict-origin-when-cross-origin`,
-      `unsafe-url`
+      `unsafe-url`,
     )
       .map(i => (i.value, i))
       .toMap
@@ -95,7 +95,7 @@ object `Referrer-Policy` {
     Header.createRendered(
       ci"Referrer-Policy",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: Semigroup[`Referrer-Policy`] =
