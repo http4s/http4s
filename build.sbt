@@ -655,12 +655,14 @@ lazy val docs = http4sProject("docs")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v1_0,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false
     ),
     laikaDescribe := "<disabled>",
+    laikaIncludeEPUB := true,
+    laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
     ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
@@ -701,7 +703,7 @@ lazy val website = http4sProject("website")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = false).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v1_0,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = true
