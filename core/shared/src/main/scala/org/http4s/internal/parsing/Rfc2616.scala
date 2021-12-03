@@ -54,7 +54,8 @@ private[http4s] object Rfc2616 {
       year: Int,
       hour: Int,
       min: Int,
-      sec: Int)
+      sec: Int,
+  )
 
   val rfc1123Date: Parser[Rfc1123Date] = {
     /* wkday        = "Mon" | "Tue" | "Wed"
@@ -85,7 +86,8 @@ private[http4s] object Rfc2616 {
         "Sep",
         "Oct",
         "Nov",
-        "Dec").zipWithIndex
+        "Dec",
+      ).zipWithIndex
         .map { case (s, i) => string(s).as(i + 1) }
         .reduceLeft(_.orElse(_))
 

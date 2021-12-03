@@ -35,7 +35,7 @@ import java.io.StringWriter
  */
 final class PrometheusExportService[F[_]] private (
     val routes: HttpRoutes[F],
-    val collectorRegistry: CollectorRegistry
+    val collectorRegistry: CollectorRegistry,
 )
 
 object PrometheusExportService {

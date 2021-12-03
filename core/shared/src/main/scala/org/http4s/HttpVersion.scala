@@ -148,7 +148,7 @@ object HttpVersion {
     `HTTP/1.0`,
     `HTTP/1.1`,
     `HTTP/2`,
-    `HTTP/3`
+    `HTTP/3`,
   )
 
   private[this] val right_1_0 = Right(`HTTP/1.0`)

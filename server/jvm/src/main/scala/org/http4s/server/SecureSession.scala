@@ -22,13 +22,15 @@ final case class SecureSession(
     sslSessionId: String,
     cipherSuite: String,
     keySize: Int,
-    X509Certificate: List[X509Certificate])
+    X509Certificate: List[X509Certificate],
+)
 
 object SecureSession {
   def apply(
       sslSessionId: String,
       cipherSuite: String,
       keySize: Int,
-      X509Certificate: Array[X509Certificate]): SecureSession =
+      X509Certificate: Array[X509Certificate],
+  ): SecureSession =
     SecureSession(sslSessionId, cipherSuite, keySize, X509Certificate.toList)
 }

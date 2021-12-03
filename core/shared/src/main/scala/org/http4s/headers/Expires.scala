@@ -43,7 +43,7 @@ object Expires {
     Header.createRendered(
       ci"Expires",
       _.expirationDate,
-      parse
+      parse,
     )
 
 }

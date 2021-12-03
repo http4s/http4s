@@ -40,7 +40,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     nowarnCompatAnnotationProvider := None,
-    doctestTestFramework := DoctestTestFramework.Munit
+    doctestTestFramework := DoctestTestFramework.Munit,
   )
 
   def extractApiVersion(version: String) = {
@@ -129,8 +129,9 @@ object Http4sPlugin extends AutoPlugin {
           WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
-            name = Some(s"Build $subproject"))
-        )
+            name = Some(s"Build $subproject"),
+          ),
+        ),
       )
     }
 
@@ -146,7 +147,7 @@ object Http4sPlugin extends AutoPlugin {
        |
       """.stripMargin),
         name = Some(s"Publish $subproject"),
-        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}")
+        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
       )
     }
 
@@ -157,11 +158,10 @@ object Http4sPlugin extends AutoPlugin {
         WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
         WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
         WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep.Sbt(
-          List("unusedCompileDependenciesTest"),
-          name = Some("Check unused dependencies")),
+        WorkflowStep
+          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
         WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs"))
+        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
       ),
       githubWorkflowTargetBranches :=
         // "*" doesn't include slashes
@@ -173,7 +173,7 @@ object Http4sPlugin extends AutoPlugin {
       },
       githubWorkflowPublishTargetBranches := Seq(
         RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v"))
+        RefPredicate.StartsWith(Ref.Tag("v")),
       ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false)
@@ -183,8 +183,8 @@ object Http4sPlugin extends AutoPlugin {
       githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website", runMdoc = false),
-        siteBuildJob("docs", runMdoc = true)
-      )
+        siteBuildJob("docs", runMdoc = true),
+      ),
     )
   }
 

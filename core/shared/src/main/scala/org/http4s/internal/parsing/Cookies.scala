@@ -53,7 +53,8 @@ private[http4s] object Rfc6265
           Set(0x23.toChar to 0x2b.toChar: _*) ++
           Set(0x2d.toChar to 0x3a.toChar: _*) ++
           Set(0x3c.toChar to 0x5b.toChar: _*) ++
-          Set(0x5d.toChar to 0x7e.toChar: _*))
+          Set(0x5d.toChar to 0x7e.toChar: _*)
+      )
     )
 
 /* This is a relaxed implementation, in response to user feedback. */
@@ -65,5 +66,6 @@ private[http4s] object RelaxedCookies
           Set(0x23.toChar to 0x2b.toChar: _*) ++
           Set(0x2d.toChar to 0x3a.toChar: _*) ++
           Set(0x3c.toChar to 0x5b.toChar: _*) ++
-          Set(0x5d.toChar to 0x7e.toChar: _*))
+          Set(0x5d.toChar to 0x7e.toChar: _*)
+      )
     )

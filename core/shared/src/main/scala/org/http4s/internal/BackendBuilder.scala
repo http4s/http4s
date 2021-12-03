@@ -21,7 +21,7 @@ import cats.effect.Resource
 import fs2.Stream
 
 private[http4s] trait BackendBuilder[F[_], A] {
-  protected implicit def F: MonadCancelThrow[F]
+  implicit protected def F: MonadCancelThrow[F]
 
   /** Returns the backend as a resource.  Resource acquire waits
     * until the backend is ready to process requests.

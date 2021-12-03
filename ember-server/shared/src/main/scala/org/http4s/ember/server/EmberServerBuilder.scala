@@ -54,7 +54,7 @@ final class EmberServerBuilder[F[_]: Async] private (
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
-    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)]
+    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -77,7 +77,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
-        self.unixSocketConfig
+        self.unixSocketConfig,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -95,7 +95,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
       logger = logger,
-      unixSocketConfig = unixSocketConfig
+      unixSocketConfig = unixSocketConfig,
     )
 
   def withHostOption(host: Option[Host]) = copy(host = host)
@@ -122,7 +122,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
   def withOnError(onError: Throwable => Response[F]) =
-    withErrorHandler({ case e => onError(e).pure[F] })
+    withErrorHandler { case e => onError(e).pure[F] }
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
@@ -146,7 +146,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
-      deleteOnClose: Boolean = true) =
+      deleteOnClose: Boolean = true,
+  ) =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
   def withoutUnixSocketConfig =
     copy(unixSocketConfig = None)
@@ -177,11 +178,12 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsKey
+              wsKey,
             )
             .compile
             .drain
-        )) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
+        )
+      ) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
           .unixSocketServer(
             unixSockets,
@@ -200,7 +202,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey
+            wsKey,
           )
           .compile
           .drain
@@ -233,7 +235,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
-      None
+      None,
     )
 
   private object Defaults {

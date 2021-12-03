@@ -47,7 +47,7 @@ object `Accept-Ranges` {
       Parser.oneOf0(
         List(
           none,
-          Rfc7230.headerRep1(rangeUnit).map(_.toList)
+          Rfc7230.headerRep1(rangeUnit).map(_.toList),
         )
       )
 
@@ -61,7 +61,7 @@ object `Accept-Ranges` {
         case None => "none"
         case Some(nel) => Renderer.renderString(nel)
       },
-      parse
+      parse,
     )
 }
 

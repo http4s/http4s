@@ -43,7 +43,7 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
     filterPingPongs: Boolean,
-    webSocketKey: Key[WebSocketContext[F]]
+    webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder.impl
 
@@ -53,14 +53,14 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
       onHandshakeFailure: F[Response[F]] = this.onHandshakeFailure,
       onClose: F[Unit] = this.onClose,
       filterPingPongs: Boolean = this.filterPingPongs,
-      webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey
+      webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
   ): WebSocketBuilder[F] = WebSocketBuilder.impl[F](
     headers,
     onNonWebSocketRequest,
     onHandshakeFailure,
     onClose,
     filterPingPongs,
-    webSocketKey
+    webSocketKey,
   )
 
   def withHeaders(headers: Headers): WebSocketBuilder[F] =
@@ -86,7 +86,7 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
       fk(onHandshakeFailure).map(_.mapK(fk)),
       fk(onClose),
       filterPingPongs,
-      webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk))
+      webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
     )
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -97,8 +97,8 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
           WebSocketContext(
             webSocket,
             headers,
-            onHandshakeFailure
-          )
+            onHandshakeFailure,
+          ),
         )
       )
 
@@ -156,7 +156,8 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
     */
   def build(
       send: Stream[F, WebSocketFrame],
-      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] = {
+      receive: Pipe[F, WebSocketFrame, Unit],
+  ): F[Response[F]] = {
 
     val finalReceive: Pipe[F, WebSocketFrame, Unit] =
       if (filterPingPongs)
@@ -177,7 +178,8 @@ sealed abstract class WebSocketBuilder[F[_]: Applicative] private (
 
 object WebSocketBuilder {
   private[http4s] def apply[F[_]: Applicative](
-      webSocketKey: Key[WebSocketContext[F]]): WebSocketBuilder[F] =
+      webSocketKey: Key[WebSocketContext[F]]
+  ): WebSocketBuilder[F] =
     impl(
       headers = Headers.empty,
       onNonWebSocketRequest =
@@ -186,7 +188,7 @@ object WebSocketBuilder {
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
       filterPingPongs = true,
-      webSocketKey = webSocketKey
+      webSocketKey = webSocketKey,
     )
 
   private def impl[F[_]: Applicative](
@@ -195,7 +197,7 @@ object WebSocketBuilder {
       onHandshakeFailure: F[Response[F]],
       onClose: F[Unit],
       filterPingPongs: Boolean,
-      webSocketKey: Key[WebSocketContext[F]]
+      webSocketKey: Key[WebSocketContext[F]],
   ): WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = headers,
@@ -203,6 +205,6 @@ object WebSocketBuilder {
       onHandshakeFailure = onHandshakeFailure,
       onClose = onClose,
       filterPingPongs = filterPingPongs,
-      webSocketKey = webSocketKey
+      webSocketKey = webSocketKey,
     ) {}
 }

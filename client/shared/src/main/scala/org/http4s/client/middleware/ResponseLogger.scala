@@ -37,13 +37,13 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { response =>
       Logger.logMessage[F, Response[F]](response)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
@@ -51,28 +51,29 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
       InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
   def customized[F[_]: Async](
       client: Client[F],
       logBody: Boolean = true,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(responseToText: Response[F] => F[String]): Client[F] =
     impl(client, logBody) { response =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       responseToText(response).flatMap(log)
     }
 
-  private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Response[F] => F[Unit])(
-      implicit F: Async[F]): Client[F] =
+  private def impl[F[_]](client: Client[F], logBody: Boolean)(
+      logMessage: Response[F] => F[Unit]
+  )(implicit F: Async[F]): Client[F] =
     Client { req =>
       client.run(req).flatMap { response =>
         if (!logBody)
@@ -82,10 +83,13 @@ object ResponseLogger {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               Resource.make(
                 F.pure(
-                  response.copy(body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
-                )) { _ =>
+                  response.copy(body =
+                    response.body
+                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                      .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                  )
+                )
+              ) { _ =>
                 val newBody = Stream
                   .eval(vec.get)
                   .flatMap(v => Stream.emits(v).covary[F])
@@ -113,7 +117,7 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       color: Response[F] => String = defaultResponseColor _,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     customized(client, logBody, logAction) { response =>
       val prelude = s"${response.httpVersion} ${response.status}"

@@ -28,7 +28,7 @@ import org.typelevel.ci._
   *  From [[https://tools.ietf.org/html/rfc7235#section-4.4 RFC-7235]]
   */
 object `Proxy-Authorization` {
-  //https://tools.ietf.org/html/rfc7235#section-4.2
+  // https://tools.ietf.org/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[`Proxy-Authorization`] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(`Proxy-Authorization`(_))
@@ -43,7 +43,7 @@ object `Proxy-Authorization` {
     Header.createRendered(
       ci"Proxy-Authorization",
       _.credentials,
-      parse
+      parse,
     )
 
 }

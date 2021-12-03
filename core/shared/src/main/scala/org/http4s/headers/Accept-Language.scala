@@ -35,7 +35,8 @@ object `Accept-Language` {
 
     val languageTag =
       ((alpha.rep | charIn('*')).string ~ (ch(
-        '-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
+        '-'
+      ) *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
         LanguageTag(main, q, sub)
       }
 
@@ -46,7 +47,7 @@ object `Accept-Language` {
     Header.createRendered(
       ci"Accept-Language",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =

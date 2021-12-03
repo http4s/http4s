@@ -34,7 +34,8 @@ object Timeout {
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
-      http: Kleisli[F, A, Response[G]])(implicit F: Temporal[F]): Kleisli[F, A, Response[G]] =
+      http: Kleisli[F, A, Response[G]]
+  )(implicit F: Temporal[F]): Kleisli[F, A, Response[G]] =
     http.mapF(F.timeoutTo(_, timeout, timeoutResponse))
 
   /** Transform the service to return a timeout response after the given
@@ -46,6 +47,7 @@ object Timeout {
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration)(http: Kleisli[F, A, Response[G]])(implicit
-      F: Temporal[F]): Kleisli[F, A, Response[G]] =
+      F: Temporal[F]
+  ): Kleisli[F, A, Response[G]] =
     apply(timeout, Response.timeout[G].pure[F])(http)
 }

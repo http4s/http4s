@@ -62,7 +62,7 @@ object `Content-Type` {
               case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, h.mediaType)
             }
         },
-      parse
+      parse,
     )
 
 }

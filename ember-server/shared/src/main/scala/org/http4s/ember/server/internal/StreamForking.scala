@@ -40,7 +40,8 @@ private[internal] object StreamForking {
     * recovered here.
     */
   def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(
-      implicit F: Concurrent[F]): Stream[F, INothing] = {
+      implicit F: Concurrent[F]
+  ): Stream[F, INothing] = {
     val fstream = for {
       done <- SignallingRef[F, Option[Option[Throwable]]](None)
       available <- Semaphore[F](maxConcurrency.toLong)

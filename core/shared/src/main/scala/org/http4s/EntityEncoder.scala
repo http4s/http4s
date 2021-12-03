@@ -36,7 +36,8 @@ import java.nio.file.Path
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
-  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
+  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found."
+)
 trait EntityEncoder[+F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
@@ -121,7 +122,8 @@ object EntityEncoder {
     * advance.  This is for use with chunked transfer encoding.
     */
   implicit def streamEncoder[F[_], A](implicit
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+      W: EntityEncoder[F, A]
+  ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
@@ -144,7 +146,8 @@ object EntityEncoder {
   }
 
   implicit def charArrayEncoder(implicit
-      charset: Charset = `UTF-8`): EntityEncoder.Pure[Array[Char]] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder.Pure[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
   implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
@@ -186,7 +189,8 @@ object EntityEncoder {
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      charset: Charset = `UTF-8`): EntityEncoder[F, F[R]] =
+      charset: Charset = `UTF-8`,
+  ): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

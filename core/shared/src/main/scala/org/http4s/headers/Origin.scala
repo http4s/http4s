@@ -72,6 +72,6 @@ object Origin {
               case `null` => writer << "null"
             }
         },
-      parse
+      parse,
     )
 }

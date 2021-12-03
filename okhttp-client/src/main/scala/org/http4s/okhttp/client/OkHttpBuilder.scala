@@ -56,7 +56,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     extends BackendBuilder[F, Client[F]] {
 
   private def invokeCallback(result: Result[F], cb: Result[F] => Unit, dispatcher: Dispatcher[F])(
-      implicit F: Async[F]): Unit = {
+      implicit F: Async[F]
+  ): Unit = {
     val f = logTap(result).flatMap(r => F.delay(cb(r)))
     dispatcher.unsafeRunSync(f)
     ()
@@ -82,7 +83,8 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     })
 
   private def handler(cb: Result[F] => Unit, dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): Callback =
+      F: Async[F]
+  ): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
         invokeCallback(Left(e), cb, dispatcher)
@@ -110,9 +112,11 @@ sealed abstract class OkHttpBuilder[F[_]] private (
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
-                    body = body),
-                  dispose
-                ))
+                    body = body,
+                  ),
+                  dispose,
+                )
+              )
             )
           }
           .leftMap { t =>
@@ -130,14 +134,15 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     })
 
   private def toOkHttpRequest(req: Request[F], dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): OKRequest = {
+      F: Async[F]
+  ): OKRequest = {
     val body = req match {
       case _ if req.isChunked || req.contentLength.isDefined =>
         new RequestBody {
           override def contentType(): OKMediaType =
             req.contentType.map(c => OKMediaType.parse(c.toString())).orNull
 
-          //OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
+          // OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
           override def contentLength(): Long = req.contentLength.getOrElse(-1L)
 
           override def writeTo(sink: BufferedSink): Unit = {
@@ -218,8 +223,9 @@ object OkHttpBuilder {
 
   private type Result[F[_]] = Either[Throwable, Resource[F, Response[F]]]
 
-  private def logTap[F[_]](result: Result[F])(implicit
-      F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
+  private def logTap[F[_]](
+      result: Result[F]
+  )(implicit F: Async[F]): F[Either[Throwable, Resource[F, Response[F]]]] =
     (result match {
       case Left(e) => F.delay(logger.error(e)("Error in call back"))
       case Right(_) => F.unit

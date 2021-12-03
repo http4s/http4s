@@ -37,7 +37,7 @@ object Allow {
     Header.createRendered(
       ci"Allow",
       _.methods,
-      parse
+      parse,
     )
 }
 

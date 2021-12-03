@@ -63,7 +63,7 @@ object RequestId {
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
-      genReqId: F[UUID]
+      genReqId: F[UUID],
   )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
@@ -87,7 +87,7 @@ object RequestId {
 
     def apply[F[_]: Sync](
         headerName: CIString = requestIdHeader,
-        genReqId: F[UUID]
+        genReqId: F[UUID],
     )(httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(FunctionK.id[F], headerName, genReqId)(httpApp)
   }
@@ -103,7 +103,7 @@ object RequestId {
 
     def apply[F[_]: Sync](
         headerName: CIString = requestIdHeader,
-        genReqId: F[UUID]
+        genReqId: F[UUID],
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(OptionT.liftK[F], headerName, genReqId)(httpRoutes)
   }

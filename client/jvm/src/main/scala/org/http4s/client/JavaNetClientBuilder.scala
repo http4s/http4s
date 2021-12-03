@@ -55,7 +55,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val readTimeout: Duration,
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
-    val sslSocketFactory: Option[SSLSocketFactory]
+    val sslSocketFactory: Option[SSLSocketFactory],
 )(implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
@@ -63,14 +63,14 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
       readTimeout: Duration = readTimeout,
       proxy: Option[Proxy] = proxy,
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
   ): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
       hostnameVerifier = hostnameVerifier,
-      sslSocketFactory = sslSocketFactory
+      sslSocketFactory = sslSocketFactory,
     ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder[F] =
@@ -87,7 +87,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withProxyOption(None)
 
   def withHostnameVerifierOption(
-      hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder[F] =
+      hostnameVerifier: Option[HostnameVerifier]
+  ): JavaNetClientBuilder[F] =
     copy(hostnameVerifier = hostnameVerifier)
   def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder[F] =
     withHostnameVerifierOption(Some(hostnameVerifier))
@@ -95,7 +96,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withHostnameVerifierOption(None)
 
   def withSslSocketFactoryOption(
-      sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder[F] =
+      sslSocketFactory: Option[SSLSocketFactory]
+  ): JavaNetClientBuilder[F] =
     copy(sslSocketFactory = sslSocketFactory)
   def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(Some(sslSocketFactory))
@@ -148,7 +150,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .filter(_._1 != null)
             .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
-        ))
+        )
+      )
     } yield Response(status = status, headers = headers, body = readBody(conn))
 
   private def timeoutMillis(d: Duration): Int =
@@ -217,6 +220,6 @@ object JavaNetClientBuilder {
       readTimeout = defaults.RequestTimeout,
       proxy = None,
       hostnameVerifier = None,
-      sslSocketFactory = None
+      sslSocketFactory = None,
     ) {}
 }

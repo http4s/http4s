@@ -36,7 +36,7 @@ object `Accept-Patch` {
     Header.createRendered(
       ci"Accept-Patch",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Patch`] =

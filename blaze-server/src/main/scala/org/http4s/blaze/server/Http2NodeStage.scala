@@ -55,7 +55,8 @@ private class Http2NodeStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -245,7 +246,8 @@ private class Http2NodeStage[F[_]](
             case Right(_) => F.unit
             case Left(t) =>
               F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
-                closePipeline(None))
+                closePipeline(None)
+              )
           }
 
           dispatcher.unsafeRunSync(fa)
@@ -263,8 +265,10 @@ private class Http2NodeStage[F[_]](
       // Connection related headers must be removed from the message because
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
-      if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != Header[headers.Connection].name) {
+      if (
+        h.name != headers.`Transfer-Encoding`.name &&
+        h.name != Header[headers.Connection].name
+      ) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }

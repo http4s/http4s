@@ -34,11 +34,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
-final private[http4s] class IdleTimeoutStage[A](
+private[http4s] final class IdleTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
-    ec: ExecutionContext)
-    extends MidStage[A, A] { stage =>
+    ec: ExecutionContext,
+) extends MidStage[A, A] { stage =>
 
   private val timeoutState = new AtomicReference[State](Disabled)
 

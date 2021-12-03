@@ -46,7 +46,7 @@ private[http4s] object Rfc7235 {
   val authParam: Parser[(String, String)] =
     (token <* char('=').void.surroundedBy(bws)) ~ authParamValue
 
-  //auth-scheme = token
+  // auth-scheme = token
   val scheme: Parser[CIString] = token.map(CIString(_))
 
   /*
@@ -58,8 +58,8 @@ private[http4s] object Rfc7235 {
       .repSep0(char(',').surroundedBy(ows))
       .map(_.toMap))
       .map { case (scheme, params) =>
-        //Model does not support token68 challenges
-        //challenge scheme should have been CIS
+        // Model does not support token68 challenges
+        // challenge scheme should have been CIS
         Challenge(scheme.toString, params.getOrElse("realm", ""), params - "realm")
       }
 

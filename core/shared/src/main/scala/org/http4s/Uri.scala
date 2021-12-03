@@ -68,8 +68,8 @@ final case class Uri(
     authority: Option[Uri.Authority] = None,
     path: Uri.Path = Uri.Path.empty,
     query: Query = Query.empty,
-    fragment: Option[Uri.Fragment] = None)
-    extends QueryOps
+    fragment: Option[Uri.Fragment] = None,
+) extends QueryOps
     with Renderable {
 
   /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
@@ -178,7 +178,7 @@ final case class Uri(
     writer
   }
 
-  /////////// Query Operations ///////////////
+  // ///////// Query Operations ///////////////
   override protected type Self = Uri
 
   override protected def self: Self = this
@@ -275,8 +275,8 @@ object Uri extends UriPlatform {
   final case class Authority(
       userInfo: Option[UserInfo] = None,
       host: Host = RegName("localhost"),
-      port: Option[Int] = None)
-      extends Renderable {
+      port: Option[Int] = None,
+  ) extends Renderable {
     override def render(writer: Writer): writer.type =
       this match {
         case Authority(Some(u), h, None) => writer << u << '@' << h
@@ -301,7 +301,7 @@ object Uri extends UriPlatform {
           reduceComparisons(
             compareAuthorities(_.userInfo),
             Eval.later(compareAuthorities(_.host)),
-            Eval.later(compareAuthorities(_.port))
+            Eval.later(compareAuthorities(_.port)),
           )
         }
 
@@ -313,8 +313,8 @@ object Uri extends UriPlatform {
   final class Path private (
       val segments: Vector[Path.Segment],
       val absolute: Boolean,
-      val endsWithSlash: Boolean)
-      extends Renderable {
+      val endsWithSlash: Boolean,
+  ) extends Renderable {
 
     def isEmpty: Boolean = segments.isEmpty
     def nonEmpty: Boolean = segments.nonEmpty
@@ -386,7 +386,8 @@ object Uri extends UriPlatform {
     private def copy(
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
-        endsWithSlash: Boolean = endsWithSlash) =
+        endsWithSlash: Boolean = endsWithSlash,
+    ) =
       new Path(segments, absolute, endsWithSlash)
 
     def dropEndsWithSlash = copy(endsWithSlash = false)
@@ -414,7 +415,8 @@ object Uri extends UriPlatform {
       def decoded(
           charset: JCharset = StandardCharsets.UTF_8,
           plusIsSpace: Boolean = false,
-          toSkip: Char => Boolean = Function.const(false)): String =
+          toSkip: Char => Boolean = Function.const(false),
+      ): String =
         Uri.decode(encoded, charset, plusIsSpace, toSkip)
 
       override val toString: String = encoded
@@ -444,7 +446,8 @@ object Uri extends UriPlatform {
     def apply(
         segments: Vector[Segment],
         absolute: Boolean = false,
-        endsWithSlash: Boolean = false): Path =
+        endsWithSlash: Boolean = false,
+    ): Path =
       new Path(segments, absolute, endsWithSlash)
 
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
@@ -466,7 +469,7 @@ object Uri extends UriPlatform {
               .split("/")
               .foldLeft(Vector.empty[Segment])((path, segment) => path :+ Segment.encoded(segment)),
             absolute = absolute,
-            endsWithSlash = relative.endsWith("/")
+            endsWithSlash = relative.endsWith("/"),
           )
       }
 
@@ -478,7 +481,7 @@ object Uri extends UriPlatform {
           reduceComparisons(
             comparePaths(_.absolute),
             Eval.later(comparePaths(_.segments)),
-            Eval.later(comparePaths(_.endsWithSlash))
+            Eval.later(comparePaths(_.endsWithSlash)),
           )
         }
 
@@ -719,7 +722,8 @@ object Uri extends UriPlatform {
         case Some(address) => Right(Ipv6Address(address))
         case None =>
           Left(
-            ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
+            ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}")
+          )
       }
 
     @deprecated("Use apply(ip4s.Ipv6Address.fromInet6Address(address))", "0.23.5")
@@ -912,7 +916,8 @@ object Uri extends UriPlatform {
       toEncode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       spaceIsPlus: Boolean = false,
-      toSkip: Char => Boolean = toSkip): String =
+      toSkip: Char => Boolean = toSkip,
+  ): String =
     UriCoding.encode(toEncode, charset, spaceIsPlus, toSkip)
 
   private lazy val toSkip =
@@ -936,7 +941,8 @@ object Uri extends UriPlatform {
       toDecode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       plusIsSpace: Boolean = false,
-      toSkip: Char => Boolean = Function.const(false)): String = {
+      toSkip: Char => Boolean = Function.const(false),
+  ): String = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
     // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
@@ -1000,7 +1006,7 @@ object Uri extends UriPlatform {
           Eval.later(compareUris(_.authority)),
           Eval.later(compareUris(_.path)),
           Eval.later(compareUris(_.query)),
-          Eval.later(compareUris(_.fragment))
+          Eval.later(compareUris(_.fragment)),
         )
       }
 
@@ -1221,7 +1227,9 @@ object Uri extends UriPlatform {
         }
       P.oneOf0(
         rel :: pathAbsolute.map((None, _)) :: pathRootless.map((None, _)) :: pathEmpty.map(
-          (None, _)) :: Nil)
+          (None, _)
+        ) :: Nil
+      )
     }
 
     /* absolute-URI  = scheme ":" hier-part [ "?" query ] */
@@ -1245,7 +1253,8 @@ object Uri extends UriPlatform {
             authority = a,
             path = p,
             query = q.getOrElse(Query.empty),
-            fragment = f)
+            fragment = f,
+          )
         }
     }
 
@@ -1258,10 +1267,11 @@ object Uri extends UriPlatform {
       import cats.parse.Parser.string
 
       P.oneOf0(
-        ((string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
+        (string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
           (Some(a), p)
-        }) :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
-          (None, _))) :: Nil)
+        } :: (pathAbsolute
+          .map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map((None, _))) :: Nil
+      )
     }
 
     /* relative-ref  = relative-part [ "?" query ] [ "#" fragment ] */
@@ -1276,7 +1286,8 @@ object Uri extends UriPlatform {
             authority = a,
             path = p,
             query = q.getOrElse(Query.empty),
-            fragment = f)
+            fragment = f,
+          )
       }
     }
 

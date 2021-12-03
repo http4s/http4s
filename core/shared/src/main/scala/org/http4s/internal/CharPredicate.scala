@@ -127,7 +127,8 @@ object CharPredicate {
 
   object ApplyMagnet {
     implicit def fromPredicate(predicate: Char => Boolean): ApplyMagnet = new ApplyMagnet(
-      from(predicate))
+      from(predicate)
+    )
     implicit def fromChar(c: Char): ApplyMagnet = fromChars(c :: Nil)
     implicit def fromCharArray(array: Array[Char]): ApplyMagnet = fromChars(array.toIndexedSeq)
     implicit def fromString(chars: String): ApplyMagnet = fromChars(chars)
@@ -143,7 +144,7 @@ object CharPredicate {
       }
   }
 
-  ///////////////////////// PRIVATE ////////////////////////////
+  // /////////////////////// PRIVATE ////////////////////////////
 
   private def unmaskable(c: Char) = c >= 128
 
@@ -219,7 +220,7 @@ object CharPredicate {
         highMask,
         64,
         java.lang.Long.numberOfTrailingZeros(highMask),
-        rec(lowMask, 0, java.lang.Long.numberOfTrailingZeros(lowMask), startIx)
+        rec(lowMask, 0, java.lang.Long.numberOfTrailingZeros(lowMask), startIx),
       )
       ()
     }

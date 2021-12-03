@@ -39,7 +39,7 @@ object BlazeMetricsExampleApp {
     val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
     Router(
       "/http4s" -> metrics(ExampleService[F].routes),
-      "/http4s/metrics" -> metricsService[F](metricsRegistry)
+      "/http4s/metrics" -> metricsService[F](metricsRegistry),
     ).orNotFound
   }
 

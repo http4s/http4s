@@ -34,7 +34,7 @@ object JsonDebugErrorHandler {
   // Can be parametric on my other PR is merged.
   def apply[F[_]: Concurrent, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       import cats.syntax.applicative._
@@ -48,12 +48,13 @@ object JsonDebugErrorHandler {
           case mf: MessageFailure =>
             messageFailureLogger.debug(mf)(
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}""")
+                .getOrElse("<unknown>")}"""
+            )
             val firstResp = mf.toHttpResponse[G](req.httpVersion)
             Response[G](
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
-              headers = firstResp.headers.redactSensitive(redactWhen)
+              headers = firstResp.headers.redactSensitive(redactWhen),
             ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
           case t =>
             serviceErrorLogger.error(t)(
@@ -65,7 +66,8 @@ object JsonDebugErrorHandler {
               req.httpVersion,
               Headers(
                 Connection(ci"close")
-              ))
+              ),
+            )
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]
         }
@@ -73,7 +75,7 @@ object JsonDebugErrorHandler {
 
   private final case class JsonErrorHandlerResponse[F[_]](
       req: Request[F],
-      caught: Throwable
+      caught: Throwable,
   )
   private object JsonErrorHandlerResponse {
     def entEnc[F[_]](
@@ -88,7 +90,7 @@ object JsonDebugErrorHandler {
       (a: JsonErrorHandlerResponse[F]) =>
         Json.obj(
           "request" -> encodeRequest(a.req, redactWhen),
-          "throwable" -> encodeThrowable(a.caught)
+          "throwable" -> encodeThrowable(a.caught),
         )
   }
 
@@ -107,12 +109,13 @@ object JsonDebugErrorHandler {
                     "port" -> auth.port.asJson,
                     "user_info" -> auth.userInfo
                       .map(_.toString())
-                      .asJson
+                      .asJson,
                   )
-                  .dropNullValues)
+                  .dropNullValues
+              )
               .asJson,
             "path" -> req.uri.path.renderString.asJson,
-            "query" -> req.uri.query.multiParams.asJson
+            "query" -> req.uri.query.multiParams.asJson,
           )
           .dropNullValues,
         "headers" -> req.headers
@@ -121,13 +124,13 @@ object JsonDebugErrorHandler {
           .map { h =>
             Json.obj(
               "name" -> h.name.toString.asJson,
-              "value" -> h.value.asJson
+              "value" -> h.value.asJson,
             )
           }
           .asJson,
         "path_info" -> req.pathInfo.renderString.asJson,
         "remote_address" -> req.remoteAddr.toString.asJson,
-        "http_version" -> req.httpVersion.toString.asJson
+        "http_version" -> req.httpVersion.toString.asJson,
       )
       .dropNullValues
 
@@ -149,7 +152,7 @@ object JsonDebugErrorHandler {
           .asJson,
         "class_name" -> Option(a.getClass())
           .flatMap(c => Option(c.getName()))
-          .asJson
+          .asJson,
       )
       .dropNullValues
 }

@@ -58,7 +58,7 @@ object `If-None-Match` {
         case None => "*"
         case Some(tags) => tags.mkString_("", ",", "")
       },
-      parse
+      parse,
     )
 }
 

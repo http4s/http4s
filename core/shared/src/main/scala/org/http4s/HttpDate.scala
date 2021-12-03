@@ -119,7 +119,8 @@ object HttpDate {
     if (epochSecond < MinEpochSecond || epochSecond > MaxEpochSecond)
       ParseResult.fail(
         "Invalid HTTP date",
-        s"${epochSecond} out of range for HTTP date. Must be between ${MinEpochSecond} and ${MaxEpochSecond}, inclusive")
+        s"${epochSecond} out of range for HTTP date. Must be between ${MinEpochSecond} and ${MaxEpochSecond}, inclusive",
+      )
     else
       ParseResult.success(new HttpDate(epochSecond))
 
@@ -158,7 +159,8 @@ object HttpDate {
         day: Int,
         hour: Int,
         min: Int,
-        sec: Int): Option[HttpDate] =
+        sec: Int,
+    ): Option[HttpDate] =
       try {
         val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
         Some(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
@@ -212,7 +214,8 @@ object HttpDate {
         "Sep",
         "Oct",
         "Nov",
-        "Dec").zipWithIndex
+        "Dec",
+      ).zipWithIndex
         .map { case (s, i) => string(s).as(i + 1) }
         .reduceLeft(_.orElse(_))
 

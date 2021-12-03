@@ -134,7 +134,8 @@ object Status {
   // scalastyle:off magic.number
   val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))
   val SwitchingProtocols: Status = register(
-    trust(101, "Switching Protocols", isEntityAllowed = false))
+    trust(101, "Switching Protocols", isEntityAllowed = false)
+  )
   val Processing: Status = register(trust(102, "Processing", isEntityAllowed = false))
   val EarlyHints: Status = register(trust(103, "Early Hints", isEntityAllowed = false))
 
@@ -199,7 +200,8 @@ object Status {
   val LoopDetected: Status = register(trust(508, "Loop Detected"))
   val NotExtended: Status = register(trust(510, "Not Extended"))
   val NetworkAuthenticationRequired: Status = register(
-    trust(511, "Network Authentication Required"))
+    trust(511, "Network Authentication Required")
+  )
   // scalastyle:on magic.number
 
   implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]

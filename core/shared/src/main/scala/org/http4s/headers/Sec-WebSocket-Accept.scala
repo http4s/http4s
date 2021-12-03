@@ -53,6 +53,6 @@ object `Sec-WebSocket-Accept` {
     Header.create(
       ci"Sec-WebSocket-Accept",
       _.hashString,
-      parse
+      parse,
     )
 }

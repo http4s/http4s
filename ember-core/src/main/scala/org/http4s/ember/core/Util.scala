@@ -61,7 +61,7 @@ private[ember] object Util {
       started: Long,
       timeout: FiniteDuration,
       shallTimeout: F[Boolean],
-      chunkSize: Int
+      chunkSize: Int,
   )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads
@@ -71,7 +71,8 @@ private[ember] object Util {
           .flatMap(now =>
             Stream.raiseError[F](
               EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
-            ))
+            )
+          )
       else
         for {
           start <- streamCurrentTimeMillis(C)
@@ -88,7 +89,7 @@ private[ember] object Util {
         .eval(shallTimeout)
         .ifM(
           whenMayTimeout(remains),
-          whenWontTimeout
+          whenWontTimeout,
         )
     go(timeout)
   }

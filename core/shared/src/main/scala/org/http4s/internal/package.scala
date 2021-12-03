@@ -41,8 +41,9 @@ import scala.util.control.NoStackTrace
 
 package object internal {
 
-  private[http4s] def loggingAsyncCallback[F[_], A](logger: Logger)(attempt: Either[Throwable, A])(
-      implicit F: Sync[F]): F[Unit] =
+  private[http4s] def loggingAsyncCallback[F[_], A](
+      logger: Logger
+  )(attempt: Either[Throwable, A])(implicit F: Sync[F]): F[Unit] =
     attempt match {
       case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => F.unit
@@ -124,10 +125,11 @@ package object internal {
     }
   }
 
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
-      fcs: F[CF[A]])(implicit
+  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
+      implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
-      F: Async[F]): F[A] =
+      F: Async[F]
+  ): F[A] =
     fcs.flatMap { cs =>
       F.async_ { cb =>
         cs.handle[Unit] {
@@ -146,7 +148,7 @@ package object internal {
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],
-      dispatcher: Dispatcher[F]
+      dispatcher: Dispatcher[F],
   )(implicit F: Sync[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
     dispatcher.unsafeToFuture(fa.attemptTap {
@@ -158,7 +160,8 @@ package object internal {
 
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}"
+    )
 
   // TODO Remove in 1.0. We can do better with MurmurHash3.
   private[http4s] def hashLower(s: String): Int = {
@@ -264,7 +267,7 @@ package object internal {
   private[http4s] def compareField[A, B: Order](
       a: A,
       b: A,
-      f: A => B
+      f: A => B,
   ): Int =
     Order.by[A, B](f).compare(a, b)
 

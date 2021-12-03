@@ -44,8 +44,10 @@ package object staticcontent {
   // Will strip the pathPrefix from the first part of the Uri, returning the remainder without a leading '/'
   private[staticcontent] def getSubPath(uriPath: String, pathPrefix: String): String = {
     val index = pathPrefix.length + {
-      if (uriPath.length > pathPrefix.length &&
-        uriPath.charAt(pathPrefix.length) == '/') 1
+      if (
+        uriPath.length > pathPrefix.length &&
+        uriPath.charAt(pathPrefix.length) == '/'
+      ) 1
       else 0
     }
 

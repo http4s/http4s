@@ -47,7 +47,8 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     *         and/or any parse errors.
     */
   def getWithWarnings[A](implicit
-      ev: Header.Select[A]): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
+      ev: Header.Select[A]
+  ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
     ev.from(headers)
 
   /** Attempt to get headers by key from this collection of headers.
@@ -87,7 +88,8 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
 
   def redactSensitive(
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+  ): Headers =
     transform {
       _.map {
         case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
@@ -134,12 +136,12 @@ object Headers {
     `Content-Length`.name,
     `Content-Range`.name,
     ci"Trailer",
-    `Transfer-Encoding`.name
+    `Transfer-Encoding`.name,
   )
 
   val SensitiveHeaders: Set[CIString] = Set(
     Authorization.name,
     Cookie.name,
-    `Set-Cookie`.name
+    `Set-Cookie`.name,
   )
 }

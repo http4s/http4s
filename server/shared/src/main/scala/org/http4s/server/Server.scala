@@ -39,9 +39,10 @@ abstract class Server {
               logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
               Uri.RegName(weird.toString())
           },
-          port = Some(address.port.value)
-        )),
-      path = Uri.Path.Root
+          port = Some(address.port.value),
+        )
+      ),
+      path = Uri.Path.Root,
     )
 
   def isSecure: Boolean

@@ -24,4 +24,5 @@ final class ReservedOpcodeException(opcode: Int)
 
 final class UnknownOpcodeException(opcode: Int)
     extends ProtocolException(
-      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode")
+      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode"
+    )
