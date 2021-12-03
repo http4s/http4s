@@ -54,6 +54,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     val checkEndpointIdentification: Boolean,
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
+    private val enableHttp2: Boolean
 ) { self =>
 
   private def copy(
@@ -72,6 +73,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
+      enableHttp2: Boolean = self.enableHttp2
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -89,6 +91,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       checkEndpointIdentification = checkEndpointIdentification,
       retryPolicy = retryPolicy,
       unixSockets = unixSockets,
+      enableHttp2 = enableHttp2,
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -127,6 +130,9 @@ final class EmberClientBuilder[F[_]: Async] private (
 
   def withUnixSockets(unixSockets: UnixSockets[F]) =
     copy(unixSockets = Some(unixSockets))
+
+  def withHttp2 = copy(enableHttp2 = true)
+  def withoutHttp2 = copy(enableHttp2 = false)
 
   def build: Resource[F, Client[F]] =
     for {
@@ -257,6 +263,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       checkEndpointIdentification = true,
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
+      enableHttp2 = false
     )
 
   private object Defaults {
