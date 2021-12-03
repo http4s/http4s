@@ -65,7 +65,7 @@ object SiteConfig {
       TextLink.internal(Root / "code-of-conduct" / "README.md", "Code of Conduct"),
       TextLink.internal(Root / "further-reading" / "README.md", "Further Reading"),
       // TODO: the internal reference is not resolving for now
-      TextLink.external(epub.downloadDocURL, "Download (EPUB)")
+      TextLink.external(epub.downloadDocURL, "Download (EPUB)"),
     )
   }
 
@@ -103,7 +103,8 @@ object SiteConfig {
 
   object epub {
     val downloadPageDesc: Option[String] = Some(
-      "The e-book contains the same documentation as the website.")
+      "The e-book contains the same documentation as the website."
+    )
     val downloadDocURL =
       s"http://localhost:4242/${versions.current.pathSegment}/downloads/"
     val epubMetadataDesc: Option[String] = Some("A minimal, idiomatic Scala interface for HTTP.")
@@ -237,8 +238,8 @@ object SiteConfig {
           IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
           IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter),
           // TODO: the internal reference is not resolving for now
-          IconLink.external(epub.downloadDocURL, HeliumIcon.download)
-        )
+          IconLink.external(epub.downloadDocURL, HeliumIcon.download),
+        ),
       )
       .site
       .versions(versions.config(currentVersion))
@@ -247,14 +248,14 @@ object SiteConfig {
         title = "Documentation Downloads",
         description = epub.downloadPageDesc,
         includeEPUB = true,
-        includePDF = false
+        includePDF = false,
       )
       .epub
       .metadata(
         title = Some("http4s"),
         description = epub.epubMetadataDesc,
         version = Some(versions.current.displayValue),
-        language = Some("en")
+        language = Some("en"),
       )
       .epub
       .coverImages(CoverImage(Root / "images" / "http4s-logo-text-dark-2.svg"))
