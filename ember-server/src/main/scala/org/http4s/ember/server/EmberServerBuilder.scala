@@ -81,7 +81,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
-      enableHttp2: Boolean = self.enableHttp2
+      enableHttp2: Boolean = self.enableHttp2,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -187,7 +187,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               idleTimeout,
               logger,
               wsKey,
-              enableHttp2
+              enableHttp2,
             )
             .compile
             .drain
@@ -212,7 +212,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             idleTimeout,
             logger,
             wsKey,
-            enableHttp2
+            enableHttp2,
           )
           .compile
           .drain
@@ -246,7 +246,7 @@ object EmberServerBuilder {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = Slf4jLogger.getLogger[F],
       None,
-      false
+      false,
     )
 
   private object Defaults {

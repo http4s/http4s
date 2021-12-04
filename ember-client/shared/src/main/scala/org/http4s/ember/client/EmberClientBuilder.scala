@@ -56,7 +56,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     val checkEndpointIdentification: Boolean,
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
-    private val enableHttp2: Boolean
+    private val enableHttp2: Boolean,
 ) { self =>
 
   private def copy(
@@ -75,7 +75,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
-      enableHttp2: Boolean = self.enableHttp2
+      enableHttp2: Boolean = self.enableHttp2,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -168,13 +168,16 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
-      optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(context => 
-        H2Client.impl[F](
-          { case (_, _) => Applicative[F].pure(Outcome.canceled) },
-          context,
-          // For 0.23 to maintain interface
-          default.copy(enablePush = org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false))
-        )
+      optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(
+        context =>
+          H2Client.impl[F](
+            { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+            context,
+            // For 0.23 to maintain interface
+            default.copy(enablePush =
+              org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false)
+            ),
+          )
       )
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
@@ -252,7 +255,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       val stackClient = Retry(retryPolicy)(client)
       val iClient = new EmberClient[F](stackClient, pool)
 
-      optH2.fold(iClient){h2 => 
+      optH2.fold(iClient) { h2 =>
         val h2Client = Client(h2(iClient.run))
         new EmberClient(h2Client, pool)
       }
@@ -278,7 +281,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       checkEndpointIdentification = true,
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
-      enableHttp2 = false
+      enableHttp2 = false,
     )
 
   private object Defaults {

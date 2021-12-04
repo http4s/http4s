@@ -23,7 +23,7 @@ import fs2.io.net.tls.TLSSocket
 
 private[ember] object H2TLSPlatform {
 
-  def transform(params: TLSParameters): TLSParameters = {
+  def transform(params: TLSParameters): TLSParameters =
     TLSParameters(
       algorithmConstraints = params.algorithmConstraints,
       applicationProtocols = List("http/1.1", "h2").some,
@@ -31,20 +31,18 @@ private[ember] object H2TLSPlatform {
       enableRetransmissions = params.enableRetransmissions,
       endpointIdentificationAlgorithm = params.endpointIdentificationAlgorithm,
       maximumPacketSize = params.maximumPacketSize,
-      protocols = params.protocols, 
+      protocols = params.protocols,
       serverNames = params.serverNames,
       sniMatchers = params.sniMatchers,
       useCipherSuitesOrder = params.useCipherSuitesOrder,
       needClientAuth = params.needClientAuth,
       wantClientAuth = params.wantClientAuth,
-      handshakeApplicationProtocolSelector = {(t: javax.net.ssl.SSLEngine, l:List[String])  => 
+      handshakeApplicationProtocolSelector = { (t: javax.net.ssl.SSLEngine, l: List[String]) =>
         l.find(_ === "h2").getOrElse("http/1.1")
-      }.some
+      }.some,
     )
-  }
 
-  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] = 
+  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] =
     tlsSocket.applicationProtocol.map(Option(_))
-
 
 }

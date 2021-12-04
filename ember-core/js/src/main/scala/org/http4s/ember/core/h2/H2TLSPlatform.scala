@@ -23,24 +23,22 @@ import fs2.io.net.tls.TLSSocket
 
 private[ember] object H2TLSPlatform {
 
-  def transform(params: TLSParameters): TLSParameters = {
+  def transform(params: TLSParameters): TLSParameters =
     TLSParameters(
       requestCert = params.requestCert,
       rejectUnauthorized = params.rejectUnauthorized,
       alpnProtocols = List("http/1.1").some, // "h2", first needs support for application extraction
-      sniCallback = params.sniCallback, 
+      sniCallback = params.sniCallback,
       session = params.session,
       requestOCSP = params.requestOCSP,
       pskCallback = params.pskCallback,
       servername = params.servername,
-      checkServerIdentity =  params.checkServerIdentity,
-      minDHSize =  params.minDHSize
+      checkServerIdentity = params.checkServerIdentity,
+      minDHSize = params.minDHSize,
     )
-  }
 
-  // Not yet supported on JS - 
-  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] = 
+  // Not yet supported on JS -
+  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] =
     Option.empty[String].pure[F]
-
 
 }

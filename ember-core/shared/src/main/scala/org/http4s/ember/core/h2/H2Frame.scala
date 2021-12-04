@@ -22,7 +22,7 @@ import scodec.bits._
 
 private[ember] sealed trait H2Frame
 private[ember] object H2Frame {
-/*
+  /*
   All frames begin with a fixed 9-octet header followed by a variable-
   length payload.
 
@@ -37,7 +37,7 @@ private[ember] object H2Frame {
     +---------------------------------------------------------------+
 
   Chris:
-  To Unpack this each from should consist of 
+  To Unpack this each from should consist of
   Length 3 bytes
   Type 1 Byte
   Flags 1 Byte
@@ -45,25 +45,25 @@ private[ember] object H2Frame {
   31 bit unsigned Integer
   FramePayload that consists of Length
 
-*/
+   */
 
   case class RawFrame(
-    length: Int, // 3 bytes is within int range -- 16,777,216 16 mb max frame, bigger isn't necessarily better
-    `type`: Byte,
-    flags: Byte,
-    identifier: Int, // 31 bit Integer
-    payload: ByteVector
+      length: Int, // 3 bytes is within int range -- 16,777,216 16 mb max frame, bigger isn't necessarily better
+      `type`: Byte,
+      flags: Byte,
+      identifier: Int, // 31 bit Integer
+      payload: ByteVector,
   )
 
   object RawFrame {
 
-    def fromByteVector(bv: ByteVector): Option[(RawFrame, ByteVector)] = {
+    def fromByteVector(bv: ByteVector): Option[(RawFrame, ByteVector)] =
       if (bv.length >= 9) {
-        val length =  (bv(2) & 0xFF) | ((bv(1) & 0xFF) << 8) | ((bv(0) & 0xFF) << 16)
+        val length = (bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16)
         if (bv.length >= 9 + length) {
           val `type` = bv(3)
           val flags = bv(4)
-          val s0 = (bv(5) & 0xff) 
+          val s0 = bv(5) & 0xff
           val s1 = (bv(6) & 0xff) << 16
           val s2 = (bv(7) & 0xff) << 8
           val s3 = (bv(8) & 0xff) << 0
@@ -73,17 +73,15 @@ private[ember] object H2Frame {
           (
             RawFrame(
               length,
-              `type`, 
+              `type`,
               flags,
               identifier,
-              bv.drop(9).take(length)
+              bv.drop(9).take(length),
             ),
-            bv.drop(9 + length)
+            bv.drop(9 + length),
           ).some
         } else None
       } else None
-    }
-
 
     // Network Byte Order is Big Endian, so Highest Identifier is First
     def toByteVector(raw: RawFrame): ByteVector = {
@@ -103,14 +101,20 @@ private[ember] object H2Frame {
       val iThree = ((raw.identifier) & 0xff).toByte
 
       ByteVector(
-        zero, one, two, 
-        t, f, 
-        iZero, iOne, iTwo, iThree
+        zero,
+        one,
+        two,
+        t,
+        f,
+        iZero,
+        iOne,
+        iTwo,
+        iThree,
       ) ++ raw.payload
     }
   }
 
-  def fromRaw(rawFrame: RawFrame): Either[H2Error, H2Frame] = {
+  def fromRaw(rawFrame: RawFrame): Either[H2Error, H2Frame] =
     rawFrame.`type` match {
       case Data.`type` => Data.fromRaw(rawFrame)
       case Headers.`type` => Headers.fromRaw(rawFrame)
@@ -124,7 +128,6 @@ private[ember] object H2Frame {
       case Continuation.`type` => Continuation.fromRaw(rawFrame)
       case _ => Unknown(rawFrame).asRight
     }
-  }
 
   def toRaw(frame: H2Frame): RawFrame = frame match {
     case d: Data => Data.toRaw(d)
@@ -140,9 +143,8 @@ private[ember] object H2Frame {
     case unknown: Unknown => unknown.raw
   }
 
-  def toByteVector(frame: H2Frame): ByteVector = 
+  def toByteVector(frame: H2Frame): ByteVector =
     RawFrame.toByteVector(toRaw(frame))
-
 
   final case class Unknown(raw: RawFrame) extends H2Frame
 
@@ -154,16 +156,22 @@ private[ember] object H2Frame {
     +---------------------------------------------------------------+
     |                           Padding (*)                       ...
     +---------------------------------------------------------------+
-    */
-  final case class Data(identifier: Int, data: ByteVector, pad: Option[ByteVector], endStream: Boolean) extends H2Frame{
-    override def toString: String = s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
+   */
+  final case class Data(
+      identifier: Int,
+      data: ByteVector,
+      pad: Option[ByteVector],
+      endStream: Boolean,
+  ) extends H2Frame {
+    override def toString: String =
+      s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
   }
   object Data {
     val `type`: Byte = 0x0
-    // 2 flags 
+    // 2 flags
     // EndStream = Bit 0 indicates this is the last frame this will send
     // Padded = Bit 3 indicates
-    def fromRaw(rawFrame: RawFrame): Either[H2Error, Data] = {
+    def fromRaw(rawFrame: RawFrame): Either[H2Error, Data] =
       if (rawFrame.`type` === `type`) {
         val endStream = (rawFrame.flags & (0x01 << 0)) != 0
         val padded = (rawFrame.flags & (0x01 << 3)) != 0
@@ -173,21 +181,22 @@ private[ember] object H2Frame {
           val dataSize = baseSize - padLength
           val data = rawFrame.payload.drop(1).take(dataSize)
           val pad = rawFrame.payload.drop(1).drop(dataSize)
-          if (pad.length == padLength && data.size == dataSize){
+          if (pad.length == padLength && data.size == dataSize) {
             Data(rawFrame.identifier, data, Some(pad), endStream).asRight
           } else Either.left(H2Error.ProtocolError)
         } else {
           Data(rawFrame.identifier, rawFrame.payload, None, endStream).asRight
-        } 
+        }
       } else Either.left(H2Error.ProtocolError)
-    }
 
     def toRaw(data: Data): RawFrame = {
-      val payload = data.pad.map(p  => 
-        ByteVector(p.length.toByte) ++
-        data.data ++
-        p
-      ).getOrElse(data.data)
+      val payload = data.pad
+        .map(p =>
+          ByteVector(p.length.toByte) ++
+            data.data ++
+            p
+        )
+        .getOrElse(data.data)
       val flags: Byte = {
         var init: Int = 0x0
         val endStreamBitSet: Int = if (data.endStream) (init | (1 << 0)) else init
@@ -199,12 +208,10 @@ private[ember] object H2Frame {
         `type`,
         flags,
         data.identifier,
-        payload
+        payload,
       )
     }
   }
-
-
 
   /*
     +---------------+
@@ -218,35 +225,42 @@ private[ember] object H2Frame {
     +---------------------------------------------------------------+
     |                           Padding (*)                       ...
     +---------------------------------------------------------------+
-  */
+   */
   final case class Headers(
-    identifier: Int, 
-    dependency: Option[Headers.StreamDependency],
-    endStream: Boolean, // No Body Follows
-    endHeaders: Boolean,  // Whether or not to Expect Continuation Frame (if false, continuation must directly follow)
-    headerBlock: ByteVector,
-    padding: Option[ByteVector]
-  ) extends H2Frame{
-    override def toString: String = 
+      identifier: Int,
+      dependency: Option[Headers.StreamDependency],
+      endStream: Boolean, // No Body Follows
+      endHeaders: Boolean, // Whether or not to Expect Continuation Frame (if false, continuation must directly follow)
+      headerBlock: ByteVector,
+      padding: Option[ByteVector],
+  ) extends H2Frame {
+    override def toString: String =
       s"Headers(identifier=$identifier, dependency=$dependency, endStream=$endStream, endHeaders=$endHeaders, headerBlock=$headerBlock, padding=$padding)"
   }
-  object Headers{
+  object Headers {
     val `type`: Byte = 0x1
 
     case class StreamDependency(exclusive: Boolean, dependency: Int, weight: Byte)
 
-    def fromRaw(rawFrame: RawFrame): Either[H2Error, Headers] = 
+    def fromRaw(rawFrame: RawFrame): Either[H2Error, Headers] =
       rawFrame.`type` match {
-        case `type` => 
+        case `type` =>
           val endStream = (rawFrame.flags & (0x01 << 0)) != 0
           val endHeaders = (rawFrame.flags & (0x01 << 2)) != 0
           val padded = (rawFrame.flags & (0x01 << 3)) != 0
           val priority = (rawFrame.flags & (0x01 << 5)) != 0
 
           (priority, padded) match {
-            case (false, false) => 
-              Headers(rawFrame.identifier, None, endStream, endHeaders, rawFrame.payload, None).asRight
-            case (true, true) => 
+            case (false, false) =>
+              Headers(
+                rawFrame.identifier,
+                None,
+                endStream,
+                endHeaders,
+                rawFrame.payload,
+                None,
+              ).asRight
+            case (true, true) =>
               // This hurts. And is SO inefficient
               val bv = rawFrame.payload
               val padLength = bv.get(0)
@@ -258,7 +272,7 @@ private[ember] object H2Frame {
               val s3 = rest.get(3)
               val weight = rest.get(4)
               val mod0 = s0 & ~(1 << 7)
-              val dependsOnStream = ((mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0))
+              val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
               val exclusive = (s0 & (0x01 << 7)) != 0
               val payload = rest.drop(5)
               Headers(
@@ -267,9 +281,9 @@ private[ember] object H2Frame {
                 endStream,
                 endHeaders,
                 payload,
-                Some(pad)
+                Some(pad),
               ).asRight
-            case (true, false) => 
+            case (true, false) =>
               val rest = rawFrame.payload
               val s0 = rest.get(0)
               val s1 = rest.get(1)
@@ -277,7 +291,7 @@ private[ember] object H2Frame {
               val s3 = rest.get(3)
               val weight = rest.get(4)
               val mod0 = s0 & ~(1 << 7)
-              val dependsOnStream = ((mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0))
+              val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
               val exclusive = (s0 & (0x01 << 7)) != 0
               val payload = rest.drop(5)
 
@@ -287,7 +301,7 @@ private[ember] object H2Frame {
                 endStream,
                 endHeaders,
                 payload,
-                None
+                None,
               ).asRight
 
             case (false, true) =>
@@ -301,7 +315,7 @@ private[ember] object H2Frame {
                 endStream,
                 endHeaders,
                 payload,
-                Some(pad)
+                Some(pad),
               ).asRight
           }
         case _ => Either.left(H2Error.InternalError)
@@ -309,19 +323,19 @@ private[ember] object H2Frame {
     def toRaw(headers: Headers): RawFrame = {
       val flags = {
         var init = 0
-        if (headers.endStream) init = (init | (1 << 0))
-        if (headers.endHeaders) init = (init | (1 << 2))
-        if (headers.padding.isDefined) init = (init | (1 << 3))
-        if (headers.dependency.isDefined) init = (init | (1 << 5))
+        if (headers.endStream) init = init | (1 << 0)
+        if (headers.endHeaders) init = init | (1 << 2)
+        if (headers.padding.isDefined) init = init | (1 << 3)
+        if (headers.dependency.isDefined) init = init | (1 << 5)
         init
       }.toByte
 
       val body = (headers.padding, headers.dependency) match {
         case (None, None) => headers.headerBlock
-        case (Some(pad), None) => 
-          ByteVector(pad.length.toByte) ++ headers.headerBlock ++ 
-          pad
-        case (padO, Some(dependency)) => 
+        case (Some(pad), None) =>
+          ByteVector(pad.length.toByte) ++ headers.headerBlock ++
+            pad
+        case (padO, Some(dependency)) =>
           val dep0 = ((dependency.dependency >> 24) & 0xff).toByte
           val dep1 = ((dependency.dependency >> 16) & 0xff).toByte
           val dep2 = ((dependency.dependency >> 8) & 0xff).toByte
@@ -330,19 +344,18 @@ private[ember] object H2Frame {
           val base = ByteVector(modDep0, dep1, dep2, dep3, dependency.weight) ++ headers.headerBlock
           padO match {
             case None => base
-            case Some(pad) => 
-              ByteVector(pad.length.toByte) ++ base ++ 
-              pad
+            case Some(pad) =>
+              ByteVector(pad.length.toByte) ++ base ++
+                pad
           }
       }
-
 
       RawFrame(
         body.size.toInt,
         `type`,
         flags,
         headers.identifier,
-        body
+        body,
       )
     }
   }
@@ -353,17 +366,17 @@ private[ember] object H2Frame {
     +-+-------------+-----------------------------------------------+
     |   Weight (8)  |
     +-+-------------+
-  */
+   */
   final case class Priority(
-    identifier: Int, 
-    exclusive: Boolean,
-    streamDependency: Int,
-    weight: Byte
+      identifier: Int,
+      exclusive: Boolean,
+      streamDependency: Int,
+      weight: Byte,
   ) extends H2Frame
   object Priority {
     val `type`: Byte = 0x2
-    def fromRaw(raw: RawFrame): Either[H2Error, Priority] = {
-      if (raw.`type` == `type`){
+    def fromRaw(raw: RawFrame): Either[H2Error, Priority] =
+      if (raw.`type` == `type`) {
         if (raw.length === 5) {
           val s0 = raw.payload(0)
           val s1 = raw.payload(1)
@@ -371,73 +384,67 @@ private[ember] object H2Frame {
           val s3 = raw.payload(3)
           val mod0 = s0 & ~(1 << 7)
           val exclusive = (s0 & (0x01 << 7)) != 0
-          val dependency = ((mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0))
+          val dependency = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
           val weight = raw.payload(4)
 
           Priority(raw.identifier, exclusive, dependency, weight).asRight
         } else H2Error.FrameSizeError.asLeft
       } else Either.left(H2Error.InternalError)
-    }
 
     def toRaw(priority: Priority): RawFrame = {
       val payload = {
-          val dep0 = ((priority.streamDependency >> 24) & 0xff).toByte
-          val dep1 = ((priority.streamDependency >> 16) & 0xff).toByte
-          val dep2 = ((priority.streamDependency >> 8) & 0xff).toByte
-          val dep3 = ((priority.streamDependency >> 0) & 0xff).toByte
-          val modDep0 = (if (priority.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
-          ByteVector(modDep0, dep1, dep2, dep3, priority.weight)
+        val dep0 = ((priority.streamDependency >> 24) & 0xff).toByte
+        val dep1 = ((priority.streamDependency >> 16) & 0xff).toByte
+        val dep2 = ((priority.streamDependency >> 8) & 0xff).toByte
+        val dep3 = ((priority.streamDependency >> 0) & 0xff).toByte
+        val modDep0 = (if (priority.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
+        ByteVector(modDep0, dep1, dep2, dep3, priority.weight)
       }
       RawFrame(payload.size.toInt, `type`, 0, priority.identifier, payload)
     }
   }
 
-
-
   /*
     +---------------------------------------------------------------+
     |                        Error Code (32)                        |
     +---------------------------------------------------------------+
-  */
+   */
   final case class RstStream(
-    identifier: Int, 
-    value: Integer
-  ) extends H2Frame{
-    override def toString = s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
+      identifier: Int,
+      value: Integer,
+  ) extends H2Frame {
+    override def toString =
+      s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
   }
   object RstStream {
     val `type`: Byte = 0x3
 
-    def toRaw(rst: RstStream): RawFrame = {
+    def toRaw(rst: RstStream): RawFrame =
       RawFrame(4, `type`, 0, rst.identifier, ByteVector.fromInt(rst.value.toInt))
-    }
 
-    def fromRaw(raw: RawFrame): Either[H2Error, RstStream] = {
+    def fromRaw(raw: RawFrame): Either[H2Error, RstStream] =
       if (raw.`type` == `type`) {
         if (raw.length == 4) {
           RstStream(raw.identifier, raw.payload.toInt(false, ByteOrdering.BigEndian)).asRight
         } else H2Error.FrameSizeError.asLeft
-      }
-      else Either.left(H2Error.InternalError)
-    }
+      } else Either.left(H2Error.InternalError)
   }
-
 
   /*
     Payload must be a multiple of 6 octets.
-    n* 
+    n*
     +-------------------------------+
     |       Identifier (16)         |
     +-------------------------------+-------------------------------+
     |                        Value (32)                             |
     +---------------------------------------------------------------+
-  */
+   */
   final case class Settings(
-    identifier: Int,
-    ack: Boolean,
-    list: List[Settings.Setting]
+      identifier: Int,
+      ack: Boolean,
+      list: List[Settings.Setting],
   ) extends H2Frame {
-    override def toString: String = 
+    override def toString: String =
       if (identifier == 0 && ack && list.isEmpty) "Settings.Ack"
       else if (identifier == 0 && !ack) s"Settings(${list.map(_.toString).intercalate(", ")})"
       else s"Settings(identifier=$identifier, ack=$ack, list=$list)"
@@ -446,50 +453,70 @@ private[ember] object H2Frame {
     val `type`: Byte = 0x4
     val Ack = Settings(0x0, true, Nil)
 
-    def updateSettings(settings: Settings, connectSettings: ConnectionSettings): ConnectionSettings = {
-      settings.list.foldLeft(connectSettings){
-        case (base, setting: SettingsHeaderTableSize) => 
+    def updateSettings(
+        settings: Settings,
+        connectSettings: ConnectionSettings,
+    ): ConnectionSettings =
+      settings.list.foldLeft(connectSettings) {
+        case (base, setting: SettingsHeaderTableSize) =>
           base.copy(tableSize = setting)
-        case (base, setting: SettingsEnablePush) => 
+        case (base, setting: SettingsEnablePush) =>
           base.copy(enablePush = setting)
-        case (base, setting: SettingsMaxConcurrentStreams) => 
+        case (base, setting: SettingsMaxConcurrentStreams) =>
           base.copy(maxConcurrentStreams = setting)
-        case (base, setting: SettingsInitialWindowSize) => 
+        case (base, setting: SettingsInitialWindowSize) =>
           base.copy(initialWindowSize = setting)
-        case (base, setting: SettingsMaxFrameSize) => 
+        case (base, setting: SettingsMaxFrameSize) =>
           base.copy(maxFrameSize = setting)
-        case (base, setting: SettingsMaxHeaderListSize) => 
+        case (base, setting: SettingsMaxHeaderListSize) =>
           base.copy(maxHeaderListSize = setting.some)
         case (base, _) => base
       }
-    }
 
     final case class ConnectionSettings(
-      tableSize: SettingsHeaderTableSize,
-      enablePush: SettingsEnablePush,
-      maxConcurrentStreams: SettingsMaxConcurrentStreams,
-      initialWindowSize: SettingsInitialWindowSize,
-      maxFrameSize: SettingsMaxFrameSize,
-      maxHeaderListSize: Option[SettingsMaxHeaderListSize]
+        tableSize: SettingsHeaderTableSize,
+        enablePush: SettingsEnablePush,
+        maxConcurrentStreams: SettingsMaxConcurrentStreams,
+        initialWindowSize: SettingsInitialWindowSize,
+        maxFrameSize: SettingsMaxFrameSize,
+        maxHeaderListSize: Option[SettingsMaxHeaderListSize],
     )
     object ConnectionSettings {
 
       def toSettings(connectionSettings: ConnectionSettings): Settings = {
-        val tableSize = if (connectionSettings.tableSize != default.tableSize) connectionSettings.tableSize :: Nil else Nil 
-        val enablePush = if (connectionSettings.enablePush != default.enablePush) connectionSettings.enablePush :: Nil else Nil
-        val maxConcurrentStreams = if (connectionSettings.maxConcurrentStreams != default.maxConcurrentStreams) connectionSettings.maxConcurrentStreams :: Nil else Nil
-        val initialWindowSize = if (connectionSettings.initialWindowSize != default.initialWindowSize) connectionSettings.initialWindowSize :: Nil else Nil
-        val maxFrameSize = if (connectionSettings.maxFrameSize != default.maxFrameSize) connectionSettings.maxFrameSize :: Nil else Nil
-        val maxHeaderListSize = if (connectionSettings.maxHeaderListSize != default.maxHeaderListSize) {
-          connectionSettings.maxHeaderListSize match {
-            case Some(s) => s :: Nil
-            case None => Nil
-          }
-        } else Nil
-        Settings(0, false, tableSize.widen ::: enablePush.widen ::: maxConcurrentStreams.widen ::: initialWindowSize.widen ::: maxFrameSize.widen ::: maxHeaderListSize.widen)
+        val tableSize =
+          if (connectionSettings.tableSize != default.tableSize) connectionSettings.tableSize :: Nil
+          else Nil
+        val enablePush =
+          if (connectionSettings.enablePush != default.enablePush)
+            connectionSettings.enablePush :: Nil
+          else Nil
+        val maxConcurrentStreams =
+          if (connectionSettings.maxConcurrentStreams != default.maxConcurrentStreams)
+            connectionSettings.maxConcurrentStreams :: Nil
+          else Nil
+        val initialWindowSize =
+          if (connectionSettings.initialWindowSize != default.initialWindowSize)
+            connectionSettings.initialWindowSize :: Nil
+          else Nil
+        val maxFrameSize =
+          if (connectionSettings.maxFrameSize != default.maxFrameSize)
+            connectionSettings.maxFrameSize :: Nil
+          else Nil
+        val maxHeaderListSize =
+          if (connectionSettings.maxHeaderListSize != default.maxHeaderListSize) {
+            connectionSettings.maxHeaderListSize match {
+              case Some(s) => s :: Nil
+              case None => Nil
+            }
+          } else Nil
+        Settings(
+          0,
+          false,
+          tableSize.widen ::: enablePush.widen ::: maxConcurrentStreams.widen ::: initialWindowSize.widen ::: maxFrameSize.widen ::: maxHeaderListSize.widen,
+        )
 
       }
-
 
       val default = ConnectionSettings(
         tableSize = SettingsHeaderTableSize(4096),
@@ -497,41 +524,37 @@ private[ember] object H2Frame {
         maxConcurrentStreams = SettingsMaxConcurrentStreams(1024),
         initialWindowSize = SettingsInitialWindowSize(65535),
         maxFrameSize = SettingsMaxFrameSize(16384),
-        maxHeaderListSize = None
+        maxHeaderListSize = None,
       )
     }
 
     // Effect?
-    def fromRaw(raw: RawFrame): Either[H2Error, Settings] = {
+    def fromRaw(raw: RawFrame): Either[H2Error, Settings] =
       if (raw.`type` == `type`) {
         val ack = (raw.flags & (0x01 << 0)) != 0
         if (ack && raw.payload.nonEmpty) H2Error.FrameSizeError.asLeft
         else if (ack) Settings(raw.identifier, ack, List.empty).asRight
         else fromPayload(raw.payload, raw.identifier, ack)
       } else Either.left(H2Error.InternalError)
-    }
-    def fromPayload(payload: ByteVector, identifier: Int, ack: Boolean): Either[H2Error, Settings] = {
+    def fromPayload(payload: ByteVector, identifier: Int, ack: Boolean): Either[H2Error, Settings] =
       if (payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
       else {
         val settings = for {
           i <- 0 to (payload.size.toInt - 5) by 6
         } yield {
-          val s =  (payload(i) << 8) + (payload(i + 1) << 0)
-          val v0 = ((payload(i + 2) & 0xff) << 24)
-          val v1 = ((payload(i + 3) & 0xff) << 16)
-          val v2 = ((payload(i + 4) & 0xff) << 8)
-          val v3 = ((payload(i + 5) & 0xff) << 0)
+          val s = (payload(i) << 8) + (payload(i + 1) << 0)
+          val v0 = (payload(i + 2) & 0xff) << 24
+          val v1 = (payload(i + 3) & 0xff) << 16
+          val v2 = (payload(i + 4) & 0xff) << 8
+          val v3 = (payload(i + 5) & 0xff) << 0
           val value = v0 | v1 | v2 | v3
           Setting(s.toShort, value)
         }
-        settings.toList.sequence.map(s => 
-          Settings(identifier, ack, s.toList)
-        )
+        settings.toList.sequence.map(s => Settings(identifier, ack, s.toList))
       }
-    }
 
     def toRaw(settings: Settings): RawFrame = {
-      val payload = settings.list.foldRight(ByteVector.empty){ case (next, bv) => 
+      val payload = settings.list.foldRight(ByteVector.empty) { case (next, bv) =>
         val s0 = ((next.identifier >> 8) & 0xff).toByte
         val s1 = ((next.identifier >> 0) & 0xff).toByte
 
@@ -549,11 +572,12 @@ private[ember] object H2Frame {
     object Setting {
       def apply(identifier: Short, value: Integer): Either[H2Error, Setting] = identifier match {
         case 0x1 => SettingsHeaderTableSize(value).asRight
-        case 0x2 => value.toInt match {
-          case 1 => SettingsEnablePush(true).asRight
-          case 0 => SettingsEnablePush(false).asRight
-          case other => H2Error.ProtocolError.asLeft
-        }
+        case 0x2 =>
+          value.toInt match {
+            case 1 => SettingsEnablePush(true).asRight
+            case 0 => SettingsEnablePush(false).asRight
+            case other => H2Error.ProtocolError.asLeft
+          }
         case 0x3 => SettingsMaxConcurrentStreams(value).asRight
         case 0x4 => SettingsInitialWindowSize.fromInt(value)
         case 0x5 => SettingsMaxFrameSize.fromInt(value)
@@ -561,37 +585,40 @@ private[ember] object H2Frame {
         case other => Unknown(identifier, value).asRight
       }
     }
-    //The initial value is 4,096 octets
+    // The initial value is 4,096 octets
     final case class SettingsHeaderTableSize(size: Integer) extends Setting(0x1, size)
     // Default true
-    final case class SettingsEnablePush(isEnabled: Boolean) extends Setting(0x2, if (isEnabled) 1 else 0)
+    final case class SettingsEnablePush(isEnabled: Boolean)
+        extends Setting(0x2, if (isEnabled) 1 else 0)
     // Unbounded
-    final case class SettingsMaxConcurrentStreams(maxConcurrency: Integer) extends Setting(0x3, maxConcurrency)
+    final case class SettingsMaxConcurrentStreams(maxConcurrency: Integer)
+        extends Setting(0x3, maxConcurrency)
     // The initial value is 2^16-1 (65,535) octets.
     final case class SettingsInitialWindowSize(windowSize: Integer) extends Setting(0x4, windowSize)
     object SettingsInitialWindowSize {
-      val MAX = SettingsInitialWindowSize(Int.MaxValue-1)
-      val MIN = SettingsInitialWindowSize(65536-1)
-      def fromInt(windowSize: Int) : Either[H2Error, SettingsInitialWindowSize] = {
-        if (windowSize <= MAX.windowSize && windowSize >= 0)// MIN.windowSize) // This appears valid but would be awful
+      val MAX = SettingsInitialWindowSize(Int.MaxValue - 1)
+      val MIN = SettingsInitialWindowSize(65536 - 1)
+      def fromInt(windowSize: Int): Either[H2Error, SettingsInitialWindowSize] =
+        if (
+          windowSize <= MAX.windowSize && windowSize >= 0
+        ) // MIN.windowSize) // This appears valid but would be awful
           SettingsInitialWindowSize(windowSize).asRight
         else {
           // println(s"Found $windowSize, $MAX $MIN")
           H2Error.FlowControlError.asLeft
         }
-      }
     }
     // The initial value is 2^14 (16,384) octets
     // 2^14 (16,384) and 2^24-1
-  //  (16,777,215) octets, inclusive.
+    //  (16,777,215) octets, inclusive.
     final case class SettingsMaxFrameSize(frameSize: Int) extends Setting(0x5, frameSize)
     object SettingsMaxFrameSize {
       val MAX = SettingsMaxFrameSize(16777215)
       val MIN = SettingsMaxFrameSize(16384)
-      def fromInt(frameSize: Int) : Either[H2Error, SettingsMaxFrameSize] = {
-        if (frameSize <= MAX.frameSize && frameSize >= MIN.frameSize) SettingsMaxFrameSize(frameSize).asRight
+      def fromInt(frameSize: Int): Either[H2Error, SettingsMaxFrameSize] =
+        if (frameSize <= MAX.frameSize && frameSize >= MIN.frameSize)
+          SettingsMaxFrameSize(frameSize).asRight
         else H2Error.ProtocolError.asLeft
-      }
     }
     // The value is based on the
     // uncompressed size of header fields, including the length of the
@@ -601,9 +628,9 @@ private[ember] object H2Frame {
     // DO NOT PROCESS
     // An endpoint that receives a SETTINGS frame with any unknown or
     // unsupported identifier MUST ignore that setting.
-    final case class Unknown(override val identifier: Short, override val value: Integer) extends Setting(identifier, value)
+    final case class Unknown(override val identifier: Short, override val value: Integer)
+        extends Setting(identifier, value)
   }
-
 
   /*
     +---------------+
@@ -615,20 +642,26 @@ private[ember] object H2Frame {
     +---------------------------------------------------------------+
     |                           Padding (*)                       ...
     +---------------------------------------------------------------+
-  */
-  final case class PushPromise(identifier: Int, endHeaders: Boolean, promisedStreamId: Int, headerBlock: ByteVector, padding: Option[ByteVector]) extends H2Frame
+   */
+  final case class PushPromise(
+      identifier: Int,
+      endHeaders: Boolean,
+      promisedStreamId: Int,
+      headerBlock: ByteVector,
+      padding: Option[ByteVector],
+  ) extends H2Frame
   object PushPromise {
     val `type`: Byte = 0x5
     def toRaw(push: PushPromise): RawFrame = {
       val flag = {
         var base = 0
-        if (push.endHeaders) base = base | (1 << 2) 
+        if (push.endHeaders) base = base | (1 << 2)
         if (push.padding.isDefined) base = base | (1 << 3)
         base
       }.toByte
       val payload = {
         val base: ByteVector = {
-          val s0 = ((push.promisedStreamId >> 24) & 0xff)
+          val s0 = (push.promisedStreamId >> 24) & 0xff
           val s1: Byte = ((push.promisedStreamId >> 16) & 0xff).toByte
           val s2: Byte = ((push.promisedStreamId >> 8) & 0xff).toByte
           val s3: Byte = ((push.promisedStreamId >> 0) & 0xff).toByte
@@ -641,24 +674,30 @@ private[ember] object H2Frame {
       RawFrame(payload.size.toInt, `type`, flag, push.identifier, payload)
     }
 
-    def fromRaw(raw: RawFrame): Either[H2Error, PushPromise] = {
-      if (raw.`type` == `type`){
+    def fromRaw(raw: RawFrame): Either[H2Error, PushPromise] =
+      if (raw.`type` == `type`) {
         val endHeaders = (raw.flags & (0x01 << 2)) != 0
         val padded = (raw.flags & (0x01 << 3)) != 0
 
-        if (padded){
+        if (padded) {
 
           val padLength = raw.payload(0)
-          val s0 = (raw.payload(1) & 0xff) 
+          val s0 = raw.payload(1) & 0xff
           val s1 = (raw.payload(2) & 0xff) << 16
           val s2 = (raw.payload(3) & 0xff) << 8
           val s3 = (raw.payload(4) & 0xff) << 0
           val modS0 = (s0 & ~(1 << 7)) << 24
           val s = modS0 | s1 | s2 | s3
 
-          PushPromise(raw.identifier, endHeaders, s, raw.payload.drop(5).dropRight(padLength), raw.payload.takeRight(padLength).some).asRight
+          PushPromise(
+            raw.identifier,
+            endHeaders,
+            s,
+            raw.payload.drop(5).dropRight(padLength),
+            raw.payload.takeRight(padLength).some,
+          ).asRight
         } else {
-          val s0 = (raw.payload(0) & 0xff) 
+          val s0 = raw.payload(0) & 0xff
           val s1 = (raw.payload(1) & 0xff) << 16
           val s2 = (raw.payload(2) & 0xff) << 8
           val s3 = (raw.payload(3) & 0xff) << 0
@@ -669,11 +708,8 @@ private[ember] object H2Frame {
 
         }
 
-
       } else H2Error.InternalError.asLeft
-    }
   }
-
 
   /*
     +---------------------------------------------------------------+
@@ -681,17 +717,16 @@ private[ember] object H2Frame {
     |                      Opaque Data (64)                         |
     |                                                               |
     +---------------------------------------------------------------+
-  */
-  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends H2Frame{
-    override def toString: String = 
+   */
+  final case class Ping(identifier: Int, ack: Boolean, data: ByteVector) extends H2Frame {
+    override def toString: String =
       if (identifier == 0 && ack) "Ping.Ack"
       else if (identifier == 0 && !ack) "Ping"
       else s"Ping(identifier=$identifier, ack=$ack, data=$data)"
-  }// Always exactly 8 bytes
+  } // Always exactly 8 bytes
   object Ping {
     val `type`: Byte = 0x6
     val empty = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
-
 
     val default = Ping(0, false, empty)
     val ack = Ping(0, true, empty)
@@ -705,13 +740,12 @@ private[ember] object H2Frame {
       RawFrame(8, `type`, flag, ping.identifier, payload)
     }
 
-    def fromRaw(raw: RawFrame): Either[H2Error, Ping] = {
-      if (raw.`type` == `type`){
+    def fromRaw(raw: RawFrame): Either[H2Error, Ping] =
+      if (raw.`type` == `type`) {
         val ack = (raw.flags & (0x01 << 0)) != 0
         if (raw.length == 8) Either.right(Ping(raw.identifier, ack, raw.payload))
         else H2Error.FrameSizeError.asLeft
       } else H2Error.InternalError.asLeft
-    }
 
   }
 
@@ -723,9 +757,14 @@ private[ember] object H2Frame {
     +---------------------------------------------------------------+
     |                  Additional Debug Data (*)                    |
     +---------------------------------------------------------------+
-  */
-  final case class GoAway(identifier: Int, lastStreamId: Int, errorCode: Integer, additionalDebugData: Option[ByteVector]) extends H2Frame{
-    override def toString = 
+   */
+  final case class GoAway(
+      identifier: Int,
+      lastStreamId: Int,
+      errorCode: Integer,
+      additionalDebugData: Option[ByteVector],
+  ) extends H2Frame {
+    override def toString =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
   }
   object GoAway {
@@ -733,7 +772,7 @@ private[ember] object H2Frame {
 
     def toRaw(goAway: GoAway): RawFrame = {
       val payload = {
-        val s0 = ((goAway.lastStreamId >> 24) & 0xff)
+        val s0 = (goAway.lastStreamId >> 24) & 0xff
         val s1: Byte = ((goAway.lastStreamId >> 16) & 0xff).toByte
         val s2: Byte = ((goAway.lastStreamId >> 8) & 0xff).toByte
         val s3: Byte = ((goAway.lastStreamId >> 0) & 0xff).toByte
@@ -744,15 +783,17 @@ private[ember] object H2Frame {
         val e2: Byte = ((goAway.errorCode >> 8) & 0xff).toByte
         val e3: Byte = ((goAway.errorCode >> 0) & 0xff).toByte
 
-        ByteVector(modS0, s1, s2, s3, e0, e1, e2, e3) ++ goAway.additionalDebugData.getOrElse(ByteVector.empty)
+        ByteVector(modS0, s1, s2, s3, e0, e1, e2, e3) ++ goAway.additionalDebugData.getOrElse(
+          ByteVector.empty
+        )
       }
-      
+
       RawFrame(payload.length.toInt, `type`, 0, goAway.identifier, payload)
     }
 
-    def fromRaw(raw: RawFrame): Either[H2Error, GoAway] = {
-      if (raw.`type` == `type`){
-        val s0 = (raw.payload(0) & 0xff) 
+    def fromRaw(raw: RawFrame): Either[H2Error, GoAway] =
+      if (raw.`type` == `type`) {
+        val s0 = raw.payload(0) & 0xff
         val s1 = (raw.payload(1) & 0xff) << 16
         val s2 = (raw.payload(2) & 0xff) << 8
         val s3 = (raw.payload(3) & 0xff) << 0
@@ -771,7 +812,6 @@ private[ember] object H2Frame {
         }
         GoAway(raw.identifier, s, e, rest).asRight
       } else H2Error.InternalError.asLeft
-    }
 
   }
 
@@ -779,14 +819,14 @@ private[ember] object H2Frame {
     +-+-------------------------------------------------------------+
     |R|              Window Size Increment (31)                     |
     +-+-------------------------------------------------------------+
-  */
+   */
   final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame
   object WindowUpdate {
     val `type`: Byte = 0x8
 
     def toRaw(windowUpdate: WindowUpdate): RawFrame = {
       val payload = {
-        val s0 = ((windowUpdate.windowSizeIncrement >> 24) & 0xff)
+        val s0 = (windowUpdate.windowSizeIncrement >> 24) & 0xff
         val s1: Byte = ((windowUpdate.windowSizeIncrement >> 16) & 0xff).toByte
         val s2: Byte = ((windowUpdate.windowSizeIncrement >> 8) & 0xff).toByte
         val s3: Byte = ((windowUpdate.windowSizeIncrement >> 0) & 0xff).toByte
@@ -797,43 +837,50 @@ private[ember] object H2Frame {
       RawFrame(payload.length.toInt, `type`, 0, windowUpdate.identifier, payload)
     }
 
-    def fromRaw(raw: RawFrame): Either[H2Error, WindowUpdate] = {
-      if (raw.`type` == `type`){
-        if (raw.length == 4){
-          val s0 = (raw.payload(0) & 0xff) 
+    def fromRaw(raw: RawFrame): Either[H2Error, WindowUpdate] =
+      if (raw.`type` == `type`) {
+        if (raw.length == 4) {
+          val s0 = raw.payload(0) & 0xff
           val s1 = (raw.payload(1) & 0xff) << 16
           val s2 = (raw.payload(2) & 0xff) << 8
           val s3 = (raw.payload(3) & 0xff) << 0
           val modS0 = (s0 & ~(1 << 7)) << 24
           val s = modS0 | s1 | s2 | s3
           WindowUpdate(raw.identifier, s).asRight
-        } else H2Error.FrameSizeError.asLeft      
+        } else H2Error.FrameSizeError.asLeft
       } else H2Error.ProtocolError.asLeft
-    }
   }
 
   /*
     +---------------------------------------------------------------+
     |                   Header Block Fragment (*)                 ...
     +---------------------------------------------------------------+
-  */
-  final case class Continuation(identifier: Int, endHeaders: Boolean, headerBlockFragment: ByteVector) extends H2Frame{
-    override def toString = s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
+   */
+  final case class Continuation(
+      identifier: Int,
+      endHeaders: Boolean,
+      headerBlockFragment: ByteVector,
+  ) extends H2Frame {
+    override def toString =
+      s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
   }
   object Continuation {
     val `type`: Byte = 0x9
     def toRaw(cont: Continuation): RawFrame = {
       val flag: Byte = if (cont.endHeaders) 0 | (1 << 2) else 0
-      RawFrame(cont.headerBlockFragment.size.toInt, `type`, flag, cont.identifier, cont.headerBlockFragment)
+      RawFrame(
+        cont.headerBlockFragment.size.toInt,
+        `type`,
+        flag,
+        cont.identifier,
+        cont.headerBlockFragment,
+      )
     }
-    def fromRaw(raw: RawFrame): Either[H2Error, Continuation] = {
-      if (raw.`type` == `type`){
+    def fromRaw(raw: RawFrame): Either[H2Error, Continuation] =
+      if (raw.`type` == `type`) {
         val endHeaders = (raw.flags & (0x01 << 2)) != 0
         Continuation(raw.identifier, endHeaders, raw.payload).asRight
       } else H2Error.InternalError.asLeft
-    }
   }
-
-
 
 }

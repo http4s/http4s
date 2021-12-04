@@ -28,33 +28,39 @@ object EmberClientH2Example extends IOApp {
 
   object ClientTest {
 
-    def test[F[_]: Async: Parallel] = {
-      Resource.eval(Network[F].tlsContext.insecure).flatMap{tls => 
-        EmberClientBuilder.default[F]
-          .withHttp2
-          .withTLSContext(tls)
-          .build
-      }.use{ c => 
-        val p = c.run(org.http4s.Request[F](
-          org.http4s.Method.GET, 
-          // uri = uri"https://github.com/"
-          // uri = uri"https://en.wikipedia.org/wiki/HTTP/2"
-          // uri = uri"https://twitter.com/"
-          // uri = uri"https://banno.com/"
-          // uri = uri"http://http2.golang.org/reqinfo"
-          uri = uri"http://localhost:8080/foo"
-          // uri = uri"https://www.nikkei.com/" // PUSH PROMISES
-        ).withAttribute(H2Keys.Http2PriorKnowledge, ()))
-          .use(resp => resp.body.compile.drain >> Sync[F].delay(println(s"Resp $resp")))
+    def test[F[_]: Async: Parallel] =
+      Resource
+        .eval(Network[F].tlsContext.insecure)
+        .flatMap { tls =>
+          EmberClientBuilder
+            .default[F]
+            .withHttp2
+            .withTLSContext(tls)
+            .build
+        }
+        .use { c =>
+          val p = c
+            .run(
+              org.http4s
+                .Request[F](
+                  org.http4s.Method.GET,
+                  // uri = uri"https://github.com/"
+                  // uri = uri"https://en.wikipedia.org/wiki/HTTP/2"
+                  // uri = uri"https://twitter.com/"
+                  // uri = uri"https://banno.com/"
+                  // uri = uri"http://http2.golang.org/reqinfo"
+                  uri = uri"http://localhost:8080/foo",
+                  // uri = uri"https://www.nikkei.com/" // PUSH PROMISES
+                )
+                .withAttribute(H2Keys.Http2PriorKnowledge, ())
+            )
+            .use(resp => resp.body.compile.drain >> Sync[F].delay(println(s"Resp $resp")))
           p
-      }
-    }
+        }
   }
 
-  def run(args: List[String]): IO[ExitCode] = {
-
-    ClientTest.test[IO]
+  def run(args: List[String]): IO[ExitCode] =
+    ClientTest
+      .test[IO]
       .as(ExitCode.Success)
-  }
 }
-

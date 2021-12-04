@@ -504,7 +504,8 @@ final class Request[F[_]] private (
     RequestPrelude.fromRequest(this)
 
   override def toString: String =
-    s"""Request(method=$method, uri=$uri, httpVersion=${httpVersion}, headers=${headers.redactSensitive()})"""
+    s"""Request(method=$method, uri=$uri, httpVersion=${httpVersion}, headers=${headers
+      .redactSensitive()})"""
 }
 
 object Request {
@@ -678,7 +679,8 @@ final class Response[F[_]] private (
     ResponsePrelude.fromResponse(this)
 
   override def toString: String =
-    s"""Response(status=${status.code}, httpVersion=${httpVersion}, headers=${headers.redactSensitive()})"""
+    s"""Response(status=${status.code}, httpVersion=${httpVersion}, headers=${headers
+      .redactSensitive()})"""
 }
 
 object Response extends KleisliSyntax {
