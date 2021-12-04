@@ -56,9 +56,9 @@ object EmberServerH2Example extends IOApp {
           println(req)
           Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
 
-        case _  => 
+        case _ -> Root / "push-promise"  => 
             resp.covary[F] // URI needs authority scheme, etc
-            // .withAttribute(H2Keys.PushPromises, Request[Pure](Method.GET, uri"https://localhost:8080/foo") :: Nil)
+            .withAttribute(org.http4s.ember.core.h2.H2Keys.PushPromises, Request[Pure](Method.GET, uri"https://localhost:8080/foo") :: Nil)
             .pure[F]
           
 
@@ -78,13 +78,22 @@ object EmberServerH2Example extends IOApp {
         .withHttpApp(simpleApp)
         .build
     } yield ()
+
+    def testPriorKnowledge[F[_]: Async] = 
+      EmberServerBuilder
+        .default[F]
+        .withHttp2
+        .withHost(ipv4"0.0.0.0")
+        .withPort(port"8080")
+        .withHttpApp(simpleApp)
+        .build
     
   }
 
 
   def run(args: List[String]): IO[ExitCode] = {
 
-    ServerTest.testALPN[IO]
+    ServerTest.testPriorKnowledge[IO]
       .use(_ => IO.never)
       .as(ExitCode.Success)
   }

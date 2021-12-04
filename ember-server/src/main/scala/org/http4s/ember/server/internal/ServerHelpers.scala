@@ -187,7 +187,7 @@ private[server] object ServerHelpers {
                 Stream.exec(H2Server.requireConnectionPreface(socket)) ++
                 Stream.resource(H2Server.fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default))
                   .drain
-              case (socket, _) => 
+              case (socket, Some(_)) =>
                 runConnection(
                   socket,
                   logger,
@@ -200,7 +200,49 @@ private[server] object ServerHelpers {
                   onWriteFailure,
                   createRequestVault,
                   webSocketKey,
+                  ByteVector.empty
                 ).drain
+              case (socket, None) => // Cleartext Protocol
+                enableHttp2 match {
+                  case true => 
+                    // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                    // Otherwise this is now http1
+                    Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap{
+                      case Left(bv) => 
+                        runConnection(
+                          socket,
+                          logger,
+                          idleTimeout,
+                          receiveBufferSize,
+                          maxHeaderSize,
+                          requestHeaderReceiveTimeout,
+                          httpApp,
+                          errorHandler,
+                          onWriteFailure,
+                          createRequestVault,
+                          webSocketKey,
+                          ByteVector.empty
+                        ).drain
+                      case Right(_) => 
+                        Stream.resource(H2Server.fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default))
+                          .drain
+                    }
+                  case false => 
+                    runConnection(
+                      socket,
+                      logger,
+                      idleTimeout,
+                      receiveBufferSize,
+                      maxHeaderSize,
+                      requestHeaderReceiveTimeout,
+                      httpApp,
+                      errorHandler,
+                      onWriteFailure,
+                      createRequestVault,
+                      webSocketKey,
+                      ByteVector.empty
+                    ).drain
+                }
             }
 
         handler.handleErrorWith{ t =>
@@ -334,6 +376,7 @@ private[server] object ServerHelpers {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      initialBuffer: ByteVector,
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
@@ -343,7 +386,7 @@ private[server] object ServerHelpers {
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
     Stream
-      .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
+      .unfoldEval[F, State, (Request[F], Response[F])](initialBuffer.toArray -> false) {
         case (buffer, reuse) =>
           val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
             // next request has already been (partially) received
