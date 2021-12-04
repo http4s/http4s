@@ -186,11 +186,6 @@ object SiteConfig {
             projectLinks = Nil, // TODO
             teasers = landingPage.teasers
           )
-          .site
-          .favIcons(
-            Favicon.internal(Root / "images" / "http4s-favicon.svg", "32x32").copy(sizes = None),
-            Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32")
-          )
       else Helium.defaults
 
     val fullTheme = baseTheme.all
@@ -222,6 +217,11 @@ object SiteConfig {
         background = Color.hex("ffffff"),
         bgGradient =
           (Color.hex("334044"), Color.hex("5B7980")), // only used for landing page background
+      )
+      .site
+      .favIcons(
+        Favicon.internal(Root / "images" / "http4s-favicon.svg", "32x32").copy(sizes = None),
+        Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32")
       )
       .site
       .darkMode
