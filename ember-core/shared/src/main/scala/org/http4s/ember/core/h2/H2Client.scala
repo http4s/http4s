@@ -26,7 +26,6 @@ import cats._
 import cats.syntax.all._
 import scodec.bits._
 import scala.concurrent.duration._
-import javax.net.ssl.SSLEngine
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 import org.http4s._ 
 
@@ -107,13 +106,15 @@ private[ember] class H2Client[F[_]: Async](
       if (useTLS){
         for {
           tlsSocket <- tls.clientBuilder(baseSocket).withParameters(
-            TLSParameters(
-              applicationProtocols = Some(List("h2", "http/1.1")),
-              handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  => l.find(_ === "h2").getOrElse("http/1.1")}.some
-            )
+            H2TLSPlatform.transform(TLSParameters.Default)
+            // TLSParameters.Default
+            // TLSParameters(
+            //   applicationProtocols = Some(List("h2", "http/1.1")),
+            //   handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  => l.find(_ === "h2").getOrElse("http/1.1")}.some
+            // )
           ).build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-          protocol <- Resource.eval(tlsSocket.applicationProtocol).map(Option(_))
+          protocol <- Resource.eval(H2TLSPlatform.protocol(tlsSocket))
           socketType <- protocol match {
             case Some("h2") =>  Resource.pure[F, SocketType](Http2)
             case Some("http/1.1") => Resource.pure[F, SocketType](Http1)

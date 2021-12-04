@@ -25,15 +25,9 @@ import java.io.ByteArrayOutputStream
 import com.twitter.hpack.HeaderListener
 import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ListBuffer
-
 import cats.data._
-private[h2] trait Hpack[F[_]]{
-  def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]
-  def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]]
-}
 
-private[h2] object Hpack {
-
+trait HpackPlatform {
   def create[F[_]: Async]: F[Hpack[F]] = for {
     eLock <- Semaphore[F](1)
     dLock <- Semaphore[F](1)

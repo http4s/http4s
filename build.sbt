@@ -399,7 +399,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     server.jvm % "test->compile",
   )
 
-lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
+lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
     description := "Base library for ember http4s clients and servers",
     startYear := Some(2019),

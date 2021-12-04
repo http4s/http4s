@@ -50,8 +50,8 @@ import org.http4s.ember.core.h2.H2Frame
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
-import cats.data.Kleisli
 import org.http4s.ember.core.h2.H2Keys
+import org.http4s.ember.core.h2.H2TLSPlatform
 
 private[server] object ServerHelpers {
 
@@ -285,23 +285,7 @@ private[server] object ServerHelpers {
       val newParams = if (enableHttp2) {
         // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
         // As this is the only JVM specific code
-        TLSParameters(
-          algorithmConstraints = params.algorithmConstraints,
-          applicationProtocols = List("http/1.1", "h2").some,
-          cipherSuites = params.cipherSuites,
-          enableRetransmissions = params.enableRetransmissions,
-          endpointIdentificationAlgorithm = params.endpointIdentificationAlgorithm,
-          maximumPacketSize = params.maximumPacketSize,
-          protocols = params.protocols, 
-          serverNames = params.serverNames,
-          sniMatchers = params.sniMatchers,
-          useCipherSuitesOrder = params.useCipherSuitesOrder,
-          needClientAuth = params.needClientAuth,
-          wantClientAuth = params.wantClientAuth,
-          handshakeApplicationProtocolSelector = {(t: javax.net.ssl.SSLEngine, l:List[String])  => 
-            l.find(_ === "h2").getOrElse("http/1.1")
-          }.some
-        )
+        H2TLSPlatform.transform(params)
       } else params
       
       context
