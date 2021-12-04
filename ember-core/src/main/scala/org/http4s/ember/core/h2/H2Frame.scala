@@ -20,8 +20,8 @@ import cats._
 import cats.syntax.all._
 import scodec.bits._
 
-private[h2] sealed trait H2Frame
-private[h2] object H2Frame {
+private[ember] sealed trait H2Frame
+private[ember] object H2Frame {
 /*
   All frames begin with a fixed 9-octet header followed by a variable-
   length payload.

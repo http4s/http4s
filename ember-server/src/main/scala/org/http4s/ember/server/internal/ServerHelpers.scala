@@ -44,6 +44,8 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
+import org.http4s.ember.core.h2.H2Server
+import org.http4s.ember.core.h2.H2Frame
 
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
@@ -73,6 +75,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -97,6 +100,7 @@ private[server] object ServerHelpers {
       logger: Logger[F],
       true,
       webSocketKey,
+      enableHttp2
     )
   }
 
@@ -119,6 +123,7 @@ private[server] object ServerHelpers {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -148,6 +153,7 @@ private[server] object ServerHelpers {
       logger: Logger[F],
       false,
       webSocketKey,
+      enableHttp2
     )
   }
 
@@ -167,30 +173,37 @@ private[server] object ServerHelpers {
       logger: Logger[F],
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
-        val handler = shutdown.trackConnection >>
+        val handler: Stream[F, fs2.INothing] = shutdown.trackConnection >>
           Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
-            .flatMap(
-              runConnection(
-                _,
-                logger,
-                idleTimeout,
-                receiveBufferSize,
-                maxHeaderSize,
-                requestHeaderReceiveTimeout,
-                httpApp,
-                errorHandler,
-                onWriteFailure,
-                createRequestVault,
-                webSocketKey,
-              )
-            )
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .flatMap{ 
+              case (socket, Some("h2")) => 
+                // ALPN H2 Strategy
+                Stream.exec(H2Server.requireConnectionPreface(socket)) ++
+                Stream.resource(H2Server.fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default))
+                  .drain
+              case (socket, _) => 
+                runConnection(
+                  socket,
+                  logger,
+                  idleTimeout,
+                  receiveBufferSize,
+                  maxHeaderSize,
+                  requestHeaderReceiveTimeout,
+                  httpApp,
+                  errorHandler,
+                  onWriteFailure,
+                  createRequestVault,
+                  webSocketKey,
+                ).drain
+            }
 
-        handler.handleErrorWith { t =>
+        handler.handleErrorWith{ t =>
           Stream.eval(logger.error(t)("Request handler failed with exception")).drain
         }
       }
@@ -215,14 +228,38 @@ private[server] object ServerHelpers {
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F],
-  ): Resource[F, Socket[F]] =
-    tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
+      enableHttp2: Boolean,
+  ): Resource[F, (Socket[F], Option[String])] =
+    tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) { case (context, params) =>
+      val newParams = if (enableHttp2) {
+        TLSParameters(
+          algorithmConstraints = params.algorithmConstraints,
+          applicationProtocols = List("http/1.1", "h2").some,
+          cipherSuites = params.cipherSuites,
+          enableRetransmissions = params.enableRetransmissions,
+          endpointIdentificationAlgorithm = params.endpointIdentificationAlgorithm,
+          maximumPacketSize = params.maximumPacketSize,
+          protocols = params.protocols, 
+          serverNames = params.serverNames,
+          sniMatchers = params.sniMatchers,
+          useCipherSuitesOrder = params.useCipherSuitesOrder,
+          needClientAuth = params.needClientAuth,
+          wantClientAuth = params.wantClientAuth,
+          handshakeApplicationProtocolSelector = {(t: javax.net.ssl.SSLEngine, l:List[String])  => 
+            l.find(_ === "h2").getOrElse("http/1.1")
+          }.some
+        )
+      } else params
+      
       context
         .serverBuilder(socketInit)
-        .withParameters(params)
+        .withParameters(newParams)
         .withLogging(s => logger.trace(s))
         .build
-        .widen[Socket[F]]
+        .evalMap(tlsSocket => 
+            tlsSocket.write(fs2.Chunk.empty) >>
+            tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
+        )
     }
 
   private[internal] def runApp[F[_]](

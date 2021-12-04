@@ -187,6 +187,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               idleTimeout,
               logger,
               wsKey,
+              enableHttp2
             )
             .compile
             .drain
@@ -211,6 +212,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             idleTimeout,
             logger,
             wsKey,
+            enableHttp2
           )
           .compile
           .drain

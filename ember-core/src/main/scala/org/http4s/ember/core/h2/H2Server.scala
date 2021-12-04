@@ -34,13 +34,25 @@ import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 private[ember] object H2Server {
 
   /*
+  3 Mechanism into H2
+
   TlsContext => Yes => ALPN =>  h2       => HTTP2
                                 http/1.1 => HTTP1
                                 Nothing  => Http1
                 No  =>                      Http1
   
-  Http1 =>  Client Prelude               => Http2 // Http2-prior-kno
-            
+  This is the tricky one, must read the initial bytes
+  if they are the prelude then upgrade, but only on when
+  the connection is first established
+  
+  Client Prelude Bytes                   => Http2 // Http2-prior-kno
+  checkConnectionPreface
+  Note: implementations that support HTTP/2 over TLS MUST use protocol
+    negotiation in TLS. 
+    So if TLS is used then this method is not allowed.
+
+
+  H2c
             Request
             Connection: Upgrade, HTTP2-Settings
             Upgrade: h2c
@@ -64,6 +76,7 @@ private[ember] object H2Server {
       "upgrade" -> "h2c"
     )
   )
+  // Apply this, if it ever becomes Some, then rather than the next request, become an h2 connection
   def upgradeHttpRoute[F[_]: Concurrent](upgradeRef: Ref[F, Option[H2Frame.Settings.ConnectionSettings]]): HttpRoutes[F] = 
     cats.data.Kleisli[({type L[A] = cats.data.OptionT[F,A]})#L, Request[F], Response[F]] { (req: Request[F]) => 
       val connectionCheck = req.headers.get[org.http4s.headers.Connection].exists(connection => 
@@ -124,13 +137,14 @@ private[ember] object H2Server {
   // This is the full h2 management of a socket
   // AFTER the connection preface.
   // allowing delegation
-  def fromSocket[F[_]: Async: Parallel](
+  def fromSocket[F[_]: Async](
     socket: Socket[F],
     httpApp: HttpApp[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
     initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings 
   ): Resource[F, Unit] = {
+    import cats.effect.kernel.instances.spawn._
     for {
         address <- Resource.eval(socket.remoteAddress)
         (remotehost, remoteport) = (address.host, address.port)
