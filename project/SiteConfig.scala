@@ -6,7 +6,7 @@ import laika.ast._
 import laika.bundle.ExtensionBundle
 import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
-import laika.helium.config.{HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
 import laika.rewrite.link.LinkConfig
 import laika.rewrite.nav.CoverImage
 import laika.rewrite.{Version, Versions}
@@ -165,23 +165,29 @@ object SiteConfig {
 
     val baseTheme =
       if (includeLandingPage)
-        Helium.defaults.site.landingPage(
-          logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
-          title = None,
-          subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-          latestReleases = Seq(
-            ReleaseInfo(
-              "Latest Stable Release",
-              variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
-            ReleaseInfo(
-              "Latest Milestone Release",
-              variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
-          ),
-          license = Some("Apache 2.0"),
-          documentationLinks = landingPage.projectLinks,
-          projectLinks = Nil, // TODO
-          teasers = landingPage.teasers
-        )
+        Helium.defaults.site
+          .landingPage(
+            logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
+            title = None,
+            subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+            latestReleases = Seq(
+              ReleaseInfo(
+                "Latest Stable Release",
+                variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
+              ReleaseInfo(
+                "Latest Milestone Release",
+                variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
+            ),
+            license = Some("Apache 2.0"),
+            documentationLinks = landingPage.projectLinks,
+            projectLinks = Nil, // TODO
+            teasers = landingPage.teasers
+          )
+          .site
+          .favIcons(
+            Favicon.internal(Root / "images" / "http4s-favicon.svg", "32x32").copy(sizes = None),
+            Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32")
+          )
       else Helium.defaults
 
     val fullTheme = baseTheme.all

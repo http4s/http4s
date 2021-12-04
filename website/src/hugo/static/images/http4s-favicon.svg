@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="Canvas" transform="matrix(0.710125,0,0,0.710125,-3538.91,-1217.86)">
+        <g id="http4s-logo">
+            <g transform="matrix(1,0,0,1,5032,1715.75)">
+                <g id="Top">
+                    <path id="path0_fill" d="M623.5,179.25L311.769,0L0,179.25L311.769,360L623.5,179.25Z" style="fill:rgb(255,143,0);fill-rule:nonzero;"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,5343.77,1895)">
+                <g id="Right">
+                    <path id="path1_fill" d="M311.769,360.25L311.731,0L0,180.25L0,540.25L311.769,360.25Z" style="fill:rgb(227,131,19);fill-rule:nonzero;"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,5343.77,1895)">
+                <g id="Left">
+                    <path id="path2_fill" d="M311.769,360.25L311.769,0L0,180.25L0,540.25L311.769,360.25Z" style="fill:rgb(255,157,29);fill-rule:nonzero;"/>
+                </g>
+            </g>
+            <g id="S">
+            </g>
+            <g id="_4" serif:id="4">
+            </g>
+            <g id="H">
+            </g>
+        </g>
+    </g>
+</svg>
