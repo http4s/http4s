@@ -244,7 +244,7 @@ private[ember] object H2Client {
       mapH2 <- Resource.eval(Concurrent[F].ref(Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), (H2Connection[F], F[Unit])]()))
       socketMap <- Resource.eval(Concurrent[F].ref(Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), SocketType]()))
 
-      _ <- Stream.awakeDelay(5.seconds)
+      _ <- Stream.awakeDelay(1.seconds)
         .evalMap(_ => 
           mapH2.get
         ).flatMap(m => Stream.emits(m.toList))
