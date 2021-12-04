@@ -77,7 +77,7 @@ private[ember] object H2Server {
     )
   )
   // Apply this, if it ever becomes Some, then rather than the next request, become an h2 connection
-  def upgradeHttpRoute[F[_]: Concurrent](upgradeRef: Ref[F, Option[H2Frame.Settings.ConnectionSettings]]): HttpRoutes[F] = 
+  def h2cUpgradeHttpRoute[F[_]: Concurrent]: HttpRoutes[F] = 
     cats.data.Kleisli[({type L[A] = cats.data.OptionT[F,A]})#L, Request[F], Response[F]] { (req: Request[F]) => 
       val connectionCheck = req.headers.get[org.http4s.headers.Connection].exists(connection => 
         connection.values.contains_(ci"upgrade") && connection.values.contains_(ci"http2-settings")
@@ -95,22 +95,31 @@ private[ember] object H2Server {
         req.headers.get(ci"http2-settings").collectFirstSome(settings => 
           settings.map(_.value).collectFirstSome{value => 
             for {
-              bv <- ByteVector.fromBase64(value)
-              t <- H2Frame.RawFrame.fromByteVector(bv)
-              (raw, _) = t
-              settings <- H2Frame.Settings.fromRaw(raw).toOption
+              bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
+              settings <- H2Frame.Settings.fromPayload(bv, 0, false).toOption // This isn't an entire frame
+              // It is Just the Payload section of the frame
             } yield H2Frame.Settings.updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
           }
         )
       } else None
-      val settingsCheck = settings.isDefined
-      val upgrade = connectionCheck && upgradeCheck && settingsCheck
-      if (upgrade){
-        cats.data.OptionT.liftF(req.body.compile.drain) >> 
-        cats.data.OptionT.liftF(upgradeRef.set(settings)) >>
-        cats.data.OptionT.some(upgradeResponse.covary[F])
-      } else cats.data.OptionT.none
+      val upgrade = connectionCheck && upgradeCheck
+      (settings, upgrade) match {
+        case (Some(settings), true) => 
+          cats.data.OptionT.liftF(req.body.compile.to(ByteVector)).flatMap{ bv => 
+            val newReq: Request[fs2.Pure] = Request[fs2.Pure](req.method, req.uri, HttpVersion.`HTTP/2`, req.headers, Stream.chunk(Chunk.byteVector(bv)), req.attributes)
+            cats.data.OptionT.some(upgradeResponse.covary[F].withAttribute(H2Keys.H2cUpgrade, (settings, newReq)))
+          } 
+          
+        case (_, _) => cats.data.OptionT.none
+      }
     }
+
+  def h2cUpgradeMiddleware[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] = {
+    cats.data.Kleisli{(req: Request[F]) =>
+      h2cUpgradeHttpRoute.run(req)
+        .getOrElseF(app.run(req))
+    }
+  }
 
   // Call on a new connection for http2-prior-knowledge
   // If left 1.1 if right 2
@@ -142,7 +151,8 @@ private[ember] object H2Server {
     httpApp: HttpApp[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
-    initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings 
+    initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
+    initialRequest: Option[Request[fs2.Pure]] = None
   ): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
     for {
@@ -165,6 +175,22 @@ private[ember] object H2Server {
         bgRead <- h2.readLoop.compile.drain.background
 
         settings <- Resource.eval(h2.settingsAck.get.rethrow)
+        // h2c Initial Request Communication on h2c Upgrade
+        _ <- Resource.eval(
+          initialRequest.traverse_(req => 
+            h2.initiateRemoteStreamById(1).flatMap(
+              h2Stream => 
+                h2Stream.state.modify{s => 
+                  val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
+                  (x,x) 
+                }.flatMap(s => 
+                  s.request.complete(Either.right(req)) >>
+                  s.readBuffer.offer(Either.right(req.body.compile.to(ByteVector))) >>
+                  s.writeBlock.complete(Either.right(()))
+                ) >> created.offer(1)
+            )
+          )
+        )
         _ <- 
           Stream.fromQueueUnterminated(closed)
             .map(i => 
@@ -182,6 +208,7 @@ private[ember] object H2Server {
           Stream.fromQueueUnterminated(created)          
           .map{i =>
               val x: F[Unit] = for {
+                _ <- Sync[F].delay(println(i))
                 stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
                 req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
                 resp <- httpApp(req)
@@ -238,45 +265,45 @@ private[ember] object H2Server {
       } yield ()
   }
 
-  def impl[F[_]: Async: Parallel](
-    host: Host, 
-    port: Port, 
-    tlsContextOpt: Option[TLSContext[F]], 
-    httpApp: HttpApp[F], 
-    localSettings: H2Frame.Settings.ConnectionSettings = defaultSettings
-  ) = for {
-    _ <- Network[F].server(Some(host),Some(port)).map{socket => 
-      val r = for {
-        socket <- {
-          tlsContextOpt.fold(socket.pure[({ type R[A] = Resource[F, A]})#R])(tlsContext => 
-            for {
-              tlsSocket <- tlsContext.serverBuilder(
-                socket
-              ).withParameters(
-                TLSParameters(
-                  applicationProtocols = Some(List("h2", "http/1.1")),
-                  handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  => 
-                    l.find(_ === "h2").getOrElse("http/1.1")
-                  }.some
-                )
-              ).build
-            _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-            protocol <- Resource.eval(tlsSocket.applicationProtocol)
-            } yield tlsSocket
-          )
-        }
-        _ <- Resource.eval(requireConnectionPreface(socket))
-        _ <- fromSocket(socket, httpApp, localSettings)
-      } yield ()
+  // def impl[F[_]: Async: Parallel](
+  //   host: Host, 
+  //   port: Port, 
+  //   tlsContextOpt: Option[TLSContext[F]], 
+  //   httpApp: HttpApp[F], 
+  //   localSettings: H2Frame.Settings.ConnectionSettings = defaultSettings
+  // ) = for {
+  //   _ <- Network[F].server(Some(host),Some(port)).map{socket => 
+  //     val r = for {
+  //       socket <- {
+  //         tlsContextOpt.fold(socket.pure[({ type R[A] = Resource[F, A]})#R])(tlsContext => 
+  //           for {
+  //             tlsSocket <- tlsContext.serverBuilder(
+  //               socket
+  //             ).withParameters(
+  //               TLSParameters(
+  //                 applicationProtocols = Some(List("h2", "http/1.1")),
+  //                 handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  => 
+  //                   l.find(_ === "h2").getOrElse("http/1.1")
+  //                 }.some
+  //               )
+  //             ).build
+  //           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
+  //           protocol <- Resource.eval(tlsSocket.applicationProtocol)
+  //           } yield tlsSocket
+  //         )
+  //       }
+  //       _ <- Resource.eval(requireConnectionPreface(socket))
+  //       _ <- fromSocket(socket, httpApp, localSettings)
+  //     } yield ()
 
-      Stream.resource(r).handleErrorWith(e => 
-        Stream.eval(Sync[F].delay(println(s"Encountered Error With Connection $e")))
-      ) 
+  //     Stream.resource(r).handleErrorWith(e => 
+  //       Stream.eval(Sync[F].delay(println(s"Encountered Error With Connection $e")))
+  //     ) 
 
-    }.parJoin(200)
-      .compile
-      .resource
-      .drain
-  } yield ()
+  //   }.parJoin(200)
+  //     .compile
+  //     .resource
+  //     .drain
+  // } yield ()
 
 }

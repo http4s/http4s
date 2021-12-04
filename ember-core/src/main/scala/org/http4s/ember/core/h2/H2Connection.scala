@@ -28,7 +28,7 @@ import scodec.bits._
 
 // import H2Frame.Settings.ConnectionSettings.{default => defaultSettings} 
 
-private[ember] class H2Connection[F[_]](
+private[h2] class H2Connection[F[_]](
   host: com.comcast.ip4s.Host,
   port: com.comcast.ip4s.Port,
   connectionType: H2Connection.ConnectionType,

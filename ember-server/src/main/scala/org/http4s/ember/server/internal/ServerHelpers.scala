@@ -50,6 +50,8 @@ import org.http4s.ember.core.h2.H2Frame
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
+import cats.data.Kleisli
+import org.http4s.ember.core.h2.H2Keys
 
 private[server] object ServerHelpers {
 
@@ -188,6 +190,9 @@ private[server] object ServerHelpers {
                 Stream.resource(H2Server.fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default))
                   .drain
               case (socket, Some(_)) =>
+                // SSL Connection, not h2, will be http/1.1 but thats not how types align
+                // Prior Knowledge is only allowed over clear where application
+                // protocol has not been agreed via handshake
                 runConnection(
                   socket,
                   logger,
@@ -200,7 +205,8 @@ private[server] object ServerHelpers {
                   onWriteFailure,
                   createRequestVault,
                   webSocketKey,
-                  ByteVector.empty
+                  ByteVector.empty,
+                  enableHttp2,
                 ).drain
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
@@ -221,12 +227,14 @@ private[server] object ServerHelpers {
                           onWriteFailure,
                           createRequestVault,
                           webSocketKey,
-                          ByteVector.empty
+                          bv, // Pass read bytes we thought might be the prelude
+                          enableHttp2,
                         ).drain
                       case Right(_) => 
                         Stream.resource(H2Server.fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default))
                           .drain
                     }
+                  // Since its not enabled, run connection normally.
                   case false => 
                     runConnection(
                       socket,
@@ -240,7 +248,8 @@ private[server] object ServerHelpers {
                       onWriteFailure,
                       createRequestVault,
                       webSocketKey,
-                      ByteVector.empty
+                      ByteVector.empty,
+                      enableHttp2
                     ).drain
                 }
             }
@@ -274,6 +283,8 @@ private[server] object ServerHelpers {
   ): Resource[F, (Socket[F], Option[String])] =
     tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) { case (context, params) =>
       val newParams = if (enableHttp2) {
+        // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
+        // As this is the only JVM specific code
         TLSParameters(
           algorithmConstraints = params.algorithmConstraints,
           applicationProtocols = List("http/1.1", "h2").some,
@@ -377,9 +388,11 @@ private[server] object ServerHelpers {
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
+      enableHttp2: Boolean
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
+    val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
@@ -410,7 +423,7 @@ private[server] object ServerHelpers {
               read,
               maxHeaderSize,
               requestHeaderReceiveTimeout,
-              httpApp,
+              finalApp,
               errorHandler,
               socket,
               createRequestVault,
@@ -442,11 +455,23 @@ private[server] object ServerHelpers {
                       Applicative[F].pure(None)
                   }
                 case None =>
-                  for {
-                    nextResp <- postProcessResponse(req, resp)
-                    _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                    nextBuffer <- drain
-                  } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                  resp.attributes.lookup(H2Keys.H2cUpgrade) match {
+                    case None => 
+                      for {
+                        nextResp <- postProcessResponse(req, resp)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        nextBuffer <- drain
+                      } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                    case Some((settings, newReq)) => 
+                      for {
+                        nextResp <- postProcessResponse(req, resp)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        _ <- H2Server.requireConnectionPreface(socket)
+                        out <- H2Server.fromSocket(socket, httpApp, H2Frame.Settings.ConnectionSettings.default, settings, newReq.some)
+                          .use(_ => Async[F].never[Unit])
+                          .as(None)                        // nextBuffer <- drain
+                      } yield out
+                  }
               }
             case Left(err) =>
               err match {

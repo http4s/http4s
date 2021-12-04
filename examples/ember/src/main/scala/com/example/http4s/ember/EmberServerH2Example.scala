@@ -79,7 +79,8 @@ object EmberServerH2Example extends IOApp {
         .build
     } yield ()
 
-    def testPriorKnowledge[F[_]: Async] = 
+    // Can Test Both http2-prior-knowledge, and h2c
+    def testCleartext[F[_]: Async] = 
       EmberServerBuilder
         .default[F]
         .withHttp2
@@ -93,7 +94,7 @@ object EmberServerH2Example extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] = {
 
-    ServerTest.testPriorKnowledge[IO]
+    ServerTest.testCleartext[IO]
       .use(_ => IO.never)
       .as(ExitCode.Success)
   }

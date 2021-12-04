@@ -18,6 +18,7 @@ package org.http4s.ember.core.h2
 
 import org.typelevel.vault._
 import cats.effect._
+import org.http4s.Request
 
 object H2Keys {
   val PushPromiseInitialStreamIdentifier = Key.newKey[SyncIO, Int].unsafeRunSync()
@@ -30,4 +31,6 @@ object H2Keys {
   // but is invalid if the receiving server does not support the
   // mechanism.
   val Http2PriorKnowledge = Key.newKey[SyncIO, Unit].unsafeRunSync()
+
+  private[ember] val H2cUpgrade = Key.newKey[SyncIO, (H2Frame.Settings.ConnectionSettings, Request[fs2.Pure])].unsafeRunSync()
 }

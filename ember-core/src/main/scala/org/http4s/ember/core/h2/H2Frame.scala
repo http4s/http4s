@@ -507,24 +507,27 @@ private[ember] object H2Frame {
         val ack = (raw.flags & (0x01 << 0)) != 0
         if (ack && raw.payload.nonEmpty) H2Error.FrameSizeError.asLeft
         else if (ack) Settings(raw.identifier, ack, List.empty).asRight
-        else if (raw.payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
-        else {
-          val settings = for {
-            i <- 0 to (raw.payload.size.toInt - 5) by 6
-          } yield {
-            val s =  (raw.payload(i) << 8) + (raw.payload(i + 1) << 0)
-            val v0 = ((raw.payload(i + 2) & 0xff) << 24)
-            val v1 = ((raw.payload(i + 3) & 0xff) << 16)
-            val v2 = ((raw.payload(i + 4) & 0xff) << 8)
-            val v3 = ((raw.payload(i + 5) & 0xff) << 0)
-            val value = v0 | v1 | v2 | v3
-            Setting(s.toShort, value)
-          }
-          settings.toList.sequence.map(s => 
-            Settings(raw.identifier, ack, s.toList)
-          )
-        }
+        else fromPayload(raw.payload, raw.identifier, ack)
       } else Either.left(H2Error.InternalError)
+    }
+    def fromPayload(payload: ByteVector, identifier: Int, ack: Boolean): Either[H2Error, Settings] = {
+      if (payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
+      else {
+        val settings = for {
+          i <- 0 to (payload.size.toInt - 5) by 6
+        } yield {
+          val s =  (payload(i) << 8) + (payload(i + 1) << 0)
+          val v0 = ((payload(i + 2) & 0xff) << 24)
+          val v1 = ((payload(i + 3) & 0xff) << 16)
+          val v2 = ((payload(i + 4) & 0xff) << 8)
+          val v3 = ((payload(i + 5) & 0xff) << 0)
+          val value = v0 | v1 | v2 | v3
+          Setting(s.toShort, value)
+        }
+        settings.toList.sequence.map(s => 
+          Settings(identifier, ack, s.toList)
+        )
+      }
     }
 
     def toRaw(settings: Settings): RawFrame = {
