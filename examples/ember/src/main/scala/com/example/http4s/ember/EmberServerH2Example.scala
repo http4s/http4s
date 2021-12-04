@@ -19,30 +19,18 @@ package com.example.http4s.ember
 import cats._
 import cats.syntax.all._
 import cats.effect._
-import cats.effect.syntax.all._
-import cats.effect.std._
-import scodec.bits._
-import com.twitter.hpack._
 import fs2._
-import fs2.concurrent._
 import fs2.io.net._
 import fs2.io.net.tls._
 import com.comcast.ip4s._
 import org.http4s.implicits._
-
-import org.typelevel.ci.CIString
-import scala.concurrent.duration._
-// import org.http4s.ember.h2._
 import org.http4s.ember.server.EmberServerBuilder
 import fs2._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl._
-import java.nio.file.{Paths, Path}
 import com.comcast.ip4s._
 import com.example.http4s.ssl
-
-
 
 object EmberServerH2Example extends IOApp {
 
@@ -93,7 +81,6 @@ object EmberServerH2Example extends IOApp {
 
 
   def run(args: List[String]): IO[ExitCode] = {
-
     ServerTest.testCleartext[IO]
       .use(_ => IO.never)
       .as(ExitCode.Success)
