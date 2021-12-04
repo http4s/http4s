@@ -232,17 +232,17 @@ private[ember] class H2Client[F[_]: Async](
 }
 
 private[ember] object H2Client {
+  private type TinyClient[F[_]] = Request[F] => Resource[F, Response[F]]
   def impl[F[_]: Async](
     onPushPromise: (org.http4s.Request[fs2.Pure], F[org.http4s.Response[F]]) => F[Outcome[F, Throwable, Unit]], 
     tlsContext: TLSContext[F],
-    http1ClientR: Resource[F, Request[F] => Resource[F, Response[F]]],
     settings: H2Frame.Settings.ConnectionSettings = defaultSettings
-  ): Resource[F, Request[F] => Resource[F, Response[F]]] = {
+  ): Resource[F, TinyClient[F] => TinyClient[F]] = 
+    {
     for {
 
       mapH2 <- Resource.eval(Concurrent[F].ref(Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), (H2Connection[F], F[Unit])]()))
       socketMap <- Resource.eval(Concurrent[F].ref(Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), SocketType]()))
-      http1Client <- http1ClientR
 
       _ <- Stream.awakeDelay(5.seconds)
         .evalMap(_ => 
@@ -258,7 +258,7 @@ private[ember] object H2Client {
         .drain
         .background
       h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise)
-    } yield {req => 
+    } yield (http1Client: TinyClient[F]) => {(req: Request[F]) => 
       for {
         host <- Resource.eval(
           Sync[F].delay{

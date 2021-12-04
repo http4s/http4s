@@ -456,12 +456,14 @@ private[server] object ServerHelpers {
                   }
                 case None =>
                   resp.attributes.lookup(H2Keys.H2cUpgrade) match {
+                    // Http1.1
                     case None => 
                       for {
                         nextResp <- postProcessResponse(req, resp)
                         _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                         nextBuffer <- drain
                       } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                    // h2c escalation of the connection
                     case Some((settings, newReq)) => 
                       for {
                         nextResp <- postProcessResponse(req, resp)
@@ -469,7 +471,7 @@ private[server] object ServerHelpers {
                         _ <- H2Server.requireConnectionPreface(socket)
                         out <- H2Server.fromSocket(socket, httpApp, H2Frame.Settings.ConnectionSettings.default, settings, newReq.some)
                           .use(_ => Async[F].never[Unit])
-                          .as(None)                        // nextBuffer <- drain
+                          .as(None)
                       } yield out
                   }
               }

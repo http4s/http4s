@@ -34,6 +34,8 @@ import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
+import org.http4s.ember.core.h2.H2Client
+import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
@@ -166,6 +168,14 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
+      optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(context => 
+        H2Client.impl[F](
+          { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+          context,
+          // For 0.23 to maintain interface
+          default.copy(enablePush = org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false))
+        )
+      )
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
@@ -240,7 +250,12 @@ final class EmberClientBuilder[F[_]: Async] private (
           }
       }
       val stackClient = Retry(retryPolicy)(client)
-      new EmberClient[F](stackClient, pool)
+      val iClient = new EmberClient[F](stackClient, pool)
+
+      optH2.fold(iClient){h2 => 
+        val h2Client = Client(h2(iClient.run))
+        new EmberClient(h2Client, pool)
+      }
     }
 }
 
