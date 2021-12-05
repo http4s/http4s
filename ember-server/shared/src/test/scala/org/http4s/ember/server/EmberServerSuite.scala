@@ -61,7 +61,8 @@ class EmberServerSuite extends Http4sSuite {
       .default[IO]
       .withHttpApp(service[IO])
       .withReceiveBufferSize(receiveBufferSize)
-      .build)
+      .build
+  )
 
   def fixture(receiveBufferSize: Int = 256 * 1024) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
