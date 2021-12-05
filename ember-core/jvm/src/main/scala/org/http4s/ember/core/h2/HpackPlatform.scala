@@ -16,16 +16,17 @@
 
 package org.http4s.ember.core.h2
 
+import cats.data._
 import cats.effect._
 import cats.effect.std._
 import cats.syntax.all._
+import com.twitter.hpack.HeaderListener
 import scodec.bits._
+
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import com.twitter.hpack.HeaderListener
 import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ListBuffer
-import cats.data._
 
 trait HpackPlatform {
   def create[F[_]: Async]: F[Hpack[F]] = for {

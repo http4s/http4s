@@ -17,18 +17,17 @@
 package org.http4s.ember.core.h2
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.syntax.all._
+import cats.syntax.all._
 import fs2._
 import fs2.io.net._
-import fs2.io.net.tls._
 import org.http4s._
-import scala.concurrent.duration._
-import javax.net.ssl.SSLEngine
-import com.comcast.ip4s._
-import scodec.bits._
 import org.typelevel.ci._
+import scodec.bits._
+
+import scala.concurrent.duration._
+
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 
 private[ember] object H2Server {

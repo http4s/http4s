@@ -17,12 +17,12 @@
 package com.example.http4s.ember
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import fs2.io.net._
-import org.http4s.implicits._
-import org.http4s.ember.core.h2._
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.core.h2._
+import org.http4s.implicits._
 
 object EmberClientH2Example extends IOApp {
 

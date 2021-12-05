@@ -16,8 +16,8 @@
 
 package org.http4s.ember.core.h2
 
-import scodec.bits._
 import cats.data._
+import scodec.bits._
 
 private[h2] trait Hpack[F[_]] {
   def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]

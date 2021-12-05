@@ -16,13 +16,11 @@
 
 package org.http4s.ember.core.h2
 
+import cats._
 import cats.data._
 import cats.effect._
-import fs2._
-import fs2.concurrent._
-import fs2.io.net.Socket
-import cats._
 import cats.syntax.all._
+import fs2._
 import scodec.bits._
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
@@ -396,7 +394,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 }
 
 private[h2] object H2Stream {
-  case class State[F[_]](
+  final case class State[F[_]](
       state: StreamState,
       writeWindow: Int,
       writeBlock: Deferred[F, Either[Throwable, Unit]],

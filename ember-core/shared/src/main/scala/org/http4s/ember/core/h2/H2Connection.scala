@@ -16,12 +16,11 @@
 
 package org.http4s.ember.core.h2
 
-import cats.effect._
-import fs2._
-// import fs2.concurrent._
-import fs2.io.net.Socket
 import cats._
+import cats.effect._
 import cats.syntax.all._
+import fs2._
+import fs2.io.net.Socket
 import scodec.bits._
 // import cats.data._
 // import scala.concurrent.duration._
@@ -191,8 +190,8 @@ private[h2] class H2Connection[F[_]](
         go(chunk)
       }
       .drain
-    // TODO Split Frames between Data and Others Hold Data If we are at cap
-    //  Currently will backpressure at the data frame till its cleared
+  // TODO Split Frames between Data and Others Hold Data If we are at cap
+  //  Currently will backpressure at the data frame till its cleared
 
   def readLoop: Stream[F, Nothing] = {
     def p(acc: ByteVector): Pull[F, H2Frame, Unit] =
@@ -539,7 +538,7 @@ private[h2] class H2Connection[F[_]](
 }
 
 private[h2] object H2Connection {
-  case class State[F[_]](
+  final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: Int,
       writeBlock: Deferred[F, Either[Throwable, Unit]],

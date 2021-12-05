@@ -16,7 +16,6 @@
 
 package org.http4s.ember.core.h2
 
-import cats._
 import cats.syntax.all._
 import scodec.bits._
 
@@ -47,7 +46,7 @@ private[ember] object H2Frame {
 
    */
 
-  case class RawFrame(
+  final case class RawFrame(
       length: Int, // 3 bytes is within int range -- 16,777,216 16 mb max frame, bigger isn't necessarily better
       `type`: Byte,
       flags: Byte,
@@ -240,7 +239,7 @@ private[ember] object H2Frame {
   object Headers {
     val `type`: Byte = 0x1
 
-    case class StreamDependency(exclusive: Boolean, dependency: Int, weight: Byte)
+    final case class StreamDependency(exclusive: Boolean, dependency: Int, weight: Byte)
 
     def fromRaw(rawFrame: RawFrame): Either[H2Error, Headers] =
       rawFrame.`type` match {
