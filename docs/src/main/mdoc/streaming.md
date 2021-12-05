@@ -80,7 +80,7 @@ import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
 import fs2.io.stdout
-import fs2.text.{lines, utf8}
+import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
 
