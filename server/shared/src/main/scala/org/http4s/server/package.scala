@@ -22,6 +22,7 @@ import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.SyncIO
 import cats.syntax.all._
+import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
@@ -43,31 +44,41 @@ package object server {
          |             |_|""".stripMargin.split("\n").toList
 
     val IPv4Host: String =
-      InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
+      if (Platform.isJvm)
+        InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
+      else
+        "127.0.0.1"
     val IPv6Host: String =
-      InetAddress
-        .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
-        .getHostAddress
+      if (Platform.isJvm)
+        InetAddress
+          .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
+          .getHostAddress
+      else "0:0:0:0:0:0:0:1"
 
     @deprecated(
       message =
         "Please use IPv4Host or IPv6Host. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
       since = "0.21.23",
     )
-    val Host = InetAddress.getLoopbackAddress.getHostAddress
+    lazy val Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
 
-    val IPv4SocketAddress: InetSocketAddress =
+    lazy val IPv4SocketAddress: InetSocketAddress =
       InetSocketAddress.createUnresolved(IPv4Host, HttpPort)
-    val IPv6SocketAddress: InetSocketAddress =
+    lazy val IPv6SocketAddress: InetSocketAddress =
       InetSocketAddress.createUnresolved(IPv6Host, HttpPort)
+
+    val IPv4SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv4Address] =
+      ip4s.SocketAddress(ip4s.Ipv4Address.fromString(IPv4Host).get, ip4s.Port.fromInt(HttpPort).get)
+    lazy val IPv6SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv6Address] =
+      ip4s.SocketAddress(ip4s.Ipv6Address.fromString(IPv6Host).get, ip4s.Port.fromInt(HttpPort).get)
 
     @deprecated(
       message =
         "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
       since = "0.21.23",
     )
-    val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
+    lazy val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout
