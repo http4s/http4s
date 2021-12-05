@@ -5,6 +5,8 @@ import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
 Global / excludeLintKeys += laikaDescribe
 
+Global / excludeLintKeys += laikaDescribe
+
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
@@ -13,13 +15,13 @@ ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
 ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !isDotty.value)
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isScala3.value
-ThisBuild / scalafmtAll / skip := isScala3.value
-ThisBuild / ScalafixConfig / skip := isScala3.value
+ThisBuild / scalafixAll / skip := isDotty.value
+ThisBuild / ScalafixConfig / skip := isDotty.value
 
 ThisBuild / githubWorkflowBuildPreamble +=
   WorkflowStep.Use(
@@ -30,11 +32,9 @@ ThisBuild / githubWorkflowBuildPreamble +=
   )
 
 ThisBuild / githubWorkflowBuild := Seq(
-  // todo remove once salafmt properly supports scala3
   WorkflowStep.Sbt(
     List("${{ matrix.ci }}", "scalafmtCheckAll", "scalafmtSbtCheck"),
     name = Some("Check formatting"),
-    cond = Some(s"matrix.scala != '$scala_3'"),
   ),
   WorkflowStep
     .Sbt(List("${{ matrix.ci }}", "headerCheck", "test:headerCheck"), name = Some("Check headers")),
@@ -147,6 +147,8 @@ lazy val jvmModules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalInput,
+  scalafixInternalOutput,
   scalafixInternalTests,
 )
 
@@ -226,6 +228,19 @@ lazy val core = libraryCrossProject("core")
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
+    mimaBinaryIssueFilters ++= Seq(
+      // These will only cause problems when called via Java interop
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
+
+      // private constructors so effectively final already
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
+    ),
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -300,6 +315,36 @@ lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.server.middleware.CSRF.this"
+      ), // private[middleware]
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.server.middleware.CSRF#CSRFBuilder.this"
+      ), // private[middleware]
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.server.middleware.authentication.DigestUtil.computeResponse"
+      ), // private[authentication]
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.server.middleware.GZip$TrailerGen"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.server.middleware.GZip$TrailerGen$"
+      ), // private
+      // the following are private[middleware]
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$Static"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowMethods$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowOrigin$Match"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
+    ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -331,6 +376,16 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters
+        .exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.oauth1.package.makeSHASig"
+      ), // private[oauth1]
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.client.oauth1.*.generateHMAC"
+      ), // private[oauth1]
+    ),
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
@@ -360,6 +415,42 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
     libraryDependencies ++= Seq(
       log4catsTesting.value % Test
     ),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.apply"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.copy"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.parseMessage"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.unapply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"
+      ),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError$"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
+    ),
   )
   .dependsOn(core, testing % "test->test")
 
@@ -367,6 +458,28 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
+    Test / parallelExecution := false,
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runApp"
+      ),
+      ProblemFilters.exclude[Problem]("org.http4s.ember.server.EmberServerBuilder.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runApp"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.server.internal.ServerHelpers.runConnection"
+      ),
+    ),
     Test / parallelExecution := false,
   )
   .jvmSettings(
@@ -400,9 +513,8 @@ lazy val emberClient = libraryCrossProject("ember-client")
       log4catsSlf4j,
     ),
     mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.client.EmberClientBuilder.this"
-      )
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
     ),
   )
   .jvmSettings(
@@ -431,6 +543,32 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    mimaBinaryIssueFilters := Seq(
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder.this"
+      ), // private
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.blaze.server.WebSocketDecoder.this"
+      ), // private
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder.this"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"
+      ), // private
+    ),
   )
   .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 
@@ -438,6 +576,13 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
+    mimaBinaryIssueFilters ++= Seq(
+      // private constructor
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
+    ),
   )
   .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
 
@@ -823,7 +968,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isScala3.value)
+    ).filter(_ => !isDotty.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -848,7 +993,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isScala3.value),
+    ).filter(_ => !isDotty.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -880,7 +1025,15 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .crossType(crossType)
     .settings(commonSettings)
     .settings(
-      moduleName := s"http4s-$name"
+      moduleName := s"http4s-$name",
+      Test / test := {
+        val result = (Test / test).value
+        if (crossType == CrossType.Full) { // Check for misplaced srcs
+          val dir = baseDirectory.value / ".." / "src"
+          if (dir.exists) sys.error(s"Misplaced sources in ${dir.toPath().normalize()}")
+        }
+        result
+      },
     )
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
@@ -917,8 +1070,6 @@ lazy val commonSettings = Seq(
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
-val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
-
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
@@ -935,10 +1086,10 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt",
+  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )

@@ -98,7 +98,8 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
               .guaranteeCase(oc => outcome.complete(oc).void)
               .start
               .flatTap(fiber =>
-                cancelSignal.get >> fiber.cancel) // don't cancel until the returned resource is in use
+                cancelSignal.get >> fiber.cancel
+              ) // don't cancel until the returned resource is in use
           }
           .flatMap(_.get)
       }

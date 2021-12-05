@@ -37,7 +37,7 @@ class TwirlSuite extends Http4sSuite {
       Charset.fromString("Windows-1251").yolo,
       Charset.fromString("GB2312").yolo,
       Charset.fromString("Shift-JIS").yolo,
-      Charset.fromString("Windows-1252").yolo
+      Charset.fromString("Windows-1252").yolo,
     )
   }
 

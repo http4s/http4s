@@ -29,24 +29,29 @@ class TransferEncodingSuite extends HeaderLaws {
   test("render should include all the encodings") {
     assertEquals(
       `Transfer-Encoding`(TransferCoding.chunked).renderString,
-      "Transfer-Encoding: chunked")
+      "Transfer-Encoding: chunked",
+    )
     assertEquals(
       `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip).renderString,
-      "Transfer-Encoding: chunked, gzip")
+      "Transfer-Encoding: chunked, gzip",
+    )
   }
 
   test("parse should accept single codings") {
     assertEquals(
       `Transfer-Encoding`.parse("chunked").map(_.values),
-      Right(NonEmptyList.one(TransferCoding.chunked)))
+      Right(NonEmptyList.one(TransferCoding.chunked)),
+    )
   }
   test("parse should accept multiple codings") {
     assertEquals(
       `Transfer-Encoding`.parse("chunked, gzip").map(_.values),
-      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
+      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)),
+    )
     assertEquals(
       `Transfer-Encoding`.parse("chunked,gzip").map(_.values),
-      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)))
+      Right(NonEmptyList.of(TransferCoding.chunked, TransferCoding.gzip)),
+    )
   }
 
   test("hasChunked should detect chunked") {

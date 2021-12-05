@@ -53,7 +53,7 @@ class AcceptEncodingSpec extends Http4sSuite {
 
     assertEquals(
       parse("gzip; q=1.0, compress"),
-      Right(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
+      Right(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress)),
     )
 
     assertEquals(parse(gzip1.value), Right(gzip))

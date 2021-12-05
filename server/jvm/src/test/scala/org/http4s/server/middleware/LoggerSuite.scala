@@ -23,13 +23,14 @@ import cats.syntax.all._
 import fs2.io.readInputStream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
 
 import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
 class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs2.io, for Scala.js?
-  val testApp = HttpApp[IO] {
+  private val testApp = HttpApp[IO] {
     case GET -> Root / "request" =>
       Ok("request response")
     case req @ POST -> Root / "post" =>
@@ -38,14 +39,15 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
       Ok()
   }
 
-  def testResource = getClass.getResourceAsStream("/testresource.txt")
+  private def testResource = getClass.getResourceAsStream("/testresource.txt")
 
-  def body: EntityBody[IO] =
+  private def body: EntityBody[IO] =
     readInputStream[IO](IO.pure(testResource), 4096)
 
-  val expectedBody: String = Source.fromInputStream(testResource).mkString
+  private val expectedBody: String =
+    AutoCloseableResource.resource(Source.fromInputStream(testResource))(_.mkString)
 
-  val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("response should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -63,7 +65,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
     }.assert
   }
 
-  val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("request should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -77,7 +79,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
     }.assert
   }
 
-  val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
 
   test("logger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

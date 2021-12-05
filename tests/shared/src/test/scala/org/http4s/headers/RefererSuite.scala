@@ -30,7 +30,8 @@ class RefererSuite extends HeaderLaws {
   test("render format an absolute url") {
     assertEquals(
       Referer(getUri("http://localhost:8080")).renderString,
-      "Referer: http://localhost:8080")
+      "Referer: http://localhost:8080",
+    )
   }
   test("render format a relative url") {
     assertEquals(Referer(getUri("../../index.html")).renderString, "Referer: ../../index.html")
@@ -39,7 +40,8 @@ class RefererSuite extends HeaderLaws {
   test("parser should accept absolute url") {
     assertEquals(
       Referer.parse("http://localhost:8080").map(_.uri),
-      Right(getUri("http://localhost:8080")))
+      Right(getUri("http://localhost:8080")),
+    )
   }
   test("parser should accept relative url") {
     assertEquals(Referer.parse("../../index.html").map(_.uri), Right(getUri("../../index.html")))

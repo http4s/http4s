@@ -70,7 +70,8 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   private def mkConnection(
       key: RequestKey,
       dispatcher: Dispatcher[IO],
-      userAgent: Option[`User-Agent`] = None) =
+      userAgent: Option[`User-Agent`] = None,
+  ) =
     new Http1Connection[IO](
       key,
       executionContext = trampoline,
@@ -81,7 +82,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       parserMode = ParserMode.Strict,
       userAgent = userAgent,
       idleTimeoutStage = None,
-      dispatcher = dispatcher
+      dispatcher = dispatcher,
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -90,7 +91,8 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   private def bracketResponse[T](
       req: Request[IO],
       resp: String,
-      dispatcher: Dispatcher[IO]): Resource[IO, Response[IO]] = {
+      dispatcher: Dispatcher[IO],
+  ): Resource[IO, Response[IO]] = {
     val stageResource = Resource(IO {
       val stage = mkConnection(FooRequestKey, dispatcher)
       val h = new SeqTestHead(resp.toSeq.map { chr =>
@@ -111,7 +113,8 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      stage: Http1Connection[IO]): IO[(String, String)] =
+      stage: Http1Connection[IO],
+  ): IO[(String, String)] =
     for {
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
@@ -141,7 +144,8 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       req: Request[IO],
       resp: String,
       dispatcher: Dispatcher[IO],
-      userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
+      userAgent: Option[`User-Agent`] = None,
+  ): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key, dispatcher, userAgent)
     getSubmission(req, resp, tail)
@@ -324,7 +328,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest) //the first request succeeds
+      _ <- tail.runRequest(FooRequest) // the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed

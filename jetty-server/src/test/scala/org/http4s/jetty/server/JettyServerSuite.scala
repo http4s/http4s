@@ -23,6 +23,7 @@ import cats.effect.Temporal
 import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.server.Server
+import org.http4s.testing.AutoCloseableResource
 
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -33,9 +34,9 @@ import scala.io.Source
 
 class JettyServerSuite extends Http4sSuite {
 
-  def builder = JettyBuilder[IO]
+  private def builder = JettyBuilder[IO]
 
-  val serverR =
+  private val serverR =
     builder
       .bindAny()
       .withAsyncTimeout(3.seconds)
@@ -57,20 +58,21 @@ class JettyServerSuite extends Http4sSuite {
           case GET -> Root / "slow" =>
             Temporal[IO].sleep(50.millis) *> Ok("slow")
         },
-        "/"
+        "/",
       )
       .resource
 
-  val jettyServer = ResourceFixture[Server](serverR)
+  private val jettyServer = ResourceFixture[Server](serverR)
 
-  def get(server: Server, path: String): IO[String] =
+  private def get(server: Server, path: String): IO[String] =
     IO.blocking(
       Source
         .fromURL(new URL(s"http://${server.address}$path"))
         .getLines()
-        .mkString)
+        .mkString
+    )
 
-  def post(server: Server, path: String, body: String): IO[String] =
+  private def post(server: Server, path: String, body: String): IO[String] =
     IO.blocking {
       val url = new URL(s"http://${server.address}$path")
       val conn = url.openConnection().asInstanceOf[HttpURLConnection]
@@ -79,7 +81,10 @@ class JettyServerSuite extends Http4sSuite {
       conn.setRequestProperty("Content-Length", bytes.size.toString)
       conn.setDoOutput(true)
       conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines().mkString
+
+      AutoCloseableResource.resource(
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
+      )(_.getLines().mkString)
     }
 
   jettyServer.test("ChannelOptions should route requests on the service executor") { server =>

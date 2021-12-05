@@ -52,7 +52,7 @@ class MethodSuite extends Http4sSuite {
         Gen
           .oneOf(
             Gen.choose('\u0000', '\u001F'),
-            Gen.oneOf("()<>@,;:\\\"/[]?={} \t\u007F")
+            Gen.oneOf("()<>@,;:\\\"/[]?={} \t\u007F"),
           )
           .map(_.toString)
 

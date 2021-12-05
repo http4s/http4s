@@ -578,6 +578,14 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Age.unsafeFromDuration(age)
     }
 
+  implicit val http4sTestingArbitraryForAccessControlAllowMethodsHeader
+      : Arbitrary[headers.`Access-Control-Allow-Methods`] =
+    Arbitrary {
+      for {
+        methods <- containerOf[Set, Method](getArbitrary[Method])
+      } yield `Access-Control-Allow-Methods`(methods)
+    }
+
   implicit val http4sTestingArbitraryForSTS: Arbitrary[headers.`Strict-Transport-Security`] =
     Arbitrary {
       for {
@@ -649,7 +657,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     )
   }
 
-  // https://tools.ietf.org/html/rfc2234#section-6
+  // https://datatracker.ietf.org/doc/html/rfc2234#section-6
   val genHexDigit: Gen[Char] = oneOf(
     List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
   )
@@ -778,7 +786,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
     Cogen[String].contramap(_.renderString)
 
-  /** https://tools.ietf.org/html/rfc3986 */
+  /** https://datatracker.ietf.org/doc/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
@@ -794,6 +802,22 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
+
+  /** Creates an `Gen[Url]` with checking that a URI is converting to String
+    * and back to URI safely.
+    * Use this Gen with cautions - it may lead to tests performance degradation.
+    */
+  def createGenUri: Gen[Uri] =
+    http4sTestingArbitraryForUri.arbitrary.filter { uri =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val convertedBackToUriWithFragment =
+        (f: Uri.Fragment) => Uri.fromString(uri.withoutFragment.toString).map(_.withFragment(f))
+      val parsedUri =
+        uri.fragment.fold(Uri.fromString(uri.toString))(convertedBackToUriWithFragment)
+
+      parsedUri == Right(uri)
+    }
 
   implicit val http4sTestingArbitraryForLink: Arbitrary[LinkValue] = Arbitrary {
     for {

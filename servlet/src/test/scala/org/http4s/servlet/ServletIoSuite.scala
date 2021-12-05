@@ -26,7 +26,8 @@ import javax.servlet._
 class ServletIoSuite extends Http4sSuite {
 
   test(
-    "NonBlockingServletIo should decode request body which is smaller than chunk size correctly") {
+    "NonBlockingServletIo should decode request body which is smaller than chunk size correctly"
+  ) {
     val request =
       HttpServletRequestStub(inputStream = new TestServletInputStream("test".getBytes(UTF_8)))
 
@@ -36,9 +37,11 @@ class ServletIoSuite extends Http4sSuite {
   }
 
   test(
-    "NonBlockingServletIo should decode request body which is bigger than chunk size correctly") {
+    "NonBlockingServletIo should decode request body which is bigger than chunk size correctly"
+  ) {
     val request = HttpServletRequestStub(inputStream =
-      new TestServletInputStream("testtesttest".getBytes(UTF_8)))
+      new TestServletInputStream("testtesttest".getBytes(UTF_8))
+    )
 
     val io = NonBlockingServletIo[IO](10)
     val body = io.reader(request)

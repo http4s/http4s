@@ -82,7 +82,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
     *
-    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    *  https://datatracker.ietf.org/doc/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))

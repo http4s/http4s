@@ -21,8 +21,9 @@ import _root_.play.api.libs.json._
 import cats.effect.IO
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.laws.discipline.arbitrary
 import org.http4s.play._
-import org.http4s.syntax.all._
+import org.scalacheck.Prop.forAll
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
@@ -58,11 +59,13 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
     result.value.assertEquals(Right(Foo(42)))
   }
 
-  test("Uri codec should round trip") {
-    // TODO would benefit from Arbitrary[Uri]
-    val uri = uri"http://www.example.com/"
-
-    assertEquals(Json.fromJson[Uri](Json.toJson(uri)).asOpt, Some(uri))
+  property("Uri codec round trip") {
+    forAll(arbitrary.createGenUri) { (uri: Uri) =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val preparedUri = uri.fragment.fold(uri)(f => uri.withFragment(Uri.encode(f)))
+      assertEquals(Json.fromJson[Uri](Json.toJson(uri)).asOpt, Some(preparedUri))
+    }
   }
 
   test("Message[F].decodeJson[A] should decode json from a message") {

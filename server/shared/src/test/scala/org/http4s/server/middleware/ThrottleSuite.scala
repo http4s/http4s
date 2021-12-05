@@ -31,8 +31,6 @@ import scala.concurrent.duration._
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
-    // val ctx = TestContext()
-
     val someRefillTime = 1234.milliseconds
     val capacity = 5
     val createBucket =
@@ -42,7 +40,7 @@ class ThrottleSuite extends Http4sSuite {
       val takeFiveTokens: IO[List[TokenAvailability]] =
         (1 to 5).toList.traverse(_ => testee.takeToken)
       val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
       (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
         .mapN(_ && _)
     }.assert
@@ -62,7 +60,7 @@ class ThrottleSuite extends Http4sSuite {
 
     takeTokenAfterRefill
       .map { result =>
-        ctx.tick(101.milliseconds)
+        ctx.advanceAndTick(101.milliseconds)
         result
       }
       .assertEquals(TokenAvailable)
@@ -83,7 +81,7 @@ class ThrottleSuite extends Http4sSuite {
 
     takeExtraToken
       .map { result =>
-        ctx.tick(300.milliseconds)
+        ctx.advanceAndTick(300.milliseconds)
         result
       }
       .map(_.isInstanceOf[TokenUnavailable])
@@ -91,7 +89,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests") {
+    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests"
+  ) {
     val capacity = 1
     val createBucket =
       TokenBucket.local[IO](capacity, 100.milliseconds)
@@ -108,7 +107,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky) {
+    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky
+  ) {
     val ctx = TestContext()
     val capacity = 1
     val createBucket =
@@ -119,14 +119,15 @@ class ThrottleSuite extends Http4sSuite {
     }
 
     takeTwoTokens.map { result =>
-      ctx.tick(75.milliseconds)
+      ctx.advanceAndTick(75.milliseconds)
       result match {
         case TokenUnavailable(t) => t.exists(_ <= 25.milliseconds)
         case _ => false
       }
     }.assert
   }
-  val alwaysOkApp = HttpApp[IO] { _ =>
+
+  private val alwaysOkApp = HttpApp[IO] { _ =>
     Ok()
   }
 
@@ -138,7 +139,7 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.Ok).assert
+    testee(req).map(_.status).assertEquals(Status.Ok)
   }
 
   test(" Throttle / should deny a request when the rate limit had been reached") {
@@ -149,6 +150,6 @@ class ThrottleSuite extends Http4sSuite {
     val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
     val req = Request[IO](uri = uri"/")
 
-    testee(req).map(_.status === Status.TooManyRequests).assert
+    testee(req).map(_.status).assertEquals(Status.TooManyRequests)
   }
 }

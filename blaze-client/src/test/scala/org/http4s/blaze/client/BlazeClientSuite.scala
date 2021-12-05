@@ -33,7 +33,8 @@ import scala.concurrent.duration._
 class BlazeClientSuite extends BlazeClientBase {
 
   test(
-    "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key") {
+    "Blaze Http1Client should raise error NoConnectionAllowedException if no connections are permitted for key"
+  ) {
     val sslAddress = secureServer().addresses.head.toInetSocketAddress
     val name = sslAddress.getHostName
     val port = sslAddress.getPort
@@ -124,7 +125,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should stop sending data when the server sends response and closes connection") {
+    "Blaze Http1Client should stop sending data when the server sends response and closes connection"
+  ) {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     val addresses = server().addresses
     val address = addresses.head.toInetSocketAddress
@@ -136,7 +138,7 @@ class BlazeClientSuite extends BlazeClientBase {
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
-            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo
+            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately").yolo,
           ).withBodyStream(body)
           client.status(req) >> reqClosed.get
         }
@@ -145,7 +147,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should stop sending data when the server sends response without body and closes connection") {
+    "Blaze Http1Client should stop sending data when the server sends response without body and closes connection"
+  ) {
     // https://datatracker.ietf.org/doc/html/rfc2616#section-8.2.2
     // Receiving a response with and without body exercises different execution path in blaze client.
 
@@ -159,7 +162,7 @@ class BlazeClientSuite extends BlazeClientBase {
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()).void)
           val req = Request[IO](
             method = Method.POST,
-            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo
+            uri = Uri.fromString(s"http://$name:$port/respond-and-close-immediately-no-body").yolo,
           ).withBodyStream(body)
           client.status(req) >> reqClosed.get
         }
@@ -168,7 +171,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should fail with request timeout if the request body takes too long to send") {
+    "Blaze Http1Client should fail with request timeout if the request body takes too long to send"
+  ) {
     val addresses = server().addresses
     val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
@@ -178,7 +182,7 @@ class BlazeClientSuite extends BlazeClientBase {
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
           method = Method.POST,
-          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
+          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo,
         ).withBodyStream(body)
         client.status(req)
       }
@@ -191,7 +195,8 @@ class BlazeClientSuite extends BlazeClientBase {
   }
 
   test(
-    "Blaze Http1Client should fail with response header timeout if the request body takes too long to send") {
+    "Blaze Http1Client should fail with response header timeout if the request body takes too long to send"
+  ) {
     val addresses = server().addresses
     val address = addresses.head.toInetSocketAddress
     val name = address.getHostName
@@ -201,7 +206,7 @@ class BlazeClientSuite extends BlazeClientBase {
         val body = Stream(0.toByte).repeat
         val req = Request[IO](
           method = Method.POST,
-          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo
+          uri = Uri.fromString(s"http://$name:$port/process-request-entity").yolo,
         ).withBodyStream(body)
         client.status(req)
       }
@@ -241,7 +246,8 @@ class BlazeClientSuite extends BlazeClientBase {
         client.status(Request[IO](uri = uri"http://example.invalid/"))
       }
       .interceptMessage[ConnectionFailure](
-        "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)")
+        "Error connecting to http://example.invalid using address example.invalid:80 (unresolved: true)"
+      )
   }
 
   test("Blaze HTTP/1 client should raise a ResponseException when it receives an unexpected EOF") {
@@ -256,7 +262,8 @@ class BlazeClientSuite extends BlazeClientBase {
         Stream
           .eval(builder(1).resource.use { client =>
             interceptMessageIO[SocketException](
-              s"HTTP connection closed: ${RequestKey.fromRequest(req)}")(client.expect[String](req))
+              s"HTTP connection closed: ${RequestKey.fromRequest(req)}"
+            )(client.expect[String](req))
           })
           .concurrently(sockets.evalMap(s => s.endOfInput *> s.endOfOutput))
           .compile
@@ -277,7 +284,8 @@ class BlazeClientSuite extends BlazeClientBase {
         reading <- Deferred[IO, Unit]
         done <- Deferred[IO, Unit]
         body = Stream.eval(reading.complete(())) *> (Stream.empty: EntityBody[IO]) <* Stream.eval(
-          done.get)
+          done.get
+        )
         req = Request[IO](Method.POST, uri = uri).withEntity(body)
         _ <- client.status(req).start
         _ <- reading.get

@@ -106,7 +106,8 @@ val service: HttpRoutes[IO] =
 
 * Reorder the routes so that authed routes compose last
 ```scala mdoc:silent:nest
-val service: HttpRoutes[IO] = frenchRoutes <+> middleware(spanishRoutes)
+val service: HttpRoutes[IO] = 
+  middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
 Alternatively, to customize the behavior on not authenticated if you do not
@@ -130,7 +131,7 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(??
 
 val onFailure: AuthedRoutes[String, IO] = 
   Kleisli(req => OptionT.liftF(Forbidden(req.context)))
-  
+
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpRoutes[IO] = middleware(authedRoutes)
@@ -168,7 +169,7 @@ val crypto = CryptoBits(key)
 val clock = java.time.Clock.systemUTC
 
 // gotta figure out how to do the form
-def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? 
+def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ???
 
 val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
   verifyLogin(request: Request[IO]).flatMap(_ match {

@@ -38,6 +38,7 @@ import org.scalacheck.Prop._
 import org.typelevel.ci._
 
 import java.nio.file.Paths
+import scala.collection.immutable.Seq
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {
@@ -58,7 +59,8 @@ class UriSpec extends Http4sSuite {
       test("Uri fromString should Not UrlDecode the query String") {
         assertEquals(
           getUri("http://localhost:8080/blah?x=abc&y=ijk").query,
-          Query.fromPairs("x" -> "abc", "y" -> "ijk"))
+          Query.fromPairs("x" -> "abc", "y" -> "ijk"),
+        )
       }
 
       test("Uri fromString should Not UrlDecode the uri fragment") {
@@ -77,7 +79,8 @@ class UriSpec extends Http4sSuite {
         }
 
         test(
-          "Uri fromString should parse the authority correctly when uri does not have trailing slash") {
+          "Uri fromString should parse the authority correctly when uri does not have trailing slash"
+        ) {
           val uri = getUri("http://localhost")
           assertEquals(uri.authority.get.host, RegName("localhost"))
         }
@@ -92,7 +95,8 @@ class UriSpec extends Http4sSuite {
         test("Uri fromString should parse port correctly if there is a valid (non-negative) one") {
           forAll(Gen.choose[Int](0, Int.MaxValue)) { (nonNegative: Int) =>
             val uri = getUri(s"http://localhost:$nonNegative/")
-            (uri.port == Some(nonNegative))
+
+            assertEquals(uri.port, Some(nonNegative))
           }
         }
         test("Uri fromString should parse port correctly if there is none") {
@@ -115,14 +119,16 @@ class UriSpec extends Http4sSuite {
       }
 
       test(
-        "Uri fromString should provide a useful error message if string argument is not url-encoded") {
+        "Uri fromString should provide a useful error message if string argument is not url-encoded"
+      ) {
         assertEquals(
           Uri.fromString("http://example.org/a file"),
           Left(
             ParseFailure(
               "Invalid URI",
-              "Error(20,NonEmptyList(EndOfString(20,25)))"
-            ))
+              "Error(20,NonEmptyList(EndOfString(20,25)))",
+            )
+          ),
         )
       }
     }
@@ -147,14 +153,16 @@ class UriSpec extends Http4sSuite {
         }
       }
       test("Uri should fail to parse portif it's not a number or an empty String") {
-        forAll(Gen.alphaNumStr.suchThat(str =>
-          str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft)) {
-          (notNumber: String) =>
-            val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
-            uri match {
-              case Left(ParseFailure("Invalid URI", _)) => true
-              case _ => false
-            }
+        forAll(
+          Gen.alphaNumStr.suchThat(str =>
+            str.nonEmpty && Either.catchOnly[NumberFormatException](str.toInt).isLeft
+          )
+        ) { (notNumber: String) =>
+          val uri: ParseResult[Uri] = Uri.fromString(s"http://localhost:$notNumber/")
+          uri match {
+            case Left(ParseFailure("Invalid URI", _)) => true
+            case _ => false
+          }
         }
       }
     }
@@ -184,38 +192,46 @@ class UriSpec extends Http4sSuite {
     test("Uri Query decoding should Handle queries with no spaces properly") {
       assertEquals(
         getQueryParams("http://localhost:8080/blah?x=abc&y=ijk"),
-        Map("x" -> "abc", "y" -> "ijk"))
+        Map("x" -> "abc", "y" -> "ijk"),
+      )
       assertEquals(getQueryParams("http://localhost:8080/blah?"), Map("" -> ""))
-      assert(getQueryParams("http://localhost:8080/blah") == Map.empty)
+      assertEquals(getQueryParams("http://localhost:8080/blah"), Map.empty[String, String])
     }
 
     test("Uri Query decoding should Handle queries with spaces properly") {
       // Issue #75
       assertEquals(
         getQueryParams("http://localhost:8080/blah?x=a+bc&y=ijk"),
-        Map("x" -> "a bc", "y" -> "ijk"))
+        Map("x" -> "a bc", "y" -> "ijk"),
+      )
       assertEquals(
         getQueryParams("http://localhost:8080/blah?x=a%20bc&y=ijk"),
-        Map("x" -> "a bc", "y" -> "ijk"))
+        Map("x" -> "a bc", "y" -> "ijk"),
+      )
     }
   }
 
   test("Uri copy should support updating the schema") {
     assertEquals(
       uri"http://example.com/".copy(scheme = Scheme.https.some),
-      uri"https://example.com/")
+      uri"https://example.com/",
+    )
     // Must add the authority to set the scheme and host
     assertEquals(
       uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com")))),
-      uri"https://example.com/route/")
+        authority = Some(Authority(None, RegName("example.com"))),
+      ),
+      uri"https://example.com/route/",
+    )
     // You can add a port too
     assertEquals(
       uri"/route/".copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com"), Some(8443)))),
-      uri"https://example.com:8443/route/")
+        authority = Some(Authority(None, RegName("example.com"), Some(8443))),
+      ),
+      uri"https://example.com:8443/route/",
+    )
   }
 
   {
@@ -242,8 +258,9 @@ class UriSpec extends Http4sSuite {
             Some(Scheme.http),
             Some(Authority(host = Uri.Ipv6Address.unsafeFromString(s))),
             path"/foo",
-            Query.fromPairs("bar" -> "baz")).toString,
-          s"http://[$s]/foo?bar=baz"
+            Query.fromPairs("bar" -> "baz"),
+          ).toString,
+          s"http://[$s]/foo?bar=baz",
         )
       }
     }
@@ -254,8 +271,9 @@ class UriSpec extends Http4sSuite {
           Some(Scheme.http),
           Some(Authority(host = RegName(ci"www.foo.com"))),
           path"/foo",
-          Query.fromPairs("bar" -> "baz")).toString,
-        "http://www.foo.com/foo?bar=baz"
+          Query.fromPairs("bar" -> "baz"),
+        ).toString,
+        "http://www.foo.com/foo?bar=baz",
       )
     }
 
@@ -263,14 +281,17 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = RegName(ci"www.foo.com"), port = Some(80)))).toString,
-        "http://www.foo.com:80")
+          Some(Authority(host = RegName(ci"www.foo.com"), port = Some(80))),
+        ).toString,
+        "http://www.foo.com:80",
+      )
     }
 
     test("Uri toString should render URL without port") {
       assertEquals(
         Uri(Some(Scheme.http), Some(Authority(host = RegName(ci"www.foo.com")))).toString,
-        "http://www.foo.com")
+        "http://www.foo.com",
+      )
     }
 
     test("Uri toString should render IPv4 URL with parameters") {
@@ -279,9 +300,9 @@ class UriSpec extends Http4sSuite {
           Some(Scheme.http),
           Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(80))),
           path"/c",
-          Query.fromPairs("GB" -> "object", "Class" -> "one")
+          Query.fromPairs("GB" -> "object", "Class" -> "one"),
         ).toString,
-        "http://192.168.1.1:80/c?GB=object&Class=one"
+        "http://192.168.1.1:80/c?GB=object&Class=one",
       )
     }
 
@@ -289,14 +310,17 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(8080)))).toString,
-        "http://192.168.1.1:8080")
+          Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1"), port = Some(8080))),
+        ).toString,
+        "http://192.168.1.1:8080",
+      )
     }
 
     test("Uri toString should render IPv4 URL without port") {
       assertEquals(
         Uri(Some(Scheme.http), Some(Authority(host = Uri.Ipv4Address(ipv4"192.168.1.1")))).toString,
-        "http://192.168.1.1")
+        "http://192.168.1.1",
+      )
     }
 
     test("Uri toString should render IPv6 URL with parameters") {
@@ -305,9 +329,9 @@ class UriSpec extends Http4sSuite {
           Some(Scheme.http),
           Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8::7"))),
           path"/c",
-          Query.fromPairs("GB" -> "object", "Class" -> "one")
+          Query.fromPairs("GB" -> "object", "Class" -> "one"),
         ).toString,
-        "http://[2001:db8::7]/c?GB=object&Class=one"
+        "http://[2001:db8::7]/c?GB=object&Class=one",
       )
     }
 
@@ -318,8 +342,11 @@ class UriSpec extends Http4sSuite {
           Some(
             Authority(
               host = Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"),
-              port = Some(8080)))).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080"
+              port = Some(8080),
+            )
+          ),
+        ).toString,
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080",
       )
     }
 
@@ -327,10 +354,9 @@ class UriSpec extends Http4sSuite {
       assertEquals(
         Uri(
           Some(Scheme.http),
-          Some(
-            Authority(host =
-              Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344")))).toString,
-        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]"
+          Some(Authority(host = Uri.Ipv6Address(ipv6"2001:db8:85a3:8d3:1319:8a2e:370:7344"))),
+        ).toString,
+        "http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]",
       )
     }
 
@@ -341,7 +367,8 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render email address") {
       assertEquals(
         Uri(Some(scheme"mailto"), path = path"John.Doe@example.com").toString,
-        "mailto:John.Doe@example.com")
+        "mailto:John.Doe@example.com",
+      )
     }
 
     test("Uri toString should render an URL with username and password") {
@@ -352,12 +379,14 @@ class UriSpec extends Http4sSuite {
             Authority(
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
-              None)),
+              None,
+            )
+          ),
           path"/",
           Query.empty,
-          None
+          None,
         ).toString,
-        "http://username:password@some.example.com/"
+        "http://username:password@some.example.com/",
       )
     }
 
@@ -369,58 +398,56 @@ class UriSpec extends Http4sSuite {
             Authority(
               Some(UserInfo("username", Some("password"))),
               RegName("some.example.com"),
-              None)),
+              None,
+            )
+          ),
           path"/some/path",
           Query.unsafeFromString("param1=5&param-without-value"),
-          None
+          None,
         ).toString,
-        "http://username:password@some.example.com/some/path?param1=5&param-without-value"
+        "http://username:password@some.example.com/some/path?param1=5&param-without-value",
       )
     }
 
     test("Uri toString should render relative URI with empty query string") {
       assertEquals(
         Uri(path = path"/", query = Query.unsafeFromString(""), fragment = None).toString,
-        "/?")
+        "/?",
+      )
     }
 
     test("Uri toString should render relative URI with empty query string and fragment") {
       assertEquals(
         Uri(path = path"/", query = Query.unsafeFromString(""), fragment = Some("")).toString,
-        "/?#")
+        "/?#",
+      )
     }
 
     test("Uri toString should render relative URI with empty fragment") {
       assertEquals(
         Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString,
-        "/#")
+        "/#",
+      )
     }
 
     test("Uri toString should render relative URI with empty fragment") {
       assertEquals(
         Uri(path = Uri.Path.Root, query = Query.empty, fragment = Some("")).toString,
-        "/#")
+        "/#",
+      )
     }
 
     test("Uri toString should render absolute path with fragment") {
       assertEquals(
         Uri(path = path"/foo/bar", fragment = Some("an-anchor")).toString,
-        "/foo/bar#an-anchor")
+        "/foo/bar#an-anchor",
+      )
     }
 
     test("Uri toString should render absolute path with parameters") {
       assertEquals(
         Uri(path = path"/foo/bar", query = Query.unsafeFromString("foo=bar&ding=dong")).toString,
-        "/foo/bar?foo=bar&ding=dong")
-    }
-
-    test("Uri toString should render absolute path with parameters and fragment") {
-      assertEquals(
-        Uri(
-          path = path"/foo/bar",
-          query = Query.unsafeFromString("foo=bar&ding=dong"),
-          fragment = Some("an_anchor")).toString,
-        "/foo/bar?foo=bar&ding=dong#an_anchor"
+        "/foo/bar?foo=bar&ding=dong",
       )
     }
 
@@ -429,8 +456,20 @@ class UriSpec extends Http4sSuite {
         Uri(
           path = path"/foo/bar",
           query = Query.unsafeFromString("foo=bar&ding=dong"),
-          fragment = Some("an_anchor")).toString,
-        "/foo/bar?foo=bar&ding=dong#an_anchor"
+          fragment = Some("an_anchor"),
+        ).toString,
+        "/foo/bar?foo=bar&ding=dong#an_anchor",
+      )
+    }
+
+    test("Uri toString should render absolute path with parameters and fragment") {
+      assertEquals(
+        Uri(
+          path = path"/foo/bar",
+          query = Query.unsafeFromString("foo=bar&ding=dong"),
+          fragment = Some("an_anchor"),
+        ).toString,
+        "/foo/bar?foo=bar&ding=dong#an_anchor",
       )
     }
 
@@ -447,7 +486,8 @@ class UriSpec extends Http4sSuite {
     }
 
     test(
-      "Uri toString should prefix relative path containing colon in the only segment with a ./") {
+      "Uri toString should prefix relative path containing colon in the only segment with a ./"
+    ) {
       assertEquals(Uri(path = path"foo:bar").toString, "./foo:bar")
     }
 
@@ -466,7 +506,8 @@ class UriSpec extends Http4sSuite {
     test("Uri toString should render a query string with multiple value in a param") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=3&param2=2&param2=foo")).toString,
-        "?param1=3&param2=2&param2=foo")
+        "?param1=3&param2=2&param2=foo",
+      )
     }
 
     test("Uri toString should round trip over URI examples from wikipedia") {
@@ -503,7 +544,7 @@ class UriSpec extends Http4sSuite {
         "./resource.txt#frag01",
         "resource.txt",
         "#frag01",
-        ""
+        "",
       )
       examples.foreach { e =>
         assertEquals(Uri.fromString(e).map(_.toString), Right(e))
@@ -515,7 +556,8 @@ class UriSpec extends Http4sSuite {
         Uri
           .fromString("http://localhost:8080/index?filter[state]=public")
           .map(_.toString),
-        Right("http://localhost:8080/index?filter[state]=public"))
+        Right("http://localhost:8080/index?filter[state]=public"),
+      )
     }
 
     test("Uri toString should round trip with toString".fail) {
@@ -536,17 +578,20 @@ class UriSpec extends Http4sSuite {
     test("Uri parameters should parse parameter without key but with value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("=value")).multiParams,
-        Map("" -> List("value")))
+        Map("" -> List("value")),
+      )
     }
     test("Uri parameters should parse single parameter with empty value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=")).multiParams,
-        Map("param1" -> List("")))
+        Map("param1" -> List("")),
+      )
     }
     test("Uri parameters should parse single parameter with value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value")).multiParams,
-        Map("param1" -> List("value")))
+        Map("param1" -> List("value")),
+      )
     }
     test("Uri parameters should parse single parameter without value") {
       assertEquals(Uri(query = Query.unsafeFromString("param1")).multiParams, Map("param1" -> Nil))
@@ -554,18 +599,20 @@ class UriSpec extends Http4sSuite {
     test("Uri parameters should parse many parameter with value") {
       assertEquals(
         Uri(query =
-          Query.unsafeFromString(
-            "param1=value&param2=value1&param2=value2&param3=value")).multiParams,
+          Query.unsafeFromString("param1=value&param2=value1&param2=value2&param3=value")
+        ).multiParams,
         Map(
           "param1" -> List("value"),
           "param2" -> List("value1", "value2"),
-          "param3" -> List("value"))
+          "param3" -> List("value"),
+        ),
       )
     }
     test("Uri parameters should parse many parameter without value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-        (Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil)))
+        (Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil)),
+      )
     }
   }
 
@@ -583,7 +630,9 @@ class UriSpec extends Http4sSuite {
         Uri(query = Query.unsafeFromString("param=value")).params + (
           (
             "param",
-            Seq("value1", "value2")))
+            Seq("value1", "value2"),
+          ),
+        )
       assertEquals(i, Map("param" -> Seq("value1", "value2")))
     }
     test("Uri.params.+ should replace an existing parameter with empty value") {
@@ -595,7 +644,7 @@ class UriSpec extends Http4sSuite {
   {
     test("Uri.params.- should not do anything on an URI without a query") {
       val i = Uri(query = Query.empty).params - "param"
-      assert(i == Map())
+      assertEquals(i, Map.empty[String, String])
     }
     test("Uri.params.- should not reduce a map if parameter does not match") {
       val i = Uri(query = Query.unsafeFromString("param1")).params - "param2"
@@ -603,7 +652,7 @@ class UriSpec extends Http4sSuite {
     }
     test("Uri.params.- should reduce a map if matching parameter found") {
       val i = Uri(query = Query.unsafeFromString("param")).params - "param"
-      assert(i == Map())
+      assertEquals(i, Map.empty[String, String])
     }
   }
 
@@ -628,7 +677,9 @@ class UriSpec extends Http4sSuite {
     test("Uri.params.iterate should work on non-empty query string") {
       val u = Uri(
         query = Query.unsafeFromString(
-          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"
+        )
+      )
       val i = u.params.iterator
       assertEquals(i.next(), "param1" -> "value1")
       assertEquals(i.next(), "param2" -> "value4")
@@ -640,49 +691,61 @@ class UriSpec extends Http4sSuite {
     test("Uri.multiParams should find first value of parameter with many values") {
       val u = Uri(
         query = Query.unsafeFromString(
-          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
-      assert(
-        u.multiParams ==
-          Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")))
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"
+        )
+      )
+      assertEquals(
+        u.multiParams,
+        Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")),
+      )
     }
     test("Uri.multiParams should find parameter with empty key and a value") {
       val u = Uri(query = Query.unsafeFromString("param1=&=value-of-empty-key&param2=value"))
-      assert(
-        u.multiParams ==
-          Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")))
+      assertEquals(
+        u.multiParams,
+        Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")),
+      )
     }
     test("Uri.multiParams should find first value of parameter with empty key") {
-      assert(
-        Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams ==
-          (Map("" -> Seq("value1", "value2"))))
-      assert(
-        Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams ==
-          (Map("" -> Seq("value1", "value2"))))
-      assert(
-        Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams ==
-          (Map("" -> Seq("value1", "value2", ""))))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams,
+        Map("" -> Seq("value1", "value2")),
+      )
+      assertEquals(
+        Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams,
+        Map("" -> Seq("value1", "value2")),
+      )
+      assertEquals(
+        Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams,
+        Map("" -> Seq("value1", "value2", "")),
+      )
     }
     test("Uri.multiParams should find parameter with empty key and without value") {
-      assert(Uri(query = Query.unsafeFromString("&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.unsafeFromString("&&")).multiParams == (Map("" -> Seq())))
-      assert(Uri(query = Query.unsafeFromString("&&&")).multiParams == (Map("" -> Seq())))
+      assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq()))
     }
     test("Uri.multiParams should find parameter with an empty value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1=")).multiParams == (Map("param1" -> Seq(""))))
-      assert(
-        Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams ==
-          (Map("param1" -> Seq(""), "param2" -> Seq(""))))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=")).multiParams,
+        Map("param1" -> Seq("")),
+      )
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams,
+        Map("param1" -> Seq(""), "param2" -> Seq("")),
+      )
     }
     test("Uri.multiParams should find parameter with single value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams ==
-          (Map("param1" -> Seq("value1"), "param2" -> Seq("value2"))))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams,
+        Map("param1" -> Seq("value1"), "param2" -> Seq("value2")),
+      )
     }
     test("Uri.multiParams should find parameter without value") {
-      assert(
-        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams ==
-          (Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())))
+      assertEquals(
+        Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
+        Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
+      )
     }
   }
 
@@ -690,7 +753,9 @@ class UriSpec extends Http4sSuite {
     test("Uri.params.get should find first value of parameter with many values") {
       val u = Uri(
         query = Query.unsafeFromString(
-          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+          "param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"
+        )
+      )
       assertEquals(u.params.get("param1"), Some("value1"))
       assertEquals(u.params.get("param2"), Some("value4"))
     }
@@ -701,10 +766,12 @@ class UriSpec extends Http4sSuite {
     test("Uri.params.get should find first value of parameter with empty key") {
       assertEquals(
         Uri(query = Query.unsafeFromString("=value1&=value2")).params.get(""),
-        Some("value1"))
+        Some("value1"),
+      )
       assertEquals(
         Uri(query = Query.unsafeFromString("&=value1&=value2")).params.get(""),
-        Some("value1"))
+        Some("value1"),
+      )
       assertEquals(Uri(query = Query.unsafeFromString("&&&=value1")).params.get(""), Some("value1"))
     }
     test("Uri.params.get should find parameter with empty key and without value") {
@@ -730,7 +797,8 @@ class UriSpec extends Http4sSuite {
     test("Uri.params.get should not find an unknown parameter") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1&param2&param3")).params.get("param4"),
-        None)
+        None,
+      )
     }
     test("Uri.params.get should not find anything if query string is empty") {
       assertEquals(Uri(query = Query.empty).params.get("param1"), None)
@@ -747,14 +815,16 @@ class UriSpec extends Http4sSuite {
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? ("param2" -> "value")
       assertEquals(
         u,
-        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=value")))
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=value")),
+      )
     }
     test("Uri parameter convenience methods should add a parameter with boolean value") {
       val u =
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? ("param2" -> true)
       assertEquals(
         u,
-        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=true")))
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=true")),
+      )
     }
     test("Uri parameter convenience methods should add a parameter without a value") {
       val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2")) +? "param2"
@@ -769,12 +839,14 @@ class UriSpec extends Http4sSuite {
       assertEquals(u, Uri(query = Query.unsafeFromString(s"param1=1&param1=-1")))
     }
     test(
-      "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder") {
+      "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder"
+    ) {
       val u = Uri() +? ("test" -> Ttl(2))
       assertEquals(u, Uri(query = Query.unsafeFromString(s"test=2")))
     }
     test(
-      "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder and an implicit key") {
+      "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder and an implicit key"
+    ) {
       val u = Uri().+*?(Ttl(2))
       assertEquals(u, Uri(query = Query.unsafeFromString(s"ttl=2")))
     }
@@ -796,7 +868,8 @@ class UriSpec extends Http4sSuite {
       assertEquals(u, Uri(query = Query.unsafeFromString("param1=1&param2=2")))
     }
     test(
-      "Uri parameter convenience methods should add multiple values for same query parameter name") {
+      "Uri parameter convenience methods should add multiple values for same query parameter name"
+    ) {
       val params = Map("param1" -> List(1), "param2" -> List(2, 3))
       val u = Uri().withMultiValueQueryParams(params)
       assertEquals(u, Uri(query = Query.unsafeFromString("param1=1&param2=2&param2=3")))
@@ -824,19 +897,23 @@ class UriSpec extends Http4sSuite {
     test("Uri parameter convenience methods should contains a parameter") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value&param1=value")) ? "param1",
-        true)
+        true,
+      )
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value&param2=value")) ? "param2",
-        true)
+        true,
+      )
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value&param2=value")) ? "param3",
-        false)
+        false,
+      )
     }
     test("Uri parameter convenience methods should contains a parameter with many values") {
 
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param1=value3")) ? "param1",
-        true)
+        true,
+      )
     }
     test("Uri parameter convenience methods should contains a parameter without a value") {
       assertEquals(Uri(query = Query.unsafeFromString("param1")) ? "param1", true)
@@ -845,27 +922,35 @@ class UriSpec extends Http4sSuite {
 
       assertEquals(
         Uri(query =
-          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param1",
-        true)
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")
+        ) ? "param1",
+        true,
+      )
 
       assertEquals(
         Uri(query =
-          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param2",
-        true)
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")
+        ) ? "param2",
+        true,
+      )
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "",
-        true)
+        true,
+      )
       assertEquals(
         Uri(query =
-          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")) ? "param3",
-        false)
+          Query.unsafeFromString("param1=value1&param1=value2&param2&=value3")
+        ) ? "param3",
+        false,
+      )
     }
     test("Uri parameter convenience methods should remove a parameter if present") {
       val u = Uri(query = Query.unsafeFromString("param1=value&param2=value")) -? "param1"
       assertEquals(u, Uri(query = Query.unsafeFromString("param2=value")))
     }
     test(
-      "Uri parameter convenience methods should remove an empty parameter from an empty query string") {
+      "Uri parameter convenience methods should remove an empty parameter from an empty query string"
+    ) {
       val u = Uri(query = Query.unsafeFromString("")) -? ""
       assertEquals(u, Uri(query = Query.empty))
     }
@@ -882,27 +967,31 @@ class UriSpec extends Http4sSuite {
         Uri(query = Query.unsafeFromString("param1=value&param2=value")) +? ("param1" -> "newValue")
       assertEquals(
         u.multiParams,
-        Uri(query = Query.unsafeFromString("param1=newValue&param2=value")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=newValue&param2=value")).multiParams,
+      )
     }
     test("Uri parameter convenience methods should replace a parameter without a value") {
       val u =
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2=value")) +? "param2"
       assertEquals(
         u.multiParams,
-        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams,
+      )
     }
     test("Uri parameter convenience methods should replace the same parameter") {
       val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")) ++?
         ("param1" -> Seq("value1", "value2"))
       assertEquals(
         u.multiParams,
-        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams,
+      )
     }
     test("Uri parameter convenience methods should replace the same parameter without a value") {
       val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")) +? "param2"
       assertEquals(
         u.multiParams,
-        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams)
+        Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams,
+      )
     }
     test("Uri parameter convenience methods should replace a parameter set") {
       val u =
@@ -936,7 +1025,9 @@ class UriSpec extends Http4sSuite {
         Uri() =? ps,
         Uri(
           query =
-            Query.unsafeFromString("param=9223372036854775807&param=0&param=-9223372036854775808")))
+            Query.unsafeFromString("param=9223372036854775807&param=0&param=-9223372036854775808")
+        ),
+      )
     }
     test("Uri parameter convenience methods should set a parameter with a short values") {
       val ps = Map("param" -> List(Short.MaxValue, Short.MinValue))
@@ -954,7 +1045,8 @@ class UriSpec extends Http4sSuite {
       val ps = Map("param1" -> Nil, "param2" -> List("value1", "value2"), "param3" -> List("value"))
       assertEquals(
         Uri() =? ps,
-        Uri(query = Query.unsafeFromString("param1&param2=value1&param2=value2&param3=value")))
+        Uri(query = Query.unsafeFromString("param1&param2=value1&param2=value2&param3=value")),
+      )
     }
     test("Uri parameter convenience methods should set the same parameters again") {
       val ps = Map("param" -> List("value"))
@@ -965,7 +1057,8 @@ class UriSpec extends Http4sSuite {
       assertEquals(uri"/test?".withQueryParam("k", "v"), uri"/test?k=v")
     }
     test(
-      "Uri parameter convenience methods should discard the blank value in withOptionQueryParam") {
+      "Uri parameter convenience methods should discard the blank value in withOptionQueryParam"
+    ) {
       assertEquals(uri"/test?".withOptionQueryParam("k", Some("v")), uri"/test?k=v")
     }
 
@@ -1105,11 +1198,12 @@ class UriSpec extends Http4sSuite {
     val uri = getUri("http://localhost/foo")
     assertEquals(
       uri.addPath("more/path/auth|urlencoded"),
-      getUri("http://localhost/foo/more/path/auth%7Curlencoded"))
+      getUri("http://localhost/foo/more/path/auth%7Curlencoded"),
+    )
   }
 
   test("Uri.equals should be false between an empty path and a trailing slash after an authority") {
-    assert(uri"http://example.com" != uri"http://example.com/")
+    assertNotEquals(uri"http://example.com", uri"http://example.com/")
   }
 
   {
@@ -1147,10 +1241,12 @@ class UriSpec extends Http4sSuite {
         encode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
       assertEquals(
         encoded,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~",
+      )
     }
     test(
-      "Encoding a URI should not uppercase hex digits after percent chars that will be encoded") {
+      "Encoding a URI should not uppercase hex digits after percent chars that will be encoded"
+    ) {
       // https://github.com/http4s/http4s/issues/720
       assertEquals(encode("hello%3fworld"), "hello%253fworld")
     }
@@ -1164,10 +1260,12 @@ class UriSpec extends Http4sSuite {
   {
     test("Decoding a URI should not change any of the allowed chars") {
       val decoded = decode(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~")
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~"
+      )
       assertEquals(
         decoded,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~")
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~",
+      )
     }
     test("Decoding a URI should leave Fußgängerübergänge as is") {
       assertEquals(decode("Fußgängerübergänge"), "Fußgängerübergänge")
@@ -1203,12 +1301,14 @@ class UriSpec extends Http4sSuite {
     test("Decoding a URI should handles mixed") {
       assertEquals(
         decode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")),
-        "/ac%2Fdc/brücke%2342%3Fcheck")
+        "/ac%2Fdc/brücke%2342%3Fcheck",
+      )
     }
   }
   {
     test(
-      "The plusIsSpace flag should treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false") {
+      "The plusIsSpace flag should treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false"
+    ) {
       assertEquals(decode("+"), "+")
       assertEquals(decode("+", plusIsSpace = false), "+")
     }
@@ -1233,7 +1333,8 @@ class UriSpec extends Http4sSuite {
       // be good to know if it breaks.
       assertEquals(
         decode(encode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")),
-        "%2f")
+        "%2f",
+      )
     }
   }
 
@@ -1242,14 +1343,16 @@ class UriSpec extends Http4sSuite {
       val uriReference = uri"https://example.com/auth0%7Cdsfhsklh46ksx/we-have-a%2Ftest"
       assertEquals(
         uriReference.path.segments,
-        Vector("auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest").map(Uri.Path.Segment.encoded))
+        Vector("auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest").map(Uri.Path.Segment.encoded),
+      )
     }
     test("Uri.Path should check that we store the encoded ") {
       val uriReference = uri"https://example.com/test" / "auth0|dsfhsklh46ksx" / "we-have-a/test"
       assertEquals(
         uriReference.path.segments,
         Vector("test", "auth0%7Cdsfhsklh46ksx", "we-have-a%2Ftest")
-          .map(Uri.Path.Segment.encoded))
+          .map(Uri.Path.Segment.encoded),
+      )
     }
 
     test("Uri.Path should indexOf / Split") {

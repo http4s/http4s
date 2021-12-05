@@ -99,10 +99,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(0x80.toByte, 0x81.toByte)
       val decoded =
         source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
-      assert(decoded match {
-        case Left(_: UnmappableCharacterException) => true
-        case _ => false
-      })
+      val Left(_: UnmappableCharacterException) = decoded
     }
 
   if (Platform.isJvm)
@@ -120,10 +117,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(-1.toByte)
       val decoded =
         source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
+      val Left(_: MalformedInputException) = decoded
     }
 
   test("decode stream result should be consistent with nio's decode on full stream") {

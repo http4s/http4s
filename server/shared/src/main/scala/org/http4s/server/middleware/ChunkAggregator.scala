@@ -38,7 +38,7 @@ object ChunkAggregator {
   )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
-        response.body.chunks.compile.toVector
+        response.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
           .map { vec =>
             val body = Chunk.concat(vec)
             response

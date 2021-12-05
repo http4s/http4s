@@ -53,7 +53,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     "serverClient",
     ServerScaffold[IO](1, false, testHandler)
       .map(() => _)
-      .product(clientResource.map(() => _))
+      .product(clientResource.map(() => _)),
   )
 
   test(s"$name Repeat a simple request") {
@@ -98,7 +98,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
       val uri = Uri.fromString(s"http://$address/echo").yolo
-      val req = POST(Stream("This is chunked.").covary[IO], uri)
+      val req = POST(Stream.emits("This is chunked.".toSeq.map(_.toString)).covary[IO], uri)
       val body = client().expect[String](req)
       body.assertEquals("This is chunked.")
     }
@@ -137,8 +137,10 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
         uri = Uri(
           authority = Uri.Authority(None, Uri.RegName(name), port = port.some).some,
           path = Uri.Path.Root / Uri.Path.Segment.encoded(
-            "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:")
-        ))
+            "request-splitting HTTP/1.0\r\nEvil:true\r\nHide-Protocol-Version:"
+          ),
+        )
+      )
       client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
     }
   }
@@ -148,10 +150,13 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       val address = server().addresses.head
       val name = address.host
       val port = address.port.value
-      val req = Request[IO](uri = Uri(
-        authority =
-          Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
-        path = path"/request-splitting"))
+      val req = Request[IO](uri =
+        Uri(
+          authority =
+            Uri.Authority(None, Uri.RegName(s"${name}\r\nEvil:true\r\n"), port = port.some).some,
+          path = path"/request-splitting",
+        )
+      )
       client().status(req).handleError(_ => Status.Ok).assertEquals(Status.Ok)
     }
   }

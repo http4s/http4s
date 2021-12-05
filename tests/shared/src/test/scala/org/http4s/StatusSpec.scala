@@ -83,13 +83,15 @@ class StatusSpec extends Http4sSuite {
   }
 
   test(
-    "Finding a status by code should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code should succeed if the code is in the valid range, but not a standard code"
+  ) {
     assert(fromInt(371).fold(_ => false, s => s.reason == ""))
     assert(fromInt(482).isRight)
   }
 
   test(
-    "Finding a status by code should yield a status with the standard reason for a standard code") {
+    "Finding a status by code should yield a status with the standard reason for a standard code"
+  ) {
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
 

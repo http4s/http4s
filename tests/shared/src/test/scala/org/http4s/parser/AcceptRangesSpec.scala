@@ -28,7 +28,8 @@ class AcceptRangesSpec extends Http4sSuite {
     `Accept-Ranges`.bytes,
     `Accept-Ranges`.none,
     `Accept-Ranges`(RangeUnit("foo")),
-    `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")))
+    `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")),
+  )
 
   test("Accept-Ranges header should Give correct header value") {
     assertEquals(ranges.map(_.value), List("bytes", "none", "foo", "bytes, bar"))

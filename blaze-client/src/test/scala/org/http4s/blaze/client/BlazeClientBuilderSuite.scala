@@ -54,7 +54,8 @@ class BlazeClientBuilderSuite extends Http4sSuite {
         .withSocketSendBufferSize(8192)
         .withDefaultSocketSendBufferSize
         .socketSendBufferSize,
-      None)
+      None,
+    )
   }
 
   test("unset socket receive buffer size") {
@@ -63,7 +64,8 @@ class BlazeClientBuilderSuite extends Http4sSuite {
         .withSocketReceiveBufferSize(8192)
         .withDefaultSocketReceiveBufferSize
         .socketReceiveBufferSize,
-      None)
+      None,
+    )
   }
 
   test("unset socket keepalive") {
@@ -76,7 +78,8 @@ class BlazeClientBuilderSuite extends Http4sSuite {
         .withSocketReuseAddress(true)
         .withDefaultSocketReuseAddress
         .socketReuseAddress,
-      None)
+      None,
+    )
   }
 
   test("unset TCP nodelay") {
@@ -89,7 +92,8 @@ class BlazeClientBuilderSuite extends Http4sSuite {
         .withSocketSendBufferSize(8192)
         .withSocketSendBufferSize(4096)
         .socketSendBufferSize,
-      Some(4096))
+      Some(4096),
+    )
   }
 
   test("set header max length") {

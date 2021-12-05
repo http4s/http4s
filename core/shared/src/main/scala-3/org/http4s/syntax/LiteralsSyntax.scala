@@ -23,11 +23,15 @@ import scala.language.`3.0`
 
 trait LiteralsSyntax {
   extension (inline ctx: StringContext) {
-    inline def uri(inline args: Any*): Uri = ${LiteralsSyntax.UriLiteral('ctx, 'args)}
-    inline def path(inline args: Any*): Uri.Path = ${LiteralsSyntax.UriPathLiteral('ctx, 'args)}
-    inline def scheme(inline args: Any*): Uri.Scheme = ${LiteralsSyntax.UriSchemeLiteral('ctx, 'args)}
-    inline def mediaType(inline args: Any*): MediaType = ${LiteralsSyntax.MediaTypeLiteral('ctx, 'args)}
-    inline def qValue(inline args: Any*): QValue = ${LiteralsSyntax.QValueLiteral('ctx, 'args)}
+    inline def uri(inline args: Any*): Uri = ${ LiteralsSyntax.UriLiteral('ctx, 'args) }
+    inline def path(inline args: Any*): Uri.Path = ${ LiteralsSyntax.UriPathLiteral('ctx, 'args) }
+    inline def scheme(inline args: Any*): Uri.Scheme = ${
+      LiteralsSyntax.UriSchemeLiteral('ctx, 'args)
+    }
+    inline def mediaType(inline args: Any*): MediaType = ${
+      LiteralsSyntax.MediaTypeLiteral('ctx, 'args)
+    }
+    inline def qValue(inline args: Any*): QValue = ${ LiteralsSyntax.QValueLiteral('ctx, 'args) }
   }
 }
 
@@ -36,7 +40,7 @@ private[syntax] object LiteralsSyntax {
     def validate(s: String)(using Quotes) =
       Uri.fromString(s) match {
         case Left(parsingFailure) => Left(s"invalid URI: ${parsingFailure.details}")
-        case Right(_) => Right('{Uri.unsafeFromString(${Expr(s)})})
+        case Right(_) => Right('{ Uri.unsafeFromString(${ Expr(s) }) })
       }
   }
 
@@ -44,7 +48,7 @@ private[syntax] object LiteralsSyntax {
     def validate(s: String)(using Quotes) =
       Uri.Scheme.fromString(s) match {
         case Left(parsingFailure) => Left(s"invalid Scheme: ${parsingFailure.details}")
-        case Right(_) => Right('{Uri.Scheme.unsafeFromString(${Expr(s)})})
+        case Right(_) => Right('{ Uri.Scheme.unsafeFromString(${ Expr(s) }) })
       }
   }
 
@@ -52,7 +56,7 @@ private[syntax] object LiteralsSyntax {
     def validate(s: String)(using Quotes) =
       Uri.fromString(s).map(_.path) match {
         case Left(parsingFailure) => Left(s"invalid Path: ${parsingFailure.details}")
-        case Right(_) => Right('{Uri.Path.unsafeFromString(${Expr(s)})})
+        case Right(_) => Right('{ Uri.Path.unsafeFromString(${ Expr(s) }) })
       }
   }
 
@@ -60,7 +64,7 @@ private[syntax] object LiteralsSyntax {
     def validate(s: String)(using Quotes) =
       MediaType.parse(s) match {
         case Left(parsingFailure) => Left(s"invalid MediaType: ${parsingFailure.details}")
-        case Right(_) => Right('{MediaType.unsafeParse(${Expr(s)})})
+        case Right(_) => Right('{ MediaType.unsafeParse(${ Expr(s) }) })
       }
   }
 
@@ -68,7 +72,7 @@ private[syntax] object LiteralsSyntax {
     def validate(s: String)(using Quotes) =
       QValue.fromString(s) match {
         case Left(parsingFailure) => Left(s"invalid QValue: ${parsingFailure.details}")
-        case Right(_) => Right('{QValue.unsafeFromString(${Expr(s)})})
+        case Right(_) => Right('{ QValue.unsafeFromString(${ Expr(s) }) })
       }
   }
 }

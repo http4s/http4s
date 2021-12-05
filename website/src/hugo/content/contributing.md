@@ -195,9 +195,12 @@ Apache License 2.0.
 * We encourage the addition of arbitrary instances to
   `org.http4s.testing.Http4sArbitraries` to support richer property
   testing.
+* For assertions in tests using `assertEquals(a, b)` is preferable to `assert(a == b)`. 
+  It brings nice diffs on assertions failures. For more details, see the [MUnit docs].
 
 [MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
+[MUnit docs]: https://scalameta.org/munit/docs/assertions.html#assertequals
 
 ## Documentation
 
@@ -207,7 +210,7 @@ The documentation for http4s is divided into two projects: `website` and `docs`.
 
 The common area of http4s.org (i.e., directories not beginning with
 `/v#.#`) is generated from the `website` module and is published only
-from the `main` branch.  This module is intended to contain general
+from the `main` branch. This module is intended to contain general
 info about the project that applies to all versions.
 
 #### Editing the Common Site

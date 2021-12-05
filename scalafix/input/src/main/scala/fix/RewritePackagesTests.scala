@@ -3,9 +3,9 @@ rule = v0_22
 */
 package fix
 
+import org.http4s.client.asynchttpclient._
 import org.http4s.client.blaze._
 import org.http4s.server.blaze._
-import org.http4s.client.asynchttpclient._
 import org.http4s.client.jetty._
 import org.http4s.server.jetty._
 import org.http4s.client.okhttp._

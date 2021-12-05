@@ -31,7 +31,7 @@ object ExampleApp {
   def serverStream[F[_]: Async]: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(port = 8080, host = "0.0.0.0")
-      .withHttpApp(ExampleRoutes[F]().routes.orNotFound)
+      .withHttpApp(new ExampleRoutes[F].routes.orNotFound)
       .serve
 }
 

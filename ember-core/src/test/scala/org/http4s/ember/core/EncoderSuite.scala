@@ -17,8 +17,8 @@
 package org.http4s
 package ember.core
 
+import cats.effect.Concurrent
 import cats.effect.IO
-import cats.effect.Sync
 import cats.syntax.all._
 import org.http4s.headers.`Content-Length`
 import org.http4s.syntax.literals._
@@ -28,7 +28,7 @@ class EncoderSuite extends Http4sSuite {
     def stripLines(s: String): String = s.replace("\r\n", "\n")
 
     // Only for Use with Text Requests
-    def encodeRequestRig[F[_]: Sync](req: Request[F]): F[String] =
+    def encodeRequestRig[F[_]: Concurrent](req: Request[F]): F[String] =
       Encoder
         .reqToBytes(req)
         .through(fs2.text.utf8.decode[F])
@@ -37,7 +37,7 @@ class EncoderSuite extends Http4sSuite {
         .map(stripLines)
 
     // Only for Use with Text Requests
-    def encodeResponseRig[F[_]: Sync](resp: Response[F]): F[String] =
+    def encodeResponseRig[F[_]: Concurrent](resp: Response[F]): F[String] =
       Encoder
         .respToBytes(resp)
         .through(fs2.text.utf8.decode[F])
@@ -75,7 +75,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       uri"http://www.google.com",
-      headers = Headers("foo" -> "bar")
+      headers = Headers("foo" -> "bar"),
     )
     val expected =
       """GET / HTTP/1.1
@@ -89,7 +89,7 @@ class EncoderSuite extends Http4sSuite {
   test("reqToBytes strips the fragment") {
     val req = Request[IO](
       Method.GET,
-      uri"https://www.example.com/path?query#fragment"
+      uri"https://www.example.com/path?query#fragment",
     )
     val expected =
       """GET /path?query HTTP/1.1
@@ -103,7 +103,7 @@ class EncoderSuite extends Http4sSuite {
     val req = Request[IO](
       Method.GET,
       uri"https://www.example.com/",
-      headers = Headers(headers.Host("example.org", Some(8080)))
+      headers = Headers(headers.Host("example.org", Some(8080))),
     )
     val expected =
       """GET / HTTP/1.1
