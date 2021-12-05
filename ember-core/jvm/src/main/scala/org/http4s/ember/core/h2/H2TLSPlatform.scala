@@ -42,7 +42,11 @@ private[ember] object H2TLSPlatform {
       }.some,
     )
 
-  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] =
+  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
     tlsSocket.applicationProtocol.map(Option(_))
+      .handleErrorWith{
+        case _: NoSuchElementException => Option.empty.pure[F]
+        case e => e.raiseError[F, Option[String]]
+      }
 
 }

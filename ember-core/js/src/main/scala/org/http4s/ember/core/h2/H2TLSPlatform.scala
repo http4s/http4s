@@ -38,7 +38,7 @@ private[ember] object H2TLSPlatform {
     )
 
   // Not yet supported on JS -
-  def protocol[F[_]: Applicative](tlsSocket: TLSSocket[F]): F[Option[String]] =
+  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
     Option.empty[String].pure[F]
 
 }
