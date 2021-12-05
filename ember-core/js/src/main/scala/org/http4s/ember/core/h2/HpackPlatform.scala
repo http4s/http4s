@@ -17,7 +17,41 @@
 package org.http4s.ember.core.h2
 
 import cats.effect._
+import cats.syntax.all._
+import scodec.bits._
+import cats.data._
 
-trait HpackPlatform {
-  def create[F[_]: Async]: F[Hpack[F]] = ???
+import scala.scalajs.js.JSConverters._
+
+private[h2] trait HpackPlatform {
+
+  def create[F[_]](implicit F: Async[F]): F[Hpack[F]] = F.delay {
+    val compressor = new facade.Compressor(facade.HpackOptions(4096))
+    val decompressor = new facade.Decompressor(facade.HpackOptions(4096))
+    new Hpack[F] {
+      def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] = {
+        val jsHeaders = headers
+          .map { case (name, value, huffman) =>
+            facade.Header(name, value, huffman)
+          }
+          .toList
+          .toJSArray
+        F.delay(compressor.write(jsHeaders)) *> F.delay(ByteVector.view(compressor.read()))
+      }
+
+      def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
+        F.delay(decompressor.write(bv.toUint8Array)) *>
+          F.delay(decompressor.execute()) *>
+          F.delay {
+            val builder = List.newBuilder[(String, String)]
+            while (
+              Option(decompressor.read()).map { header =>
+                builder += ((header.name, header.value))
+              }.isDefined
+            ) {}
+            builder.result()
+          }.flatMap(NonEmptyList.fromList(_).liftTo[F](new NoSuchElementException))
+    }
+  }
+
 }
