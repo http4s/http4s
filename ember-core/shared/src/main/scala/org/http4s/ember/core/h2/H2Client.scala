@@ -327,11 +327,13 @@ private[ember] object H2Client {
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
 
-      mapH2 <- Resource.eval(
+      mapH2 <- Resource.make {
         Concurrent[F].ref(
           Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), (H2Connection[F], F[Unit])]()
         )
-      )
+      } { ref =>
+        ref.get.flatMap(_.toList.traverse_ { case (_, (_, s)) => s }.attempt.void)
+      }
       socketMap <- Resource.eval(
         Concurrent[F].ref(Map[(com.comcast.ip4s.Host, com.comcast.ip4s.Port), SocketType]())
       )
