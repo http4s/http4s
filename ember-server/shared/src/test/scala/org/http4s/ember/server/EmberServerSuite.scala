@@ -18,15 +18,16 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
 import fs2.Stream
+import fs2.io.net.BindException
+import fs2.io.net.ConnectException
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits._
 import org.http4s.server.Server
-
-import java.net.BindException
-import java.net.ConnectException
 
 class EmberServerSuite extends Http4sSuite {
 
@@ -44,6 +45,9 @@ class EmberServerSuite extends Http4sSuite {
       .orNotFound
   }
 
+  def url(address: SocketAddress[Host], path: String = ""): String =
+    s"http://${address.host}:${address.port.value}$path"
+
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
@@ -57,22 +61,21 @@ class EmberServerSuite extends Http4sSuite {
       .default[IO]
       .withHttpApp(service[IO])
       .withReceiveBufferSize(receiveBufferSize)
-      .build
-  )
+      .build)
 
   def fixture(receiveBufferSize: Int = 256 * 1024) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
 
   fixture().test("server responds to requests") { case (server, client) =>
     client
-      .get(s"http://${server.address.getHostName}:${server.address.getPort}")(_.status.pure[IO])
+      .get(url(server.addressIp4s))(_.status.pure[IO])
       .assertEquals(Status.Ok)
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
-    serverResource.use(server => IO.pure(server.address)).flatMap { address =>
+    serverResource.use(server => IO.pure(server.addressIp4s)).flatMap { address =>
       client
-        .get(s"http://${address.getHostName}:${address.getPort}")(_.status.pure[IO])
+        .get(url(address))(_.status.pure[IO])
         .intercept[ConnectException]
     }
   }
@@ -93,7 +96,7 @@ class EmberServerSuite extends Http4sSuite {
       val expected = "hello" * 256
 
       val uri = Uri
-        .fromString(s"http://${server.address.getHostName}:${server.address.getPort}/echo")
+        .fromString(url(server.addressIp4s, "/echo"))
         .toOption
         .get
       val request = POST(body, uri)

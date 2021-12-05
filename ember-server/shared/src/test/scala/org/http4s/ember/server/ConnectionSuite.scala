@@ -91,7 +91,7 @@ class ConnectionSuite extends Http4sSuite {
   ) = ResourceFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
-      client <- clientResource(ip4s.SocketAddress.fromInetSocketAddress(server.address))
+      client <- clientResource(server.addressIp4s)
     } yield client
   )
 

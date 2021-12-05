@@ -17,7 +17,6 @@
 package org.http4s.ember.server
 
 import _root_.org.typelevel.log4cats.Logger
-import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats._
 import cats.effect._
 import cats.effect.syntax.all._
@@ -32,12 +31,12 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
+import org.http4s.server.Ip4sServer
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.vault.Key
 
-import java.net.InetSocketAddress
 import scala.concurrent.duration._
 
 final class EmberServerBuilder[F[_]: Async] private (
@@ -157,7 +156,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
-      ready <- Resource.eval(Deferred[F, Either[Throwable, InetSocketAddress]])
+      ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
       _ <- unixSocketConfig.fold(
@@ -213,13 +212,13 @@ final class EmberServerBuilder[F[_]: Async] private (
       _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
-    } yield new Server {
-      def address: InetSocketAddress = bindAddress
+    } yield new Ip4sServer {
+      def ip4sAddress: SocketAddress[IpAddress] = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
 
-object EmberServerBuilder {
+object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
   def default[F[_]: Async]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
@@ -236,7 +235,7 @@ object EmberServerBuilder {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = Slf4jLogger.getLogger[F],
+      logger = defaultLogger[F],
       None,
     )
 

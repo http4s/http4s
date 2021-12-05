@@ -60,12 +60,12 @@ package object server {
         "Please use IPv4Host or IPv6Host. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
       since = "0.21.23",
     )
-    lazy val Host = InetAddress.getLoopbackAddress.getHostAddress
+    def Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
 
-    lazy val IPv4SocketAddress: InetSocketAddress =
+    def IPv4SocketAddress: InetSocketAddress =
       InetSocketAddress.createUnresolved(IPv4Host, HttpPort)
-    lazy val IPv6SocketAddress: InetSocketAddress =
+    def IPv6SocketAddress: InetSocketAddress =
       InetSocketAddress.createUnresolved(IPv6Host, HttpPort)
 
     val IPv4SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv4Address] =
@@ -78,7 +78,7 @@ package object server {
         "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
       since = "0.21.23",
     )
-    lazy val SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
+    def SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout

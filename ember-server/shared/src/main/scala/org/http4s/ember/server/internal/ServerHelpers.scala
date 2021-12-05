@@ -35,21 +35,16 @@ import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
-import org.http4s.internal.tls.deduceKeyLength
-import org.http4s.internal.tls.getCertChain
-import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
-import scodec.bits.ByteVector
 
-import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
-private[server] object ServerHelpers {
+private[server] object ServerHelpers extends ServerHelpersPlatform {
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -61,7 +56,7 @@ private[server] object ServerHelpers {
       sg: SocketGroup[F],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      ready: Deferred[F, Either[Throwable, InetSocketAddress]],
+      ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: Throwable => F[Response[F]],
@@ -78,7 +73,7 @@ private[server] object ServerHelpers {
       Stream
         .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
         .attempt
-        .evalTap(e => ready.complete(e.map(_._1.toInetSocketAddress)))
+        .evalTap(e => ready.complete(e.map(_._1)))
         .rethrow
         .flatMap(_._2)
     serverInternal(
@@ -107,7 +102,7 @@ private[server] object ServerHelpers {
       deleteOnClose: Boolean,
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      ready: Deferred[F, Either[Throwable, InetSocketAddress]],
+      ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
       errorHandler: Throwable => F[Response[F]],
@@ -125,7 +120,7 @@ private[server] object ServerHelpers {
       Stream
         .eval(
           ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(InetSocketAddress.createUnresolved(unixSocketAddress.path, 0))
+            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), Port.fromInt(0).get))
           )
         ) // Sketchy
         .drain ++
@@ -406,14 +401,7 @@ private[server] object ServerHelpers {
     socket match {
       case socket: TLSSocket[F] =>
         socket.session
-          .map { session =>
-            (
-              Option(session.getId).map(ByteVector(_).toHex),
-              Option(session.getCipherSuite),
-              Option(session.getCipherSuite).map(deduceKeyLength),
-              Some(getCertChain(session)),
-            ).mapN(SecureSession.apply)
-          }
+          .map(parseSSLSession(_))
           .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
       case _ =>
         Vault.empty.pure[F]
