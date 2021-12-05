@@ -908,6 +908,15 @@ lazy val examplesEmber = exampleProject("examples-ember")
   )
   .dependsOn(emberServer, emberClient.jvm)
 
+lazy val exampleEmberClientH2 = exampleProject("examples-ember-client-h2")
+  .enablePlugins(ScalaJSBundlerPlugin)
+  .settings(
+    useYarn := true,
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
+  .dependsOn(emberClient.js)
+
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
   .enablePlugins(JavaAppPackaging, DockerPlugin, NoPublishPlugin)
