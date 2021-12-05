@@ -148,6 +148,7 @@ private[h2] class H2Connection[F[_]](
       }
       // .debug(formatter = {c => s"Connection $host:$port Write- $c"})
       .chunks
+      // .debug(s => s.toString(), s => println(s"Write: $s"))
       .evalMap { chunk =>
         def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
           val fullDataSize = chunk.foldLeft(0) {

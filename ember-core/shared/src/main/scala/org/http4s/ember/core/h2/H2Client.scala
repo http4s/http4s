@@ -135,11 +135,6 @@ private[ember] class H2Client[F[_]: Async](
             .clientBuilder(baseSocket)
             .withParameters(
               H2TLSPlatform.transform(TLSParameters.Default)
-              // TLSParameters.Default
-              // TLSParameters(
-              //   applicationProtocols = Some(List("h2", "http/1.1")),
-              //   handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  => l.find(_ === "h2").getOrElse("http/1.1")}.some
-              // )
             )
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
@@ -220,8 +215,8 @@ private[ember] class H2Client[F[_]: Async](
           .fromQueueUnterminated(closed)
           .repeat
           .evalMap { i =>
-            // println(s"Removed Stream $i")
-            ref.update(m => m - i)
+            if (i % 2 != 0) ref.update(m => m - i)
+            else Applicative[F].unit
           }
           .compile
           .drain
@@ -233,19 +228,23 @@ private[ember] class H2Client[F[_]: Async](
             val f = if (i % 2 == 0) {
               val x = for {
                 //
-                stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
+                stream <- ref.get.map(_.get(i)).flatMap(_.liftTo(new Throwable("Stream Missing for push promise"))) // FOLD
+                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
                 req <- stream.getRequest
+                
                 resp = stream.getResponse.map(
                   _.covary[F].withBodyStream(stream.readBody)
                 )
-                out <- onPushPromise(req, resp).flatMap {
+                // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
+                outE <- onPushPromise(req, resp).flatMap {
                   case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
                   case Outcome.Errored(e) => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Succeeded(_) => Applicative[F].unit
-                }
-
+                  case Outcome.Succeeded(f) => f
+                }.attempt
+                _ <- ref.update(_ - i)
+                out <- outE.liftTo[F]
               } yield out
-              x.attempt.void
+              x.onError{ case e => Sync[F].delay(println(s"Error Handling Push Promise $e"))}.attempt.void
             } else Applicative[F].unit
             f
           }
