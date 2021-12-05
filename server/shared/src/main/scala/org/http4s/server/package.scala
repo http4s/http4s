@@ -70,7 +70,7 @@ package object server {
 
     val IPv4SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv4Address] =
       ip4s.SocketAddress(ip4s.Ipv4Address.fromString(IPv4Host).get, ip4s.Port.fromInt(HttpPort).get)
-    lazy val IPv6SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv6Address] =
+    val IPv6SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv6Address] =
       ip4s.SocketAddress(ip4s.Ipv6Address.fromString(IPv6Host).get, ip4s.Port.fromInt(HttpPort).get)
 
     @deprecated(
