@@ -16,10 +16,10 @@
 
 package org.http4s.ember.core.h2
 
-import org.http4s._
 import cats._
-import cats.syntax.all._
 import cats.data._
+import cats.syntax.all._
+import org.http4s._
 
 /** HTTP/2 pseudo headers */
 private[h2] object PseudoHeaders {

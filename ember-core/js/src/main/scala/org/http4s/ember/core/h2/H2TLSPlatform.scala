@@ -16,9 +16,9 @@
 
 package org.http4s.ember.core.h2
 
-import fs2.io.net.tls.TLSParameters
 import cats._
 import cats.syntax.all._
+import fs2.io.net.tls.TLSParameters
 import fs2.io.net.tls.TLSSocket
 
 private[ember] object H2TLSPlatform {

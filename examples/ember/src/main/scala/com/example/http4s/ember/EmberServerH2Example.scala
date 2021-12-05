@@ -17,20 +17,20 @@
 package com.example.http4s.ember
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
+import com.comcast.ip4s._
+import com.comcast.ip4s._
+import com.example.http4s.ssl
+import fs2._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
-import com.comcast.ip4s._
-import org.http4s.implicits._
-import org.http4s.ember.server.EmberServerBuilder
-import fs2._
 import org.http4s._
-import org.http4s.implicits._
 import org.http4s.dsl._
-import com.comcast.ip4s._
-import com.example.http4s.ssl
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.implicits._
+import org.http4s.implicits._
 
 object EmberServerH2Example extends IOApp {
 

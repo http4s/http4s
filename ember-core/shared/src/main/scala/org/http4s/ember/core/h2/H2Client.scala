@@ -16,18 +16,20 @@
 
 package org.http4s.ember.core.h2
 
+import cats._
 import cats.effect._
 import cats.effect.syntax.all._
+import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
-import cats._
-import cats.syntax.all._
-import scodec.bits._
-import scala.concurrent.duration._
-import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 import org.http4s._
+import scodec.bits._
+
+import scala.concurrent.duration._
+
+import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 
 /*
 Client

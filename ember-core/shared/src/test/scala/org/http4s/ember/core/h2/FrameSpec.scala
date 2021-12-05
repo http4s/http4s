@@ -16,9 +16,9 @@
 
 package org.http4s.ember.core.h2
 
-import scodec.bits._
-import munit.CatsEffectSuite
 import cats.syntax.all._
+import munit.CatsEffectSuite
+import scodec.bits._
 
 class H2FrameSpec extends CatsEffectSuite {
 

@@ -33,6 +33,10 @@ import org.http4s.ember.core.Encoder
 import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
+import org.http4s.ember.core.h2.H2Frame
+import org.http4s.ember.core.h2.H2Keys
+import org.http4s.ember.core.h2.H2Server
+import org.http4s.ember.core.h2.H2TLSPlatform
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.internal.tls.deduceKeyLength
@@ -44,14 +48,10 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
-import org.http4s.ember.core.h2.H2Server
-import org.http4s.ember.core.h2.H2Frame
 
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
-import org.http4s.ember.core.h2.H2Keys
-import org.http4s.ember.core.h2.H2TLSPlatform
 
 private[server] object ServerHelpers {
 

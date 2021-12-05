@@ -16,9 +16,9 @@
 
 package org.http4s.ember.core.h2
 
-import org.typelevel.vault._
 import cats.effect._
 import org.http4s.Request
+import org.typelevel.vault._
 
 object H2Keys {
   val PushPromiseInitialStreamIdentifier = Key.newKey[SyncIO, Int].unsafeRunSync()

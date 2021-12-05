@@ -31,11 +31,11 @@ import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.core.h2.H2Client
+import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
-import org.http4s.ember.core.h2.H2Client
-import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
