@@ -24,6 +24,7 @@ import cats.syntax.all._
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
+    protocol: Option[String],
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
 )(implicit F: MonadThrow[F]) {
@@ -36,13 +37,13 @@ private[ember] final case class EmberConnection[F[_]](
 
 private[ember] object EmberConnection {
   def apply[F[_]: Concurrent](
-      keySocketResource: Resource[F, RequestKeySocket[F]]
+      keySocketResource: Resource[F, (RequestKeySocket[F], Option[String])]
   ): F[EmberConnection[F]] =
     Ref[F].of(Array.emptyByteArray).flatMap { nextBytes =>
-      val keySocketResourceAllocated: F[(RequestKeySocket[F], F[Unit])] =
+      val keySocketResourceAllocated: F[((RequestKeySocket[F], Option[String]), F[Unit])] =
         keySocketResource.allocated
-      keySocketResourceAllocated.map { case (keySocket, release) =>
-        EmberConnection(keySocket, release, nextBytes)
+      keySocketResourceAllocated.map { case ((keySocket, opt), release) =>
+        EmberConnection(keySocket, opt, release, nextBytes)
       }
     }
 }

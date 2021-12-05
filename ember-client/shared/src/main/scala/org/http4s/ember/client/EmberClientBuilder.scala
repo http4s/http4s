@@ -154,6 +154,7 @@ final class EmberClientBuilder[F[_]: Async] private (
                     checkEndpointIdentification,
                     sg,
                     additionalSocketOptions,
+                    enableHttp2,
                   )
               ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             (connection: EmberConnection[F]) =>
@@ -226,7 +227,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             Resource
               .make(
                 EmberConnection(
-                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
+                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt, enableHttp2)
                 )
               )(ec => ec.shutdown)
           )
