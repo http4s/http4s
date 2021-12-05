@@ -405,8 +405,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
-      "com.twitter" % "hpack" % "1.0.2",
-      log4catsTesting.value % Test,
+      log4catsTesting.value % Test
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -444,6 +443,16 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
     ),
+  )
+  .jvmSettings(
+    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
+  )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
+  .jsSettings(
+    Compile / npmDependencies += "hpack.js" -> "2.1.6",
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
   )
   .dependsOn(core, testing % "test->test")
 
