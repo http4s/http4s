@@ -406,7 +406,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
       "com.twitter" % "hpack" % "1.0.2",
-      log4catsTesting.value % Test
+      log4catsTesting.value % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
