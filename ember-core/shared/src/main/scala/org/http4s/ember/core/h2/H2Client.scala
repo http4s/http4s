@@ -134,7 +134,7 @@ private[ember] class H2Client[F[_]: Async](
           tlsSocket <- tls
             .clientBuilder(baseSocket)
             .withParameters(
-              H2TLSPlatform.transform(TLSParameters.Default)
+              H2TLS.transform(TLSParameters.Default)
               // TLSParameters.Default
               // TLSParameters(
               //   applicationProtocols = Some(List("h2", "http/1.1")),
@@ -143,7 +143,7 @@ private[ember] class H2Client[F[_]: Async](
             )
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-          protocol <- Resource.eval(H2TLSPlatform.protocol(tlsSocket))
+          protocol <- Resource.eval(H2TLS.protocol(tlsSocket))
           socketType <- protocol match {
             case Some("h2") => Resource.pure[F, SocketType](Http2)
             case Some("http/1.1") => Resource.pure[F, SocketType](Http1)

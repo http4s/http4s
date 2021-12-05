@@ -48,7 +48,7 @@ import org.typelevel.ci._
 import org.typelevel.keypool._
 
 import java.io.IOException
-import org.http4s.ember.core.h2.H2TLSPlatform
+import org.http4s.ember.core.h2.H2TLS
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
@@ -132,11 +132,11 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
               .clientBuilder(iSocket)
               .withParameters{
                 val iParams =mkTLSParameters(optionNames, enableEndpointValidation)
-                if (!enableHttp2) iParams else H2TLSPlatform.transform(iParams)
+                if (!enableHttp2) iParams else H2TLS.transform(iParams)
               }
               .build
               .evalMap(tls => 
-                if (enableHttp2) H2TLSPlatform.protocol(tls).map(s => (tls, s)) else (tls, Option.empty[String]).pure[F]
+                if (enableHttp2) H2TLS.protocol(tls).map(s => (tls, s)) else (tls, Option.empty[String]).pure[F]
               )
               .widen[(Socket[F], Option[String])]
           }

@@ -36,7 +36,7 @@ import org.http4s.ember.core.Util._
 import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Keys
 import org.http4s.ember.core.h2.H2Server
-import org.http4s.ember.core.h2.H2TLSPlatform
+import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
@@ -293,7 +293,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         val newParams = if (enableHttp2) {
           // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
           // As this is the only JVM specific code
-          H2TLSPlatform.transform(params)
+          H2TLS.transform(params)
         } else params
 
         context

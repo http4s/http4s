@@ -16,23 +16,17 @@
 
 package org.http4s.ember.core.h2
 
+import cats._
 import cats.syntax.all._
-import fs2.io.net.tls.TLSParameters
+import fs2.io.net.tls.TLSSocket
 
-private[h2] abstract class H2TLSPlatform {
+private[ember] object H2TLS extends H2TLSPlatform {
 
-  def transform(params: TLSParameters): TLSParameters =
-    TLSParameters(
-      requestCert = params.requestCert,
-      rejectUnauthorized = params.rejectUnauthorized,
-      alpnProtocols = List("http/1.1").some, // "h2", first needs support for application extraction
-      sniCallback = params.sniCallback,
-      session = params.session,
-      requestOCSP = params.requestOCSP,
-      pskCallback = params.pskCallback,
-      servername = params.servername,
-      checkServerIdentity = params.checkServerIdentity,
-      minDHSize = params.minDHSize,
-    )
+  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
+    tlsSocket.applicationProtocol.map(Option(_))
+      .handleErrorWith{
+        case _: NoSuchElementException => Option.empty.pure[F]
+        case e => e.raiseError[F, Option[String]]
+      }
 
 }

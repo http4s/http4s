@@ -491,6 +491,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
