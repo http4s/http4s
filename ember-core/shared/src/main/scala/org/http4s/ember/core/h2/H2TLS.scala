@@ -23,8 +23,9 @@ import fs2.io.net.tls.TLSSocket
 private[ember] object H2TLS extends H2TLSPlatform {
 
   def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
-    tlsSocket.applicationProtocol.map(Option(_))
-      .handleErrorWith{
+    tlsSocket.applicationProtocol
+      .map(Option(_))
+      .handleErrorWith {
         case _: NoSuchElementException => Option.empty.pure[F]
         case e => e.raiseError[F, Option[String]]
       }

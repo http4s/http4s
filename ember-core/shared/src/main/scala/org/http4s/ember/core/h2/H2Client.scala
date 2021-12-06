@@ -228,10 +228,12 @@ private[ember] class H2Client[F[_]: Async](
             val f = if (i % 2 == 0) {
               val x = for {
                 //
-                stream <- ref.get.map(_.get(i)).flatMap(_.liftTo(new Throwable("Stream Missing for push promise"))) // FOLD
+                stream <- ref.get
+                  .map(_.get(i))
+                  .flatMap(_.liftTo(new Throwable("Stream Missing for push promise"))) // FOLD
                 // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
                 req <- stream.getRequest
-                
+
                 resp = stream.getResponse.map(
                   _.covary[F].withBodyStream(stream.readBody)
                 )
@@ -244,7 +246,9 @@ private[ember] class H2Client[F[_]: Async](
                 _ <- ref.update(_ - i)
                 out <- outE.liftTo[F]
               } yield out
-              x.onError{ case e => Sync[F].delay(println(s"Error Handling Push Promise $e"))}.attempt.void
+              x.onError { case e => Sync[F].delay(println(s"Error Handling Push Promise $e")) }
+                .attempt
+                .void
             } else Applicative[F].unit
             f
           }

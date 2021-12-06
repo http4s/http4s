@@ -29,14 +29,22 @@ import scala.concurrent.duration._
 object EmberClientH2Example extends IOApp {
 
   object ClientTest {
-    def printPushPromiseSupport[F[_]: Sync]: (Request[fs2.Pure], F[Response[F]]) =>  F[Outcome[F, Throwable, Unit]] = {
-      case (req, fResp) => Sync[F].delay(println(s"Push Promise: $req")) >> 
-        fResp.flatMap(resp => resp.bodyText.compile.string.flatMap(s => Sync[F].delay(println(s"Push Promise Resp:($req, $resp)"))))
-          .as(Outcome.succeeded(Applicative[F].unit))
+    def printPushPromiseSupport[F[_]: Sync]
+        : (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]] = {
+      case (req, fResp) =>
+        Sync[F].delay(println(s"Push Promise: $req")) >>
+          fResp
+            .flatMap(resp =>
+              resp.bodyText.compile.string.flatMap(s =>
+                Sync[F].delay(println(s"Push Promise Resp:($req, $resp)"))
+              )
+            )
+            .as(Outcome.succeeded(Applicative[F].unit))
     }
 
-    def noopPushPromiseSupport[F[_]: Applicative]: (Request[fs2.Pure], F[Response[F]]) =>  F[Outcome[F, Throwable, Unit]] = {
-      case(_, _) => Applicative[F].pure(Outcome.succeeded(Applicative[F].unit))
+    def noopPushPromiseSupport[F[_]: Applicative]
+        : (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]] = { case (_, _) =>
+      Applicative[F].pure(Outcome.succeeded(Applicative[F].unit))
     }
 
     def test[F[_]: Async: Parallel] =
@@ -67,7 +75,7 @@ object EmberClientH2Example extends IOApp {
                 .withAttribute(H2Keys.Http2PriorKnowledge, ())
             )
             .use(resp => resp.body.compile.drain >> Sync[F].delay(println(s"Resp $resp")))
-          p >> p >>  Temporal[F].sleep(5.seconds)
+          p >> p >> Temporal[F].sleep(5.seconds)
         }
   }
 
