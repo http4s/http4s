@@ -11,6 +11,7 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import sbt.Keys._
 import sbt._
 import sbtghactions.GenerativeKeys._
+import sbtghactions.JavaSpec
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -173,10 +174,9 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
-        javas = List("adoptium@8"),
+        javas = List(JavaSpec.temurin("17")),
         steps = List(
           WorkflowStep.CheckoutFull,
-          WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
             name = Some(s"Build $subproject"),
