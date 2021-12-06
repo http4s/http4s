@@ -36,7 +36,8 @@ private[http4s] trait BlazeBackendBuilder[B] {
   def withChannelOptions(channelOptions: ChannelOptions): Self
   def withChannelOption[A](key: SocketOption[A], value: A): Self =
     withChannelOptions(
-      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value)))
+      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value))
+    )
   def withDefaultChannelOption[A](key: SocketOption[A]): Self =
     withChannelOptions(ChannelOptions(channelOptions.options.filterNot(_.key == key)))
 

@@ -47,13 +47,14 @@ class HeadersSpec extends Http4sSuite {
   test("Headers should also find headers created raw") {
     val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString),
     )
     assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }
 
   test(
-    "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)") {
+    "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)"
+  ) {
     val clength = Header.Raw(ci"Content-Length", "4")
     val hs = Headers(clength) ++ Headers(clength)
     assertEquals(hs.headers.length, 1)
@@ -103,7 +104,7 @@ class HeadersSpec extends Http4sSuite {
   test("Headers as ToRaw") {
     val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString),
     )
     assertEquals(Headers.apply(headers), headers)
   }

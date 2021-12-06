@@ -54,11 +54,12 @@ object `User-Agent` {
           }
 
         },
-      parse
+      parse,
     )
 
   implicit def convert(implicit
-      select: Header.Select.Aux[`User-Agent`, cats.Id]): Renderer[`User-Agent`] =
+      select: Header.Select.Aux[`User-Agent`, cats.Id]
+  ): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {
       override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }
@@ -66,6 +67,6 @@ object `User-Agent` {
 }
 
 /** User-Agent header
-  * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])

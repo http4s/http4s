@@ -28,7 +28,8 @@ package object websocket {
 
   @deprecated(
     "Performs an unsafe cast. Should be passed in from the backend builder that knows what F is.",
-    "0.23.5")
+    "0.23.5",
+  )
   def websocketKey[F[_]]: Key[WebSocketContext[F]] =
     Keys.WebSocket.asInstanceOf[Key[WebSocketContext[F]]]
 

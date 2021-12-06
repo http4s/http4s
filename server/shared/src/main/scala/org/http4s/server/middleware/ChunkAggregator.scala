@@ -33,17 +33,19 @@ import org.typelevel.ci._
 import scala.collection.mutable.ListBuffer
 
 object ChunkAggregator {
-  def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
-      http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
+  def apply[F[_]: FlatMap, G[_]: Sync, A](
+      f: G ~> F
+  )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
-        response.body.chunks.compile.toVector
+        response.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
           .map { vec =>
             val body = Chunk.concat(vec)
             response
               .withBodyStream(Stream.chunk(body))
               .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
-          })
+          }
+      )
     }
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =

@@ -42,9 +42,11 @@ import scala.annotation.nowarn
   * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
   * HTTP Semantics, Protocol Versioning]]
   */
+// scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
 final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
+  // scalafix:on
 
   /** Renders as an HTTP/1.1 string
     *
@@ -148,7 +150,7 @@ object HttpVersion {
     `HTTP/1.0`,
     `HTTP/1.1`,
     `HTTP/2`,
-    `HTTP/3`
+    `HTTP/3`,
   )
 
   private[this] val right_1_0 = Right(`HTTP/1.0`)

@@ -51,7 +51,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
             .get[`Content-Length`]
             .fold(0L)(_.length)
             .toString,
-          "X-Original-Authorization" -> req.headers.get[Authorization].fold("")(_.value)
+          "X-Original-Authorization" -> req.headers.get[Authorization].fold("")(_.value),
         )
 
       case _ -> Root / "different-authority" =>
@@ -68,7 +68,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   private case class RedirectResponse(
       method: String,
-      body: String
+      body: String,
   )
 
   test("FollowRedirect should strip payload headers when switching to GET") {
@@ -124,11 +124,13 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test(
-    "FollowRedirect should Not send sensitive headers when redirecting to a different authority") {
+    "FollowRedirect should Not send sensitive headers when redirecting to a different authority"
+  ) {
     val req = PUT(
       "Don't expose mah secrets!",
       uri"http://localhost/different-authority",
-      "Authorization" -> "Bearer s3cr3t")
+      "Authorization" -> "Bearer s3cr3t",
+    )
     client
       .run(req)
       .use { case resp =>
@@ -141,7 +143,8 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     val req = PUT(
       "You already know mah secrets!",
       uri"http://localhost/307",
-      "Authorization" -> "Bearer s3cr3t")
+      "Authorization" -> "Bearer s3cr3t",
+    )
     client
       .run(req)
       .use { case resp =>
@@ -160,8 +163,9 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
         List(
           uri"http://localhost/loop/1",
           uri"http://localhost/loop/2",
-          uri"http://localhost/loop/3"
-        ))
+          uri"http://localhost/loop/3",
+        )
+      )
   }
 
   test("FollowRedirect should Not add any URIs when there are no redirects") {

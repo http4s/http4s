@@ -27,5 +27,6 @@ trait ServerResponse extends js.Object with Writable {
   def writeHead(
       statusCode: Int,
       statusMessage: String,
-      headers: js.Dictionary[String]): ServerResponse = js.native
+      headers: js.Dictionary[String],
+  ): ServerResponse = js.native
 }

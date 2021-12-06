@@ -29,13 +29,13 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
 
     testErrors(decoder)(
       emptyBody = { case MalformedMessageBodyFailure("Invalid JSON: empty body", _) => true },
-      parseError = { case MalformedMessageBodyFailure("Invalid JSON", _) => true }
+      parseError = { case MalformedMessageBodyFailure("Invalid JSON", _) => true },
     )
   }
 
   def testJsonDecoderError(decoder: EntityDecoder[IO, J])(
       emptyBody: PartialFunction[DecodeFailure, Boolean],
-      parseError: PartialFunction[DecodeFailure, Boolean]
+      parseError: PartialFunction[DecodeFailure, Boolean],
   ) =
     test("json decoder with custom errors") {
       testErrors(decoder)(emptyBody = emptyBody, parseError = parseError)
@@ -43,7 +43,7 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
 
   private def testErrors(decoder: EntityDecoder[IO, J])(
       emptyBody: PartialFunction[DecodeFailure, Boolean],
-      parseError: PartialFunction[DecodeFailure, Boolean]
+      parseError: PartialFunction[DecodeFailure, Boolean],
   ) = {
     test("return a ParseFailure when the entity is invalid") {
       val resp = Response[IO](Status.Ok).withEntity("""garbage""")

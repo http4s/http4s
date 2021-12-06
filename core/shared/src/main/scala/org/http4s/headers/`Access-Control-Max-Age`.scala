@@ -36,7 +36,7 @@ object `Access-Control-Max-Age` {
     *
     * @param age age of the response (in seconds)
     */
-  final case class Cache private (age: Long) extends `Access-Control-Max-Age` {
+  final case class Cache private (age: Long) extends `Access-Control-Max-Age` { // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
     def duration: Option[FiniteDuration] = Try(age.seconds).toOption
     def unsafeDuration: FiniteDuration = age.seconds
   }
@@ -49,7 +49,8 @@ object `Access-Control-Max-Age` {
     } else {
       ParseResult.fail(
         "Invalid age value",
-        s"Access-Control-Max-Age param $age must be greater or equal to 0 seconds or -1")
+        s"Access-Control-Max-Age param $age must be greater or equal to 0 seconds or -1",
+      )
     }
 
   def unsafeFromDuration(age: FiniteDuration): `Access-Control-Max-Age` =
@@ -70,6 +71,6 @@ object `Access-Control-Max-Age` {
         case Cache(age) => age
         case NoCaching => -1
       },
-      parse
+      parse,
     )
 }

@@ -29,7 +29,7 @@ class ScalatagsSuite extends Http4sSuite {
     Charset.fromString("Windows-1251").yolo,
     Charset.fromString("GB2312").yolo,
     Charset.fromString("Shift-JIS").yolo,
-    Charset.fromString("Windows-1252").yolo
+    Charset.fromString("Windows-1252").yolo,
   )
 
   private def testBody() = {
@@ -40,10 +40,10 @@ class ScalatagsSuite extends Http4sSuite {
   }
 
   test("TypedTag encoder should return Content-Type text/html with proper charset") {
-    assert(testCharsets.forall { implicit cs =>
+    testCharsets.map { implicit cs =>
       val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
-      headers.get[`Content-Type`].contains(`Content-Type`(MediaType.text.html, Some(cs)))
-    })
+      assertEquals(headers.get[`Content-Type`], Some(`Content-Type`(MediaType.text.html, Some(cs))))
+    }
   }
 
   test("TypedTag encoder should render the body") {

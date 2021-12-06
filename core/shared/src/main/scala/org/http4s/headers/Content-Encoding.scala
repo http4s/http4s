@@ -29,7 +29,7 @@ object `Content-Encoding` {
     Header.createRendered(
       ci"Content-Encoding",
       _.contentCoding,
-      parse
+      parse,
     )
 }
 

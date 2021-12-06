@@ -31,8 +31,8 @@ import scala.concurrent.Future
 
 private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(implicit
     protected val F: Async[F],
-    protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    protected val ec: ExecutionContext,
+) extends Http1Writer[F] {
 
   private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null

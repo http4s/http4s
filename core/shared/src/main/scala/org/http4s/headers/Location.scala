@@ -35,7 +35,7 @@ object Location {
     Header.create(
       ci"Location",
       _.uri.toString,
-      parse
+      parse,
     )
 
 }

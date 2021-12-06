@@ -36,7 +36,8 @@ trait JawnInstances {
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Concurrent, J: Facade](
-      m: Media[F]): DecodeResult[F, J] =
+      m: Media[F]
+  ): DecodeResult[F, J] =
     DecodeResult {
       m.body.chunks
         .parseJson(AsyncParser.SingleValue)

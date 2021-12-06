@@ -55,7 +55,7 @@ package object oauth1 {
       version: ProtocolParameter.Version = Version(),
       nonceGenerator: F[Nonce],
       callback: Option[Callback] = None,
-      verifier: Option[Verifier] = None
+      verifier: Option[Verifier] = None,
   )(implicit F: Async[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
       reqParams <- getUserParams(req)
@@ -75,7 +75,7 @@ package object oauth1 {
         verifier,
         params.map { case (k, v) =>
           Custom(k, v)
-        }
+        },
       )
     } yield req.putHeaders(auth)
 
@@ -87,7 +87,7 @@ package object oauth1 {
       version: ProtocolParameter.Version,
       nonceGenerator: F[Nonce],
       callback: Option[Callback],
-      verifier: Option[Verifier]
+      verifier: Option[Verifier],
   ): F[immutable.Seq[ProtocolParameter]] =
     for {
       timestamp <- timestampGenerator
@@ -110,7 +110,8 @@ package object oauth1 {
       nonceGenerator: F[Nonce],
       callback: Option[Callback],
       verifier: Option[Verifier],
-      queryParams: Seq[ProtocolParameter]): F[Authorization] =
+      queryParams: Seq[ProtocolParameter],
+  ): F[Authorization] =
     takeSigHeaders(
       consumer,
       token,
@@ -119,19 +120,21 @@ package object oauth1 {
       version,
       nonceGenerator,
       callback,
-      verifier
+      verifier,
     ).flatMap { headers =>
       val baseStr = mkBaseString(
         method,
         uri,
-        (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
+        (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"),
+      )
       val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
       makeSHASig[F](baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
         val creds = Credentials.AuthParams(
           ci"OAuth",
           NonEmptyList(
             "oauth_signature" -> encode(sig),
-            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
+            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList,
+          ),
         )
 
         Authorization(creds)
@@ -146,7 +149,8 @@ package object oauth1 {
       callback: Option[Uri],
       verifier: Option[String],
       token: Option[Token],
-      algorithm: SignatureAlgorithm): F[Authorization] = {
+      algorithm: SignatureAlgorithm,
+  ): F[Authorization] = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
@@ -169,7 +173,8 @@ package object oauth1 {
       uri,
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
-      })
+      },
+    )
     makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm).map { sig =>
       val creds =
         Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
@@ -182,7 +187,8 @@ package object oauth1 {
       baseString: String,
       consumerSecret: String,
       tokenSecret: Option[String],
-      algorithm: SignatureAlgorithm): F[String] = {
+      algorithm: SignatureAlgorithm,
+  ): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     algorithm.generate(baseString, key)
@@ -192,7 +198,8 @@ package object oauth1 {
   private[oauth1] def genBaseString(
       method: Method,
       uri: Uri,
-      params: immutable.Seq[(String, String)]): String = {
+      params: immutable.Seq[(String, String)],
+  ): String = {
     val paramsStr = params.map { case (k, v) => k + "=" + v }.sorted.mkString("&")
     mkBaseString(method, uri, paramsStr)
   }
@@ -202,7 +209,8 @@ package object oauth1 {
       .Seq(
         method.name,
         encode(uri.copy(query = Query.empty, fragment = None).renderString),
-        encode(paramsStr))
+        encode(paramsStr),
+      )
       .mkString("&")
 
   private[oauth1] def encode(str: String): String =
@@ -210,7 +218,8 @@ package object oauth1 {
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
       F: MonadThrow[F],
-      W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
+      W: EntityDecoder[F, UrlForm],
+  ): F[(Request[F], immutable.Seq[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {

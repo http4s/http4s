@@ -62,7 +62,8 @@ object ErrorReporting {
   /** Returns an ErrorHandler that does not log
     */
   def silentErrorHandler[F[_], G[_]](implicit
-      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[G]]] =
+      F: Monad[F]
+  ): Request[F] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
         mf.toHttpResponse[G](req.httpVersion).pure[F]
@@ -73,8 +74,10 @@ object ErrorReporting {
             req.httpVersion,
             Headers(
               Connection(ci"close"),
-              `Content-Length`.zero
-            )))
+              `Content-Length`.zero,
+            ),
+          )
+        )
     }
 
   /** Silences `System.err`, only printing the output in case exceptions are

@@ -54,14 +54,16 @@ object FileService {
       pathCollector: PathCollector[F],
       pathPrefix: String,
       bufferSize: Int,
-      cacheStrategy: CacheStrategy[F])
+      cacheStrategy: CacheStrategy[F],
+  )
 
   object Config {
     def apply[F[_]: Async](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
-        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
+        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+    ): Config[F] = {
       val pathCollector: PathCollector[F] = (f, c, r) =>
         filesOnly(Path.fromNioPath(f.toPath()), c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
@@ -94,7 +96,9 @@ object FileService {
                   .flatMapF(path =>
                     F.ifM(Files[F].exists(path, false))(
                       path.absolute.normalize.some.pure,
-                      none[Path].pure))
+                      none[Path].pure,
+                    )
+                  )
                   .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
                   .flatMap(f => config.pathCollector(f, config, request))
                   .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
@@ -105,12 +109,14 @@ object FileService {
 
             case Left(_: NoSuchFileException) =>
               logger.error(
-                s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
+                s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
+              )
               Kleisli(_ => OptionT.none)
 
             case Left(e) =>
               logger.error(e)(
-                s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500.")
+                s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
+              )
               Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
           }
         }
@@ -119,7 +125,8 @@ object FileService {
   }
 
   private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): OptionT[F, Response[F]] =
+      F: Async[F]
+  ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
       if (attr.isDirectory)
         StaticFile
@@ -144,7 +151,8 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): F[Option[Response[F]]] =
+      F: Async[F]
+  ): F[Option[Response[F]]] =
     Files[F].getBasicFileAttributes(file).flatMap { attr =>
       def nope: F[Option[Response[F]]] =
         Some(
@@ -153,7 +161,10 @@ object FileService {
             headers = Headers
               .apply(
                 AcceptRangeHeader,
-                `Content-Range`(SubRange(0, attr.size - 1), Some(attr.size))))).pure[F].widen
+                `Content-Range`(SubRange(0, attr.size - 1), Some(attr.size)),
+              ),
+          )
+        ).pure[F].widen
 
       req.headers.get[Range] match {
         case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
@@ -169,7 +180,8 @@ object FileService {
                 end + 1,
                 config.bufferSize,
                 Some(req),
-                StaticFile.calculateETag)
+                StaticFile.calculateETag,
+              )
               .map { resp =>
                 val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

@@ -55,7 +55,8 @@ class ConnectionSuite extends Http4sSuite {
 
   def serverResource(
       idleTimeout: FiniteDuration,
-      headerTimeout: FiniteDuration): Resource[IO, Server] =
+      headerTimeout: FiniteDuration,
+  ): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service)
@@ -63,7 +64,7 @@ class ConnectionSuite extends Http4sSuite {
       .withRequestHeaderReceiveTimeout(headerTimeout)
       .build
 
-  class TestClient(val client: Socket[IO]) {
+  sealed case class TestClient(client: Socket[IO]) {
     val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
@@ -86,7 +87,8 @@ class ConnectionSuite extends Http4sSuite {
 
   def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
-      headerTimeout: FiniteDuration = 60.seconds) = ResourceFixture(
+      headerTimeout: FiniteDuration = 60.seconds,
+  ) = ResourceFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
       client <- clientResource(server.address)
@@ -129,7 +131,7 @@ class ConnectionSuite extends Http4sSuite {
         "POST /echo HTTP/1.1\r\n",
         "Accept: text/plain\r\n",
         "Content-Length: 100\r\n\r\n",
-        "less than 100 bytes"
+        "less than 100 bytes",
       )
       (for {
         _ <- client.writes(fs2.text.utf8.encode(request))
@@ -153,7 +155,7 @@ class ConnectionSuite extends Http4sSuite {
         "POST /unread HTTP/1.1\r\n",
         "Accept: text/plain\r\n",
         "Content-Length: 100\r\n\r\n",
-        "not enough bytes"
+        "not enough bytes",
       )
       for {
         _ <- client.writes(fs2.text.utf8.encode(request))

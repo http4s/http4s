@@ -29,18 +29,20 @@ class BlockingHttp4sServlet[F[_]](
     service: HttpApp[F],
     servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F],
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends Http4sServlet[F](service, servletIo, dispatcher) {
   override def service(
       servletRequest: HttpServletRequest,
-      servletResponse: HttpServletResponse): Unit = {
+      servletResponse: HttpServletResponse,
+  ): Unit = {
     val result = F
       .defer {
         val bodyWriter = servletIo.initWriter(servletResponse)
 
         val render = toRequest(servletRequest).fold(
           onParseFailure(_, servletResponse, bodyWriter),
-          handleRequest(_, servletResponse, bodyWriter)
+          handleRequest(_, servletResponse, bodyWriter),
         )
 
         render
@@ -52,7 +54,8 @@ class BlockingHttp4sServlet[F[_]](
   private def handleRequest(
       request: Request[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] =
+      bodyWriter: BodyWriter[F],
+  ): F[Unit] =
     // Note: We're catching silly user errors in the lift => flatten.
     F.defer(serviceFn(request))
       .recoverWith(serviceErrorHandler(request))
@@ -77,11 +80,12 @@ object BlockingHttp4sServlet {
   def apply[F[_]: Async](
       service: HttpApp[F],
       servletIo: ServletIo[F],
-      dispatcher: Dispatcher[F]): BlockingHttp4sServlet[F] =
+      dispatcher: Dispatcher[F],
+  ): BlockingHttp4sServlet[F] =
     new BlockingHttp4sServlet[F](
       service,
       servletIo,
       DefaultServiceErrorHandler,
-      dispatcher
+      dispatcher,
     )
 }

@@ -43,7 +43,8 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
       closeHook: AtomicBoolean,
-      backendInQ: Queue[IO, WebSocketFrame]) {
+      backendInQ: Queue[IO, WebSocketFrame],
+  ) {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
@@ -81,7 +82,8 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
         ws = WebSocketSeparatePipe[IO](
           Stream.repeatEval(outQ.take),
           _.evalMap(backendInQ.offer),
-          IO(closeHook.set(true)))
+          IO(closeHook.set(true)),
+        )
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
         http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal, dispatcher)
@@ -113,14 +115,14 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
   }
 
   dispatcher.test(
-    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame") {
-    implicit d =>
-      for {
-        socket <- TestWebsocketStage()
-        _ <- socket.sendInbound(Close())
-        p1 <- socket.pollBatchOutputbound(2, 2).map(_ == List(Close()))
-        p2 <- socket.wasCloseHookCalled().map(_ == true)
-      } yield assert(p1 && p2)
+    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame"
+  ) { implicit d =>
+    for {
+      socket <- TestWebsocketStage()
+      _ <- socket.sendInbound(Close())
+      p1 <- socket.pollBatchOutputbound(2, 2).map(_ == List(Close()))
+      p2 <- socket.wasCloseHookCalled().map(_ == true)
+    } yield assert(p1 && p2)
   }
 
   dispatcher.test("Http4sWSStage should not send two close frames".flaky) { implicit d =>
@@ -180,6 +182,6 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
           .compile
           .toList
           .timeout(5.seconds)
-    } yield assert(reasonReceived == List(reasonSent))
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }

@@ -38,7 +38,7 @@ object `Access-Control-Allow-Headers` {
     Header.createRendered(
       ci"Access-Control-Allow-Headers",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerMonoidInstance: cats.Monoid[`Access-Control-Allow-Headers`] =

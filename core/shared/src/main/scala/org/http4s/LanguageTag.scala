@@ -44,8 +44,8 @@ object LanguageTag {
 final case class LanguageTag(
     primaryTag: String,
     q: QValue = QValue.One,
-    subTags: List[String] = Nil)
-    extends Renderable {
+    subTags: List[String] = Nil,
+) extends Renderable {
 
   def withQValue(q: QValue): LanguageTag = copy(q = q)
 

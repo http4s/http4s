@@ -179,7 +179,7 @@ val cookieResp = {
     resp <- Ok("Ok response.")
     now <- HttpDate.current[IO]
   } yield resp.addCookie(ResponseCookie("foo", "bar", 
-    expires = Some(now), httpOnly = true, secure = true))
+      expires = Some(now), httpOnly = true, secure = true))
 }
 cookieResp.unsafeRunSync().headers
 ```

@@ -23,11 +23,13 @@ import java.time.ZonedDateTime
 
 class LastModifiedSuite extends Http4sSuite {
   val rfc7232Example = HttpDate.unsafeFromZonedDateTime(
-    ZonedDateTime.of(1994, Month.NOVEMBER.getValue, 15, 12, 45, 26, 0, ZoneOffset.UTC))
+    ZonedDateTime.of(1994, Month.NOVEMBER.getValue, 15, 12, 45, 26, 0, ZoneOffset.UTC)
+  )
 
   test("parse Last-Modified") {
     assertEquals(
       Header[`Last-Modified`].parse("Tue, 15 Nov 1994 12:45:26 GMT"),
-      Right(`Last-Modified`(rfc7232Example)))
+      Right(`Last-Modified`(rfc7232Example)),
+    )
   }
 }

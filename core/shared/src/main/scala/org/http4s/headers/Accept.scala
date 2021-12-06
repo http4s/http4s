@@ -36,7 +36,7 @@ object Accept {
       (QValue.parser ~ MediaRange.mediaTypeExtensionParser.rep0).map { case (qValue, ext) =>
         (
           qValue,
-          ext
+          ext,
         )
       }
 
@@ -58,7 +58,7 @@ object Accept {
     Header.createRendered(
       ci"Accept",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Accept] =

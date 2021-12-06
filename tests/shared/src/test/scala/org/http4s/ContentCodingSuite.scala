@@ -67,7 +67,8 @@ class ContentCodingSuite extends Http4sSuite {
   test("parses should parse with quality") {
     assertEquals(
       ContentCoding.parse("gzip;q=0.8"),
-      Right(ContentCoding.gzip.withQValue(qValue"0.8")))
+      Right(ContentCoding.gzip.withQValue(qValue"0.8")),
+    )
   }
   test("parses should fail on empty") {
     assert(ContentCoding.parse("").isLeft)
@@ -83,10 +84,12 @@ class ContentCodingSuite extends Http4sSuite {
     // Strange content coding but valid
     assertEquals(
       ContentCoding.parse("*fahon"),
-      ParseResult.success(ContentCoding.unsafeFromString("*fahon")))
+      ParseResult.success(ContentCoding.unsafeFromString("*fahon")),
+    )
     assertEquals(
       ContentCoding.parse("*fahon;q=0.1"),
-      ParseResult.success(ContentCoding.unsafeFromString("*fahon").withQValue(qValue"0.1")))
+      ParseResult.success(ContentCoding.unsafeFromString("*fahon").withQValue(qValue"0.1")),
+    )
   }
 
   test("render sould return coding and quality") {

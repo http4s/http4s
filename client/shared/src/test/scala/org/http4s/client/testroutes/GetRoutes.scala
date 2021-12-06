@@ -45,6 +45,6 @@ object GetRoutes {
       NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
       EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
-      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
+      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO],
     )
 }

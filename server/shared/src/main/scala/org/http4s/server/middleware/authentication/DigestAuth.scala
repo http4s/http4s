@@ -68,7 +68,7 @@ object DigestAuth {
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
-      nonceBits: Int = 160
+      nonceBits: Int = 160,
   ): AuthMiddleware[F, A] = {
     val nonceKeeper =
       new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
@@ -79,7 +79,8 @@ object DigestAuth {
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Async[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+      implicit F: Async[F]
+  ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       def paramsToChallenge(params: Map[String, String]) =
         Either.left(Challenge("Digest", realm, params))
@@ -95,7 +96,8 @@ object DigestAuth {
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
-      req: Request[F])(implicit F: Monad[F]): F[AuthReply[A]] =
+      req: Request[F],
+  )(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
@@ -106,7 +108,8 @@ object DigestAuth {
     }
 
   private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(implicit
-      F: Sync[F]): F[Map[String, String]] =
+      F: Sync[F]
+  ): F[Map[String, String]] =
     F.delay {
       val nonce = nonceKeeper.newNonce()
       val m = Map("qop" -> "auth", "nonce" -> nonce)
@@ -121,7 +124,8 @@ object DigestAuth {
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
       req: Request[F],
-      paramsNel: NonEmptyList[(String, String)])(implicit F: Monad[F]): F[AuthReply[A]] = {
+      paramsNel: NonEmptyList[(String, String)],
+  )(implicit F: Monad[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
     if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))
       return F.pure(BadParameters)
@@ -151,7 +155,8 @@ object DigestAuth {
                 nonce,
                 nc,
                 params("cnonce"),
-                params("qop"))
+                params("qop"),
+              )
               .map { resp =>
                 if (resp == params("response")) OK(authInfo)
                 else WrongResponse

@@ -26,7 +26,7 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
 
-// See https://tools.ietf.org/html/rfc7233
+// See https://datatracker.ietf.org/doc/html/rfc7233
 
 object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
@@ -57,7 +57,7 @@ object Range {
   }
 
   val parser: P0[Range] = {
-    // https://tools.ietf.org/html/rfc7233#section-3.1
+    // https://datatracker.ietf.org/doc/html/rfc7233#section-3.1
 
     def toLong(s: String): Option[Long] =
       try Some(s.toLong)
@@ -103,7 +103,7 @@ object Range {
             writer
           }
         },
-      parse
+      parse,
     )
 
 }

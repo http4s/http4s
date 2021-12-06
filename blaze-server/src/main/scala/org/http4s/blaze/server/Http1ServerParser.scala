@@ -29,7 +29,8 @@ import scala.util.Either
 private[http4s] final class Http1ServerParser[F[_]](
     logger: Logger,
     maxRequestLine: Int,
-    maxHeadersLen: Int)(implicit F: Async[F])
+    maxHeadersLen: Int,
+)(implicit F: Async[F])
     extends blaze.http.parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2 * 1024) {
   private var uri: String = _
   private var method: String = _
@@ -46,7 +47,8 @@ private[http4s] final class Http1ServerParser[F[_]](
 
   def collectMessage(
       body: EntityBody[F],
-      attrs: Vault): Either[(ParseFailure, HttpVersion), Request[F]] = {
+      attrs: Vault,
+  ): Either[(ParseFailure, HttpVersion), Request[F]] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
@@ -59,9 +61,11 @@ private[http4s] final class Http1ServerParser[F[_]](
             if (!contentComplete())
               F.raiseError(
                 new IllegalStateException(
-                  "Attempted to collect trailers before the body was complete."))
+                  "Attempted to collect trailers before the body was complete."
+                )
+              )
             else F.pure(Headers(headers.result()))
-          }
+          },
         )
       else attrs // Won't have trailers without a chunked body
 
@@ -80,7 +84,8 @@ private[http4s] final class Http1ServerParser[F[_]](
       uri: String,
       scheme: String,
       majorversion: Int,
-      minorversion: Int): Boolean = {
+      minorversion: Int,
+  ): Boolean = {
     logger.trace(s"Received request($methodString $uri $scheme/$majorversion.$minorversion)")
     this.uri = uri
     this.method = methodString
@@ -88,7 +93,7 @@ private[http4s] final class Http1ServerParser[F[_]](
     false
   }
 
-  /////////////////// Stateful methods for the HTTP parser ///////////////////
+  // ///////////////// Stateful methods for the HTTP parser ///////////////////
   override protected def headerComplete(name: String, value: String): Boolean = {
     logger.trace(s"Received header '$name: $value'")
     headers += name -> value

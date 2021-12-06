@@ -48,7 +48,7 @@ object BlazeClient {
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
       scheduler: TickWheelExecutor,
-      ec: ExecutionContext
+      ec: ExecutionContext,
   )(implicit F: Async[F]) =
     Client[F] { req =>
       Resource.suspend {
@@ -78,7 +78,8 @@ object BlazeClient {
               }
               .map { (response: Resource[F, Response[F]]) =>
                 response.flatMap(r =>
-                  Resource.make(F.pure(r))(_ => manager.release(next.connection)))
+                  Resource.make(F.pure(r))(_ => manager.release(next.connection))
+                )
               }
 
             responseHeaderTimeout match {
@@ -90,24 +91,27 @@ object BlazeClient {
                         new ResponseHeaderTimeoutStage[ByteBuffer](
                           responseHeaderTimeout,
                           scheduler,
-                          ec)
+                          ec,
+                        )
                       next.connection.spliceBefore(stage)
                       stage
                     }.bracket(stage =>
                       F.async[TimeoutException] { cb =>
                         F.delay(stage.init(cb)) >> gate.complete(()).as(None)
-                      })(stage => F.delay(stage.removeStage()))
+                      }
+                    )(stage => F.delay(stage.removeStage()))
 
                   F.racePair(gate.get *> res, responseHeaderTimeoutF)
                     .flatMap[Resource[F, Response[F]]] {
                       case Left((outcome, fiber)) =>
                         fiber.cancel >> outcome.embed(
-                          F.raiseError(new CancellationException("Response canceled")))
+                          F.raiseError(new CancellationException("Response canceled"))
+                        )
                       case Right((fiber, outcome)) =>
                         fiber.cancel >> outcome.fold(
                           F.raiseError(new TimeoutException("Response timeout also timed out")),
                           F.raiseError,
-                          _.flatMap(F.raiseError)
+                          _.flatMap(F.raiseError),
                         )
                     }
                 }
@@ -125,14 +129,19 @@ object BlazeClient {
                   scheduler.schedule(
                     new Runnable {
                       def run() =
-                        cb(Right(new TimeoutException(
-                          s"Request to $key timed out after ${d.toMillis} ms")))
+                        cb(
+                          Right(
+                            new TimeoutException(
+                              s"Request to $key timed out after ${d.toMillis} ms"
+                            )
+                          )
+                        )
                     },
                     ec,
-                    d
+                    d,
                   )
                 }.map(c => Some(F.delay(c.cancel())))
-              }
+              },
             ).flatMap[Resource[F, Response[F]]] {
               case Left(r) => F.pure(r)
               case Right(t) => F.raiseError(t)

@@ -26,6 +26,7 @@
 
 package org.http4s
 
+import cats.Contravariant
 import cats.Eval
 import cats.Hash
 import cats.Order
@@ -68,8 +69,8 @@ final case class Uri(
     authority: Option[Uri.Authority] = None,
     path: Uri.Path = Uri.Path.empty,
     query: Query = Query.empty,
-    fragment: Option[Uri.Fragment] = None)
-    extends QueryOps
+    fragment: Option[Uri.Fragment] = None,
+) extends QueryOps
     with Renderable {
 
   /** Adds the path exactly as described. Any path element must be urlencoded ahead of time.
@@ -89,11 +90,24 @@ final case class Uri(
     * @param newSegment the segment to add.
     * @return a new uri with the segment added to the path
     */
-  def addSegment(newSegment: String): Uri = copy(path = toSegment(path, newSegment))
+  def addSegment(newSegment: String): Uri = addSegment[String](newSegment)
+
+  /** Urlencodes and adds a path segment to the Uri
+    *
+    * @tparam Type to be encoded to a Uri Segment
+    * @param newSegment the segment to add.
+    * @return a new uri with the segment added to the path
+    */
+  def addSegment[A: Uri.Path.SegmentEncoder](newSegment: A): Uri =
+    copy(path = path / newSegment)
 
   /** This is an alias to [[#addSegment]]
     */
-  def /(newSegment: String): Uri = addSegment(newSegment)
+  def /(newSegment: String): Uri = addSegment[String](newSegment)
+
+  /** This is an alias to [[#addSegment]]
+    */
+  def /[A: Uri.Path.SegmentEncoder](newSegment: A): Uri = addSegment[A](newSegment)
 
   /** Splits the path segments and adds each of them to the path url-encoded.
     * A segment is delimited by /
@@ -101,7 +115,7 @@ final case class Uri(
     * @return a new uri with the segments added to the path
     */
   def addPath(morePath: String): Uri =
-    copy(path = morePath.split("/").foldLeft(path)((p, segment) => toSegment(p, segment)))
+    copy(path = morePath.split("/").foldLeft(path)((p, segment) => p.addSegment(segment)))
 
   def host: Option[Uri.Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
@@ -163,7 +177,7 @@ final case class Uri(
         writer << "/" << p
       case Uri(None, None, p, _, _) =>
         if (!p.absolute && p.segments.headOption.fold(false)(_.toString.contains(":"))) {
-          writer << "./" << p // https://tools.ietf.org/html/rfc3986#section-4.2 last paragraph
+          writer << "./" << p // https://datatracker.ietf.org/doc/html/rfc3986#section-4.2 last paragraph
         } else {
           writer << p
         }
@@ -178,15 +192,12 @@ final case class Uri(
     writer
   }
 
-  /////////// Query Operations ///////////////
+  // ///////// Query Operations ///////////////
   override protected type Self = Uri
 
   override protected def self: Self = this
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
-
-  private def toSegment(path: Uri.Path, newSegment: String): Uri.Path =
-    path / Uri.Path.Segment(newSegment)
 
   /** Converts this request to origin-form, which is the absolute path and optional
     * query.  If the path is relative, it is assumed to be relative to the root.
@@ -220,7 +231,7 @@ object Uri extends UriPlatform {
     * If the scheme is defined, the URI is absolute.  If the scheme is
     * not defined, the URI is a relative reference.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
@@ -275,8 +286,8 @@ object Uri extends UriPlatform {
   final case class Authority(
       userInfo: Option[UserInfo] = None,
       host: Host = RegName("localhost"),
-      port: Option[Int] = None)
-      extends Renderable {
+      port: Option[Int] = None,
+  ) extends Renderable {
     override def render(writer: Writer): writer.type =
       this match {
         case Authority(Some(u), h, None) => writer << u << '@' << h
@@ -301,7 +312,7 @@ object Uri extends UriPlatform {
           reduceComparisons(
             compareAuthorities(_.userInfo),
             Eval.later(compareAuthorities(_.host)),
-            Eval.later(compareAuthorities(_.port))
+            Eval.later(compareAuthorities(_.port)),
           )
         }
 
@@ -313,8 +324,8 @@ object Uri extends UriPlatform {
   final class Path private (
       val segments: Vector[Path.Segment],
       val absolute: Boolean,
-      val endsWithSlash: Boolean)
-      extends Renderable {
+      val endsWithSlash: Boolean,
+  ) extends Renderable {
 
     def isEmpty: Boolean = segments.isEmpty
     def nonEmpty: Boolean = segments.nonEmpty
@@ -344,9 +355,18 @@ object Uri extends UriPlatform {
     override val renderString: String = super.renderString
     override def toString: String = renderString
 
+    /** This is an alias to [[#addSegment]]
+      */
     def /(segment: Path.Segment): Path = addSegment(segment)
-    def addSegment(segment: Path.Segment): Path =
-      addSegments(List(segment))
+
+    /** This is an alias to [[#addSegment]]
+      */
+    def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
+
+    def addSegment(segment: Path.Segment): Path = addSegments(List(segment))
+    def addSegment[A](segment: A)(implicit encoder: Path.SegmentEncoder[A]): Path =
+      addSegments(List(encoder.toSegment(segment)))
+
     def addSegments(value: Seq[Path.Segment]): Path =
       Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
 
@@ -386,7 +406,8 @@ object Uri extends UriPlatform {
     private def copy(
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
-        endsWithSlash: Boolean = endsWithSlash) =
+        endsWithSlash: Boolean = endsWithSlash,
+    ) =
       new Path(segments, absolute, endsWithSlash)
 
     def dropEndsWithSlash = copy(endsWithSlash = false)
@@ -414,7 +435,8 @@ object Uri extends UriPlatform {
       def decoded(
           charset: JCharset = StandardCharsets.UTF_8,
           plusIsSpace: Boolean = false,
-          toSkip: Char => Boolean = Function.const(false)): String =
+          toSkip: Char => Boolean = Function.const(false),
+      ): String =
         Uri.decode(encoded, charset, plusIsSpace, toSkip)
 
       override val toString: String = encoded
@@ -433,6 +455,49 @@ object Uri extends UriPlatform {
         }
     }
 
+    trait SegmentEncoder[A] extends Serializable {
+      def toSegment(a: A): Segment
+
+      final def contramap[B](f: B => A): SegmentEncoder[B] =
+        b => this.toSegment(f(b))
+    }
+
+    object SegmentEncoder {
+      def apply[A](implicit segmentEncoder: SegmentEncoder[A]): SegmentEncoder[A] =
+        segmentEncoder
+
+      def instance[A](f: A => Segment): SegmentEncoder[A] = f.apply _
+
+      def fromToString[A]: SegmentEncoder[A] = v => Segment(v.toString())
+      def fromShow[A](implicit show: Show[A]): SegmentEncoder[A] =
+        v => Segment(show.show(v))
+
+      implicit val segmentSegmentEncoder: SegmentEncoder[Segment] = identity[Segment] _
+
+      implicit val charSegmentEncoder: SegmentEncoder[Char] = fromToString
+      implicit val stringSegmentEncoder: SegmentEncoder[String] = Segment.apply _
+
+      implicit val booleanSegmentEncoder: SegmentEncoder[Boolean] = fromToString
+
+      implicit val byteSegmentEncoder: SegmentEncoder[Byte] = fromToString
+      implicit val shortSegmentEncoder: SegmentEncoder[Short] = fromToString
+      implicit val intSegmentEncoder: SegmentEncoder[Int] = fromToString
+      implicit val longSegmentEncoder: SegmentEncoder[Long] = fromToString
+      implicit val bigIntSegmentEncoder: SegmentEncoder[BigInt] = fromToString
+
+      implicit val floatSegmentEncoder: SegmentEncoder[Float] = fromToString
+      implicit val doubleSegmentEncoder: SegmentEncoder[Double] = fromToString
+      implicit val bigDecimalSegmentEncoder: SegmentEncoder[BigDecimal] = fromToString
+
+      implicit val uuidSegmentEncoder: SegmentEncoder[java.util.UUID] = fromToString
+
+      implicit val contravariantInstance: Contravariant[SegmentEncoder] =
+        new Contravariant[SegmentEncoder] {
+          override def contramap[A, B](fa: SegmentEncoder[A])(f: B => A): SegmentEncoder[B] =
+            fa.contramap(f)
+        }
+    }
+
     /** This constructor allows you to construct the path directly.
       * Each path segment needs to be encoded for it to be used here.
       *
@@ -444,7 +509,8 @@ object Uri extends UriPlatform {
     def apply(
         segments: Vector[Segment],
         absolute: Boolean = false,
-        endsWithSlash: Boolean = false): Path =
+        endsWithSlash: Boolean = false,
+    ): Path =
       new Path(segments, absolute, endsWithSlash)
 
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
@@ -466,7 +532,7 @@ object Uri extends UriPlatform {
               .split("/")
               .foldLeft(Vector.empty[Segment])((path, segment) => path :+ Segment.encoded(segment)),
             absolute = absolute,
-            endsWithSlash = relative.endsWith("/")
+            endsWithSlash = relative.endsWith("/"),
           )
       }
 
@@ -478,7 +544,7 @@ object Uri extends UriPlatform {
           reduceComparisons(
             comparePaths(_.absolute),
             Eval.later(comparePaths(_.segments)),
-            Eval.later(comparePaths(_.endsWithSlash))
+            Eval.later(comparePaths(_.endsWithSlash)),
           )
         }
 
@@ -499,10 +565,12 @@ object Uri extends UriPlatform {
     * clear text in a URI is a security risk and deprecated by RFC
     * 3986, but preserved in this model for losslessness.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
-  final case class UserInfo private (username: String, password: Option[String])
-      extends Ordered[UserInfo] {
+  final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+      username: String,
+      password: Option[String],
+  ) extends Ordered[UserInfo] {
     override def compare(that: UserInfo): Int =
       username.compareTo(that.username) match {
         case 0 => Ordering.Option[String].compare(password, that.password)
@@ -719,7 +787,8 @@ object Uri extends UriPlatform {
         case Some(address) => Right(Ipv6Address(address))
         case None =>
           Left(
-            ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}"))
+            ParseFailure("Invalid Ipv6Address", s"Byte array not exactly 16 bytes: ${bytes.toSeq}")
+          )
       }
 
     @deprecated("Use apply(ip4s.Ipv6Address.fromInet6Address(address))", "0.23.5")
@@ -912,7 +981,8 @@ object Uri extends UriPlatform {
       toEncode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       spaceIsPlus: Boolean = false,
-      toSkip: Char => Boolean = toSkip): String =
+      toSkip: Char => Boolean = toSkip,
+  ): String =
     UriCoding.encode(toEncode, charset, spaceIsPlus, toSkip)
 
   private lazy val toSkip =
@@ -936,55 +1006,60 @@ object Uri extends UriPlatform {
       toDecode: String,
       charset: JCharset = StandardCharsets.UTF_8,
       plusIsSpace: Boolean = false,
-      toSkip: Char => Boolean = Function.const(false)): String = {
-    val in = CharBuffer.wrap(toDecode)
-    // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
-    // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
-    val out = ByteBuffer.allocate(in.remaining() * 3)
-    while (in.hasRemaining) {
-      val mark = in.position()
-      val c = in.get()
-      if (c == '%') {
-        if (in.remaining() >= 2) {
-          val xc = in.get()
-          val yc = in.get()
-          val x = Character.digit(xc, 0x10)
-          val y = Character.digit(yc, 0x10)
-          if (x != -1 && y != -1) {
-            val oo = (x << 4) + y
-            if (!toSkip(oo.toChar)) {
-              out.put(oo.toByte)
+      toSkip: Char => Boolean = Function.const(false),
+  ): String =
+    if (toDecode.indexOf('%') < 0) {
+      if (plusIsSpace && toDecode.indexOf('+') >= 0) toDecode.replace('+', ' ')
+      else toDecode
+    } else {
+      val in = CharBuffer.wrap(toDecode)
+      // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
+      // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
+      val out = ByteBuffer.allocate(in.remaining() * 3)
+      while (in.hasRemaining) {
+        val mark = in.position()
+        val c = in.get()
+        if (c == '%') {
+          if (in.remaining() >= 2) {
+            val xc = in.get()
+            val yc = in.get()
+            val x = Character.digit(xc, 0x10)
+            val y = Character.digit(yc, 0x10)
+            if (x != -1 && y != -1) {
+              val oo = (x << 4) + y
+              if (!toSkip(oo.toChar)) {
+                out.put(oo.toByte)
+              } else {
+                out.put('%'.toByte)
+                out.put(xc.toByte)
+                out.put(yc.toByte)
+              }
             } else {
               out.put('%'.toByte)
-              out.put(xc.toByte)
-              out.put(yc.toByte)
+              in.position(mark + 1)
             }
           } else {
-            out.put('%'.toByte)
-            in.position(mark + 1)
+            // This is an invalid encoding. Fail gracefully by treating the '%' as
+            // a literal.
+            out.put(c.toByte)
+            while (in.hasRemaining) out.put(in.get().toByte)
           }
+        } else if (c == '+' && plusIsSpace) {
+          out.put(' '.toByte)
         } else {
-          // This is an invalid encoding. Fail gracefully by treating the '%' as
-          // a literal.
-          out.put(c.toByte)
-          while (in.hasRemaining) out.put(in.get().toByte)
-        }
-      } else if (c == '+' && plusIsSpace) {
-        out.put(' '.toByte)
-      } else {
-        // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
-        // however there are cases where a string can be partially decoded
-        // so we have to make sure the non us-ascii chars get preserved properly.
-        if (toSkip(c)) {
-          out.put(c.toByte)
-        } else {
-          out.put(charset.encode(String.valueOf(c)))
+          // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
+          // however there are cases where a string can be partially decoded
+          // so we have to make sure the non us-ascii chars get preserved properly.
+          if (toSkip(c)) {
+            out.put(c.toByte)
+          } else {
+            out.put(charset.encode(String.valueOf(c)))
+          }
         }
       }
+      out.flip()
+      charset.decode(out).toString
     }
-    out.flip()
-    charset.decode(out).toString
-  }
 
   implicit val catsInstancesForHttp4sUri: Hash[Uri] with Order[Uri] with Show[Uri] =
     new Hash[Uri] with Order[Uri] with Show[Uri] {
@@ -1000,7 +1075,7 @@ object Uri extends UriPlatform {
           Eval.later(compareUris(_.authority)),
           Eval.later(compareUris(_.path)),
           Eval.later(compareUris(_.query)),
-          Eval.later(compareUris(_.fragment))
+          Eval.later(compareUris(_.fragment)),
         )
       }
 
@@ -1221,7 +1296,9 @@ object Uri extends UriPlatform {
         }
       P.oneOf0(
         rel :: pathAbsolute.map((None, _)) :: pathRootless.map((None, _)) :: pathEmpty.map(
-          (None, _)) :: Nil)
+          (None, _)
+        ) :: Nil
+      )
     }
 
     /* absolute-URI  = scheme ":" hier-part [ "?" query ] */
@@ -1245,7 +1322,8 @@ object Uri extends UriPlatform {
             authority = a,
             path = p,
             query = q.getOrElse(Query.empty),
-            fragment = f)
+            fragment = f,
+          )
         }
     }
 
@@ -1258,10 +1336,11 @@ object Uri extends UriPlatform {
       import cats.parse.Parser.string
 
       P.oneOf0(
-        ((string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
+        (string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
           (Some(a), p)
-        }) :: (pathAbsolute.map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map(
-          (None, _))) :: Nil)
+        } :: (pathAbsolute
+          .map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map((None, _))) :: Nil
+      )
     }
 
     /* relative-ref  = relative-part [ "?" query ] [ "#" fragment ] */
@@ -1276,7 +1355,8 @@ object Uri extends UriPlatform {
             authority = a,
             path = p,
             query = q.getOrElse(Query.empty),
-            fragment = f)
+            fragment = f,
+          )
       }
     }
 

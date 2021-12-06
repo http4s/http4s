@@ -117,7 +117,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
           s,
           spaceIsPlus = false,
           charset = StandardCharsets.UTF_8,
-          toSkip = UriCoding.QueryNoEncode)
+          toSkip = UriCoding.QueryNoEncode,
+        )
 
       pairs.foreach {
         case (n, None) =>
@@ -135,7 +136,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
       }
       writer
     },
-    raw => writer.append(raw)
+    raw => writer.append(raw),
   )
 
   /** Map[String, String] representation of the [[Query]]
@@ -169,12 +170,12 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   override def hashCode: Int = 31 + toVector.##
 
-  /////////////////////// QueryOps methods and types /////////////////////////
+  // ///////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
   override protected def self: Self = this
   override protected def replaceQuery(query: Query): Self = query
-  ////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////
 }
 
 object Query {

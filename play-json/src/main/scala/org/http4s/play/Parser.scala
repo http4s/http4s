@@ -35,7 +35,8 @@ private[play] object Parser extends SupportParser[JsValue] {
       val jtrue: JsValue = JsBoolean(true)
 
       def jnum(s: CharSequence, decIndex: Int, expIndex: Int): JsValue = JsNumber(
-        BigDecimal(s.toString))
+        BigDecimal(s.toString)
+      )
       def jstring(s: CharSequence): JsValue = JsString(s.toString)
 
       def jarray(vs: List[JsValue]): JsValue = JsArray(vs)

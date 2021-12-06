@@ -30,7 +30,8 @@ trait TwirlInstances {
     * `application/javascript`.
     */
   implicit def jsContentEncoder(implicit
-      charset: Charset = `UTF-8`): EntityEncoder.Pure[JavaScript] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder.Pure[JavaScript] =
     contentEncoder(MediaType.application.javascript)
 
   implicit def xmlContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Xml] =
@@ -39,8 +40,9 @@ trait TwirlInstances {
   implicit def txtContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Txt] =
     contentEncoder(MediaType.text.plain)
 
-  private def contentEncoder[C <: Content](mediaType: MediaType)(implicit
-      charset: Charset): EntityEncoder.Pure[C] =
+  private def contentEncoder[C <: Content](
+      mediaType: MediaType
+  )(implicit charset: Charset): EntityEncoder.Pure[C] =
     EntityEncoder.stringEncoder
       .contramap[C](content => content.body)
       .withContentType(`Content-Type`(mediaType, charset))

@@ -67,6 +67,7 @@ object Http {
     * being applied to `fa`
     */
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
-      F: Monad[F]): Http[F, G] =
+      F: Monad[F]
+  ): Http[F, G] =
     Kleisli(req => F.unit >> fa.run(f(req)))
 }

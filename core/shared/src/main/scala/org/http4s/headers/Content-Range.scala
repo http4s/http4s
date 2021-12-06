@@ -79,7 +79,7 @@ object `Content-Range` {
             }
           }
         },
-      parse
+      parse,
     )
 }
 

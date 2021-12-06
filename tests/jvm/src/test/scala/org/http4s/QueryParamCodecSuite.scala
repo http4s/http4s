@@ -21,9 +21,8 @@ import cats.data._
 import cats.laws.discipline.{arbitrary => _, _}
 import cats.syntax.all._
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.{arbYear => _, _}
+import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
-import org.scalacheck.Gen
 import org.scalacheck.Prop._
 
 import java.time._
@@ -77,11 +76,13 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   // Law checks for instances.
   checkAll(
     "Functor[QueryParamDecoder]",
-    FunctorTests[QueryParamDecoder].functor[Int, String, Boolean])
+    FunctorTests[QueryParamDecoder].functor[Int, String, Boolean],
+  )
   checkAll("MonoidK[QueryParamDecoder]", MonoidKTests[QueryParamDecoder].monoidK[Int])
   checkAll(
     "Contravariant[QueryParamEncoder]",
-    ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean])
+    ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean],
+  )
 
   // The PlusEmpty check above validates fail() but we need an explicit test for success().
   test("success(a) always succeeds") {
@@ -110,10 +111,6 @@ trait QueryParamCodecInstances {
       val as = List.fill(100)(arbitrary[A].sample).flatten
       as.forall(a => x.encode(a) == y.encode(a))
     }
-
-  // TODO: Use scalacheck instance once this fix gets released https://github.com/typelevel/scalacheck/commit/2ae1be5c8e5ee1c14abea607d631e334a56796de
-  implicit final lazy val arbYear: Arbitrary[Year] =
-    Arbitrary(Gen.chooseNum(Year.MIN_VALUE + 1, Year.MAX_VALUE).map(Year.of))
 
   implicit val eqInstant: Eq[Instant] = Eq.fromUniversalEquals
 
@@ -176,14 +173,16 @@ trait QueryParamCodecInstances {
     QueryParamCodec.monthDay(DateTimeFormatter.ofPattern("--MM-dd"))
 
   implicit val yearQueryParamCodec: QueryParamCodec[Year] = QueryParamCodec.year(
-    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter)
+    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter
+  )
 
   implicit val yearMonthQueryParamCodec: QueryParamCodec[YearMonth] = QueryParamCodec.yearMonth(
     new DateTimeFormatterBuilder()
       .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
       .appendLiteral('-')
       .appendValue(MONTH_OF_YEAR, 2)
-      .toFormatter)
+      .toFormatter
+  )
 
   implicit val zoneOffsetQueryParamCodec: QueryParamCodec[ZoneOffset] =
     QueryParamCodec.zoneOffset(DateTimeFormatter.ofPattern("XXXXX"))

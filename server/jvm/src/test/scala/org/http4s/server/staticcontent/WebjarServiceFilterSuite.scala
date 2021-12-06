@@ -25,7 +25,8 @@ class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
     webjarServiceBuilder[IO]
       .withWebjarAssetFilter(webjar =>
-        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt")
+        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt"
+      )
       .toRoutes
 
   test("Return a 200 Ok file") {

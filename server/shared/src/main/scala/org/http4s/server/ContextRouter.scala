@@ -48,7 +48,8 @@ object ContextRouter {
             if (req.req.pathInfo.startsWith(prefixSegments))
               routes
                 .local[ContextRequest[F, A]](r =>
-                  ContextRequest(r.context, Router.translate(prefixSegments)(r.req))) <+> acc
+                  ContextRequest(r.context, Router.translate(prefixSegments)(r.req))
+                ) <+> acc
             else
               acc
           )(req)

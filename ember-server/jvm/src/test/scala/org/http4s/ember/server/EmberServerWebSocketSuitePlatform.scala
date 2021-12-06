@@ -41,7 +41,8 @@ trait EmberServerWebSocketSuitePlatform { self: EmberServerWebSocketSuite =>
       val messages: Queue[IO, String],
       val pongs: Queue[IO, String],
       val remoteClosed: Deferred[IO, Unit],
-      val client: WebSocketClient) {
+      val client: WebSocketClient,
+  ) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def close: IO[Unit] =

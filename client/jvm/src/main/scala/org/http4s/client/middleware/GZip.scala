@@ -56,7 +56,8 @@ object GZip {
     }
 
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Async[F]): Response[F] =
+      F: Async[F]
+  ): Response[F] =
     response.headers.get[`Content-Encoding`] match {
       case Some(header)
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
@@ -76,8 +77,9 @@ object GZip {
         response
     }
 
-  private def decompressWith[F[_]](decompressor: Pipe[F, Byte, Byte])(implicit
-      F: Async[F]): Pipe[F, Byte, Byte] =
+  private def decompressWith[F[_]](
+      decompressor: Pipe[F, Byte, Byte]
+  )(implicit F: Async[F]): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)

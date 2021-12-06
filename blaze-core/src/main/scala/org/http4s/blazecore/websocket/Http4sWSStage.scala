@@ -49,13 +49,13 @@ private[http4s] class Http4sWSStage[F[_]](
     sentClose: AtomicBoolean,
     deadSignal: SignallingRef[F, Boolean],
     writeSemaphore: Semaphore[F],
-    dispatcher: Dispatcher[F]
+    dispatcher: Dispatcher[F],
 )(implicit F: Async[F])
     extends TailStage[WebSocketFrame] {
 
   def name: String = "Http4s WebSocket Stage"
 
-  //////////////////////// Source and Sink generators ////////////////////////
+  // ////////////////////// Source and Sink generators ////////////////////////
   val isClosed: F[Boolean] = F.delay(sentClose.get())
   val setClosed: F[Boolean] = F.delay(sentClose.compareAndSet(false, true))
 
@@ -120,11 +120,11 @@ private[http4s] class Http4sWSStage[F[_]](
         case c: Close =>
           for {
             s <- F.delay(sentClose.get())
-            //If we sent a close signal, we don't need to reply with one
+            // If we sent a close signal, we don't need to reply with one
             _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
           } yield c
         case p @ Ping(d) =>
-          //Reply to ping frame immediately
+          // Reply to ping frame immediately
           writeFrame(Pong(d), trampoline) >> F.pure(p)
         case rest =>
           F.pure(rest)
@@ -134,14 +134,14 @@ private[http4s] class Http4sWSStage[F[_]](
   /** The websocket input stream
     *
     * Note: On receiving a close, we MUST send a close back, as stated in section
-    * 5.5.1 of the websocket spec: https://tools.ietf.org/html/rfc6455#section-5.5.1
+    * 5.5.1 of the websocket spec: https://datatracker.ietf.org/doc/html/rfc6455#section-5.5.1
     *
     * @return
     */
   def inputstream: Stream[F, WebSocketFrame] =
     Stream.repeatEval(handleRead())
 
-  //////////////////////// Startup and Shutdown ////////////////////////
+  // ////////////////////// Startup and Shutdown ////////////////////////
 
   override protected def stageStartup(): Unit = {
     super.stageStartup()
@@ -152,7 +152,7 @@ private[http4s] class Http4sWSStage[F[_]](
     val receiveSent: Stream[F, WebSocketFrame] =
       ws match {
         case WebSocketSeparatePipe(send, receive, _) =>
-          //We don't need to terminate if the send stream terminates.
+          // We don't need to terminate if the send stream terminates.
           send.concurrently(receive(inputstream))
         case WebSocketCombinedPipe(receiveSend, _) =>
           receiveSend(inputstream)
@@ -165,7 +165,7 @@ private[http4s] class Http4sWSStage[F[_]](
         .interruptWhen(deadSignal)
         .onFinalizeWeak(
           ws.onClose.attempt.void
-        ) //Doing it this way ensures `sendClose` is sent no matter what
+        ) // Doing it this way ensures `sendClose` is sent no matter what
         .onFinalizeWeak(sendClose)
         .compile
         .drain
@@ -196,6 +196,7 @@ object Http4sWSStage {
       ws: WebSocket[F],
       sentClose: AtomicBoolean,
       deadSignal: SignallingRef[F, Boolean],
-      dispatcher: Dispatcher[F])(implicit F: Async[F]): F[Http4sWSStage[F]] =
+      dispatcher: Dispatcher[F],
+  )(implicit F: Async[F]): F[Http4sWSStage[F]] =
     Semaphore[F](1L).map(t => new Http4sWSStage(ws, sentClose, deadSignal, t, dispatcher))
 }

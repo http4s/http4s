@@ -32,7 +32,8 @@ import scala.concurrent._
 private[http4s] class Http2Writer[F[_]](
     tail: TailStage[StreamFrame],
     private var headers: Headers,
-    protected val ec: ExecutionContext)(implicit protected val F: Async[F])
+    protected val ec: ExecutionContext,
+)(implicit protected val F: Async[F])
     extends EntityBodyWriter[F] {
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f =
@@ -46,7 +47,8 @@ private[http4s] class Http2Writer[F[_]](
           tail.channelWrite(
             HeadersFrame(Priority.NoPriority, endStream = false, hs)
               :: DataFrame(endStream = true, chunk.toByteBuffer)
-              :: Nil)
+              :: Nil
+          )
       }
 
     f.map(Function.const(false))(ec)
@@ -61,6 +63,7 @@ private[http4s] class Http2Writer[F[_]](
       tail.channelWrite(
         HeadersFrame(Priority.NoPriority, endStream = false, hs)
           :: DataFrame(endStream = false, chunk.toByteBuffer)
-          :: Nil)
+          :: Nil
+      )
     }
 }

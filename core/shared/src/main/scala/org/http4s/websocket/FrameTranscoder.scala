@@ -126,7 +126,8 @@ class FrameTranscoder(val isClient: Boolean) {
         ((mask >>> 24) & 0xff).toByte,
         ((mask >>> 16) & 0xff).toByte,
         ((mask >>> 8) & 0xff).toByte,
-        ((mask >>> 0) & 0xff).toByte)
+        ((mask >>> 0) & 0xff).toByte,
+      )
 
       buff.put(maskBits)
 

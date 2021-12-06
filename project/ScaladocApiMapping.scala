@@ -52,7 +52,8 @@ object ScaladocApiMapping {
     val suffix: String =
       maybeScalaBinaryVersionToSuffix(scalaBinaryVersion)
     new URL(
-      s"https://javadoc.io/doc/${moduleId.organization}/${moduleId.name}${suffix}/${moduleId.revision}/")
+      s"https://javadoc.io/doc/${moduleId.organization}/${moduleId.name}${suffix}/${moduleId.revision}/"
+    )
   }
 
   private def playJsonMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
@@ -60,7 +61,9 @@ object ScaladocApiMapping {
       Some(
         file -> javadocIOAPIUrl(
           Some(scalaBinaryVersion),
-          "com.typesafe.play" %% "play-json" % V.playJson))
+          "com.typesafe.play" %% "play-json" % V.playJson,
+        )
+      )
     } else {
       None
     }
@@ -72,7 +75,9 @@ object ScaladocApiMapping {
       Some(
         file -> javadocIOAPIUrl(
           Some(scalaBinaryVersion),
-          "org.typelevel" %% "vault" % Http4sPlugin.V.vault))
+          "org.typelevel" %% "vault" % Http4sPlugin.V.vault,
+        )
+      )
     } else {
       None
     }
@@ -88,8 +93,11 @@ object ScaladocApiMapping {
     val fs2Core: ModuleID =
       "co.fs2" %% "fs2-core" % Http4sPlugin.V.fs2
     if (file.toString.matches(""".+/fs2-core_[^/]+\.jar$""")) {
-      Some(file -> new URL(
-        s"https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_${scalaBinaryVersion}/${fs2Core.revision}/${fs2Core.name}_${scalaBinaryVersion}-${fs2Core.revision}-javadoc.jar/!/"))
+      Some(
+        file -> new URL(
+          s"https://oss.sonatype.org/service/local/repositories/releases/archive/co/fs2/fs2-core_${scalaBinaryVersion}/${fs2Core.revision}/${fs2Core.name}_${scalaBinaryVersion}-${fs2Core.revision}-javadoc.jar/!/"
+        )
+      )
     } else {
       None
     }
@@ -101,7 +109,9 @@ object ScaladocApiMapping {
     if (file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
       Some(
         file -> new URL(
-          s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"))
+          s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"
+        )
+      )
     } else {
       None
     }

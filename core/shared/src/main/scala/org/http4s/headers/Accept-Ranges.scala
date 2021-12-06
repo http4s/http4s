@@ -31,7 +31,7 @@ object `Accept-Ranges` {
   def parse(s: String): ParseResult[`Accept-Ranges`] =
     ParseResult.fromParser(parser, "Invalid Accept-Ranges header")(s)
 
-  /* https://tools.ietf.org/html/rfc7233#appendix-C */
+  /* https://datatracker.ietf.org/doc/html/rfc7233#appendix-C */
   val parser: P0[`Accept-Ranges`] = {
 
     val none = Parser.string("none").as(Nil)
@@ -47,7 +47,7 @@ object `Accept-Ranges` {
       Parser.oneOf0(
         List(
           none,
-          Rfc7230.headerRep1(rangeUnit).map(_.toList)
+          Rfc7230.headerRep1(rangeUnit).map(_.toList),
         )
       )
 
@@ -61,8 +61,8 @@ object `Accept-Ranges` {
         case None => "none"
         case Some(nel) => Renderer.renderString(nel)
       },
-      parse
+      parse,
     )
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
+final case class `Accept-Ranges`(rangeUnits: List[RangeUnit])

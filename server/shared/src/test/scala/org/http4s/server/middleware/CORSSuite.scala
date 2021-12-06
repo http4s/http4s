@@ -44,13 +44,14 @@ class CORSSuite extends Http4sSuite {
     .withMethod(Method.OPTIONS)
     .putHeaders(
       `Access-Control-Request-Method`(Method.POST),
-      Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite")
+      Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite"),
     )
 
   def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Allow-Origin").map(_.head.value),
-      origin.map(_.toString))
+      origin.map(_.toString),
+    )
 
   def assertAllowCredentials[F[_]](resp: Response[F], b: Boolean) =
     assertEquals(resp.headers.get[`Access-Control-Allow-Credentials`].isDefined, b)
@@ -58,27 +59,32 @@ class CORSSuite extends Http4sSuite {
   def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
     assertEquals(
       resp.headers.get[`Access-Control-Expose-Headers`].map(h => CIString(h.value)),
-      names)
+      names,
+    )
 
   def assertAllowMethods[F[_]](resp: Response[F], methods: Option[String]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Allow-Methods").map(_.map(_.value).toList.mkString(", ")),
-      methods)
+      methods,
+    )
 
   def assertAllowHeaders[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(
       resp.headers.get[`Access-Control-Allow-Headers`].map(h => CIString(h.value)),
-      headers)
+      headers,
+    )
 
   def assertMaxAge[F[_]](resp: Response[F], deltaSeconds: Option[Long]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Max-Age").map(_.head.value),
-      deltaSeconds.map(_.toString))
+      deltaSeconds.map(_.toString),
+    )
 
   def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(
       resp.headers.get(ci"Vary").map(hs => CIString(hs.map(_.value).toList.mkString(", "))),
-      headers)
+      headers,
+    )
 
   test("withAllowOriginAll, non-CORS request") {
     CORS.policy.withAllowOriginAll(app).run(nonCorsReq).map { resp =>
@@ -130,7 +136,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowOrigin(resp, None)
         assertVary(
           resp,
-          ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some)
+          ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some,
+        )
       }
   }
 
@@ -139,7 +146,8 @@ class CORSSuite extends Http4sSuite {
       assertAllowOrigin(resp, Some("https://example.com"))
       assertVary(
         resp,
-        ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some)
+        ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some,
+      )
     }
   }
 
@@ -155,7 +163,8 @@ class CORSSuite extends Http4sSuite {
       assertAllowOrigin(resp, None)
       assertVary(
         resp,
-        ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some)
+        ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers".some,
+      )
     }
   }
 
@@ -387,7 +396,8 @@ class CORSSuite extends Http4sSuite {
   }
 
   test(
-    "withAllowMethodsAll, credentials allowed, preflight request with matching origin, fails on literal wildcard") {
+    "withAllowMethodsAll, credentials allowed, preflight request with matching origin, fails on literal wildcard"
+  ) {
     CORS.policy
       .withAllowOriginHeader(_ => true)
       .withAllowCredentials(true)
@@ -436,7 +446,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowMethods(resp, None)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -450,7 +461,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowMethods(resp, Some("GET, POST"))
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -464,7 +476,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowMethods(resp, None)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -481,7 +494,8 @@ class CORSSuite extends Http4sSuite {
   }
 
   test(
-    "withAllowHeadersAll, credentials allowed, preflight request with matching origin, fails on literal wildcard") {
+    "withAllowHeadersAll, credentials allowed, preflight request with matching origin, fails on literal wildcard"
+  ) {
     CORS.policy
       .withAllowOriginHeader(_ => true)
       .withAllowCredentials(true)
@@ -530,7 +544,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowHeaders(resp, None)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -544,7 +559,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite, X-Cors-Suite-2"))
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -553,13 +569,17 @@ class CORSSuite extends Http4sSuite {
       .withAllowOriginHeader(_ => true)
       .withAllowHeadersIn(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
-      .run(preflightReq.putHeaders(
-        Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")))
+      .run(
+        preflightReq.putHeaders(
+          Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")
+        )
+      )
       .map { resp =>
         assertAllowHeaders(resp, None)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -569,12 +589,14 @@ class CORSSuite extends Http4sSuite {
       .withAllowHeadersIn(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
       .run(
-        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1")))
+        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1"))
+      )
       .map { resp =>
         assertAllowHeaders(resp, ci"X-Cors-Suite-1, X-Cors-Suite-2".some)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -588,7 +610,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowHeaders(resp, None)
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -602,7 +625,8 @@ class CORSSuite extends Http4sSuite {
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite"))
         assertVary(
           resp,
-          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"))
+          Some(ci"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"),
+        )
       }
   }
 
@@ -631,13 +655,17 @@ class CORSSuite extends Http4sSuite {
   }
 
   test(
-    "withAllowHeadersStatic, preflight request with matching origin and some non-matching headers") {
+    "withAllowHeadersStatic, preflight request with matching origin and some non-matching headers"
+  ) {
     CORS.policy
       .withAllowOriginHeader(_ => true)
       .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
-      .run(preflightReq.putHeaders(
-        Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")))
+      .run(
+        preflightReq.putHeaders(
+          Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")
+        )
+      )
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
         assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
@@ -650,7 +678,8 @@ class CORSSuite extends Http4sSuite {
       .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
       .run(
-        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1")))
+        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1"))
+      )
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
         assertVary(resp, Some(ci"Origin, Access-Control-Request-Method"))
@@ -755,7 +784,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
       .withMaxAge(0.seconds)
       .withAllowedOrigins(Set("http://allowed.com"))
       .withAllowedHeaders(Some(Set("User-Agent", "Keep-Alive", "Content-Type")))
-      .withExposedHeaders(Some(Set("x-header")))
+      .withExposedHeaders(Some(Set("x-header"))),
   )
 
   def headerCheck(h: Header.Raw): Boolean = h.name == ci"Access-Control-Max-Age"
@@ -780,7 +809,8 @@ class CORSDeprecatedSuite extends Http4sSuite {
       CORSConfig.default
         .withAnyOrigin(false)
         .withAllowCredentials(true)
-        .withAllowedOrigins(Function.const(true)))
+        .withAllowedOrigins(Function.const(true)),
+    )
       .orNotFound(req)
       .map(_.headers.get(ci"Access-Control-Allow-Credentials").map(_.head.value))
       .assertEquals("true".some) *>
@@ -798,7 +828,8 @@ class CORSDeprecatedSuite extends Http4sSuite {
         matchHeader(
           resp.headers,
           ci"Access-Control-Allow-Headers",
-          "User-Agent, Keep-Alive, Content-Type")
+          "User-Agent, Keep-Alive, Content-Type",
+        )
       }
       .assert
   }
@@ -821,7 +852,9 @@ class CORSDeprecatedSuite extends Http4sSuite {
         resp.status.isSuccess && matchHeader(
           resp.headers,
           ci"Access-Control-Allow-Origin",
-          "http://allowed.com"))
+          "http://allowed.com",
+        )
+      )
       .assert *>
       cors2
         .orNotFound(req)
@@ -829,7 +862,9 @@ class CORSDeprecatedSuite extends Http4sSuite {
           resp.status.isSuccess && matchHeader(
             resp.headers,
             ci"Access-Control-Allow-Origin",
-            "http://allowed.com"))
+            "http://allowed.com",
+          )
+        )
         .assert
   }
 
@@ -888,7 +923,8 @@ class CORSDeprecatedSuite extends Http4sSuite {
     cors.run(req).map { resp =>
       assertEquals(
         resp.headers.get("Access-Control-Allow-Origin".ci).map(_.head.value).map(CIString(_)),
-        ci"http://allowed.com".some)
+        ci"http://allowed.com".some,
+      )
       assertEquals(resp.headers.get("Access-Control-Allow-Credentials".ci).map(_.head.value), None)
     }
   }
@@ -900,7 +936,8 @@ class CORSDeprecatedSuite extends Http4sSuite {
     cors.run(req).map { resp =>
       assertEquals(
         resp.headers.get("Access-Control-Allow-Origin".ci).map(_.head.value).map(CIString(_)),
-        ci"http://allowed.com".some)
+        ci"http://allowed.com".some,
+      )
       assertEquals(resp.headers.get("Access-Control-Allow-Credentials".ci).map(_.head.value), None)
     }
   }

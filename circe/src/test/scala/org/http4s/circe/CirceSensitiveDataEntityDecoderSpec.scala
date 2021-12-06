@@ -46,7 +46,8 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
   import CirceSensitiveDataEntityDecoder.circeEntityDecoder
 
   test(
-    "should not include the JSON when failing to decode due to wrong data type of JSON key's value") {
+    "should not include the JSON when failing to decode due to wrong data type of JSON key's value"
+  ) {
     val json: Json = Json.obj("ssn" := 123456789)
     val response: Response[IO] = Response[IO](status = Status.Ok).withEntity[Json](json)
     val attmptedAs: EitherT[IO, DecodeFailure, Person] = response.attemptAs[Person]

@@ -28,7 +28,8 @@ import java.nio.ByteBuffer
 private[client] object MockClientBuilder {
   def builder(
       head: => HeadStage[ByteBuffer],
-      tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = { _ =>
+      tail: => BlazeConnection[IO],
+  ): ConnectionBuilder[IO, BlazeConnection[IO]] = { _ =>
     IO {
       val t = tail
       LeafBuilder(t).base(head)
@@ -38,6 +39,7 @@ private[client] object MockClientBuilder {
 
   def manager(
       head: => HeadStage[ByteBuffer],
-      tail: => BlazeConnection[IO]): ConnectionManager[IO, BlazeConnection[IO]] =
+      tail: => BlazeConnection[IO],
+  ): ConnectionManager[IO, BlazeConnection[IO]] =
     ConnectionManager.basic(builder(head, tail))
 }

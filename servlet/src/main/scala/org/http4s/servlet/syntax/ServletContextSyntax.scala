@@ -42,20 +42,22 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
       name: String,
       service: HttpRoutes[F],
       mapping: String = "/*",
-      dispatcher: Dispatcher[F]): ServletRegistration.Dynamic =
+      dispatcher: Dispatcher[F],
+  ): ServletRegistration.Dynamic =
     mountHttpApp(name, service.orNotFound, mapping, dispatcher)
 
   def mountHttpApp[F[_]: Async](
       name: String,
       service: HttpApp[F],
       mapping: String = "/*",
-      dispatcher: Dispatcher[F]): ServletRegistration.Dynamic = {
+      dispatcher: Dispatcher[F],
+  ): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
       asyncTimeout = defaults.ResponseTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
       serviceErrorHandler = DefaultServiceErrorHandler[F],
-      dispatcher
+      dispatcher,
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)

@@ -31,7 +31,8 @@ trait LawAdapter {
     propLabel -> PropF.boolean(prop)
 
   def isEqPropF[F[_], A: Arbitrary: Shrink, B: Eq](propLabel: String, prop: A => IsEq[F[B]])(
-      implicit F: MonadThrow[F]): (String, PropF[F]) =
+      implicit F: MonadThrow[F]
+  ): (String, PropF[F]) =
     propLabel -> PropF
       .forAllF { (a: A) =>
         val isEq = prop(a)

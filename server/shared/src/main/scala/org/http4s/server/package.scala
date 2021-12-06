@@ -96,12 +96,13 @@ package object server {
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
     def withFallThrough[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, *], Request[F], T]): AuthMiddleware[F, T] =
+        authUser: Kleisli[OptionT[F, *], Request[F], T]
+    ): AuthMiddleware[F, T] =
       _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
 
     def noSpider[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T],
-        onAuthFailure: Request[F] => F[Response[F]]
+        onAuthFailure: Request[F] => F[Response[F]],
     ): AuthMiddleware[F, T] = { service =>
       Kleisli { (r: Request[F]) =>
         val resp = authUser(r).value.flatMap {
@@ -118,7 +119,7 @@ package object server {
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedRoutes[Err, F]
+        onFailure: AuthedRoutes[Err, F],
     )(implicit F: Monad[F]): AuthMiddleware[F, T] =
       (routes: AuthedRoutes[T, F]) =>
         Kleisli { (req: Request[F]) =>
@@ -137,28 +138,34 @@ package object server {
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
   def DefaultServiceErrorHandler[F[_]](implicit
-      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
+      F: Monad[F]
+  ): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
   def inDefaultServiceErrorHandler[F[_], G[_]](implicit
-      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
+      F: Monad[F]
+  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
         messageFailureLogger.debug(mf)(
           s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
+            .getOrElse("<unknown>")}"""
+        )
         mf.toHttpResponse[G](req.httpVersion).pure[F]
       case NonFatal(t) =>
         serviceErrorLogger.error(t)(
           s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
+            .getOrElse("<unknown>")}"""
+        )
         F.pure(
           Response(
             Status.InternalServerError,
             req.httpVersion,
             Headers(
               Connection(ci"close"),
-              `Content-Length`.zero
-            )))
+              `Content-Length`.zero,
+            ),
+          )
+        )
     }
 }

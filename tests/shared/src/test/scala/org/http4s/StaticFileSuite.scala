@@ -24,6 +24,7 @@ import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status._
 import org.http4s.headers._
+import org.http4s.testing.AutoCloseableResource
 
 import java.net.URL
 import java.net.UnknownHostException
@@ -42,7 +43,8 @@ class StaticFileSuite extends Http4sSuite {
 
     val tests = List(
       "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
-      "/test.fiddlefaddle" -> None)
+      "/test.fiddlefaddle" -> None,
+    )
     tests.traverse { case (p, om) =>
       check(CrossPlatformResource(p), om)
     }
@@ -71,7 +73,7 @@ class StaticFileSuite extends Http4sSuite {
         "test.fiddlefaddle" -> Ok,
         "//test.fiddlefaddle" -> Ok,
         "missing.html" -> NotFound,
-        "/missing.html" -> NotFound
+        "/missing.html" -> NotFound,
       )
 
       tests.traverse(Function.tupled(check))
@@ -100,7 +102,7 @@ class StaticFileSuite extends Http4sSuite {
         "/test.fiddlefaddle" -> Ok,
         "test.fiddlefaddle" -> Ok,
         "missing.html" -> NotFound,
-        "/missing.html" -> NotFound
+        "/missing.html" -> NotFound,
       )
 
       tests.traverse(Function.tupled(check))
@@ -120,7 +122,8 @@ class StaticFileSuite extends Http4sSuite {
     val response = emptyFile.flatMap(
       StaticFile
         .fromPath[IO](_, Some(request))
-        .value)
+        .value
+    )
     Nested(response).map(_.status).value.assertEquals(Some(NotModified))
   }
 
@@ -130,8 +133,11 @@ class StaticFileSuite extends Http4sSuite {
         .getBasicFileAttributes(emptyFile)
         .flatMap { attr =>
           val request =
-            Request[IO]().putHeaders(`If-None-Match`(
-              EntityTag(s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
+            Request[IO]().putHeaders(
+              `If-None-Match`(
+                EntityTag(s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")
+              )
+            )
           val response = StaticFile
             .fromPath[IO](emptyFile, Some(request))
             .value
@@ -151,8 +157,12 @@ class StaticFileSuite extends Http4sSuite {
             val request =
               Request[IO]().putHeaders(
                 `If-Modified-Since`(HttpDate.MaxValue),
-                `If-None-Match`(EntityTag(
-                  s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
+                `If-None-Match`(
+                  EntityTag(
+                    s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
+                  )
+                ),
+              )
 
             val response = StaticFile
               .fromPath[IO](emptyFile, Some(request))
@@ -174,7 +184,8 @@ class StaticFileSuite extends Http4sSuite {
     val response = emptyFile.flatMap(
       StaticFile
         .fromPath[IO](_, Some(request))
-        .value)
+        .value
+    )
     Nested(response).map(_.status).value.assertEquals(Some(Ok))
   }
 
@@ -187,8 +198,12 @@ class StaticFileSuite extends Http4sSuite {
             Request[IO]()
               .putHeaders(
                 `If-Modified-Since`(HttpDate.MinValue),
-                `If-None-Match`(EntityTag(
-                  s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}")))
+                `If-None-Match`(
+                  EntityTag(
+                    s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
+                  )
+                ),
+              )
 
           val response = StaticFile
             .fromPath[IO](emptyFile, Some(request))
@@ -209,7 +224,8 @@ class StaticFileSuite extends Http4sSuite {
           1,
           StaticFile.DefaultBufferSize,
           None,
-          StaticFile.calculateETag[IO])
+          StaticFile.calculateETag[IO],
+        )
         .value
         .flatMap { r =>
           // Length is only 1 byte
@@ -221,7 +237,8 @@ class StaticFileSuite extends Http4sSuite {
 
     val tests = List(
       "./testing/shared/src/test/resources/logback-test.xml",
-      "./server/jvm/src/test/resources/testresource.txt")
+      "./server/shared/src/test/resources/testresource.txt",
+    )
 
     tests.traverse(check)
   }
@@ -247,13 +264,15 @@ class StaticFileSuite extends Http4sSuite {
             end = fileSize.toLong - 1,
             buffsize = StaticFile.DefaultBufferSize,
             None,
-            StaticFile.calculateETag[IO])
+            StaticFile.calculateETag[IO],
+          )
           .value
           .flatMap { r =>
             // Length of the body must match
             assertEquals(
               r.flatMap(_.headers.get[`Content-Length`].map(_.length)),
-              Some(fileSize.toLong - 1L))
+              Some(fileSize.toLong - 1L),
+            )
             // get the Body to check the actual size
             r.map(_.body.compile.toVector)
               .map { body =>
@@ -264,7 +283,9 @@ class StaticFileSuite extends Http4sSuite {
                       java.util.Arrays
                         .equals(
                           bytes.toArray,
-                          java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1)))
+                          java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1),
+                        )
+                    )
                     .assert
               }
               .getOrElse(IO.raiseError(new RuntimeException("test error")))
@@ -277,7 +298,8 @@ class StaticFileSuite extends Http4sSuite {
   if (Platform.isJvm)
     test("Read from a URL") {
       val url = getClass.getResource("/lorem-ipsum.txt")
-      val expected = scala.io.Source.fromURL(url, "utf-8").mkString
+      val expected =
+        AutoCloseableResource.resource(scala.io.Source.fromURL(url, "utf-8"))(_.mkString)
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
         .value
