@@ -278,6 +278,8 @@ def fromLong(l: Long): ParseResult[Foo] =
           <li>We encourage the addition of arbitrary instances to
           <code>org.http4s.testing.Http4sArbitraries</code> to support richer property
           testing.</li>
+          <li>For assertions in tests using <code>assertEquals(a, b)</code> is preferable to <code>assert(a == b)</code>. 
+          It brings nice diffs on assertions failures. For more details, see the <a href="https://scalameta.org/munit/docs/assertions.html#assertequals">MUnit docs</a>.</li>
         </ul>
         
         <h2 id="documentation" class="section">Documentation<a class="anchor-link right" href="#documentation"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -286,7 +288,7 @@ def fromLong(l: Long): ParseResult[Foo] =
         <h3 id="website" class="section"><code>website</code><a class="anchor-link right" href="#website"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>The common area of http4s.org (i.e., directories not beginning with
         <code>/v#.#</code>) is generated from the <code>website</code> module and is published only
-        from the <code>main</code> branch.  This module is intended to contain general
+        from the <code>main</code> branch. This module is intended to contain general
         info about the project that applies to all versions.</p>
         
         <h4 id="editing-the-common-site" class="section">Editing the Common Site<a class="anchor-link right" href="#editing-the-common-site"><i class="icofont-laika">&#xef71;</i></a></h4>
