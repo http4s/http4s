@@ -40,6 +40,7 @@ import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`Idempotency-Key`
@@ -48,7 +49,6 @@ import org.typelevel.ci._
 import org.typelevel.keypool._
 
 import java.io.IOException
-import org.http4s.ember.core.h2.H2TLS
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers extends ClientHelpersPlatform {
@@ -58,8 +58,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
-      enableHttp2: Boolean,
-  ): Resource[F, (RequestKeySocket[F], Option[String])] = {
+  ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     requestKeyToSocketWithKey[F](
       requestKey,
@@ -67,7 +66,6 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       enableEndpointValidation,
       sg,
       additionalSocketOptions,
-      enableHttp2
     )
   }
 
@@ -76,8 +74,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]],
-      enableHttp2: Boolean,
-  ): Resource[F, (RequestKeySocket[F], Option[String])] = {
+  ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
@@ -85,7 +82,6 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       tlsContextOpt,
       false,
       None,
-      enableHttp2,
     )
   }
 
@@ -95,8 +91,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       enableEndpointValidation: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
-      enableHttp2: Boolean,
-  ): Resource[F, (RequestKeySocket[F], Option[String])] =
+  ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
@@ -107,7 +102,6 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
           tlsContextOpt: Option[TLSContext[F]],
           enableEndpointValidation: Boolean,
           Some(address),
-          enableHttp2
         )
       }
 
@@ -117,32 +111,25 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       optionNames: Option[SocketAddress[Host]],
-      enableHttp2: Boolean
-  ): Resource[F, (RequestKeySocket[F], Option[String])] =
+  ): Resource[F, RequestKeySocket[F]] =
     for {
       iSocket <- initSocket
-      t <- {
+      socket <- {
         if (requestKey.scheme === Uri.Scheme.https) {
-          tlsContextOpt.fold[Resource[F, (Socket[F], Option[String])]] {
+          tlsContextOpt.fold[Resource[F, Socket[F]]] {
             ApplicativeThrow[Resource[F, *]].raiseError(
               new Throwable("EmberClient Not Configured for Https")
             )
           } { tlsContext =>
             tlsContext
               .clientBuilder(iSocket)
-              .withParameters{
-                val iParams =mkTLSParameters(optionNames, enableEndpointValidation)
-                if (!enableHttp2) iParams else H2TLS.transform(iParams)
-              }
+              .withParameters(mkTLSParameters(optionNames, enableEndpointValidation))
               .build
-              .evalMap(tls => 
-                if (enableHttp2) H2TLS.protocol(tls).map(s => (tls, s)) else (tls, Option.empty[String]).pure[F]
-              )
-              .widen[(Socket[F], Option[String])]
+              .widen[Socket[F]]
           }
-        } else (iSocket, Option.empty).pure[Resource[F, *]]
+        } else iSocket.pure[Resource[F, *]]
       }
-    } yield (RequestKeySocket(t._1, requestKey), t._2)
+    } yield RequestKeySocket(socket, requestKey)
 
   def request[F[_]: Async](
       request: Request[F],

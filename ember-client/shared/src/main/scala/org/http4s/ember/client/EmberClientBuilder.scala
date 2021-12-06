@@ -57,6 +57,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
     private val enableHttp2: Boolean,
+    private val pushPromiseSupport: Option[(Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]]
 ) { self =>
 
   private def copy(
@@ -76,6 +77,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
       enableHttp2: Boolean = self.enableHttp2,
+      pushPromiseSupport: Option[(Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]] = self.pushPromiseSupport
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -94,6 +96,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       retryPolicy = retryPolicy,
       unixSockets = unixSockets,
       enableHttp2 = enableHttp2,
+      pushPromiseSupport = pushPromiseSupport,
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -136,6 +139,11 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withHttp2 = copy(enableHttp2 = true)
   def withoutHttp2 = copy(enableHttp2 = false)
 
+  def withPushPromiseSupport(f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]) = 
+    copy(pushPromiseSupport = f.some)
+  def withoutPushPromiseSupport = 
+    copy(pushPromiseSupport = None)
+
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
@@ -154,7 +162,6 @@ final class EmberClientBuilder[F[_]: Async] private (
                     checkEndpointIdentification,
                     sg,
                     additionalSocketOptions,
-                    enableHttp2,
                   )
               ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             (connection: EmberConnection[F]) =>
@@ -172,12 +179,14 @@ final class EmberClientBuilder[F[_]: Async] private (
       optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(
         context =>
           H2Client.impl[F](
-            { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+            pushPromiseSupport.getOrElse({ case (_, _) => Applicative[F].pure(Outcome.canceled) }),
             context,
-            // For 0.23 to maintain interface
-            default.copy(enablePush =
-              org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false)
-            ),
+            if (pushPromiseSupport.isDefined) default
+            else {
+              default.copy(enablePush =
+                org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false)
+              )
+            },
           )
       )
     } yield {
@@ -227,7 +236,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             Resource
               .make(
                 EmberConnection(
-                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt, enableHttp2)
+                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
                 )
               )(ec => ec.shutdown)
           )
@@ -283,6 +292,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
       enableHttp2 = false,
+      pushPromiseSupport = None
     )
 
   private object Defaults {
