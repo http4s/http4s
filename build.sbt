@@ -917,13 +917,10 @@ lazy val examplesEmber = exampleProject("examples-ember")
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
-lazy val exampleEmberClientH2 = exampleProject("examples-ember-client-h2")
-  .enablePlugins(ScalaJSBundlerPlugin)
-  .settings(
-    useYarn := true,
-    scalaJSUseMainModuleInitializer := true,
-    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
-  )
+lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
+  .dependsOn(emberServer.js)
+
+lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
   .dependsOn(emberClient.js)
 
 lazy val examplesDocker = http4sProject("examples-docker")
@@ -1062,6 +1059,18 @@ def exampleProject(name: String) =
     .enablePlugins(NoPublishPlugin)
     .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
+
+def exampleJSProject(name: String) =
+  http4sProject(name)
+    .in(file(name.replace("examples-", "examples/")))
+    .enablePlugins(NoPublishPlugin, ScalaJSBundlerPlugin)
+    .settings(
+      useYarn := true,
+      yarnExtraArgs += "--frozen-lockfile",
+      scalaJSUseMainModuleInitializer := true,
+      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+    )
+    .dependsOn(theDsl.js)
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
