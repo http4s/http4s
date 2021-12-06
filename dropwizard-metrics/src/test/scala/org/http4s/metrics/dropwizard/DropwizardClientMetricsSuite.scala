@@ -304,21 +304,20 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   ResourceFixture(clientRunResource).test(
     "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases"
   ) { resp =>
-    IO {
-      EntityDecoder[IO, String].decode(resp, false).value.map { r =>
-        assertEquals(r, Right("200 OK"))
-        assertEquals(count(registry, Counter("client.default.active-requests")), 1L)
-        assertEquals(
-          valuesOf(registry, Timer("client.default.requests.headers"))
-            .map(Arrays.equals(_, Array(50000000L))),
-          Some(true),
-        )
-        assertEquals(
-          Either.catchNonFatal(count(registry, Timer("client.default.2xx-responses"))).toOption,
-          None,
-        )
-        assertEquals(valuesOf(registry, Timer("client.default.requests.total")), none)
-      }
+    EntityDecoder[IO, String].decode(resp, false).value.map { r =>
+      assertEquals(r, Right("200 OK"))
+      assertEquals(count(registry, Counter("client.default.active-requests")), 1L)
+      assertEquals(
+        valuesOf(registry, Timer("client.default.requests.headers"))
+          .map(Arrays.equals(_, Array(50000000L))),
+        Some(true),
+      )
+      assertEquals(
+        Either.catchNonFatal(count(registry, Timer("client.default.2xx-responses"))).toOption,
+        None,
+      )
+      assertEquals(valuesOf(registry, Timer("client.default.requests.total")), none)
     }
   }
+
 }
