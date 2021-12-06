@@ -40,7 +40,6 @@ import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
-import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`Idempotency-Key`

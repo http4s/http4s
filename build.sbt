@@ -495,7 +495,9 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    )
+    ),
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
   )
   .dependsOn(
     emberCore % "compile;test->test",
@@ -524,7 +526,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    )
+    ),
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
