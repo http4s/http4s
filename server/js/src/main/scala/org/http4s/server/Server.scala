@@ -20,36 +20,28 @@ package server
 import com.comcast.ip4s
 import org.log4s.getLogger
 
-import java.net.Inet4Address
-import java.net.Inet6Address
-import java.net.InetSocketAddress
-
 abstract class Server {
-  private[this] val logger = getLogger
+  private[server] val logger = getLogger
 
-  def address: InetSocketAddress
-  def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] =
-    ip4s.SocketAddress.fromInetSocketAddress(address)
-
-  def isSecure: Boolean
+  def address: ip4s.SocketAddress[ip4s.IpAddress]
+  final def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] = address
 
   def baseUri: Uri =
     Uri(
       scheme = Some(if (isSecure) Uri.Scheme.https else Uri.Scheme.http),
       authority = Some(
         Uri.Authority(
-          host = address.getAddress match {
-            case ipv4: Inet4Address =>
-              Uri.Ipv4Address(ip4s.Ipv4Address.fromInet4Address(ipv4))
-            case ipv6: Inet6Address =>
-              Uri.Ipv6Address(ip4s.Ipv6Address.fromInet6Address(ipv6))
-            case weird =>
-              logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
-              Uri.RegName(weird.getHostAddress)
+          host = address.host match {
+            case ipv4: ip4s.Ipv4Address =>
+              Uri.Ipv4Address(ipv4)
+            case ipv6: ip4s.Ipv6Address =>
+              Uri.Ipv6Address(ipv6)
           },
-          port = Some(address.getPort),
+          port = Some(address.port.value),
         )
       ),
       path = Uri.Path.Root,
     )
+
+  def isSecure: Boolean
 }

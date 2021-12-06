@@ -16,12 +16,10 @@
 
 package org.http4s.ember.core.h2
 
-import cats._
 import cats.syntax.all._
 import fs2.io.net.tls.TLSParameters
-import fs2.io.net.tls.TLSSocket
 
-private[ember] object H2TLSPlatform {
+private[h2] abstract class H2TLSPlatform {
 
   def transform(params: TLSParameters): TLSParameters =
     TLSParameters(
@@ -41,12 +39,5 @@ private[ember] object H2TLSPlatform {
         l.find(_ === "h2").getOrElse("http/1.1")
       }.some,
     )
-
-  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
-    tlsSocket.applicationProtocol.map(Option(_))
-      .handleErrorWith{
-        case _: NoSuchElementException => Option.empty.pure[F]
-        case e => e.raiseError[F, Option[String]]
-      }
 
 }
