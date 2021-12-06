@@ -113,7 +113,7 @@ lazy val jvmModules: List[ProjectReference] = List(
   client.jvm,
   dropwizardMetrics,
   emberCore.jvm,
-  emberServer,
+  emberServer.jvm,
   emberClient.jvm,
   blazeCore,
   blazeServer,
@@ -153,6 +153,7 @@ lazy val jsModules: List[ProjectReference] = List(
   server.js,
   client.js,
   emberCore.js,
+  emberServer.js,
   emberClient.js,
   nodeServerless,
   theDsl.js,
@@ -446,15 +447,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val emberServer = libraryProject("ember-server")
+lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
-    libraryDependencies ++= Seq(
-      log4catsSlf4j,
-      javaWebSocket % Test,
-      jnrUnixSocket % Test, // Necessary for jdk < 16
-    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
@@ -478,10 +474,22 @@ lazy val emberServer = libraryProject("ember-server")
     ),
     Test / parallelExecution := false,
   )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      log4catsSlf4j,
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
+    )
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value
+    )
+  )
   .dependsOn(
-    emberCore.jvm % "compile;test->test",
-    server.jvm % "compile;test->test",
-    emberClient.jvm % "test->compile",
+    emberCore % "compile;test->test",
+    server % "compile;test->test",
+    emberClient % "test->compile",
   )
 
 lazy val emberClient = libraryCrossProject("ember-client")
@@ -896,7 +904,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
   )
-  .dependsOn(emberServer, emberClient.jvm)
+  .dependsOn(emberServer.jvm, emberClient.jvm)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
