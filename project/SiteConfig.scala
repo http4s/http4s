@@ -176,15 +176,17 @@ object SiteConfig {
             latestReleases = Seq(
               ReleaseInfo(
                 "Latest Stable Release",
-                variables(s"version.http4s.latest.${versions.all(1).displayValue}")),
+                variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
+              ),
               ReleaseInfo(
                 "Latest Milestone Release",
-                variables(s"version.http4s.latest.${versions.all.head.displayValue}"))
+                variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
+              ),
             ),
             license = Some("Apache 2.0"),
             documentationLinks = landingPage.projectLinks,
             projectLinks = Nil, // TODO
-            teasers = landingPage.teasers
+            teasers = landingPage.teasers,
           )
       else Helium.defaults
 
@@ -221,7 +223,7 @@ object SiteConfig {
       .site
       .favIcons(
         Favicon.internal(Root / "images" / "http4s-favicon.svg", "32x32").copy(sizes = None),
-        Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32")
+        Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32"),
       )
       .site
       .darkMode

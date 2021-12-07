@@ -22,17 +22,19 @@ import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.SyncIO
 import cats.syntax.all._
+import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
 
+import java.net.InetAddress
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 package object server {
-  object defaults extends DefaultsPlatform {
+  object defaults {
     val Banner =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
@@ -40,7 +42,24 @@ package object server {
          | |_||_\__|\__| .__/ |_|/__/
          |             |_|""".stripMargin.split("\n").toList
 
+    val IPv4Host: String =
+      if (Platform.isJvm)
+        InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
+      else
+        "127.0.0.1"
+    val IPv6Host: String =
+      if (Platform.isJvm)
+        InetAddress
+          .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
+          .getHostAddress
+      else "0:0:0:0:0:0:0:1"
+
     val HttpPort = 8080
+
+    val IPv4SocketAddress: ip4s.SocketAddress[ip4s.Ipv4Address] =
+      ip4s.SocketAddress(ip4s.Ipv4Address.fromString(IPv4Host).get, ip4s.Port.fromInt(HttpPort).get)
+    val IPv6SocketAddress: ip4s.SocketAddress[ip4s.Ipv6Address] =
+      ip4s.SocketAddress(ip4s.Ipv6Address.fromString(IPv6Host).get, ip4s.Port.fromInt(HttpPort).get)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout

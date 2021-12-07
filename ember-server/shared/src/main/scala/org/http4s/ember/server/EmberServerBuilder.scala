@@ -212,8 +212,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Server {
-      val address = bindAddress
-      val isSecure = tlsInfoOpt.isDefined
+      def address: SocketAddress[IpAddress] = bindAddress
+      def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
 

@@ -20,7 +20,7 @@ package server
 
 import cats.effect._
 import cats.effect.std.Dispatcher
-import com.comcast.ip4s.Host
+import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.SocketAddress
 import org.apache.catalina.Context
 import org.apache.catalina.connector.Connector
@@ -235,7 +235,7 @@ sealed class TomcatBuilder[F[_]] private (
         tomcat.start()
 
         val server = new Server {
-          lazy val address: SocketAddress[Host] = {
+          lazy val address: SocketAddress[IpAddress] = {
             val host = socketAddress.getHostString
             val port = tomcat.getConnector.getLocalPort
             SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
@@ -266,7 +266,7 @@ sealed class TomcatBuilder[F[_]] private (
 object TomcatBuilder {
   def apply[F[_]: Async]: TomcatBuilder[F] =
     new TomcatBuilder[F](
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       externalExecutor = None,
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,
