@@ -401,7 +401,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     socket match {
       case socket: TLSSocket[F] =>
         socket.session
-          .map(parseSSLSession)
+          .map(parseSSLSession(_))
           .map(Vault.empty.insert(ServerRequestKeys.SecureSession, _))
       case _ =>
         Vault.empty.pure[F]

@@ -27,7 +27,6 @@ import fs2.text.utf8
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
 
-import java.io.File
 import java.io.InputStream
 import java.net.URL
 
@@ -47,10 +46,6 @@ object Part {
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Stream.emit(value).through(utf8.encode),
     )
-
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
-  def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
-    fileData(name, Path.fromNioPath(file.toPath), headers: _*)
 
   def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
     fileData(

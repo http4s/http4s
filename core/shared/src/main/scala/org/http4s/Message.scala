@@ -20,7 +20,6 @@ import cats.Applicative
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.OptionT
-import cats.effect.Sync
 import cats.effect.SyncIO
 import cats.syntax.all._
 import cats.~>
@@ -416,12 +415,6 @@ final class Request[F[_]] private (
       .fold(remote.map(_.host))(_.values.head)
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
-
-  @deprecated("Use the variant requiring ip4s.Dns[F]", "0.23.7")
-  def remoteHost(F: Sync[F]): F[Option[Hostname]] = {
-    val inetAddress = remote.map(_.host.toInetAddress)
-    F.map(F.blocking(inetAddress.map(_.getHostName)))(_.flatMap(Hostname.fromString))
-  }
 
   def remoteHost(implicit F: Monad[F], dns: Dns[F]): F[Option[Hostname]] =
     OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value

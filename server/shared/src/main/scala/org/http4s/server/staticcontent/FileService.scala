@@ -32,13 +32,12 @@ import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
 
-import java.io.File
 import scala.util.control.NoStackTrace
 
 object FileService {
   private[this] val logger = getLogger
 
-  type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
+  type PathCollector[F[_]] = (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
@@ -64,8 +63,7 @@ object FileService {
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
     ): Config[F] = {
-      val pathCollector: PathCollector[F] = (f, c, r) =>
-        filesOnly(Path.fromNioPath(f.toPath()), c, r)
+      val pathCollector: PathCollector[F] = (p, c, r) => filesOnly(p, c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
@@ -99,7 +97,7 @@ object FileService {
                       none[Path].pure,
                     )
                   )
-                  .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
+                  .collect { case path if path.startsWith(rootPath) => path }
                   .flatMap(f => config.pathCollector(f, config, request))
                   .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
                   .recoverWith { case BadTraversal =>

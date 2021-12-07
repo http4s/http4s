@@ -31,7 +31,6 @@ import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
 
-import java.io.File
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]
@@ -251,13 +250,6 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
-  def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    binFile(Path.fromNioPath(file.toPath())).map(_ => file)
-
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
-  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    textFile(Path.fromNioPath(file.toPath())).map(_ => file)
 
   def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>

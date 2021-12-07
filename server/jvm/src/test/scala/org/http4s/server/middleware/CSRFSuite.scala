@@ -126,7 +126,8 @@ class CSRFSuite extends Http4sSuite {
       req = csrf.embedInRequestCookie(dummyRequest, t)
       newToken <- csrf.refreshedToken[IO](req).valueOrF(IO.raiseError)
       // Checks whether it was properly signed
-    } yield assertIOBoolean(csrf.extractRaw[IO](unlift(newToken)).map(_.isRight))
+      isProperlySigned <- csrf.extractRaw[IO](unlift(newToken)).map(_.isRight)
+    } yield assert(isProperlySigned)
   }
 
   test("extract a valid token from header or form field when form enabled") {

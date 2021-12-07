@@ -26,7 +26,6 @@ import cats.effect.Resource
 import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import com.comcast.ip4s.Host
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
@@ -436,7 +435,7 @@ class BlazeServerBuilder[F[_]] private (
       factory <- mkFactory
       serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
       server = new Server {
-        val address: SocketAddress[Host] =
+        val address: SocketAddress[IpAddress] =
           SocketAddress.fromInetSocketAddress(serverChannel.socketAddress)
 
         val isSecure = sslConfig.isSecure
@@ -471,7 +470,7 @@ object BlazeServerBuilder {
 
   def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       executionContextConfig = ExecutionContextConfig.DefaultContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,

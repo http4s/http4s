@@ -8,6 +8,8 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+import sbtghactions.GenerativeKeys._
+import sbtghactions.JavaSpec
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -123,10 +125,9 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
-        javas = List("adoptium@8"),
+        javas = List(JavaSpec.temurin("17")),
         steps = List(
           WorkflowStep.CheckoutFull,
-          WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
             name = Some(s"Build $subproject"),
@@ -204,7 +205,7 @@ object Http4sPlugin extends AutoPlugin {
     val cryptobits = "1.3"
     val disciplineCore = "1.3.0"
     val dropwizardMetrics = "4.2.4"
-    val fs2 = "3.2.2"
+    val fs2 = "3.2.3"
     val ip4s = "3.1.2"
     val javaWebSocket = "1.5.2"
     val jawn = "1.3.0"
@@ -217,7 +218,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
-    val munitCatsEffect = "1.0.6"
+    val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
     val netty = "4.1.70.Final"
     val okio = "2.10.0"

@@ -316,7 +316,7 @@ sealed class JettyBuilder[F[_]] private (
         )
         .map((jetty: JServer) =>
           new Server {
-            lazy val address: ip4s.SocketAddress[ip4s.Host] = {
+            lazy val address: ip4s.SocketAddress[ip4s.IpAddress] = {
               val host = socketAddress.getHostString
               val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
               ip4s.SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
@@ -344,7 +344,7 @@ sealed class JettyBuilder[F[_]] private (
 object JettyBuilder {
   def apply[F[_]: Async] =
     new JettyBuilder[F](
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       threadPool = LazyThreadPool.newLazyThreadPool,
       threadPoolResourceOption = Some(
         JettyThreadPools.default[F]

@@ -32,8 +32,6 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
 
-import java.net.Inet4Address
-import java.net.Inet6Address
 import java.nio.ByteBuffer
 import java.util.Locale
 import scala.util.Try
@@ -57,16 +55,9 @@ object Forwarded extends ForwardedRenderers {
       final case class Ipv6(address: Ipv6Address) extends Name
       case object Unknown extends Name
 
-      @deprecated("Use Name.Ipv4(Ipv4Address.fromInet4Address(address))", "0.23.5")
-      def ofInet4Address(address: Inet4Address): Name =
-        Ipv4(Ipv4Address.fromInet4Address(address))
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
         Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
       )
-
-      @deprecated("Use Name.Ipv6(Ipv6Address.fromInet6Address(address))", "0.23.5")
-      def ofInet6Address(address: Inet6Address): Name =
-        Ipv6(Ipv6Address.fromInet6Address(address))
 
       def ofIpv6Address(
           a: Short,

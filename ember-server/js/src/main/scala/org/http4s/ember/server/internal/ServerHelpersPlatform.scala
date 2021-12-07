@@ -21,7 +21,7 @@ import org.http4s.server.SecureSession
 
 private[internal] trait ServerHelpersPlatform {
 
-  private[internal] def parseSSLSession(session: SSLSession): Option[SecureSession] =
-    Some(SecureSession(session.raw))
+  def parseSSLSession(session: SSLSession): Option[SecureSession] =
+    Some(new SecureSession(session.raw))
 
 }
