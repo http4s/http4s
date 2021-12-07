@@ -32,7 +32,6 @@ import org.http4s.multipart.MultipartEncoder
 
 import java.io._
 import java.nio.CharBuffer
-import java.nio.file.Path
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
@@ -164,16 +163,6 @@ object EntityEncoder {
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
     }
-
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
-    pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
-
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
-    pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def pathEncoder[F[_]: Files]: EntityEncoder[F, fs2.io.file.Path] =
