@@ -63,7 +63,7 @@ object FileService {
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
     ): Config[F] = {
-      val pathCollector: PathCollector[F] = (f, c, r) => filesOnly(f, c, r)
+      val pathCollector: PathCollector[F] = (p, c, r) => filesOnly(p, c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
