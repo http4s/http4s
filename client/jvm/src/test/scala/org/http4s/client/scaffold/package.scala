@@ -18,8 +18,7 @@ package org.http4s.client
 
 import cats.effect.Async
 import cats.implicits._
-import io.netty.channel.Channel
-import io.netty.channel.ChannelFuture
+import io.netty.channel.{Channel, ChannelFuture}
 
 package object scaffold {
 
@@ -32,10 +31,7 @@ package object scaffold {
               if (f.isSuccess) callback(Right(f.channel()))
               else callback(Left(f.cause()))
             }
-            Some(F.delay {
-              cf.cancel(true)
-              ()
-            })
+            None
           }
         )
       )
@@ -51,10 +47,7 @@ package object scaffold {
               if (f.isSuccess) callback(Right(()))
               else callback(Left(f.cause()))
             }
-            Some(F.delay {
-              f.cancel(true)
-              ()
-            })
+            None
           }
         )
       )
