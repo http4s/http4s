@@ -1,8 +1,5 @@
----
-menu: main
-title: Streaming
-weight: 305
----
+
+# Streaming
 
 ## Introduction
 
@@ -43,7 +40,7 @@ For a more realistic example of streaming results from database queries to the c
 [ScalaSyd 2015] example. In particular, if you want to stream JSON responses, please take note of how
 it converts a stream of JSON objects to a JSON array, which is friendlier to clients.
 
-## Consuming streams with the client
+## Consuming Streams with the Client
 
 The http4s [client] supports consuming chunked HTTP responses as a stream, again because the
 `EntityBody[F]` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
@@ -62,8 +59,8 @@ First, let's assume we want to use [Circe] for JSON support. Please see [json] f
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "{{< version "http4s.doc" >}}",
-  "io.circe" %% "circe-generic" % "{{< version circe >}}"
+  "org.http4s" %% "http4s-circe" % "@{version.http4s.doc}",
+  "io.circe" %% "circe-generic" % "@{version.circe}"
 )
 ```
 
@@ -100,7 +97,8 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+  def sign(consumerKey: String, consumerSecret: String, 
+             accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
     val consumer = oauth1.Consumer(consumerKey, consumerSecret)
     val token    = oauth1.Token(accessToken, accessSecret)
@@ -111,8 +109,9 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
-            (req: Request[F]): Stream[F, Json] =
+  def jsonStream(consumerKey: String, consumerSecret: String, 
+                     accessToken: String, accessSecret: String)
+                    (req: Request[F]): Stream[F, Json] =
     for {
       client <- BlazeClientBuilder(global).stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
@@ -125,8 +124,10 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   def stream(blocker: Blocker): Stream[F, Unit] = {
-    val req = Request[F](Method.GET, uri"https://stream.twitter.com/1.1/statuses/sample.json")
-    val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
+    val req = Request[F](Method.GET, 
+                uri"https://stream.twitter.com/1.1/statuses/sample.json")
+    val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
+                "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
   }
 

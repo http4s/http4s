@@ -116,5 +116,5 @@ object `Content-Disposition` {
     )
 }
 
-// see http://tools.ietf.org/html/rfc2183
+// see https://datatracker.ietf.org/doc/html/rfc2183
 final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String])

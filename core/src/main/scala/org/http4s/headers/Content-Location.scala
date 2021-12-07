@@ -43,6 +43,6 @@ object `Content-Location` {
   *   as an identifier for a specific resource corresponding to the
   *   representation in this message's payload
   * }}}
-  * [[https://tools.ietf.org/html/rfc7231#section-3.1.4.2 RFC-7231 Section 3.1.4.2]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.4.2 RFC-7231 Section 3.1.4.2]]
   */
 final case class `Content-Location`(uri: Uri)
