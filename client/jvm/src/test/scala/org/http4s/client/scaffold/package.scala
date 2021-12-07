@@ -38,8 +38,9 @@ package object scaffold {
       )
   }
 
-  implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](private val ff: F[A])
-      extends AnyVal {
+  implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](
+      private val ff: F[A]
+  ) extends AnyVal {
     def liftToF(implicit F: Async[F]): F[Unit] =
       F.async((callback: Either[Throwable, Unit] => Unit) =>
         ff.flatMap(f =>
