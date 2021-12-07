@@ -18,11 +18,12 @@ package org.http4s.client
 
 import cats.effect.Async
 import cats.implicits._
-import io.netty.channel.{Channel, ChannelFuture}
+import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
 
 package object scaffold {
 
-  implicit class NettyChannelFutureSyntax[F[_]](val fcf: F[ChannelFuture]) extends AnyVal {
+  implicit class NettyChannelFutureSyntax[F[_]](private val fcf: F[ChannelFuture]) extends AnyVal {
     def liftToFWithChannel(implicit F: Async[F]): F[Channel] =
       F.async((callback: Either[Throwable, Channel] => Unit) =>
         fcf.flatMap(cf =>
@@ -37,7 +38,7 @@ package object scaffold {
       )
   }
 
-  implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](val ff: F[A])
+  implicit class NettyFutureSyntax[F[_], A <: io.netty.util.concurrent.Future[_]](private val ff: F[A])
       extends AnyVal {
     def liftToF(implicit F: Async[F]): F[Unit] =
       F.async((callback: Either[Throwable, Unit] => Unit) =>
