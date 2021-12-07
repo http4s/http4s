@@ -220,8 +220,7 @@ I am a big moose
 
   def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 
-  // todo compiles on dotty
-  test("Part.covary should disallow unrelated effects".ignore) {
+  test("Part.covary should disallow unrelated effects") {
     assert(
       compileErrors("testPart[Option].covary[IO]").nonEmpty
     )

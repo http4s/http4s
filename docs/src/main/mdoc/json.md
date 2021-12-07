@@ -212,7 +212,11 @@ import org.http4s.circe.CirceEntityCodec._
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
 
-```scala mdoc:silent:reset
+```scala mdoc:invisible:reset
+import cats.effect.unsafe.implicits.global
+```
+
+```scala mdoc:silent
 import cats.effect._
 
 import io.circe.generic.auto._
@@ -223,8 +227,6 @@ import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.blaze.server._
 import org.http4s.implicits._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 case class User(name: String)
 case class Hello(greeting: String)
@@ -241,14 +243,11 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global)
+val server = BlazeServerBuilder[IO]
   .bindHttp(8080)
   .withHttpApp(jsonApp)
   .resource
 
-// This is typically provided by IOApp
-implicit val runtime: cats.effect.unsafe.IORuntime = 
-  cats.effect.unsafe.IORuntime.global
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -268,7 +267,7 @@ def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
-  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
+  BlazeClientBuilder[IO].stream.flatMap { httpClient =>
     // Decode a Hello response
     Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }

@@ -1,7 +1,6 @@
 
 # Adopters
 
-
 ## Industrial
 
 [Banno Group inside of Jack Henry & Associates](https://banno.com)

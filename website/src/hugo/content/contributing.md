@@ -192,9 +192,12 @@ Apache License 2.0.
 * We encourage the addition of arbitrary instances to
   `org.http4s.testing.Http4sArbitraries` to support richer property
   testing.
+* For assertions in tests using `assertEquals(a, b)` is preferable to `assert(a == b)`. 
+  It brings nice diffs on assertions failures. For more details, see the [MUnit docs].
 
 [MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
+[MUnit docs]: https://scalameta.org/munit/docs/assertions.html#assertequals
 
 ## Documentation
 
@@ -286,7 +289,7 @@ not write any output to disk, it serves the site entirely from memory. And btw: 
 
 Before you open a pull request, you should make sure that `sbt ci` runs
 successfully. Github Actions will run this as well, but it may save you some
-	@@ -296,10 +302,9 @@ rebasing. Squashing and rebasing can lead to a tidier git history, but
+rebasing. Squashing and rebasing can lead to a tidier git history, but
 they can also be a hassle if somebody else has done work based on your
 branch.
 

@@ -375,14 +375,15 @@ class ParsingSuite extends Http4sSuite {
 
     Parser.HeaderP.parseHeaders[IO](bv, 0, 4096).map {
       case Right(headerP) =>
-        assert(
-          headerP.headers.headers == List(
+        assertEquals(
+          headerP.headers.headers,
+          List(
             Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8"),
             Header.Raw(ci"Content-Length", "11"),
-          )
+          ),
         )
         assert(!headerP.chunked)
-        assert(headerP.contentLength == Some(11L))
+        assertEquals(headerP.contentLength, Some(11L))
       case Left(_) => fail("Headers were not right")
     }
   }
@@ -432,9 +433,9 @@ class ParsingSuite extends Http4sSuite {
 
     Parser.Request.ReqPrelude.parsePrelude[IO](bv, 4096).map {
       case Right(prelude) =>
-        assert(prelude.method == Method.GET)
-        assert(prelude.uri == uri"/")
-        assert(prelude.version == HttpVersion.`HTTP/1.1`)
+        assertEquals(prelude.method, Method.GET)
+        assertEquals(prelude.uri, uri"/")
+        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
       case Left(_) => fail("Prelude was not right")
     }
   }
@@ -447,8 +448,8 @@ class ParsingSuite extends Http4sSuite {
     val bv = asHttp.getBytes()
     Parser.Response.RespPrelude.parsePrelude[IO](bv, 4096).map {
       case Right(prelude) =>
-        assert(prelude.version == HttpVersion.`HTTP/1.1`)
-        assert(prelude.status == Status.Ok)
+        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+        assertEquals(prelude.status, Status.Ok)
       case Left(_) => fail("Prelude was not right")
     }
   }

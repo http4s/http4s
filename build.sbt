@@ -15,13 +15,13 @@ ThisBuild / publishGithubUser := "rossabaker"
 ThisBuild / publishFullName := "Ross A. Baker"
 
 ThisBuild / semanticdbEnabled := true
-ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !isScala3.value)
+ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !isDotty.value)
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isScala3.value
-ThisBuild / ScalafixConfig / skip := isScala3.value
+ThisBuild / scalafixAll / skip := isDotty.value
+ThisBuild / ScalafixConfig / skip := isDotty.value
 
 ThisBuild / githubWorkflowBuild := Seq(
   // todo remove once salafmt properly supports scala3
@@ -70,7 +70,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       )
     ),
     scalas = crossScalaVersions.value.toList,
-    javas = List("adoptium@8"),
+    javas = List(JavaSpec.temurin("8")),
   )
 )
 
@@ -81,7 +81,7 @@ ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java))
+  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java.render))
 }
 
 // On the JVM Build all Javas for one Scala, and all Scalas for one Java
@@ -89,7 +89,7 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     scala <- (ThisBuild / crossScalaVersions).value.tail
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("ci" -> "ciJVM", "scala" -> scala, "java" -> java))
+  } yield MatrixExclude(Map("ci" -> "ciJVM", "scala" -> scala, "java" -> java.render))
 }
 
 addCommandAlias("ciJVM", "; project rootJVM")
@@ -108,12 +108,12 @@ lazy val jvmModules: List[ProjectReference] = List(
   laws.jvm,
   testing.jvm,
   tests.jvm,
-  server,
+  server.jvm,
   prometheusMetrics,
   client.jvm,
   dropwizardMetrics,
   emberCore.jvm,
-  emberServer,
+  emberServer.jvm,
   emberClient.jvm,
   blazeCore,
   blazeServer,
@@ -140,6 +140,8 @@ lazy val jvmModules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalInput,
+  scalafixInternalOutput,
   scalafixInternalTests,
 )
 
@@ -148,8 +150,10 @@ lazy val jsModules: List[ProjectReference] = List(
   laws.js,
   testing.js,
   tests.js,
+  server.js,
   client.js,
   emberCore.js,
+  emberServer.js,
   emberClient.js,
   nodeServerless,
   theDsl.js,
@@ -224,8 +228,10 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
 
-      // private constructor so effectively final already
+      // private constructors so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
@@ -298,7 +304,7 @@ lazy val tests = libraryCrossProject("tests")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val server = libraryProject("server")
+lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
@@ -339,7 +345,7 @@ lazy val server = libraryProject("server")
     buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
     buildInfoPackage := "org.http4s.server.test",
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", theDsl.jvm % "test->compile")
+  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -355,7 +361,7 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     core.jvm % "compile->compile",
     theDsl.jvm % "test->compile",
     testing.jvm % "test->test",
-    server % "test->compile",
+    server.jvm % "test->compile",
     client.jvm % "test->compile",
   )
 
@@ -380,8 +386,7 @@ lazy val client = libraryCrossProject("client")
       nettyCodecHttp % Test
     )
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
-  .jvmConfigure(_.dependsOn(server % Test))
+  .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -398,7 +403,7 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     testing.jvm % "test->test",
     theDsl.jvm % "test->compile",
     client.jvm % "test->compile",
-    server % "test->compile",
+    server.jvm % "test->compile",
   )
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
@@ -448,15 +453,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val emberServer = libraryProject("ember-server")
+lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
-    libraryDependencies ++= Seq(
-      log4catsSlf4j,
-      javaWebSocket % Test,
-      jnrUnixSocket % Test, // Necessary for jdk < 16
-    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
@@ -480,10 +480,22 @@ lazy val emberServer = libraryProject("ember-server")
     ),
     Test / parallelExecution := false,
   )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      log4catsSlf4j,
+      javaWebSocket % Test,
+      jnrUnixSocket % Test, // Necessary for jdk < 16
+    )
+  )
+  .jsSettings(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value
+    )
+  )
   .dependsOn(
-    emberCore.jvm % "compile;test->test",
+    emberCore % "compile;test->test",
     server % "compile;test->test",
-    emberClient.jvm % "test->compile",
+    emberClient % "test->compile",
   )
 
 lazy val emberClient = libraryCrossProject("ember-client")
@@ -552,7 +564,7 @@ lazy val blazeServer = libraryProject("blaze-server")
       ), // private
     ),
   )
-  .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
@@ -625,7 +637,7 @@ lazy val servlet = libraryProject("servlet")
       Http4sPlugin.asyncHttpClient % Test,
     ),
   )
-  .dependsOn(server % "compile;test->test")
+  .dependsOn(server.jvm % "compile;test->test")
 
 lazy val jettyServer = libraryProject("jetty-server")
   .settings(
@@ -795,12 +807,14 @@ lazy val docs = http4sProject("docs")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v0_23,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
+    laikaIncludeEPUB := true,
+    laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
     ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
@@ -842,7 +856,7 @@ lazy val website = http4sProject("website")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = false).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v0_23,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
@@ -874,7 +888,7 @@ lazy val examples = http4sProject("examples")
     ),
     // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
 // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -896,7 +910,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
   )
-  .dependsOn(emberServer, emberClient.jvm)
+  .dependsOn(emberServer.jvm, emberClient.jvm)
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
@@ -950,7 +964,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isScala3.value)
+    ).filter(_ => !isDotty.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -975,7 +989,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isScala3.value),
+    ).filter(_ => !isDotty.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -1052,8 +1066,6 @@ lazy val commonSettings = Seq(
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
-val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
-
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
@@ -1070,10 +1082,10 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt",
+  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )

@@ -182,6 +182,6 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
           .compile
           .toList
           .timeout(5.seconds)
-    } yield assert(reasonReceived == List(reasonSent))
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }

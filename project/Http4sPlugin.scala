@@ -12,6 +12,7 @@ import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 import sbtghactions.GenerativeKeys._
+import sbtghactions.JavaSpec
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -25,7 +26,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.6"
+  val scala_213 = "2.13.7"
   val scala_212 = "2.12.15"
   val scala_3 = "3.1.0"
 
@@ -127,10 +128,9 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
-        javas = List("adoptium@8"),
+        javas = List(JavaSpec.temurin("17")),
         steps = List(
           WorkflowStep.CheckoutFull,
-          WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
             name = Some(s"Build $subproject"),
@@ -143,12 +143,12 @@ object Http4sPlugin extends AutoPlugin {
       val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
       WorkflowStep.Run(
         List(s"""
-       |eval "$$(ssh-agent -s)"
-       |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-       |git config --global user.name "GitHub Actions CI"
-       |git config --global user.email "ghactions@invalid"
-       |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
-       |
+          |eval "$$(ssh-agent -s)"
+          |echo "$$SSH_PRIVATE_KEY" | ssh-add -
+          |git config --global user.name "GitHub Actions CI"
+          |git config --global user.email "ghactions@invalid"
+          |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+          |
       """.stripMargin),
         name = Some(s"Publish $subproject"),
         env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
@@ -200,33 +200,33 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.2"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
-    val cats = "2.6.1"
-    val catsEffect = "3.2.9"
-    val catsParse = "0.3.5"
+    val cats = "2.7.0"
+    val catsEffect = "3.3.0"
+    val catsParse = "0.3.6"
     val circe = "0.14.1"
     val circe15 = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.3.0"
     val dropwizardMetrics = "4.2.4"
-    val fs2 = "3.2.2"
-    val ip4s = "3.1.1"
+    val fs2 = "3.2.3"
+    val ip4s = "3.1.2"
     val javaWebSocket = "1.5.2"
-    val jawn = "1.2.0"
+    val jawn = "1.3.0"
     val jawnFs2 = "2.1.0"
     val jetty = "9.4.44.v20210927"
-    val jnrUnixSocket = "0.38.12"
+    val jnrUnixSocket = "0.38.14"
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
     val log4cats = "2.1.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
-    val munitCatsEffect = "1.0.6"
+    val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
     val netty = "4.1.70.Final"
     val okio = "2.10.0"
-    val okhttp = "4.9.2"
+    val okhttp = "4.9.3"
     val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
@@ -237,10 +237,10 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.10.0"
     val scalaXml = "2.0.1"
-    val scodecBits = "1.1.29"
+    val scodecBits = "1.1.30"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.54"
+    val tomcat = "9.0.55"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.1.0"

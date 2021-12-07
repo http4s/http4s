@@ -36,7 +36,7 @@ import java.time.ZonedDateTime
   * over java.time.Instant in the model, we assure that if two headers render
   * equally, their values are equal.
   *
-  * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
   */
 class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[HttpDate] {
   def compare(that: HttpDate): Int =
@@ -74,8 +74,8 @@ object HttpDate {
     *
     * The minimum year is specified by RFC5322 as 1900.
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
-    * @see [[https://tools.ietf.org/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
     */
   val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
 
@@ -103,7 +103,7 @@ object HttpDate {
 
   /** Parses a date according to RFC7231, Section 7.1.1.1
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
     */
   def fromString(s: String): ParseResult[HttpDate] =
     ParseResult.fromParser(parser, "Invalid HTTP date")(s)

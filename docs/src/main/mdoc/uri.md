@@ -1,7 +1,6 @@
 
 # URI Handling
 
-
 ## Literals
 
 http4s is a bit more strict with handling URIs than e.g. the [play http client].

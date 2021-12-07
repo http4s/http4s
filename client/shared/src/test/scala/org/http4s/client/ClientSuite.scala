@@ -22,6 +22,8 @@ import cats.effect.kernel.Deferred
 import cats.syntax.all._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
+import org.http4s.server.middleware.VirtualHost
+import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
@@ -65,6 +67,18 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     hostClient
       .expect[String](Request[IO](GET, uri"https://http4s.org:1983/"))
       .assertEquals("http4s.org:1983")
+  }
+
+  test("mock client should cooperate with the VirtualHost server middleware") {
+    val routes = HttpRoutes.of[IO] { case r =>
+      Ok(r.headers.get[Host].map(_.value).getOrElse("None"))
+    }
+
+    val hostClient = Client.fromHttpApp(VirtualHost(exact(routes, "http4s.org")).orNotFound)
+
+    hostClient
+      .expect[String](Request[IO](GET, uri"https://http4s.org/"))
+      .assertEquals("http4s.org")
   }
 
   test("mock client should allow request to be canceled") {

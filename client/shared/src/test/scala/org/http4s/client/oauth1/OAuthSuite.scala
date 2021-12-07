@@ -28,7 +28,7 @@ import org.typelevel.ci._
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
-  // http://tools.ietf.org/html/rfc5849
+  // https://datatracker.ietf.org/doc/html/rfc5849
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
@@ -68,7 +68,7 @@ class OAuthSuite extends Http4sSuite {
       "3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal"
 
   test("OAuth support should generate a Base String") {
-    assert(oauth1.genBaseString(Method.GET, uri, allParams) == specBaseString)
+    assertEquals(oauth1.genBaseString(Method.GET, uri, allParams), specBaseString)
   }
 
   test("OAuth support should generate a correct HMAC-SHA1 signature") {
@@ -96,7 +96,7 @@ class OAuthSuite extends Http4sSuite {
       )
       .map { auth =>
         val creds = auth.credentials
-        assert(creds.authScheme == ci"OAuth")
+        assertEquals(creds.authScheme, ci"OAuth")
       }
   }
 
@@ -110,15 +110,18 @@ class OAuthSuite extends Http4sSuite {
     val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
 
     oauth1.getUserParams(req).map { case (_, v) =>
-      assert(
-        v.sorted == Seq(
-          "b5" -> "=%3D",
-          "a3" -> "a",
-          "c@" -> "",
-          "a2" -> "r b",
-          "c2" -> "",
-          "a3" -> "2 q",
-        ).sorted
+      assertEquals(
+        v.sorted,
+        scala.collection.immutable
+          .Seq(
+            "b5" -> "=%3D",
+            "a3" -> "a",
+            "c@" -> "",
+            "a2" -> "r b",
+            "c2" -> "",
+            "a3" -> "2 q",
+          )
+          .sorted,
       )
     }
   }
