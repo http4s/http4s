@@ -85,6 +85,9 @@ changelog:
       labels:
         - module:prometheus-metrics
 
+    - title: Scalafixes
+      labels:
+        - scalafix
     - title: Documentation
       labels:
         - docs
