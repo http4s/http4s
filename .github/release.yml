@@ -13,6 +13,9 @@ changelog:
     - title: http4s-client
       labels:
         - module:http4s-client
+    - title: Documentation
+      labels:
+        - docs
     - title: Behind the scenes
       labels:
         - "*"
