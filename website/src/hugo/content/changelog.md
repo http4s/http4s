@@ -86,7 +86,7 @@ This is a maintenance release, binary compatible with the 0.22.x series.
     * Update discipline-core to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5418
 
 * Various backends
-  * Update log4cats-slf4j, log4cats-testing to 1.4.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5638
+    * Update log4cats-slf4j, log4cats-testing to 1.4.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5638
 
 * http4s-blaze-server
     * Make websocket buffer size configurable by @DeviLab in https://github.com/http4s/http4s/pull/5381
@@ -95,7 +95,7 @@ This is a maintenance release, binary compatible with the 0.22.x series.
     * Update netty-buffer, netty-codec-http to 4.1.70.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5532
 
 * http4s-okhttp-client
-    Update okhttp to 4.9.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5605
+    * Update okhttp to 4.9.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5605
 
 * http4s-jawn
     * Update jawn-parser to 1.3.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5580
