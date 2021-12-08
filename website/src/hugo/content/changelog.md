@@ -15,13 +15,13 @@ This is a maintenance release, binary compatible with the 0.22.x series.
 ## http4s-core
 
 * Update case-insensitive, ... to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5434
-* Sec-Fetch-Dest header by @m3is0 in https://github.com/http4s/http4s/pull/5357
 * Fix Origin parsing on hosts starting with a number by @gaspb in https://github.com/http4s/http4s/pull/5504
 * Deprecate `DefaultCharset`, use `UTF-8` directly by @bplommer in https://github.com/http4s/http4s/pull/5512
 * Access control allow methods by @rcardin in https://github.com/http4s/http4s/pull/5376
 * Uri Path Segment Encoder by @zarthross in https://github.com/http4s/http4s/pull/5519
 * Update cats-parse to 0.3.6 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5598
 * Update cats-core, cats-laws to 2.7.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5625
+* Add DefaultQueryParamDecoderMatcher class by @sbly in https://github.com/http4s/http4s/pull/5564
 
 ## http4s-laws
 
@@ -70,6 +70,7 @@ This is a maintenance release, binary compatible with the 0.22.x series.
 * Fix dead links to RFC by @danicheg in https://github.com/http4s/http4s/pull/5592
 * EPUB download of the docs for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5652
 * Add favicon to the `0.22` website and docs by @danicheg in https://github.com/http4s/http4s/pull/5676
+* Update nav-docs.html by @rtar in https://github.com/http4s/http4s/pull/5481
 
 ## Behind the scenes
 
@@ -115,11 +116,14 @@ This is a maintenance release, binary compatible with the 0.22.x series.
 * Pin scalatags to 0.10 by @rossabaker in https://github.com/http4s/http4s/pull/5647
 * Update munit-cats-effect-2 to 1.0.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5667
 * Update sbt-http4s-org to 0.9.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5659
+* Add the fast path for `Uri.decode` implementation by @plokhotnyuk in https://github.com/http4s/http4s/pull/5556
 
 ## New Contributors
 
 * @DeviLab made their first contribution in https://github.com/http4s/http4s/pull/5381
 * @gaspb made their first contribution in https://github.com/http4s/http4s/pull/5504
+* @sbly made their first contribution in https://github.com/http4s/http4s/pull/5564
+* @plokhotnyuk made their first contribution in https://github.com/http4s/http4s/pull/5556
 
 # v1.0.0-M29 (2021-10-11)
 
