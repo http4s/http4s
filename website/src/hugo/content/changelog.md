@@ -8,6 +8,187 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.7 (2021-12-07)
+
+This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.8.
+
+http4s-server and http4s-ember-server are now cross-built for the Scala.js platform.
+
+Scala 3 users must upgrade to at least Scala 3.1.0 as of this release.
+
+## http4s-core
+
+* Scala 3.1 and friends by @rossabaker in https://github.com/http4s/http4s/pull/5468
+* Implement `Request#remoteHost` via `ip4s.Dns` by @armanbilge in https://github.com/http4s/http4s/pull/5473
+* (scalajs linking) StaticFile: make staticFileKey a lazy val by @yurique in https://github.com/http4s/http4s/pull/5618
+* Update `cats-effect` version to 3.3.0 by @danicheg in https://github.com/http4s/http4s/pull/5619
+* Update ip4s-core, ip4s-test-kit to 3.1.2 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5631
+* Update scodec-bits to 1.1.30 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5632
+* Update fs2-core, fs2-io, ... to 3.2.3 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5670
+
+## http4s-server
+
+* Cross most of server (but `Server`) for JS on 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5563
+* Cross `Server` and ember server to JS in 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5663
+
+## http4s-ember-server
+
+* Cross `Server` and ember server to JS in 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5663
+
+## Documentation
+
+* Expand docs on client middlewares by @kubukoz in https://github.com/http4s/http4s/pull/5416
+* Port migration of the website to Laika for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5548
+* EPUB download of the docs for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5642
+* Fix scaladoc references to io.chrisdavenport.vault by @MasseGuillaume in https://github.com/http4s/http4s/pull/5622
+
+## Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.6 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5413
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5431
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5444
+* Pin scala-library_sjs1 by @rossabaker in https://github.com/http4s/http4s/pull/5448
+* Enable fatal warnings in CI for Scala 3.1 by @armanbilge in https://github.com/http4s/http4s/pull/5474
+* Use Scala 3 cross-compatible `@nowarn` by @armanbilge in https://github.com/http4s/http4s/pull/5518
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5506
+* Non-trivial merge into 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5529
+* Add scalafix linter for use of fs2 Sync compiler by @bplommer in https://github.com/
+http4s/http4s/pull/5536
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5540
+* Fix or exclude scalafix warnings by @bplommer in https://github.com/http4s/http4s/pull/5549
+* Non-trivial merge into 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5557
+* Add sbt check for misplaced sources by @armanbilge in https://github.com/http4s/http4s/pull/5578
+* Use `MonadCancel` in the `Http1Writer.write` by @danicheg in https://github.com/http4s/http4s/pull/5600
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5602
+* Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5635
+* Update jnr-unixsocket to 0.38.14 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5639
+* relax Client.translate bound on `G[_]` to MonadCancelThrow by @bpholt in https://github.com/http4s/http4s/pull/5634
+* EPUB download of the docs for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5652
+* Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5653
+* Merge 0.22 to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5669
+
+## New Contributors
+* @yurique made their first contribution in https://github.com/http4s/http4s/pull/5618
+* @MasseGuillaume made their first contribution in https://github.com/http4s/http4s/pull/5622
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.6...v0.23.7
+# v0.22.8 (2021-12-07)
+
+This is a maintenance release, binary compatible with the 0.22.x series.
+
+## http4s-core
+
+* Update case-insensitive, ... to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5434
+* Fix Origin parsing on hosts starting with a number by @gaspb in https://github.com/http4s/http4s/pull/5504
+* Deprecate `DefaultCharset`, use `UTF-8` directly by @bplommer in https://github.com/http4s/http4s/pull/5512
+* Access control allow methods by @rcardin in https://github.com/http4s/http4s/pull/5376
+* Uri Path Segment Encoder by @zarthross in https://github.com/http4s/http4s/pull/5519
+* Update cats-parse to 0.3.6 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5598
+* Update cats-core, cats-laws to 2.7.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5625
+* Add DefaultQueryParamDecoderMatcher class by @sbly in https://github.com/http4s/http4s/pull/5564
+
+## http4s-laws
+
+* Update discipline-core to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5418
+
+## Various backends
+
+* Update log4cats-slf4j, log4cats-testing to 1.4.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5638
+
+## http4s-blaze-server
+
+* Make websocket buffer size configurable by @DeviLab in https://github.com/http4s/http4s/pull/5381
+
+## http4s-async-http-client
+
+* Update netty-buffer, netty-codec-http to 4.1.70.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5532
+
+## http4s-okhttp-client
+
+* Update okhttp to 4.9.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5605
+
+## http4s-jawn
+
+* Update jawn-parser to 1.3.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5580
+
+## http4s-scalatags
+
+* Update scalatags to 0.10.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5441
+
+## http4s-tomcat
+
+* Update tomcat-catalina, tomcat-coyote, ... to 9.0.55 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5584
+
+## Scalafixes
+
+* Scalafix for CIString, Header, Headers for 0.22 by @bplommer in https://github.com/http4s/http4s/pull/5387
+* Add scalafix for User-Agent header change by @bplommer in https://github.com/http4s/http4s/pull/5388
+* Fix the package in the AHC scalafix by @rossabaker in https://github.com/http4s/http4s/pull/5643
+
+## Documentation
+
+* QueryOps +? -> ++? doctest and migration guide by @zmccoy in https://github.com/http4s/http4s/pull/5379
+* Fix `scaladoc` for some `Headers` methods by @danicheg in https://github.com/http4s/http4s/pull/5491
+* Clean up Blaze examples: weaken TC constraints, address linter warnings by @bplommer in https://github.com/http4s/http4s/pull/5524
+* Port migration of the website to Laika for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5551
+* Fix dead links to RFC by @danicheg in https://github.com/http4s/http4s/pull/5592
+* EPUB download of the docs for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5652
+* Add favicon to the `0.22` website and docs by @danicheg in https://github.com/http4s/http4s/pull/5676
+* Update nav-docs.html by @rtar in https://github.com/http4s/http4s/pull/5481
+
+## Behind the scenes
+
+* Update scala3-library to 3.0.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5400
+* Update sbt-mdoc to 2.2.24 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5424
+* Reproduce deadlocks in PoolManager by @RafalSumislawski in https://github.com/http4s/http4s/pull/5384
+* fix MatchError by @RafalSumislawski in https://github.com/http4s/http4s/pull/5383
+* Backport to 0.22: Expand docs on client middlewares by @kubukoz in https://github.com/http4s/http4s/pull/5430
+* Ember Server connection tests by @RaasAhsan in https://github.com/http4s/http4s/pull/5382
+* Pin dependencies for 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5443
+* Update sbt-unidoc to 0.5.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5471
+* Mark some test-suites in the `blaze-client` as flaky by @danicheg in https://github.com/http4s/http4s/pull/5485
+* Thin ci matrix by @armanbilge in https://github.com/http4s/http4s/pull/5476
+* Port #5477 to the series/0.22 by @danicheg in https://github.com/http4s/http4s/pull/5483
+* Remove redundant setting in scalafix build by @bplommer in https://github.com/http4s/http4s/pull/5499
+* Remove redundant val in the `Header.Raw` constructor by @danicheg in https://github.com/http4s/http4s/pull/5500
+* Format sbt files, add command alias for pre-PR linting by @bplommer in https://github.com/http4s/http4s/pull/5498
+* Run Scalafix in CI by @bplommer in https://github.com/http4s/http4s/pull/5505
+* Use predefined names of headers instead of creating them in the `Headers` by @danicheg in https://github.com/http4s/http4s/pull/5492
+* Pin okio to 2.x by @rossabaker in https://github.com/http4s/http4s/pull/5522
+* Add custom scalafix rules by @bplommer in https://github.com/http4s/http4s/pull/5521
+* Update scalafmt by @bplommer in https://github.com/http4s/http4s/pull/5534
+* run scalafmt on series/0.22 by @bplommer in https://github.com/http4s/http4s/pull/5544
+* Send multiple chunks when testing chunked requests by @RafalSumislawski in https://github.com/http4s/http4s/pull/5552
+* Fix or exclude scalafix warnings by @bplommer in https://github.com/http4s/http4s/pull/5549
+* Add further scalafix rules by @bplommer in https://github.com/http4s/http4s/pull/5550
+* Update logback-classic to 1.2.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5560
+* Don't ignore the `Part.covary` test suite in the `MultipartSuite` by @danicheg in https://github.com/http4s/http4s/pull/5576
+* Clean up `ServerTestRoutes` by @danicheg in https://github.com/http4s/http4s/pull/5575
+* Use an instance of `Arbitrary[Year]` from ScalaCheck by @danicheg in https://github.com/http4s/http4s/pull/5577
+* Update sbt-native-packager to 1.9.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5589
+* Use `assertEquals` instead of `assert` by @danicheg in https://github.com/http4s/http4s/pull/5591
+* Use `Arbitrary[Uri]` in some tests by @danicheg in https://github.com/http4s/http4s/pull/5586
+* Remove redundant isScala3 from build.sbt by @bplommer in https://github.com/http4s/http4s/pull/5595
+* Add advice of using `assertEquals()` in the contributing guide by @danicheg in https://github.com/http4s/http4s/pull/5594
+* Don't ignore `covary` tests in the MessageSuite by @danicheg in https://github.com/http4s/http4s/pull/5596
+* Use `Bracket` in the `Http1Writer.write` by @danicheg in https://github.com/http4s/http4s/pull/5565
+* Update scalafmt-core to 3.1.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5606
+* Update sbt-scalafix, scalafix-testkit to 0.9.33 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5616
+* Close some resources in tests by @danicheg in https://github.com/http4s/http4s/pull/5633
+
+* Update scalafmt-core to 3.2.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5650
+* Pin scalatags to 0.10 by @rossabaker in https://github.com/http4s/http4s/pull/5647
+* Update munit-cats-effect-2 to 1.0.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5667
+* Update sbt-http4s-org to 0.9.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5659
+* Add the fast path for `Uri.decode` implementation by @plokhotnyuk in https://github.com/http4s/http4s/pull/5556
+
+## New Contributors
+
+* @DeviLab made their first contribution in https://github.com/http4s/http4s/pull/5381
+* @gaspb made their first contribution in https://github.com/http4s/http4s/pull/5504
+* @sbly made their first contribution in https://github.com/http4s/http4s/pull/5564
+* @plokhotnyuk made their first contribution in https://github.com/http4s/http4s/pull/5556
+
 # v1.0.0-M29 (2021-10-11)
 
 This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.  It includes all the changes through 0.23.6.

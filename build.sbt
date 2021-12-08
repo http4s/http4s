@@ -70,7 +70,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       )
     ),
     scalas = crossScalaVersions.value.toList,
-    javas = List("adoptium@8"),
+    javas = List(JavaSpec.temurin("8")),
   )
 )
 
@@ -81,7 +81,7 @@ ThisBuild / githubWorkflowBuildMatrixAdditions += "ci" -> ciVariants
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java))
+  } yield MatrixExclude(Map("ci" -> "ciNodeJS", "java" -> java.render))
 }
 
 // On the JVM Build all Javas for one Scala, and all Scalas for one Java
@@ -89,7 +89,7 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     scala <- (ThisBuild / crossScalaVersions).value.tail
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("ci" -> "ciJVM", "scala" -> scala, "java" -> java))
+  } yield MatrixExclude(Map("ci" -> "ciJVM", "scala" -> scala, "java" -> java.render))
 }
 
 addCommandAlias("ciJVM", "; project rootJVM")
