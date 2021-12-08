@@ -1,0 +1,18 @@
+changelog:
+  exclude:
+    labels:
+      - series/0.22
+      - series/0.23
+  categories:
+    - title: http4s-core
+      labels:
+        - module:http4s-core
+    - title: http4s-server
+      labels:
+        - module:http4s-server
+    - title: http4s-client
+      labels:
+        - module:http4s-client
+    - title: Behind the scenes
+      labels:
+        - "*"
