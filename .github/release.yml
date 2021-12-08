@@ -42,6 +42,12 @@ changelog:
       labels:
         - module:blaze-client
 
+    - title: http4s-servlet
+      labels:
+        - module:servlet
+    - title: http4s-tomcat
+      labels:
+        - module:tomcat
     - title: http4s-jetty-server
       labels:
         - module:jetty-server
@@ -55,12 +61,6 @@ changelog:
     - title: http4s-okhttp-client
       labels:
         - module:okhttp-client
-    - title: http4s-servlet
-      labels:
-        - module:servlet
-    - title: http4s-tomcat
-      labels:
-        - module:tomcat
 
     - title: http4s-jawn
       labels:
