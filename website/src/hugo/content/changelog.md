@@ -40,6 +40,7 @@ Scala 3 users must upgrade to at least Scala 3.1.0 as of this release.
 * Expand docs on client middlewares by @kubukoz in https://github.com/http4s/http4s/pull/5416
 * Port migration of the website to Laika for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5548
 * EPUB download of the docs for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5642
+* Fix scaladoc references to io.chrisdavenport.vault by @MasseGuillaume in https://github.com/http4s/http4s/pull/5622
 
 ## Behind the scenes
 
@@ -68,6 +69,7 @@ http4s/http4s/pull/5536
 
 ## New Contributors
 * @yurique made their first contribution in https://github.com/http4s/http4s/pull/5618
+* @MasseGuillaume made their first contribution in https://github.com/http4s/http4s/pull/5622
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.6...v0.23.7
 
