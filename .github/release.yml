@@ -1,18 +1,86 @@
 changelog:
-  exclude:
-    labels:
-      - series/0.22
-      - series/0.23
   categories:
+
     - title: http4s-core
       labels:
-        - module:http4s-core
+        - module:core
+    - title: http4s-dsl
+      labels:
+        - module:dsl
+    - title: http4s-laws
+      labels:
+        - module:laws
+
     - title: http4s-server
       labels:
-        - module:http4s-server
+        - module:server
     - title: http4s-client
       labels:
-        - module:http4s-client
+        - module:client
+
+    - title: http4s-ember-core
+      labels:
+        - module:ember-core
+    - title: http4s-ember-server
+      labels:
+        - module:ember-server
+    - title: http4s-ember-client
+      labels:
+        - module:ember-client
+
+    - title: http4s-blaze-core
+      labels:
+        - module:blaze-core
+    - title: http4s-blaze-server
+      labels:
+        - module:blaze-server
+    - title: http4s-blaze-client
+      labels:
+        - module:blaze-client
+
+    - title: http4s-jetty-server
+      labels:
+        - module:jetty-server
+    - title: http4s-jetty-client
+      labels:
+        - module:jetty-client
+
+    - title: http4s-async-http-client
+      labels:
+        - module:async-http-client
+    - title: http4s-okhttp-client
+      labels:
+        - module:okhttp-client
+    - title: http4s-servlet
+      labels:
+        - module:servlet
+    - title: http4s-tomcat
+      labels:
+        - module:tomcat
+
+    - title: http4s-jawn
+      labels:
+        - module:jawn
+    - title: http4s-circe
+      labels:
+        - module:circe
+    - title: http4s-play-json
+      labels:
+        - module:play-json
+    - title: http4s-scalatags
+      labels:
+        - module:scalatags
+    - title: http4s-twirl
+      labels:
+        - module:twirl
+
+    - title: http4s-dropwizard-metrics
+      labels:
+        - module:dropwizard-metrics
+    - title: http4s-prometheus-metrics
+      labels:
+        - module:prometheus-metrics
+
     - title: Documentation
       labels:
         - docs
