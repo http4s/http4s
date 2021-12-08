@@ -4,9 +4,48 @@
 
 # Changelog
 
-
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
+
+# v1.0.0-M30 (2021-12-08)
+
+This is the latest milestone of the 1.0 series.  It is not binary compatible with any previous version.
+
+This milestone is the first to include Scala 3 support for http4s-scalatags.
+
+* http4s-core
+    * Make EntityEncoder covariant in its effect type by @bplommer in https://github.com/http4s/http4s/pull/5229
+    * Use case object for access-control-allow-credentials by @bplommer in https://github.com/http4s/http4s/pull/5482
+
+* http4s-scalatags
+	* Update scalatags to 0.11.0 by @scala-steward in https://github.com/http4s/http4s/pull/5644
+	* Publish http4s-scalatags for Scala 3 by @rossabaker in https://github.com/http4s/http4s/pull/5648
+
+* Documentation
+	* Clarify support levels by @rossabaker in https://github.com/http4s/http4s/pull/5445
+	* Migrate Website to Laika by @jenshalm in https://github.com/http4s/http4s/pull/5313
+	* Update website with SJS on 0.23, http4s-dom project by @armanbilge in https://github.com/http4s/http4s/pull/5453
+	* Fix website logo by @armanbilge in https://github.com/http4s/http4s/pull/5459
+	* Update all the urls to new http4s-dom site by @armanbilge in https://github.com/http4s/http4s/pull/5507
+	* Fix markdown in readme by @bplommer in https://github.com/http4s/http4s/pull/5523
+	* updated getting-help.md to point to discord by @barshirtcliff in https://github.com/http4s/http4s/pull/5513
+	* EPUB download of the docs by @danicheg in https://github.com/http4s/http4s/pull/5640
+	* website: add favicon by @jenshalm in https://github.com/http4s/http4s/pull/5656
+
+* Behind the scenes
+	* Non-trivial merge to main by @rossabaker in https://github.com/http4s/http4s/pull/5446
+	* Fix ci on main by @armanbilge in https://github.com/http4s/http4s/pull/5514
+	* Drop hugo from the Nix shell by @rossabaker in https://github.com/http4s/http4s/pull/5455
+	* Non-trivial merge to main by @rossabaker in https://github.com/http4s/http4s/pull/5530
+	* Merge branch `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5664
+	* Unpin `scalatags` in the Steward config by @danicheg in https://github.com/http4s/http4s/pull/5668
+	* Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/5673
+
+* New Contributors
+	* @jenshalm made their first contribution in https://github.com/http4s/http4s/pull/5313
+	* @barshirtcliff made their first contribution in https://github.com/http4s/http4s/pull/5513
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M29...v1.0.0-M30
 
 # v0.23.7 (2021-12-07)
 
