@@ -8,6 +8,71 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.7 (2021-12-07)
+
+This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.8.
+
+http4s-server and http4s-ember-server are now cross-built for the Scala.js platform.
+
+Scala 3 users must upgrade to at least Scala 3.1.0 as of this release.
+
+## http4s-core
+
+* Scala 3.1 and friends by @rossabaker in https://github.com/http4s/http4s/pull/5468
+* Implement `Request#remoteHost` via `ip4s.Dns` by @armanbilge in https://github.com/http4s/http4s/pull/5473
+* (scalajs linking) StaticFile: make staticFileKey a lazy val by @yurique in https://github.com/http4s/http4s/pull/5618
+* Update `cats-effect` version to 3.3.0 by @danicheg in https://github.com/http4s/http4s/pull/5619
+* Update ip4s-core, ip4s-test-kit to 3.1.2 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5631
+* Update scodec-bits to 1.1.30 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5632
+* Update fs2-core, fs2-io, ... to 3.2.3 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5670
+
+## http4s-server
+
+* Cross most of server (but `Server`) for JS on 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5563
+* Cross `Server` and ember server to JS in 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5663
+
+## http4s-ember-server
+
+* Cross `Server` and ember server to JS in 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5663
+
+## Documentation
+
+* Expand docs on client middlewares by @kubukoz in https://github.com/http4s/http4s/pull/5416
+* Port migration of the website to Laika for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5548
+* EPUB download of the docs for the `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5642
+* Fix scaladoc references to io.chrisdavenport.vault by @MasseGuillaume in https://github.com/http4s/http4s/pull/5622
+
+## Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.6 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5413
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5431
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5444
+* Pin scala-library_sjs1 by @rossabaker in https://github.com/http4s/http4s/pull/5448
+* Enable fatal warnings in CI for Scala 3.1 by @armanbilge in https://github.com/http4s/http4s/pull/5474
+* Use Scala 3 cross-compatible `@nowarn` by @armanbilge in https://github.com/http4s/http4s/pull/5518
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5506
+* Non-trivial merge into 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5529
+* Add scalafix linter for use of fs2 Sync compiler by @bplommer in https://github.com/
+http4s/http4s/pull/5536
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5540
+* Fix or exclude scalafix warnings by @bplommer in https://github.com/http4s/http4s/pull/5549
+* Non-trivial merge into 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5557
+* Add sbt check for misplaced sources by @armanbilge in https://github.com/http4s/http4s/pull/5578
+* Use `MonadCancel` in the `Http1Writer.write` by @danicheg in https://github.com/http4s/http4s/pull/5600
+* Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5602
+* Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5635
+* Update jnr-unixsocket to 0.38.14 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5639
+* relax Client.translate bound on `G[_]` to MonadCancelThrow by @bpholt in https://github.com/http4s/http4s/pull/5634
+* EPUB download of the docs for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5652
+* Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5653
+* Merge 0.22 to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5669
+
+## New Contributors
+* @yurique made their first contribution in https://github.com/http4s/http4s/pull/5618
+* @MasseGuillaume made their first contribution in https://github.com/http4s/http4s/pull/5622
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.6...v0.23.7
+
 # v1.0.0-M29 (2021-10-11)
 
 This is the latest development milestone in the 1.x series.  It is not binary compatible with previous milestones.  It includes all the changes through 0.23.6.
