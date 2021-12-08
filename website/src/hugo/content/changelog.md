@@ -62,7 +62,7 @@ http4s/http4s/pull/5536
 * Non-trivial merge to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5602
 * Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5635
 * Update jnr-unixsocket to 0.38.14 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5639
-* relax Client.translate bound on G[_] to MonadCancelThrow by @bpholt in https://github.com/http4s/http4s/pull/5634
+* relax Client.translate bound on `G[_]` to MonadCancelThrow by @bpholt in https://github.com/http4s/http4s/pull/5634
 * EPUB download of the docs for the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5652
 * Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5653
 * Merge 0.22 to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5669
