@@ -46,7 +46,7 @@ This milestone is the first to include Scala 3 support for http4s-scalatags.
 	* @barshirtcliff made their first contribution in https://github.com/http4s/http4s/pull/5513
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M29...v1.0.0-M30
-
+ 
 # v0.23.7 (2021-12-07)
 
 This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.8.

@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.client.dsl.Http4sClientDsl
+import org.http4s.client.scaffold.ServerScaffold
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
