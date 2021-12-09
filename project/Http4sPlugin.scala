@@ -11,6 +11,7 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import sbt.Keys._
 import sbt._
 import sbtghactions.GenerativeKeys._
+import sbtghactions.JavaSpec
 import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
 
 object Http4sPlugin extends AutoPlugin {
@@ -173,10 +174,9 @@ object Http4sPlugin extends AutoPlugin {
         id = subproject,
         name = s"Build $subproject",
         scalas = List(scala_212),
-        javas = List("adoptium@8"),
+        javas = List(JavaSpec.temurin("17")),
         steps = List(
           WorkflowStep.CheckoutFull,
-          WorkflowStep.SetupScala,
           WorkflowStep.Sbt(
             mdoc.toList ++ List(s"$subproject/laikaSite"),
             name = Some(s"Build $subproject"),
@@ -246,14 +246,14 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.2"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
-    val cats = "2.6.1"
+    val cats = "2.7.0"
     val catsEffect = "2.5.4"
     val catsParse = "0.3.6"
     val circe = "0.14.1"
     val crypto = "0.1.0"
     val cryptobits = "1.3"
-    val disciplineCore = "1.2.0"
-    val dropwizardMetrics = "4.2.4"
+    val disciplineCore = "1.4.0"
+    val dropwizardMetrics = "4.2.5"
     val fs2 = "2.5.10"
     val ip4s = "2.0.4"
     val javaWebSocket = "1.5.2"
@@ -263,10 +263,10 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.3.5"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "1.3.1"
+    val log4cats = "1.4.0"
     val log4s = "1.10.0"
     val munit = "0.7.29"
-    val munitCatsEffect = "1.0.6"
+    val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
     val netty = "4.1.70.Final"
     val okio = "2.10.0"
@@ -282,7 +282,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
     val slf4j = "1.7.32"
-    val tomcat = "9.0.55"
+    val tomcat = "9.0.56"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.13"

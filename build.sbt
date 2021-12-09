@@ -52,7 +52,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       )
     ),
     scalas = crossScalaVersions.value.toList,
-    javas = List("adoptium@8"),
+    javas = List(JavaSpec.temurin("8")),
   )
 )
 
@@ -60,7 +60,7 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     scala <- (ThisBuild / crossScalaVersions).value.tail
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("scala" -> scala, "java" -> java))
+  } yield MatrixExclude(Map("scala" -> scala, "java" -> java.render))
 }
 
 enablePlugins(SonatypeCiReleasePlugin)
@@ -293,7 +293,8 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      jettyServlet % Test
+      nettyBuffer % Test,
+      nettyCodecHttp % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -661,12 +662,14 @@ lazy val docs = http4sProject("docs")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v0_22,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
     laikaDescribe := "<disabled>",
+    laikaIncludeEPUB := true,
+    laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
     ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
@@ -708,7 +711,7 @@ lazy val website = http4sProject("website")
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = false).value,
     laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.v0_22,
+      currentVersion = SiteConfig.versions.current,
       SiteConfig.variables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
