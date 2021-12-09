@@ -1128,4 +1128,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       genEntityTag.map(`If-Range`.ETag),
     )
   }
+
+  implicit val http4sTestingArbitraryTrailer: Arbitrary[Trailer] = Arbitrary(
+    nonEmptyListOf(genToken.map(CIString(_))).map(headers =>
+      Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
+    )
+  )
 }
