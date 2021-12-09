@@ -23,6 +23,8 @@ import org.http4s._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 
+import scala.collection.immutable
+
 class UriParserSuite extends Http4sSuite {
   {
     def check(items: Seq[(String, Uri)]) =
@@ -31,7 +33,7 @@ class UriParserSuite extends Http4sSuite {
       }
 
     // RFC 3986 examples
-    // http://tools.ietf.org/html/rfc3986#section-1.1.2
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-1.1.2
 
     // http://www.ietf.org/rfc/rfc2396.txt
 
@@ -151,13 +153,16 @@ class UriParserSuite extends Http4sSuite {
       val q = Query.unsafeFromString("param1=3&param2=2&param2=foo")
       val u = Uri(query = q)
       test("Uri.requestTarget should represent query as multiParams as a Map[String,Seq[String]]") {
-        assert(u.multiParams == Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
+        assertEquals(
+          u.multiParams,
+          Map("param1" -> immutable.Seq("3"), "param2" -> immutable.Seq("2", "foo")),
+        )
       }
 
       test(
         "Uri.requestTarget should parse query and represent params as a Map[String,String] taking the first param"
       ) {
-        assert(u.params == Map("param1" -> "3", "param2" -> "2"))
+        assertEquals(u.params, Map("param1" -> "3", "param2" -> "2"))
       }
     }
 

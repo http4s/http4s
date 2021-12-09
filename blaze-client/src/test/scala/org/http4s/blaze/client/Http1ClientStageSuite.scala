@@ -138,8 +138,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   test("Run a basic request".flaky) {
     getSubmission(FooRequest, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET / HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET / HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 
@@ -150,8 +150,8 @@ class Http1ClientStageSuite extends Http4sSuite {
 
     getSubmission(req, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET " + uri + " HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET " + uri + " HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 

@@ -74,7 +74,7 @@ object `Content-Type` {
   *   message semantics.
   * }}}
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.5 RFC-7231]]
   */
 final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) { // scalafix:ok; private for API ergonomics, not correctness
   def withMediaType(mediaType: MediaType): `Content-Type` =

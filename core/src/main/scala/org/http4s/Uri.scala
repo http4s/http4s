@@ -160,7 +160,7 @@ final case class Uri(
         writer << "/" << p
       case Uri(None, None, p, _, _) =>
         if (!p.absolute && p.segments.headOption.fold(false)(_.toString.contains(":"))) {
-          writer << "./" << p // https://tools.ietf.org/html/rfc3986#section-4.2 last paragraph
+          writer << "./" << p // https://datatracker.ietf.org/doc/html/rfc3986#section-4.2 last paragraph
         } else {
           writer << p
         }
@@ -214,7 +214,7 @@ object Uri extends UriPlatform {
     * If the scheme is defined, the URI is absolute.  If the scheme is
     * not defined, the URI is a relative reference.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) =
@@ -548,7 +548,7 @@ object Uri extends UriPlatform {
     * clear text in a URI is a security risk and deprecated by RFC
     * 3986, but preserved in this model for losslessness.
     *
-    * @see [[https://tools.ietf.org/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
   final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
       username: String,

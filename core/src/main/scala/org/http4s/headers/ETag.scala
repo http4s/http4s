@@ -37,7 +37,7 @@ object ETag {
 
   /* `ETag = entity-tag`
    *
-   * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
+   * @see [[https://datatracker.ietf.org/doc/html/rfc7232#section-2.3]]
    */
   private[http4s] val parser: Parser[ETag] =
     entityTagParser.map(ETag.apply)

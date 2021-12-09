@@ -6,8 +6,9 @@ import laika.ast._
 import laika.bundle.ExtensionBundle
 import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
-import laika.helium.config.{HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
 import laika.rewrite.link.LinkConfig
+import laika.rewrite.nav.CoverImage
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaConfig
 import laika.theme.ThemeProvider
@@ -63,6 +64,8 @@ object SiteConfig {
       TextLink.internal(Root / "adopters" / "README.md", "Adopters"),
       TextLink.internal(Root / "code-of-conduct" / "README.md", "Code of Conduct"),
       TextLink.internal(Root / "further-reading" / "README.md", "Further Reading"),
+      // TODO: the internal reference is not resolving for now
+      TextLink.external(epub.downloadDocURL, "Download (EPUB)"),
     )
   }
 
@@ -83,6 +86,8 @@ object SiteConfig {
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
+    val current: Version = v0_22
+
     def config(current: Version): Versions = Versions(
       currentVersion = current,
       olderVersions = all.dropWhile(_ != current).drop(1),
@@ -94,6 +99,15 @@ object SiteConfig {
     } ++ all.map { v =>
       Root / v.pathSegment / "index.html"
     }
+  }
+
+  object epub {
+    val downloadPageDesc: Option[String] = Some(
+      "The e-book contains the same documentation as the website."
+    )
+    val downloadDocURL =
+      s"https://http4s.org/${versions.current.pathSegment}/downloads/"
+    val epubMetadataDesc: Option[String] = Some("A minimal, idiomatic Scala interface for HTTP.")
   }
 
   // This kind of variable generator used to live in Http4sPlugin, but it's not used by anything other than Laika.
@@ -128,10 +142,12 @@ object SiteConfig {
     val config = variables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
       builder.withValue(key, value)
     }
+
     LaikaConfig(
       configBuilder = config
         .withValue(LaikaKeys.versioned, versioned)
         .withValue(LinkConfig(excludeFromValidation = Seq(Root / "api")))
+        .withValue(LaikaKeys.artifactBaseName, s"http4s-${versions.current.displayValue}")
     )
   }
 
@@ -152,25 +168,26 @@ object SiteConfig {
 
     val baseTheme =
       if (includeLandingPage)
-        Helium.defaults.site.landingPage(
-          logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
-          title = None,
-          subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-          latestReleases = Seq(
-            ReleaseInfo(
-              "Latest Stable Release",
-              variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
+        Helium.defaults.site
+          .landingPage(
+            logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
+            title = None,
+            subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+            latestReleases = Seq(
+              ReleaseInfo(
+                "Latest Stable Release",
+                variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
+              ),
+              ReleaseInfo(
+                "Latest Milestone Release",
+                variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
+              ),
             ),
-            ReleaseInfo(
-              "Latest Milestone Release",
-              variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
-            ),
-          ),
-          license = Some("Apache 2.0"),
-          documentationLinks = landingPage.projectLinks,
-          projectLinks = Nil, // TODO
-          teasers = landingPage.teasers,
-        )
+            license = Some("Apache 2.0"),
+            documentationLinks = landingPage.projectLinks,
+            projectLinks = Nil, // TODO
+            teasers = landingPage.teasers,
+          )
       else Helium.defaults
 
     val fullTheme = baseTheme.all
@@ -204,6 +221,11 @@ object SiteConfig {
           (Color.hex("334044"), Color.hex("5B7980")), // only used for landing page background
       )
       .site
+      .favIcons(
+        Favicon.internal(Root / "images" / "http4s-favicon.svg", "32x32").copy(sizes = None),
+        Favicon.internal(Root / "images" / "http4s-favicon.png", "32x32"),
+      )
+      .site
       .darkMode
       .disabled
       .site
@@ -221,10 +243,30 @@ object SiteConfig {
           ),
           IconLink.external("https://discord.gg/XF3CXcMzqD", HeliumIcon.chat),
           IconLink.external("https://twitter.com/http4s", HeliumIcon.twitter),
+          // TODO: the internal reference is not resolving for now
+          IconLink.external(epub.downloadDocURL, HeliumIcon.download),
         ),
       )
       .site
       .versions(versions.config(currentVersion))
+      .site
+      .downloadPage(
+        title = "Documentation Downloads",
+        description = epub.downloadPageDesc,
+        includeEPUB = true,
+        includePDF = false,
+      )
+      .epub
+      .metadata(
+        title = Some("http4s"),
+        description = epub.epubMetadataDesc,
+        version = Some(versions.current.displayValue),
+        language = Some("en"),
+      )
+      .epub
+      .coverImages(CoverImage(Root / "images" / "http4s-logo-text-dark-2.svg"))
+      .epub
+      .tableOfContent("Table of Content", 3)
       .build
 
     HeliumExtensions.applyTo(fullTheme, variables, versions.paths)
