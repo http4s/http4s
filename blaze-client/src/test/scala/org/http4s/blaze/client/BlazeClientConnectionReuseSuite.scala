@@ -22,7 +22,7 @@ import cats.implicits._
 import fs2.Stream
 import org.http4s.Method._
 import org.http4s._
-import org.http4s.client.JettyScaffold.JettyTestServer
+import org.http4s.client.scaffold.TestServer
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
@@ -36,7 +36,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
         servers <- makeServers()
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -49,7 +49,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
         servers <- makeServers()
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "large"))
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -62,7 +62,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
         servers <- makeServers()
         _ <- client.status(Request[IO](GET, servers(0).uri / "no-content"))
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -84,7 +84,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .status(Request[IO](GET, servers(0).uri / "infinite"))
           .timeout(5.seconds) // we expect it to complete without waiting for the response body
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(2)
+        _ <- servers(0).establishedConnections.assertEquals(2L)
       } yield ()
     }
   }
@@ -95,17 +95,17 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
         servers <- makeServers()
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
-        _ <- servers(1).numberOfEstablishedConnections.assertEquals(0)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
+        _ <- servers(1).establishedConnections.assertEquals(0L)
         _ <- client.expect[String](Request[IO](GET, servers(1).uri / "simple"))
         _ <- client.expect[String](Request[IO](GET, servers(1).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
-        _ <- servers(1).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
+        _ <- servers(1).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
 
-  // // Decoding failures ////
+  // // Decoding failures // //
 
   test("BlazeClient should reuse the connection after response decoding failed".flaky) {
     // This will work regardless of whether we drain the entity or not,
@@ -118,7 +118,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .expect[String](Request[IO](GET, servers(0).uri / "simple"))(drainThenFail)
           .attempt
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -134,7 +134,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .expect[String](Request[IO](GET, servers(0).uri / "large"))(drainThenFail)
           .attempt
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -154,12 +154,12 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .expect[String](Request[IO](GET, servers(0).uri / "large"))(failWithoutDraining)
           .attempt
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(2)
+        _ <- servers(0).establishedConnections.assertEquals(2L)
       } yield ()
     }
   }
 
-  // // Requests with an entity ////
+  // // Requests with an entity // //
 
   test("BlazeClient should reuse the connection after a request with an entity".flaky) {
     builder().resource.use { client =>
@@ -169,7 +169,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           Request[IO](POST, servers(0).uri / "process-request-entity").withEntity("entity")
         )
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(1)
+        _ <- servers(0).establishedConnections.assertEquals(1L)
       } yield ()
     }
   }
@@ -185,15 +185,15 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
             .withBodyStream(Stream(0.toByte).repeat)
         )
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
-        _ <- servers(0).numberOfEstablishedConnections.assertEquals(2)
+        _ <- servers(0).establishedConnections.assertEquals(2L)
       } yield ()
     }
   }
 
-  // // Load tests ////
+  // // Load tests // //
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".flaky
+    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".fail
   ) {
     builder().resource.use { client =>
       for {
@@ -203,7 +203,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .replicateA(200)
           .parReplicateA(20)
         // There's no guarantee we'll actually manage to use 20 connections in parallel. Sharing the client means sharing the lock inside PoolManager as a contention point.
-        _ <- servers(0).numberOfEstablishedConnections.map(_ <= 20).assert
+        _ <- servers(0).establishedConnections.map(_ <= 20L).assert
       } yield ()
     }
   }
@@ -218,19 +218,17 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           client.expect[String](Request[IO](GET, servers(0).uri / "simple")).replicateA(400)
         }
         .parReplicateA(20)
-      _ <- servers(0).numberOfEstablishedConnections.assertEquals(20)
+      _ <- servers(0).establishedConnections.assertEquals(20L)
     } yield ()
   }
 
   private def builder(): BlazeClientBuilder[IO] =
     BlazeClientBuilder[IO](munitExecutionContext).withScheduler(scheduler = tickWheel)
 
-  private def makeServers(): IO[Vector[JettyTestServer]] = {
-    val jettyScafold = jettyServer()
-    jettyScafold.resetCounters().as(jettyScafold.servers)
-  }
-
-  implicit private class ParReplicateASyntax[A](ioa: IO[A]) {
-    def parReplicateA(n: Int): IO[List[A]] = List.fill(n)(ioa).parSequence
+  private def makeServers(): IO[Vector[TestServer[IO]]] = {
+    val testServers = server().servers
+    testServers
+      .traverse(_.resetEstablishedConnections)
+      .as(testServers)
   }
 }

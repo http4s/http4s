@@ -103,7 +103,7 @@ trait BlazeClientBase extends Http4sSuite {
       (HttpMethod.POST, "/process-request-entity") -> new Handler {
         // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
-          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
+          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK)
           ()
         }
       },
