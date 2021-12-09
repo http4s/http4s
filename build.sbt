@@ -387,7 +387,13 @@ lazy val client = libraryCrossProject("client")
       ), // private[oauth1]
     ),
   )
-  .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer % Test,
+      nettyCodecHttp % Test
+    )
+  )
+  .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")

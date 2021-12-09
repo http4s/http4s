@@ -1,20 +1,19 @@
-
 pull_request_rules:
-  - name: automatically merge scala-steward's PRs
-    conditions:
-      - author=scala-steward
-      - body~=labels:.*semver-patch.*
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.16)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.16)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.16)
-      - status-success=Build website (ubuntu-latest, 2.12.13, adopt@1.8)
-      - status-success=Build docs (ubuntu-latest, 2.12.13, adopt@1.8)
-    actions:
-      merge:
-        method: merge
+- name: label series/0.22 PRs
+  conditions:
+  - base=series/0.22
+  actions:
+    label:
+      add: ['series/0.22']
+- name: label series/0.23 PRs
+  conditions:
+  - base=series/0.23
+  actions:
+    label:
+      add: ['series/0.23']
+- name: label scala-steward's PRs
+  conditions:
+    - author=scala-steward
+  actions:
+    label:
+      add: [dependencies]
