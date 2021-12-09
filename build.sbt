@@ -380,6 +380,12 @@ lazy val client = libraryCrossProject("client")
       ), // private[oauth1]
     ),
   )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer % Test,
+      nettyCodecHttp % Test
+    )
+  )
   .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 

@@ -16,6 +16,7 @@
 
 package org.http4s
 package client
+package scaffold
 
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
