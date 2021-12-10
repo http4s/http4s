@@ -16,12 +16,10 @@
 
 package org.http4s.ember.core.h2
 
-import cats._
 import cats.syntax.all._
 import fs2.io.net.tls.TLSParameters
-import fs2.io.net.tls.TLSSocket
 
-private[ember] object H2TLSPlatform {
+private[h2] abstract class H2TLSPlatform {
 
   def transform(params: TLSParameters): TLSParameters =
     TLSParameters(
@@ -36,9 +34,5 @@ private[ember] object H2TLSPlatform {
       checkServerIdentity = params.checkServerIdentity,
       minDHSize = params.minDHSize,
     )
-
-  // Not yet supported on JS -
-  def protocol[F[_]: MonadThrow](tlsSocket: TLSSocket[F]): F[Option[String]] =
-    Option.empty[String].pure[F]
 
 }

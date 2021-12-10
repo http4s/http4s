@@ -28,6 +28,8 @@ abstract class Server {
   private[this] val logger = getLogger
 
   def address: InetSocketAddress
+  def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] =
+    ip4s.SocketAddress.fromInetSocketAddress(address)
 
   def isSecure: Boolean
 
