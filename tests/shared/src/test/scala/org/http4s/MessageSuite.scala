@@ -284,7 +284,10 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should redact a `Set-Cookie` header") {
     val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
-    assertEquals(resp.toString, "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(Set-Cookie: <REDACTED>))")
+    assertEquals(
+      resp.toString,
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(Set-Cookie: <REDACTED>))",
+    )
   }
 
   test("not Found should return a plain text UTF-8 not found response") {
