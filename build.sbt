@@ -528,10 +528,13 @@ lazy val emberClient = libraryCrossProject("ember-client")
       log4catsSlf4j
     )
   )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
     ),
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -928,7 +931,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
 lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
   .dependsOn(emberServer.js)
   .settings(
-    scalacOptions -= "-Xfatal-warnings",
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
