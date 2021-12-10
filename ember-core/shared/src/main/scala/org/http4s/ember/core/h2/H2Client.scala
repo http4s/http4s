@@ -278,18 +278,16 @@ private[ember] class H2Client[F[_]: Async](
 
     for {
       host <- Resource.eval(
-        Sync[F].delay {
-          req.uri.host.flatMap {
+        req.uri.host
+          .flatMap {
             case regname: org.http4s.Uri.RegName => regname.toHostname
             case op: org.http4s.Uri.Ipv4Address => op.address.some
             case op: org.http4s.Uri.Ipv6Address => op.address.some
-          }.get
-        }
+          }
+          .liftTo[F](MissingHost())
       )
       port <- Resource.eval(
-        Sync[F].delay {
-          com.comcast.ip4s.Port.fromInt(req.uri.port.getOrElse(443)).get
-        }
+        com.comcast.ip4s.Port.fromInt(req.uri.port.getOrElse(443)).liftTo[F](MissingPort())
       )
       useTLS = req.uri.scheme.map(_.value) match {
         case Some("http") => false
@@ -357,18 +355,16 @@ private[ember] object H2Client {
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       for {
         host <- Resource.eval(
-          Sync[F].delay {
-            req.uri.host.flatMap {
+          req.uri.host
+            .flatMap {
               case regname: org.http4s.Uri.RegName => regname.toHostname
               case op: org.http4s.Uri.Ipv4Address => op.address.some
               case op: org.http4s.Uri.Ipv6Address => op.address.some
-            }.get
-          }
+            }
+            .liftTo[F](MissingHost())
         )
         port <- Resource.eval(
-          Sync[F].delay {
-            com.comcast.ip4s.Port.fromInt(req.uri.port.getOrElse(443)).get
-          }
+          com.comcast.ip4s.Port.fromInt(req.uri.port.getOrElse(443)).liftTo[F](MissingPort())
         )
         socketType <- Resource.eval(
           socketMap.get.map(_.get(host -> port))
@@ -381,7 +377,7 @@ private[ember] object H2Client {
               h2.runHttp2Only(req) <*
                 Resource.eval(socketMap.update(s => s + ((host, port) -> Http2)))
             ).handleErrorWith[org.http4s.Response[F], Throwable] {
-              case InvalidSocketType() =>
+              case InvalidSocketType() | MissingHost() | MissingPort() =>
                 Resource.eval(socketMap.update(s => s + ((host, port) -> Http1))) >>
                   http1Client(req)
               case e => Resource.raiseError[F, Response[F], Throwable](e)
@@ -396,4 +392,8 @@ private[ember] object H2Client {
 
   private[h2] case class InvalidSocketType()
       extends RuntimeException("createConnection only supports http2, and this is not available")
+
+  private case class MissingHost() extends RuntimeException("Hostname missing")
+
+  private case class MissingPort() extends RuntimeException("Port missing")
 }

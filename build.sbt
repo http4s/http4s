@@ -921,14 +921,21 @@ lazy val examplesEmber = exampleProject("examples-ember")
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2020),
     fork := true,
+    scalacOptions -= "-Xfatal-warnings",
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
 lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
   .dependsOn(emberServer.js)
+  .settings(
+    scalacOptions -= "-Xfatal-warnings",
+  )
 
 lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
   .dependsOn(emberClient.js)
+  .settings(
+    scalacOptions -= "-Xfatal-warnings"
+  )
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
