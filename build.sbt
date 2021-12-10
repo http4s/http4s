@@ -5,8 +5,6 @@ import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
 Global / excludeLintKeys += laikaDescribe
 
-Global / excludeLintKeys += laikaDescribe
-
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
 ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
