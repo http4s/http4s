@@ -236,7 +236,10 @@ private[ember] object H2Server {
                 }
                 .flatMap(s =>
                   s.request.complete(Either.right(req)) >>
-                    s.readBuffer.offer(Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))) >>
+                    s.readBuffer.offer(
+                      Either
+                        .right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
+                    ) >>
                     s.writeBlock.complete(Either.right(()))
                 ) >> created.offer(1)
             )
