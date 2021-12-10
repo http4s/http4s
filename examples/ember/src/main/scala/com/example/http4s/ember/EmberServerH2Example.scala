@@ -28,7 +28,6 @@ import org.http4s._
 import org.http4s.dsl._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
-import org.http4s.implicits._
 
 object EmberServerH2Example extends IOApp {
 
