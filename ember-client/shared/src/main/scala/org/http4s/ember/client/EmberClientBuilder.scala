@@ -57,7 +57,9 @@ final class EmberClientBuilder[F[_]: Async] private (
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
     private val enableHttp2: Boolean,
-    private val pushPromiseSupport: Option[(Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]]
+    private val pushPromiseSupport: Option[
+      (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+    ],
 ) { self =>
 
   private def copy(
@@ -77,7 +79,9 @@ final class EmberClientBuilder[F[_]: Async] private (
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
       enableHttp2: Boolean = self.enableHttp2,
-      pushPromiseSupport: Option[(Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]] = self.pushPromiseSupport
+      pushPromiseSupport: Option[
+        (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+      ] = self.pushPromiseSupport,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -139,9 +143,11 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withHttp2 = copy(enableHttp2 = true)
   def withoutHttp2 = copy(enableHttp2 = false)
 
-  def withPushPromiseSupport(f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]) = 
+  def withPushPromiseSupport(
+      f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+  ) =
     copy(pushPromiseSupport = f.some)
-  def withoutPushPromiseSupport = 
+  def withoutPushPromiseSupport =
     copy(pushPromiseSupport = None)
 
   def build: Resource[F, Client[F]] =
@@ -179,7 +185,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(
         context =>
           H2Client.impl[F](
-            pushPromiseSupport.getOrElse({ case (_, _) => Applicative[F].pure(Outcome.canceled) }),
+            pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
             context,
             if (pushPromiseSupport.isDefined) default
             else {
@@ -292,7 +298,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
       enableHttp2 = false,
-      pushPromiseSupport = None
+      pushPromiseSupport = None,
     )
 
   private object Defaults {

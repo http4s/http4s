@@ -407,6 +407,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsTesting.value % Test
     ),
+    scalacOptions -= "-Ywarn-numeric-widen",
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
@@ -913,7 +914,7 @@ lazy val exampleEmberClientH2 = exampleProject("examples-ember-client-h2")
   .settings(
     useYarn := true,
     scalaJSUseMainModuleInitializer := true,
-    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
   )
   .dependsOn(emberClient.js)
 

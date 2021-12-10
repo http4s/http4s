@@ -509,15 +509,6 @@ private[h2] class H2Connection[F[_]](
             println(s"Received RstStream for Idle or Closed Stream $i - Protocol Error")
             goAway(H2Error.ProtocolError)
         }
-
-      case (H2Frame.PushPromise(_, _, _, _, _), s) =>
-        connectionType match {
-          case H2Connection.ConnectionType.Server =>
-            println("Received PushPromise as Server - Protocol Error")
-            goAway(H2Error.ProtocolError)
-          case H2Connection.ConnectionType.Client =>
-            Applicative[F].unit // TODO Implement Push Promise Flow
-        }
       case (H2Frame.Priority(i, _, i2, _), s) =>
         if (i == i2) goAway(H2Error.ProtocolError) // Can't depend on yourself
         else Applicative[F].unit // We Do Nothing with these presently

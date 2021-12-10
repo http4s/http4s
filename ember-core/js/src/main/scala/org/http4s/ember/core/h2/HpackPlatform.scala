@@ -16,10 +16,10 @@
 
 package org.http4s.ember.core.h2
 
+import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import scodec.bits._
-import cats.data._
 
 import scala.scalajs.js.JSConverters._
 
