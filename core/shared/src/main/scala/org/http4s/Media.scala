@@ -41,7 +41,7 @@ trait Media[+F[_]] {
 
 object Media {
 
-  implicit class InvariantOps[F[_]](private val self: Media[F]) {
+  implicit class InvariantOps[F[_]](private val self: Media[F]) extends AnyVal {
     import self._
 
     final def bodyText(implicit
