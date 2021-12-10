@@ -408,7 +408,11 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsTesting.value % Test
     ),
-    scalacOptions -= "-Ywarn-numeric-widen",
+    scalacOptions --= Seq(
+      "-Ywarn-numeric-widen",
+      "-Werror",
+      "-Xfatal-warnings",
+    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),

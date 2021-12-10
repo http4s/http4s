@@ -113,7 +113,7 @@ private[ember] object H2Server {
         val upgrade = connectionCheck && upgradeCheck
         (settings, upgrade) match {
           case (Some(settings), true) =>
-            cats.data.OptionT.liftF(req.body.compile.to(ByteVector)).flatMap { bv =>
+            cats.data.OptionT.liftF(req.body.compile.to(ByteVector): F[ByteVector]).flatMap { bv =>
               val newReq: Request[fs2.Pure] = Request[fs2.Pure](
                 req.method,
                 req.uri,
@@ -236,7 +236,7 @@ private[ember] object H2Server {
                 }
                 .flatMap(s =>
                   s.request.complete(Either.right(req)) >>
-                    s.readBuffer.offer(Either.right(req.body.compile.to(ByteVector))) >>
+                    s.readBuffer.offer(Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))) >>
                     s.writeBlock.complete(Either.right(()))
                 ) >> created.offer(1)
             )
