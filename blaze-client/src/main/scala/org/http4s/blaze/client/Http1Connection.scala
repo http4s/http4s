@@ -67,7 +67,7 @@ private final class Http1Connection[F[_]](
   private val parser =
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
 
-  private val stageState = new AtomicReference[State](Idle(None))
+  private val stageState = new AtomicReference[State](ReadIdle(None))
 
   override def isClosed: Boolean =
     stageState.get match {
@@ -77,7 +77,7 @@ private final class Http1Connection[F[_]](
 
   override def isRecyclable: Boolean =
     stageState.get match {
-      case Idle(_) => true
+      case ReadIdle(_) => true
       case _ => false
     }
 
@@ -102,7 +102,9 @@ private final class Http1Connection[F[_]](
       // If we have a real error, lets put it here.
       case st @ Error(EOF) if t != EOF =>
         if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
-        else closePipeline(Some(t))
+        else {
+          closePipeline(Some(t))
+        }
 
       case Error(_) => // NOOP: already shutdown
 
@@ -122,34 +124,15 @@ private final class Http1Connection[F[_]](
   def resetRead(): Unit = {
     val state = stageState.get()
     val nextState = state match {
-      case ReadWrite => Some(Write)
-      case Read =>
+      case ReadActive =>
         // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
         idleTimeoutStage.foreach(_.cancelTimeout())
-        Some(Idle(Some(startIdleRead())))
+        Some(ReadIdle(Some(startIdleRead())))
       case _ => None
     }
 
     nextState match {
       case Some(n) => if (stageState.compareAndSet(state, n)) parser.reset() else resetRead()
-      case None => ()
-    }
-  }
-
-  @tailrec
-  def resetWrite(): Unit = {
-    val state = stageState.get()
-    val nextState = state match {
-      case ReadWrite => Some(Read)
-      case Write =>
-        // idleTimeout is activated when entering ReadWrite state, remains active throughout Read and Write and is deactivated when entering the Idle state
-        idleTimeoutStage.foreach(_.cancelTimeout())
-        Some(Idle(Some(startIdleRead())))
-      case _ => None
-    }
-
-    nextState match {
-      case Some(n) => if (stageState.compareAndSet(state, n)) () else resetWrite()
       case None => ()
     }
   }
@@ -167,15 +150,15 @@ private final class Http1Connection[F[_]](
   def runRequest(req: Request[F], cancellation: F[TimeoutException]): F[Resource[F, Response[F]]] =
     F.defer[Resource[F, Response[F]]] {
       stageState.get match {
-        case i @ Idle(idleRead) =>
-          if (stageState.compareAndSet(i, ReadWrite)) {
+        case i @ ReadIdle(idleRead) =>
+          if (stageState.compareAndSet(i, ReadActive)) {
             logger.debug(s"Connection was idle. Running.")
             executeRequest(req, cancellation, idleRead)
           } else {
             logger.debug(s"Connection changed state since checking it was idle. Looping.")
             runRequest(req, cancellation)
           }
-        case ReadWrite | Read | Write =>
+        case ReadActive =>
           logger.error(s"Tried to run a request already in running state.")
           F.raiseError(InProgressException)
         case Error(e) =>
@@ -217,7 +200,6 @@ private final class Http1Connection[F[_]](
 
           val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
             .write(rr, req.body)
-            .guarantee(F.delay(resetWrite()))
             .onError {
               case EOF => F.unit
               case t => F.delay(logger.error(t)("Error rendering request"))
@@ -238,9 +220,12 @@ private final class Http1Connection[F[_]](
                 cancellation.race(timeoutFiber.join).map(e => Left(e.merge)),
                 idleRead,
               ).map(response =>
-                // We need to stop writing before we attempt to recycle the connection.
+                // We need to finish writing before we attempt to recycle the connection. We consider three scenarios.
+                // - The write already finished before we got the response. This is the most common scenario. `join` completes immediately.
+                // - The whole request was already transmitted and we received the response from the server, but we did not yet notice that the write is already complete. This is sort of a race, happens frequently enough when load testing. We need to wait just a moment for the `join` to finish.
+                // - The server decided to reject our request before we finished sending it. The server responded (typically with an error) and closed the connection. We shouldn't wait for the `writeFiber`. This connection needs to be disposed.
                 Resource
-                  .make(F.pure(writeFiber))(_.cancel)
+                  .make(F.pure(writeFiber))(_.join.attempt.void)
                   .as(response)
               )
             ) {
@@ -457,10 +442,8 @@ private object Http1Connection {
 
   // ADT representing the state that the ClientStage can be in
   private sealed trait State
-  private final case class Idle(idleRead: Option[Future[ByteBuffer]]) extends State
-  private case object ReadWrite extends State
-  private case object Read extends State
-  private case object Write extends State
+  private final case class ReadIdle(idleRead: Option[Future[ByteBuffer]]) extends State
+  private case object ReadActive extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor[F[_]](req: Request[F]): Int = req.httpVersion.minor

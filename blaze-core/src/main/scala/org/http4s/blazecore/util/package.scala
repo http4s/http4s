@@ -50,14 +50,4 @@ package object util {
           }
       }
     }
-
-  private[http4s] def fromFutureNoShiftUncancelable[F[_], A](
-      f: F[Future[A]]
-  )(implicit F: Async[F]): F[A] =
-    bracketBasedUncancelable(fromFutureNoShift(f))
-
-  private def bracketBasedUncancelable[F[_], A](fa: F[A])(implicit F: Async[F]): F[A] =
-    // unlike uncancelable, bracket seems to make cancel wait for itself in CE2
-    F.bracket(fa)(a => F.pure(a))(_ => F.unit)
-
 }

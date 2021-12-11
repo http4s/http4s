@@ -30,7 +30,7 @@ import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
-    fromFutureNoShiftUncancelable(F.delay(writeHeaders(headerWriter)))
+    fromFutureNoShift(F.delay(writeHeaders(headerWriter)))
       .guaranteeCase {
         case ExitCase.Completed =>
           F.unit
