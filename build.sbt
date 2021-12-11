@@ -447,8 +447,8 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
-          "org.http4s.blaze.client.BlazeConnection.runRequest"
-        ),
+        "org.http4s.blaze.client.BlazeConnection.runRequest"
+      ),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
       ProblemFilters
