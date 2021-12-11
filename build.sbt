@@ -443,18 +443,22 @@ lazy val blazeClient = libraryProject("blaze-client")
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
     mimaBinaryIssueFilters := Seq(
-      // inside private trait
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.runRequest"
-      ),
-      // inside private trait
+      // inside private trait/clas/object
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.runRequest"
-      ),
-      // inside private class
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.client.Http1Connection.runRequest"
-      ),
+          "org.http4s.blaze.client.BlazeConnection.runRequest"
+        ),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.resetWrite"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Read$"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$ReadWrite$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Write$"),
     ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
