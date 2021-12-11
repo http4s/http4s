@@ -33,7 +33,6 @@ import org.http4s.blazecore.SlowTestHead
 import org.http4s.client.Client
 import org.http4s.client.RequestKey
 import org.http4s.syntax.all._
-import org.http4s.syntax.all._
 
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -225,12 +224,13 @@ class ClientTimeoutSuite extends Http4sSuite {
       ec = munitExecutionContext,
     )
 
-    // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
+    // if the .timeout(1500.millis) is hit, it's a TimeoutException,
     // if the requestTimeout is hit then it's a TimeoutException
     // if establishing connection fails first then it's an IOException
 
-    // TODO change the commentS
-    // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(1000.millis) to complete.
+    // The expected behaviour is that the requestTimeout will happen first,
+    // but will not be considered as long as BlazeClient is busy trying to obtain the connection.
+    // Obtaining the connection will fail after 1000 millis and that error will be propagated.
     c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[IOException]
   }
 }
