@@ -442,7 +442,17 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(),
+    mimaBinaryIssueFilters := Seq(
+      // inside private trait
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
+      // inside private trait
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
+      // inside private class
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
+    ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
