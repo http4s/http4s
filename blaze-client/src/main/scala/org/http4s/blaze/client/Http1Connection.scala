@@ -38,13 +38,11 @@ import org.http4s.util.StringWriter
 import org.http4s.util.Writer
 import org.typelevel.vault._
 
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-import java.net.SocketException
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Failure
@@ -238,12 +236,14 @@ private final class Http1Connection[F[_]](
                 mustClose,
                 doesntHaveBody = req.method == Method.HEAD,
                 cancellation.race(timeoutFiber.join).map(e => Left(e.merge)),
-                idleRead
+                idleRead,
               ).map(response =>
                 // We need to stop writing before we attempt to recycle the connection.
                 Resource
                   .make(F.pure(writeFiber))(_.cancel)
-                  .as(response))) {
+                  .as(response)
+              )
+            ) {
               case (_, ExitCase.Completed) => F.unit
               case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
             }.race(timeoutFiber.join)

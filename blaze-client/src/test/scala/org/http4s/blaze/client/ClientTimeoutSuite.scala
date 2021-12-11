@@ -33,16 +33,11 @@ import org.http4s.blazecore.SlowTestHead
 import org.http4s.client.Client
 import org.http4s.client.RequestKey
 import org.http4s.syntax.all._
+import org.http4s.syntax.all._
 
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{IdleTimeoutStage, QueueTestHead, SeqTestHead, SlowTestHead}
-import org.http4s.client.{Client, RequestKey}
-import org.http4s.syntax.all._
-
 import java.util.concurrent.TimeUnit
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._

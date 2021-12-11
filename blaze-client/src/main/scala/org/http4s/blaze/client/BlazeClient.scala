@@ -22,13 +22,14 @@ import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
 import cats.implicits._
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.ResponseHeaderTimeoutStage
+import org.http4s.client.Client
+import org.http4s.client.DefaultClient
+import org.http4s.client.RequestKey
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.ResponseHeaderTimeoutStage
-import org.http4s.client.{Client, DefaultClient, RequestKey}
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -46,13 +47,14 @@ object BlazeClient {
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
       onShutdown: F[Unit],
-      ec: ExecutionContext)(implicit F: ConcurrentEffect[F]): Client[F] =
+      ec: ExecutionContext,
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
     makeClient(
       manager,
       responseHeaderTimeout = config.responseHeaderTimeout,
       requestTimeout = config.requestTimeout,
       scheduler = bits.ClientTickWheel,
-      ec = ec
+      ec = ec,
     )
 
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
@@ -60,7 +62,7 @@ object BlazeClient {
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
       scheduler: TickWheelExecutor,
-      ec: ExecutionContext
+      ec: ExecutionContext,
   )(implicit F: ConcurrentEffect[F]): Client[F] =
     new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec)
 }
@@ -70,7 +72,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
     scheduler: TickWheelExecutor,
-    ec: ExecutionContext)(implicit F: ConcurrentEffect[F])
+    ec: ExecutionContext,
+)(implicit F: ConcurrentEffect[F])
     extends DefaultClient[F] {
 
   override def run(req: Request[F]): Resource[F, Response[F]] = for {
@@ -106,7 +109,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
               conn.spliceBefore(stage)
               stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
               (timeout.get.rethrow, F.delay(stage.removeStage()))
-            })
+            }
+          )
         )
       case _ => Resource.pure[F, F[TimeoutException]](F.never)
     }
@@ -119,7 +123,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
             () =>
               cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms"))),
             ec,
-            d
+            d,
           )
           F.delay(c.cancel())
         }.background
@@ -129,7 +133,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
   private def runRequest(
       conn: A,
       req: Request[F],
-      timeout: F[TimeoutException]): F[Resource[F, Response[F]]] =
+      timeout: F[TimeoutException],
+  ): F[Resource[F, Response[F]]] =
     conn
       .runRequest(req, timeout)
       .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_)))
