@@ -38,6 +38,7 @@ import org.log4s.getLogger
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 
 trait TestServer[F[_]] {
@@ -93,7 +94,9 @@ object NettyTestServer {
   } yield new NettyTestServer(establishedConnections, localAddress)
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
-    Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()).liftToF)
+    Resource.make(
+      F.delay(new NioEventLoopGroup())
+    )(el => F.delay(el.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS)).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
       F: Async[F]
