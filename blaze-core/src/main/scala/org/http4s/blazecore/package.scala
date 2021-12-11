@@ -16,8 +16,10 @@
 
 package org.http4s
 
-import cats.effect.{Resource, Sync}
-import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
+import cats.effect.Resource
+import cats.effect.Sync
+import org.http4s.blaze.util.Cancelable
+import org.http4s.blaze.util.TickWheelExecutor
 
 package object blazecore {
   private[http4s] def tickWheelResource[F[_]](implicit F: Sync[F]): Resource[F, TickWheelExecutor] =

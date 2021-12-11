@@ -20,16 +20,15 @@ package staticcontent
 
 import cats.effect.IO
 import cats.syntax.all._
-import java.nio.file.Paths
 import fs2._
-import org.http4s.headers.{
-  `Accept-Encoding`,
-  `Content-Encoding`,
-  `Content-Type`,
-  `If-Modified-Since`
-}
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
+
+import java.nio.file.Paths
 
 class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val config =
@@ -99,7 +98,8 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial base path prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial base path prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
@@ -111,7 +111,8 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
@@ -138,7 +139,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
@@ -153,7 +154,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 

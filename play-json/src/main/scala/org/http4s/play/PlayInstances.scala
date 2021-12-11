@@ -18,17 +18,15 @@ package org.http4s.play
 
 import cats.effect.Sync
 import fs2.Chunk
+import org.http4s.DecodeResult
+import org.http4s.EntityDecoder
+import org.http4s.EntityEncoder
+import org.http4s.InvalidMessageBodyFailure
+import org.http4s.MediaType
+import org.http4s.Message
+import org.http4s.Uri
 import org.http4s.headers.`Content-Type`
-import org.http4s.{
-  DecodeResult,
-  EntityDecoder,
-  EntityEncoder,
-  InvalidMessageBodyFailure,
-  MediaType,
-  Message,
-  Uri,
-  jawn
-}
+import org.http4s.jawn
 import org.http4s.play.Parser.facade
 import play.api.libs.json._
 
@@ -40,7 +38,7 @@ trait PlayInstances {
         .fold(
           _ =>
             DecodeResult.failureT(InvalidMessageBodyFailure(s"Could not decode JSON: $json", None)),
-          DecodeResult.successT(_)
+          DecodeResult.successT(_),
         )
     }
 
@@ -67,7 +65,7 @@ trait PlayInstances {
         .fromString(str)
         .fold(
           _ => Reads(_ => JsError("Invalid uri")),
-          Reads.pure(_)
+          Reads.pure(_),
         )
     }
 

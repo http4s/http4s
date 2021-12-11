@@ -19,8 +19,10 @@ package blazecore
 
 import cats.effect.Async
 import org.http4s.blaze.util.Execution.directec
+
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.Failure
+import scala.util.Success
 
 package object util {
 

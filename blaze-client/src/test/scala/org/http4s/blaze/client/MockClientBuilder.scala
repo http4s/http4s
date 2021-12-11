@@ -19,14 +19,17 @@ package blaze
 package client
 
 import cats.effect.IO
-import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
+import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.client.ConnectionBuilder
+
+import java.nio.ByteBuffer
 
 private[client] object MockClientBuilder {
   def builder(
       head: => HeadStage[ByteBuffer],
-      tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = { _ =>
+      tail: => BlazeConnection[IO],
+  ): ConnectionBuilder[IO, BlazeConnection[IO]] = { _ =>
     IO {
       val t = tail
       LeafBuilder(t).base(head)
@@ -36,6 +39,7 @@ private[client] object MockClientBuilder {
 
   def manager(
       head: => HeadStage[ByteBuffer],
-      tail: => BlazeConnection[IO]): ConnectionManager[IO, BlazeConnection[IO]] =
+      tail: => BlazeConnection[IO],
+  ): ConnectionManager[IO, BlazeConnection[IO]] =
     ConnectionManager.basic(builder(head, tail))
 }

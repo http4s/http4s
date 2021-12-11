@@ -17,8 +17,11 @@
 package org.http4s
 package server
 
-import java.net.{Inet4Address, Inet6Address, InetSocketAddress}
 import org.log4s.getLogger
+
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetSocketAddress
 
 abstract class Server {
   private[this] val logger = getLogger
@@ -41,8 +44,9 @@ abstract class Server {
               logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
               Uri.RegName(weird.getHostAddress)
           },
-          port = Some(address.getPort)
-        )),
-      path = Uri.Path.Root
+          port = Some(address.getPort),
+        )
+      ),
+      path = Uri.Path.Root,
     )
 }

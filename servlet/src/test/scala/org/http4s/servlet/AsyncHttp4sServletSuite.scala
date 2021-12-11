@@ -17,22 +17,27 @@
 package org.http4s
 package servlet
 
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.Timer
 import cats.syntax.all._
-import cats.effect.{IO, Resource, Timer}
-import java.net.URL
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.{Server => EclipseServer}
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.server.{Server => EclipseServer}
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.server.DefaultServiceErrorHandler
-import scala.io.Source
+import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
+
+import java.net.URL
 import scala.concurrent.duration._
+import scala.io.Source
 
 class AsyncHttp4sServletSuite extends Http4sSuite {
-  lazy val service = HttpRoutes
+  private lazy val service = HttpRoutes
     .of[IO] {
       case GET -> Root / "simple" =>
         Ok("simple")
@@ -46,14 +51,15 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  val servletServer = ResourceFixture[Int](serverPortR)
+  private val servletServer = ResourceFixture[Int](serverPortR)
 
-  def get(serverPort: Int, path: String): IO[String] =
+  private def get(serverPort: Int, path: String): IO[String] =
     testBlocker.delay[IO, String](
-      Source
-        .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
-        .getLines()
-        .mkString)
+      AutoCloseableResource.resource(
+        Source
+          .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
+      )(_.getLines().mkString)
+    )
 
   servletServer.test("AsyncHttp4sServlet handle GET requests") { server =>
     get(server, "simple").assertEquals("simple")
@@ -62,7 +68,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
   servletServer.test("AsyncHttp4sServlet handle POST requests") { server =>
     val contents = (1 to 14).map { i =>
       val number =
-        scala.math.pow(2, i.toDouble).toInt - 1 //-1 for the end-of-line to make awk play nice
+        scala.math.pow(2, i.toDouble).toInt - 1 // -1 for the end-of-line to make awk play nice
       s"$i $number ${"*".*(number)}\n"
     }.toList
 
@@ -102,13 +108,13 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     get(server, "shifted").assertEquals("shifted")
   }
 
-  lazy val servlet = new AsyncHttp4sServlet[IO](
+  private lazy val servlet = new AsyncHttp4sServlet[IO](
     service = service,
     servletIo = NonBlockingServletIo[IO](4096),
-    serviceErrorHandler = DefaultServiceErrorHandler[IO]
+    serviceErrorHandler = DefaultServiceErrorHandler[IO],
   )
 
-  lazy val serverPortR = Resource
+  private lazy val serverPortR = Resource
     .make(IO(new EclipseServer))(server => IO(server.stop()))
     .evalMap { server =>
       IO {

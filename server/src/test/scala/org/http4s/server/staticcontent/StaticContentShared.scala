@@ -20,9 +20,12 @@ package staticcontent
 
 import cats.effect.IO
 import fs2._
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
 import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   def routes: HttpRoutes[IO]
@@ -30,10 +33,14 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   lazy val testResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream("/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
-    val bytes = scala.io.Source
-      .fromInputStream(s)
-      .mkString
-      .getBytes(StandardCharsets.UTF_8)
+    val bytes =
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
 
     Chunk.bytes(bytes)
   }
@@ -52,10 +59,14 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.bytes(
-      scala.io.Source
-        .fromInputStream(s)
-        .mkString
-        .getBytes(StandardCharsets.UTF_8))
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
+    )
   }
 
   lazy val testWebjarResourceGzipped: Chunk[Byte] = {
@@ -69,19 +80,25 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
 
   lazy val testWebjarSubResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream(
-      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
+      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt"
+    )
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.bytes(
-      scala.io.Source
-        .fromInputStream(s)
-        .mkString
-        .getBytes(StandardCharsets.UTF_8))
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
+    )
   }
 
   def runReq(
       req: Request[IO],
-      routes: HttpRoutes[IO] = routes): IO[(IO[Chunk[Byte]], Response[IO])] =
+      routes: HttpRoutes[IO] = routes,
+  ): IO[(IO[Chunk[Byte]], Response[IO])] =
     routes.orNotFound(req).map { resp =>
       (resp.body.compile.to(Array).map(Chunk.bytes), resp)
     }

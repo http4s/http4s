@@ -11,14 +11,15 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import java.nio.charset.StandardCharsets
-import java.util.Base64
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
-import org.http4s.util.{Renderable, Writer}
-import java.nio.charset.CharsetDecoder
 import java.nio.ByteBuffer
-import scala.util.Try
+import java.nio.charset.CharsetDecoder
+import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => JavaCharset}
+import java.util.Base64
+import scala.util.Try
 
 sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
@@ -54,7 +55,8 @@ object Credentials {
     def apply(
         authScheme: AuthScheme,
         param: (String, String),
-        params: (String, String)*): AuthParams =
+        params: (String, String)*
+    ): AuthParams =
       apply(authScheme, NonEmptyList(param, params.toList))
   }
 }
@@ -62,7 +64,8 @@ object Credentials {
 final case class BasicCredentials(
     username: String,
     password: String,
-    charset: JavaCharset = StandardCharsets.UTF_8) {
+    charset: JavaCharset = StandardCharsets.UTF_8,
+) {
   lazy val token = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(charset)

@@ -20,8 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc7230
 import org.http4s.Header
+import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 object `Transfer-Encoding` {
@@ -41,7 +41,7 @@ object `Transfer-Encoding` {
     Header.createRendered(
       name,
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =

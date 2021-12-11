@@ -31,6 +31,6 @@ object `Access-Control-Request-Method` {
     Header.create(
       ci"Access-Control-Request-Method",
       _.method.renderString,
-      parse
+      parse,
     )
 }

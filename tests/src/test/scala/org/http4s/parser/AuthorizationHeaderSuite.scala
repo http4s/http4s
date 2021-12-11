@@ -35,7 +35,7 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
     val invalidTokens = Seq("f!@", "=abc", "abc d")
     invalidTokens.foreach { token =>
       val h = Authorization(Credentials.Token(AuthScheme.Bearer, token))
-      assert(hparse(h.value).isLeft)
+      val Left(_) = hparse(h.value)
     }
   }
 
@@ -57,13 +57,18 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
     val scheme = "foo"
     assertEquals(
       hparse("foo abc = \"123 yeah\tyeah yeah\""),
-      Right(Authorization(
-        Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
+      Right(
+        Authorization(
+          Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))
+        )
+      ),
     )
     assertEquals(
-      //quoted-pair
+      // quoted-pair
       hparse("foo abc = \"\\123\""),
       Right(
-        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))))
+        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))
+      ),
+    )
   }
 }

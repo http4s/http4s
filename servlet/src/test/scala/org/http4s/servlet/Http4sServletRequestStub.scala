@@ -19,7 +19,7 @@ package org.http4s.servlet
 import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 
-case class HttpServletRequestStub(
+final case class HttpServletRequestStub(
     inputStream: ServletInputStream
 ) extends HttpServletRequest {
   def getInputStream(): ServletInputStream = inputStream
@@ -92,6 +92,7 @@ case class HttpServletRequestStub(
   def setCharacterEncoding(x$1: String): Unit = ???
   def startAsync(
       x$1: javax.servlet.ServletRequest,
-      x$2: javax.servlet.ServletResponse): javax.servlet.AsyncContext = ???
+      x$2: javax.servlet.ServletResponse,
+  ): javax.servlet.AsyncContext = ???
   def startAsync(): javax.servlet.AsyncContext = ???
 }

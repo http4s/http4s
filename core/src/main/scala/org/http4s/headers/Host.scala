@@ -19,7 +19,9 @@ package headers
 
 import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
 import scala.util.Try
 
 object Host extends HeaderCompanion[Host]("Host") {
@@ -56,6 +58,6 @@ object Host extends HeaderCompanion[Host]("Host") {
   *
   * This header was mandatory in version 1.1 of the Http protocol.
   *
-  * [[https://tools.ietf.org/html/rfc7230#section-5.4 RFC-7230 Section 5.4]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7230#section-5.4 RFC-7230 Section 5.4]]
   */
 final case class Host(host: String, port: Option[Int] = None)

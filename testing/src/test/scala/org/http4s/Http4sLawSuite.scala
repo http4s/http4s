@@ -24,7 +24,7 @@ import org.scalacheck.effect.PropF
 trait Http4sLawSuite extends ScalaCheckEffectSuite {
   def checkAllF[F[_]](
       name: String,
-      original: List[(String, PropF[F])]
+      original: List[(String, PropF[F])],
   )(implicit loc: munit.Location): Unit =
     original.foreach { case (l, p) =>
       test(s"$name - $l") {

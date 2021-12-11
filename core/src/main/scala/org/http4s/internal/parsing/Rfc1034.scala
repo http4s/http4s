@@ -16,14 +16,15 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser.{char, charIn}
 import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
 import org.typelevel.ci.CIString
 
 /** Common rules defined in RFC1034, as amended by RFC1123.
   *
-  * @see [[https://tools.ietf.org/html/rfc1034] RFC1034, Domain Names: Concepts and Facilities]]
-  * @see [[https://tools.ietf.org/html/rfc1123] RFC1123, Requirements for Internet Hosts -- Application and Support]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc1034] RFC1034, Domain Names: Concepts and Facilities]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc1123] RFC1123, Requirements for Internet Hosts -- Application and Support]]
   */
 private[http4s] object Rfc1034 {
   def subdomain: Parser[CIString] = {

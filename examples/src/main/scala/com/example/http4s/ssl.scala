@@ -18,14 +18,20 @@ package com.example.http4s
 
 import cats.effect.Sync
 import cats.syntax.all._
-import java.nio.file.Paths
-import java.security.{KeyStore, Security}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.HttpApp
-import org.http4s.Uri.{Authority, RegName, Scheme}
+import org.http4s.Uri.Authority
+import org.http4s.Uri.RegName
+import org.http4s.Uri.Scheme
 import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.{Host, Location}
+import org.http4s.headers.Host
+import org.http4s.headers.Location
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+
+import java.nio.file.Paths
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 
 object ssl {
   val keystorePassword: String = "password"
@@ -36,7 +42,8 @@ object ssl {
   val storeInfo: StoreInfo = StoreInfo(keystorePath, keystorePassword)
 
   def loadContextFromClasspath[F[_]](keystorePassword: String, keyManagerPass: String)(implicit
-      F: Sync[F]): F[SSLContext] =
+      F: Sync[F]
+  ): F[SSLContext] =
     F.delay {
       val ksStream = this.getClass.getResourceAsStream("/server.jks")
       val ks = KeyStore.getInstance("JKS")
@@ -45,7 +52,8 @@ object ssl {
 
       val kmf = KeyManagerFactory.getInstance(
         Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+          .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+      )
 
       kmf.init(ks, keyManagerPass.toCharArray)
 
@@ -68,7 +76,10 @@ object ssl {
               Authority(
                 userInfo = request.uri.authority.flatMap(_.userInfo),
                 host = RegName(host),
-                port = securePort.some)))
+                port = securePort.some,
+              )
+            ),
+          )
           MovedPermanently(Location(baseUri.withPath(request.uri.path)))
         case _ =>
           BadRequest()

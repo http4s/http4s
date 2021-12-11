@@ -23,6 +23,7 @@ import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
 class HSTSSuite extends Http4sSuite {
@@ -36,7 +37,7 @@ class HSTSSuite extends Http4sSuite {
     List(
       HSTS.unsafeFromDuration(innerRoutes, 365.days).orNotFound,
       HSTS.httpRoutes.unsafeFromDuration(innerRoutes, 365.days).orNotFound,
-      HSTS.httpApp.unsafeFromDuration(innerRoutes.orNotFound, 365.days)
+      HSTS.httpApp.unsafeFromDuration(innerRoutes.orNotFound, 365.days),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
         app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
@@ -49,7 +50,7 @@ class HSTSSuite extends Http4sSuite {
     List(
       HSTS(innerRoutes, hstsHeader).orNotFound,
       HSTS.httpRoutes(innerRoutes).orNotFound,
-      HSTS.httpApp(innerRoutes.orNotFound)
+      HSTS.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
         app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
@@ -60,7 +61,7 @@ class HSTSSuite extends Http4sSuite {
     List(
       HSTS(innerRoutes).orNotFound,
       HSTS.httpRoutes(innerRoutes).orNotFound,
-      HSTS.httpApp(innerRoutes.orNotFound)
+      HSTS.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
         app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert

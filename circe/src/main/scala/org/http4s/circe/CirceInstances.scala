@@ -17,17 +17,19 @@
 package org.http4s
 package circe
 
-import java.nio.ByteBuffer
-
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.either._
-import fs2.{Chunk, Pull, Stream}
+import fs2.Chunk
+import fs2.Pull
+import fs2.Stream
 import io.circe._
 import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
+
+import java.nio.ByteBuffer
 
 trait CirceInstances extends JawnInstances {
   protected val circeSupportParser =
@@ -68,7 +70,8 @@ trait CirceInstances extends JawnInstances {
   def jsonDecoderAdaptive[F[_]: Sync](
       cutoff: Long,
       r1: MediaRange,
-      rs: MediaRange*): EntityDecoder[F, Json] =
+      rs: MediaRange*
+  ): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(r1, rs: _*) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
@@ -85,13 +88,15 @@ trait CirceInstances extends JawnInstances {
 
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
       F: Sync[F],
-      decoder: Decoder[A]): EntityDecoder[F, A] =
+      decoder: Decoder[A],
+  ): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](r1, jsonDecodeError, rs: _*)
 
-  def jsonOfWithSensitiveMedia[F[_], A](redact: Json => String, r1: MediaRange, rs: MediaRange*)(
-      implicit
-      F: Sync[F],
-      decoder: Decoder[A]): EntityDecoder[F, A] =
+  def jsonOfWithSensitiveMedia[F[_], A](
+      redact: Json => String,
+      r1: MediaRange,
+      rs: MediaRange*
+  )(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](
       r1,
       (json, nelDecodeFailures) =>
@@ -102,13 +107,14 @@ trait CirceInstances extends JawnInstances {
   private def jsonOfWithMediaHelper[F[_], A](
       r1: MediaRange,
       decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
-      rs: MediaRange*)(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+      rs: MediaRange*
+  )(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
         .fold(
           failure => DecodeResult.failureT(decodeErrorHandler(json, NonEmptyList.one(failure))),
-          DecodeResult.successT(_)
+          DecodeResult.successT(_),
         )
     }
 
@@ -123,7 +129,7 @@ trait CirceInstances extends JawnInstances {
         .decodeAccumulating(json.hcursor)
         .fold(
           failures => DecodeResult.failureT(jsonDecodeError(json, failures)),
-          DecodeResult.successT(_)
+          DecodeResult.successT(_),
         )
     }
 
@@ -139,7 +145,8 @@ trait CirceInstances extends JawnInstances {
     jsonEncoderWithPrinterOf(defaultPrinter)
 
   def jsonEncoderWithPrinterOf[F[_], A](printer: Printer)(implicit
-      encoder: Encoder[A]): EntityEncoder[F, A] =
+      encoder: Encoder[A]
+  ): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
@@ -164,7 +171,8 @@ trait CirceInstances extends JawnInstances {
 
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of values, which will encode it as a single JSON array. */
   def streamJsonArrayEncoderWithPrinterOf[F[_], A](printer: Printer)(implicit
-      encoder: Encoder[A]): EntityEncoder[F, Stream[F, A]] =
+      encoder: Encoder[A]
+  ): EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))
 
   implicit val encodeUri: Encoder[Uri] =
@@ -189,13 +197,14 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
       JawnInstances.defaultJawnParseExceptionMessage,
     jawnEmptyBodyMessage: DecodeFailure = JawnInstances.defaultJawnEmptyBodyMessage,
     circeSupportParser: CirceSupportParser =
-      new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
+      new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false),
 ) { self =>
   def withPrinter(pp: Printer): CirceInstancesBuilder =
     this.copy(defaultPrinter = pp)
 
   def withJsonDecodeError(
-      f: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure): CirceInstancesBuilder =
+      f: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure
+  ): CirceInstancesBuilder =
     this.copy(jsonDecodeError = f)
 
   def withJawnParseExceptionMessage(f: ParseException => DecodeFailure): CirceInstancesBuilder =
@@ -216,7 +225,7 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
       circeParseExceptionMessage: ParsingFailure => DecodeFailure = self.circeParseExceptionMessage,
       jawnParseExceptionMessage: ParseException => DecodeFailure = self.jawnParseExceptionMessage,
       jawnEmptyBodyMessage: DecodeFailure = self.jawnEmptyBodyMessage,
-      circeSupportParser: CirceSupportParser = self.circeSupportParser
+      circeSupportParser: CirceSupportParser = self.circeSupportParser,
   ): CirceInstancesBuilder =
     new CirceInstancesBuilder(
       defaultPrinter,
@@ -224,7 +233,8 @@ sealed abstract case class CirceInstancesBuilder private[circe] (
       circeParseExceptionMessage,
       jawnParseExceptionMessage,
       jawnEmptyBodyMessage,
-      circeSupportParser) {}
+      circeSupportParser,
+    ) {}
 
   def build: CirceInstances =
     new CirceInstances {
@@ -260,14 +270,15 @@ object CirceInstances {
   private def jsonDecodeErrorHelper(
       json: Json,
       jsonToString: Json => String,
-      failures: NonEmptyList[DecodingFailure]
+      failures: NonEmptyList[DecodingFailure],
   ): DecodeFailure = {
 
     val str: String = jsonToString(json)
 
     InvalidMessageBodyFailure(
       s"Could not decode JSON: $str",
-      if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)))
+      if (failures.tail.isEmpty) Some(failures.head) else Some(DecodingFailures(failures)),
+    )
   }
 
   // Constant byte chunks for the stream as JSON array encoder.

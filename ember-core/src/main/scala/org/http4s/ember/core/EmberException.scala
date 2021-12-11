@@ -17,6 +17,7 @@
 package org.http4s.ember.core
 
 import cats.syntax.all._
+
 import java.time.Instant
 import scala.concurrent.duration.Duration
 import scala.util.control.NoStackTrace

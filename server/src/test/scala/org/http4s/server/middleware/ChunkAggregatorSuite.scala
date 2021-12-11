@@ -16,15 +16,16 @@
 
 package org.http4s.server.middleware
 
-import cats.data.{NonEmptyList, OptionT}
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.testing.fs2Arbitraries._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.testing.fs2Arbitraries._
 import org.scalacheck._
 import org.scalacheck.effect.PropF
 
@@ -35,9 +36,12 @@ class ChunkAggregatorSuite extends Http4sSuite {
         TransferCoding.compress,
         TransferCoding.deflate,
         TransferCoding.gzip,
-        TransferCoding.identity))
+        TransferCoding.identity,
+      )
+    )
   implicit val transferCodingArbitrary: Arbitrary[List[TransferCoding]] = Arbitrary(
-    transferCodingGen.map(_.toList))
+    transferCodingGen.map(_.toList)
+  )
 
   def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
@@ -54,8 +58,9 @@ class ChunkAggregatorSuite extends Http4sSuite {
       responseCheck(response).map(_ && response.status === Ok)
     }
 
-  def checkRoutesResponse(routes: HttpRoutes[IO])(
-      responseCheck: Response[IO] => IO[Boolean]): IO[Boolean] =
+  def checkRoutesResponse(
+      routes: HttpRoutes[IO]
+  )(responseCheck: Response[IO] => IO[Boolean]): IO[Boolean] =
     ChunkAggregator.httpRoutes(routes).run(Request()).value.flatMap {
       case Some(response) => responseCheck(response).map(_ && response.status === Ok)
       case _ => false.pure[IO]
@@ -94,7 +99,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
 
       (
         checkRoutesResponse(httpRoutes(body, transferCodings))(check),
-        checkAppResponse(httpApp(body, transferCodings))(check)
+        checkAppResponse(httpApp(body, transferCodings))(check),
       ).mapN(_ && _).assert
     }
   }

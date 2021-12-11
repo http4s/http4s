@@ -17,10 +17,11 @@
 package org.http4s.blaze
 package client
 
-import java.nio.channels.AsynchronousChannelGroup
-import javax.net.ssl.SSLContext
 import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
+
+import java.nio.channels.AsynchronousChannelGroup
+import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -76,7 +77,8 @@ final case class BlazeClientConfig( // HTTP properties
     // pipeline management
     bufferSize: Int,
     executionContext: ExecutionContext,
-    group: Option[AsynchronousChannelGroup]) {
+    group: Option[AsynchronousChannelGroup],
+) {
   @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
   def endpointAuthentication: Boolean = checkEndpointIdentification
 }
@@ -103,7 +105,7 @@ object BlazeClientConfig {
       lenientParser = false,
       bufferSize = bits.DefaultBufferSize,
       executionContext = ExecutionContext.global,
-      group = None
+      group = None,
     )
 
   /** Creates an SSLContext that trusts all certificates and disables
@@ -114,5 +116,6 @@ object BlazeClientConfig {
   val insecure: BlazeClientConfig =
     defaultConfig.copy(
       sslContext = Some(bits.TrustingSslContext),
-      checkEndpointIdentification = false)
+      checkEndpointIdentification = false,
+    )
 }

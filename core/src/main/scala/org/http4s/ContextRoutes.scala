@@ -16,8 +16,10 @@
 
 package org.http4s
 
-import cats.data.{Kleisli, OptionT}
-import cats.{Applicative, Defer}
+import cats.Applicative
+import cats.Defer
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 
 object ContextRoutes {
@@ -32,7 +34,8 @@ object ContextRoutes {
     * @return an [[ContextRoutes]] that wraps `run`
     */
   def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
-      F: Defer[F]): ContextRoutes[T, F] =
+      F: Defer[F]
+  ): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(run(req).value)))
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
@@ -44,9 +47,9 @@ object ContextRoutes {
     * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
-  def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(implicit
-      F: Defer[F],
-      FA: Applicative[F]): ContextRoutes[T, F] =
+  def of[T, F[_]](
+      pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]
+  )(implicit F: Defer[F], FA: Applicative[F]): ContextRoutes[T, F] =
     Kleisli(req => OptionT(F.defer(pf.lift(req).sequence)))
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
@@ -59,7 +62,8 @@ object ContextRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def strict[T, F[_]: Applicative](
-      pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]): ContextRoutes[T, F] =
+      pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]
+  ): ContextRoutes[T, F] =
     Kleisli(req => OptionT(pf.lift(req).sequence))
 
   /** The empty service (all requests fallthrough).

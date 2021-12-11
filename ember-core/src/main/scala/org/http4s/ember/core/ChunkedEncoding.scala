@@ -12,13 +12,15 @@ package org.http4s
 package ember.core
 
 import cats._
+import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import cats.effect.concurrent.{Deferred, Ref}
 import fs2._
 import scodec.bits.ByteVector
-import Shared._
 
 import scala.util.control.NonFatal
+
+import Shared._
 
 private[ember] object ChunkedEncoding {
 
@@ -32,7 +34,8 @@ private[ember] object ChunkedEncoding {
       maxHeaderSize: Int,
       maxChunkHeaderSize: Int,
       trailers: Deferred[F, Headers],
-      rest: Ref[F, Option[Array[Byte]]])(implicit F: MonadThrow[F]): Stream[F, Byte] = {
+      rest: Ref[F, Option[Array[Byte]]],
+  )(implicit F: MonadThrow[F]): Stream[F, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
     def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
@@ -49,11 +52,14 @@ private[ember] object ChunkedEncoding {
               if (endOfHeader == 0)
                 go(
                   expect,
-                  nh.drop(`\r\n`.size).toArray
-                ) //strip any leading crlf on header, as this starts with /r/n
+                  nh.drop(`\r\n`.size).toArray,
+                ) // strip any leading crlf on header, as this starts with /r/n
               else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
-                Pull.raiseError[F](EmberException.ChunkedEncodingError(
-                  s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"))
+                Pull.raiseError[F](
+                  EmberException.ChunkedEncodingError(
+                    s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"
+                  )
+                )
               else if (endOfHeader < 0) go(Left(nh), Array.emptyByteArray)
               else {
                 val (hdr, rem) = nh.splitAt(endOfHeader + `\r\n`.size)
@@ -61,7 +67,9 @@ private[ember] object ChunkedEncoding {
                   case None =>
                     Pull.raiseError[F](
                       EmberException.ChunkedEncodingError(
-                        s"Failed to parse chunked header : ${hdr.decodeUtf8}"))
+                        s"Failed to parse chunked header : ${hdr.decodeUtf8}"
+                      )
+                    )
                   case Some(0) =>
                     // Done With Message, Now Parse Trailers
                     Pull.eval(
@@ -78,11 +86,13 @@ private[ember] object ChunkedEncoding {
               if (remains == bv.size)
                 Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
                   Left(ByteVector.empty),
-                  Array.emptyByteArray)
+                  Array.emptyByteArray,
+                )
               else if (remains > bv.size)
                 Pull.output(Chunk.ByteVectorChunk(bv)) >> go(
                   Right(remains - bv.size),
-                  Array.emptyByteArray)
+                  Array.emptyByteArray,
+                )
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
                 Pull.output(Chunk.ByteVectorChunk(out)) >> go(Left(ByteVector.empty), next.toArray)
@@ -111,7 +121,8 @@ private[ember] object ChunkedEncoding {
     } else {
       Parser.MessageP
         .recurseFind(buffer, read, maxHeaderSize)(buffer =>
-          Parser.HeaderP.parseHeaders(buffer, 0, maxHeaderSize))(_.idx)
+          Parser.HeaderP.parseHeaders(buffer, 0, maxHeaderSize)
+        )(_.idx)
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 
@@ -125,7 +136,8 @@ private[ember] object ChunkedEncoding {
       if (bv.isEmpty) Chunk.empty
       else
         Chunk.ByteVectorChunk(
-          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ `\r\n` ++ bv ++ `\r\n`)
+          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ `\r\n` ++ bv ++ `\r\n`
+        )
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)
     } ++ Stream.chunk(lastChunk)

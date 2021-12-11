@@ -22,6 +22,7 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.syntax.all._
 import org.typelevel.ci._
+
 import scala.concurrent.duration._
 
 object ResponseTiming {
@@ -39,9 +40,8 @@ object ResponseTiming {
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
-      headerName: CIString = ci"X-Response-Time")(implicit
-      F: Sync[F],
-      clock: Clock[F]): HttpApp[F] =
+      headerName: CIString = ci"X-Response-Time",
+  )(implicit F: Sync[F], clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
       for {
         before <- clock.monotonic(timeUnit)

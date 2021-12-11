@@ -23,16 +23,19 @@ import cats.effect.concurrent.Deferred
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Queue
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import org.http4s.BuildInfo
 import org.http4s.blaze.client.bits.DefaultUserAgent
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blazecore.{QueueTestHead, SeqTestHead, TestHead}
+import org.http4s.blazecore.QueueTestHead
+import org.http4s.blazecore.SeqTestHead
+import org.http4s.blazecore.TestHead
 import org.http4s.client.RequestKey
 import org.http4s.headers.`User-Agent`
 import org.http4s.syntax.all._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -68,7 +71,7 @@ class Http1ClientStageSuite extends Http4sSuite {
       chunkBufferMaxSize = 1024,
       parserMode = ParserMode.Strict,
       userAgent = userAgent,
-      idleTimeoutStage = None
+      idleTimeoutStage = None,
     )
 
   private def mkBuffer(s: String): ByteBuffer =
@@ -95,7 +98,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      stage: Http1Connection[IO]): IO[(String, String)] =
+      stage: Http1Connection[IO],
+  ): IO[(String, String)] =
     for {
       q <- Queue.unbounded[IO, Option[ByteBuffer]]
       h = new QueueTestHead(q)
@@ -124,7 +128,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   private def getSubmission(
       req: Request[IO],
       resp: String,
-      userAgent: Option[`User-Agent`] = None): IO[(String, String)] = {
+      userAgent: Option[`User-Agent`] = None,
+  ): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key, userAgent)
     getSubmission(req, resp, tail)
@@ -133,8 +138,8 @@ class Http1ClientStageSuite extends Http4sSuite {
   test("Run a basic request".flaky) {
     getSubmission(FooRequest, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET / HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET / HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 
@@ -145,8 +150,8 @@ class Http1ClientStageSuite extends Http4sSuite {
 
     getSubmission(req, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
-      assert(statusLine == "GET " + uri + " HTTP/1.1")
-      assert(response == "done")
+      assertEquals(statusLine, "GET " + uri + " HTTP/1.1")
+      assertEquals(response, "done")
     }
   }
 
@@ -307,7 +312,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest, IO.never) //the first request succeeds
+      _ <- tail.runRequest(FooRequest, IO.never) // the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed

@@ -18,9 +18,8 @@ package org.http4s.server.middleware
 
 import cats._
 import cats.data.Kleisli
-import cats.syntax.all._
 import cats.effect._
-
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.headers.{Date => HDate}
 
@@ -29,7 +28,8 @@ import org.http4s.headers.{Date => HDate}
   */
 object Date {
   def apply[G[_]: Monad: Clock, F[_], A](
-      k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
+      k: Kleisli[G, A, Response[F]]
+  ): Kleisli[G, A, Response[F]] =
     Kleisli { a =>
       for {
         resp <- k(a)

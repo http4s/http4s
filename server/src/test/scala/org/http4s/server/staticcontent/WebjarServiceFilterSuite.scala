@@ -17,15 +17,16 @@
 package org.http4s.server.staticcontent
 
 import cats.effect.IO
-import org.http4s._
 import org.http4s.Method.GET
+import org.http4s._
 import org.http4s.syntax.all._
 
 class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
     webjarServiceBuilder[IO](testBlocker)
       .withWebjarAssetFilter(webjar =>
-        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt")
+        webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt"
+      )
       .withBlocker(testBlocker)
       .toRoutes
 

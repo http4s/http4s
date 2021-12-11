@@ -32,7 +32,7 @@ object Date {
     Header.createRendered(
       ci"Date",
       _.date,
-      parse
+      parse,
     )
 }
 

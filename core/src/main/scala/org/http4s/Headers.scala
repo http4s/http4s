@@ -16,11 +16,17 @@
 
 package org.http4s
 
-import cats.{Monoid, Order, Show}
-import cats.data.{Ior, NonEmptyList}
+import cats.Monoid
+import cats.Order
+import cats.Show
+import cats.data.Ior
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.typelevel.ci._
+
 import scala.collection.mutable
+
+import headers._
 
 /** A collection of HTTP Headers */
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
@@ -28,32 +34,28 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def transform(f: List[Header.Raw] => List[Header.Raw]): Headers =
     Headers(f(headers))
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+  /** Attempt to get a (potentially repeating) header from this collection of headers.
     *
-    * @param key [[HeaderKey.Extractable]] that can identify the required header
-    * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+    * @return a scala.Option possibly containing the resulting (potentially repeating) header.
     */
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers).flatMap(_.toOption)
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+  /** Attempt to get a (potentially repeating) header and/or any parse errors from this collection of headers.
     *
-    * @param key [[HeaderKey.Extractable]] that can identify the required header
-    * @return a scala.Option possibly containing the resulting header of type key.HeaderT and/or any parse errors.
-    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+    * @return a scala.Option possibly containing the resulting (potentially repeating) header
+    *         and/or any parse errors.
     */
   def getWithWarnings[A](implicit
-      ev: Header.Select[A]): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
+      ev: Header.Select[A]
+  ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
     ev.from(headers)
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] from this collection of headers
+  /** Attempt to get headers by key from this collection of headers.
     *
-    * @param key name of the header to find
-    * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
+    * @param key name of the headers to find.
+    * @return a scala.Option possibly containing the resulting collection
+    *         [[cats.data.NonEmptyList]] of [[org.http4s.Header.Raw]].
     */
   def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
@@ -80,13 +82,14 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
     *
-    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    *  https://datatracker.ietf.org/doc/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
 
   def redactSensitive(
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+  ): Headers =
     transform {
       _.map {
         case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
@@ -99,8 +102,9 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   override def toString: String =
     this.show
 }
+
 object Headers {
-  val empty = Headers(List.empty[Header.Raw])
+  val empty: Headers = Headers(List.empty[Header.Raw])
 
   /** Creates a new Headers collection.
     * The [[Header.ToRaw]] machinery allows the creation of Headers with
@@ -129,15 +133,15 @@ object Headers {
   }
 
   private val PayloadHeaderKeys = Set(
-    ci"Content-Length",
-    ci"Content-Range",
-    ci"Trailer",
-    ci"Transfer-Encoding"
+    `Content-Length`.name,
+    `Content-Range`.name,
+    Trailer.name,
+    `Transfer-Encoding`.name,
   )
 
-  val SensitiveHeaders = Set(
-    ci"Authorization",
-    ci"Cookie",
-    ci"Set-Cookie"
+  val SensitiveHeaders: Set[CIString] = Set(
+    Authorization.name,
+    Cookie.name,
+    `Set-Cookie`.name,
   )
 }
