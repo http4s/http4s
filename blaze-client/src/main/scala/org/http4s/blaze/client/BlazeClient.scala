@@ -80,7 +80,8 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     _ <- Resource.pure[F, Unit](())
     key = RequestKey.fromRequest(req)
     requestTimeoutF <- scheduleRequestTimeout(key)
-    (conn, responseHeaderTimeoutF) <- prepareConnection(key)
+    preparedConnection <- prepareConnection(key)
+    (conn, responseHeaderTimeoutF) = preparedConnection
     timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
     responseResource <- Resource.eval(runRequest(conn, req, timeout))
     response <- responseResource
