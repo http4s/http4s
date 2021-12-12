@@ -19,6 +19,7 @@ package blaze
 package client
 
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
@@ -68,6 +69,7 @@ private final class Http1Connection[F[_]](
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
 
   private val stageState = new AtomicReference[State](ReadIdle(None))
+  private val closed = Deferred.unsafe[F, Unit]
 
   override def isClosed: Boolean =
     stageState.get match {
@@ -106,7 +108,7 @@ private final class Http1Connection[F[_]](
           closePipeline(Some(t))
         }
 
-      case Error(_) => // NOOP: already shutdown
+      case Error(_) => // NOOP: already shut down
 
       case x =>
         if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
@@ -117,6 +119,7 @@ private final class Http1Connection[F[_]](
           }
           closePipeline(cmd)
           super.stageShutdown()
+          closed.complete(()).toIO.unsafeRunAsyncAndForget()
         }
     }
 
@@ -201,8 +204,9 @@ private final class Http1Connection[F[_]](
           val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
             .write(rr, req.body)
             .onError {
-              case EOF => F.unit
-              case t => F.delay(logger.error(t)("Error rendering request"))
+              case EOF => F.delay(shutdownWithError(EOF))
+              case t =>
+                F.delay(logger.error(t)("Error rendering request")) >> F.delay(shutdownWithError(t))
             }
 
           val idleTimeoutF: F[TimeoutException] = idleTimeoutStage match {
@@ -220,17 +224,18 @@ private final class Http1Connection[F[_]](
                 cancellation.race(timeoutFiber.join).map(e => Left(e.merge)),
                 idleRead,
               ).map(response =>
-                // We need to finish writing before we attempt to recycle the connection. We consider three scenarios.
+                // We need to finish writing before we attempt to recycle the connection. We consider three scenarios:
                 // - The write already finished before we got the response. This is the most common scenario. `join` completes immediately.
-                // - The whole request was already transmitted and we received the response from the server, but we did not yet notice that the write is already complete. This is sort of a race, happens frequently enough when load testing. We need to wait just a moment for the `join` to finish.
+                // - The whole request was already transmitted and we received the response from the server, but we did not yet notice that the write is complete. This is sort of a race, it happens frequently enough when load testing. We need to wait just a moment for the `join` to finish.
                 // - The server decided to reject our request before we finished sending it. The server responded (typically with an error) and closed the connection. We shouldn't wait for the `writeFiber`. This connection needs to be disposed.
-                Resource
-                  .make(F.pure(writeFiber))(_.join.attempt.void)
-                  .as(response)
+                Resource.make(F.pure(response))(_ =>
+                  writeFiber.join.attempt.race(closed.get >> writeFiber.cancel.start).void
+                )
               )
             ) {
               case (_, ExitCase.Completed) => F.unit
-              case (writeFiber, ExitCase.Canceled | ExitCase.Error(_)) => writeFiber.cancel
+              case (_, ExitCase.Canceled) => F.delay(shutdown())
+              case (_, ExitCase.Error(e)) => F.delay(shutdownWithError(e))
             }.race(timeoutFiber.join)
               .flatMap {
                 case Left(r) =>
