@@ -33,6 +33,7 @@ import scala.util.control.NoStackTrace
   * @param cacheStrategy strategy to use for caching purposes.
   * @param classLoader optional classloader for extracting the resources
   * @param preferGzipped prefer gzip compression format?
+  * @param webjarAssetFilter To filter which assets from the webjars should be served
   */
 class WebjarServiceBuilder[F[_]] private (
     webjarAssetFilter: WebjarServiceBuilder.WebjarAssetFilter,
@@ -151,9 +152,9 @@ object WebjarServiceBuilder {
 
   /** Returns an asset that matched the request if it's found in the webjar path
     *
-    * @param webjarAsset The WebjarAsset
     * @param request The Request
     * @param preferGzipped prefer gzip compression format?
+    * @param webjarAsset The WebjarAsset
     * @return Either the the Asset, if it exist, or Pass
     */
   private def serveWebjarAsset[F[_]](
