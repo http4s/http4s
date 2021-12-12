@@ -19,7 +19,7 @@ addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.7.1")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
-addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.0")
+addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.1")
 
 // TODO remove me after we get this transitively
 // https://github.com/djspiewak/sbt-github-actions/issues/94
