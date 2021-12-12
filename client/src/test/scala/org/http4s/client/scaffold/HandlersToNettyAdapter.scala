@@ -134,7 +134,10 @@ object HandlerHelpers {
     response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
     if (closeConnection) {
       // disconnect sends FIN.
-      ctx.writeAndFlush(response).addListener((f: ChannelFuture) => f.channel.disconnect())
+      ctx.writeAndFlush(response).addListener { (f: ChannelFuture) =>
+        f.channel.disconnect()
+        ()
+      }
     } else {
       ctx.writeAndFlush(response)
     }

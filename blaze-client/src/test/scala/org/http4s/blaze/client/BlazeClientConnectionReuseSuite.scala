@@ -19,7 +19,8 @@ package client
 
 import cats.effect._
 import cats.implicits._
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import org.http4s.Method._
 import org.http4s._
 import org.http4s.client.scaffold.TestServer
