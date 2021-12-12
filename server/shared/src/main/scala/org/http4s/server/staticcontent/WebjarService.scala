@@ -30,8 +30,6 @@ import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
   *
-  * @param blocker execution context for blocking I/O
-  * @param filter To filter which assets from the webjars should be served
   * @param cacheStrategy strategy to use for caching purposes.
   * @param classLoader optional classloader for extracting the resources
   * @param preferGzipped prefer gzip compression format?
@@ -180,7 +178,6 @@ object WebjarService {
 
   /** [[org.http4s.server.staticcontent.WebjarService]] configuration
     *
-    * @param blocker execution context for blocking I/O
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
