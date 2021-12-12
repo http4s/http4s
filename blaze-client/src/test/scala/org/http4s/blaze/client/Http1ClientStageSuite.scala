@@ -135,7 +135,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     getSubmission(req, resp, tail)
   }
 
-  test("Run a basic request".flaky) {
+  test("Run a basic request") {
     getSubmission(FooRequest, resp).map { case (request, response) =>
       val statusLine = request.split("\r\n").apply(0)
       assertEquals(statusLine, "GET / HTTP/1.1")
@@ -143,7 +143,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Submit a request line with a query".flaky) {
+  test("Submit a request line with a query") {
     val uri = "/huh?foo=bar"
     val Right(parsed) = Uri.fromString("http://www.foo.test" + uri)
     val req = Request[IO](uri = parsed)
@@ -185,7 +185,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     getSubmission(FooRequest, resp).map(_._2).assertEquals("done")
   }
 
-  test("Utilize a provided Host header".flaky) {
+  test("Utilize a provided Host header") {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
     val req = FooRequest.withHeaders(headers.Host("bar.test"))
@@ -207,7 +207,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     }
   }
 
-  test("Use User-Agent header provided in Request".flaky) {
+  test("Use User-Agent header provided in Request") {
     val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
     val req = FooRequest.withHeaders(`User-Agent`(ProductId("myagent")))
 

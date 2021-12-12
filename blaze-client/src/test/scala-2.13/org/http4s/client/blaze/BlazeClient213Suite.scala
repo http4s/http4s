@@ -31,7 +31,7 @@ import scala.util.Random
 class BlazeClient213Suite extends BlazeClientBase {
   override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
-  test("reset request timeout".flaky) {
+  test("reset request timeout") {
     val addresses = server().addresses
     val address = addresses.head
     val name = address.host
@@ -104,7 +104,7 @@ class BlazeClient213Suite extends BlazeClientBase {
     }.assert
   }
 
-  test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
+  test("Blaze Http1Client should behave and not deadlock on failures with parSequence") {
     val addresses = server().addresses
     builder(3).resource.use { client =>
       val failedHosts = addresses.map { address =>

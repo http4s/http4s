@@ -147,7 +147,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     } yield s).intercept[TimeoutException]
   }
 
-  tickWheelFixture.test("Not timeout on only marginally slow POST body".flaky) { tickWheel =>
+  tickWheelFixture.test("Not timeout on only marginally slow POST body") { tickWheel =>
     def dataStream(n: Int): EntityBody[IO] = {
       val interval = 100.millis
       Stream
@@ -166,7 +166,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     c.fetchAs[String](req).assertEquals("done")
   }
 
-  tickWheelFixture.test("Request timeout on slow response body".flaky) { tickWheel =>
+  tickWheelFixture.test("Request timeout on slow response body") { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel)
     val (f, b) = resp.splitAt(resp.length - 1)
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
@@ -199,7 +199,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     } yield s).intercept[TimeoutException]
   }
 
-  tickWheelFixture.test("No Response head timeout on fast header".flaky) { tickWheel =>
+  tickWheelFixture.test("No Response head timeout on fast header") { tickWheel =>
     val tail = mkConnection(FooRequestKey, tickWheel)
     val (f, b) = resp.splitAt(resp.indexOf("\r\n\r\n" + 4))
     val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 125.millis, tickWheel)
