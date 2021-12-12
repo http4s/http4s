@@ -26,6 +26,7 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 
 import java.nio.file.Path
 import java.nio.file.Paths
+import scala.language.higherKinds
 import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
@@ -152,9 +153,7 @@ object WebjarServiceBuilder {
   /** Returns an asset that matched the request if it's found in the webjar path
     *
     * @param webjarAsset The WebjarAsset
-    * @param config The configuration
     * @param request The Request
-    * @param optional class loader
     * @param preferGzipped prefer gzip compression format?
     * @return Either the the Asset, if it exist, or Pass
     */
