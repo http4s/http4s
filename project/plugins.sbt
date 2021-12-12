@@ -16,7 +16,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.7")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.2.24")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
-addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.0")
+addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.1")
 
 // TODO remove me after we get this transitively
 // https://github.com/djspiewak/sbt-github-actions/issues/94
