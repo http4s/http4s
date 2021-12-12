@@ -26,7 +26,6 @@ import org.http4s.internal.CollectionCompat.CollectionConverters._
 
 import java.nio.file.Path
 import java.nio.file.Paths
-import scala.language.higherKinds
 import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
