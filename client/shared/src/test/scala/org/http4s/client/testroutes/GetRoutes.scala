@@ -26,6 +26,7 @@ import scala.concurrent.duration._
 
 object GetRoutes {
   val SimplePath = "/simple"
+  val LargePath = "/large"
   val ChunkedPath = "/chunked"
   val DelayedPath = "/delayed"
   val NoContentPath = "/no-content"
@@ -36,6 +37,9 @@ object GetRoutes {
   def getPaths(implicit F: Temporal[IO]): Map[String, IO[Response[IO]]] =
     Map(
       SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
+      LargePath -> Response[IO](Ok)
+        .withEntity("a" * 8 * 1024)
+        .pure[IO], // must be at least as large as the buffers used by the client
       ChunkedPath -> Response[IO](Ok)
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
         .pure[IO],
