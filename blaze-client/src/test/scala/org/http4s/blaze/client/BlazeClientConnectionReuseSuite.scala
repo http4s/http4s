@@ -223,7 +223,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   private def builder(): BlazeClientBuilder[IO] =
-    BlazeClientBuilder[IO](munitExecutionContext).withScheduler(scheduler = tickWheel)
+    BlazeClientBuilder[IO].withScheduler(scheduler = tickWheel)
 
   private def makeServers(): IO[Vector[TestServer[IO]]] = {
     val testServers = server().servers
