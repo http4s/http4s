@@ -27,9 +27,9 @@
   --syntax-wheel3: #ffc66d;
   --syntax-wheel4: #7fb971;
   --syntax-wheel5: #4dbed4;
-  --body-font: "Lato";
-  --header-font: "Lato";
-  --code-font: "Fira Code";
+  --body-font: "Lato", sans-serif;
+  --header-font: "Lato", sans-serif;
+  --code-font: "Fira Code", monospace;
   --body-font-size: 15px;
   --code-font-size: 14px;
   --small-font-size: 12px;
@@ -207,17 +207,18 @@ a.anchor-link {
   visibility: hidden;
   position: absolute;
   display: inline-block;
-  width: 30px;
+  width: 1.4em;
   margin-top: -3px;
   text-align: right;
   text-decoration: none;
 }
 a.anchor-link.left {
-  margin-left: -30px;
-  padding-right: 12px;
+  margin-left: -1.4em;
+  padding-right: 0.5em;
 }
-a.anchor-link.left {
-  margin-left: 1em;
+a.anchor-link.right {
+  padding-left: 0.5em;
+  text-align: left;
 }
 
 h1:hover > a.anchor-link,
@@ -347,7 +348,7 @@ table {
 thead > tr {
   border-bottom: 1px solid var(--primary-medium);
 }
-td {
+td, th {
   padding: 5px 8px;
 }
 tbody > tr:nth-child(odd) {
@@ -422,20 +423,28 @@ header {
   padding: 0 45px 0 20px;
   border-bottom: 1px solid var(--top-border);
 }
-header a {
+header a, nav .row a {
   color: var(--top-color);
 }
-header a:hover {
+header a:hover, nav .row a:hover {
   text-decoration: none;
   cursor: pointer;
   color: var(--top-hover)
 }
-header img {
+header img, nav .row img {
   height: 80%;
   width: auto;
 }
-header .row a {
+header .row a, nav .row a {
   margin: 0 0 0 20px;
+}
+header .row.links {
+  display: none;
+}
+nav .row {
+  margin: 10px 15px 3px 25px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--top-border);
 }
 
 #nav-icon {
@@ -443,6 +452,14 @@ header .row a {
 }
 @media (min-width: 1020px) {
   #nav-icon {
+    display: none;
+  }
+}
+@media (min-width: 500px) {
+  header .row.links {
+    display: block;
+  }
+  nav .row {
     display: none;
   }
 }
