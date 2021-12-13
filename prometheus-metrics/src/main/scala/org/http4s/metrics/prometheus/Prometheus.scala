@@ -83,10 +83,10 @@ object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
     Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
 
-  /** Creates a  [[MetricsOps]] that supports Prometheus metrics
-    * *
-    * * @param registry a metrics collector registry
-    * * @param prefix a prefix that will be added to all metrics
+  /** Creates a [[MetricsOps]] that supports Prometheus metrics
+    *
+    * @param registry a metrics collector registry
+    * @param prefix a prefix that will be added to all metrics
     */
   def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,

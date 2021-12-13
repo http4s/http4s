@@ -45,7 +45,6 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param blocker to use for blocking I/O
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
