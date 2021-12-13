@@ -193,7 +193,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   // // Load tests // //
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".fail
+    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".fail.flaky
   ) {
     builder().resource.use { client =>
       for {
@@ -209,7 +209,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)".fail
+    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)".fail.flaky
   ) {
     for {
       servers <- makeServers()
