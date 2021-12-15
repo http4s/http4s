@@ -672,7 +672,7 @@ object Response extends KleisliSyntax {
     */
   type Pure = Response[fs2.Pure]
 
-  @nowarn("cat=unused")
+  @nowarn("msg=never used")
   implicit def covaryF[F[_], G[_]](fresp: F[Response[Nothing]])(implicit
       F: Functor[F]
   ): F[Response[G]] =
