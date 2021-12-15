@@ -44,7 +44,7 @@ object Router {
         Kleisli { req =>
           (
             if (req.pathInfo.startsWith(prefixPath))
-              routes.local(translate(prefixPath)) <+> acc
+              routes.local(translate[F](prefixPath)) <+> acc
             else
               acc
           )(req)

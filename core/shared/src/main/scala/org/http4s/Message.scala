@@ -16,19 +16,16 @@
 
 package org.http4s
 
-import cats.Applicative
-import cats.Monad
+import cats._
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.SyncIO
 import cats.syntax.all._
-import cats.~>
 import com.comcast.ip4s.Dns
 import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.Pure
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
@@ -39,13 +36,13 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
+import scala.annotation.nowarn
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
-sealed trait Message[F[_]] extends Media[F] { self =>
-  type SelfF[F2[_]] <: Message[F2] { type SelfF[F3[_]] = self.SelfF[F3] }
-  type Self = SelfF[F]
+sealed trait Message[+F[_]] extends Media[F] { self =>
+  type SelfF[+F2[_]] <: Message[F2] { type SelfF[+F3[_]] = self.SelfF[F3] }
 
   def httpVersion: HttpVersion
 
@@ -55,23 +52,23 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def attributes: Vault
 
-  protected def change(
+  protected def change[F1[_]](
       httpVersion: HttpVersion = httpVersion,
-      body: EntityBody[F] = body,
+      body: EntityBody[F1] = body,
       headers: Headers = headers,
       attributes: Vault = attributes,
-  ): Self
+  ): SelfF[F1]
 
-  def withHttpVersion(httpVersion: HttpVersion): Self =
+  def withHttpVersion(httpVersion: HttpVersion): SelfF[F] =
     change(httpVersion = httpVersion)
 
-  def withHeaders(headers: Headers): Self =
+  def withHeaders(headers: Headers): SelfF[F] =
     change(headers = headers)
 
-  def withHeaders(headers: Header.ToRaw*): Self =
+  def withHeaders(headers: Header.ToRaw*): SelfF[F] =
     withHeaders(Headers(headers: _*))
 
-  def withAttributes(attributes: Vault): Self =
+  def withAttributes(attributes: Vault): SelfF[F] =
     change(attributes = attributes)
 
   // Body methods
@@ -83,7 +80,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
+  def withEntity[F1[x] >: F[x], T](b: T)(implicit w: EntityEncoder[F1, T]): SelfF[F1] = {
     val entity = w.toEntity(b)
     val hs = entity.length match {
       case Some(l) =>
@@ -106,18 +103,18 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
-  def withBodyStream(body: EntityBody[F]): Self =
+  def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
     change(body = body)
 
   /** Set an empty entity body on this message, and remove all payload headers
     * that make no sense with an empty body.
     */
-  def withEmptyBody: Self =
+  def withEmptyBody: SelfF[F] =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
   // General header methods
 
-  def transformHeaders(f: Headers => Headers): Self =
+  def transformHeaders(f: Headers => Headers): SelfF[F] =
     change(headers = f(headers))
 
   /** Keep headers that satisfy the predicate
@@ -125,23 +122,22 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * @param f predicate
     * @return a new message object which has only headers that satisfy the predicate
     */
-  def filterHeaders(f: Header.Raw => Boolean): Self =
+  def filterHeaders(f: Header.Raw => Boolean): SelfF[F] =
     transformHeaders(_.transform(_.filter(f)))
 
-  def removeHeader(key: CIString): Self =
+  def removeHeader(key: CIString): SelfF[F] =
     transformHeaders(_.transform(_.filterNot(_.name == key)))
 
-  def removeHeader[A](implicit h: Header[A, _]): Self =
+  def removeHeader[A](implicit h: Header[A, _]): SelfF[F] =
     removeHeader(h.name)
 
   /** Add the provided headers to the existing headers, replacing those
     * of the same header name
     *
     * {{{
-    * >>> import cats.effect.IO
     * >>> import org.http4s.headers.Accept
     *
-    * >>> val req = Request[IO]().putHeaders(Accept(MediaRange.`application/*`))
+    * >>> val req = Request().putHeaders(Accept(MediaRange.`application/*`))
     * >>> req.headers.get[Accept]
     * Some(Accept(NonEmptyList(application/*)))
     *
@@ -151,7 +147,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * }}}
     * */*/*/*/
     */
-  def putHeaders(headers: Header.ToRaw*): Self =
+  def putHeaders(headers: Header.ToRaw*): SelfF[F] =
     transformHeaders(_.put(headers: _*))
 
   /** Add a header to these headers.  The header should be a type with a
@@ -159,10 +155,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * appended to any existing values.
     *
     * {{{
-    * >>> import cats.effect.IO
     * >>> import org.http4s.headers.Accept
     *
-    * >>> val req = Request[IO]().addHeader(Accept(MediaRange.`application/*`))
+    * >>> val req = Request().addHeader(Accept(MediaRange.`application/*`))
     * >>> req.headers.get[Accept]
     * Some(Accept(NonEmptyList(application/*)))
     *
@@ -172,31 +167,31 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * }}}
     * */*/*/*/*/
     */
-  def addHeader[H: Header[*, Header.Recurring]](h: H): Self =
+  def addHeader[H: Header[*, Header.Recurring]](h: H): SelfF[F] =
     transformHeaders(_.add(h))
 
-  def withTrailerHeaders(trailerHeaders: F[Headers]): Self =
-    withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
+  def withTrailerHeaders[F1[x] >: F[x]](trailerHeaders: F1[Headers]): SelfF[F1] =
+    withAttribute(Message.Keys.TrailerHeaders[F1], trailerHeaders)
 
-  def withoutTrailerHeaders: Self =
+  def withoutTrailerHeaders: SelfF[F] =
     withoutAttribute(Message.Keys.TrailerHeaders[F])
 
   /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The resulting
     * F might not complete until the entire body has been consumed.
     */
-  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
-    attributes.lookup(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
+  def trailerHeaders[F1[x] >: F[x]](implicit F: Applicative[F1]): F1[Headers] =
+    attributes.lookup(Message.Keys.TrailerHeaders[F1]).getOrElse(Headers.empty.pure[F1])
 
   // Specific header methods
 
-  def withContentType(contentType: `Content-Type`): Self =
+  def withContentType(contentType: `Content-Type`): SelfF[F] =
     putHeaders(contentType)
 
-  def withoutContentType: Self =
+  def withoutContentType: SelfF[F] =
     removeHeader[`Content-Type`]
 
-  def withContentTypeOption(contentTypeO: Option[`Content-Type`]): Self =
-    contentTypeO.fold(withoutContentType)(withContentType)
+  def withContentTypeOption(contentTypeO: Option[`Content-Type`]): SelfF[F] =
+    contentTypeO.fold[SelfF[F]](withoutContentType)(withContentType)
 
   def isChunked: Boolean =
     headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
@@ -206,21 +201,21 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** Generates a new message object with the specified key/value pair appended
     * to the [[#attributes]].
     *
-    * @param key [[org.typelevel.vault.Key]] with which to associate the value
+    * @param key [[io.chrisdavenport.vault.Key]] with which to associate the value
     * @param value value associated with the key
     * @tparam A type of the value to store
     * @return a new message object with the key/value pair appended
     */
-  def withAttribute[A](key: Key[A], value: A): Self =
+  def withAttribute[A](key: Key[A], value: A): SelfF[F] =
     change(attributes = attributes.insert(key, value))
 
   /** Returns a new message object without the specified key in the
     * [[#attributes]].
     *
-    * @param key [[org.typelevel.vault.Key]] to remove
+    * @param key [[io.chrisdavenport.vault.Key]] to remove
     * @return a new message object without the key
     */
-  def withoutAttribute(key: Key[_]): Self =
+  def withoutAttribute(key: Key[_]): SelfF[F] =
     change(attributes = attributes.delete(key))
 
   /** Lifts this Message's body to the specified effect type.
@@ -229,6 +224,18 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 }
 
 object Message {
+  implicit final class InvariantOps[F[_], ThisF[f[_]] <: Message[f]](val self: ThisF[F]) {
+    import self._
+
+    def mapK[G[_]](f: F ~> G): SelfF[G] =
+      self.change(
+        httpVersion = httpVersion,
+        headers = headers,
+        body = body.translate(f),
+        attributes = attributes,
+      )
+  }
+
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
@@ -248,7 +255,7 @@ object Message {
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final class Request[F[_]] private (
+final class Request[+F[_]] private (
     val method: Method,
     val uri: Uri,
     val httpVersion: HttpVersion,
@@ -260,16 +267,16 @@ final class Request[F[_]] private (
     with Serializable {
   import Request._
 
-  type SelfF[F0[_]] = Request[F0]
+  type SelfF[+F0[_]] = Request[F0]
 
-  private def copy(
+  private def copy[F1[_]](
       method: Method = this.method,
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      body: EntityBody[F1] = this.body,
       attributes: Vault = this.attributes,
-  ): Request[F] =
+  ): Request[F1] =
     Request(
       method = method,
       uri = uri,
@@ -279,28 +286,18 @@ final class Request[F[_]] private (
       attributes = attributes,
     )
 
-  def mapK[G[_]](f: F ~> G): Request[G] =
-    Request[G](
-      method = method,
-      uri = uri,
-      httpVersion = httpVersion,
-      headers = headers,
-      body = body.translate(f),
-      attributes = attributes,
-    )
-
   def withMethod(method: Method): Request[F] =
     copy(method = method)
 
   def withUri(uri: Uri): Request[F] =
     copy(uri = uri, attributes = attributes.delete(Request.Keys.PathInfoCaret))
 
-  override protected def change(
+  override protected def change[F1[_]](
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      body: EntityBody[F1],
       headers: Headers,
       attributes: Vault,
-  ): Request[F] =
+  ): Request[F1] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -416,9 +413,6 @@ final class Request[F[_]] private (
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
-  def remoteHost(implicit F: Monad[F], dns: Dns[F]): F[Option[Hostname]] =
-    OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value
-
   def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
@@ -442,35 +436,6 @@ final class Request[F[_]] private (
 
   def serverSoftware: ServerSoftware =
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
-
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(
-      f: A => F[Response[F]]
-  )(implicit F: Monad[F]): F[Response[F]] =
-    decoder
-      .decode(this, strict = strict)
-      .fold(_.toHttpResponse[F](httpVersion).pure[F], f)
-      .flatten
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
-    */
-  def decode[A](
-      f: A => F[Response[F]]
-  )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
-    decodeWith(decoder, strict = false)(f)
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
-    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
-    */
-  def decodeStrict[A](
-      f: A => F[Response[F]]
-  )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
-    decodeWith(decoder, strict = true)(f)
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
@@ -502,6 +467,41 @@ final class Request[F[_]] private (
 
 object Request {
 
+  /** A [[Request]] that doesn't have a body requiring effectful evaluation.
+    *  A [[Request.Pure]] is always an instance of [[Request[F]]], regardless of `F`.
+    */
+  type Pure = Request[fs2.Pure]
+
+  implicit final class InvariantOps[F[_]](private val self: Request[F]) extends AnyVal {
+    import self._
+    def decode[A](
+        f: A => F[Response[F]]
+    )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+      decodeWith(decoder, strict = false)(f)
+
+    def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(
+        f: A => F[Response[F]]
+    )(implicit F: Monad[F]): F[Response[F]] =
+      decoder
+        .decode(self, strict = strict)
+        .fold(_.toHttpResponse(httpVersion).covary[F].pure[F], f)
+        .flatten
+
+    /** Helper method for decoding [[Request]]s
+      *
+      * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+      * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
+      * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+      */
+    def decodeStrict[A](
+        f: A => F[Response[F]]
+    )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+      decodeWith(decoder, strict = true)(f)
+
+    def remoteHost(implicit F: Monad[F], dns: Dns[F]): F[Option[Hostname]] =
+      OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value
+  }
+
   /** Representation of an incoming HTTP message
     *
     * A Request encapsulates the entirety of the incoming HTTP request including the
@@ -522,7 +522,7 @@ object Request {
       body: EntityBody[F] = EmptyBody,
       attributes: Vault = Vault.empty,
   ): Request[F] =
-    new Request[F](
+    new Request(
       method = method,
       uri = uri,
       httpVersion = httpVersion,
@@ -570,7 +570,7 @@ object Request {
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
-final class Response[F[_]] private (
+final class Response[+F[_]] private (
     val status: Status,
     val httpVersion: HttpVersion,
     val headers: Headers,
@@ -579,26 +579,17 @@ final class Response[F[_]] private (
 ) extends Message[F]
     with Product
     with Serializable {
-  type SelfF[F0[_]] = Response[F0]
-
-  def mapK[G[_]](f: F ~> G): Response[G] =
-    Response[G](
-      status = status,
-      httpVersion = httpVersion,
-      headers = headers,
-      body = body.translate(f),
-      attributes = attributes,
-    )
+  type SelfF[+F0[_]] = Response[F0]
 
   def withStatus(status: Status): Response[F] =
     copy(status = status)
 
-  override protected def change(
+  override protected def change[F1[_]](
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      body: EntityBody[F1],
       headers: Headers,
       attributes: Vault,
-  ): Response[F] =
+  ): Response[F1] =
     copy(
       httpVersion = httpVersion,
       body = body,
@@ -633,14 +624,14 @@ final class Response[F[_]] private (
 
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
-  def copy(
+  def copy[F1[_]](
       status: Status = this.status,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      body: EntityBody[F1] = this.body,
       attributes: Vault = this.attributes,
-  ): Response[F] =
-    Response[F](
+  ): Response[F1] =
+    Response(
       status = status,
       httpVersion = httpVersion,
       headers = headers,
@@ -676,6 +667,17 @@ final class Response[F[_]] private (
 
 object Response extends KleisliSyntax {
 
+  /** A [[Response]] that doesn't have a body requiring effectful evaluation.
+    *  A [[Response.Pure]] is always an instance of [[Response[F]]], regardless of `F`.
+    */
+  type Pure = Response[fs2.Pure]
+
+  @nowarn("cat=unused")
+  implicit def covaryF[F[_], G[_]](fresp: F[Response[Nothing]])(implicit
+      F: Functor[F]
+  ): F[Response[G]] =
+    fresp.asInstanceOf
+
   /** Representation of the HTTP response to send back to the client
     *
     * @param status [[Status]] code and message
@@ -701,7 +703,7 @@ object Response extends KleisliSyntax {
       (response.status, response.httpVersion, response.headers, response.body, response.attributes)
     )
 
-  private[this] val pureNotFound: Response[Pure] =
+  val notFound: Response.Pure =
     Response(
       Status.NotFound,
       body = Stream("Not found").through(utf8.encode),
@@ -711,13 +713,11 @@ object Response extends KleisliSyntax {
       ),
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
-
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
       encoder: EntityEncoder[F, String]
   ): F[Response[F]] =
-    Response[F](Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
+    Response(Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
-    Response[F](Status.ServiceUnavailable).withEntity("Response timed out")
+    Response(Status.ServiceUnavailable).withEntity("Response timed out")
 }

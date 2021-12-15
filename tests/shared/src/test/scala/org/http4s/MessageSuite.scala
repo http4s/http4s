@@ -312,7 +312,7 @@ class MessageSuite extends Http4sSuite {
     // https://github.com/http4s/http4s/issues/5059
     val hdrs = Request[IO]()
       .putHeaders(`Content-Type`(MediaType.text.html))
-      .withEntity[String]("foo")
+      .withEntity("foo")
       .headers
       .headers
       .filter(_.name === Header[`Content-Type`].name)

@@ -237,9 +237,9 @@ object Client {
     Client { (req: Request[Kleisli[F, A, *]]) =>
       Resource.eval(Kleisli.ask[F, A]).flatMap { a =>
         client
-          .run(req.mapK(Kleisli.applyK(a)))
+          .run(req.mapK(Kleisli.applyK[F, A](a)))
           .mapK(Kleisli.liftK[F, A])
-          .map(_.mapK(Kleisli.liftK))
+          .map(_.mapK(Kleisli.liftK[F, A]))
       }
     }
 

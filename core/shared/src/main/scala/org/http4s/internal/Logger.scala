@@ -71,8 +71,8 @@ object Logger {
   )(log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
     def prelude =
       message match {
-        case req: Request[F @unchecked] => s"${req.httpVersion} ${req.method} ${req.uri}"
-        case resp: Response[F @unchecked] => s"${resp.httpVersion} ${resp.status}"
+        case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"
+        case resp: Response[_] => s"${resp.httpVersion} ${resp.status}"
       }
 
     val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)
