@@ -23,7 +23,7 @@ import org.typelevel.keypool._
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, EmberConnection[F]]
+    private val pool: KeyPool[F, RequestKey, EmberConnection[F]],
 )(implicit F: MonadCancelThrow[F])
     extends DefaultClient[F] {
 

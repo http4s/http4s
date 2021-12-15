@@ -21,25 +21,40 @@ package server
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
+import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
+import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
-import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
-import org.http4s.blazecore.{Http1Stage, IdleTimeoutStage}
-import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.IdleTimeoutStage
+import org.http4s.blazecore.util.BodylessWriter
+import org.http4s.blazecore.util.Http1Writer
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.ci._
 import org.typelevel.vault._
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Either, Failure, Left, Right, Success, Try}
+
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Either
+import scala.util.Failure
+import scala.util.Left
+import scala.util.Right
+import scala.util.Success
+import scala.util.Try
 
 private[http4s] object Http1ServerStage {
   def apply[F[_]](
@@ -55,7 +70,7 @@ private[http4s] object Http1ServerStage {
       idleTimeout: Duration,
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F],
-      maxWebSocketBufferSize: Option[Int]
+      maxWebSocketBufferSize: Option[Int],
   )(implicit F: Async[F]): Http1ServerStage[F] =
     new Http1ServerStage(
       routes,
@@ -68,7 +83,8 @@ private[http4s] object Http1ServerStage {
       responseHeaderTimeout,
       idleTimeout,
       scheduler,
-      dispatcher) with WebSocketSupport[F] {
+      dispatcher,
+    ) with WebSocketSupport[F] {
       val webSocketKey = wsKey
       override protected def maxBufferSize: Option[Int] = maxWebSocketBufferSize
     }
@@ -85,7 +101,8 @@ private[blaze] class Http1ServerStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
-    val dispatcher: Dispatcher[F])(implicit protected val F: Async[F])
+    val dispatcher: Dispatcher[F],
+)(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
   // micro-optimization: unwrap the routes and call its .run directly
@@ -100,12 +117,12 @@ private[blaze] class Http1ServerStage[F[_]](
 
   logger.trace(s"Http4sStage starting up")
 
-  final override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] =
+  override protected final def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] =
     parser.synchronized {
       parser.doParseContent(buffer)
     }
 
-  final override protected def contentComplete(): Boolean =
+  override protected final def contentComplete(): Boolean =
     parser.synchronized {
       parser.contentComplete()
     }
@@ -160,7 +177,8 @@ private[blaze] class Http1ServerStage[F[_]](
               "error in requestLoop()",
               t,
               Request[F](),
-              () => Future.successful(emptyBuffer))
+              () => Future.successful(emptyBuffer),
+            )
         }
     }
   }
@@ -178,7 +196,8 @@ private[blaze] class Http1ServerStage[F[_]](
   private def runRequest(buffer: ByteBuffer): Unit = {
     val (body, cleanup) = collectBodyFromParser(
       buffer,
-      () => Either.left(InvalidBodyException("Received premature EOF.")))
+      () => Either.left(InvalidBodyException("Received premature EOF.")),
+    )
 
     parser.collectMessage(body, requestAttrs()) match {
       case Right(req) =>
@@ -192,7 +211,8 @@ private[blaze] class Http1ServerStage[F[_]](
                 case Right(_) => F.unit
                 case Left(t) =>
                   F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
-                    closeConnection())
+                    closeConnection()
+                  )
               }
 
             val token = Some(dispatcher.unsafeToFutureCancelable(action)._2)
@@ -212,7 +232,8 @@ private[blaze] class Http1ServerStage[F[_]](
   protected def renderResponse(
       req: Request[F],
       resp: Response[F],
-      bodyCleanup: () => Future[ByteBuffer]): Unit = {
+      bodyCleanup: () => Future[ByteBuffer],
+  ): Unit = {
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status << "\r\n"
 
@@ -237,10 +258,13 @@ private[blaze] class Http1ServerStage[F[_]](
       if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
-        if (!resp.status.isEntityAllowed &&
-          (lengthHeader.isDefined || respTransferCoding.isDefined))
+        if (
+          !resp.status.isEntityAllowed &&
+          (lengthHeader.isDefined || respTransferCoding.isDefined)
+        )
           logger.warn(
-            s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
+            s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping."
+          )
 
         if (req.method == Method.HEAD)
           // write message body header for HEAD response
@@ -266,7 +290,8 @@ private[blaze] class Http1ServerStage[F[_]](
           rr,
           parser.minorVersion(),
           closeOnFinish,
-          false)
+          false,
+        )
     }
 
     // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
@@ -325,10 +350,11 @@ private[blaze] class Http1ServerStage[F[_]](
         logger.warn(t)(s"Error canceling request. No request details are available.")
     })
 
-  final protected def badMessage(
+  protected final def badMessage(
       debugMessage: String,
       t: ParserException,
-      req: Request[F]): Unit = {
+      req: Request[F],
+  ): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
       .withHeaders(Connection(ci"close"), `Content-Length`.zero)
@@ -336,18 +362,19 @@ private[blaze] class Http1ServerStage[F[_]](
   }
 
   // The error handler of last resort
-  final protected def internalServerError(
+  protected final def internalServerError(
       errorMsg: String,
       t: Throwable,
       req: Request[F],
-      bodyCleanup: () => Future[ByteBuffer]): Unit = {
+      bodyCleanup: () => Future[ByteBuffer],
+  ): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
       .withHeaders(Connection(ci"close"), `Content-Length`.zero)
     renderResponse(
       req,
       resp,
-      bodyCleanup
+      bodyCleanup,
     ) // will terminate the connection due to connection: close header
   }
 

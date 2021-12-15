@@ -17,9 +17,9 @@
 package org.http4s
 package websocket
 
-import org.http4s.Http4sSuite
-import cats.effect.IO
 import cats.data.EitherT
+import cats.effect.IO
+import org.http4s.Http4sSuite
 
 class WebSocketHandshakeSpec extends Http4sSuite {
 

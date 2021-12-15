@@ -19,11 +19,11 @@ package blazecore
 
 import cats.syntax.all._
 import fs2._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 import org.http4s.blaze.http.parser.Http1ClientParser
 import org.typelevel.ci.CIString
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {
@@ -80,7 +80,8 @@ class ResponseParser extends Http1ClientParser {
       reason: String,
       scheme: String,
       majorversion: Int,
-      minorversion: Int): Unit = {
+      minorversion: Int,
+  ): Unit = {
     this.code = code
     this.reason = reason
     this.majorversion = majorversion

@@ -50,7 +50,7 @@ Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
 
 ```scala mdoc:silent
-import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
+import cats.effect._, org.http4s._, org.http4s.dsl.io._
 ```
 
 If you're in a REPL, we also need a runtime.  This comes for free in `IOApp`:
@@ -129,7 +129,7 @@ import org.http4s.server.Router
 ```scala mdoc
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val serverBuilder = BlazeServerBuilder[IO](global)
+val serverBuilder = BlazeServerBuilder[IO]
   .bindHttp(8080, "localhost")
   .withHttpApp(httpApp)
 ```
@@ -178,7 +178,6 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.blaze.server._
-import scala.concurrent.ExecutionContext.global
 ```
 
 ```scala mdoc:silent
@@ -190,7 +189,7 @@ object Main extends IOApp {
   }.orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO](global)
+    BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
       .withHttpApp(helloWorldService)
       .serve
@@ -203,12 +202,10 @@ object Main extends IOApp {
 You may also create the server within an `IOApp` using resource:
 
 ```scala mdoc:silent
-import scala.concurrent.ExecutionContext.global
-
 object MainWithResource extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO](global)
+    BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
       .withHttpApp(Main.helloWorldService)
       .resource

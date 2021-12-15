@@ -16,10 +16,12 @@
 
 package org.http4s.server
 
-import org.http4s.{ContextRequest, ContextRoutes, Uri}
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.semigroupk._
+import org.http4s.ContextRequest
+import org.http4s.ContextRoutes
+import org.http4s.Uri
 
 object ContextRouter {
 
@@ -46,7 +48,8 @@ object ContextRouter {
             if (req.req.pathInfo.startsWith(prefixSegments))
               routes
                 .local[ContextRequest[F, A]](r =>
-                  ContextRequest(r.context, Router.translate(prefixSegments)(r.req))) <+> acc
+                  ContextRequest(r.context, Router.translate(prefixSegments)(r.req))
+                ) <+> acc
             else
               acc
           )(req)

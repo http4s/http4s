@@ -21,7 +21,9 @@ package util
 import cats.effect._
 import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class FailingWriter(implicit protected val F: Async[IO]) extends EntityBodyWriter[IO] {
   override implicit protected val ec: ExecutionContext = scala.concurrent.ExecutionContext.global

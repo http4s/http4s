@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 object Upgrade extends HeaderCompanion[Upgrade]("Upgrade") {

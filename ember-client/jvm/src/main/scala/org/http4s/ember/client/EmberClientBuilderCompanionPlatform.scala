@@ -17,8 +17,8 @@
 package org.http4s.ember.client
 
 import cats.effect.Async
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 private[client] trait EmberClientBuilderCompanionPlatform {
 

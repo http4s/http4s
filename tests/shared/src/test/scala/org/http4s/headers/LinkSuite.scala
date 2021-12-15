@@ -40,7 +40,7 @@ class LinkSuite extends HeaderLaws {
       """<https://api.github.com/search/code?q=addClass&page=1>; rel="prev"""",
       """<https://api.github.com/search/code?q=addClass&page=3>; rel="next"""",
       """<https://api.github.com/search/code?q=addClass&page=4>; rel="last"""",
-      """<https://api.github.com/search/code?q=addClass&page=1>; rel="first""""
+      """<https://api.github.com/search/code?q=addClass&page=1>; rel="first"""",
     )
     val parsedLinks = Link
       .parse(links.mkString(", "))
@@ -50,7 +50,8 @@ class LinkSuite extends HeaderLaws {
   }
 
   test(
-    "parse should retain the value of the first 'rel' param when multiple present (RFC 8288, Section 3.3)") {
+    "parse should retain the value of the first 'rel' param when multiple present (RFC 8288, Section 3.3)"
+  ) {
     val link = """<http://example.com/foo>; rel=prev; rel=next;title=foo; rel="last""""
     val parsedLinks = Link.parse(link).map(_.values)
     val parsedLink = parsedLinks.map(_.head)
@@ -66,8 +67,9 @@ class LinkSuite extends HeaderLaws {
         uri"/feed",
         rel = Some("alternate"),
         title = Some("main"),
-        `type` = Some(MediaRange.`text/*`)
-      ))
+        `type` = Some(MediaRange.`text/*`),
+      )
+    )
 
     assertEquals(links.renderString, "Link: </feed>; rel=alternate; title=main; type=text/*")
   }

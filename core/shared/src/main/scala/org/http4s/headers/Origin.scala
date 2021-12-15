@@ -17,9 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser.{`end`, char, string}
 import cats.parse.Parser
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser.char
+import cats.parse.Parser.end
+import cats.parse.Parser.string
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 sealed abstract class Origin
@@ -32,7 +35,7 @@ object Origin {
   // A host in an Origin header isn't a full URI.
   // It only contains a scheme, a host, and an optional port.
   // Hence we re-used parts of the Uri class here, but we don't use a whole Uri:
-  // http://tools.ietf.org/html/rfc6454#section-7
+  // https://datatracker.ietf.org/doc/html/rfc6454#section-7
   final case class Host(scheme: Uri.Scheme, host: Uri.Host, port: Option[Int] = None)
       extends Origin
       with Renderable {
@@ -69,6 +72,6 @@ object Origin {
               case `null` => writer << "null"
             }
         },
-      parse
+      parse,
     )
 }

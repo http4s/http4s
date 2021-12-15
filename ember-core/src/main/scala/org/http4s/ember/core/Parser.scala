@@ -16,23 +16,26 @@
 
 package org.http4s.ember.core
 import cats._
-import cats.effect.kernel.{Concurrent, Deferred, Ref}
+import cats.data.EitherT
+import cats.effect.kernel.Concurrent
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
+
 import scala.annotation.switch
 import scala.collection.mutable
-import scodec.bits.ByteVector
-import cats.data.EitherT
 
 private[ember] object Parser {
 
   object MessageP {
 
     def recurseFind[F[_], A](currentBuffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(
-        f: Array[Byte] => F[Either[Unit, A]])(idx: A => Int)(implicit
-        F: MonadThrow[F]): F[(A, Array[Byte])] =
+        f: Array[Byte] => F[Either[Unit, A]]
+    )(idx: A => Int)(implicit F: MonadThrow[F]): F[(A, Array[Byte])] =
       f(currentBuffer).flatMap {
         case Left(_) =>
           if (currentBuffer.length > maxHeaderSize)
@@ -57,7 +60,8 @@ private[ember] object Parser {
       headers: Headers,
       chunked: Boolean,
       contentLength: Option[Long],
-      idx: Int)
+      idx: Int,
+  )
 
   object HeaderP {
 
@@ -67,7 +71,8 @@ private[ember] object Parser {
     private[this] val chunkedS = "chunked"
 
     def parseHeaders[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
-        F: MonadThrow[F]): F[Either[Unit, HeaderP]] = {
+        F: MonadThrow[F]
+    ): F[Either[Unit, HeaderP]] = {
       import scala.collection.mutable.ListBuffer
       var idx = initIndex
       var state = false
@@ -116,8 +121,10 @@ private[ember] object Parser {
                   throwable = e
                   complete = true
               }
-            } else if (hName
-                .equalsIgnoreCase(transferEncodingS)) { // Check if this is Transfer-encoding
+            } else if (
+              hName
+                .equalsIgnoreCase(transferEncodingS)
+            ) { // Check if this is Transfer-encoding
               chunked = hValue.contains(chunkedS)
             }
             start = idx + 1 // Next Start is after the CRLF
@@ -140,7 +147,8 @@ private[ember] object Parser {
     final case class ParseHeadersError(cause: Throwable)
         extends Exception(
           s"Encountered Error Attempting to Parse Headers - ${cause.getMessage}",
-          cause)
+          cause,
+        )
 
     final case class IncompleteHttpMessage(headers: Headers)
         extends Exception("Tried To Parse An Incomplete HTTP Message")
@@ -154,7 +162,8 @@ private[ember] object Parser {
 
       // Method SP URI SP HttpVersion CRLF - REST
       def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
-          F: MonadThrow[F]): F[Either[Unit, ReqPrelude]] = {
+          F: MonadThrow[F]
+      ): F[Either[Unit, ReqPrelude]] = {
         var idx = 0
         var state: Byte = 0
         var complete = false
@@ -215,8 +224,9 @@ private[ember] object Parser {
               Option(throwable),
               Option(method),
               Option(uri),
-              Option(httpVersion)
-            ))
+              Option(httpVersion),
+            )
+          )
         else if (method == null || uri == null || httpVersion == null)
           ().asLeft.pure[F]
         else
@@ -228,31 +238,33 @@ private[ember] object Parser {
           caused: Option[Throwable],
           method: Option[Method],
           uri: Option[Uri],
-          httpVersion: Option[HttpVersion]
+          httpVersion: Option[HttpVersion],
       ) extends Exception(
             s"Parse Prelude Error Encountered - Message: $message - Partially Decoded: $method $uri $httpVersion",
-            caused.orNull
+            caused.orNull,
           )
     }
 
     def parser[F[_]](maxHeaderSize: Int)(
         buffer: Array[Byte],
-        read: Read[F]
+        read: Read[F],
     )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
           EitherT(ReqPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
             .flatMap(prelude =>
-              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize)).tupleLeft(
-                prelude))
-            .value) { case (_, headerP) => headerP.idx }
+              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
+                .tupleLeft(prelude)
+            )
+            .value
+        ) { case (_, headerP) => headerP.idx }
         ((prelude, headerP), finalBuffer) = t
 
         baseReq = org.http4s.Request[F](
           method = prelude.method,
           uri = prelude.uri,
           httpVersion = prelude.version,
-          headers = headerP.headers
+          headers = headerP.headers,
         )
 
         request <-
@@ -262,9 +274,12 @@ private[ember] object Parser {
                 (
                   baseReq
                     .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                    .withBodyStream(ChunkedEncoding
-                      .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)),
-                  rest.get)
+                    .withBodyStream(
+                      ChunkedEncoding
+                        .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
+                    ),
+                  rest.get,
+                )
             }
           } else {
             Body.parseFixedBody(headerP.contentLength.getOrElse(0L), finalBuffer, read).map {
@@ -279,21 +294,23 @@ private[ember] object Parser {
 
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         buffer: Array[Byte],
-        read: Read[F]
+        read: Read[F],
     ): F[(Response[F], Drain[F])] =
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
           EitherT(RespPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
             .flatMap(prelude =>
-              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize)).tupleLeft(
-                prelude))
-            .value) { case (_, headerP) => headerP.idx }
+              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
+                .tupleLeft(prelude)
+            )
+            .value
+        ) { case (_, headerP) => headerP.idx }
         ((prelude, headerP), finalBuffer) = t
 
         baseResp = org.http4s.Response[F](
           httpVersion = prelude.version,
           status = prelude.status,
-          headers = headerP.headers
+          headers = headerP.headers,
         )
 
         resp <-
@@ -302,8 +319,10 @@ private[ember] object Parser {
               case (rest, trailers) =>
                 baseResp
                   .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                  .withBodyStream(ChunkedEncoding
-                    .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
+                  .withBodyStream(
+                    ChunkedEncoding
+                      .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
+                  ) ->
                   rest.get
             }
           } else {
@@ -321,7 +340,8 @@ private[ember] object Parser {
       // HTTP/1.1 200 OK
       // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
       def parsePrelude[F[_]](buffer: Array[Byte], maxHeaderSize: Int)(implicit
-          F: MonadThrow[F]): F[Either[Unit, RespPrelude]] = {
+          F: MonadThrow[F]
+      ): F[Either[Unit, RespPrelude]] = {
         var complete = false
         var idx = 0
         var throwable: Throwable = null
@@ -385,10 +405,11 @@ private[ember] object Parser {
           RespPrelude(httpVersion, status, idx).asRight.pure[F]
       }
 
-      case class RespPreludeError(message: String, cause: Option[Throwable])
+      final case class RespPreludeError(message: String, cause: Option[Throwable])
           extends Exception(
             s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
-            cause.orNull)
+            cause.orNull,
+          )
     }
   }
 
@@ -396,13 +417,15 @@ private[ember] object Parser {
     def parseFixedBody[F[_]: Concurrent](
         contentLength: Long,
         buffer: Array[Byte],
-        read: Read[F]): F[(EntityBody[F], Drain[F])] =
+        read: Read[F],
+    ): F[(EntityBody[F], Drain[F])] =
       if (contentLength > 0) {
         if (buffer.length >= contentLength) {
           val (body, rest) = buffer.splitAt(contentLength.toInt)
           (
             Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
-            (Some(rest): Option[Array[Byte]]).pure[F])
+            (Some(rest): Option[Array[Byte]]).pure[F],
+          )
             .pure[F]
         } else {
           val unread = contentLength - buffer.length
@@ -426,7 +449,8 @@ private[ember] object Parser {
         unread: Long,
         buffer: Array[Byte],
         nextBuffer: Ref[F, Option[Array[Byte]]],
-        read: Read[F]): Stream[F, Byte] = {
+        read: Read[F],
+    ): Stream[F, Byte] = {
       def go(remaining: Long): Pull[F, Byte, Unit] =
         Pull.eval(read).flatMap {
           case Some(chunk) =>

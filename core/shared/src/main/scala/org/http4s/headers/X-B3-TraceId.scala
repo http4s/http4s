@@ -18,13 +18,15 @@ package org.http4s
 package headers
 
 import cats.Applicative
-import cats.parse.{Parser0, Rfc5234}
+import cats.parse.Parser0
+import cats.parse.Rfc5234
 import cats.syntax.all._
+import org.http4s.parser.ZipkinHeader
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+import org.typelevel.ci._
 
 import java.util.UUID
-import org.http4s.parser.ZipkinHeader
-import org.http4s.util.{Renderable, Writer}
-import org.typelevel.ci._
 
 object `X-B3-TraceId` {
 
@@ -47,7 +49,7 @@ object `X-B3-TraceId` {
             xB3RenderValueImpl(writer, h.idMostSigBits, h.idLeastSigBits)
 
         },
-      parse
+      parse,
     )
 
 }

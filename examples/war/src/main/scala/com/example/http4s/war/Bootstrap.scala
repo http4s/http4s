@@ -17,12 +17,15 @@
 package com.example.http4s
 package war
 
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import cats.effect.std.Dispatcher
-import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s.servlet.syntax._
 
+import javax.servlet.ServletContextEvent
+import javax.servlet.ServletContextListener
 import javax.servlet.annotation.WebListener
-import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 @WebListener
 class Bootstrap extends ServletContextListener {
@@ -32,7 +35,9 @@ class Bootstrap extends ServletContextListener {
         .use(dispatcher =>
           IO(
             sce.getServletContext
-              .mountService("example", ExampleService[IO].routes, dispatcher = dispatcher)))
+              .mountService("example", ExampleService[IO].routes, dispatcher = dispatcher)
+          )
+        )
         .as(ExitCode.Success)
     }
     app.main(Array.empty)

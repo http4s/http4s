@@ -19,10 +19,9 @@ package org.http4s.servlet
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
-import java.security.cert.X509Certificate
-import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
@@ -31,10 +30,18 @@ import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
 
+import java.security.cert.X509Certificate
+import javax.servlet.ServletConfig
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpSession
+
 abstract class Http4sServlet[F[_]](
     service: HttpApp[F],
     servletIo: ServletIo[F],
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends HttpServlet {
   protected val logger = getLogger
 
@@ -62,7 +69,7 @@ abstract class Http4sServlet[F[_]](
   protected def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] = {
     val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
     renderResponse(response, servletResponse, bodyWriter)
@@ -71,7 +78,7 @@ abstract class Http4sServlet[F[_]](
   protected def renderResponse(
       response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] =
     F.delay {
       servletResponse.setStatus(response.status.code)
@@ -94,7 +101,8 @@ abstract class Http4sServlet[F[_]](
           .map { q =>
             s"${req.getRequestURI}?$q"
           }
-          .getOrElse(req.getRequestURI))
+          .getOrElse(req.getRequestURI)
+      )
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       method = method,
@@ -109,12 +117,14 @@ abstract class Http4sServlet[F[_]](
           Request.Connection(
             local = SocketAddress(
               IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
-              Port.fromInt(req.getLocalPort).get),
+              Port.fromInt(req.getLocalPort).get,
+            ),
             remote = SocketAddress(
               IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
-              Port.fromInt(req.getRemotePort).get),
-            secure = req.isSecure
-          )
+              Port.fromInt(req.getRemotePort).get,
+            ),
+            secure = req.isSecure,
+          ),
         )
         .insert(Request.Keys.ServerSoftware, serverSoftware)
         .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
@@ -127,9 +137,11 @@ abstract class Http4sServlet[F[_]](
             Option(
               req
                 .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
+                .asInstanceOf[Array[X509Certificate]]
+            ),
+          )
+            .mapN(SecureSession.apply),
+        ),
     )
 
   private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {

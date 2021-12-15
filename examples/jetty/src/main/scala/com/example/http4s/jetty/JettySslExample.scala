@@ -19,8 +19,8 @@ package com.example.http4s.jetty
 import cats.effect._
 import cats.syntax.all._
 import com.example.http4s.ssl
-import org.http4s.server.Server
 import org.http4s.jetty.server.JettyBuilder
+import org.http4s.server.Server
 
 object JettySslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

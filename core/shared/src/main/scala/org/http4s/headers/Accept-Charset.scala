@@ -20,7 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.CharsetRange.{Atom, `*`}
+import org.http4s.CharsetRange.*
+import org.http4s.CharsetRange.Atom
 import org.typelevel.ci._
 
 object `Accept-Charset` {
@@ -56,7 +57,7 @@ object `Accept-Charset` {
     Header.createRendered(
       ci"Accept-Charset",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Charset`] =
@@ -69,7 +70,7 @@ object `Accept-Charset` {
   *   This field allows user agents capable of understanding more
   * }}}
   *
-  * From [http//tools.ietf.org/html/rfc7231#section-5.3.3 RFC-7231].
+  * From [https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.3 RFC-7231].
   */
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) {
 

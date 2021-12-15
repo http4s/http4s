@@ -21,7 +21,6 @@ import cats.effect._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -29,7 +28,7 @@ object SimpleHttpServer extends IOApp {
 
   val app: Resource[IO, Server] =
     for {
-      server <- BlazeServerBuilder[IO](global)
+      server <- BlazeServerBuilder[IO]
         .bindHttp(8080)
         .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
         .resource
@@ -55,16 +54,16 @@ data over the wire again.
 
 ## Inline in a Route
 
-For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
+For custom behaviour, `StaticFile.fromPath` can also be used directly in a route, to respond with a file:
 
 ```scala mdoc:silent:nest
 import org.http4s._
 import org.http4s.dsl.io._
-import java.io.File
+import fs2.io.file.Path
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
-    StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
+    StaticFile.fromPath(Path("relative/path/to/index.html"), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```

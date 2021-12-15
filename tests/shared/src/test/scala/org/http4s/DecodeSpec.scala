@@ -18,18 +18,18 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.{decodeWithCharset, utf8}
+import fs2.text.decodeWithCharset
+import fs2.text.utf8
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 import java.nio.ByteBuffer
-import java.nio.charset.{
-  CodingErrorAction,
-  MalformedInputException,
-  StandardCharsets,
-  UnmappableCharacterException,
-  Charset => JCharset
-}
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.MalformedInputException
+import java.nio.charset.StandardCharsets
+import java.nio.charset.UnmappableCharacterException
+import java.nio.charset.{Charset => JCharset}
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
@@ -99,10 +99,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(0x80.toByte, 0x81.toByte)
       val decoded =
         source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
-      assert(decoded match {
-        case Left(_: UnmappableCharacterException) => true
-        case _ => false
-      })
+      val Left(_: UnmappableCharacterException) = decoded
     }
 
   if (Platform.isJvm)
@@ -120,10 +117,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(-1.toByte)
       val decoded =
         source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
+      val Left(_: MalformedInputException) = decoded
     }
 
   test("decode stream result should be consistent with nio's decode on full stream") {

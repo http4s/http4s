@@ -43,7 +43,7 @@ import org.typelevel.vault._
   * - the redirect is not followed otherwise
   *
   * Whenever we follow with a GET or HEAD, an empty body is sent, and
-  * all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
+  * all payload headers defined in https://datatracker.ietf.org/doc/html/rfc7231#section-3.3
   * are stripped.
   *
   * If the response does not contain a valid Location header, the redirect is
@@ -55,24 +55,26 @@ import org.typelevel.vault._
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
-      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders)(client: Client[F])(
-      implicit F: Concurrent[F]): Client[F] = {
+      sensitiveHeaderFilter: CIString => Boolean = Headers.SensitiveHeaders,
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] = {
     def nextRequest(
         req: Request[F],
         uri: Uri,
         method: Method,
-        cookies: List[ResponseCookie]): Request[F] = {
-      // https://tools.ietf.org/html/rfc7231#section-7.1.
+        cookies: List[ResponseCookie],
+    ): Request[F] = {
+      // https://datatracker.ietf.org/doc/html/rfc7231#section-7.1
       val nextUri = uri.copy(
         scheme = uri.scheme.orElse(req.uri.scheme),
         authority = uri.authority.orElse(req.uri.authority),
-        fragment = uri.fragment.orElse(req.uri.fragment)
+        fragment = uri.fragment.orElse(req.uri.fragment),
       )
 
       def stripSensitiveHeaders(req: Request[F]): Request[F] =
         if (req.uri.authority != nextUri.authority)
           req.transformHeaders(hs =>
-            Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name))))
+            Headers(hs.headers.filterNot(h => sensitiveHeaderFilter(h.name)))
+          )
         else
           req
 
@@ -98,7 +100,8 @@ object FollowRedirect {
     def redirectLoop(
         req: Request[F],
         redirects: Int,
-        hotswap: Hotswap[F, Response[F]]): F[Response[F]] =
+        hotswap: Hotswap[F, Response[F]],
+    ): F[Response[F]] =
       hotswap.clear *> // Release the prior connection before allocating a new
         hotswap.swap(client.run(req)).flatMap { resp =>
           val l: Option[Location] = resp.headers.get[Location]

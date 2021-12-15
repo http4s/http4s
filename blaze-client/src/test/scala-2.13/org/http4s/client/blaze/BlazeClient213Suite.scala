@@ -32,9 +32,9 @@ class BlazeClient213Suite extends BlazeClientBase {
 
   test("reset request timeout".flaky) {
     val addresses = server().addresses
-    val address = addresses.head.toInetSocketAddress
-    val name = address.getHostName
-    val port = address.getPort
+    val address = addresses.head
+    val name = address.host
+    val port = address.port
 
     Ref[IO]
       .of(0L)
@@ -49,10 +49,10 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock") {
-    val addresses = server().addresses.map(_.toInetSocketAddress)
+    val addresses = server().addresses
     val hosts = addresses.map { address =>
-      val name = address.getHostName
-      val port = address.getPort
+      val name = address.host
+      val port = address.port
       Uri.fromString(s"http://$name:$port/simple").yolo
     }
 
@@ -69,18 +69,18 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("behave and not deadlock on failures with parTraverse") {
-    val addresses = server().addresses.map(_.toInetSocketAddress)
+    val addresses = server().addresses
     builder(3).resource
       .use { client =>
         val failedHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/internal-server-error").yolo
         }
 
         val successHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/simple").yolo
         }
 
@@ -108,18 +108,18 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("Blaze Http1Client should behave and not deadlock on failures with parSequence".flaky) {
-    val addresses = server().addresses.map(_.toInetSocketAddress)
+    val addresses = server().addresses
     builder(3).resource
       .use { client =>
         val failedHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/internal-server-error").yolo
         }
 
         val successHosts = addresses.map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/simple").yolo
         }
 
@@ -145,20 +145,22 @@ class BlazeClient213Suite extends BlazeClientBase {
   }
 
   test("call a second host after reusing connections on a first") {
-    val addresses = server().addresses.map(_.toInetSocketAddress)
+    val addresses = server().addresses
     // https://github.com/http4s/http4s/pull/2546
     builder(maxConnectionsPerRequestKey = Int.MaxValue, maxTotalConnections = 5).resource
       .use { client =>
         val uris = addresses.take(2).map { address =>
-          val name = address.getHostName
-          val port = address.getPort
+          val name = address.host
+          val port = address.port
           Uri.fromString(s"http://$name:$port/simple").yolo
         }
         val s = Stream(
           Stream.eval(
             client.expect[String](Request[IO](uri = uris(0)))
-          )).repeat.take(10).parJoinUnbounded ++ Stream.eval(
-          client.expect[String](Request[IO](uri = uris(1))))
+          )
+        ).repeat.take(10).parJoinUnbounded ++ Stream.eval(
+          client.expect[String](Request[IO](uri = uris(1)))
+        )
         s.compile.lastOrError
       }
       .assertEquals("simple path")

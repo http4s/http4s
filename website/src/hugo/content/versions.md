@@ -17,14 +17,14 @@
 * _I'll upgrade to Scala 3 before Cats-Effect 3:_ ${version.http4s.latest.0.22}
 * _I'm ready for Cats-Effect 3:_ ${version.http4s.latest.0.23}
 * _I'm new here, pick one:_ ${version.http4s.latest.0.23}
-* _I'm using Scala.js serverless or in the [browser](https://github.com/http4s/http4s-dom):_ ${version.http4s.latest.0.23}
+* _I'm using Scala.js serverless or in the [browser](https://http4s.github.io/http4s-dom):_ ${version.http4s.latest.0.23}
 * _I live on the bleeding edge:_ ${version.http4s.latest.1.0}
 
 
 | http4s                                   | Status                                  | Scala 2.11    | Scala 2.12    | Scala 2.13    | Scala 3       | Scala.js 1.x  | cats | fs2 | JDK |
 | ---------------------------------------- | --------------------------------------- | ------------- | ------------- | ------------- | ------------- | ------------- | --- | --- | ---- |
-| [${version.http4s.latest.1.0}](/v1.0/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
-| [${version.http4s.latest.0.23}](/v0.23/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
+| [${version.http4s.latest.1.0}](/v1.0/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.1           | 1.7           | 2.x | 3.x | 1.8+ |
+| [${version.http4s.latest.0.23}](/v0.23/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.1           | 1.7           | 2.x | 3.x | 1.8+ |
 | [${version.http4s.latest.0.22}](/v0.22/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | @:icon(error) | 2.x | 2.x | 1.8+ |
 | [${version.http4s.latest.0.21}](/v0.21/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | 2.x | 2.x | 1.8+ |
 | ${version.http4s.latest.0.20}            | @:style(version-label, eol)EOL@:@       | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | @:icon(error) | 1.x | 1.x | 1.8+ |

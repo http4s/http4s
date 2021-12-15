@@ -39,7 +39,8 @@ private[authentication] object NonceKeeper {
 private[authentication] class NonceKeeper(
     staleTimeout: Long,
     nonceCleanupInterval: Long,
-    bits: Int) {
+    bits: Int,
+) {
   require(bits > 0, "Please supply a positive integer for bits.")
   private val nonces = new LinkedHashMap[String, Nonce]
   private var lastCleanup = System.currentTimeMillis()

@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.effect.unsafe.IORuntime
+
 import scala.scalajs.js
 import scala.util.Try
 

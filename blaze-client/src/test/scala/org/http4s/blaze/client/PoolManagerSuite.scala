@@ -23,9 +23,13 @@ import cats.effect.std._
 import cats.implicits._
 import com.comcast.ip4s._
 import fs2.Stream
-import java.net.InetSocketAddress
-import org.http4s.client.{Connection, ConnectionBuilder, ConnectionFailure, RequestKey}
+import org.http4s.client.Connection
+import org.http4s.client.ConnectionBuilder
+import org.http4s.client.ConnectionFailure
+import org.http4s.client.RequestKey
 import org.http4s.syntax.AllSyntax
+
+import java.net.InetSocketAddress
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -44,7 +48,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       maxTotal: Int,
       maxWaitQueueLimit: Int,
       requestTimeout: Duration = Duration.Inf,
-      builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection())
+      builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection()),
   ) =
     ConnectionManager.pool(
       builder = builder,
@@ -53,7 +57,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       maxConnectionsPerRequestKey = _ => 5,
       responseHeaderTimeout = Duration.Inf,
       requestTimeout = requestTimeout,
-      executionContext = ExecutionContext.Implicits.global
+      executionContext = ExecutionContext.Implicits.global,
     )
 
   test("A pool manager should wait up to maxWaitQueueLimit") {
@@ -83,7 +87,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
           .compile
           .toList
           .attempt
-    } yield assert(att == Left(WaitQueueFullFailure()))
+    } yield assertEquals(att, Left(WaitQueueFullFailure()))
   }
 
   test("A pool manager should wake up a waiting connection on release") {
@@ -98,7 +102,8 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
 
   // this is a regression test for https://github.com/http4s/http4s/issues/2962
   test(
-    "A pool manager should fail expired connections and then wake up a non-expired waiting connection on release") {
+    "A pool manager should fail expired connections and then wake up a non-expired waiting connection on release"
+  ) {
     val timeout = 50.milliseconds
     for {
       pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 3, requestTimeout = timeout)
@@ -139,7 +144,8 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
   }
 
   test(
-    "A pool manager should wake up a waiting connection for a different request key on release") {
+    "A pool manager should wake up a waiting connection for a different request key on release"
+  ) {
     for {
       pool <- mkPool(maxTotal = 1, maxWaitQueueLimit = 1)
       conn <- pool.borrow(key)
@@ -162,7 +168,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
         maxWaitQueueLimit = 10,
         builder = _ =>
           isEstablishingConnectionsPossible.get
-            .ifM(IO(new TestConnection()), IO.raiseError(connectionFailure))
+            .ifM(IO(new TestConnection()), IO.raiseError(connectionFailure)),
       )
       conn1 <- pool.borrow(key)
       conn2Fiber <- pool.borrow(key).start
@@ -186,7 +192,8 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
   }
 
   test(
-    "A pool manager should not deadlock after an attempt to create a connection is canceled".fail) {
+    "A pool manager should not deadlock after an attempt to create a connection is canceled".fail
+  ) {
     for {
       isEstablishingConnectionsHangs <- Ref[IO].of(true)
       connectionAttemptsStarted <- Semaphore[IO](0L)
@@ -195,7 +202,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
         maxWaitQueueLimit = 10,
         builder = _ =>
           connectionAttemptsStarted.release >>
-            isEstablishingConnectionsHangs.get.ifM(IO.never, IO(new TestConnection()))
+            isEstablishingConnectionsHangs.get.ifM(IO.never, IO(new TestConnection())),
       )
       conn1Fiber <- pool.borrow(key).start
       // wait for the first connection attempt to start before we cancel it

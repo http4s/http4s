@@ -17,32 +17,32 @@
 package org.http4s
 package twirl
 
-import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
 import _root_.play.twirl.api._
+import org.http4s.Charset.`UTF-8`
+import org.http4s.MediaType
+import org.http4s.headers.`Content-Type`
 
 trait TwirlInstances {
-  implicit def htmlContentEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[Html] =
+  implicit def htmlContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Html] =
     contentEncoder(MediaType.text.html)
 
   /** Note: Twirl uses a media type of `text/javascript`.  This is obsolete, so we instead return
     * `application/javascript`.
     */
   implicit def jsContentEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[JavaScript] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder.Pure[JavaScript] =
     contentEncoder(MediaType.application.javascript)
 
-  implicit def xmlContentEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[Xml] =
+  implicit def xmlContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Xml] =
     contentEncoder(MediaType.application.xml)
 
-  implicit def txtContentEncoder(implicit
-      charset: Charset = DefaultCharset): EntityEncoder.Pure[Txt] =
+  implicit def txtContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Txt] =
     contentEncoder(MediaType.text.plain)
 
-  private def contentEncoder[C <: Content](mediaType: MediaType)(implicit
-      charset: Charset): EntityEncoder.Pure[C] =
+  private def contentEncoder[C <: Content](
+      mediaType: MediaType
+  )(implicit charset: Charset): EntityEncoder.Pure[C] =
     EntityEncoder.stringEncoder
       .contramap[C](content => content.body)
       .withContentType(`Content-Type`(mediaType, charset))

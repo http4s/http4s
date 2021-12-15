@@ -17,9 +17,10 @@
 package org.http4s
 package parser
 
-import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective._
+import org.http4s.headers.`Cache-Control`
 import org.typelevel.ci._
+
 import scala.concurrent.duration._
 
 class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {
@@ -31,14 +32,16 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
     `only-if-cached`,
     `public`,
     `must-revalidate`,
-    `proxy-revalidate`)
+    `proxy-revalidate`,
+  )
 
   val numberdirectives = List(
     `max-age`(0.seconds),
     `min-fresh`(1.second),
     `s-maxage`(2.seconds),
     `stale-if-error`(3.seconds),
-    `stale-while-revalidate`(4.seconds))
+    `stale-while-revalidate`(4.seconds),
+  )
 
   val strdirectives =
     List(`private`(ci"Foo" :: Nil), `private`(Nil), `no-cache`(ci"Foo" :: Nil), `no-cache`())
@@ -47,7 +50,8 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
     `max-stale`(None),
     `max-stale`(Some(2.seconds)),
     CacheDirective("Foo", None),
-    CacheDirective("Foo", Some("Bar")))
+    CacheDirective("Foo", Some("Bar")),
+  )
 
   test("CacheControl parser should Generate correct directive values") {
     valueless.foreach { v =>

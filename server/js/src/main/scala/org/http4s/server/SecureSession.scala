@@ -18,5 +18,4 @@ package org.http4s.server
 
 import scodec.bits.ByteVector
 
-// TODO not sure about this representation
-final case class SecureSession(raw: ByteVector)
+final class SecureSession private[http4s] (val raw: ByteVector)

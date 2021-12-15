@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.server
+package org.http4s.headers
 
-import com.comcast.ip4s
+import org.http4s.laws.discipline.arbitrary._
 
-private[server] trait DefaultsPlatform { self: defaults.type =>
-
-  val IPv4Host: String = "127.0.0.1"
-  val IPv6Host: String = "0:0:0:0:0:0:0:1"
-
-  val IPv4SocketAddress: ip4s.SocketAddress[ip4s.Ipv4Address] =
-    ip4s.SocketAddress.fromString4(s"$IPv4Host:$HttpPort").get
-
-  val IPv6SocketAddress: ip4s.SocketAddress[ip4s.Ipv6Address] =
-    ip4s.SocketAddress.fromString6(s"[$IPv6Host]:$HttpPort").get
-
+class AccessControlAllowMethodsSuite extends HeaderLaws {
+  checkAll("Access-Control-Allow-Methods", headerLaws[`Access-Control-Allow-Methods`])
 }

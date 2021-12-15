@@ -29,7 +29,8 @@ class MediaRangeSpec extends Http4sSuite {
       "aiff",
       MediaType.Compressible,
       MediaType.Binary,
-      List("aif", "aiff", "aifc"))
+      List("aif", "aiff", "aifc"),
+    )
 
   def ext = Map("foo" -> "bar")
 
@@ -95,10 +96,10 @@ class MediaRangeSpec extends Http4sSuite {
     val r = `text/*`
     val t = `text/asp`
 
-    assert(r != t)
-    assert(t != r)
+    assertNotEquals[Any, Any](r, t)
+    assertNotEquals[Any, Any](t, r)
 
-    assert(r.withExtensions(ext) != t.withExtensions(ext))
-    assert(t.withExtensions(ext) != r.withExtensions(ext))
+    assertNotEquals[Any, Any](r.withExtensions(ext), t.withExtensions(ext))
+    assertNotEquals[Any, Any](t.withExtensions(ext), r.withExtensions(ext))
   }
 }

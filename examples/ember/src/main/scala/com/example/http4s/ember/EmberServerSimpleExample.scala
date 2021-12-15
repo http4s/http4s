@@ -16,18 +16,19 @@
 
 package com.example.http4s.ember
 
-import fs2._
+import _root_.io.circe._
+import _root_.org.http4s.ember.server.EmberServerBuilder
 import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s._
+import fs2._
 import org.http4s._
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
-import _root_.io.circe._
-import _root_.org.http4s.ember.server.EmberServerBuilder
+import org.http4s.dsl.Http4sDsl
+import org.http4s.implicits._
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
+
 import scala.concurrent.duration._
 
 object EmberServerSimpleExample extends IOApp {
@@ -47,7 +48,8 @@ object EmberServerSimpleExample extends IOApp {
     } yield server
   }.use(server =>
     IO.delay(println(s"Server Has Started at ${server.address}")) >>
-      IO.never.as(ExitCode.Success))
+      IO.never.as(ExitCode.Success)
+  )
 
   def service[F[_]: Async](wsb: WebSocketBuilder[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}

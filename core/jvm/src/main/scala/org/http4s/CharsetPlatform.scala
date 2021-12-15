@@ -16,8 +16,9 @@
 
 package org.http4s
 
-import java.nio.charset.{Charset => NioCharset}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
+
+import java.nio.charset.{Charset => NioCharset}
 
 private[http4s] trait CharsetCompanionPlatform {
   private[http4s] def availableCharsets =

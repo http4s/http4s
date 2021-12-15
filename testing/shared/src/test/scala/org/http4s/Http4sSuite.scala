@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.effect.{IO, Resource}
+import cats.effect.IO
+import cats.effect.Resource
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._

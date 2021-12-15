@@ -23,7 +23,7 @@ import org.log4s.getLogger
 abstract class Server {
   private[server] val logger = getLogger
 
-  def address: ip4s.SocketAddress[ip4s.Host]
+  def address: ip4s.SocketAddress[ip4s.IpAddress]
 
   def baseUri: Uri =
     Uri(
@@ -35,13 +35,11 @@ abstract class Server {
               Uri.Ipv4Address(ipv4)
             case ipv6: ip4s.Ipv6Address =>
               Uri.Ipv6Address(ipv6)
-            case weird =>
-              logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
-              Uri.RegName(weird.toString())
           },
-          port = Some(address.port.value)
-        )),
-      path = Uri.Path.Root
+          port = Some(address.port.value),
+        )
+      ),
+      path = Uri.Path.Root,
     )
 
   def isSecure: Boolean

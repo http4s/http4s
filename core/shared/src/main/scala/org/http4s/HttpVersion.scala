@@ -16,12 +16,15 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
-import cats.syntax.all._
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
-import cats.parse.{Parser => P}
 import cats.parse.Rfc5234.digit
+import cats.parse.{Parser => P}
+import cats.syntax.all._
 import org.http4s.util._
+
 import scala.annotation.nowarn
 
 /** HTTP's version number consists of two decimal digits separated by
@@ -39,9 +42,11 @@ import scala.annotation.nowarn
   * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
   * HTTP Semantics, Protocol Versioning]]
   */
+// scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
 final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
+  // scalafix:on
 
   /** Renders as an HTTP/1.1 string
     *
@@ -63,7 +68,7 @@ final case class HttpVersion private (major: Int, minor: Int)
     (this.major, this.minor).compare((that.major, that.minor))
 
   @deprecated("Does not range check parameters. Will be removed from public API in 1.0.", "0.22.6")
-  @nowarn("cat=unused")
+  @nowarn("msg=never used")
   private def copy(major: Int = major, minor: Int = minor): HttpVersion =
     new HttpVersion(major, minor)
 }
@@ -145,7 +150,7 @@ object HttpVersion {
     `HTTP/1.0`,
     `HTTP/1.1`,
     `HTTP/2`,
-    `HTTP/3`
+    `HTTP/3`,
   )
 
   private[this] val right_1_0 = Right(`HTTP/1.0`)
