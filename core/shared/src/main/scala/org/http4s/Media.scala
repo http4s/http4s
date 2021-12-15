@@ -41,10 +41,10 @@ trait Media[+F[_]] {
 
 object Media {
 
-  implicit class InvariantOps[F[_]](private val self: Media[F]) extends AnyVal {
+  implicit final class InvariantOps[F[_]](private val self: Media[F]) extends AnyVal {
     import self._
 
-    final def bodyText(implicit
+    def bodyText(implicit
         RT: RaiseThrowable[F],
         defaultCharset: Charset = `UTF-8`,
     ): Stream[F, String] = {
@@ -60,7 +60,7 @@ object Media {
       * @tparam T type of the result
       * @return the effect which will generate the `DecodeResult[T]`
       */
-    final def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+    def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
       decoder.decode(self, strict = false)
 
     /** Decode the [[Media]] to the specified type
@@ -71,7 +71,7 @@ object Media {
       * @tparam A type of the result
       * @return the effect which will generate the A
       */
-    final def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
+    def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
       F.rethrow(attemptAs.value)
   }
 
