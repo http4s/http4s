@@ -37,7 +37,7 @@ trait Http4sClientDsl[F[_]] {
 }
 
 object Http4sClientDsl {
-  def apply[F[_]]: Http4sClientDsl[F] = new Http4sClientDsl[F[_]] {}
+  def apply[F[_]]: Http4sClientDsl[F] = new Http4sClientDsl[F] {}
 }
 
 class MethodOps[F[_]](private val method: Method) extends AnyVal {
