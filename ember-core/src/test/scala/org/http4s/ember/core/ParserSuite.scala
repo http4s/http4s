@@ -43,7 +43,6 @@ class ParsingSuite extends Http4sSuite {
     def parseRequestRig[F[_]: Concurrent](s: String): F[Request[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
-        .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
 
@@ -55,7 +54,6 @@ class ParsingSuite extends Http4sSuite {
     def parseResponseRig[F[_]: Concurrent](s: String): Resource[F, Response[F]] = {
       val byteStream: Stream[F, Byte] = Stream
         .emit(s)
-        .covary[F]
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
 
@@ -214,7 +212,6 @@ class ParsingSuite extends Http4sSuite {
 
     val byteStream = Stream
       .emit(raw)
-      .covary[IO]
       .map(Helpers.httpifyString)
       .through(text.utf8.encode)
 
@@ -344,7 +341,6 @@ class ParsingSuite extends Http4sSuite {
 
     val byteStream = Stream
       .emit(raw)
-      .covary[IO]
       .map(Helpers.httpifyString)
       .through(text.utf8.encode)
 
@@ -569,7 +565,6 @@ class ParsingSuite extends Http4sSuite {
 
     val byteStream = Stream
       .emit(raw)
-      .covary[IO]
       .map(Helpers.httpifyString)
       .through(text.utf8.encode)
 

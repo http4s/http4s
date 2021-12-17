@@ -67,9 +67,7 @@ object EmberServerSimpleExample extends IOApp {
         case GET -> Root / "hello" / name =>
           Ok(show"Hi $name!")
         case GET -> Root / "chunked" =>
-          val body = Stream("This IS A CHUNK\n")
-            .covary[F]
-            .repeat
+          val body = Stream("This IS A CHUNK\n").repeat
             .take(100)
             .through(fs2.text.utf8.encode[F])
           Ok(body).map(_.withContentType(headers.`Content-Type`(MediaType.text.plain)))

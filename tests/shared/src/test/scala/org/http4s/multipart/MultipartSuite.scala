@@ -184,7 +184,7 @@ I am a big moose
     test(s"Multipart form data $name should extract name properly if it is present") {
       val part = Part(
         Headers(`Content-Disposition`("form-data", Map(ci"name" -> "Rich Homie Quan"))),
-        Stream.empty.covary[IO],
+        Stream.empty,
       )
       assertEquals(part.name, Some("Rich Homie Quan"))
     }
@@ -194,7 +194,7 @@ I am a big moose
         Headers(
           `Content-Disposition`("form-data", Map(ci"name" -> "file", ci"filename" -> "file.txt"))
         ),
-        Stream.empty.covary[IO],
+        Stream.empty,
       )
       assertEquals(part.filename, Some("file.txt"))
     }

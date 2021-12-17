@@ -22,7 +22,7 @@ import fs2.Stream
 import fs2.text.utf8
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.effect._
+import org.scalacheck.Prop
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -139,16 +139,15 @@ class ServerSentEventSpec extends Http4sSuite {
   }
 
   test("encode should be consistent with decode") {
-    PropF.forAllF { (sses: Vector[ServerSentEvent]) =>
+    Prop.forAll { (sses: Vector[ServerSentEvent]) =>
       val roundTrip = Stream
         .emits(sses)
-        .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
         .dropLast
-        .compile
         .toVector
-      roundTrip.assertEquals(sses)
+
+      assertEquals(roundTrip, sses)
     }
   }
 
@@ -160,15 +159,16 @@ class ServerSentEventSpec extends Http4sSuite {
       Some(EventId(" c")),
       Some(FiniteDuration(1, TimeUnit.MILLISECONDS)),
     )
-    Stream
+
+    val roundTrip = Stream
       .emit(sse)
-      .covary[IO]
       .through(ServerSentEvent.encoder)
       .through(ServerSentEvent.decoder)
       .dropLast
       .compile
       .last
-      .assertEquals(Some(sse))
+
+    assertEquals(roundTrip, Some(sse))
   }
 
   val eventStream: Stream[IO, ServerSentEvent] =

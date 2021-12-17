@@ -73,7 +73,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
     if (parts.isEmpty)
-      Stream.empty.covary[F]
+      Stream.empty
     else
       parts.tail
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>

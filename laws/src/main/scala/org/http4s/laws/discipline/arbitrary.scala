@@ -870,7 +870,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body.covary[F], length)
+      } yield Entity(body, length)
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
