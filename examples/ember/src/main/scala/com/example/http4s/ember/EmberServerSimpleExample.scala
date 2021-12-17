@@ -68,7 +68,6 @@ object EmberServerSimpleExample extends IOApp {
           Ok(show"Hi $name!")
         case GET -> Root / "chunked" =>
           val body = Stream("This IS A CHUNK\n")
-            .covary[F]
             .repeat
             .take(100)
             .through(fs2.text.utf8.encode[F])

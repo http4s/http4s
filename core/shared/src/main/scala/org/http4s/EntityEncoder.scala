@@ -97,7 +97,7 @@ object EntityEncoder {
   def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity[F](Stream.chunk(c), Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */

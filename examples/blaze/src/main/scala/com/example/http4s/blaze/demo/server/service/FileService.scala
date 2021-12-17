@@ -35,7 +35,7 @@ class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
 
   def directories(path: String, depth: Int): Stream[F, String] = {
     def dir(f: File, d: Int): Stream[F, File] = {
-      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory).covary[F]
+      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory)
 
       if (d <= 0) Stream.empty
       else if (d == 1) dirs

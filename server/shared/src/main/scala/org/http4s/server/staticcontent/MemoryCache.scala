@@ -58,7 +58,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
     resp
       .as[Chunk[Byte]]
       .map { chunk =>
-        val newResponse: Response[F] = resp.copy(body = Stream.chunk(chunk).covary[F])
+        val newResponse: Response[F] = resp.copy(body = Stream.chunk(chunk))
         cacheMap.put(path, newResponse)
         newResponse
       }

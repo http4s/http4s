@@ -81,7 +81,7 @@ private[ember] object Util {
           out <- read.fold[Stream[F, Byte]](
             Stream.empty
           )(
-            Stream.chunk(_).covary[F] ++ go(remains - (end - start).millis)
+            Stream.chunk(_) ++ go(remains - (end - start).millis)
           )
         } yield out
     def go(remains: FiniteDuration): Stream[F, Byte] =

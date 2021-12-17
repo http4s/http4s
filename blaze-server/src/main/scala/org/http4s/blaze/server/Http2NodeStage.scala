@@ -159,7 +159,7 @@ private class Http2NodeStage[F[_]](
       }
     }
 
-    repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F])
+    repeatEval(t).unNoneTerminate.flatMap(chunk(_))
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {

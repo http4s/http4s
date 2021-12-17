@@ -93,7 +93,7 @@ class EmberServerSuite extends Http4sSuite {
       import org.http4s.client.dsl.io._
 
       val body: Stream[IO, Byte] =
-        Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8.encode).covary[IO]
+        Stream.emit("hello").repeatN(256).through(fs2.text.utf8.encode)
       val expected = "hello" * 256
 
       val uri = Uri

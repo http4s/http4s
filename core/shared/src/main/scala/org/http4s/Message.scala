@@ -718,7 +718,7 @@ object Response extends KleisliSyntax {
       ),
     )
 
-  def notFound[F[_]]: Response[F] = pureNotFound.covary[F].copy(body = pureNotFound.body.covary[F])
+  def notFound[F[_]]: Response[F] = pureNotFound.covary[F]
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(implicit
       encoder: EntityEncoder[F, String]
