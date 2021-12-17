@@ -163,11 +163,11 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfInteger.fromLong should fail with invalid values") {
-    assert(SfInteger.fromLong(1000000000000000L) == None)
+    assertEquals(SfInteger.fromLong(1000000000000000L), None)
   }
 
   test("SfInteger.fromInt should create values correctly") {
-    assert(SfInteger.fromInt(999).value == 999L)
+    assertEquals(SfInteger.fromInt(999).value, 999L)
   }
 
   /* SfDecimal */
@@ -212,13 +212,16 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfDecimal.fromBigDecimal should fail with invalid values") {
-    assert(SfDecimal.fromBigDecimal(BigDecimal("1000000000000.1")) == None)
+    assertEquals(SfDecimal.fromBigDecimal(BigDecimal("1000000000000.1")), None)
   }
 
   test("SfDecimal.render should scale numbers correctly") {
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99.998765")).map(_.renderString) == Some("99.999"))
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99.99")).map(_.renderString) == Some("99.99"))
-    assert(SfDecimal.fromBigDecimal(BigDecimal("99")).map(_.renderString) == Some("99.0"))
+    assertEquals(
+      SfDecimal.fromBigDecimal(BigDecimal("99.998765")).map(_.renderString),
+      Some("99.999"),
+    )
+    assertEquals(SfDecimal.fromBigDecimal(BigDecimal("99.99")).map(_.renderString), Some("99.99"))
+    assertEquals(SfDecimal.fromBigDecimal(BigDecimal("99")).map(_.renderString), Some("99.0"))
   }
 
   /* SfString */
@@ -263,7 +266,7 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfString.fromString should fail with invalid strings") {
-    assert(SfString.fromString("123\tabc") == None)
+    assertEquals(SfString.fromString("123\tabc"), None)
   }
 
   /* SfToken */
@@ -304,7 +307,7 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfToken.fromString should fail with invalid strings") {
-    assert(SfToken.fromString("123abc") == None)
+    assertEquals(SfToken.fromString("123abc"), None)
   }
 
   /* SfBinary */
@@ -342,8 +345,8 @@ class StructuredFieldSuite extends Http4sSuite {
   /* SfBoolean */
 
   test("SfBoolean.parser should parse valid strings") {
-    assert(SfBoolean.parser.parseAll("?0") == Right(SfBoolean(false)))
-    assert(SfBoolean.parser.parseAll("?1") == Right(SfBoolean(true)))
+    assertEquals(SfBoolean.parser.parseAll("?0"), Right(SfBoolean(false)))
+    assertEquals(SfBoolean.parser.parseAll("?1"), Right(SfBoolean(true)))
   }
 
   test("SfBoolean.parser should fail with invalid strings") {
@@ -351,8 +354,8 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("SfBoolean.render should render values correctly") {
-    assert(SfBoolean(false).renderString == "?0")
-    assert(SfBoolean(true).renderString == "?1")
+    assertEquals(SfBoolean(false).renderString, "?0")
+    assertEquals(SfBoolean(true).renderString, "?1")
   }
 
   /* BareItem */
@@ -449,7 +452,7 @@ class StructuredFieldSuite extends Http4sSuite {
   }
 
   test("Key.fromString should fail with invalid strings") {
-    assert(Key.fromString("invalid-Key") == None)
+    assertEquals(Key.fromString("invalid-Key"), None)
   }
 
   /* Parameters */
