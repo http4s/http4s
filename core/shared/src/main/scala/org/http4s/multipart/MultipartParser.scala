@@ -75,12 +75,12 @@ object MultipartParser {
       .evalMapAccumulate[F, Option[Part[F]], Option[Part[F]]](None) { (acc, item) =>
         (acc, item) match {
           case (None, PartStart(headers)) =>
-            F.pure((Some(Part(headers, Stream.empty)), None))
+            F.pure((Some(Part(headers, Entity.empty)), None))
           // Shouldn't happen if the `parseToEventsStream` contract holds.
           case (None, (_: PartChunk | PartEnd)) =>
             F.raiseError(bug("Missing PartStart"))
           case (Some(acc0), PartChunk(chunk)) =>
-            F.pure((Some(acc0.copy(body = acc0.body ++ Stream.chunk(chunk))), None))
+            F.pure((Some(acc0.copy(entity = Entity(acc0.body ++ Stream.chunk(chunk)))), None))
           case (Some(_), PartEnd) =>
             // Part done - emit it and start over.
             F.pure((None, acc))
@@ -516,7 +516,7 @@ object MultipartParser {
               case (PartStart(headers), s) =>
                 partBodyFileStream(s, maxSizeBeforeWrite)
                   .flatMap { case (body, rest) =>
-                    Pull.output1(Part(headers, body)).as(rest)
+                    Pull.output1(Part(headers, Entity(body))).as(rest)
                   }
               // Shouldn't happen if the `parseToEventsStream` contract holds.
               case (_: PartChunk | PartEnd, _) =>
@@ -699,7 +699,7 @@ object MultipartParser {
       case (Some((headers, acc)), PartEnd) =>
         // Part done - emit it and start over.
         stepPartEnd(acc)
-          .map(body => (None, Some(Part(headers, body))))
+          .map(body => (None, Some(Part(headers, Entity(body)))))
       // Shouldn't happen if the `parseToEventsStream` contract holds.
       case (Some(_), _: PartStart) =>
         F.raiseError(bug("Missing PartEnd"))

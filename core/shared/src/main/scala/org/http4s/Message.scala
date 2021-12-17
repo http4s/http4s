@@ -49,12 +49,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def httpVersion: HttpVersion
 
-  def headers: Headers
-
-  def entity: Entity[F]
-
-  final def body: EntityBody[F] = entity.body
-
   def attributes: Vault
 
   protected def change(

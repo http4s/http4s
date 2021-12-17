@@ -181,7 +181,7 @@ I am a big moose
     test(s"Multipart form data $name should extract name properly if it is present") {
       val part = Part(
         Headers(`Content-Disposition`("form-data", Map(ci"name" -> "Rich Homie Quan"))),
-        Stream.empty.covary[IO],
+        Entity.empty,
       )
       assertEquals(part.name, Some("Rich Homie Quan"))
     }
@@ -191,7 +191,7 @@ I am a big moose
         Headers(
           `Content-Disposition`("form-data", Map(ci"name" -> "file", ci"filename" -> "file.txt"))
         ),
-        Stream.empty.covary[IO],
+        Entity.empty,
       )
       assertEquals(part.filename, Some("file.txt"))
     }
@@ -215,7 +215,7 @@ I am a big moose
   }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  def testPart[F[_]] = Part[F](Headers.empty, Entity.empty)
 
   test("Part.covary should disallow unrelated effects") {
     assert(
