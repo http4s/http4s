@@ -18,10 +18,17 @@ package org.http4s
 
 import cats.Monoid
 import cats.syntax.all._
+import cats.~>
 
 final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None)
 
 object Entity {
+  implicit class InvariantOps[F[_]](private val self: Entity[F]) extends AnyVal {
+    import self._
+
+    def translate[G[_]](fk: F ~> G): Entity[G] = Entity(body.translate(fk), length)
+  }
+
   implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =
     new Monoid[Entity[F]] {
       def combine(a1: Entity[F], a2: Entity[F]): Entity[F] =

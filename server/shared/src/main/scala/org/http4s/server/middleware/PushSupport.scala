@@ -50,7 +50,7 @@ object PushSupport {
         .getOrElse(Vector(PushLocation(newUrl, cascade)))
 
       response.copy(
-        body = response.body,
+        entity = response.entity,
         attributes = response.attributes.insert(PushSupport.pushLocationKey, newPushResouces),
       )
     }
@@ -100,8 +100,7 @@ object PushSupport {
         .map { fresource =>
           val collected = collectResponse(fresource, req, verify, routes)
           resp.copy(
-            body = resp.body,
-            attributes = resp.attributes.insert(pushResponsesKey[F], collected),
+            attributes = resp.attributes.insert(pushResponsesKey[F], collected)
           )
         }
         .getOrElse(resp)

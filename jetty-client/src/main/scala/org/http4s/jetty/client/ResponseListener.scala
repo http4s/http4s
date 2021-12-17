@@ -56,14 +56,14 @@ private[jetty] final case class ResponseListener[F[_]](
             status = s,
             httpVersion = getHttpVersion(response.getVersion),
             headers = getHeaders(response.getHeaders),
-            body = Stream.fromQueueNoneTerminated(queue).repeatPull {
+            entity = Entity(Stream.fromQueueNoneTerminated(queue).repeatPull {
               _.uncons1.flatMap {
                 case None => Pull.pure(None)
                 case Some((Item.Done, _)) => Pull.pure(None)
                 case Some((Item.Buf(b), tl)) => Pull.output(Chunk.byteBuffer(b)).as(Some(tl))
                 case Some((Item.Raise(t), _)) => Pull.raiseError[F](t)
               }
-            },
+            }),
           )
         )
       }

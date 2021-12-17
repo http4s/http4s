@@ -388,7 +388,7 @@ lazy val client = libraryCrossProject("client")
   .jvmSettings(
     libraryDependencies ++= Seq(
       nettyBuffer % Test,
-      nettyCodecHttp % Test
+      nettyCodecHttp % Test,
     )
   )
   .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")

@@ -225,7 +225,7 @@ object Client {
           Resource
             .eval(app(req0))
             .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
-            .map(resp => resp.copy(body = go(resp.body).stream))
+            .map(resp => resp.copy(entity = Entity(go(resp.body).stream)))
         }
       }
     }

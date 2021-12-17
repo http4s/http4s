@@ -83,10 +83,12 @@ object ResponseLogger {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               Resource.make(
                 F.pure(
-                  response.copy(body =
-                    response.body
-                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                  response.copy(entity =
+                    Entity(
+                      response.body
+                        // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                        .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                    )
                   )
                 )
               ) { _ =>

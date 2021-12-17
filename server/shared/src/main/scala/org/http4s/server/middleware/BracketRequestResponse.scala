@@ -125,9 +125,10 @@ object BracketRequestResponse {
             bracketRoutes(contextRequest)
               .foldF(release(contextRequest.context, None, Outcome.succeeded(F.unit)) *> F.pure(
                 None: Option[Response[F]]))(contextResponse =>
-                F.pure(Some(contextResponse.response.copy(body =
+                F.pure(Some(contextResponse.response.copy(entity = Entity(
                   contextResponse.response.body.onFinalizeCaseWeak(ec =>
                     release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
+                )
               .guaranteeCase {
                   case Outcome.Succeeded(_) =>
                     F.unit
@@ -185,8 +186,10 @@ object BracketRequestResponse {
           contextService
             .run(ContextRequest(a, request))
             .map(response =>
-              response.copy(body =
-                response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))
+              response.copy(entity =
+                Entity(
+                  response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))
+                )
               )
             )
             .guaranteeCase {

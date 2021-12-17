@@ -73,7 +73,7 @@ private[http4s] final class Http1ServerParser[F[_]](
       .fromString(this.method)
       .flatMap { method =>
         Uri.requestTarget(this.uri).map { uri =>
-          Request(method, uri, protocol, h, body, attrsWithTrailers)
+          Request(method, uri, protocol, h, Entity(body), attrsWithTrailers)
         }
       }
       .leftMap(_ -> protocol)

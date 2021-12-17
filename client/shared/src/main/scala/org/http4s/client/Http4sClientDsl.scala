@@ -53,6 +53,6 @@ class MethodOps[F[_]](private val method: Method) extends AnyVal {
         `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
       }
       .getOrElse(h)
-    Request(method = method, uri = uri, headers = newHeaders, body = entity.body)
+    Request(method = method, uri = uri, headers = newHeaders, entity = entity)
   }
 }
