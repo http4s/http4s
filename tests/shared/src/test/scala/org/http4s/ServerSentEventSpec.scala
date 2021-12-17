@@ -157,7 +157,8 @@ class ServerSentEventSpec extends Http4sSuite {
       " a".some,
       Some(" b"),
       Some(EventId(" c")),
-      Some(FiniteDuration(1, TimeUnit.MILLISECONDS)))
+      Some(FiniteDuration(1, TimeUnit.MILLISECONDS)),
+    )
 
     val roundTrip = Stream
       .emit(sse)
