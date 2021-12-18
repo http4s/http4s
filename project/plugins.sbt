@@ -24,3 +24,5 @@ addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.1")
 // TODO remove me after we get this transitively
 // https://github.com/djspiewak/sbt-github-actions/issues/94
 addSbtPlugin("com.codecommit" % "sbt-github-actions" % "0.14.2")
+
+addDependencyTreePlugin

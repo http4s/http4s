@@ -391,7 +391,7 @@ lazy val client = libraryCrossProject("client")
       nettyCodecHttp % Test
     )
   )
-  .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, server % "test", testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -513,7 +513,6 @@ lazy val emberClient = libraryCrossProject("ember-client")
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       keypool.value,
-      log4catsSlf4j,
     ),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
