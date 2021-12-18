@@ -383,10 +383,10 @@ lazy val client = libraryCrossProject("client")
   .jvmSettings(
     libraryDependencies ++= Seq(
       nettyBuffer % Test,
-      nettyCodecHttp % Test
+      nettyCodecHttp % Test,
     )
   )
-  .dependsOn(core, server % "test", testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -503,7 +503,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      keypool.value,
+      keypool.value
     ),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
