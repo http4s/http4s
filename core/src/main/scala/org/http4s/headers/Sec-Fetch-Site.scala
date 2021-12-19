@@ -35,7 +35,7 @@ object `Sec-Fetch-Site` {
       `cross-site`,
       `same-origin`,
       `same-site`,
-      `none`
+      `none`,
     )
       .map(i => (i.value, i))
       .toMap
@@ -53,6 +53,6 @@ object `Sec-Fetch-Site` {
     Header.createRendered(
       ci"Sec-Fetch-Site",
       _.value,
-      parse
+      parse,
     )
 }

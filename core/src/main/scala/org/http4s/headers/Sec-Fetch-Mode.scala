@@ -37,7 +37,7 @@ object `Sec-Fetch-Mode` {
       navigate,
       `no-cors`,
       `same-origin`,
-      websocket
+      websocket,
     )
       .map(i => (i.value, i))
       .toMap
@@ -55,6 +55,6 @@ object `Sec-Fetch-Mode` {
     Header.createRendered(
       ci"Sec-Fetch-Mode",
       _.value,
-      parse
+      parse,
     )
 }

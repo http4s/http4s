@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.syntax.header._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.header._
 import org.scalacheck.Prop
 
 class SecFetchSiteSuite extends HeaderLaws {

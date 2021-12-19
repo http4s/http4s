@@ -69,7 +69,7 @@ object `Sec-Fetch-Dest` {
       track,
       video,
       worker,
-      xslt
+      xslt,
     )
       .map(i => (i.value, i))
       .toMap
@@ -87,6 +87,6 @@ object `Sec-Fetch-Dest` {
     Header.createRendered(
       ci"Sec-Fetch-Dest",
       _.value,
-      parse
+      parse,
     )
 }

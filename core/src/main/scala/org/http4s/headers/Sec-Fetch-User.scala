@@ -40,6 +40,6 @@ object `Sec-Fetch-User` {
     Header.createRendered(
       ci"Sec-Fetch-User",
       _.value,
-      parse
+      parse,
     )
 }
