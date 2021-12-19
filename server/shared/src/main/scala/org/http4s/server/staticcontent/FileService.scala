@@ -33,7 +33,6 @@ import org.log4s.getLogger
 import org.typelevel.ci._
 
 import java.io.File
-import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 object FileService {
@@ -63,7 +62,7 @@ object FileService {
     /** For binary compatibility.
       * @return an instance of PathCollector[F] created (converted) from pathCollector2
       */
-    @nowarn
+    @deprecated("use pathCollector2", "0.23.8")
     def pathCollector: PathCollector[F] = (file, config, request) =>
       pathCollector2(
         Path.fromNioPath(file.toPath()),
@@ -90,7 +89,7 @@ object FileService {
     )
     def apply[F[_]](
         systemPath: String,
-        @nowarn pathCollector: PathCollector[F],
+        pathCollector: PathCollector[F],
         pathPrefix: String,
         bufferSize: Int,
         cacheStrategy: CacheStrategy[F],
