@@ -32,13 +32,15 @@ import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
 
-import java.io.File
 import scala.util.control.NoStackTrace
 
-object FileService {
+trait FileServiceShared {
+
   private[this] val logger = getLogger
 
-  type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
+  type PathRepr
+
+  type PathCollector[F[_]] = (PathRepr, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
@@ -48,7 +50,7 @@ object FileService {
     * @param bufferSize buffer size to use for internal read buffers
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
-  final case class Config[F[_]](
+  case class Config[F[_]](
       systemPath: String,
       pathCollector: PathCollector[F],
       pathPrefix: String,
@@ -62,12 +64,28 @@ object FileService {
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
-    ): Config[F] = {
-      val pathCollector: PathCollector[F] = (f, c, r) =>
-        filesOnly(Path.fromNioPath(f.toPath()), c, r)
-      Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
-    }
+    ): Config[F] = platformSpecific.config(systemPath, pathPrefix, bufferSize, cacheStrategy)
   }
+
+  trait PlatformSpecific {
+    def config[F[_]: Async](
+        systemPath: String,
+        pathPrefix: String = "",
+        bufferSize: Int = 50 * 1024,
+        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+    ): Config[F]
+
+    def invokePathCollector[F[_]](
+        pathCollector: PathCollector[F]
+    )(
+        path: Path,
+        config: Config[F],
+        request: Request[F],
+    ): OptionT[F, Response[F]]
+
+  }
+
+  protected def platformSpecific: PlatformSpecific
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
@@ -98,8 +116,10 @@ object FileService {
                       none[Path].pure,
                     )
                   )
-                  .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
-                  .flatMap(f => config.pathCollector(f, config, request))
+                  .collect { case path if path.startsWith(rootPath) => path }
+                  .flatMap(f =>
+                    platformSpecific.invokePathCollector(config.pathCollector)(f, config, request)
+                  )
                   .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
                   .recoverWith { case BadTraversal =>
                     OptionT.some(Response(Status.BadRequest))
@@ -123,7 +143,7 @@ object FileService {
       .flatten
   }
 
-  private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
+  protected def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
       F: Async[F]
   ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
@@ -198,4 +218,5 @@ object FileService {
           }
       }
     }
+
 }
