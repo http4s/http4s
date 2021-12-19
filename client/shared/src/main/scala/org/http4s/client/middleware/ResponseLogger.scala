@@ -94,13 +94,10 @@ object ResponseLogger {
               ) { _ =>
                 val newBody = Stream
                   .eval(vec.get)
-                  .flatMap(v => Stream.emits(v).covary[F])
-                  .flatMap(c => Stream.chunk(c).covary[F])
-                logMessage(response.withBodyStream(newBody)).attempt
-                  .flatMap {
-                    case Left(t) => F.delay(logger.error(t)("Error logging response body"))
-                    case Right(()) => F.unit
-                  }
+                  .flatMap(v => Stream.emits(v))
+                  .flatMap(c => Stream.chunk(c))
+                logMessage(response.withBodyStream(newBody))
+                  .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
               }
             }
           }

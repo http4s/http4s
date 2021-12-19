@@ -83,8 +83,8 @@ object RequestLogger {
           Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
             val newBody = Stream
               .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.chunk(c).covary[F])
+              .flatMap(v => Stream.emits(v))
+              .flatMap(c => Stream.chunk(c))
 
             val changedRequest = req.withBodyStream(
               req.body

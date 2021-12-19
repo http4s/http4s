@@ -181,7 +181,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(buff) if contentComplete() =>
-        Stream.chunk(Chunk.byteBuffer(buff)).covary[F] -> Http1Stage
+        Stream.chunk(Chunk.byteBuffer(buff)) -> Http1Stage
           .futureBufferThunk(buffer)
 
       case Some(buff) =>
@@ -245,7 +245,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       } else cb(End)
     }
 
-    (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))
+    (repeatEval(t).unNoneTerminate.flatMap(chunk(_)), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
