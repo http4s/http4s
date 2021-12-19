@@ -22,7 +22,8 @@ import fs2._
 import org.http4s.testing.AutoCloseableResource
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
+import java.nio.file.Paths
 
 private[staticcontent] trait StaticContentSharedJvm extends StaticContentShared {
   this: Http4sSuite =>

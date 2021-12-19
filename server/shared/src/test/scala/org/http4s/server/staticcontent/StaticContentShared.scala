@@ -20,7 +20,8 @@ package staticcontent
 
 import cats.effect.IO
 import fs2._
-import fs2.io.file.{Files, Path}
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.syntax.all._
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>

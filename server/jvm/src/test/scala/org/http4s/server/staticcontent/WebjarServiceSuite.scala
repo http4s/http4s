@@ -20,11 +20,11 @@ package staticcontent
 
 import cats.effect.IO
 import cats.syntax.all._
+import fs2.io.file.Path
 import org.http4s.Method.GET
 import org.http4s.Method.POST
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
-import fs2.io.file.Path
 
 import java.net.URL
 import java.nio.file.Paths
