@@ -41,20 +41,7 @@ object FileService {
   @deprecated("use FileService.PathCollector2", "0.23.8")
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
 
-  trait PathCollector2[F[_]] extends ((Path, Config[F], Request[F]) => OptionT[F, Response[F]])
-
-  object PathCollector2 {
-
-    def apply[F[_]](
-        f: (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
-    ): PathCollector2[F] =
-      (path, config, request) => f(path, config, request)
-
-    implicit def fromFunction[F[_]](
-        f: (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
-    ): PathCollector2[F] = apply(f)
-
-  }
+  type PathCollector2[F[_]] = (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
@@ -68,8 +55,8 @@ object FileService {
       systemPath: String,
       pathCollector2: PathCollector2[F],
       pathPrefix: String,
-      bufferSize: Int,
       cacheStrategy: CacheStrategy[F],
+      bufferSize: Int,
   ) {
 
     /** For binary compatibility.
@@ -114,8 +101,8 @@ object FileService {
           request,
         ),
       pathPrefix,
-      bufferSize,
       cacheStrategy,
+      bufferSize,
     )
 
     def apply[F[_]: Async](
@@ -125,7 +112,7 @@ object FileService {
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
     ): Config[F] = {
       val pathCollector: PathCollector2[F] = (f, c, r) => filesOnly(f, c, r)
-      Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
+      Config(systemPath, pathCollector, pathPrefix, cacheStrategy, bufferSize)
     }
   }
 
