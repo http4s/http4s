@@ -183,7 +183,7 @@ object FileService {
       .flatten
   }
 
-  protected def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
+  private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
       F: Async[F]
   ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
