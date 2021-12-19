@@ -29,7 +29,7 @@ import org.http4s.syntax.all._
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
-  val routes = fileService(
+  val routes: HttpRoutes[IO] = fileService(
     FileService.Config[IO](defaultSystemPath)
   )
 

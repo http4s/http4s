@@ -32,60 +32,102 @@ import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
 
+import java.io.File
 import scala.util.control.NoStackTrace
 
-trait FileServiceShared {
-
+object FileService {
   private[this] val logger = getLogger
 
-  type PathRepr
+  @deprecated("use FileService.PathCollector2", "0.23.8")
+  type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
 
-  type PathCollector[F[_]] = (PathRepr, Config[F], Request[F]) => OptionT[F, Response[F]]
+  trait PathCollector2[F[_]] extends ((Path, Config[F], Request[F]) => OptionT[F, Response[F]])
+
+  object PathCollector2 {
+
+    def apply[F[_]](
+        f: (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
+    ): PathCollector2[F] =
+      (path, config, request) => f(path, config, request)
+
+    implicit def fromFunction[F[_]](
+        f: (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
+    ): PathCollector2[F] = apply(f)
+
+  }
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
     * @param systemPath path prefix to the folder from which content will be served
     * @param pathPrefix prefix of Uri from which content will be served
-    * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+    * @param pathCollector2 function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
-  case class Config[F[_]](
+  final case class Config[F[_]](
       systemPath: String,
-      pathCollector: PathCollector[F],
+      pathCollector2: PathCollector2[F],
       pathPrefix: String,
       bufferSize: Int,
       cacheStrategy: CacheStrategy[F],
-  )
+  ) {
+
+    /** For binary compatibility.
+      * @return an instance of PathCollector[F] created (converted) from pathCollector2
+      */
+    def pathCollector: PathCollector[F] = (file, config, request) =>
+      pathCollector2(
+        Path.fromNioPath(file.toPath()),
+        config,
+        request,
+      )
+
+  }
 
   object Config {
+
+    /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
+      * A constructor that accepts PathCollector[F] for binary compatibility.
+      *
+      * @param systemPath path prefix to the folder from which content will be served
+      * @param pathPrefix prefix of Uri from which content will be served
+      * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+      * @param bufferSize buffer size to use for internal read buffers
+      * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+      */
+    @deprecated(
+      "use FileService.Config(systemPath: String, pathCollector2: PathCollector2[F], ...)",
+      "0.23.8",
+    )
+    def apply[F[_]](
+        systemPath: String,
+        pathCollector: PathCollector[F],
+        pathPrefix: String,
+        bufferSize: Int,
+        cacheStrategy: CacheStrategy[F],
+    ): Config[F] = new Config[F](
+      systemPath,
+      pathCollector2 = (path: Path, config: Config[F], request: Request[F]) =>
+        pathCollector(
+          path.toNioPath.toFile,
+          config,
+          request,
+        ),
+      pathPrefix,
+      bufferSize,
+      cacheStrategy,
+    )
+
     def apply[F[_]: Async](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
-    ): Config[F] = platformSpecific.config(systemPath, pathPrefix, bufferSize, cacheStrategy)
+    ): Config[F] = {
+      val pathCollector: PathCollector2[F] = (f, c, r) => filesOnly(f, c, r)
+      Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
+    }
   }
-
-  trait PlatformSpecific {
-    def config[F[_]: Async](
-        systemPath: String,
-        pathPrefix: String = "",
-        bufferSize: Int = 50 * 1024,
-        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
-    ): Config[F]
-
-    def invokePathCollector[F[_]](
-        pathCollector: PathCollector[F]
-    )(
-        path: Path,
-        config: Config[F],
-        request: Request[F],
-    ): OptionT[F, Response[F]]
-
-  }
-
-  protected def platformSpecific: PlatformSpecific
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
@@ -117,9 +159,7 @@ trait FileServiceShared {
                     )
                   )
                   .collect { case path if path.startsWith(rootPath) => path }
-                  .flatMap(f =>
-                    platformSpecific.invokePathCollector(config.pathCollector)(f, config, request)
-                  )
+                  .flatMap(path => config.pathCollector2(path, config, request))
                   .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
                   .recoverWith { case BadTraversal =>
                     OptionT.some(Response(Status.BadRequest))
@@ -218,5 +258,4 @@ trait FileServiceShared {
           }
       }
     }
-
 }
