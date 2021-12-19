@@ -17,9 +17,11 @@
 package org.http4s
 package ember.core
 
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all._
-import cats.effect.{IO, Sync}
 import org.http4s.headers.`Content-Length`
+import org.http4s.syntax.literals._
 
 class EncoderSuite extends Http4sSuite {
   private object Helpers {
@@ -45,7 +47,7 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("reqToBytes should encode a no body request correctly") {
-    val req = Request[IO](Method.GET, Uri.unsafeFromString("http://www.google.com"))
+    val req = Request[IO](Method.GET, uri"http://www.google.com")
     val expected =
       """GET / HTTP/1.1
       |Host: www.google.com
@@ -56,7 +58,7 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("reqToBytes should encode a request with a body correctly") {
-    val req = Request[IO](Method.POST, Uri.unsafeFromString("http://www.google.com"))
+    val req = Request[IO](Method.POST, uri"http://www.google.com")
       .withEntity("Hello World!")
     val expected =
       """POST / HTTP/1.1
@@ -72,8 +74,8 @@ class EncoderSuite extends Http4sSuite {
   test("reqToBytes should encode headers correctly") {
     val req = Request[IO](
       Method.GET,
-      Uri.unsafeFromString("http://www.google.com"),
-      headers = Headers("foo" -> "bar")
+      uri"http://www.google.com",
+      headers = Headers("foo" -> "bar"),
     )
     val expected =
       """GET / HTTP/1.1
@@ -87,7 +89,7 @@ class EncoderSuite extends Http4sSuite {
   test("reqToBytes strips the fragment") {
     val req = Request[IO](
       Method.GET,
-      Uri.unsafeFromString("https://www.example.com/path?query#fragment")
+      uri"https://www.example.com/path?query#fragment",
     )
     val expected =
       """GET /path?query HTTP/1.1
@@ -100,8 +102,8 @@ class EncoderSuite extends Http4sSuite {
   test("reqToBytes respects the host header") {
     val req = Request[IO](
       Method.GET,
-      Uri.unsafeFromString("https://www.example.com/"),
-      headers = Headers(headers.Host("example.org", Some(8080)))
+      uri"https://www.example.com/",
+      headers = Headers(headers.Host("example.org", Some(8080))),
     )
     val expected =
       """GET / HTTP/1.1

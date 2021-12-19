@@ -18,15 +18,20 @@ package org.http4s
 package blaze
 package server
 
-import cats.effect.{ConcurrentEffect, Timer}
-import java.nio.ByteBuffer
-import javax.net.ssl.SSLEngine
-import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
-import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
-import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import cats.effect.ConcurrentEffect
+import cats.effect.Timer
+import org.http4s.blaze.http.http2.DefaultFlowStrategy
+import org.http4s.blaze.http.http2.Http2Settings
+import org.http4s.blaze.http.http2.server.ALPNServerSelector
+import org.http4s.blaze.http.http2.server.ServerPriorKnowledgeHandshaker
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.server.ServiceErrorHandler
 import org.typelevel.vault._
+
+import java.nio.ByteBuffer
+import javax.net.ssl.SSLEngine
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
@@ -43,9 +48,9 @@ private[http4s] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F],
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
-      scheduler: TickWheelExecutor)(implicit
-      F: ConcurrentEffect[F],
-      timer: Timer[F]): ALPNServerSelector = {
+      scheduler: TickWheelExecutor,
+      maxWebSocketBufferSize: Option[Int],
+  )(implicit F: ConcurrentEffect[F], timer: Timer[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
         LeafBuilder(
@@ -58,19 +63,22 @@ private[http4s] object ProtocolSelector {
             serviceErrorHandler,
             responseHeaderTimeout,
             idleTimeout,
-            scheduler
-          ))
+            scheduler,
+          )
+        )
       }
 
       val localSettings =
         Http2Settings.default.copy(
           maxConcurrentStreams = 100, // TODO: configurable?
-          maxHeaderListSize = maxHeadersLen)
+          maxHeaderListSize = maxHeadersLen,
+        )
 
       new ServerPriorKnowledgeHandshaker(
         localSettings = localSettings,
         flowStrategy = new DefaultFlowStrategy(localSettings),
-        nodeBuilder = newNode)
+        nodeBuilder = newNode,
+      )
     }
 
     def http1Stage(): TailStage[ByteBuffer] =
@@ -85,7 +93,8 @@ private[http4s] object ProtocolSelector {
         serviceErrorHandler,
         responseHeaderTimeout,
         idleTimeout,
-        scheduler
+        scheduler,
+        maxWebSocketBufferSize,
       )
 
     def preference(protos: Set[String]): String =

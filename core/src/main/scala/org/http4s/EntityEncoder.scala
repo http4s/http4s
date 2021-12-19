@@ -16,22 +16,30 @@
 
 package org.http4s
 
-import cats.{Contravariant, Show}
+import cats.Contravariant
+import cats.Show
 import cats.data.NonEmptyList
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import fs2.io.file.readAll
 import fs2.io.readInputStream
+import org.http4s.Charset.`UTF-8`
+import org.http4s.headers._
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartEncoder
+
 import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
-import org.http4s.headers._
-import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
-  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
+  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found."
+)
 trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
@@ -96,8 +104,9 @@ object EntityEncoder {
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[F[_], A](implicit
-      charset: Charset = DefaultCharset,
-      show: Show[A]): EntityEncoder[F, A] = {
+      charset: Charset = `UTF-8`,
+      show: Show[A],
+  ): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
@@ -113,7 +122,8 @@ object EntityEncoder {
     * advance.  This is for use with chunked transfer encoding.
     */
   implicit def streamEncoder[F[_], A](implicit
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+      W: EntityEncoder[F, A]
+  ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
@@ -131,13 +141,15 @@ object EntityEncoder {
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
@@ -164,21 +176,21 @@ object EntityEncoder {
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+      Entity(readAll[F](p, blocker, 4096)) // 2 KB :P
     }
 
   // TODO parameterize chunk size
   def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blocker: Blocker): EntityEncoder[F, F[IS]] =
+      blocker: Blocker
+  ): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
+  implicit def readerEncoder[F[_], R <: Reader](
+      blocker: Blocker
+  )(implicit F: Sync[F], cs: ContextShift[F], charset: Charset = `UTF-8`): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

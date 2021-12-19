@@ -9,15 +9,18 @@
 
 package org.http4s.dsl.impl
 
-import cats.data._
+import cats.Applicative
+import cats.Foldable
+import cats.Monad
 import cats.data.Validated._
+import cats.data._
 import cats.syntax.all._
-import org.http4s._
-import scala.util.Try
-import cats.{Applicative, Foldable, Monad}
 import org.http4s.Uri.Path
 import org.http4s.Uri.Path._
+import org.http4s._
 import org.http4s.headers.Allow
+
+import scala.util.Try
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -96,7 +99,8 @@ object ->> {
     * Returns an error response if the method is not matched, in accordance with [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
     */
   def unapply[F[_]: Applicative](
-      req: Request[F]): Some[(PartialFunction[Method, F[Response[F]]] => F[Response[F]], Path)] =
+      req: Request[F]
+  ): Some[(PartialFunction[Method, F[Response[F]]] => F[Response[F]], Path)] =
     Some {
       (
         pf =>
@@ -107,11 +111,13 @@ object ->> {
                 if (allMethods.contains(method)) {
                   Response(
                     status = Status.MethodNotAllowed,
-                    headers = Headers(Allow(allMethods.filter(pf.isDefinedAt))))
+                    headers = Headers(Allow(allMethods.filter(pf.isDefinedAt))),
+                  )
                 } else { Response(status = Status.NotImplemented) }
-              }
+              },
           ),
-        req.pathInfo)
+        req.pathInfo,
+      )
 
     }
 }
@@ -210,7 +216,8 @@ abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
     } else None
 
   private def toAssocList(
-      recState: MatrixVar.RecState): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
+      recState: MatrixVar.RecState
+  ): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
     // We can't extract anything else but there was a trailing ;
     if (recState.position >= recState.str.length - 1)
       Some(Right(recState.accumulated))
@@ -227,7 +234,9 @@ abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
         toAssocListElem(recState.str, recState.position, nextSplit)
           .map(elem =>
             Left(
-              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)))
+              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)
+            )
+          )
     }
 
   private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
@@ -254,8 +263,9 @@ object MatrixVar {
   * }}}
   */
 object +& {
-  def unapply(params: Map[String, collection.Seq[String]])
-      : Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
+  def unapply(
+      params: Map[String, collection.Seq[String]]
+  ): Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
     Some((params, params))
 }
 
@@ -274,7 +284,8 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
     params
       .get(name)
       .flatMap(values =>
-        values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption))
+        values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption)
+      )
 
   def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
     params
@@ -307,6 +318,22 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
+/** A param extractor with a default value. If the query param is not present, the default value is returned
+  * If the query param is present but incorrectly formatted, will return `None`
+  */
+abstract class QueryParamDecoderMatcherWithDefault[T: QueryParamDecoder](name: String, default: T) {
+  def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
+    params
+      .get(name)
+      .flatMap(_.headOption)
+      .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      .toOption
+      .map(_.getOrElse(default))
+}
+
+abstract class QueryParamMatcherWithDefault[T: QueryParamDecoder: QueryParam](default: T)
+    extends QueryParamDecoderMatcherWithDefault[T](QueryParam[T].key.value, default)
+
 /** Flag (value-less) query param extractor
   */
 abstract class FlagQueryParamMatcher(name: String) {
@@ -335,7 +362,8 @@ abstract class FlagQueryParamMatcher(name: String) {
   */
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(
-      params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
+      params: Map[String, collection.Seq[String]]
+  ): Option[ValidatedNel[ParseFailure, List[T]]] =
     params.get(name) match {
       case Some(values) =>
         Some(values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s))))
@@ -394,7 +422,8 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(
-      params: Map[String, collection.Seq[String]]): Some[Option[ValidatedNel[ParseFailure, T]]] =
+      params: Map[String, collection.Seq[String]]
+  ): Some[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
       params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s =>

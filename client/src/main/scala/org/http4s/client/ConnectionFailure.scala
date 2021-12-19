@@ -25,8 +25,8 @@ import java.net.InetSocketAddress
 class ConnectionFailure(
     val requestKey: RequestKey,
     val upstream: InetSocketAddress,
-    val cause: Throwable)
-    extends IOException(cause) {
+    val cause: Throwable,
+) extends IOException(cause) {
   override def getMessage(): String =
     s"Error connecting to $requestKey using address ${upstream.getHostString}:${upstream.getPort} (unresolved: ${upstream.isUnresolved})"
 }

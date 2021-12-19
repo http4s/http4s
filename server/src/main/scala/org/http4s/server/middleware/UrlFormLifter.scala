@@ -33,7 +33,8 @@ import cats.~>
 object UrlFormLifter {
   def apply[F[_]: Sync, G[_]: Sync](f: G ~> F)(
       http: Kleisli[F, Request[G], Response[G]],
-      strictDecode: Boolean = false): Kleisli[F, Request[G], Response[G]] =
+      strictDecode: Boolean = false,
+  ): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       def addUrlForm(form: UrlForm): F[Response[G]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) =>
@@ -55,7 +56,7 @@ object UrlFormLifter {
             decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
             resp <- decoded.fold(
               mf => f(mf.toHttpResponse[G](req.httpVersion).pure[G]),
-              addUrlForm
+              addUrlForm,
             )
           } yield resp
 

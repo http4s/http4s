@@ -17,7 +17,9 @@
 package org.http4s
 package server
 
-import cats.effect.{Blocker, ContextShift, Sync}
+import cats.effect.Blocker
+import cats.effect.ContextShift
+import cats.effect.Sync
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -54,8 +56,10 @@ package object staticcontent {
   // Will strip the pathPrefix from the first part of the Uri, returning the remainder without a leading '/'
   private[staticcontent] def getSubPath(uriPath: String, pathPrefix: String): String = {
     val index = pathPrefix.length + {
-      if (uriPath.length > pathPrefix.length &&
-        uriPath.charAt(pathPrefix.length) == '/') 1
+      if (
+        uriPath.length > pathPrefix.length &&
+        uriPath.charAt(pathPrefix.length) == '/'
+      ) 1
       else 0
     }
 

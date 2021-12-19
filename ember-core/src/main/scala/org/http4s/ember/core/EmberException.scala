@@ -17,7 +17,10 @@
 package org.http4s.ember.core
 
 import cats.syntax.all._
+
 import java.time.Instant
+import scala.concurrent.duration.Duration
+import scala.util.control.NoStackTrace
 
 sealed trait EmberException extends RuntimeException with Product with Serializable
 
@@ -51,4 +54,15 @@ object EmberException {
   final case class MessageTooLong(maxHeaderSize: Int) extends EmberException {
     override def getMessage: String = s"HTTP Header Section Exceeds Max Size: $maxHeaderSize Bytes"
   }
+
+  final case class ReadTimeout(duration: Duration) extends EmberException {
+    override def getMessage: String = s"Read timeout after $duration"
+  }
+
+  private[ember] final case class RequestHeadersTimeout(duration: Duration)
+      extends EmberException
+      with NoStackTrace {
+    override def getMessage: String = s"Timed out waiting for request headers after $duration"
+  }
+
 }

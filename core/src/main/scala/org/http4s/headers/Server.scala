@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 object Server extends HeaderCompanion[Server]("Server") {
 
@@ -49,6 +50,6 @@ object Server extends HeaderCompanion[Server]("Server") {
 }
 
 /** Server header
-  * https://tools.ietf.org/html/rfc7231#section-7.4.2
+  * https://datatracker.ietf.org/doc/html/rfc7231#section-7.4.2
   */
 final case class Server(product: ProductId, rest: List[ProductIdOrComment])

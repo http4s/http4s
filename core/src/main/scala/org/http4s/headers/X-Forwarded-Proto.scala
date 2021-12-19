@@ -16,9 +16,9 @@
 
 package org.http4s.headers
 
+import cats.parse.Parser
 import org.http4s._
 import org.typelevel.ci._
-import cats.parse.Parser
 
 final case class `X-Forwarded-Proto`(scheme: Uri.Scheme) extends AnyVal
 
@@ -32,6 +32,6 @@ object `X-Forwarded-Proto` {
     Header.createRendered(
       ci"X-Forwarded-Proto",
       _.scheme,
-      parse
+      parse,
     )
 }

@@ -22,13 +22,11 @@ import cats.Functor
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, Stream}
-import fs2.Stream.chunk
-import fs2.compression.deflate
-import java.nio.{ByteBuffer, ByteOrder}
-import java.util.zip.{CRC32, Deflater}
+import fs2.compression._
 import org.http4s.headers._
 import org.log4s.getLogger
+
+import java.util.zip.Deflater
 
 object GZip {
   private[this] val logger = getLogger
@@ -39,7 +37,7 @@ object GZip {
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
-      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])
+      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
       req.headers.get[`Accept-Encoding`] match {
@@ -59,13 +57,15 @@ object GZip {
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-      ContentCoding.`x-gzip`)
+      ContentCoding.`x-gzip`
+    )
 
   private def zipOrPass[F[_]: Sync](
       response: Response[F],
       bufferSize: Int,
       level: Int,
-      isZippable: Response[F] => Boolean): Response[F] =
+      isZippable: Response[F] => Boolean,
+  ): Response[F] =
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
       case resp => resp // Don't touch it, Content-Encoding already set
@@ -74,66 +74,19 @@ object GZip {
   private def zipResponse[F[_]: Sync](
       bufferSize: Int,
       level: Int,
-      resp: Response[F]): Response[F] = {
+      resp: Response[F],
+  ): Response[F] = {
     logger.trace("GZip middleware encoding content")
-    // Need to add the Gzip header and trailer
-    val trailerGen = new TrailerGen()
-    val b = chunk(header) ++
-      resp.body
-        .through(trailer(trailerGen, bufferSize))
-        .through(
-          deflate(
-            level = level,
-            nowrap = true,
-            bufferSize = bufferSize
-          )) ++
-      chunk(trailerFinish(trailerGen))
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .copy(body = b)
+      .copy(body =
+        resp.body.through(
+          gzip(
+            bufferSize = bufferSize,
+            deflateLevel = Some(level),
+          )
+        )
+      )
   }
-
-  private val GZIP_MAGIC_NUMBER = 0x8b1f
-  private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
-
-  private val header: Chunk[Byte] = Chunk.bytes(
-    Array(
-      GZIP_MAGIC_NUMBER.toByte, // Magic number (int16)
-      (GZIP_MAGIC_NUMBER >> 8).toByte, // Magic number  c
-      Deflater.DEFLATED.toByte, // Compression method
-      0.toByte, // Flags
-      0.toByte, // Modification time (int32)
-      0.toByte, // Modification time  c
-      0.toByte, // Modification time  c
-      0.toByte, // Modification time  c
-      0.toByte, // Extra flags
-      0.toByte
-    ) // Operating system
-  )
-
-  private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
-
-  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Int): Pipe[F, Byte, Byte] =
-    _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).void.stream
-
-  private def trailerStep[F[_]](gen: TrailerGen, maxReadLimit: Int)
-      : (Option[(Chunk[Byte], Stream[F, Byte])]) => Pull[F, Byte, Option[Stream[F, Byte]]] = {
-    case None => Pull.pure(None)
-    case Some((chunk, stream)) =>
-      gen.crc.update(chunk.toArray)
-      gen.inputLength = gen.inputLength + chunk.size
-      Pull.output(chunk) >> stream.pull
-        .unconsLimit(maxReadLimit)
-        .flatMap(trailerStep(gen, maxReadLimit))
-  }
-
-  private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
-    Chunk.bytes(
-      ByteBuffer
-        .allocate(Integer.BYTES * 2)
-        .order(ByteOrder.LITTLE_ENDIAN)
-        .putInt(gen.crc.getValue.toInt)
-        .putInt((gen.inputLength % GZIP_LENGTH_MOD).toInt)
-        .array())
 }

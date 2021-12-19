@@ -15,7 +15,8 @@ package org.http4s
 package parser
 
 import cats.parse.{Parser => P}
-import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.internal.parsing.Rfc7230
 
 private[http4s] object AdditionalRules {
   def EOI = P.char('\uFFFF')

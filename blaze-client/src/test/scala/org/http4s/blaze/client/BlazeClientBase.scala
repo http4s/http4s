@@ -18,13 +18,24 @@ package org.http4s.blaze
 package client
 
 import cats.effect._
-import javax.net.ssl.SSLContext
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import cats.implicits.catsSyntaxApplicativeId
+import fs2.Stream
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus
+import org.http4s.Status.Ok
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.client.JettyScaffold
+import org.http4s.client.scaffold.Handler
+import org.http4s.client.scaffold.HandlerHelpers
+import org.http4s.client.scaffold.HandlersToNettyAdapter
+import org.http4s.client.scaffold.RoutesToHandlerAdapter
+import org.http4s.client.scaffold.ServerScaffold
 import org.http4s.client.testroutes.GetRoutes
+import org.http4s.dsl.io._
+
+import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {
@@ -36,7 +47,7 @@ trait BlazeClientBase extends Http4sSuite {
       responseHeaderTimeout: Duration = 30.seconds,
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
-      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext)
+      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO](munitExecutionContext)
@@ -51,55 +62,59 @@ trait BlazeClientBase extends Http4sSuite {
     sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }
 
-  private def testServlet =
-    new HttpServlet {
-      override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-        GetRoutes.getPaths.get(req.getRequestURI) match {
-          case Some(response) =>
-            val resp = response.unsafeRunSync()
-            srv.setStatus(resp.status.code)
-            resp.headers.foreach { h =>
-              srv.addHeader(h.name.toString, h.value)
-            }
+  private def makeScaffold(num: Int, secure: Boolean): Resource[IO, ServerScaffold[IO]] =
+    for {
+      getHandler <- Resource.eval(
+        RoutesToHandlerAdapter(
+          HttpRoutes.of[IO] {
+            case Method.GET -> Root / "infinite" =>
+              Response[IO](Ok).withEntity(Stream.emit[IO, String]("a" * 8 * 1024).repeat).pure[IO]
+            case Method.GET -> path =>
+              GetRoutes.getPaths.getOrElse(path.toString, NotFound())
+          }
+        )
+      )
+      scaffold <- ServerScaffold[IO](
+        num,
+        secure,
+        HandlersToNettyAdapter[IO](postHandlers, getHandler),
+      )
+    } yield scaffold
 
-            val os: ServletOutputStream = srv.getOutputStream
-
-            val writeBody: IO[Unit] = resp.body
-              .evalMap { byte =>
-                IO(os.write(Array(byte)))
-              }
-              .compile
-              .drain
-            val flushOutputStream: IO[Unit] = IO(os.flush())
-            (writeBody *> flushOutputStream).unsafeRunSync()
-
-          case None => srv.sendError(404)
+  private def postHandlers: Map[(HttpMethod, String), Handler] =
+    Map(
+      (HttpMethod.POST, "/respond-and-close-immediately") -> new Handler {
+        // The client may receive the response before sending the whole request
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(
+            ctx,
+            HttpResponseStatus.OK,
+            HandlerHelpers.utf8Text("a"),
+            closeConnection = true,
+          )
+          ()
         }
 
-      override def doPost(req: HttpServletRequest, resp: HttpServletResponse): Unit =
-        req.getRequestURI match {
-          case "/respond-and-close-immediately" =>
-            // We don't consume the req.getInputStream (the request entity). That means that:
-            // - The client may receive the response before sending the whole request
-            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            resp.getOutputStream.print("a")
-            resp.setStatus(Status.Ok.code)
-
-          case "/respond-and-close-immediately-no-body" =>
-            // We don't consume the req.getInputStream (the request entity). That means that:
-            // - The client may receive the response before sending the whole request
-            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            resp.setStatus(Status.Ok.code)
-          case "/process-request-entity" =>
-            // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
-            var result: Int = 0
-            while (result != -1)
-              result = req.getInputStream.read()
-            resp.setStatus(Status.Ok.code)
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      },
+      (HttpMethod.POST, "/respond-and-close-immediately-no-body") -> new Handler {
+        // The client may receive the response before sending the whole request
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
+          ()
         }
 
-    }
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      },
+      (HttpMethod.POST, "/process-request-entity") -> new Handler {
+        // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK)
+          ()
+        }
+      },
+    )
 
-  val jettyServer = resourceSuiteFixture("http", JettyScaffold[IO](2, false, testServlet))
-  val jettySslServer = resourceSuiteFixture("https", JettyScaffold[IO](1, true, testServlet))
+  val server = resourceSuiteFixture("http", makeScaffold(2, false))
+  val secureServer = resourceSuiteFixture("https", makeScaffold(1, true))
 }

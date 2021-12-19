@@ -20,7 +20,9 @@ package discipline
 
 import cats.Eq
 import cats.laws.discipline._
-import org.scalacheck.{Arbitrary, Prop, Shrink}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Prop
+import org.scalacheck.Shrink
 import org.typelevel.discipline.Laws
 
 trait HttpCodecTests[A] extends Laws {
@@ -32,7 +34,7 @@ trait HttpCodecTests[A] extends Laws {
       parent = None,
       "roundTrip" -> Prop.forAll { (a: A) =>
         laws.httpCodecRoundTrip(a)
-      }
+      },
     )
 }
 

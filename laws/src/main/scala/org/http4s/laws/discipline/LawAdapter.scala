@@ -21,11 +21,10 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.laws.IsEq
 import cats.syntax.all._
+import munit.CatsEffectAssertions._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Shrink
 import org.scalacheck.effect.PropF
-
-import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 
@@ -34,7 +33,8 @@ trait LawAdapter {
 
   def isEqPropF[F[_]: Effect, A: Arbitrary: Shrink, B: Eq](
       propLabel: String,
-      prop: A => IsEq[F[B]]): (String, PropF[IO]) =
+      prop: A => IsEq[F[B]],
+  ): (String, PropF[IO]) =
     propLabel -> PropF
       .forAllF { (a: A) =>
         val isEq = prop(a)

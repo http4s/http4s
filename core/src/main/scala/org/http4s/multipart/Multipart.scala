@@ -23,6 +23,6 @@ final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Bo
   def headers: Headers =
     Headers(
       `Transfer-Encoding`(TransferCoding.chunked),
-      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value)))
+      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value))),
     )
 }

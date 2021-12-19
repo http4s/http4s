@@ -20,24 +20,27 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import com.comcast.ip4s
 import com.comcast.ip4s.Arbitraries._
+import org.http4s.ParseResult
+import org.http4s.Uri
 import org.http4s.internal.bug
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.{ParseResult, Uri}
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 
 private[http4s] trait ForwardedArbitraryInstances extends ForwardedAuxiliaryGenerators {
   import Forwarded._
 
   // TODO: copied from `ArbitraryInstances` since the original is private.
   //       Consider re-using it somehow (discuss it).
-  private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
+  implicit private class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => throw bug(e.toString))
   }
 
   implicit val http4sTestingArbitraryForForwardedNodeObfuscated: Arbitrary[Node.Obfuscated] =
     Arbitrary(
       obfuscatedStringGen.map(Node.Obfuscated.fromString(_).yolo) :|
-        "Node.Obfuscated")
+        "Node.Obfuscated"
+    )
 
   implicit val http4sTestingArbitraryForForwardedNodeName: Arbitrary[Node.Name] =
     Arbitrary(
@@ -45,15 +48,17 @@ private[http4s] trait ForwardedArbitraryInstances extends ForwardedAuxiliaryGene
         Arbitrary.arbitrary[ip4s.Ipv4Address].map(Node.Name.Ipv4.apply),
         Arbitrary.arbitrary[ip4s.Ipv6Address].map(Node.Name.Ipv6.apply),
         Arbitrary.arbitrary[Node.Obfuscated],
-        Gen.const(Node.Name.Unknown)
-      ) :| "Node.Name")
+        Gen.const(Node.Name.Unknown),
+      ) :| "Node.Name"
+    )
 
   implicit val http4sTestingArbitraryForForwardedNodePort: Arbitrary[Node.Port] =
     Arbitrary(
       Gen.oneOf(
         portNumGen.map(Node.Port.fromInt(_).yolo),
-        Arbitrary.arbitrary[Node.Obfuscated]
-      ) :| "Node.Port")
+        Arbitrary.arbitrary[Node.Obfuscated],
+      ) :| "Node.Port"
+    )
 
   implicit val http4sTestingArbitraryForForwardedNode: Arbitrary[Node] =
     Arbitrary({
@@ -82,7 +87,7 @@ private[http4s] trait ForwardedArbitraryInstances extends ForwardedAuxiliaryGene
           Arbitrary.arbitrary[Node].map(Element.fromFor),
           Arbitrary.arbitrary[Node].map(Element.fromBy),
           Arbitrary.arbitrary[Host].map(Element.fromHost),
-          Arbitrary.arbitrary[Proto].map(Element.fromProto)
+          Arbitrary.arbitrary[Proto].map(Element.fromProto),
         )
         .map(_.reduceLeft[Element] {
           case (elem @ Element(None, _, _, _), Element(Some(forItem), None, None, None)) =>

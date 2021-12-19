@@ -25,10 +25,10 @@ private[http4s] sealed trait WebSocket[F[_]] {
 private[http4s] final case class WebSocketSeparatePipe[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Pipe[F, WebSocketFrame, Unit],
-    onClose: F[Unit]
+    onClose: F[Unit],
 ) extends WebSocket[F]
 
 private[http4s] final case class WebSocketCombinedPipe[F[_]](
     receiveSend: Pipe[F, WebSocketFrame, WebSocketFrame],
-    onClose: F[Unit]
+    onClose: F[Unit],
 ) extends WebSocket[F]

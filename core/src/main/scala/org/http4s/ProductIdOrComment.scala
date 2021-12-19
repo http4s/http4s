@@ -17,8 +17,9 @@
 package org.http4s
 
 import cats.parse.{Parser => P}
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 sealed trait ProductIdOrComment extends Renderable
 object ProductIdOrComment {

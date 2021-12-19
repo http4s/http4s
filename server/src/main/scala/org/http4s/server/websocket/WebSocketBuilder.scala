@@ -19,14 +19,13 @@ package server.websocket
 
 import cats.Applicative
 import cats.syntax.all._
-import fs2.{Pipe, Stream}
-import org.http4s.websocket.{
-  WebSocket,
-  WebSocketCombinedPipe,
-  WebSocketContext,
-  WebSocketFrame,
-  WebSocketSeparatePipe
-}
+import fs2.Pipe
+import fs2.Stream
+import org.http4s.websocket.WebSocket
+import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketSeparatePipe
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -41,7 +40,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
-    filterPingPongs: Boolean
+    filterPingPongs: Boolean,
 ) {
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -52,8 +51,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
           WebSocketContext(
             webSocket,
             headers,
-            onHandshakeFailure
-          )
+            onHandshakeFailure,
+          ),
         )
       )
 
@@ -111,7 +110,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
     */
   def build(
       send: Stream[F, WebSocketFrame],
-      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] = {
+      receive: Pipe[F, WebSocketFrame, Unit],
+  ): F[Response[F]] = {
 
     val finalReceive: Pipe[F, WebSocketFrame, Unit] =
       if (filterPingPongs)
@@ -138,6 +138,6 @@ object WebSocketBuilder {
       onHandshakeFailure =
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
-      filterPingPongs = true
+      filterPingPongs = true,
     )
 }

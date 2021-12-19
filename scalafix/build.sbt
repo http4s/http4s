@@ -1,13 +1,9 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
-lazy val outputVersion = "0.20.0"
+lazy val outputVersion = "0.22.7"
 inThisBuild(
   List(
     organization := "org.http4s",
     version := outputVersion,
-    isSnapshot := {
-      if (outputVersion == "0.20.0") false
-      else isSnapshot.value
-    },
     homepage := Some(url("https://github.com/http4s/http4s")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     scmInfo := Some(ScmInfo(url("https://github.com/http4s/http4s"), "git@github.com:http4s/http4s.git")),

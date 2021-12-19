@@ -17,12 +17,19 @@
 package org.http4s
 
 import cats.Functor
-import cats.{Hash, Order}
+import cats.Hash
+import cats.Order
 import cats.effect.Clock
 import cats.implicits._
-import cats.parse.{Parser, Rfc5234}
-import java.time.{DateTimeException, Instant, ZoneOffset, ZonedDateTime}
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import scala.concurrent.duration.SECONDS
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
@@ -30,7 +37,7 @@ import scala.concurrent.duration.SECONDS
   * over java.time.Instant in the model, we assure that if two headers render
   * equally, their values are equal.
   *
-  * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
   */
 class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[HttpDate] {
   def compare(that: HttpDate): Int =
@@ -68,8 +75,8 @@ object HttpDate {
     *
     * The minimum year is specified by RFC5322 as 1900.
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
-    * @see [[https://tools.ietf.org/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
     */
   val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
 
@@ -97,7 +104,7 @@ object HttpDate {
 
   /** Parses a date according to RFC7231, Section 7.1.1.1
     *
-    * @see [[https://tools.ietf.org/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
+    * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
     */
   def fromString(s: String): ParseResult[HttpDate] =
     ParseResult.fromParser(parser, "Invalid HTTP date")(s)
@@ -113,7 +120,8 @@ object HttpDate {
     if (epochSecond < MinEpochSecond || epochSecond > MaxEpochSecond)
       ParseResult.fail(
         "Invalid HTTP date",
-        s"${epochSecond} out of range for HTTP date. Must be between ${MinEpochSecond} and ${MaxEpochSecond}, inclusive")
+        s"${epochSecond} out of range for HTTP date. Must be between ${MinEpochSecond} and ${MaxEpochSecond}, inclusive",
+      )
     else
       ParseResult.success(new HttpDate(epochSecond))
 
@@ -152,7 +160,8 @@ object HttpDate {
         day: Int,
         hour: Int,
         min: Int,
-        sec: Int): Option[HttpDate] =
+        sec: Int,
+    ): Option[HttpDate] =
       try {
         val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
         Some(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
@@ -206,7 +215,8 @@ object HttpDate {
         "Sep",
         "Oct",
         "Nov",
-        "Dec").zipWithIndex
+        "Dec",
+      ).zipWithIndex
         .map { case (s, i) => string(s).as(i + 1) }
         .reduceLeft(_.orElse(_))
 

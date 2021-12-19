@@ -20,29 +20,28 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe.Json
+import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
 import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.syntax.all._
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
-// disabled until twirl supports dotty
-// import org.http4s.twirl._
-import org.http4s._
+import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
-class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextShift[F])
+class ExampleService[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F])
     extends Http4sDsl[F] {
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def routes(implicit timer: Timer[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
-      "/auth" -> authRoutes
+      "/auth" -> authRoutes,
     )
 
   def rootRoutes(implicit timer: Timer[F]): HttpRoutes[F] =
@@ -84,8 +83,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         // See also org.http4s.server.staticcontent to create a mountable service for static content
         StaticFile.fromResource(path.toString, blocker, Some(req)).getOrElseF(NotFound())
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Dealing with the message body ////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Dealing with the message body ////////////////
       case req @ POST -> Root / "echo" =>
         // The body can be used in the response
         Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
@@ -125,8 +124,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
         // Ok(html.submissionForm("sum"))
         Ok("Hello World")
 
-      ///////////////////////////////////////////////////////////////
-      ////////////////////// Blaze examples /////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // //////////////////// Blaze examples /////////////////////////
 
       // You can use the same service for GET and HEAD. For HEAD request,
       // only the Content-Length is sent (if static content)
@@ -149,8 +148,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
       case GET -> Root / "overflow" =>
         Ok("foo", `Content-Length`.unsafeFromLong(2))
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Form encoding example ////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Form encoding example ////////////////////////
       case GET -> Root / "form-encoded" =>
         // disabled until twirl supports dotty
         // Ok(html.formEncoded())
@@ -163,8 +162,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
           Ok(s"Form Encoded Data\n$s")
         }
 
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Server Push //////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////////////// Server Push //////////////////////////
       case req @ GET -> Root / "push" =>
         // http4s intends to be a forward looking library made with http2.0 in mind
         val data = <html><body><img src="image.jpg"/></body></html>
@@ -177,8 +176,8 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
           .fromResource("/nasa_blackhole_image.jpg", blocker, Some(req))
           .getOrElseF(NotFound())
 
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Multi Part //////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////////////// Multi Part //////////////////////////
       case GET -> Root / "form" =>
         // disabled until twirl supports dotty
         // Ok(html.form())
@@ -225,6 +224,6 @@ class ExampleService[F[_]](blocker: Blocker)(implicit F: Effect[F], cs: ContextS
 }
 
 object ExampleService {
-  def apply[F[_]: Effect: ContextShift](blocker: Blocker): ExampleService[F] =
+  def apply[F[_]: Sync: ContextShift](blocker: Blocker): ExampleService[F] =
     new ExampleService[F](blocker)
 }

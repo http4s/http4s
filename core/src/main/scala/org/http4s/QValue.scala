@@ -16,7 +16,9 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
 import cats.parse.Parser0
 import org.http4s.util.Writer
@@ -125,7 +127,8 @@ object QValue extends QValuePlatform {
   /** Exists to support compile-time verified literals. Do not call directly. */
   @deprecated(
     """QValue literal is deprecated.  Import `org.http4s.implicits._` and use the qValue"" string context""",
-    "0.22.2")
+    "0.22.2",
+  )
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
   implicit val catsInstancesForHttp4sQValue: Order[QValue]

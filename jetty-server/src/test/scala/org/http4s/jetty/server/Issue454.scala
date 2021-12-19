@@ -18,9 +18,14 @@ package org.http4s
 package jetty
 package server
 
-import cats.effect.{ContextShift, IO}
-import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import cats.effect.ContextShift
+import cats.effect.IO
+import org.eclipse.jetty.server.HttpConfiguration
+import org.eclipse.jetty.server.HttpConnectionFactory
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.servlet.ServletContextHandler
+import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.servlet.AsyncHttp4sServlet
@@ -67,6 +72,6 @@ object Issue454 {
       }
       .orNotFound,
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
-    serviceErrorHandler = DefaultServiceErrorHandler
+    serviceErrorHandler = DefaultServiceErrorHandler,
   )
 }

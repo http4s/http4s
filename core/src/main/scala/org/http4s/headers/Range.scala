@@ -18,12 +18,15 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0 => P0, Parser => P}
+import cats.parse.Numbers
+import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
 import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
-// See https://tools.ietf.org/html/rfc7233
+// See https://datatracker.ietf.org/doc/html/rfc7233
 
 object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
@@ -54,7 +57,7 @@ object Range {
   }
 
   val parser: P0[Range] = {
-    // https://tools.ietf.org/html/rfc7233#section-3.1
+    // https://datatracker.ietf.org/doc/html/rfc7233#section-3.1
 
     def toLong(s: String): Option[Long] =
       try Some(s.toLong)
@@ -100,7 +103,7 @@ object Range {
             writer
           }
         },
-      parse
+      parse,
     )
 
 }

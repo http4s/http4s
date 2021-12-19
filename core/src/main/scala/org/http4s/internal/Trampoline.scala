@@ -18,7 +18,8 @@ package org.http4s.internal
 
 import java.util.ArrayDeque
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContextExecutor
 
 private[http4s] object Trampoline extends ExecutionContextExecutor {
   private val local = new ThreadLocal[ThreadLocalTrampoline]

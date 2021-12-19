@@ -21,9 +21,10 @@ package util
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline._
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
 import scala.concurrent._
 
 /** Discards the body, killing it so as to clean up resources
@@ -34,8 +35,8 @@ import scala.concurrent._
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
     protected val F: Effect[F],
-    protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    protected val ec: ExecutionContext,
+) extends Http1Writer[F] {
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 

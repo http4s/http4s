@@ -18,9 +18,12 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Parser0
+import cats.parse.Rfc5234
 import org.http4s.Uri.RegName
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 sealed abstract class Origin
@@ -31,13 +34,13 @@ object Origin {
   case object Null extends Origin
 
   // If the Origin is not "null", it is a non-empty list of Hosts:
-  // http://tools.ietf.org/html/rfc6454#section-7
+  // https://datatracker.ietf.org/doc/html/rfc6454#section-7
   final case class HostList(hosts: NonEmptyList[Host]) extends Origin
 
   // A host in an Origin header isn't a full URI.
   // It only contains a scheme, a host, and an optional port.
   // Hence we re-used parts of the Uri class here, but we don't use a whole Uri:
-  // http://tools.ietf.org/html/rfc6454#section-7
+  // https://datatracker.ietf.org/doc/html/rfc6454#section-7
   final case class Host(scheme: Uri.Scheme, host: Uri.Host, port: Option[Int] = None)
       extends Renderable {
     def toUri: Uri =
@@ -93,7 +96,7 @@ object Origin {
             }
 
         },
-      parse
+      parse,
     )
 
 }

@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core
 
+import org.http4s.syntax.literals._
 class TraversalSpecItsNotYouItsMe
 
 import org.scalacheck.effect.PropF
@@ -46,7 +47,7 @@ class TraversalSpec extends Http4sSuite {
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
       } yield end._1.headers.headers
 
       res.assertEquals(req.headers.headers)
@@ -57,12 +58,12 @@ class TraversalSpec extends Http4sSuite {
     PropF.forAllF { (req: Request[IO]) =>
       // val logger = TestingLogger.impl[IO]()
       val newReq = req
-        .withUri(Uri.unsafeFromString("http://www.google.com"))
+        .withUri(uri"http://www.google.com")
 
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
       } yield end._1.method
 
       res.assertEquals(req.method)
@@ -75,7 +76,7 @@ class TraversalSpec extends Http4sSuite {
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](req))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
       } yield end._1.uri.scheme
 
       res.assertEquals(req.uri.scheme)
@@ -86,13 +87,13 @@ class TraversalSpec extends Http4sSuite {
     PropF.forAllF { (req: Request[IO], s: String) =>
       // val logger = TestingLogger.impl[IO]()
       val newReq = req
-        .withUri(Uri.unsafeFromString("http://www.google.com"))
+        .withUri(uri"http://www.google.com")
         .withEntity(s)
 
       val res = for {
         read <- Helpers.taking[IO, Byte](Encoder.reqToBytes[IO](newReq))
         end <- Parser.Request
-          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) //(logger)
+          .parser[IO](Int.MaxValue)(Array.emptyByteArray, read) // (logger)
         b <- end._1.body.through(fs2.text.utf8Decode).compile.foldMonoid
       } yield b
 
