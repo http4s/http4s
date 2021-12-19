@@ -18,40 +18,14 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect.IO
 import fs2._
-import org.http4s.syntax.all._
 import org.http4s.testing.AutoCloseableResource
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
-private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
-  def routes: HttpRoutes[IO]
-
-  lazy val testResource: Chunk[Byte] = {
-    val s = getClass.getResourceAsStream("/testresource.txt")
-    require(s != null, "Couldn't acquire resource!")
-    val bytes =
-      AutoCloseableResource.resource(
-        scala.io.Source
-          .fromInputStream(s)
-      )(
-        _.mkString
-          .getBytes(StandardCharsets.UTF_8)
-      )
-
-    Chunk.array(bytes)
-  }
-
-  lazy val testResourceGzipped: Chunk[Byte] = {
-    val url = getClass.getResource("/testresource.txt.gz")
-    require(url != null, "Couldn't acquire resource!")
-    val bytes = Files.readAllBytes(Paths.get(url.toURI))
-
-    Chunk.array(bytes)
-  }
+private[staticcontent] trait StaticContentSharedJvm extends StaticContentShared {
+  this: Http4sSuite =>
 
   lazy val testWebjarResource: Chunk[Byte] = {
     val s =
@@ -94,13 +68,5 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
       )
     )
   }
-
-  def runReq(
-      req: Request[IO],
-      routes: HttpRoutes[IO] = routes,
-  ): IO[(IO[Chunk[Byte]], Response[IO])] =
-    routes.orNotFound(req).map { resp =>
-      (resp.body.compile.to(Array).map(Chunk.array[Byte]), resp)
-    }
 
 }

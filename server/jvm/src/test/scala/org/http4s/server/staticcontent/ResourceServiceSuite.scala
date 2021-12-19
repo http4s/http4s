@@ -30,7 +30,7 @@ import org.http4s.syntax.all._
 
 import java.nio.file.Paths
 
-class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
+class ResourceServiceSuite extends Http4sSuite with StaticContentSharedJvm {
   // val config =
   //   ResourceService.Config[IO]("", blocker = testBlocker)
   // val defaultBase = getClass.getResource("/").getPath.toString
@@ -42,7 +42,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
 
-    {
+    testResource.flatMap { testResource =>
       val req = Request[IO](uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
@@ -56,8 +56,10 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](uri = Uri.fromString("/testresource.txt").yolo)
     val rb = routes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
-      rb.map(_.status).assertEquals(Status.Ok)
+    testResource.flatMap { testResource =>
+      Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
+        rb.map(_.status).assertEquals(Status.Ok)
+    }
   }
 
   test("Decodes path segments") {
@@ -143,12 +145,19 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResourceGzipped) *>
-      rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
-        .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .assertEquals(ContentCoding.gzip.some)
+    testResourceGzipped.flatMap { testResourceGzipped =>
+      Stream
+        .eval(rb)
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(testResourceGzipped) *>
+        rb.map(_.status).assertEquals(Status.Ok) *>
+        rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
+          .assertEquals(MediaType.text.plain.some) *>
+        rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
+          .assertEquals(ContentCoding.gzip.some)
+    }
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
@@ -158,13 +167,15 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
-      rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
-        .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .map(_ =!= ContentCoding.gzip.some)
-        .assert
+    testResource.flatMap { testResource =>
+      Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
+        rb.map(_.status).assertEquals(Status.Ok) *>
+        rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
+          .assertEquals(MediaType.text.plain.some) *>
+        rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
+          .map(_ =!= ContentCoding.gzip.some)
+          .assert
+    }
   }
 
   test("Generate non on missing content") {

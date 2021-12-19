@@ -24,11 +24,12 @@ import org.http4s.Method.GET
 import org.http4s.Method.POST
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
+import fs2.io.file.Path
 
 import java.net.URL
 import java.nio.file.Paths
 
-class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
+class WebjarServiceSuite extends Http4sSuite with StaticContentSharedJvm {
   def routes: HttpRoutes[IO] =
     webjarServiceBuilder[IO].toRoutes
 
@@ -43,10 +44,9 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .toRoutes
 
   val defaultBase =
-    org.http4s.server.test.BuildInfo.test_resourceDirectory.toPath
+    Path(defaultSystemPath)
       .resolve("META-INF/resources/webjars")
       .toString
-      .replace("jvm", "shared")
 
   test("Return a 200 Ok file") {
     val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")

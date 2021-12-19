@@ -28,8 +28,7 @@ import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
-  val defaultSystemPath =
-    org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath.replace("jvm", "shared")
+
   val routes = fileService(
     FileService.Config[IO](defaultSystemPath)
   )
@@ -37,7 +36,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
 
-    {
+    testResource.flatMap { testResource =>
       val req = Request[IO](uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
@@ -49,13 +48,15 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("Return a 200 Ok file") {
     val req = Request[IO](uri = uri"/testresource.txt")
-    Stream
-      .eval(routes.orNotFound.run(req))
-      .flatMap(_.body.chunks)
-      .compile
-      .lastOrError
-      .assertEquals(testResource) *>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
+    testResource.flatMap { testResource =>
+      Stream
+        .eval(routes.orNotFound.run(req))
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(testResource) *>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.Ok)
+    }
   }
 
   test("Return a 404 for a resource under an existing file") {
@@ -215,38 +216,44 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   test("Return a 206 PartialContent file") {
     val range = headers.Range(4)
     val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
-    Stream
-      .eval(routes.orNotFound(req))
-      .flatMap(_.body.chunks)
-      .compile
-      .lastOrError
-      .assertEquals(Chunk.array(testResource.toArray.splitAt(4)._2)) *>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
+    testResource.flatMap { testResource =>
+      Stream
+        .eval(routes.orNotFound(req))
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(Chunk.array(testResource.toArray.splitAt(4)._2)) *>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
+    }
   }
 
   test("Return a 206 PartialContent file") {
     val range = headers.Range(-4)
     val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
-    Stream
-      .eval(routes.orNotFound(req))
-      .flatMap(_.body.chunks)
-      .compile
-      .lastOrError
-      .assertEquals(Chunk.array(testResource.toArray.splitAt(testResource.size - 4)._2)) *>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
+    testResource.flatMap { testResource =>
+      Stream
+        .eval(routes.orNotFound(req))
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(Chunk.array(testResource.toArray.splitAt(testResource.size - 4)._2)) *>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
+    }
   }
 
   test("Return a 206 PartialContent file") {
     val range = headers.Range(2, 4)
     val req = Request[IO](uri = uri"/testresource.txt").withHeaders(range)
-    Stream
-      .eval(routes.orNotFound(req))
-      .flatMap(_.body.chunks)
-      .compile
-      .lastOrError
-      .assertEquals(Chunk.array(testResource.toArray.slice(2, 4 + 1))) *>
-      routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
+    testResource.flatMap { testResource =>
+      Stream
+        .eval(routes.orNotFound(req))
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(Chunk.array(testResource.toArray.slice(2, 4 + 1))) *>
+        routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
     // the end number is inclusive in the Range header
+    }
   }
 
   test("Return a 416 RangeNotSatisfiable on invalid range") {
