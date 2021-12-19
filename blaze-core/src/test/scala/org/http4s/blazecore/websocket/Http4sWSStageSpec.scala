@@ -48,7 +48,6 @@ class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
-        .covary[IO]
         .evalMap(outQ.offer)
         .compile
         .drain

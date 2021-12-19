@@ -175,7 +175,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused."
+    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused.".flaky
   ) {
     builder().resource.use { client =>
       for {

@@ -1,4 +1,4 @@
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.7"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.9"
 
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
@@ -17,10 +17,12 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.2.24")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.7.1")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.8.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
 addSbtPlugin("org.planet42" % "laika-sbt" % "0.18.1")
 
 // TODO remove me after we get this transitively
 // https://github.com/djspiewak/sbt-github-actions/issues/94
 addSbtPlugin("com.codecommit" % "sbt-github-actions" % "0.14.2")
+
+addDependencyTreePlugin

@@ -58,12 +58,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
     ResourceFixture[Http1Connection[IO]] {
       for {
         dispatcher <- Dispatcher[IO]
-        connection <- Resource[IO, Http1Connection[IO]] {
-          IO {
-            val connection = mkConnection(FooRequestKey, dispatcher)
-            (connection, IO.delay(connection.shutdown()))
-          }
-        }
+        connection <- mkConnection(FooRequestKey, dispatcher)
       } yield connection
     }
 
@@ -72,18 +67,22 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       dispatcher: Dispatcher[IO],
       userAgent: Option[`User-Agent`] = None,
   ) =
-    new Http1Connection[IO](
-      key,
-      executionContext = trampoline,
-      maxResponseLineSize = 4096,
-      maxHeaderLength = 40960,
-      maxChunkSize = Int.MaxValue,
-      chunkBufferMaxSize = 1024,
-      parserMode = ParserMode.Strict,
-      userAgent = userAgent,
-      idleTimeoutStage = None,
-      dispatcher = dispatcher,
-    )
+    Resource.make(
+      IO(
+        new Http1Connection[IO](
+          key,
+          executionContext = trampoline,
+          maxResponseLineSize = 4096,
+          maxHeaderLength = 40960,
+          maxChunkSize = Int.MaxValue,
+          chunkBufferMaxSize = 1024,
+          parserMode = ParserMode.Strict,
+          userAgent = userAgent,
+          idleTimeoutStage = None,
+          dispatcher = dispatcher,
+        )
+      )
+    )(c => IO(c.shutdown()))
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
@@ -93,20 +92,22 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       resp: String,
       dispatcher: Dispatcher[IO],
   ): Resource[IO, Response[IO]] = {
-    val stageResource = Resource(IO {
-      val stage = mkConnection(FooRequestKey, dispatcher)
-      val h = new SeqTestHead(resp.toSeq.map { chr =>
-        val b = ByteBuffer.allocate(1)
-        b.put(chr.toByte).flip()
-        b
+    val connectionR = mkConnection(FooRequestKey, dispatcher)
+
+    def stageResource(connection: Http1Connection[IO]) =
+      Resource.eval(IO {
+        val h = new SeqTestHead(resp.toSeq.map { chr =>
+          val b = ByteBuffer.allocate(1)
+          b.put(chr.toByte).flip()
+          b
+        })
+        LeafBuilder(connection).base(h)
       })
-      LeafBuilder(stage).base(h)
-      (stage, IO(stage.shutdown()))
-    })
 
     for {
-      stage <- stageResource
-      resp <- Resource.suspend(stage.runRequest(req))
+      connection <- connectionR
+      _ <- stageResource(connection)
+      resp <- Resource.suspend(connection.runRequest(req))
     } yield resp
   }
 
@@ -147,8 +148,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
       userAgent: Option[`User-Agent`] = None,
   ): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
-    val tail = mkConnection(key, dispatcher, userAgent)
-    getSubmission(req, resp, tail)
+    mkConnection(key, dispatcher, userAgent).use(tail => getSubmission(req, resp, tail))
   }
 
   dispatcher.test("Run a basic request".flaky) { dispatcher =>

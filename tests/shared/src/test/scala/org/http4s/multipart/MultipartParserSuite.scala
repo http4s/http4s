@@ -132,7 +132,7 @@ class MultipartParserSuite extends Http4sSuite {
             multipartMaterialized <- results.compile.last.map(_.get)
             headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
             bodies = multipartMaterialized.parts
-              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
               .through(asciiDecode)
               .compile
               .foldMonoid
@@ -185,7 +185,7 @@ class MultipartParserSuite extends Http4sSuite {
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies =
             multipartMaterialized.parts
-              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
               .through(asciiDecode)
               .compile
               .foldMonoid
@@ -233,7 +233,7 @@ class MultipartParserSuite extends Http4sSuite {
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies =
             multipartMaterialized.parts
-              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
               .through(asciiDecode)
               .compile
               .foldMonoid
@@ -286,7 +286,7 @@ class MultipartParserSuite extends Http4sSuite {
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies =
             multipartMaterialized.parts
-              .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+              .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
               .through(asciiDecode)
               .compile
               .foldMonoid
@@ -359,7 +359,7 @@ class MultipartParserSuite extends Http4sSuite {
           multipartMaterialized <- results.compile.last.map(_.get)
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies = multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -494,7 +494,7 @@ class MultipartParserSuite extends Http4sSuite {
           multipartMaterialized <- results.compile.last.map(_.get)
           headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
           bodies = multipartMaterialized.parts
-            .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+            .foldLeft(Stream.empty: Stream[IO, Byte])(_ ++ _.body)
             .through(asciiDecode)
             .compile
             .foldMonoid
@@ -569,7 +569,6 @@ class MultipartParserSuite extends Http4sSuite {
               .map(str => Chunk.array(str.getBytes(StandardCharsets.UTF_8)))
           )
           .flatMap(Stream.chunk)
-          .covary[IO]
 
       val mkResults =
         mkMultipartPipe(boundary).map(
