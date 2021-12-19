@@ -44,6 +44,7 @@ trait RequestDsl extends Methods with Auth {
   type QueryParamDecoderMatcher[T] = impl.QueryParamDecoderMatcher[T]
   type QueryParamMatcher[T] = impl.QueryParamMatcher[T]
   type OptionalQueryParamDecoderMatcher[T] = impl.OptionalQueryParamDecoderMatcher[T]
+  type QueryParamDecoderMatcherWithDefault[T] = impl.QueryParamDecoderMatcherWithDefault[T]
   type OptionalMultiQueryParamDecoderMatcher[T] = impl.OptionalMultiQueryParamDecoderMatcher[T]
   type OptionalQueryParamMatcher[T] = impl.OptionalQueryParamMatcher[T]
   type ValidatingQueryParamDecoderMatcher[T] = impl.ValidatingQueryParamDecoderMatcher[T]

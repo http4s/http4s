@@ -18,6 +18,7 @@ package org.http4s
 package blaze
 package server
 
+import cats.data.Kleisli
 import cats.effect._
 import fs2.Stream._
 import org.http4s.Charset._
@@ -27,13 +28,12 @@ import org.http4s.implicits._
 import org.typelevel.ci._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
-  // TODO: bring back well-typed value once all headers are moved to new model
-  val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw1
-  val connClose = Connection(ci"close").toRaw1
-  val connKeep = Connection(ci"keep-alive").toRaw1
-  val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw1
+  private val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw1
+  private val connClose = Connection(ci"close").toRaw1
+  private val connKeep = Connection(ci"keep-alive").toRaw1
+  private val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw1
 
-  def length(l: Long) = `Content-Length`.unsafeFromLong(l).toRaw1
+  def length(l: Long): Header.Raw = `Content-Length`.unsafeFromLong(l).toRaw1
   def testRequestResults: Seq[(String, (Status, Set[Header.Raw], String))] =
     Seq(
       ("GET /get HTTP/1.0\r\n\r\n", (Status.Ok, Set(length(3), textPlain), "get")),
@@ -129,7 +129,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       ),
     )
 
-  def apply()(implicit cs: ContextShift[IO]) =
+  def apply()(implicit cs: ContextShift[IO]): Kleisli[IO, Request[IO], Response[IO]] =
     HttpRoutes
       .of[IO] {
         case req if req.method == Method.GET && req.pathInfo == path"/get" =>

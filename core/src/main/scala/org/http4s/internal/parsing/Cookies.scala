@@ -23,7 +23,7 @@ import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
   *
-  * @see [[https://tools.ietf.org/html/rfc6265] RFC6265, HTTP State Management Mechanism]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc6265] RFC6265, HTTP State Management Mechanism]
   */
 private[http4s] abstract class Cookies(cookieOctet: Parser[Char]) {
   /* token             = <token, defined in [RFC2616], Section 2.2> */

@@ -22,13 +22,14 @@ import cats.effect._
 import fs2.io.readInputStream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
 
 import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
 class LoggerSuite extends Http4sSuite {
-  val testApp = HttpApp[IO] {
+  private val testApp = HttpApp[IO] {
     case req @ POST -> Root / "post" =>
       Ok(req.body)
     case GET -> Root / "request" =>
@@ -37,14 +38,15 @@ class LoggerSuite extends Http4sSuite {
       NotFound()
   }
 
-  def testResource = getClass.getResourceAsStream("/testresource.txt")
+  private def testResource = getClass.getResourceAsStream("/testresource.txt")
 
-  def body: EntityBody[IO] =
+  private def body: EntityBody[IO] =
     readInputStream[IO](IO.pure(testResource), 4096, testBlocker)
 
-  val expectedBody: String = Source.fromInputStream(testResource).mkString
+  private val expectedBody: String =
+    AutoCloseableResource.resource(Source.fromInputStream(testResource))(_.mkString)
 
-  val responseLoggerClient =
+  private val responseLoggerClient =
     ResponseLogger(true, true)(Client.fromHttpApp(testApp))
 
   test("ResponseLogger should not affect a Get") {
@@ -84,13 +86,5 @@ class LoggerSuite extends Http4sSuite {
     val res = loggerApp(req)
     res.map(_.status).assertEquals(Status.Ok)
     res.flatMap(_.as[String]).assertEquals(expectedBody)
-  }
-
-  def loggerColoredCompiles(): Unit = {
-    val _ = Logger.colored[IO](
-      logHeaders = true,
-      logBody = false,
-      logAction = Some(s => IO(println(s))),
-    ) _
   }
 }

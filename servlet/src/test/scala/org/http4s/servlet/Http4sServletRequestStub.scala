@@ -19,7 +19,7 @@ package org.http4s.servlet
 import javax.servlet.ServletInputStream
 import javax.servlet.http.HttpServletRequest
 
-case class HttpServletRequestStub(
+final case class HttpServletRequestStub(
     inputStream: ServletInputStream
 ) extends HttpServletRequest {
   def getInputStream(): ServletInputStream = inputStream

@@ -65,7 +65,7 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   val defaultClient = Client.fromHttpApp(app)
   val client = FollowRedirect(3)(defaultClient)
 
-  case class RedirectResponse(
+  private case class RedirectResponse(
       method: String,
       body: String,
   )

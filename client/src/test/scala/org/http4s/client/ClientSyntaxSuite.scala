@@ -217,7 +217,7 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should handle an unexpected status when calling a URI with expectOr") {
-    case class Boom(status: Status, body: String) extends Exception
+    sealed case class Boom(status: Status, body: String) extends Exception
     client
       .expectOr[String](uri"http://www.foo.com/status/500") { resp =>
         resp.as[String].map(Boom(resp.status, _))

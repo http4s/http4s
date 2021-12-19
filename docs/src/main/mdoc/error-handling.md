@@ -1,8 +1,5 @@
----
-menu: error-handling
-title: Error handling
-weight: 320
----
+
+# Error Handling
 
 A `MessageFailure` indicates an error handling an HTTP message.  These
 include:
@@ -31,6 +28,6 @@ Diagnostic information about syntax errors or missing fields,
 including a full stack trace, is logged to the
 `org.http4s.server.message-failures` category at `DEBUG` level.
 
-## Customizing error handling
+## Customizing Error Handling
 
 TODO

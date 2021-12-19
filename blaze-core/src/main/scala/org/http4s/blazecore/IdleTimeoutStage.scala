@@ -147,7 +147,9 @@ object IdleTimeoutStage {
 
   sealed trait State
   case object Disabled extends State
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
   case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  // scalafix:on
   case object ShutDown extends State
 
 }

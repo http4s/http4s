@@ -95,20 +95,14 @@ class DecodeSpec extends Http4sSuite {
       // Not a valid first byte in UTF-8
       val source = Stream(0x80.toByte)
       val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
+      val Left(_: MalformedInputException) = decoded
     }
 
     test("decode should handle incomplete input") {
       // Only the first byte of a two-byte UTF-8 sequence
       val source = Stream(0xc2.toByte)
       val decoded = source.through(decode[Fallible](Charset.`UTF-8`)).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
+      val Left(_: MalformedInputException) = decoded
     }
 
     test("decode should handle unmappable character") {
@@ -116,10 +110,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(0x80.toByte, 0x81.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("IBM1098")))).compile.string
-      assert(decoded match {
-        case Left(_: UnmappableCharacterException) => true
-        case _ => false
-      })
+      val Left(_: UnmappableCharacterException) = decoded
     }
 
     test("decode should handle overflows") {
@@ -127,7 +118,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(-36.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("x-ISCII91")))).compile.string
-      assert(decoded == Right("ी"))
+      assertEquals(decoded, Right("ी"))
     }
 
     test("decode should not crash in IllegalStateException") {
@@ -135,10 +126,7 @@ class DecodeSpec extends Http4sSuite {
       val source = Stream(-1.toByte)
       val decoded =
         source.through(decode[Fallible](Charset(JCharset.forName("x-IBM943")))).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
+      val Left(_: MalformedInputException) = decoded
     }
 
     test("decode should either succeed or raise a CharacterCodingException") {

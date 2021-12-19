@@ -53,8 +53,10 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
+      // scalafix:off Http4sGeneralLinters; bincompat until 1.0
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
+      // scalafix:on
       case object Unknown extends Name
 
       def ofInet4Address(address: Inet4Address): Name =
@@ -107,7 +109,7 @@ object Forwarded extends ForwardedRenderers {
       *
       * @param value obfuscated identifier with leading '_' (underscore) symbol.
       *
-      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
+      * @see [[https://datatracker.ietf.org/doc/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
       */
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
@@ -131,7 +133,7 @@ object Forwarded extends ForwardedRenderers {
       }
 
     val parser: P[Node] = {
-      // https://tools.ietf.org/html/rfc7239#section-4
+      // https://datatracker.ietf.org/doc/html/rfc7239#section-4
 
       def modelNodePortFromString(str: String): Option[Node.Port] =
         Try(Integer.parseUnsignedInt(str)).toOption.flatMap(Node.Port.fromInt(_).toOption)
@@ -300,7 +302,7 @@ object Forwarded extends ForwardedRenderers {
     ParseResult.fromParser(parser, "Invalid Forwarded header")(s)
 
   private val parser: P[Forwarded] = {
-    // https://tools.ietf.org/html/rfc7239#section-4
+    // https://datatracker.ietf.org/doc/html/rfc7239#section-4
 
     // A utility so that we can decode multiple pairs and join them in a single element
     trait Pair {

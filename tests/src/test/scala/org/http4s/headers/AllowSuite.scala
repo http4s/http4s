@@ -23,14 +23,14 @@ class AllowSuite extends HeaderLaws {
   checkAll("Allow", headerLaws[Allow])
 
   test("Allow should parse an empty string") {
-    assert(Allow.parse("") == Right(Allow()))
+    assertEquals(Allow.parse(""), Right(Allow()))
   }
 
   test("Allow should parse with an ending comma") {
-    assert(Allow.parse("GET,  POST   ,") == Right(Allow(Method.GET, Method.POST)))
+    assertEquals(Allow.parse("GET,  POST   ,"), Right(Allow(Method.GET, Method.POST)))
   }
 
   test("Allow should parse with multiple commas") {
-    assert(Allow.parse("GET,,POST") == Right(Allow(Method.GET, Method.POST)))
+    assertEquals(Allow.parse("GET,,POST"), Right(Allow(Method.GET, Method.POST)))
   }
 }
