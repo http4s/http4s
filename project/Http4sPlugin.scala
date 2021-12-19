@@ -220,7 +220,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.71.Final"
+    val netty = "4.1.72.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
@@ -287,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jnrUnixSocket = "com.github.jnr" % "jnr-unixsocket" % V.jnrUnixSocket
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
   lazy val literally = Def.setting("org.typelevel" %%% "literally" % V.literally)
-  lazy val log4catsCore = "org.typelevel" %% "log4cats-core" % V.log4cats
+  lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)
   lazy val log4catsNoop = Def.setting("org.typelevel" %%% "log4cats-noop" % V.log4cats)
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)

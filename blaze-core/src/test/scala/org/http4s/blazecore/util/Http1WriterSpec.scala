@@ -75,18 +75,18 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
     dispatcher.test(s"$name Write two emits") { implicit dispatcher =>
       val p = chunk(messageBuffer) ++ chunk(messageBuffer)
-      writeEntityBody(p.covary[IO])(builder(dispatcher))
+      writeEntityBody(p)(builder(dispatcher))
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
     }
 
     dispatcher.test(s"$name Write an await") { implicit dispatcher =>
-      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_))
       writeEntityBody(p)(builder(dispatcher))
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message)
     }
 
     dispatcher.test(s"$name Write two awaits") { implicit dispatcher =>
-      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_))
       writeEntityBody(p ++ p)(builder(dispatcher))
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 24\r\n\r\n" + message + message)
     }
@@ -102,7 +102,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     dispatcher.test(s"$name execute cleanup") { implicit dispatcher =>
       (for {
         clean <- Ref.of[IO, Boolean](false)
-        p = chunk(messageBuffer).covary[IO].onFinalizeWeak(clean.set(true))
+        p = chunk(messageBuffer).onFinalizeWeak(clean.set(true))
         r <- writeEntityBody(p)(builder(dispatcher))
           .map(_ == "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message)
         c <- clean.get
@@ -118,7 +118,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
           else None
         }
       }
-      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(
+      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_)) ++ chunk(
         Chunk.array("bar".getBytes(StandardCharsets.ISO_8859_1))
       )
       writeEntityBody(p)(builder(dispatcher))
@@ -157,7 +157,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
   dispatcher.test("FlushingChunkWriter should Write two strict chunks") { implicit d =>
     val p = chunk(messageBuffer) ++ chunk(messageBuffer)
-    writeEntityBody(p.covary[IO])(builder).assertEquals("""Content-Type: text/plain
+    writeEntityBody(p)(builder).assertEquals("""Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
             |c
@@ -173,7 +173,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     // n.b. in the scalaz-stream version, we could introspect the
     // stream, note the chunk was followed by halt, and write this
     // with a Content-Length header.  In fs2, this must be chunked.
-    val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+    val p = eval(IO(messageBuffer)).flatMap(chunk(_))
     writeEntityBody(p)(builder).assertEquals("""Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
@@ -185,7 +185,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
   }
 
   dispatcher.test("FlushingChunkWriter should Write two effectful chunks") { implicit d =>
-    val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+    val p = eval(IO(messageBuffer)).flatMap(chunk(_))
     writeEntityBody(p ++ p)(builder).assertEquals("""Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
@@ -202,7 +202,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     // n.b. We don't do anything special here.  This is a feature of
     // fs2, but it's important enough we should check it here.
     val p: Stream[IO, Byte] = chunk(Chunk.empty) ++ chunk(messageBuffer)
-    writeEntityBody(p.covary[IO])(builder).assertEquals("""Content-Type: text/plain
+    writeEntityBody(p)(builder).assertEquals("""Content-Type: text/plain
             |Transfer-Encoding: chunked
             |
             |c
@@ -252,7 +252,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
   // Some tests for the raw unwinding body without HTTP encoding.
   test("FlushingChunkWriter should write a deflated stream") {
-    val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+    val s = eval(IO(messageBuffer)).flatMap(chunk(_))
     val p = s.through(Compression[IO].deflate(DeflateParams.DEFAULT))
     (
       p.compile.toVector.map(_.toArray),
@@ -320,7 +320,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
         IO.pure(Headers(Header.Raw(ci"X-Trailer", "trailer header value"))),
       )
 
-    val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+    val p = eval(IO(messageBuffer)).flatMap(chunk(_))
 
     writeEntityBody(p)(builderWithTrailer).assertEquals("""Content-Type: text/plain
           |Transfer-Encoding: chunked

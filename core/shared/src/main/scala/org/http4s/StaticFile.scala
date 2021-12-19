@@ -197,7 +197,7 @@ object StaticFile {
 
                 F.pure(notModified(req, etagCalc, lastModified).orElse {
                   val (body, contentLength) =
-                    if (attr.size < end) (Stream.empty.covary[F], 0L)
+                    if (attr.size < end) (Stream.empty, 0L)
                     else (fileToBody[F](f, start, end), end - start)
 
                   val contentType = nameToContentType(f.fileName.toString)
