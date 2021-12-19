@@ -90,12 +90,14 @@ object ResponseLogger {
                   .flatMap(c => Stream.chunk(c))
 
                 response.copy(
-                  body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                    .onFinalizeWeak {
-                      logMessage(response.withBodyStream(newBody))
-                    }
+                  entity = Entity(
+                    response.body
+                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                      .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+                      .onFinalizeWeak {
+                        logMessage(response.withBodyStream(newBody))
+                      }
+                  )
                 )
               }
           fk(out)

@@ -73,7 +73,7 @@ object EmberClientSimpleExample extends IOApp {
       .use(resp =>
         resp.body.compile
           .to(ByteVector)
-          .map(bv => resp.copy(body = Stream.chunk(Chunk.byteVector(bv))))
+          .map(bv => resp.copy(entity = Entity(Stream.chunk(Chunk.byteVector(bv)))))
       )
 
   def logTimed[F[_]: Temporal, A](logger: Logger[F], name: String, fa: F[A]): F[A] =

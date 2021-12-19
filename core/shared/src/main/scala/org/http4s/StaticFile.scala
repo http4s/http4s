@@ -123,7 +123,7 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
+                    entity = Entity(readInputStream[F](F.pure(inputStream), DefaultBufferSize)),
                   )
                 )
               },
@@ -211,7 +211,7 @@ object StaticFile {
 
                   val r = Response(
                     headers = hs,
-                    body = body,
+                    entity = Entity(body),
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 

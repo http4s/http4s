@@ -49,15 +49,11 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def httpVersion: HttpVersion
 
-  def headers: Headers
-
-  def body: EntityBody[F]
-
   def attributes: Vault
 
   protected def change(
       httpVersion: HttpVersion = httpVersion,
-      body: EntityBody[F] = body,
+      entity: Entity[F] = entity,
       headers: Headers = headers,
       attributes: Vault = attributes,
   ): Self
@@ -99,7 +95,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
       case None => w.headers
     }
-    change(body = entity.body, headers = headers ++ hs)
+    change(entity = entity, headers = headers ++ hs)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -107,7 +103,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
   def withBodyStream(body: EntityBody[F]): Self =
-    change(body = body)
+    change(entity = Entity(body))
 
   /** Set an empty entity body on this message, and remove all payload headers
     * that make no sense with an empty body.
@@ -253,7 +249,7 @@ final class Request[F[_]] private (
     val uri: Uri,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val entity: Entity[F],
     val attributes: Vault,
 ) extends Message[F]
     with Product
@@ -267,7 +263,7 @@ final class Request[F[_]] private (
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      entity: Entity[F] = this.entity,
       attributes: Vault = this.attributes,
   ): Request[F] =
     Request(
@@ -275,7 +271,7 @@ final class Request[F[_]] private (
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -285,7 +281,7 @@ final class Request[F[_]] private (
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body.translate(f),
+      entity = entity.translate(f),
       attributes = attributes,
     )
 
@@ -297,13 +293,13 @@ final class Request[F[_]] private (
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      entity: Entity[F],
       headers: Headers,
       attributes: Vault,
   ): Request[F] =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes,
     )
@@ -519,7 +515,7 @@ object Request {
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      entity: Entity[F] = Entity.empty,
       attributes: Vault = Vault.empty,
   ): Request[F] =
     new Request[F](
@@ -527,7 +523,7 @@ object Request {
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -574,7 +570,7 @@ final class Response[F[_]] private (
     val status: Status,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val entity: Entity[F],
     val attributes: Vault,
 ) extends Message[F]
     with Product
@@ -586,7 +582,7 @@ final class Response[F[_]] private (
       status = status,
       httpVersion = httpVersion,
       headers = headers,
-      body = body.translate(f),
+      entity = entity.translate(f),
       attributes = attributes,
     )
 
@@ -595,13 +591,13 @@ final class Response[F[_]] private (
 
   override protected def change(
       httpVersion: HttpVersion,
-      body: EntityBody[F],
+      entity: Entity[F],
       headers: Headers,
       attributes: Vault,
   ): Response[F] =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes,
     )
@@ -637,14 +633,14 @@ final class Response[F[_]] private (
       status: Status = this.status,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F] = this.body,
+      entity: Entity[F] = this.entity,
       attributes: Vault = this.attributes,
   ): Response[F] =
     Response[F](
       status = status,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -689,10 +685,10 @@ object Response extends KleisliSyntax {
       status: Status = Status.Ok,
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      entity: Entity[F] = Entity.empty,
       attributes: Vault = Vault.empty,
   ): Response[F] =
-    new Response(status, httpVersion, headers, body, attributes)
+    new Response(status, httpVersion, headers, entity, attributes)
 
   def unapply[F[_]](
       response: Response[F]
@@ -704,7 +700,7 @@ object Response extends KleisliSyntax {
   private[this] val pureNotFound: Response[Pure] =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8.encode),
+      entity = Entity(Stream("Not found").through(utf8.encode)),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

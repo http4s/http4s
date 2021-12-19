@@ -139,7 +139,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
           .map(_ => "1".toByte)
           .take(4)
           .onFinalizeWeak[IO](d.complete(()).void)
-      req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      req = Request(method = Method.POST, uri = www_foo_com, entity = Entity(body))
       tail = mkConnection(
         RequestKey.fromRequest(req),
         tickWheel,
@@ -165,7 +165,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
           .take(n.toLong)
       }
 
-      val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
+      val req = Request[IO](method = Method.POST, uri = www_foo_com, entity = Entity(dataStream(4)))
 
       val tail =
         mkConnection(RequestKey.fromRequest(req), tickWheel, dispatcher, idleTimeout = 10.seconds)

@@ -112,7 +112,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
-                    body = body,
+                    entity = Entity(body),
                   ),
                   dispose,
                 )

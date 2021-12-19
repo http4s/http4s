@@ -30,7 +30,7 @@ import org.typelevel.ci._
 import java.io.InputStream
 import java.net.URL
 
-final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
+final case class Part[F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
     headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
@@ -44,14 +44,14 @@ object Part {
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Stream.emit(value).through(utf8.encode),
+      Entity(Stream.emit(value).through(utf8.encode)),
     )
 
   def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
     fileData(
       name,
       path.fileName.toString,
-      Files[F].readAll(path, ChunkSize, Flags.Read),
+      Entity(Files[F].readAll(path, ChunkSize, Flags.Read)),
       headers: _*
     )
 
@@ -61,7 +61,7 @@ object Part {
   def fileData[F[_]](
       name: String,
       filename: String,
-      entityBody: EntityBody[F],
+      entity: Entity[F],
       headers: Header.ToRaw*
   ): Part[F] =
     Part(
@@ -69,7 +69,7 @@ object Part {
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
         "Content-Transfer-Encoding" -> "binary",
       ).put(headers: _*),
-      entityBody,
+      entity,
     )
 
   // The InputStream is passed by name, and we open it in the by-name
@@ -82,5 +82,5 @@ object Part {
       in: => InputStream,
       headers: Header.ToRaw*
   )(implicit F: Sync[F]): Part[F] =
-    fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
+    fileData(name, filename, Entity(readInputStream(F.delay(in), ChunkSize)), headers: _*)
 }

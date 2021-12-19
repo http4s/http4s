@@ -973,7 +973,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, body)
+      } yield try Request(method, uri, httpVersion, headers, Entity(body))
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -999,7 +999,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, body)
+      } yield Response(status, httpVersion, headers, Entity(body))
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =

@@ -418,7 +418,7 @@ private final class Http1Connection[F[_]](
             status = status,
             httpVersion = httpVersion,
             headers = headers,
-            body = body.interruptWhen(idleTimeoutS),
+            entity = Entity(body.interruptWhen(idleTimeoutS)),
             attributes = attributes,
           )
         )

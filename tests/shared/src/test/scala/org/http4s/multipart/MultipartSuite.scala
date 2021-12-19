@@ -58,9 +58,8 @@ class MultipartSuite extends Http4sSuite {
       val field2 = Part.formData[IO]("field2", "Text_Field_2")
       val multipart = Multipart(Vector(field1, field2))
       val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val body = entity.body
       val request =
-        Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
       mkDecoder.use { decoder =>
         val decoded = decoder.decode(request, true)
@@ -75,9 +74,8 @@ class MultipartSuite extends Http4sSuite {
       val multipart = Multipart[IO](Vector(field1))
 
       val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val body = entity.body
       val request =
-        Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
       mkDecoder.use { decoder =>
         val decoded = decoder.decode(request, true)
@@ -97,9 +95,8 @@ class MultipartSuite extends Http4sSuite {
       val multipart = Multipart[IO](Vector(field1, field2))
 
       val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val body = entity.body
       val request =
-        Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
       mkDecoder.use { decoder =>
         val decoded = decoder.decode(request, true)
@@ -136,7 +133,7 @@ Content-Type: application/pdf
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        body = Stream.emit(body).covary[IO].through(text.utf8.encode),
+        entity = Entity(Stream.emit(body).covary[IO].through(text.utf8.encode)),
         headers = header,
       )
 
@@ -169,7 +166,7 @@ I am a big moose
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        body = Stream.emit(body).through(text.utf8.encode),
+        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 
@@ -184,7 +181,7 @@ I am a big moose
     test(s"Multipart form data $name should extract name properly if it is present") {
       val part = Part(
         Headers(`Content-Disposition`("form-data", Map(ci"name" -> "Rich Homie Quan"))),
-        Stream.empty,
+        Entity.empty,
       )
       assertEquals(part.name, Some("Rich Homie Quan"))
     }
@@ -194,7 +191,7 @@ I am a big moose
         Headers(
           `Content-Disposition`("form-data", Map(ci"name" -> "file", ci"filename" -> "file.txt"))
         ),
-        Stream.empty,
+        Entity.empty,
       )
       assertEquals(part.filename, Some("file.txt"))
     }
@@ -218,7 +215,7 @@ I am a big moose
   }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  def testPart[F[_]] = Part[F](Headers.empty, Entity.empty)
 
   test("Part.covary should disallow unrelated effects") {
     assert(

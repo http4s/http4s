@@ -79,17 +79,19 @@ object GZip {
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .copy(body =
-        resp.body.through(
-          Compression[F].gzip(
-            fileName = None,
-            modificationTime = None,
-            comment = None,
-            DeflateParams(
-              bufferSize = bufferSize,
-              level = level,
-              header = ZLibParams.Header.GZIP,
-            ),
+      .copy(entity =
+        Entity(
+          resp.body.through(
+            Compression[F].gzip(
+              fileName = None,
+              modificationTime = None,
+              comment = None,
+              DeflateParams(
+                bufferSize = bufferSize,
+                level = level,
+                header = ZLibParams.Header.GZIP,
+              ),
+            )
           )
         )
       )
