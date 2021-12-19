@@ -1,9 +1,11 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
+import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+
+Global / excludeLintKeys += laikaDescribe
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
@@ -17,8 +19,8 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isScala3.value
-ThisBuild / ScalafixConfig / skip := isScala3.value
+ThisBuild / scalafixAll / skip := isDotty.value
+ThisBuild / ScalafixConfig / skip := isDotty.value
 
 ThisBuild / githubWorkflowBuild := Seq(
   WorkflowStep.Sbt(List("scalafmtCheckAll", "scalafmtSbtCheck"), name = Some("Check formatting")),
@@ -50,7 +52,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       )
     ),
     scalas = crossScalaVersions.value.toList,
-    javas = List("adoptium@8"),
+    javas = List(JavaSpec.temurin("8")),
   )
 )
 
@@ -58,7 +60,7 @@ ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
   for {
     scala <- (ThisBuild / crossScalaVersions).value.tail
     java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("scala" -> scala, "java" -> java))
+  } yield MatrixExclude(Map("scala" -> scala, "java" -> java.render))
 }
 
 enablePlugins(SonatypeCiReleasePlugin)
@@ -104,6 +106,8 @@ lazy val modules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalInput,
+  scalafixInternalOutput,
   scalafixInternalTests,
 )
 
@@ -163,6 +167,12 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
+
+      // private constructors so effectively final already
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
+      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
     ),
   )
 
@@ -237,6 +247,19 @@ lazy val server = libraryProject("server")
       ProblemFilters.exclude[MissingClassProblem](
         "org.http4s.server.middleware.GZip$TrailerGen$"
       ), // private
+      // the following are private[middleware]
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$Static"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowMethods$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowOrigin$Match"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
+      ProblemFilters
+        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
     ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
@@ -270,7 +293,8 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      jettyServlet % Test
+      nettyBuffer % Test,
+      nettyCodecHttp % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -604,10 +628,10 @@ lazy val bench = http4sProject("bench")
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
-    HugoPlugin,
     NoPublishPlugin,
     ScalaUnidocPlugin,
     MdocPlugin,
+    LaikaPlugin,
   )
   .settings(docsProjectSettings)
   .settings(
@@ -634,18 +658,20 @@ lazy val docs = http4sProject("docs")
         scalafixInternalTests,
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,
     fatalWarningsInCI := false,
-    Hugo / baseURL := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      if (isCi.value) new URI(s"https://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
-    },
-    siteMappings := {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
-    },
-    siteMappings ++= {
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig := SiteConfig.config(versioned = true).value,
+    laikaTheme := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.current,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = false,
+    ),
+    laikaDescribe := "<disabled>",
+    laikaIncludeEPUB := true,
+    laikaIncludePDF := false,
+    Laika / sourceDirectories := Seq(mdocOut.value),
+    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
         yield (f, s"$docsPrefix/api/$d")
@@ -677,18 +703,26 @@ lazy val docs = http4sProject("docs")
   )
 
 lazy val website = http4sProject("website")
-  .enablePlugins(HugoPlugin, GhpagesPlugin, NoPublishPlugin)
+  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
   .settings(docsProjectSettings)
   .settings(
     description := "Common area of http4s.org",
     startYear := Some(2013),
-    Hugo / baseURL := {
-      if (isCi.value) new URI(s"https://http4s.org")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
-    },
-    makeSite := makeSite.dependsOn(http4sBuildData).value,
-    // all .md|markdown files go into `content` dir for hugo processing
+    laikaExtensions := SiteConfig.extensions,
+    laikaConfig := SiteConfig.config(versioned = false).value,
+    laikaTheme := SiteConfig.theme(
+      currentVersion = SiteConfig.versions.current,
+      SiteConfig.variables.value,
+      SiteConfig.homeURL.value,
+      includeLandingPage = false,
+    ),
+    laikaDescribe := "<disabled>",
+    Laika / sourceDirectories := Seq(
+      baseDirectory.value / "src" / "hugo" / "content",
+      baseDirectory.value / "src" / "hugo" / "static",
+    ),
     ghpagesNoJekyll := true,
+    ghpagesPrivateMappings := (laikaSite / mappings).value,
     ghpagesCleanSite / excludeFilter :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
@@ -785,7 +819,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isScala3.value)
+    ).filter(_ => !isDotty.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -810,7 +844,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isScala3.value),
+    ).filter(_ => !isDotty.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -856,8 +890,6 @@ lazy val commonSettings = Seq(
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
 )
 
-val isScala3 = Def.setting(scalaVersion.value.startsWith("3"))
-
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
@@ -874,10 +906,10 @@ addCommandAlias("ci", ";clean ;release with-defaults")
 // OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
-  ";scalafixAll --triggered ;scalafixAll --rules=OrganizeImports ;scalafmtAll ;scalafmtSbt",
+  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll --rules=OrganizeImports ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )

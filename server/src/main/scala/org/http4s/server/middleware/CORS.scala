@@ -760,7 +760,7 @@ object CORSPolicy {
   private[middleware] sealed trait AllowOrigin
   private[middleware] object AllowOrigin {
     case object All extends AllowOrigin
-    case class Match(p: Origin => Boolean) extends AllowOrigin
+    final case class Match(p: Origin => Boolean) extends AllowOrigin
   }
 
   private[middleware] sealed trait AllowCredentials
@@ -772,27 +772,27 @@ object CORSPolicy {
   private[middleware] sealed trait ExposeHeaders
   private[middleware] object ExposeHeaders {
     case object All extends ExposeHeaders
-    case class In(names: Set[CIString]) extends ExposeHeaders
+    final case class In(names: Set[CIString]) extends ExposeHeaders
     case object None extends ExposeHeaders
   }
 
   private[middleware] sealed trait AllowMethods
   private[middleware] object AllowMethods {
     case object All extends AllowMethods
-    case class In(names: Set[Method]) extends AllowMethods
+    final case class In(names: Set[Method]) extends AllowMethods
   }
 
   private[middleware] sealed trait AllowHeaders
   private[middleware] object AllowHeaders {
     case object All extends AllowHeaders
-    case class In(names: Set[CIString]) extends AllowHeaders
+    final case class In(names: Set[CIString]) extends AllowHeaders
     case object Reflect extends AllowHeaders
-    case class Static(names: Set[CIString]) extends AllowHeaders
+    final case class Static(names: Set[CIString]) extends AllowHeaders
   }
 
   private[middleware] sealed trait MaxAge
   private[middleware] object MaxAge {
-    case class Some(seconds: Long) extends MaxAge
+    final case class Some(seconds: Long) extends MaxAge
     case object Default extends MaxAge
     case object DisableCaching extends MaxAge
   }

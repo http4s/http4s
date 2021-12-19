@@ -409,7 +409,7 @@ private[ember] object Parser {
           extends Exception(
             s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
             cause.orNull,
-          )
+          ) // scalafix:ok Http4sGeneralLinters.noCaseClassWithoutAccessModifier; bincompat until 1.0
     }
   }
 

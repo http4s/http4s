@@ -29,7 +29,7 @@ import java.nio.ByteBuffer
 
 /** Common rules defined in Rfc3986
   *
-  * @see [[https://tools.ietf.org/html/rfc3986]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc3986]]
   */
 private[http4s] object Rfc3986 {
   def alpha: Parser[Char] = Rfc2234.alpha

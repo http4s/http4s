@@ -70,7 +70,7 @@ object `Retry-After` {
 /** Response header, used by the server to indicate to the user-agent how long it has to wait before
   * it can try again with a follow-up request.
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
   *
   * @param retry Indicates the retry time, either as a date of expiration or as a number of seconds from the current time
   * until that expiration.

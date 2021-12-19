@@ -78,7 +78,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
   test("NoContent() does not generate Content-Length") {
     /* A server MUST NOT send a Content-Length header field in any response
      * with a status code of 1xx (Informational) or 204 (No Content).
-     * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
+     * -- https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
      */
     val resp = NoContent()
     resp.map(_.contentLength).assertEquals(Option.empty[Long])
@@ -92,7 +92,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
      * chunked and a message body consisting of a single chunk of zero-length;
      * or, c) close the connection immediately after sending the blank line
      * terminating the header section.
-     * -- https://tools.ietf.org/html/rfc7231#section-6.3.6
+     * -- https://datatracker.ietf.org/doc/html/rfc7231#section-6.3.6
      *
      * We choose option a.
      */
@@ -106,7 +106,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
      * server MUST NOT send Content-Length in such a response unless its
      * field-value equals the decimal number of octets that would have been sent
      * in the payload body of a 200 (OK) response to the same request.
-     * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
+     * -- https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
      *
      * We don't know what the proper value is in this signature, so we send
      * nothing.
@@ -120,7 +120,7 @@ class ResponseGeneratorSuite extends Http4sSuite {
     /** Aside from the cases defined above, in the absence of Transfer-Encoding,
       * an origin server SHOULD send a Content-Length header field when the
       * payload body size is known prior to sending the complete header section.
-      * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
+      * -- https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
       *
       * Until someone sets a body, we have an empty body and we'll set the
       * Content-Length.

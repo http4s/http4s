@@ -49,6 +49,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
 
+  object DefaultCounter extends QueryParamDecoderMatcherWithDefault[Int]("counter", 0)
+
   object Flag extends FlagQueryParamMatcher("flag")
 
   val app: HttpApp[IO] = HttpApp {
@@ -87,6 +89,8 @@ class PathInHttpRoutesSuite extends Http4sSuite {
         case Valid(Nil) => Ok("absent")
         case Invalid(errors) => BadRequest(errors.toList.map(_.details).mkString("\n"))
       }
+    case GET -> Root / "default" :? DefaultCounter(c) =>
+      Ok(s"counter: $c")
     case GET -> Root / "flagparam" :? Flag(flag) =>
       if (flag) Ok("flag present")
       else Ok("flag not present")
@@ -300,6 +304,25 @@ class PathInHttpRoutesSuite extends Http4sSuite {
             """For input string: "bar"""",
           )
         )
+  }
+  test("Path DSL within HttpService should default parameter present") {
+    val response =
+      serve(Request(GET, Uri(path = path"/default", query = Query.unsafeFromString("counter=3"))))
+    response.map(_.status).assertEquals(Ok) *>
+      response.flatMap(_.as[String]).assertEquals("counter: 3")
+  }
+  test("Path DSL within HttpService should default parameter absent") {
+    val response =
+      serve(Request(GET, Uri(path = path"/default", query = Query.unsafeFromString("other=john"))))
+    response.map(_.status).assertEquals(Ok) *>
+      response.flatMap(_.as[String]).assertEquals("counter: 0")
+  }
+  test("Path DSL within HttpService should default parameter present with incorrect format") {
+    val response =
+      serve(
+        Request(GET, Uri(path = path"/default", query = Query.unsafeFromString("counter=john")))
+      )
+    response.map(_.status).assertEquals(NotFound)
   }
   test("Path DSL within HttpService should optional flag parameter when present") {
     val response =

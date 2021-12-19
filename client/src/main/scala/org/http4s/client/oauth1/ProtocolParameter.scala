@@ -33,6 +33,7 @@ sealed trait ProtocolParameter {
 }
 
 object ProtocolParameter {
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
   case class Consumer(override val headerValue: String, secret: String) extends ProtocolParameter {
     override val headerName: String = "oauth_consumer_key"
   }
@@ -81,6 +82,7 @@ object ProtocolParameter {
   case class Verifier(override val headerValue: String) extends ProtocolParameter {
     override val headerName: String = "oauth_verifier"
   }
+  // scalafix:on
 
   implicit val http4sClientOauth1SortForProtocolParameters: Order[ProtocolParameter] =
     new Order[ProtocolParameter] {

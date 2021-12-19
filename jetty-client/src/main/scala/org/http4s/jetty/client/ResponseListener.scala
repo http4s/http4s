@@ -127,8 +127,10 @@ private[jetty] object ResponseListener {
   sealed trait Item
   object Item {
     case object Done extends Item
+    // scalafix:off Http4sGeneralLinters; bincompat until 1.0
     case class Raise(t: Throwable) extends Item
     case class Buf(b: ByteBuffer) extends Item
+    // scalafix:on
   }
 
   private val logger = getLogger
