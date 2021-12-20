@@ -45,7 +45,7 @@ class ThrottleSuite extends Http4sSuite {
       val takeFiveTokens: IO[List[TokenAvailability]] =
         (1 to 5).toList.traverse(_ => testee.takeToken)
       val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
       (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
         .mapN(_ && _)
     }.assert
