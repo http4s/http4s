@@ -46,7 +46,7 @@ object Boundary {
   private def stream: CollectionCompat.LazyList[Char] =
     CollectionCompat.LazyList.continually(nextChar)
   // Don't use filterNot it works for 2.11.4 and nothing else, it will hang.
-  private def endChar: Char = stream.filter(_ != ' ').headOption.getOrElse('X')
+  private def endChar: Char = stream.find(_ != ' ').getOrElse('X')
   private def value(l: Int): String = stream.take(l).mkString
 
   def create: Boundary = Boundary(value(BoundaryLength) + endChar)
