@@ -38,7 +38,7 @@ object Boundary {
   // the boundary in the media type, which causes some implementations
   // pain.
   private val OTHER = """'()+_,-./:=""".toSeq
-  private val CHARS = (DIGIT ++ ALPHA ++ OTHER).toList
+  private val CHARS = (DIGIT ++ ALPHA ++ OTHER)
   private val nchars = CHARS.length
   private val rand = new Random()
 
