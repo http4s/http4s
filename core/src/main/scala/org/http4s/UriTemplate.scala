@@ -281,7 +281,7 @@ object UriTemplate {
   protected def renderFragment(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
     val expansions = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(n) => expansions.append(n)
       case MultiFragmentExp(ns) => expansions.append(ns.mkString(","))
@@ -298,7 +298,7 @@ object UriTemplate {
 
   protected def renderFragmentIdentifier(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(_) =>
         throw new IllegalStateException("SimpleFragmentExp cannot be converted to a Uri")
