@@ -56,7 +56,7 @@ object SiteConfig {
       ),
       Teaser(
         "Cross-platform",
-        "http4s cross-builds for Scala.js. Share code across browser and electron clients, serverless functions, and JVM servers."
+        "http4s cross-builds for Scala.js, enabling you to share code across browser and electron clients, serverless functions, and JVM servers."
       ),
     )
 
