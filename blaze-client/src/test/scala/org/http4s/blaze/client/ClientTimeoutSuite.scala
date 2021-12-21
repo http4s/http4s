@@ -53,6 +53,7 @@ class ClientTimeoutSuite extends Http4sSuite {
   val FooRequest = Request[IO](uri = www_foo_com)
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+  val chunkBufferMaxSize = 1024 * 1024
 
   private def makeIdleTimeoutStage(
       idleTimeout: Duration,
@@ -104,7 +105,7 @@ class ClientTimeoutSuite extends Http4sSuite {
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
-      chunkBufferMaxSize = 1024 * 1024,
+      chunkBufferMaxSize = chunkBufferMaxSize,
       parserMode = ParserMode.Strict,
       userAgent = None,
       idleTimeoutStage = idleTimeoutStage,
@@ -161,7 +162,7 @@ class ClientTimeoutSuite extends Http4sSuite {
     val body = Stream
       .fixedRate[IO](500.millis)
       .take(3)
-      .mapChunks(_ => Chunk.array(Array.fill(2000000)(1.toByte)))
+      .mapChunks(_ => Chunk.array(Array.fill(chunkBufferMaxSize + 1)(1.toByte)))
     val req = Request(method = Method.POST, uri = www_foo_com, body = body)
     val h = new SlowTestHead(Seq(mkBuffer(resp)), 2000.millis, tickWheel)
     val c = mkClient(h, tickWheel)(idleTimeout = 1.second)
