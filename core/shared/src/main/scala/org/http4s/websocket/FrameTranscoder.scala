@@ -27,7 +27,7 @@ private[http4s] object FrameTranscoder {
     val data = new Array[Byte](in.remaining)
     in.get(data)
     if (mask != null) // We can use the charset decode
-      for (i <- 0 until data.length)
+      for (i <- data.indices)
         data(i) = (data(i) ^ mask(i & 0x3)).toByte // i mod 4 is the same as i & 0x3 but slower
     data
   }

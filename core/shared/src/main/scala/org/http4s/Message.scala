@@ -573,7 +573,7 @@ object Request {
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
   * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+  * @param attributes [[org.typelevel.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
@@ -617,21 +617,21 @@ final class Response[F[_]] private (
   def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+  /** Returns a list of cookies from the [[org.http4s.headers.`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
@@ -688,7 +688,7 @@ object Response extends KleisliSyntax {
     * @param status [[Status]] code and message
     * @param headers [[Headers]] containing all response headers
     * @param body EntityBody[F] representing the possible body of the response
-    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    * @param attributes [[org.typelevel.vault.Vault]] containing additional
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object
     */

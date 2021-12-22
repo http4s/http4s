@@ -1,7 +1,6 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -31,7 +30,7 @@ object Http4sPlugin extends AutoPlugin {
   val scala_3 = "3.1.0"
 
   override lazy val globalSettings = Seq(
-    isCi := sys.env.get("CI").isDefined
+    isCi := sys.env.contains("CI")
   )
 
   override lazy val buildSettings = Seq(
@@ -208,7 +207,7 @@ object Http4sPlugin extends AutoPlugin {
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.4.0"
-    val dropwizardMetrics = "4.2.5"
+    val dropwizardMetrics = "4.2.7"
     val fs2 = "3.2.3"
     val ip4s = "3.1.2"
     val javaWebSocket = "1.5.2"

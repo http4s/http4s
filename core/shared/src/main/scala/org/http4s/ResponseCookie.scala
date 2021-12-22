@@ -65,7 +65,7 @@ final case class ResponseCookie(
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
     sameSite.foreach(writer.append("; SameSite=").append(_))
-    if (secure || sameSite.exists(_ == SameSite.None)) writer.append("; Secure")
+    if (secure || sameSite.contains(SameSite.None)) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
     writer
