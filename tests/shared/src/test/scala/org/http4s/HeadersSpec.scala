@@ -66,7 +66,7 @@ class HeadersSpec extends Http4sSuite {
     val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
     val hs = Headers(clength) ++ Headers(h1, h2)
     assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
-    assertEquals(hs.headers.exists(_ == clength.toRaw1), true)
+    assertEquals(hs.headers.contains(clength.toRaw1), true)
   }
 
   // TODO this isn't really "raw headers" anymore
