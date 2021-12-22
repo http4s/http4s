@@ -19,20 +19,45 @@ package org.http4s
 import cats.Monoid
 import cats.syntax.all._
 import cats.~>
+import fs2.Pure
+import fs2.Stream
 
-final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None) {
-  def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] = Entity(body.translate(fk), length)
+sealed trait Entity[+F[_]] {
+  def body: EntityBody[F]
+  def length: Option[Long]
+  def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1]
+  def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G]
 }
 
 object Entity {
+  def apply[F[_]](body: EntityBody[F], length: Option[Long] = None): Entity[F] =
+    Default(body, length)
+
+  // The type parameter aids type inference in Message constructors. This should be unnecessary when Messages are covariant.
+  def empty[F[_]]: Entity[F] = Empty
+
+  final case class Default[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
+    def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1] = that match {
+      case d: Default[F1] => Default(body ++ d.body, (length, d.length).mapN(_ + _))
+      case Empty => this
+    }
+
+    def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] = Default(body.translate(fk), length)
+  }
+
+  case object Empty extends Entity[Pure] {
+    val body: EntityBody[Pure] = Stream.empty
+
+    val length: Option[Long] = Some(0L)
+
+    def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that
+
+    def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
+  }
 
   implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =
     new Monoid[Entity[F]] {
-      def combine(a1: Entity[F], a2: Entity[F]): Entity[F] =
-        Entity(a1.body ++ a2.body, (a1.length, a2.length).mapN(_ + _))
-      val empty: Entity[F] =
-        Entity.empty
+      def combine(a1: Entity[F], a2: Entity[F]): Entity[F] = a1 ++ a2
+      val empty: Entity[F] = Entity.empty
     }
-
-  val empty: Entity[Nothing] = Entity[Nothing](EmptyBody, Some(0L))
 }
