@@ -1,7 +1,6 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaKeys._
