@@ -153,7 +153,7 @@ object FileService {
     }
 
     override def hashCode(): Int = {
-      val state = Seq[Any](systemPath, fs2PathCollector, pathPrefix, cacheStrategy, bufferSize)
+      val state = Seq[Any](systemPath, fs2PathCollector, pathPrefix, bufferSize, cacheStrategy)
       state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
     }
 
