@@ -16,7 +16,7 @@
 
 package org.http4s.internal
 
-import org.http4s.Request
+import org.http4s.{Headers, Method, Request, Uri}
 import org.typelevel.ci.CIString
 
 private[http4s] object CurlConverter {
@@ -24,19 +24,33 @@ private[http4s] object CurlConverter {
   // escapes characters that are used in the curl-command, such as '
   private def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
 
-  def requestToCurlWithoutBody[F[_]](request: Request[F], redactHeadersWhen: CIString => Boolean): String = {
-    val elements = List(
-      s"-X ${request.method.name}",
-      s"'${escapeQuotationMarks(request.uri.renderString)}'",
-      request.headers
-        .redactSensitive(redactHeadersWhen)
-        .headers
-        .map { header =>
-          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
-        }
-        .mkString(" "),
-    )
+  private def newline: String = " \\\n  "
 
-    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
+  private def prepareMethodName(method: Method): String =
+    s"$newline--request ${method.name}"
+
+  private def prepareUri(uri: Uri): String =
+    s"$newline--url '${escapeQuotationMarks(uri.renderString)}'"
+
+  private def prepareHeaders(headers: Headers, redactHeadersWhen: CIString => Boolean): String = {
+    val preparedHeaders = headers
+      .redactSensitive(redactHeadersWhen)
+      .headers
+      .map { header =>
+        s"""--header '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
+      }
+      .mkString(newline)
+
+    if (preparedHeaders.isEmpty) "" else newline + preparedHeaders
+  }
+
+  def requestToCurlWithoutBody[F[_]](request: Request[F], redactHeadersWhen: CIString => Boolean): String = {
+    val params = List(
+      prepareMethodName(request.method),
+      prepareUri(request.uri),
+      prepareHeaders(request.headers, redactHeadersWhen),
+    ).mkString
+
+    s"curl$params"
   }
 }
