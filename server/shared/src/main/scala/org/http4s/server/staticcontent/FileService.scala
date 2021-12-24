@@ -39,7 +39,7 @@ import scala.util.control.NoStackTrace
 object FileService {
   private[this] val logger = getLogger
 
-  @deprecated("use FileService.PathCollector2", "0.23.8")
+  @deprecated("use FileService.Fs2PathCollector", "0.23.8")
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   type Fs2PathCollector[F[_]] = (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
