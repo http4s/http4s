@@ -44,7 +44,10 @@ private[http4s] object CurlConverter {
     if (preparedHeaders.isEmpty) "" else newline + preparedHeaders
   }
 
-  def requestToCurlWithoutBody[F[_]](request: Request[F], redactHeadersWhen: CIString => Boolean): String = {
+  def requestToCurlWithoutBody[F[_]](
+      request: Request[F],
+      redactHeadersWhen: CIString => Boolean,
+  ): String = {
     val params = List(
       prepareMethodName(request.method),
       prepareUri(request.uri),
