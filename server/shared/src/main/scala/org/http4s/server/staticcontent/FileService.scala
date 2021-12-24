@@ -131,7 +131,7 @@ object FileService {
     )
     override def productElement(n: Int): Any = n match {
       case 0 => systemPath
-      case 1 => fs2PathCollector
+      case 1 => pathCollector
       case 2 => pathPrefix
       case 3 => cacheStrategy
       case 4 => bufferSize
