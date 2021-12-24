@@ -32,6 +32,7 @@ import fs2.Pure
 import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.headers._
+import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.http4s.syntax.KleisliSyntaxBinCompat0
 import org.http4s.syntax.KleisliSyntaxBinCompat1
@@ -338,26 +339,8 @@ final class Request[F[_]] private (
     *
     * Supported cURL-Parameters are: -X, -H
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
-
-    /*
-     * escapes characters that are used in the curl-command, such as '
-     */
-    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
-
-    val elements = List(
-      s"-X ${method.name}",
-      s"'${escapeQuotationMarks(uri.renderString)}'",
-      headers
-        .redactSensitive(redactHeadersWhen)
-        .headers
-        .map { header =>
-          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
-        }
-        .mkString(" "),
-    )
-    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
-  }
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+    CurlConverter.requestToCurlWithoutBody(this, redactHeadersWhen)
 
   /** Representation of the query string as a map
     *
