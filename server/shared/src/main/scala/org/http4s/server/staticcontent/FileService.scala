@@ -158,7 +158,7 @@ object FileService {
     }
 
     override def toString =
-      s"Config($systemPath, $fs2PathCollector, $pathPrefix, $cacheStrategy, $bufferSize)"
+      s"Config($systemPath, $fs2PathCollector, $pathPrefix, $bufferSize, $cacheStrategy)"
 
   }
 
