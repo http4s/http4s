@@ -16,7 +16,10 @@
 
 package org.http4s.internal
 
-import org.http4s.{Headers, Method, Request, Uri}
+import org.http4s.Headers
+import org.http4s.Method
+import org.http4s.Request
+import org.http4s.Uri
 import org.typelevel.ci.CIString
 
 private[http4s] object CurlConverter {
