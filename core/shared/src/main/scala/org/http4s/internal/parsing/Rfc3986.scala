@@ -134,7 +134,7 @@ private[http4s] object Rfc3986 {
     }
 
     val fullIpv6WihtOptionalIpv4 = (h16Colon.repExactlyAs[List[Short]](6) ~ ls32)
-      .map { case (ls: List[Short], rs) => toIpv6(ls.toList, rs) }
+      .map { case (ls: List[Short], rs) => toIpv6(ls, rs) }
 
     val shortIpv6WithIpv4 = for {
       lefts <- h16.repSep0(0, 5, colon).with1 <* doubleColon

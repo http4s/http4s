@@ -174,7 +174,7 @@ object MimeLoader {
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map { case (t, l) =>
         toTree(t, s"${t.replaceAll("-", "_")}", mediaTypeClassName)(l)
       })
-      o <- Stream.emit(coalesce(t.toList, topLevelPackge, objectName, mediaTypeClassName))
+      o <- Stream.emit(coalesce(t, topLevelPackge, objectName, mediaTypeClassName))
       _ <- Stream.emit(treeToFile(f, o))
     } yield ()).compile.drain
 }
