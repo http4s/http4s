@@ -33,6 +33,7 @@ import org.log4s.getLogger
 import org.typelevel.ci._
 
 import java.io.File
+import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 object FileService {
@@ -102,7 +103,7 @@ object FileService {
     )
     def copy(
         systemPath: String = this.systemPath,
-        pathCollector: PathCollector[F] = this.pathCollector,
+        @nowarn pathCollector: PathCollector[F] = this.pathCollector,
         pathPrefix: String = this.pathPrefix,
         bufferSize: Int = this.bufferSize,
         cacheStrategy: CacheStrategy[F] = this.cacheStrategy,
@@ -148,7 +149,7 @@ object FileService {
     }
 
     override def hashCode(): Int = {
-      val state = Seq(systemPath, pathCollector2, pathPrefix, cacheStrategy, bufferSize)
+      val state = Seq[Any](systemPath, pathCollector2, pathPrefix, cacheStrategy, bufferSize)
       state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
     }
 
