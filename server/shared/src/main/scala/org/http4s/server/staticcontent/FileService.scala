@@ -64,8 +64,8 @@ object FileService {
 
     /** For binary compatibility.
       * @param systemPath path prefix to the folder from which content will be served
-      * @param pathPrefix prefix of Uri from which content will be served
       * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+      * @param pathPrefix prefix of Uri from which content will be served
       * @param bufferSize buffer size to use for internal read buffers
       * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
       */
