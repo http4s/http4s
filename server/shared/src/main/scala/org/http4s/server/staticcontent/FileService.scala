@@ -133,8 +133,8 @@ object FileService {
       case 0 => systemPath
       case 1 => pathCollector
       case 2 => pathPrefix
-      case 3 => cacheStrategy
-      case 4 => bufferSize
+      case 3 => bufferSize
+      case 4 => cacheStrategy
     }
 
     override def canEqual(that: Any): Boolean = that match {
