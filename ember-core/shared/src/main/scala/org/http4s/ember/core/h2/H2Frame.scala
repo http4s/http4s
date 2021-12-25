@@ -563,7 +563,7 @@ private[ember] object H2Frame {
         val v3 = ((next.value >> 0) & 0xff).toByte
         ByteVector(s0, s1, v0, v1, v2, v3) ++ bv
       }
-      val flag: Byte = if (settings.ack) 0 | (1 << 0) else 0
+      val flag: Byte = (if (settings.ack) 0 | (1 << 0) else 0).toByte
       RawFrame(payload.size.toInt, `type`, flag, settings.identifier, payload)
     }
 
@@ -733,7 +733,7 @@ private[ember] object H2Frame {
     val emptyBV = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
     def toRaw(ping: Ping): RawFrame = {
-      val flag: Byte = if (ping.ack) 0 | (1 << 0) else 0
+      val flag: Byte = (if (ping.ack) 0 | (1 << 0) else 0).toByte
       val payload = ping.data
 
       RawFrame(8, `type`, flag, ping.identifier, payload)
@@ -866,7 +866,7 @@ private[ember] object H2Frame {
   object Continuation {
     val `type`: Byte = 0x9
     def toRaw(cont: Continuation): RawFrame = {
-      val flag: Byte = if (cont.endHeaders) 0 | (1 << 2) else 0
+      val flag: Byte = (if (cont.endHeaders) 0 | (1 << 2) else 0).toByte
       RawFrame(
         cont.headerBlockFragment.size.toInt,
         `type`,
