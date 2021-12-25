@@ -29,7 +29,7 @@ import org.http4s.syntax.all._
 import java.net.URL
 import java.nio.file.Paths
 
-class WebjarServiceSuite extends Http4sSuite with StaticContentSharedJvm {
+class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
     webjarServiceBuilder[IO].toRoutes
 

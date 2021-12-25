@@ -23,6 +23,10 @@ import fs2._
 import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.syntax.all._
+import org.http4s.testing.AutoCloseableResource
+
+import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   def routes: HttpRoutes[IO]
@@ -37,6 +41,48 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
 
   lazy val testResourceGzipped: IO[Chunk[Byte]] =
     Files[IO].readAll(Path(defaultSystemPath) / "testresource.txt.gz").chunks.compile.foldMonoid
+
+  lazy val testWebjarResource: Chunk[Byte] = {
+    val s =
+      getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
+    require(s != null, "Couldn't acquire resource!")
+
+    Chunk.array(
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
+    )
+  }
+
+  lazy val testWebjarResourceGzipped: Chunk[Byte] = {
+    val url =
+      getClass.getResource("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt.gz")
+    require(url != null, "Couldn't acquire resource!")
+
+    val bytes = java.nio.file.Files.readAllBytes(Paths.get(url.toURI))
+    Chunk.array(bytes)
+  }
+
+  lazy val testWebjarSubResource: Chunk[Byte] = {
+    val s = getClass.getResourceAsStream(
+      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt"
+    )
+    require(s != null, "Couldn't acquire resource!")
+
+    Chunk.array(
+      AutoCloseableResource.resource(
+        scala.io.Source
+          .fromInputStream(s)
+      )(
+        _.mkString
+          .getBytes(StandardCharsets.UTF_8)
+      )
+    )
+  }
 
   def runReq(
       req: Request[IO],

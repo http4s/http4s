@@ -21,7 +21,7 @@ import org.http4s.Method.GET
 import org.http4s._
 import org.http4s.syntax.all._
 
-class WebjarServiceFilterSuite extends Http4sSuite with StaticContentSharedJvm {
+class WebjarServiceFilterSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
     webjarServiceBuilder[IO]
       .withWebjarAssetFilter(webjar =>

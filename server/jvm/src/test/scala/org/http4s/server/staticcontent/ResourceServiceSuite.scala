@@ -30,7 +30,7 @@ import org.http4s.syntax.all._
 
 import java.nio.file.Paths
 
-class ResourceServiceSuite extends Http4sSuite with StaticContentSharedJvm {
+class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val config =
   //   ResourceService.Config[IO]("", blocker = testBlocker)
   // val defaultBase = getClass.getResource("/").getPath.toString

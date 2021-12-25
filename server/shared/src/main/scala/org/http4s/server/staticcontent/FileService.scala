@@ -47,10 +47,10 @@ object FileService {
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
     * @param systemPath path prefix to the folder from which content will be served
-    * @param pathPrefix prefix of Uri from which content will be served
     * @param fs2PathCollector function that performs the work of collecting the file or rendering the directory into a response.
-    * @param bufferSize buffer size to use for internal read buffers
+    * @param pathPrefix prefix of Uri from which content will be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+    * @param bufferSize buffer size to use for internal read buffers
     */
   final class Config[F[_]](
       val systemPath: String,
