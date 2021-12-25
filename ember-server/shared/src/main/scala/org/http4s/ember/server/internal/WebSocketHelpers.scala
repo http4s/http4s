@@ -166,7 +166,7 @@ object WebSocketHelpers {
       closeState: Ref[F, Close],
   )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
-      Stream(frame).covary[F].through(encodeFrames(frameTranscoder)).through(write).compile.drain
+      Stream(frame).through(encodeFrames(frameTranscoder)).through(write).compile.drain
 
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {

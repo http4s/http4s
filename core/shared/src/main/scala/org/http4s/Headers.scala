@@ -135,7 +135,7 @@ object Headers {
   private val PayloadHeaderKeys = Set(
     `Content-Length`.name,
     `Content-Range`.name,
-    ci"Trailer",
+    Trailer.name,
     `Transfer-Encoding`.name,
   )
 

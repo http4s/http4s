@@ -18,13 +18,20 @@ package org.http4s.blaze
 package client
 
 import cats.effect._
-import cats.syntax.all._
-import com.sun.net.httpserver.HttpHandler
+import cats.effect.kernel.Resource
+import cats.effect.std.Dispatcher
+import cats.implicits.catsSyntaxApplicativeId
 import fs2.Stream
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus
+import org.http4s.Status.Ok
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.client.ServerScaffold
+import org.http4s.client.scaffold._
 import org.http4s.client.testroutes.GetRoutes
+import org.http4s.dsl.io._
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
@@ -53,75 +60,62 @@ trait BlazeClientBase extends Http4sSuite {
     sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }
 
-  private def testHandler: HttpHandler = exchange => {
-    val io = exchange.getRequestMethod match {
-      case "GET" =>
-        val path = exchange.getRequestURI.getPath
-        GetRoutes.getPaths.get(path) match {
-          case Some(responseIO) =>
-            responseIO.flatMap { resp =>
-              val prelude =
-                resp.headers.headers
-                  .filter(_.name =!= headers.`Content-Length`.name)
-                  .traverse_(h =>
-                    IO.blocking(exchange.getResponseHeaders.add(h.name.toString, h.value))
-                  ) *>
-                  IO.blocking(
-                    exchange
-                      .sendResponseHeaders(resp.status.code, resp.contentLength.getOrElse(0L))
-                  )
-              val body =
-                resp.body
-                  .evalMap { byte =>
-                    IO.blocking(exchange.getResponseBody.write(Array(byte)))
-                  }
-                  .compile
-                  .drain
-              val flush = IO.blocking(exchange.getResponseBody.flush())
-              val close = IO.blocking(exchange.close())
-              (prelude *> body *> flush).guarantee(close)
-            }
-          case None =>
-            IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
-              IO.blocking(exchange.close())
-        }
-      case "POST" =>
-        exchange.getRequestURI.getPath match {
-          case "/respond-and-close-immediately" =>
-            // We don't consume the req.getInputStream (the request entity). That means that:
-            // - The client may receive the response before sending the whole request
-            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            IO.blocking(exchange.sendResponseHeaders(200, 1L)) *>
-              IO.blocking(exchange.getResponseBody.write(Array("a".toByte))) *>
-              IO.blocking(exchange.getResponseBody.flush()) *>
-              IO.blocking(exchange.close())
-          case "/respond-and-close-immediately-no-body" =>
-            // We don't consume the req.getInputStream (the request entity). That means that:
-            // - The client may receive the response before sending the whole request
-            // - Jetty will send a "Connection: close" header and a TCP FIN+ACK along with the response, closing the connection.
-            IO.blocking(exchange.sendResponseHeaders(204, 0L)) *>
-              IO.blocking(exchange.close())
-          case "/process-request-entity" =>
-            // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
-            Stream
-              .eval(IO.blocking(exchange.getRequestBody.read()))
-              .repeat
-              .takeWhile(_ =!= -1)
-              .compile
-              .drain *>
-              IO.blocking(exchange.sendResponseHeaders(204, 0L)) *>
-              IO.blocking(exchange.close())
-          case _ =>
-            IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
-              IO.blocking(exchange.close())
-        }
-      case _ =>
-        IO.blocking(exchange.sendResponseHeaders(404, -1)) *>
-          IO.blocking(exchange.close())
-    }
-    io.start.unsafeRunAndForget()
-  }
+  private def makeScaffold(num: Int, secure: Boolean): Resource[IO, ServerScaffold[IO]] =
+    for {
+      dispatcher <- Dispatcher[IO]
+      getHandler <- Resource.eval(
+        RoutesToHandlerAdapter(
+          HttpRoutes.of[IO] {
+            case Method.GET -> Root / "infinite" =>
+              Response[IO](Ok).withEntity(Stream.emit[IO, String]("a" * 8 * 1024).repeat).pure[IO]
 
-  val server = resourceSuiteFixture("http", ServerScaffold[IO](2, false, testHandler))
-  val secureServer = resourceSuiteFixture("https", ServerScaffold[IO](1, true, testHandler))
+            case _ @(Method.GET -> path) =>
+              GetRoutes.getPaths.getOrElse(path.toString, NotFound())
+          },
+          dispatcher,
+        )
+      )
+      scaffold <- ServerScaffold[IO](
+        num,
+        secure,
+        HandlersToNettyAdapter[IO](postHandlers, getHandler),
+      )
+    } yield scaffold
+
+  private def postHandlers: Map[(HttpMethod, String), Handler] =
+    Map(
+      (HttpMethod.POST, "/respond-and-close-immediately") -> new Handler {
+        // The client may receive the response before sending the whole request
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(
+            ctx,
+            HttpResponseStatus.OK,
+            HandlerHelpers.utf8Text("a"),
+            closeConnection = true,
+          )
+          ()
+        }
+
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      },
+      (HttpMethod.POST, "/respond-and-close-immediately-no-body") -> new Handler {
+        // The client may receive the response before sending the whole request
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK, closeConnection = true)
+          ()
+        }
+
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      },
+      (HttpMethod.POST, "/process-request-entity") -> new Handler {
+        // We wait for the entire request to arrive before sending a response. That's how servers normally behave.
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK)
+          ()
+        }
+      },
+    )
+
+  val server = resourceSuiteFixture("http", makeScaffold(2, false))
+  val secureServer = resourceSuiteFixture("https", makeScaffold(1, true))
 }

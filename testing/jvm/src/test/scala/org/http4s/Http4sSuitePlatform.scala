@@ -37,7 +37,7 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
   )
 
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.get("CI").isDefined
+  override def munitFlakyOK = sys.env.contains("CI")
 }
 
 trait Http4sSuiteCompanionPlatform {

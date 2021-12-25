@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.internal
+package org.http4s.headers
 
-import fs2.Chunk
-import org.http4s.util.Writer
+import org.http4s.laws.discipline.arbitrary._
 
-import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
-import scala.collection.mutable.Buffer
-
-/** [[Writer]] that will result in a `Chunk`
-  */
-private[http4s] class ChunkWriter(
-    charset: Charset = StandardCharsets.UTF_8
-) extends Writer {
-  private[this] val chunks = Buffer[Chunk[Byte]]()
-
-  def toChunk: Chunk[Byte] = Chunk.concat(chunks)
-
-  override def append(s: String): this.type = {
-    chunks += Chunk.array(s.getBytes(charset))
-    this
-  }
+class TrailerSuite extends HeaderLaws {
+  checkAll("Trailer", headerLaws[Trailer])
 }

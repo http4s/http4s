@@ -30,11 +30,10 @@ import scala.util.control.NoStackTrace
 
 /** [[org.http4s.server.staticcontent.WebjarServiceBuilder]] builder
   *
-  * @param blocker execution context for blocking I/O
-  * @param filter To filter which assets from the webjars should be served
   * @param cacheStrategy strategy to use for caching purposes.
   * @param classLoader optional classloader for extracting the resources
   * @param preferGzipped prefer gzip compression format?
+  * @param webjarAssetFilter To filter which assets from the webjars should be served
   */
 class WebjarServiceBuilder[F[_]] private (
     webjarAssetFilter: WebjarServiceBuilder.WebjarAssetFilter,
@@ -153,11 +152,9 @@ object WebjarServiceBuilder {
 
   /** Returns an asset that matched the request if it's found in the webjar path
     *
-    * @param webjarAsset The WebjarAsset
-    * @param config The configuration
     * @param request The Request
-    * @param optional class loader
     * @param preferGzipped prefer gzip compression format?
+    * @param webjarAsset The WebjarAsset
     * @return Either the the Asset, if it exist, or Pass
     */
   private def serveWebjarAsset[F[_]](
@@ -180,7 +177,6 @@ object WebjarService {
 
   /** [[org.http4s.server.staticcontent.WebjarService]] configuration
     *
-    * @param blocker execution context for blocking I/O
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */

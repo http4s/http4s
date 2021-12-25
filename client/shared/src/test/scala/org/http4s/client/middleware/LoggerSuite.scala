@@ -34,7 +34,7 @@ class LoggerSuite extends Http4sSuite {
       NotFound()
   }
 
-  private def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes()).covary
+  private def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes())
 
   private val expectedBody: String = "This is a test resource."
 

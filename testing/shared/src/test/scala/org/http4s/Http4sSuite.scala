@@ -60,7 +60,6 @@ trait Http4sSuite
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): IO[String] =
     Stream
       .emit(W.toEntity(a))
-      .covary[IO]
       .flatMap(_.body)
       .through(utf8.decode)
       .foldMonoid

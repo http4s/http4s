@@ -57,7 +57,9 @@ trait EntityEncoder[F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
+    * if defined the headers
+    */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -97,7 +99,7 @@ object EntityEncoder {
   def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity[F](Stream.chunk(c), Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */

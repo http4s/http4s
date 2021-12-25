@@ -870,7 +870,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body.covary[F], length)
+      } yield Entity(body, length)
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
@@ -1123,4 +1123,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val http4sTestingArbitraryTrailer: Arbitrary[Trailer] = Arbitrary(
+    nonEmptyListOf(genToken.map(CIString(_))).map(headers =>
+      Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
+    )
+  )
 }
