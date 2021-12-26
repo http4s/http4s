@@ -430,28 +430,39 @@ private final class Http1Connection[F[_]](
   @tailrec private def validateRequest(req: Request[F]): Either[Exception, Request[F]] = {
     val minor: Int = getHttpMinor(req)
 
-    // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
-    if (minor == 0 && req.headers.get[`Content-Length`].isEmpty) {
-      logger.warn(s"Request $req is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
-      validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
-    }
-    // Ensure we have a host header for HTTP/1.1
-    else if (minor == 1 && req.uri.host.isEmpty) // this is unlikely if not impossible
-      if (req.headers.get[Host].isDefined) {
-        val host = req.headers.get[Host].get // TODO gross
-        val newAuth = req.uri.authority match {
-          case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
-          case None => Authority(host = RegName(host.host), port = host.port)
+    minor match {
+      // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
+      case 0 if req.headers.get[`Content-Length`].isEmpty =>
+        logger.warn(s"Request $req is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
+        validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
+
+      case 1 if req.uri.host.isEmpty => // this is unlikely if not impossible
+        // Ensure we have a host header for HTTP/1.1
+        req.headers.get[Host] match {
+          case Some(host) =>
+            val newAuth = req.uri.authority match {
+              case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
+              case None => Authority(host = RegName(host.host), port = host.port)
+            }
+            validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
+
+          case None if req.headers.get[`Content-Length`].nonEmpty =>
+            // translate to HTTP/1.0
+            validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
+
+          case None =>
+            Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
         }
-        validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
-      } else if (req.headers.get[`Content-Length`].nonEmpty) // translate to HTTP/1.0
-        validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
-      else
-        Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
-    else if (req.uri.path == Uri.Path.empty) Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
-    else if (req.uri.path.renderString.exists(ForbiddenUriCharacters))
-      Left(new IllegalArgumentException(s"Invalid URI path: ${req.uri.path}"))
-    else Right(req) // All appears to be well
+
+      case _ if req.uri.path == Uri.Path.empty =>
+        Right(req.withUri(req.uri.copy(path = Uri.Path.Root)))
+
+      case _ if req.uri.path.renderString.exists(ForbiddenUriCharacters) =>
+        Left(new IllegalArgumentException(s"Invalid URI path: ${req.uri.path}"))
+
+      case _ =>
+        Right(req) // All appears to be well
+    }
   }
 
   private def getChunkEncoder(
