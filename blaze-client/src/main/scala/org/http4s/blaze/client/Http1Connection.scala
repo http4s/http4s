@@ -310,6 +310,99 @@ private final class Http1Connection[F[_]](
         cb(Left(t))
     }(executionContext)
 
+  // it's called when the body is known
+  private def terminationConditionParsingPrelude(): Either[Throwable, Option[Chunk[Byte]]] =
+    stageState.get match { // if we don't have a length, EOF signals the end of the body.
+      case Error(e) if e != EOF => Either.left(e)
+      case _ =>
+        if (parser.definedContentLength() || parser.isChunked())
+          Either.left(InvalidBodyException("Received premature EOF."))
+        else Either.right(None)
+    }
+
+  private def cleanupParsingPrelude(closeOnFinish: Boolean, headers: Headers): Unit =
+    if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
+      logger.debug("Message body complete. Shutting down.")
+      stageShutdown()
+    } else {
+      logger.debug(s"Resetting $name after completing request.")
+      resetRead()
+    }
+
+  // it's called when headers and response line parsing are finished
+  private def parsePreludeFinished(
+      buffer: ByteBuffer,
+      closeOnFinish: Boolean,
+      doesntHaveBody: Boolean,
+      cb: Callback[Response[F]],
+      idleTimeoutS: F[Either[Throwable, Unit]],
+  ): Unit = {
+    // Get headers and determine if we need to close
+    val headers: Headers = parser.getHeaders()
+    val status: Status = parser.getStatus()
+    val httpVersion: HttpVersion = parser.getHttpVersion()
+
+    val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
+      // responses to HEAD requests do not have a body
+      cleanupParsingPrelude(closeOnFinish, headers)
+      (Vault.empty, EmptyBody)
+    } else {
+      // We are to the point of parsing the body and then cleaning up
+      val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
+        collectBodyFromParser(buffer, terminationConditionParsingPrelude _)
+
+      // to collect the trailers we need a cleanup helper and an effect in the attribute map
+      val (trailerCleanup, attributes): (() => Unit, Vault) =
+        if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
+          val trailers = new AtomicReference(Headers.empty)
+
+          val attrs = Vault.empty.insert[F[Headers]](
+            Message.Keys.TrailerHeaders[F],
+            F.defer {
+              if (parser.contentComplete()) F.pure(trailers.get())
+              else
+                F.raiseError(
+                  new IllegalStateException(
+                    "Attempted to collect trailers before the body was complete."
+                  )
+                )
+            },
+          )
+
+          (() => trailers.set(parser.getHeaders()), attrs)
+        } else
+          (() => (), Vault.empty)
+
+      if (parser.contentComplete()) {
+        trailerCleanup()
+        cleanupParsingPrelude(closeOnFinish, headers)
+        attributes -> rawBody
+      } else
+        attributes -> rawBody.onFinalizeCaseWeak {
+          case ExitCase.Completed =>
+            Async.shift(executionContext) *>
+              F.delay { trailerCleanup(); cleanupParsingPrelude(closeOnFinish, headers); }
+          case ExitCase.Error(_) | ExitCase.Canceled =>
+            Async.shift(executionContext) *>
+              F.delay {
+                trailerCleanup(); cleanupParsingPrelude(closeOnFinish, headers); stageShutdown()
+              }
+        }
+    }
+
+    cb(
+      Right(
+        Response[F](
+          status = status,
+          httpVersion = httpVersion,
+          headers = headers,
+          body = body.interruptWhen(idleTimeoutS),
+          attributes = attributes,
+        )
+      )
+    )
+  }
+
   private def parsePrelude(
       buffer: ByteBuffer,
       closeOnFinish: Boolean,
@@ -321,94 +414,9 @@ private final class Http1Connection[F[_]](
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
     else if (!parser.finishedHeaders(buffer))
       readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
-    else {
-      // Get headers and determine if we need to close
-      val headers: Headers = parser.getHeaders()
-      val status: Status = parser.getStatus()
-      val httpVersion: HttpVersion = parser.getHttpVersion()
-
-      // we are now to the body
-      def terminationCondition(): Either[Throwable, Option[Chunk[Byte]]] =
-        stageState.get match { // if we don't have a length, EOF signals the end of the body.
-          case Error(e) if e != EOF => Either.left(e)
-          case _ =>
-            if (parser.definedContentLength() || parser.isChunked())
-              Either.left(InvalidBodyException("Received premature EOF."))
-            else Either.right(None)
-        }
-
-      def cleanup(): Unit =
-        if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
-          logger.debug("Message body complete. Shutting down.")
-          stageShutdown()
-        } else {
-          logger.debug(s"Resetting $name after completing request.")
-          resetRead()
-        }
-
-      val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
-        // responses to HEAD requests do not have a body
-        cleanup()
-        (Vault.empty, EmptyBody)
-      } else {
-        // We are to the point of parsing the body and then cleaning up
-        val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
-          collectBodyFromParser(buffer, terminationCondition _)
-
-        // to collect the trailers we need a cleanup helper and an effect in the attribute map
-        val (trailerCleanup, attributes): (() => Unit, Vault) = {
-          if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-            val trailers = new AtomicReference(Headers.empty)
-
-            val attrs = Vault.empty.insert[F[Headers]](
-              Message.Keys.TrailerHeaders[F],
-              F.defer {
-                if (parser.contentComplete()) F.pure(trailers.get())
-                else
-                  F.raiseError(
-                    new IllegalStateException(
-                      "Attempted to collect trailers before the body was complete."
-                    )
-                  )
-              },
-            )
-
-            (() => trailers.set(parser.getHeaders()), attrs)
-          } else
-            (
-              { () =>
-                ()
-              },
-              Vault.empty,
-            )
-        }
-
-        if (parser.contentComplete()) {
-          trailerCleanup()
-          cleanup()
-          attributes -> rawBody
-        } else
-          attributes -> rawBody.onFinalizeCaseWeak {
-            case ExitCase.Completed =>
-              Async.shift(executionContext) *> F.delay { trailerCleanup(); cleanup(); }
-            case ExitCase.Error(_) | ExitCase.Canceled =>
-              Async.shift(executionContext) *> F.delay {
-                trailerCleanup(); cleanup(); stageShutdown()
-              }
-          }
-      }
-      cb(
-        Right(
-          Response[F](
-            status = status,
-            httpVersion = httpVersion,
-            headers = headers,
-            body = body.interruptWhen(idleTimeoutS),
-            attributes = attributes,
-          )
-        )
-      )
-    } catch {
+    else
+      parsePreludeFinished(buffer, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
+    catch {
       case t: Throwable =>
         logger.error(t)("Error during client request decode loop")
         cb(Left(t))
