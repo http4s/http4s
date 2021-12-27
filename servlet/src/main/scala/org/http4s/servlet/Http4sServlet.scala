@@ -104,7 +104,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       headers = toHeaders(req),
       body = servletIo.reader(req),
       attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
+        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri).get)
         .insert(
           Request.Keys.ConnectionInfo,
           Request.Connection(
@@ -137,14 +137,13 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
         ),
     )
 
-  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
-    val pathInfo =
+  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri): Option[Int] = {
+    val prefix =
       Uri.Path
         .unsafeFromString(req.getContextPath)
         .concat(Uri.Path.unsafeFromString(req.getServletPath))
-    uri.path
-      .findSplit(pathInfo)
-      .getOrElse(-1)
+
+    uri.path.findSplit(prefix)
   }
 
   protected def toHeaders(req: HttpServletRequest): Headers = {
