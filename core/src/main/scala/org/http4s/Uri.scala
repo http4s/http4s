@@ -332,7 +332,7 @@ object Uri extends UriPlatform {
     def render(writer: Writer): writer.type = {
       val start = if (absolute) "/" else ""
       writer << start << segments.iterator.mkString("/")
-      if (endsWithSlash) writer << "/" else writer
+      if (endsWithSlash && segments.nonEmpty) writer << "/" else writer
     }
 
     override val renderString: String = super.renderString
@@ -362,7 +362,11 @@ object Uri extends UriPlatform {
     }
 
     def concat(path: Path): Path =
-      Path(segments ++ path.segments, absolute = absolute, endsWithSlash = path.endsWithSlash)
+      Path(
+        segments ++ path.segments,
+        absolute = this.absolute || (this.isEmpty && path.absolute),
+        endsWithSlash = path.endsWithSlash || (path.isEmpty && this.endsWithSlash),
+      )
 
     def startsWith(path: Path): Boolean = segments.startsWith(path.segments)
 
@@ -381,10 +385,18 @@ object Uri extends UriPlatform {
     def findSplitOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
     def splitAt(idx: Int): (Path, Path) =
-      if (idx < 0) (if (absolute) Path.Root else Path.empty, this)
-      else {
+      if (idx <= 0) {
+        (Path.empty, this)
+      } else if (idx < segments.size) {
         val (start, end) = segments.splitAt(idx)
-        Path(start, absolute = absolute) -> Path(end, true, endsWithSlash = endsWithSlash)
+        (
+          Path(start, absolute = absolute),
+          Path(end, absolute = true, endsWithSlash = endsWithSlash),
+        )
+      } else if (idx == segments.size) {
+        (Path(segments, absolute = absolute), if (endsWithSlash) Path.Root else Path.empty)
+      } else {
+        (this, Path.empty)
       }
     private def copy(
         segments: Vector[Path.Segment] = segments,
@@ -401,9 +413,9 @@ object Uri extends UriPlatform {
   }
 
   object Path {
-    val empty = Path(Vector.empty)
-    val Root = Path(Vector.empty, absolute = true)
-    lazy val Asterisk = Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+    val empty = new Path(Vector.empty, absolute = false, endsWithSlash = false)
+    val Root = new Path(Vector.empty, absolute = true, endsWithSlash = true)
+    lazy val Asterisk = new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
@@ -494,7 +506,8 @@ object Uri extends UriPlatform {
         absolute: Boolean = false,
         endsWithSlash: Boolean = false,
     ): Path =
-      new Path(segments, absolute, endsWithSlash)
+      if (segments.isEmpty && (absolute || endsWithSlash)) Root
+      else new Path(segments, absolute, endsWithSlash)
 
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
     //   Some((path.segments, path.absolute, path.endsWithSlash))

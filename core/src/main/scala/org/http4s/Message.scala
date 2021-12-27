@@ -317,8 +317,10 @@ final class Request[F[_]] private (
       attributes = attributes,
     )
 
-  lazy val (scriptName, pathInfo) =
-    uri.path.splitAt(caret)
+  lazy val (scriptName, pathInfo) = {
+    val (l, r) = uri.path.splitAt(caret)
+    (l, r.toAbsolute)
+  }
 
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
