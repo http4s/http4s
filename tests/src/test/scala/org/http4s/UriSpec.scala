@@ -1349,6 +1349,59 @@ class UriSpec extends Http4sSuite {
       assertEquals(pre.concat(post), path1)
     }
 
+    test("empty concat 1")(assertEquals(path"".concat(path""), path""))
+    test("empty concat 2")(assertEquals(path"/".concat(path""), path"/"))
+    test("empty concat 3")(assertEquals(path"".concat(path"/"), path"/"))
+    test("empty concat 4")(assertEquals(path"/".concat(path"/"), path"/"))
+
+    test("simple concat 1")(assertEquals(path"a/".concat(path""), path"a/"))
+    test("simple concat 2")(assertEquals(path"a".concat(path"/"), path"a/"))
+    test("simple concat 3")(assertEquals(path"".concat(path"/a"), path"/a"))
+    test("simple concat 4")(assertEquals(path"/".concat(path"a"), path"/a"))
+
+    test("When left side of concat is absolute then the result is absolute") {
+      forAll((left: Path, right: Path) => assert(left.toAbsolute.concat(right).absolute))
+    }
+
+    test("When right side of concat ends with slash then the result ends with slash") {
+      forAll((left: Path, right: Path) => assert(left.concat(right.addEndsWithSlash).endsWithSlash))
+    }
+
+    test("splitAt(0)._2 is identity") {
+      forAll((path: Path) => assertEquals(path.splitAt(0)._2, path))
+    }
+
+    test("splitAt(-1) should equal splitAt(0)") {
+      forAll((path: Path) => assertEquals(path.splitAt(-1), path.splitAt(0)))
+    }
+
+    test("splitAt(segments.size + 1)._1 is identity") {
+      forAll((path: Path) => assertEquals(path.splitAt(path.segments.size + 1)._1, path))
+    }
+
+    test("splitAt followed by concat is identity") {
+      forAll { (path: Path, index: Int) =>
+        val (l, r) = path.splitAt(index)
+        assertEquals(l.concat(r), path)
+      }
+    }
+
+    // Additional, heavier testing for the case of splitAt(0)
+    test("splitAt(0) followed by concat is identity") {
+      forAll { (path: Path) =>
+        val (l, r) = path.splitAt(0)
+        assertEquals(l.concat(r), path)
+      }
+    }
+
+    // Additional, heavier testing for the case of splitAt(1)
+    test("splitAt(1) followed by concat is identity") {
+      forAll { (path: Path) =>
+        val (l, r) = path.splitAt(1)
+        assertEquals(l.concat(r), path)
+      }
+    }
+
     checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
     checkAll("Uri.Path", EqTests[Uri.Path].eqv)
   }
