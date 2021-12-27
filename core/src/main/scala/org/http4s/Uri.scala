@@ -403,7 +403,7 @@ object Uri extends UriPlatform {
         absolute: Boolean = absolute,
         endsWithSlash: Boolean = endsWithSlash,
     ) =
-      new Path(segments, absolute, endsWithSlash)
+      Path(segments, absolute, endsWithSlash)
 
     def dropEndsWithSlash = copy(endsWithSlash = false)
     def addEndsWithSlash = copy(endsWithSlash = true)

@@ -319,7 +319,7 @@ final class Request[F[_]] private (
 
   lazy val (scriptName, pathInfo) = {
     val (l, r) = uri.path.splitAt(caret)
-    (l, r.toAbsolute)
+    (l.toAbsolute, r.toAbsolute)
   }
 
   private def caret =
