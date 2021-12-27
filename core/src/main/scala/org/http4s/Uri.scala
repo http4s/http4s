@@ -389,8 +389,7 @@ object Uri extends UriPlatform {
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
         endsWithSlash: Boolean = endsWithSlash,
-    ) =
-      new Path(segments, absolute, endsWithSlash)
+    ) = Path(segments, absolute, endsWithSlash)
 
     def dropEndsWithSlash = copy(endsWithSlash = false)
     def addEndsWithSlash = copy(endsWithSlash = true)
