@@ -375,8 +375,7 @@ object Uri extends UriPlatform {
     def indexOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
     def findSplit(prefix: Path): Option[Int] =
-      if (prefix.isEmpty) None
-      else if (startsWith(prefix)) Some(prefix.segments.size)
+      if (startsWith(prefix)) Some(prefix.segments.size)
       else None
     def findSplitOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
