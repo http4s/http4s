@@ -281,7 +281,7 @@ object UriTemplate {
   protected def renderFragment(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
     val expansions = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(n) => expansions.append(n)
       case MultiFragmentExp(ns) => expansions.append(ns.mkString(","))
@@ -298,7 +298,7 @@ object UriTemplate {
 
   protected def renderFragmentIdentifier(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(_) =>
         throw new IllegalStateException("SimpleFragmentExp cannot be converted to a Uri")
@@ -314,7 +314,7 @@ object UriTemplate {
       case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
       case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
       case (elements, ParamElm(n, vs)) =>
-        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
+        vs.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
