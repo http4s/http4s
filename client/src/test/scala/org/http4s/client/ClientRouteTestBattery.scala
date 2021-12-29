@@ -49,7 +49,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       else
         Ok()
     case _ @(Method.GET -> path) =>
-      GetRoutes.getPaths.get(path.toString).getOrElse(NotFound())
+      GetRoutes.getPaths.getOrElse(path.toString, NotFound())
     case req @ (Method.POST -> _) =>
       Ok(req.body)
   }

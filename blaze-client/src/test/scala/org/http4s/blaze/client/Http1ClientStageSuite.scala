@@ -52,48 +52,42 @@ class Http1ClientStageSuite extends Http4sSuite {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   private val fooConnection =
-    ResourceFixture[Http1Connection[IO]] {
-      Resource[IO, Http1Connection[IO]] {
-        IO {
-          val connection = mkConnection(FooRequestKey)
-          (connection, IO.delay(connection.shutdown()))
-        }
-      }
-    }
+    ResourceFixture[Http1Connection[IO]](mkConnection(FooRequestKey))
 
-  private def mkConnection(key: RequestKey, userAgent: Option[`User-Agent`] = None) =
-    new Http1Connection[IO](
-      key,
-      executionContext = trampoline,
-      maxResponseLineSize = 4096,
-      maxHeaderLength = 40960,
-      maxChunkSize = Int.MaxValue,
-      chunkBufferMaxSize = 1024,
-      parserMode = ParserMode.Strict,
-      userAgent = userAgent,
-      idleTimeoutStage = None,
-    )
+  private def mkConnection(
+      key: RequestKey,
+      userAgent: Option[`User-Agent`] = None,
+  ): Resource[IO, Http1Connection[IO]] =
+    Resource.make(
+      IO(
+        new Http1Connection[IO](
+          key,
+          executionContext = trampoline,
+          maxResponseLineSize = 4096,
+          maxHeaderLength = 40960,
+          maxChunkSize = Int.MaxValue,
+          chunkBufferMaxSize = 1024,
+          parserMode = ParserMode.Strict,
+          userAgent = userAgent,
+          idleTimeoutStage = None,
+        )
+      )
+    )(c => IO(c.shutdown()))
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  private def bracketResponse[T](req: Request[IO], resp: String): Resource[IO, Response[IO]] = {
-    val stageResource = Resource(IO {
-      val stage = mkConnection(FooRequestKey)
-      val h = new SeqTestHead(resp.toSeq.map { chr =>
+  private def bracketResponse[T](req: Request[IO], resp: String): Resource[IO, Response[IO]] =
+    for {
+      stage <- mkConnection(FooRequestKey)
+      head = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
         b
       })
-      LeafBuilder(stage).base(h)
-      (stage, IO(stage.shutdown()))
-    })
-
-    for {
-      stage <- stageResource
+      _ <- Resource.eval(IO(LeafBuilder(stage).base(head)))
       resp <- Resource.suspend(stage.runRequest(req, IO.never))
     } yield resp
-  }
 
   private def getSubmission(
       req: Request[IO],
@@ -131,8 +125,7 @@ class Http1ClientStageSuite extends Http4sSuite {
       userAgent: Option[`User-Agent`] = None,
   ): IO[(String, String)] = {
     val key = RequestKey.fromRequest(req)
-    val tail = mkConnection(key, userAgent)
-    getSubmission(req, resp, tail)
+    mkConnection(key, userAgent).use(tail => getSubmission(req, resp, tail))
   }
 
   test("Run a basic request") {

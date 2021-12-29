@@ -177,7 +177,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   // TODO investigate delay in sending first chunk (it waits for 2 complete 32kB chunks)
 
   test(
-    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused."
+    "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused.".flaky
   ) {
     builder().resource.use { client =>
       for {

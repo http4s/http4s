@@ -49,7 +49,7 @@ private[http4s] class CachingStaticWriter[F[_]](
     ()
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer)
 
   private def clear(): Unit = bodyBuffer.clear()
 
