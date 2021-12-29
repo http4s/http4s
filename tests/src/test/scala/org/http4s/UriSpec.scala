@@ -1359,27 +1359,43 @@ class UriSpec extends Http4sSuite {
     test("simple concat 3")(assertEquals(path"".concat(path"/a"), path"/a"))
     test("simple concat 4")(assertEquals(path"/".concat(path"a"), path"/a"))
 
-    test("When left side of concat is absolute then the result is absolute") {
+    // Please keep in mind that this property doesn't go the other way around.
+    // The result being absolute does not imply the left side being absolute. See "simple concat 3".
+    property("When the left side of concat is absolute then the result is absolute") {
       forAll((left: Path, right: Path) => assert(left.toAbsolute.concat(right).absolute))
     }
 
-    test("When right side of concat ends with slash then the result ends with slash") {
+    // Please keep in mind that this property doesn't go the other way around.
+    // The result ending with slash does not imply the right side ending with slash. See "simple concat 1".
+    property("When the right side of concat ends with slash then the result ends with slash") {
       forAll((left: Path, right: Path) => assert(left.concat(right.addEndsWithSlash).endsWithSlash))
     }
 
-    test("splitAt(0)._2 is identity") {
+    property("size of concat is sum of sizes") {
+      forAll((left: Path, right: Path) =>
+        assertEquals(left.concat(right).segments.size, left.segments.size + right.segments.size)
+      )
+    }
+
+    test("splitAt -1")(assertEquals(path"/a/b/".splitAt(-1), (path"", path"/a/b/")))
+    test("splitAt 0")(assertEquals(path"/a/b/".splitAt(0), (path"", path"/a/b/")))
+    test("splitAt in the middle")(assertEquals(path"/a/b/".splitAt(1), (path"/a", path"/b/")))
+    test("splitAt segments.size")(assertEquals(path"/a/b/".splitAt(2), (path"/a/b", path"/")))
+    test("splitAt segments.size + 1")(assertEquals(path"/a/b/".splitAt(3), (path"/a/b/", path"")))
+
+    property("splitAt(0)._2 is identity") {
       forAll((path: Path) => assertEquals(path.splitAt(0)._2, path))
     }
 
-    test("splitAt(-1) should equal splitAt(0)") {
+    property("splitAt(-1) equals splitAt(0)") {
       forAll((path: Path) => assertEquals(path.splitAt(-1), path.splitAt(0)))
     }
 
-    test("splitAt(segments.size + 1)._1 is identity") {
+    property("splitAt(segments.size + 1)._1 is identity") {
       forAll((path: Path) => assertEquals(path.splitAt(path.segments.size + 1)._1, path))
     }
 
-    test("splitAt followed by concat is identity") {
+    property("splitAt followed by concat is identity") {
       forAll { (path: Path, index: Int) =>
         val (l, r) = path.splitAt(index)
         assertEquals(l.concat(r), path)
@@ -1387,7 +1403,7 @@ class UriSpec extends Http4sSuite {
     }
 
     // Additional, heavier testing for the case of splitAt(0)
-    test("splitAt(0) followed by concat is identity") {
+    property("splitAt(0) followed by concat is identity") {
       forAll { (path: Path) =>
         val (l, r) = path.splitAt(0)
         assertEquals(l.concat(r), path)
@@ -1395,7 +1411,7 @@ class UriSpec extends Http4sSuite {
     }
 
     // Additional, heavier testing for the case of splitAt(1)
-    test("splitAt(1) followed by concat is identity") {
+    property("splitAt(1) followed by concat is identity") {
       forAll { (path: Path) =>
         val (l, r) = path.splitAt(1)
         assertEquals(l.concat(r), path)
