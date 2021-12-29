@@ -389,19 +389,20 @@ object Uri extends UriPlatform {
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
         endsWithSlash: Boolean = endsWithSlash,
-    ) = Path(segments, absolute, endsWithSlash)
+    ): Path = Path(segments, absolute, endsWithSlash)
 
-    def dropEndsWithSlash = copy(endsWithSlash = false)
-    def addEndsWithSlash = copy(endsWithSlash = true)
+    def dropEndsWithSlash: Path = copy(endsWithSlash = false)
+    def addEndsWithSlash: Path = copy(endsWithSlash = true)
 
-    def toAbsolute = copy(absolute = true)
-    def toRelative = copy(absolute = false)
+    def toAbsolute: Path = copy(absolute = true)
+    def toRelative: Path = copy(absolute = false)
   }
 
   object Path {
-    val empty = new Path(Vector.empty, absolute = false, endsWithSlash = false)
-    val Root = new Path(Vector.empty, absolute = true, endsWithSlash = false)
-    lazy val Asterisk = new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+    val empty: Path = new Path(Vector.empty, absolute = false, endsWithSlash = false)
+    val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = false)
+    lazy val Asterisk: Path =
+      new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
