@@ -265,7 +265,6 @@ private[ember] object H2Server {
           .fromQueueUnterminated(created)
           .map { i =>
             val x: F[Unit] = for {
-              _ <- Sync[F].delay(println(i))
               stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
               req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
               resp <- httpApp(req)

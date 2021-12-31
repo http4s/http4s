@@ -23,8 +23,6 @@ import fs2._
 import fs2.io.net.Socket
 import scodec.bits._
 // import cats.data._
-// import scala.concurrent.duration._
-
 // import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 
 private[h2] class H2Connection[F[_]](
@@ -138,17 +136,14 @@ private[h2] class H2Connection[F[_]](
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
-      // .groupWithin[F](200, 5.millis)(F)
-      .evalMap {
+      .evalMapChunk {
         case g: H2Frame.GoAway =>
           mapRef.get.flatMap { m =>
             m.values.toList.traverse_(connection => connection.receiveGoAway(g))
           } >> state.update(s => s.copy(closed = true)).as(g).widen[H2Frame]
         case otherwise => otherwise.pure[F]
       }
-      // .debug(formatter = {c => s"Connection $host:$port Write- $c"})
       .chunks
-      // .debug(s => s.toString(), s => println(s"Write: $s"))
       .evalMap { chunk =>
         def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
           val fullDataSize = chunk.foldLeft(0) {
