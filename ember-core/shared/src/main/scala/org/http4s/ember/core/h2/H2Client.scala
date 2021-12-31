@@ -80,7 +80,7 @@ private[ember] class H2Client[F[_]: Async](
   import H2Client._
 
   def getOrCreate(
-      key: H2Client.RequestKey,
+      key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
   ): F[H2Connection[F]] =
@@ -116,17 +116,17 @@ private[ember] class H2Client[F[_]: Async](
   ): Resource[F, H2Connection[F]] =
     createSocket(key, useTLS, priorKnowledge).flatMap {
       case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
-      case (socket, Http1) => Resource.eval(H2Client.InvalidSocketType().raiseError)
+      case (socket, Http1) => Resource.eval(InvalidSocketType().raiseError)
     }
 
   // This is currently how we create http2 only sockets, will need to actually handle which
   // protocol to take
   def createSocket(
-      key: H2Client.RequestKey,
+      key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
-    address <- Resource.eval(H2Client.RequestKey.getAddress(key))
+    address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- sg.client(address)
     socket <- {
       if (useTLS) {
@@ -161,10 +161,10 @@ private[ember] class H2Client[F[_]: Async](
   def fromSocket(
       acc: ByteVector,
       socket: Socket[F],
-      key: H2Client.RequestKey,
+      key: RequestKey,
   ): Resource[F, H2Connection[F]] =
     for {
-      socketAdd <- Resource.eval(H2Client.RequestKey.getAddress(key))
+      socketAdd <- Resource.eval(RequestKey.getAddress(key))
       _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
       ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
       initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
@@ -366,7 +366,7 @@ private[ember] object H2Client {
       } yield resp
     }
 
-  sealed trait SocketType
+  sealed trait SocketType extends Product with Serializable
   case object Http2 extends SocketType
   case object Http1 extends SocketType
 
@@ -381,19 +381,17 @@ private[ember] object H2Client {
       RequestKey(uri.scheme.getOrElse(Scheme.http), uri.authority.getOrElse(Authority()))
     }
 
-  def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
-    requestKey match {
-      case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
-        val host = auth.host.value
-        for {
-          host <- Host.fromString(host).liftTo[F](MissingHost())
-          port <- Port.fromInt(port).liftTo[F](MissingPort())
-        } yield SocketAddress[Host](host, port)
-    }
+    def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
+      requestKey match {
+        case RequestKey(s, auth) =>
+          val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
+          val host = auth.host.value
+          for {
+            host <- Host.fromString(host).liftTo[F](MissingHost())
+            port <- Port.fromInt(port).liftTo[F](MissingPort())
+          } yield SocketAddress[Host](host, port)
+      }
   }
-
-  
 
   private[h2] case class InvalidSocketType()
       extends RuntimeException("createConnection only supports http2, and this is not available")
