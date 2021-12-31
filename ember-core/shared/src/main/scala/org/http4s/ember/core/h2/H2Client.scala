@@ -24,10 +24,10 @@ import com.comcast.ip4s._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
-import org.http4s._
-import scodec.bits._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
+import org.http4s._
+import scodec.bits._
 
 import scala.concurrent.duration._
 
