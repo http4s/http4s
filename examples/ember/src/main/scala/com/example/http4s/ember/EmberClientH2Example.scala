@@ -26,7 +26,6 @@ import org.http4s.ember.core.h2._
 import org.http4s.implicits._
 
 import scala.concurrent.duration._
-import org.typelevel.ci.CIString
 
 object EmberClientH2Example extends IOApp {
 

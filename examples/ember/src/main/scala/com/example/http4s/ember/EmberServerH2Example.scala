@@ -28,7 +28,6 @@ import org.http4s._
 import org.http4s.dsl._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
-import org.typelevel.ci.CIString
 import cats.effect.std.Console
 
 object EmberServerH2Example extends IOApp {
