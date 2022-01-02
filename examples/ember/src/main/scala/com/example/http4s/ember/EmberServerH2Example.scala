@@ -18,6 +18,7 @@ package com.example.http4s.ember
 
 import cats._
 import cats.effect._
+import cats.effect.std.Console
 import cats.syntax.all._
 import com.comcast.ip4s._
 import com.example.http4s.ssl
@@ -28,7 +29,6 @@ import org.http4s._
 import org.http4s.dsl._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
-import cats.effect.std.Console
 
 object EmberServerH2Example extends IOApp {
 
