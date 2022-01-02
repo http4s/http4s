@@ -19,7 +19,6 @@ package org.http4s
 import cats.Monoid
 import cats.syntax.all._
 import cats.~>
-import fs2.Chunk
 import fs2.Pure
 import fs2.Stream
 
@@ -36,30 +35,14 @@ object Entity {
 
   // The type parameter aids type inference in Message constructors. This should be unnecessary when Messages are covariant.
   def empty[F[_]]: Entity[F] = Empty
-  def strict(chunk: Chunk[Byte]): Entity[Pure] = Strict(chunk)
 
   final case class Default[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
     def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1] = that match {
       case d: Default[F1] => Default(body ++ d.body, (length, d.length).mapN(_ + _))
-      case Strict(chunk) => Default(body ++ Stream.chunk(chunk), length.map(_ + chunk.size))
       case Empty => this
     }
 
     def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] = Default(body.translate(fk), length)
-  }
-
-  final case class Strict(chunk: Chunk[Byte]) extends Entity[Pure] {
-    val body: EntityBody[Pure] = Stream.chunk(chunk)
-
-    val length: Option[Long] = Some(chunk.size.toLong)
-
-    def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that match {
-      case d: Default[F1] => Default(body ++ d.body, d.length.map(chunk.size + _))
-      case Strict(chunk2) => Strict(chunk ++ chunk2)
-      case Empty => this
-    }
-
-    def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
   }
 
   case object Empty extends Entity[Pure] {
