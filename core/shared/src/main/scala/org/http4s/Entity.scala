@@ -56,14 +56,10 @@ object Entity {
 
     val length: Option[Long] = Some(chunk.size.toLong)
 
-    def ++[F1[_]](that: Entity[F1]): Entity[F1] =
-      if (chunk.isEmpty) that
-      else {
-        that match {
-          case d: Default[F1] => Default(body ++ d.body, d.length.map(chunk.size + _))
-          case Strict(chunk2) => if (chunk2.isEmpty) this else Strict(chunk ++ chunk2)
-        }
-      }
+    def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that match {
+      case d: Default[F1] => Default(body ++ d.body, d.length.map(chunk.size + _))
+      case Strict(chunk2) => if (chunk2.isEmpty) this else Strict(chunk ++ chunk2)
+    }
 
     def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
   }
