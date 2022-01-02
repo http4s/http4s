@@ -48,7 +48,11 @@ private[h2] object PseudoHeaders {
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
         req.headers.headers.map(raw =>
-          (raw.name.toString, raw.value, org.http4s.Headers.SensitiveHeaders.contains(raw.name))
+          (
+            raw.name.toString.toLowerCase(),
+            raw.value,
+            org.http4s.Headers.SensitiveHeaders.contains(raw.name),
+          )
         ): _*
     )
     l

@@ -310,7 +310,7 @@ private[ember] class H2Client[F[_]: Async](
         .compile
         .drain >> trailers.sequence.flatMap(optTrailers =>
         optTrailers
-          .flatMap(h => h.headers.map(a => (a.name.toString, a.value, false)).toNel)
+          .flatMap(h => h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel)
           .traverse(nel => stream.sendHeaders(nel, true))
       )).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))

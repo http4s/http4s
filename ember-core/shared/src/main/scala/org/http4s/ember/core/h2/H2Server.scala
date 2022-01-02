@@ -319,7 +319,7 @@ private[ember] object H2Server {
                 .drain // Initial Resp Body
               optTrailers <- trailers.sequence
               optNel = optTrailers.flatMap(h =>
-                h.headers.map(a => (a.name.toString, a.value, false)).toNel
+                h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel
               )
               _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
             } yield ()
