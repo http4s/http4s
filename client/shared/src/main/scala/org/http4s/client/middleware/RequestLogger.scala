@@ -40,7 +40,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { request =>
-      Logger.logMessage[F, Request[F]](request)(
+      Logger.logMessage(request)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -54,7 +54,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { request =>
-      InternalLogger.logMessageWithBodyText[F, Request[F]](request)(
+      InternalLogger.logMessageWithBodyText(request)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -123,10 +123,10 @@ object RequestLogger {
         s"${request.httpVersion} $methodColor${request.method}$RESET$color $BOLD${request.uri}$RESET$color"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Request[F]](request)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(request)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Request[F]](request)(logBody) match {
+        InternalLogger.defaultLogBody(request)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }
