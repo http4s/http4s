@@ -297,7 +297,7 @@ private[ember] class H2Client[F[_]: Async](
           )
         )
       )(stream => connection.mapRef.update(m => m - stream.id))
-      _ <- req.body.chunks.noneTerminate.zipWithNext
+      _ <- (req.body.chunks.noneTerminate.zipWithNext
         .evalMap {
           case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
           case (Some(c), Some(None) | None) =>
@@ -308,12 +308,11 @@ private[ember] class H2Client[F[_]: Async](
             else stream.sendData(ByteVector.empty, true)
         }
         .compile
-        .resource
-        .drain // Initial Req Body
-      optTrailers <- Resource.eval(trailers.sequence)
-      optNel = optTrailers.flatMap(h => h.headers.map(a => (a.name.toString, a.value, false)).toNel)
-      _ <- Resource.eval(optNel.traverse(nel => stream.sendHeaders(nel, true)))
-
+        .drain >> trailers.sequence.flatMap(optTrailers =>
+        optTrailers
+          .flatMap(h => h.headers.map(a => (a.name.toString, a.value, false)).toNel)
+          .traverse(nel => stream.sendHeaders(nel, true))
+      )).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp
   }
