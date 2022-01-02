@@ -424,9 +424,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
             case Some(Left(e)) => Pull.raiseError(e)
             case None => p
           }
-          Pull.eval(state.readBuffer.take).flatMap {
-            case Right(b) => Pull.output(Chunk.byteVector(b))
-            case Left(e) => Pull.raiseError(e)
+          Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
+            case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
+            case Left(Left(e)) => Pull.raiseError(e)
+            case Right(_) => Pull.done
           } >> p2
         }
       }

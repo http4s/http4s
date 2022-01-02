@@ -26,6 +26,7 @@ import org.http4s.ember.core.h2._
 import org.http4s.implicits._
 
 import scala.concurrent.duration._
+import org.typelevel.ci.CIString
 
 object EmberClientH2Example extends IOApp {
 
@@ -70,12 +71,18 @@ object EmberClientH2Example extends IOApp {
                   // uri = uri"https://twitter.com/"
                   // uri = uri"https://banno.com/"
                   // uri = uri"http://http2.golang.org/reqinfo"
-                  uri = uri"http://localhost:8080/push-promise",
+                  // uri = uri"http://localhost:8080/push-promise",
+                  uri = uri"http://localhost:8080/trailers",
                   // uri = uri"https://www.nikkei.com/" // PUSH PROMISES
                 )
                 .withAttribute(H2Keys.Http2PriorKnowledge, ())
+                .putHeaders(Headers("trailers" -> "x-test-client"))
+                .withTrailerHeaders(Headers("x-test-client" -> "client-info").pure[F])
             )
-            .use(resp => resp.body.compile.drain >> Sync[F].delay(println(s"Resp $resp")))
+            .use(resp =>
+              resp.body.compile.drain >> resp.trailerHeaders
+                .flatMap(h => Sync[F].delay(println(s"Resp $resp: trailers: $h")))
+            )
           p >> p >> Temporal[F].sleep(5.seconds)
         }
   }

@@ -28,20 +28,34 @@ import org.http4s._
 import org.http4s.dsl._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
+import org.typelevel.ci.CIString
+import cats.effect.std.Console
 
 object EmberServerH2Example extends IOApp {
 
   object ServerTest {
 
     val resp = Response[fs2.Pure](Status.Ok).withEntity("Hello World!")
-    def simpleApp[F[_]: Monad] = {
+    def simpleApp[F[_]: Concurrent: Console] = {
       val dsl = new Http4sDsl[F] {}; import dsl._
       HttpRoutes
         .of[F] {
           case req @ _ -> Root / "foo" =>
             // println(req)
             Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
-
+          case req @ _ -> Root / "trailers" =>
+            println(s"Got $req at trailers endpoint")
+            req.headers
+              .get[org.http4s.headers.Trailer]
+              .fold(Applicative[F].unit)(t =>
+                req.body.compile.drain >> req.trailerHeaders
+                  .flatMap(h => Console[F].println(s"Incomming Trailers: $h"))
+              ) >>
+              Response[F](Status.Ok)
+                .withEntity("Trailers Incomming!")
+                .putHeaders("trailer" -> "x-my-data")
+                .withTrailerHeaders(Headers("x-my-data" -> "Hello from trailers!").pure[F])
+                .pure[F]
           case _ -> Root / "push-promise" =>
             resp
               .covary[F] // URI needs authority scheme, etc
@@ -55,7 +69,7 @@ object EmberServerH2Example extends IOApp {
         .orNotFound
     }
 
-    def testALPN[F[_]: Async: Parallel] = for {
+    def testALPN[F[_]: Async: Parallel: Console] = for {
       sslContext <- Resource.eval(
         ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
       )
@@ -71,7 +85,7 @@ object EmberServerH2Example extends IOApp {
     } yield ()
 
     // Can Test Both http2-prior-knowledge, and h2c
-    def testCleartext[F[_]: Async] =
+    def testCleartext[F[_]: Async: Console] =
       EmberServerBuilder
         .default[F]
         .withHttp2
@@ -82,9 +96,10 @@ object EmberServerH2Example extends IOApp {
 
   }
 
+  implicit val C: Console[IO] = Console.make[IO]
   def run(args: List[String]): IO[ExitCode] =
     ServerTest
-      .testALPN[IO]
+      .testCleartext[IO]
       .use(_ => IO.never)
       .as(ExitCode.Success)
 
