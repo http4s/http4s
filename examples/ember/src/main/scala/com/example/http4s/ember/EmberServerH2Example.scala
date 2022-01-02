@@ -39,7 +39,7 @@ object EmberServerH2Example extends IOApp {
       HttpRoutes
         .of[F] {
           case req @ _ -> Root / "foo" =>
-            println(req)
+            // println(req)
             Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
 
           case _ -> Root / "push-promise" =>
@@ -84,7 +84,7 @@ object EmberServerH2Example extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     ServerTest
-      .testCleartext[IO]
+      .testALPN[IO]
       .use(_ => IO.never)
       .as(ExitCode.Success)
 

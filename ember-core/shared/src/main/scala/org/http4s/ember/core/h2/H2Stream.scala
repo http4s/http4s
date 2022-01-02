@@ -163,35 +163,77 @@ private[h2] class H2Stream[F[_]: Concurrent](
             (request, response) = t
             _ <- connectionType match {
               case H2Connection.ConnectionType.Client =>
-                PseudoHeaders.headersToResponseNoBody(h) match {
-                  case Some(resp) =>
-                    response.complete(
-                      Either.right(resp.withAttribute(H2Keys.StreamIdentifier, id))
-                    ) >>
-                      resp.contentLength.traverse(length =>
-                        state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
-                      ) >> {
-                        if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
-                      }
-                  case None =>
-                    println("Headers Unable to be parsed")
-                    rstStream(H2Error.ProtocolError)
-                }
+                response.tryGet
+                  .map(_.isEmpty)
+                  .ifM(
+                    PseudoHeaders.headersToResponseNoBody(h) match {
+                      case Some(resp) =>
+                        val iResp = resp.withAttribute(H2Keys.StreamIdentifier, id)
+                        val outResp = resp.headers
+                          .get[org.http4s.headers.Trailer]
+                          .fold(iResp)(t =>
+                            iResp.withAttribute(
+                              org.http4s.Message.Keys.TrailerHeaders[F],
+                              s.trailers.get.rethrow,
+                            )
+                          )
+                        response.complete(
+                          Either.right(outResp)
+                        ) >>
+                          resp.contentLength.traverse(length =>
+                            state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
+                          ) >> {
+                            if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
+                          }
+                      case None =>
+                        println("Headers Unable to be parsed")
+                        rstStream(H2Error.ProtocolError)
+                    },
+                    s.trailers
+                      .complete(
+                        Either.right(
+                          org.http4s
+                            .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
+                        )
+                      )
+                      .void,
+                  )
               case H2Connection.ConnectionType.Server =>
-                PseudoHeaders.headersToRequestNoBody(h) match {
-                  case Some(req) =>
-                    request.complete(
-                      Either.right(req.withAttribute(H2Keys.StreamIdentifier, id))
-                    ) >>
-                      req.contentLength.traverse(length =>
-                        state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
-                      ) >> {
-                        if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
-                      }
-                  case None =>
-                    println("Headers Unable to be parsed")
-                    rstStream(H2Error.ProtocolError)
-                }
+                request.tryGet
+                  .map(_.isEmpty)
+                  .ifM(
+                    PseudoHeaders.headersToRequestNoBody(h) match {
+                      case Some(req) =>
+                        val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
+                        val outReq = req.headers
+                          .get[org.http4s.headers.Trailer]
+                          .fold(iReq)(_ =>
+                            iReq.withAttribute(
+                              org.http4s.Message.Keys.TrailerHeaders[F],
+                              s.trailers.get.rethrow,
+                            )
+                          )
+                        request.complete(
+                          Either.right(iReq)
+                        ) >>
+                          req.contentLength.traverse(length =>
+                            state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
+                          ) >> {
+                            if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
+                          }
+                      case None =>
+                        println("Headers Unable to be parsed")
+                        rstStream(H2Error.ProtocolError)
+                    },
+                    s.trailers
+                      .complete(
+                        Either.right(
+                          org.http4s
+                            .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
+                        )
+                      )
+                      .void,
+                  )
             }
           } yield ()
         case StreamState.HalfClosedRemote | StreamState.Closed =>
@@ -401,6 +443,7 @@ private[h2] object H2Stream {
       readWindow: Int,
       request: Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]],
       response: Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]],
+      trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
       readBuffer: cats.effect.std.Queue[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
   ) {

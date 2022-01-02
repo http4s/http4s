@@ -286,6 +286,7 @@ private[ember] class H2Client[F[_]: Async](
       case None => true
     }
     val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
+    val trailers = req.attributes.lookup(Message.Keys.TrailerHeaders[F])
     for {
       connection <- Resource.eval(getOrCreate(key, useTLS, priorKnowledge))
       // Stream Order Must Be Correct, so we must grab the global lock
@@ -296,10 +297,23 @@ private[ember] class H2Client[F[_]: Async](
           )
         )
       )(stream => connection.mapRef.update(m => m - stream.id))
-      _ <- (
-        req.body.chunks.evalMap(c => stream.sendData(c.toByteVector, false)) ++
-          Stream.eval(stream.sendData(ByteVector.empty, true))
-      ).compile.drain.background
+      _ <- req.body.chunks.noneTerminate.zipWithNext
+        .evalMap {
+          case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
+          case (Some(c), Some(None) | None) =>
+            if (trailers.isDefined) stream.sendData(c.toByteVector, false)
+            else stream.sendData(c.toByteVector, true)
+          case (None, _) =>
+            if (trailers.isDefined) Applicative[F].unit
+            else stream.sendData(ByteVector.empty, true)
+        }
+        .compile
+        .resource
+        .drain // Initial Req Body
+      optTrailers <- Resource.eval(trailers.sequence)
+      optNel = optTrailers.flatMap(h => h.headers.map(a => (a.name.toString, a.value, false)).toNel)
+      _ <- Resource.eval(optNel.traverse(nel => stream.sendHeaders(nel, true)))
+
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp
   }

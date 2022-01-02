@@ -60,6 +60,7 @@ private[h2] class H2Connection[F[_]](
     writeBlock <- Deferred[F, Either[Throwable, Unit]]
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
+    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
     body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
@@ -69,6 +70,7 @@ private[h2] class H2Connection[F[_]](
         localSettings.initialWindowSize.windowSize,
         request,
         response,
+        trailers,
         body,
         None,
       )
@@ -93,6 +95,7 @@ private[h2] class H2Connection[F[_]](
     writeBlock <- Deferred[F, Either[Throwable, Unit]]
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
+    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
     body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
@@ -102,6 +105,7 @@ private[h2] class H2Connection[F[_]](
         localSettings.initialWindowSize.windowSize,
         request,
         response,
+        trailers,
         body,
         None,
       )

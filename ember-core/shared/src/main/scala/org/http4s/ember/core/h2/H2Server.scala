@@ -304,12 +304,24 @@ private[ember] object H2Server {
                   .drain >> // PP Resp Body
                   stream.sendData(ByteVector.empty, true)
               }
-
-              _ <- resp.body.chunks
-                .evalMap(c => stream.sendData(c.toByteVector, false))
+              trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
+              _ <- resp.body.chunks.noneTerminate.zipWithNext
+                .evalMap {
+                  case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
+                  case (Some(c), Some(None) | None) =>
+                    if (trailers.isDefined) stream.sendData(c.toByteVector, false)
+                    else stream.sendData(c.toByteVector, true)
+                  case (None, _) =>
+                    if (trailers.isDefined) Applicative[F].unit
+                    else stream.sendData(ByteVector.empty, true)
+                }
                 .compile
                 .drain // Initial Resp Body
-              _ <- stream.sendData(ByteVector.empty, true)
+              optTrailers <- trailers.sequence
+              optNel = optTrailers.flatMap(h =>
+                h.headers.map(a => (a.name.toString, a.value, false)).toNel
+              )
+              _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
             } yield ()
             Stream.eval(x.attempt)
 
