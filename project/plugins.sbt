@@ -1,4 +1,4 @@
-resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
+resolvers += "jgit-repo" at "https://download.eclipse.org/jgit/maven"
 
 addSbtPlugin("com.earldouglas"     %  "xsbt-web-plugin"       % "4.0.2")
 addSbtPlugin("com.github.tkawachi" %  "sbt-doctest"           % "0.7.2")
