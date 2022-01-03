@@ -23,18 +23,17 @@ libraryDependencies ++= Seq(
 ```
 and some imports.
 
-```tut:silent
+```scala mdoc
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-import org.http4s.implicits._
 import org.http4s.dsl.io._
 ```
 
 Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
-```tut:book
+```scala mdoc
 def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.data.Kleisli { req: Request[IO] =>
   service(req).map {
     case Status.Successful(resp) =>
@@ -55,7 +54,7 @@ is implemented as a [`Kleisli`], which is just a function at heart, we can test 
 service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
 we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
 
-```tut:book
+```scala mdoc
 val service = HttpService[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
@@ -72,7 +71,7 @@ service.orNotFound(badRequest).unsafeRunSync
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
 
-```tut:book
+```scala mdoc
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync
@@ -84,7 +83,7 @@ Note that the successful response has your header added to it.
 If you intend to use you middleware in multiple places,  you may want to implement
 it as an `object` and use the `apply` method.
 
-```tut:book
+```scala mdoc
 object MyMiddle {
   def addHeader(resp: Response[IO], header: Header) =
     resp match {
@@ -118,7 +117,7 @@ Because middleware returns a `Service`, you can compose services wrapped in
 middleware with other, unwrapped, services, or services wrapped in other middleware.
 You can also wrap a single service in multiple layers of middleware. For example:
 
-```tut:book
+```scala mdoc
 val apiService = HttpService[IO] {
   case GET -> Root / "api" =>
     Ok()

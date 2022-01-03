@@ -11,7 +11,7 @@ addSbtPlugin("io.gatling"          %  "gatling-sbt"           % "2.2.2")
 addSbtPlugin("io.get-coursier"     %  "sbt-coursier"          % "1.0.3")
 addSbtPlugin("io.spray"            %  "sbt-revolver"          % "0.9.1")
 addSbtPlugin("io.verizon.build"    %  "sbt-rig"               % "5.0.39")
-addSbtPlugin("org.tpolecat"        %  "tut-plugin"            % "0.6.7")
+addSbtPlugin("org.scalameta"       %  "sbt-mdoc"              % "2.1.5" )
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"               % "0.3.4")
 addSbtPlugin("com.timushev.sbt"    %  "sbt-updates"           % "0.3.4")
 

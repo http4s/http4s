@@ -44,7 +44,7 @@ runtime errors.
 Decoders' content types are used when chaining decoders with `orElse` in order to
 determine which of the chained decoders are to be used.
 
-```tut
+```scala mdoc
 import org.http4s._
 import org.http4s.headers.`Content-Type`
 import org.http4s.dsl.io._

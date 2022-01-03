@@ -303,7 +303,7 @@ lazy val docs = http4sProject("docs")
     HugoPlugin,
     PrivateProjectPlugin,
     ScalaUnidocPlugin,
-    TutPlugin
+    MdocPlugin
   )
   .settings(
     libraryDependencies ++= Seq(
@@ -324,8 +324,8 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         loadTest
       ),
-    Tut / scalacOptions ~= {
-      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
+    Compile / scalacOptions ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
@@ -356,8 +356,8 @@ lazy val docs = http4sProject("docs")
       }
     },
     Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
-    makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
-    Hugo / baseURL := {
+    mdocIn := (sourceDirectory in Compile).value / "mdoc",
+    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,    baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isTravisBuild.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")

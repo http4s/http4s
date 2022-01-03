@@ -10,7 +10,7 @@ http4s is a bit more strict with handling URIs than e.g. the [play http client].
 Instead of passing plain `String`s, http4s operates on URIs. You can construct
 literal URI with
 
-```tut:book
+```scala mdoc
 import org.http4s._
 
 val uri = Uri.uri("http://http4s.org")
@@ -26,7 +26,7 @@ or you could use the URLTemplates.
 
 Use the methods on the [uri class].
 
-```tut:book
+```scala mdoc
 val docs = uri.withPath("/docs/0.15")
 val docs2 = uri / "docs" / "0.15"
 assert(docs == docs2)
@@ -34,7 +34,7 @@ assert(docs == docs2)
 
 ### URI Template
 
-```tut:book
+```scala mdoc
 import org.http4s.UriTemplate._
 
 val template = UriTemplate(
