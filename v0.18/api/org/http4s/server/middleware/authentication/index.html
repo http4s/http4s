@@ -8,17 +8,17 @@
           <meta name="keywords" content="" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      
       <link href="../../../../../lib/index.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../../../../../lib/jquery.min.js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery.js"></script>
       <script type="text/javascript" src="../../../../../lib/jquery.panzoom.min.js"></script>
       <script type="text/javascript" src="../../../../../lib/jquery.mousewheel.min.js"></script>
       <script type="text/javascript" src="../../../../../lib/index.js"></script>
       <script type="text/javascript" src="../../../../../index.js"></script>
       <script type="text/javascript" src="../../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
       
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
@@ -56,7 +56,7 @@
                 <li name="_root_.root" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="_root_"></a><a id="root:_root_"></a>
       <span class="permalink">
-      <a href="../../../../../index.html" title="Permalink">
+      <a href="index.html#_root_" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -72,7 +72,7 @@
     </li><li name="_root_.org" visbl="pub" class="indented1 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="org"></a><a id="org:org"></a>
       <span class="permalink">
-      <a href="../../../../../org/index.html" title="Permalink">
+      <a href="index.html#org" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -88,7 +88,7 @@
     </li><li name="org.http4s" visbl="pub" class="indented2 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4s"></a><a id="http4s:http4s"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/index.html" title="Permalink">
+      <a href="../org/index.html#http4s" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -104,7 +104,7 @@
     </li><li name="org.http4s.server" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="server"></a><a id="server:server"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/index.html" title="Permalink">
+      <a href="../../org/http4s/index.html#server" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -120,7 +120,7 @@
     </li><li name="org.http4s.server.middleware" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="middleware"></a><a id="middleware:middleware"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/middleware/index.html" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#middleware" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -136,7 +136,7 @@
     </li><li name="org.http4s.server.middleware.authentication" visbl="pub" class="indented5 current" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="authentication"></a><a id="authentication:authentication"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/middleware/authentication/index.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/index.html#authentication" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -185,11 +185,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2c21e66d8312973ba159c6c271bf9e6225077b60/server/src/main/scala/org/http4s/server/middleware/authentication/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6aa08d32b0ffb769c0db08a602666f2e23045fcf/server/src/main/scala/org/http4s/server/middleware/authentication/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -243,9 +243,9 @@
               <h3>Value Members</h3>
               <ol>
                 <li name="org.http4s.server.middleware.authentication#challenged" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="challenged[F[_],A](challenge:cats.data.Kleisli[F,org.http4s.Request[F],Either[org.http4s.Challenge,org.http4s.AuthedRequest[F,A]]])(routes:org.http4s.AuthedRoutes[A,F])(implicitF:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]"></a><a id="challenged[F[_],A](Kleisli[F,Request[F],Either[Challenge,AuthedRequest[F,A]]])(AuthedRoutes[A,F])(Sync[F]):HttpRoutes[F]"></a>
+      <a id="challenged[F[_],A](challenge:cats.data.Kleisli[F,org.http4s.Request[F],Either[org.http4s.Challenge,org.http4s.AuthedRequest[F,A]]])(service:org.http4s.AuthedService[A,F])(implicitF:cats.effect.Sync[F]):org.http4s.HttpService[F]"></a><a id="challenged[F[_],A](Kleisli[F,Request[F],Either[Challenge,AuthedRequest[F,A]]])(AuthedService[A,F])(Sync[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/middleware/authentication/index.html#challenged[F[_],A](challenge:cats.data.Kleisli[F,org.http4s.Request[F],Either[org.http4s.Challenge,org.http4s.AuthedRequest[F,A]]])(routes:org.http4s.AuthedRoutes[A,F])(implicitF:cats.effect.Sync[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../../org/http4s/server/middleware/authentication/index.html#challenged[F[_],A](challenge:cats.data.Kleisli[F,org.http4s.Request[F],Either[org.http4s.Challenge,org.http4s.AuthedRequest[F,A]]])(service:org.http4s.AuthedService[A,F])(implicitF:cats.effect.Sync[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -254,14 +254,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">challenged</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="challenge">challenge: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>, <a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>], <span class="extype" name="scala.Either">Either</span>[<a href="../../../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../../../index.html#AuthedRequest[F[_],T]=org.http4s.ContextRequest[F,T]" class="extmbr" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>, <span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>]]]</span>)</span><span class="params">(<span name="routes">routes: <a href="../../../index.html#AuthedRoutes[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.package.AuthedRequest[F,T],org.http4s.Response[F]]" class="extmbr" name="org.http4s.AuthedRoutes">AuthedRoutes</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>, <span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>)</span><span class="result">: <a href="../../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>
+        <span class="name">challenged</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span name="challenge">challenge: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>, <a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>], <span class="extype" name="scala.Either">Either</span>[<a href="../../../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../../../AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>, <span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>]]]</span>)</span><span class="params">(<span name="service">service: <a href="../../../index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>, <span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>)</span><span class="result">: <a href="../../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.F">F</span>]</span>
       </span>
       
       
     </li><li name="org.http4s.server.middleware.authentication.BasicAuth" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BasicAuth"></a><a id="BasicAuth:BasicAuth"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/middleware/authentication/BasicAuth$.html" title="Permalink">
+      <a href="../../../../../org/http4s/server/middleware/authentication/index.html#BasicAuth" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -277,7 +277,7 @@
     </li><li name="org.http4s.server.middleware.authentication.DigestAuth" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DigestAuth"></a><a id="DigestAuth:DigestAuth"></a>
       <span class="permalink">
-      <a href="../../../../../org/http4s/server/middleware/authentication/DigestAuth$.html" title="Permalink">
+      <a href="../../../../../org/http4s/server/middleware/authentication/index.html#DigestAuth" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -301,9 +301,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

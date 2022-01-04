@@ -6,12 +6,12 @@
 
   <title>http4s | Authentication</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -31,12 +31,10 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
-  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
 </div>
 
@@ -48,7 +46,6 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -69,7 +66,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/auth.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/mdoc/auth.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -88,110 +85,42 @@
 
 <h2 id="built-in">Built in</h2>
 
-<p>For this section, remember that, like mentioned in the <a href="../service">service</a> section, a service is a
-<code>Kleisli[OptionT[F, ?], Request[F], Response[F]]</code>, the composable version of <code>Request[F] =&gt; OptionT[F, Response[F]]</code>.</p>
-
-<p>Lets start by defining all the imports we will need in the examples below:</p>
+<p>A <a href="../service">service</a> is a <code>Kleisli[OptionT[F, ?], Request[F], Response[F]]</code>, the composable version of
+<code>Request[F] =&gt; OptionT[F, Response[F]]</code>. A service with authentication also requires some kind of <code>User</code>
+object which identifies which user did the request. To reference the <code>User</code> object
+along with the <code>Request[F]</code>, there&rsquo;s <code>AuthedRequest[F, User]</code>, which is equivalent to
+<code>(User, Request[F])</code>. So the service has the signature <code>AuthedRequest[F, User] =&gt;
+OptionT[F, Response[F]]</code>, or <code>AuthedService[User, F]</code>. So we&rsquo;ll need a <code>Request[F] =&gt; Option[User]</code>
+function, or more likely, a <code>Request[F] =&gt; OptionT[F, User]</code>, because the <code>User</code> can
+come from a database. We can convert that into an <code>AuthMiddleware</code> and apply it.
+Or in code, using <code>cats.effect.IO</code> as the effect type:</p>
 
 <pre><code class="language-scala">import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server._
-</code></pre>
 
-<p>To add authentication to a service, we need some kind of <code>User</code> object which identifies the user
-who sent the request. We represent that with <code>AuthedRequest[F, User]</code>, which allows you to reference
-such object, and is the equivalent to <code>(User, Request[F])</code>. <em>http4s</em> provides you with <code>AuthedRequest</code>,
-but you have to provide your own <em>user</em>, or <em>authInfo</em> representation. For our purposes here we will
-use the following definition:</p>
+case class User(id: Long, name: String)
 
-<pre><code class="language-scala">case class User(id: Long, name: String)
-</code></pre>
-
-<p>With the request representation defined, we can move on to the <code>AuthedRoutes[User, F]</code>, an alias for
-<code>AuthedRequest[F, User] =&gt; OptionT[F, Response[F]]</code>. Notice the similarity to a &ldquo;normal&rdquo; service, which
-would be the equivalent to <code>Request[F] =&gt; OptionT[F, Response[F]]</code> - in other words, we are lifting the
-<code>Request</code> into an <code>AuthedRequest</code>, and adding authentication information in the mix.</p>
-
-<p>With that we can represent a service that requires authentication, but to actually construct it we need
-to define how to extract the authentication information from the request. For that, we need a function
-with the following signature: <code>Request[F] =&gt; OptionT[F, User]</code>. Here is an example of how to define it:</p>
-
-<pre><code class="language-scala">val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
-  Kleisli(_ =&gt; OptionT.liftF(IO(???)))
-</code></pre>
-
-<p>It is worth noting that we are still wrapping the user fetch in <code>F</code> (<code>IO</code> in this case), because actually
-discovering the user might require reading from a database or calling some other service - i.e. performing
-IO operations.</p>
-
-<p>Now we need a middleware that can bridge a &ldquo;normal&rdquo; service into an <code>AuthedRoutes</code>, which is quite easy to
-get using our function defined above. We use <code>AuthMiddleware</code> for that:</p>
-
-<pre><code class="language-scala">val middleware: AuthMiddleware[IO, User] =
-  AuthMiddleware(authUser)
-</code></pre>
-
-<p>Finally, we can create our <code>AuthedRoutes</code>, and wrap it with our authentication middleware, getting the
-final <code>HttpRoutes</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
-
-<pre><code class="language-scala">val authedRoutes: AuthedRoutes[User, IO] =
-  AuthedRoutes.of {
+val authUser1: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ =&gt; OptionT.liftF(IO(???)))
+// authUser1: Kleisli[OptionT[IO, β$0$], Request[IO], User] = Kleisli(
+//   &lt;function1&gt;
+// )
+val authMiddleware1: AuthMiddleware[IO, User] = AuthMiddleware(authUser1)
+// authMiddleware1: Kleisli[OptionT[IO, β$1$], AuthedRequest[IO, User], Response[IO]] =&gt; Kleisli[OptionT[IO, β$1$], Request[IO], Response[IO]] = org.http4s.server.package$AuthMiddleware$$$Lambda$13572/275538414@558201e6
+val authedService: AuthedService[User, IO] =
+  AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
-
-val service: HttpRoutes[IO] = middleware(authedRoutes)
+// authedService: AuthedService[User, IO] = Kleisli(
+//   org.http4s.AuthedService$$$Lambda$13573/1121920094@71c65190
+// )
+val service1: HttpService[IO] = authMiddleware1(authedService)
+// service1: HttpService[IO] = Kleisli(
+//   org.http4s.server.package$AuthMiddleware$$$Lambda$13574/728804549@55b0001e
+// )
 </code></pre>
-
-<h2 id="composing-authenticated-routes">Composing Authenticated Routes</h2>
-
-<p>The default apply method of <code>AuthMiddleware</code> will consume all requests either unmatched, or
-not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
-a kind of reconnaissance called &ldquo;spidering&rdquo;, useful for white and black hat hackers to enumerate
-your api for possible unprotected points.</p>
-
-<pre><code class="language-scala">val spanishRoutes: AuthedRoutes[User, IO] =
-    AuthedRoutes.of {
-        case GET -&gt; Root / &quot;hola&quot; as user =&gt; Ok(s&quot;Hola, ${user.name}&quot;)
-    }
-
-val frenchRoutes: HttpRoutes[IO] =
-    HttpRoutes.of {
-        case GET -&gt; Root / &quot;bonjour&quot; =&gt; Ok(s&quot;Bonjour&quot;)
-    }
-
-val service: HttpRoutes[IO] = middleware(spanishRoutes) &lt;+&gt; frenchRoutes
-</code></pre>
-
-<p>Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:</p>
-
-<ul>
-<li><p>Use a Router with unique route prefixes</p>
-
-<pre><code class="language-scala">val service = {
-Router (
-&quot;/spanish&quot; -&gt; middleware(spanishRoutes),
-&quot;/french&quot; -&gt; frenchRoutes
-)
-}
-</code></pre></li>
-
-<li><p>Allow fallthrough, using <code>AuthMiddleware.withFallThrough</code>.</p>
-
-<pre><code class="language-scala">val middlewareWithFallThrough: AuthMiddleware[IO, User] =
-AuthMiddleware.withFallThrough(authUser)
-val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) &lt;+&gt; frenchRoutes
-</code></pre></li>
-
-<li><p>Reorder the routes so that authed routes compose last</p>
-
-<pre><code class="language-scala">val service: HttpRoutes[IO] = frenchRoutes &lt;+&gt; middleware(spanishRoutes)
-</code></pre></li>
-</ul>
-
-<p>Alternatively, to customize the behavior on not authenticated if you do not
-wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
 
@@ -206,12 +135,20 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 =&gt; F[Either[String,User]]</code>. So we&rsquo;ll need to handle that possibility. For advanced
 error handling, we recommend an error <a href="https://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
 
-<pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
+<pre><code class="language-scala">val authUser2: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
+// authUser2: Kleisli[IO, Request[IO], Either[String, User]] = Kleisli(
+//   &lt;function1&gt;
+// )
 
-val onFailure: AuthedRoutes[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.context)))
-val middleware = AuthMiddleware(authUser, onFailure)
+val onFailure2: AuthedService[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
+// onFailure2: AuthedService[String, IO] = Kleisli(&lt;function1&gt;)
+val authMiddleware2 = AuthMiddleware(authUser2, onFailure2)
+// authMiddleware2: Kleisli[OptionT[IO, β$1$], AuthedRequest[IO, User], Response[IO]] =&gt; Kleisli[OptionT[IO, β$1$], Request[IO], Response[IO]] = org.http4s.server.package$AuthMiddleware$$$Lambda$13575/1857086211@71d91ccd
 
-val service: HttpRoutes[IO] = middleware(authedRoutes)
+val service2: HttpService[IO] = authMiddleware2(authedService)
+// service2: HttpService[IO] = Kleisli(
+//   cats.data.Kleisli$$$Lambda$13582/379054697@3491be21
+// )
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
@@ -225,7 +162,7 @@ request, the two most common are cookie for regular browser usage or the
 <p>We&rsquo;ll use a small library for the signing/validation of the cookies, which
 basically contains the code used by the Play framework for this specific task.</p>
 
-<pre><code class="language-scala">libraryDependencies += &quot;org.reactormonk&quot; %% &quot;cryptobits&quot; % &quot;1.3&quot;
+<pre><code class="language-scala">libraryDependencies += &quot;org.reactormonk&quot; %% &quot;cryptobits&quot; % &quot;1.2&quot;
 </code></pre>
 
 <p>First, we&rsquo;ll need to set the cookie. For the crypto instance, we&rsquo;ll need to
@@ -239,26 +176,78 @@ use multiple application instances.</p>
 import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
+// key: PrivateKey = PrivateKey(
+//   Array(
+//     117,
+//     113,
+//     120,
+//     80,
+//     74,
+//     106,
+//     118,
+//     65,
+//     97,
+//     57,
+//     54,
+//     108,
+//     89,
+//     79,
+//     116,
+//     71,
+//     98,
+//     70,
+//     74,
+//     97
+//   )
+// )
 val crypto = CryptoBits(key)
+// crypto: CryptoBits = CryptoBits(
+//   PrivateKey(
+//     Array(
+//       117,
+//       113,
+//       120,
+//       80,
+//       74,
+//       106,
+//       118,
+//       65,
+//       97,
+//       57,
+//       54,
+//       108,
+//       89,
+//       79,
+//       116,
+//       71,
+//       98,
+//       70,
+//       74,
+//       97
+//     )
+//   )
+// )
 val clock = Clock.systemUTC
+// clock: Clock = SystemClock[Z]
 
-def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
+def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form // gotta figure out how to do the form
 val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
   verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =&gt;
       Forbidden(error)
     case Right(user) =&gt; {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
-      Ok(&quot;Logged in!&quot;).map(_.addCookie(ResponseCookie(&quot;authcookie&quot;, message)))
+      Ok(&quot;Logged in!&quot;).map(_.addCookie(Cookie(&quot;authcookie&quot;, message)))
     }
   })
 })
+// logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli(&lt;function1&gt;)
 </code></pre>
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
 
 <pre><code class="language-scala">def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id =&gt; IO(???))
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
+val authUser3: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- headers.Cookie.from(request.headers).toRight(&quot;Cookie parsing error&quot;)
     cookie &lt;- header.values.toList.find(_.name == &quot;authcookie&quot;).toRight(&quot;Couldn't find the authcookie&quot;)
@@ -267,6 +256,9 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
   } yield message
   message.traverse(retrieveUser.run)
 })
+// authUser3: Kleisli[IO, Request[IO], Either[String, User]] = Kleisli(
+//   &lt;function1&gt;
+// )
 </code></pre>
 
 <h3 id="authorization-header">Authorization Header</h3>
@@ -278,14 +270,17 @@ function.</p>
 <pre><code class="language-scala">import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
+val authUser4: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- request.headers.get(Authorization).toRight(&quot;Couldn't find an Authorization header&quot;)
-    token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Invalid token&quot;)
+    token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Cookie invalid&quot;)
     message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message
   message.traverse(retrieveUser.run)
 })
+// authUser4: Kleisli[IO, Request[IO], Either[String, User]] = Kleisli(
+//   &lt;function1&gt;
+// )
 </code></pre>
 
 <h3 id="using-tsec-http4s-for-authentication-and-authorization">Using tsec-http4s for Authentication and Authorization</h3>
@@ -301,10 +296,6 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/">Quick Start</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/upgrading/">Upgrading from 0.18</a>
             </li>
             
             <li class="nav-item">
@@ -325,10 +316,6 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
             </li>
             
             <li class="nav-item">
@@ -384,7 +371,7 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v0.18/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

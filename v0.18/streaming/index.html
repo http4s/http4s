@@ -6,12 +6,12 @@
 
   <title>http4s | Streaming</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -31,12 +31,10 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
-  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
 </div>
 
@@ -48,7 +46,6 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -69,7 +66,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/streaming.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/mdoc/streaming.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -90,7 +87,7 @@
 
 <p>Streaming lies at the heart of the http4s model of HTTP, in the literal sense that <code>EntityBody[F]</code>
 is just a type alias for <code>Stream[F, Byte]</code>. Please see <a href="../entity">entity</a> for details. This means
-HTTP streaming is provided by both http4s&rsquo; service support and its client support.</p>
+HTTP streaming is provided by both https&rsquo; service support and its client support.</p>
 
 <h2 id="streaming-responses-from-your-service">Streaming responses from your service</h2>
 
@@ -101,21 +98,21 @@ simplicity itself:</p>
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
-import fs2.Stream
+import fs2.Scheduler
 import org.http4s._
 import org.http4s.dsl.io._
 
-// Provided by `cats.effect.IOApp`, needed elsewhere:
-implicit val timer: Timer[IO] = IO.timer(global)
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-
 // An infinite stream of the periodic elapsed time
-val seconds = Stream.awakeEvery[IO](1.second)
+val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
+// seconds: fs2.Stream[IO, FiniteDuration] = Stream(..)
 
-val routes = HttpRoutes.of[IO] {
+val service = HttpService[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
+// service: HttpService[IO] = Kleisli(
+//   org.http4s.HttpService$$$Lambda$12903/708292025@4e81cf8f
+// )
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -132,7 +129,7 @@ function, which takes a <code>Request[F]</code> and a <code>Response[F] =&gt; St
 <code>Stream[F, A]</code>. Since an <code>EntityBody[F]</code> is just a <code>Stream[F, Byte]</code>, then, the easiest way
 to consume a stream is just:</p>
 
-<pre><code class="language-scala">client.stream(req).flatMap(_)
+<pre><code class="language-scala">client.streaming(req)(resp =&gt; resp.body)
 </code></pre>
 
 <p>That gives you a <code>Stream[F, Byte]</code>, but you probably want something other than a <code>Byte</code>.
@@ -141,8 +138,8 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.18.0-M2&#43;4048-2c21e66d-SNAPSHOT&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.13.0&quot;
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.18.26&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.3&quot;
 )
 </code></pre>
 
@@ -162,21 +159,21 @@ example as a bonus!</p>
 <pre><code class="language-scala">import org.http4s._
 import org.http4s.client.blaze._
 import org.http4s.client.oauth1
-import org.http4s.implicits._
 import cats.effect._
-import cats.implicits._
-import fs2.Stream
+import fs2.{Stream, StreamApp}
+import fs2.StreamApp.ExitCode
 import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
-import io.circe.Json
 import jawnfs2._
-import java.util.concurrent.{Executors, ExecutorService}
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.global
+import io.circe.Json
 
-class TWStream[F[_]: ConcurrentEffect : ContextShift] {
+// Uncomment this line to create an application with a main method that can be run
+// object TWStream extends TWStreamApp[IO]
+
+abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
+
   // jawn-fs2 needs to know what JSON AST you want
-  implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
+  implicit val f = io.circe.jawn.CirceSupportParser.facade
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
@@ -188,16 +185,16 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
     oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
   }
 
-  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
+  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and 
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
   def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
             (req: Request[F]): Stream[F, Json] =
     for {
-      client &lt;- BlazeClientBuilder(global).stream
+      client &lt;- Http1Client.stream[F]()
       sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-      res &lt;- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
+      res &lt;- client.streaming(sr)(resp =&gt; resp.body.chunks.parseJsonStream)
     } yield res
 
   /* Stream the sample statuses.
@@ -205,28 +202,12 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  def stream(blocker: Blocker): Stream[F, Unit] = {
-    val req = Request[F](Method.GET, uri&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;)
+  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+    val req = Request[F](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
     val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
+    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout) &gt;&gt; Stream.emit(ExitCode.Success)
   }
 
-  /** Compile our stream down to an effect to make it runnable */
-  def run: F[Unit] =
-    Stream.resource(Blocker[F]).flatMap { blocker =&gt;
-      stream(blocker)
-    }.compile.drain
-}
-</code></pre>
-
-<p><code>TWStream</code> runs any effect type supported by cats-effect.  We need to
-pick a concrete effect, such as <code>cats.effect.IO</code>, to actually run it.
-We&rsquo;ll make use of <code>cats.effect.IOApp</code>, which defines a program in terms
-in the form <code>run(args: List[String]): IO[ExitCode]</code>:</p>
-
-<pre><code class="language-scala">object TWStreamApp extends IOApp {
-  def run(args: List[String]) =
-    (new TWStream[IO]).run.as(ExitCode.Success)
 }
 </code></pre>
 
@@ -238,10 +219,6 @@ in the form <code>run(args: List[String]): IO[ExitCode]</code>:</p>
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/">Quick Start</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/upgrading/">Upgrading from 0.18</a>
             </li>
             
             <li class="nav-item">
@@ -262,10 +239,6 @@ in the form <code>run(args: List[String]): IO[ExitCode]</code>:</p>
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
             </li>
             
             <li class="nav-item">
@@ -321,7 +294,7 @@ in the form <code>run(args: List[String]): IO[ExitCode]</code>:</p>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v0.18/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

@@ -6,12 +6,12 @@
 
   <title>http4s | Service</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -31,12 +31,10 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
-  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
 </div>
 
@@ -48,7 +46,6 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -69,7 +66,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/service.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/mdoc/service.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -91,9 +88,9 @@ and calling it with http4s&rsquo; client.</p>
 
 <p>Create a new directory, with the following build.sbt in the root:</p>
 
-<pre><code class="language-scala">scalaVersion := &quot;2.13.1&quot; // Also supports 2.12.x
+<pre><code class="language-scala">scalaVersion := &quot;2.12.7&quot; // Also supports 2.11.x
 
-val http4sVersion = &quot;0.18.0-M2&#43;4048-2c21e66d-SNAPSHOT&quot;
+val http4sVersion = &quot;0.18.26&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -107,7 +104,7 @@ libraryDependencies ++= Seq(
 scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)
 </code></pre>
 
-<p>This tutorial is compiled as part of the build using <a href="https://github.com/tpolecat/tut">tut</a>.  Each page
+<p>This tutorial is compiled as part of the build using <a href="https://github.com/scalameta/mdoc">mdoc</a>.  Each page
 is its own REPL session.  If you copy and paste code samples starting
 from the top, you should be able to follow along in a REPL.</p>
 
@@ -116,8 +113,8 @@ from the top, you should be able to follow along in a REPL.</p>
 
 <h2 id="your-first-service">Your first service</h2>
 
-<p>An <code>HttpRoutes[F]</code> is a simple alias for
-<code>Kleisli[OptionT[F, ?], Request, Response]</code>.  If that&rsquo;s meaningful to you,
+<p>An <code>HttpService[F]</code> is a simple alias for
+<code>Kleisli[F, Request, Response]</code>.  If that&rsquo;s meaningful to you,
 great.  If not, don&rsquo;t panic: <code>Kleisli</code> is just a convenient wrapper
 around a <code>Request =&gt; F[Response]</code>, and <code>F</code> is an effectful
 operation.  We&rsquo;ll teach you what you need to know as we go, or if you
@@ -131,28 +128,23 @@ prefer you can read these introductions first:</p>
 <h3 id="defining-your-service">Defining your service</h3>
 
 <p>Wherever you are in your studies, let&rsquo;s create our first
-<code>HttpRoutes</code>.  Start by pasting these imports into your SBT console:</p>
+<code>HttpService</code>.  Start by pasting these imports into your SBT console:</p>
 
 <pre><code class="language-scala">import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 </code></pre>
 
-<p>You also will need a <code>ContextShift</code> and a <code>Timer</code>.  These come for
-free if you are in an <code>IOApp</code>.</p>
-
-<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
-</code></pre>
-
-<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpRoutes</code> by pattern
+<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpService</code> by pattern
 matching the request.  Let&rsquo;s build a service that matches requests to
 <code>GET /hello/:name</code>, where <code>:name</code> is a path parameter for the person to
 greet.</p>
 
-<pre><code class="language-scala">val helloWorldService = HttpRoutes.of[IO] {
+<pre><code class="language-scala">val helloWorldService = HttpService[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$35126/916642632@c53e5bd)
+// helloWorldService: HttpService[IO] = Kleisli(
+//   org.http4s.HttpService$$$Lambda$12903/708292025@31ded2a4
+// )
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -167,30 +159,25 @@ be seen as <code>Ok(getTweet(tweetId))(tweetEncoder)</code>.</p>
 
 <p>We&rsquo;ve defined <code>tweetsEncoder</code> as being implicit so that we don&rsquo;t need to explicitly
 reference it when serving the response, which can be seen as
-<code>getPopularTweets().flatMap(Ok(_))</code>.</p>
+<code>Ok(getPopularTweets())</code>.</p>
 
 <pre><code class="language-scala">case class Tweet(id: Int, message: String)
-// defined class Tweet
 
 implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
-// tweetEncoder: org.http4s.EntityEncoder[cats.effect.IO,Tweet]
-
 implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
-// tweetsEncoder: org.http4s.EntityEncoder[cats.effect.IO,Seq[Tweet]]
 
 def getTweet(tweetId: Int): IO[Tweet] = ???
-// getTweet: (tweetId: Int)cats.effect.IO[Tweet]
-
 def getPopularTweets(): IO[Seq[Tweet]] = ???
-// getPopularTweets: ()cats.effect.IO[Seq[Tweet]]
 
-val tweetService = HttpRoutes.of[IO] {
+val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / &quot;popular&quot; =&gt;
-    getPopularTweets().flatMap(Ok(_))
+    Ok(getPopularTweets())
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$35126/916642632@73f1f1cd)
+// tweetService: HttpService[IO] = Kleisli(
+//   org.http4s.HttpService$$$Lambda$12903/708292025@23cf25bf
+// )
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -198,13 +185,13 @@ val tweetService = HttpRoutes.of[IO] {
 <p>http4s supports multiple server backends.  In this example, we&rsquo;ll use
 <a href="https://github.com/http4s/blaze">blaze</a>, the native backend supported by http4s.</p>
 
-<p>We start from a <code>BlazeServerBuilder</code>, and then mount the <code>helloWorldService</code> under
+<p>We start from a <code>BlazeBuilder</code>, and then mount the <code>helloWorldService</code> under
 the base path of <code>/</code> and the remainder of the services under the base
 path of <code>/api</code>. The services can be mounted in any order as the request will be
-matched against the longest base paths first. The <code>BlazeServerBuilder</code> is immutable
+matched against the longest base paths first. The <code>BlazeBuilder</code> is immutable
 with chained methods, each returning a new builder.</p>
 
-<p>Multiple <code>HttpRoutes</code> can be combined with the <code>combineK</code> method (or its alias
+<p>Multiple <code>HttpService</code>s can be combined with the <code>combineK</code> method (or its alias
 <code>&lt;+&gt;</code>) by importing <code>cats.implicits._</code> and <code>org.http4s.implicits._</code>. Please ensure partial unification is enabled in your <code>build.sbt</code>.</p>
 
 <p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
@@ -212,27 +199,25 @@ with chained methods, each returning a new builder.</p>
 <pre><code class="language-scala">import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
-import org.http4s.server.Router
-</code></pre>
 
-<pre><code class="language-scala">val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$35327/319816760@3891c3af)
-
-val httpApp = Router(&quot;/&quot; -&gt; helloWorldService, &quot;/api&quot; -&gt; services).orNotFound
-// httpApp: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.syntax.KleisliResponseOps$$Lambda$35339/1617797639@78d8135d)
-
-val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, &quot;localhost&quot;).withHttpApp(httpApp)
-// serverBuilder: org.http4s.server.blaze.BlazeServerBuilder[cats.effect.IO] = org.http4s.server.blaze.BlazeServerBuilder@75e482ce
+val services = tweetService &lt;+&gt; helloWorldService
+// services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
+//   cats.data.KleisliSemigroupK$$Lambda$13121/321085675@4c6f8955
+// )
+val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
+// builder: IO[org.http4s.server.Server[IO]] = Delay(
+//   org.http4s.server.blaze.BlazeBuilder$$Lambda$13116/532336336@68f03e06
+// )
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
-using defaults of port 8080 and the loopback address. The <code>withHttpApp</code> call
-associates the specified routes with this http server instance.</p>
+using defaults of port 8080 and the loopback address. The <code>mountService</code> call
+associates a base path with a <code>HttpService</code>.</p>
 
-<p>We start a server resource in the background.  The server will run until we cancel the fiber:</p>
+<p>A builder can be <code>run</code> to start the server.</p>
 
-<pre><code class="language-scala">val fiber = serverBuilder.resource.use(_ =&gt; IO.never).start.unsafeRunSync()
-// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$1588865826,IO$1686666042)
+<pre><code class="language-scala">val server = builder.unsafeRunSync()
+// server: org.http4s.server.Server[IO] = BlazeServer(/127.0.0.1:8080)
 </code></pre>
 
 <p>Use curl, or your favorite HTTP client, to see your service in action:</p>
@@ -242,9 +227,10 @@ associates the specified routes with this http server instance.</p>
 
 <h2 id="cleaning-up">Cleaning up</h2>
 
-<p>We can shut down the server by canceling its fiber.</p>
+<p>Our server consumes system resources. Let&rsquo;s clean up by shutting it
+down:</p>
 
-<pre><code class="language-scala">fiber.cancel.unsafeRunSync()
+<pre><code class="language-scala">server.shutdown.unsafeRunSync()
 </code></pre>
 
 <h3 id="running-your-service-as-an-app">Running your service as an <code>App</code></h3>
@@ -255,50 +241,22 @@ any output.  When this process is run with <code>.unsafeRunSync</code> on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.</p>
 
-<p>As a convenience, cats-effect provides an <code>cats.effect.IOApp</code> trait
-with an abstract <code>run</code> method that returns a <code>IO[ExitCode]</code>.  An
-<code>IOApp</code> runs the process and adds a JVM shutdown hook to interrupt
-the infinite process and gracefully shut down your server when a
-SIGTERM is received.</p>
+<p>As a convenience, fs2 provides an <code>fs2.StreamApp[F[_]]</code> trait
+with an abstract <code>main</code> method that returns a <code>Stream</code>.  A <code>StreamApp</code>
+runs the process and adds a JVM shutdown hook to interrupt the infinite
+process and gracefully shut down your server when a SIGTERM is received.</p>
 
-<pre><code class="language-scala">import cats.effect._
-import cats.implicits._
-import org.http4s.HttpRoutes
-import org.http4s.syntax._
-import org.http4s.dsl.io._
-import org.http4s.implicits._
+<pre><code class="language-scala">import fs2.{Stream, StreamApp}
+import fs2.StreamApp.ExitCode
 import org.http4s.server.blaze._
-</code></pre>
 
-<pre><code class="language-scala">object Main extends IOApp {
-
-  val helloWorldService = HttpRoutes.of[IO] {
-    case GET -&gt; Root / &quot;hello&quot; / name =&gt;
-      Ok(s&quot;Hello, $name.&quot;)
-  }.orNotFound
-
-  def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
+object Main extends StreamApp[IO] {
+  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
+    BlazeBuilder[IO]
       .bindHttp(8080, &quot;localhost&quot;)
-      .withHttpApp(helloWorldService)
+      .mountService(helloWorldService, &quot;/&quot;)
+      .mountService(services, &quot;/api&quot;)
       .serve
-      .compile
-      .drain
-      .as(ExitCode.Success)
-}
-</code></pre>
-
-<p>You may also create the server within an <code>IOApp</code> using resource:</p>
-
-<pre><code class="language-scala">object MainWithResource extends IOApp {
-
-  def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
-      .bindHttp(8080, &quot;localhost&quot;)
-      .withHttpApp(Main.helloWorldService)
-      .resource
-      .use(_ =&gt; IO.never)
-      .as(ExitCode.Success)
 }
 </code></pre>
 
@@ -310,10 +268,6 @@ import org.http4s.server.blaze._
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/">Quick Start</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/upgrading/">Upgrading from 0.18</a>
             </li>
             
             <li class="nav-item">
@@ -334,10 +288,6 @@ import org.http4s.server.blaze._
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
             </li>
             
             <li class="nav-item">
@@ -393,7 +343,7 @@ import org.http4s.server.blaze._
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v0.18/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

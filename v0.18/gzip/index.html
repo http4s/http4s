@@ -6,12 +6,12 @@
 
   <title>http4s | GZip Compression</title>
 
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.18/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:4000/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -31,12 +31,10 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.21/">v0.21 (dev)</a>  
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (stable)</a>
-  <a class="dropdown-item" href="/v0.19/">v0.19 (EOL)</a>
-  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
 </div>
 
@@ -48,7 +46,6 @@
           <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
             <a class="dropdown-item" href="/">http4s</a>
             <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
-            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
             <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
           </div>
         </li>
@@ -69,7 +66,7 @@
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
           
-<a href="https://github.com/http4s/http4s/edit/series/0.18/docs/src/main/tut/gzip.md" class="btn btn-secondary btn-sm">
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/mdoc/gzip.md" class="btn btn-secondary btn-sm">
   <i class="fa fa-edit"></i>
 </a>
 
@@ -100,70 +97,107 @@ body using GZip.</p>
 <pre><code class="language-scala">import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 </code></pre>
 
 <p>Let&rsquo;s start by making a simple service that returns a (relatively) large string
 in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
 
-<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
+<pre><code class="language-scala">val service = HttpService[IO] {
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$22560/1340328765@6410685d)
+// service: HttpService[IO] = Kleisli(
+//   org.http4s.HttpService$$$Lambda$12903/708292025@1cf22a2e
+// )
 
-val request = Request[IO](Method.GET, uri&quot;/&quot;)
-// request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
+val request = Request[IO](Method.GET, uri(&quot;/&quot;))
+// request: Request[IO] = Request(
+//   Method(&quot;GET&quot;),
+//   Uri(None, None, &quot;/&quot;, Query(), None),
+//   HttpVersion(1, 1),
+//   Headers(),
+//   Stream(..),
+//   org.http4s.AttributeMap@8cf85da
+// )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = service.orNotFound(request).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
-
-body.length
-// res1: Int = 117
+val response1 = service.orNotFound(request).unsafeRunSync
+// response1: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(
+//     Content-Type(MediaType(text/plain), Some(Charset(UTF-8))),
+//     Content-Length(117L)
+//   ),
+//   Stream(..),
+//   org.http4s.AttributeMap@8cf85da
+// )
+val body1 = response1.as[String].unsafeRunSync
+// body1: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
+body1.length
+// res0: Int = 117
 </code></pre>
 
 <p>Now we can wrap the service in the <code>GZip</code> middleware.</p>
 
 <pre><code class="language-scala">import org.http4s.server.middleware._
-// import org.http4s.server.middleware._
-
 val zipService = GZip(service)
-// zipService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$22759/125078501@19bda70a)
+// zipService: HttpService[IO] = Kleisli(
+//   org.http4s.server.middleware.GZip$$$Lambda$13766/971208035@41adbf1e
+// )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
-
-body.length
-// res3: Int = 117
+val response2 = zipService.orNotFound(request).unsafeRunSync
+// response2: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(
+//     Content-Type(MediaType(text/plain), Some(Charset(UTF-8))),
+//     Content-Length(117L)
+//   ),
+//   Stream(..),
+//   org.http4s.AttributeMap@8cf85da
+// )
+val body2 = response2.as[String].unsafeRunSync
+// body2: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
+body2.length
+// res1: Int = 117
 </code></pre>
 
 <p>So far, there was no change. That&rsquo;s because the caller needs to inform us that
 they will accept GZipped responses via an <code>Accept-Encoding</code> header. Acceptable
 values for the <code>Accept-Encoding</code> header are <strong>&ldquo;gzip&rdquo;</strong>, <strong>&ldquo;x-gzip&rdquo;</strong>, and <strong>&ldquo;*&rdquo;</strong>.</p>
 
-<pre><code class="language-scala">val acceptHeader = Header(&quot;Accept-Encoding&quot;, &quot;gzip&quot;)
-// acceptHeader: org.http4s.Header.Raw = Accept-Encoding: gzip
+<pre><code class="language-scala">import org.http4s.Header
 
+val acceptHeader = Header(&quot;Accept-Encoding&quot;, &quot;gzip&quot;)
+// acceptHeader: Header.Raw = Raw(Accept-Encoding, &quot;gzip&quot;)
 val zipRequest = request.putHeaders(acceptHeader)
-// zipRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Accept-Encoding: gzip))
+// zipRequest: request.Self = Request(
+//   Method(&quot;GET&quot;),
+//   Uri(None, None, &quot;/&quot;, Query(), None),
+//   HttpVersion(1, 1),
+//   Headers(Raw(Accept-Encoding, &quot;gzip&quot;)),
+//   Stream(..),
+//   org.http4s.AttributeMap@8cf85da
+// )
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafeRunSync
-// response: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip))
-
-val body = response.as[String].unsafeRunSync
-// body: String = &quot; �????????�T(J-HM,Qȭ,N�IS(�H�S�T�U(�KI-R(.)J-.�S�2?UX�&lt;u???&quot;
-
-body.length
-// res5: Int = 59
+val response3 = zipService.orNotFound(zipRequest).unsafeRunSync
+// response3: Response[IO] = Response(
+//   Status(200),
+//   HttpVersion(1, 1),
+//   Headers(
+//     Content-Type(MediaType(text/plain), Some(Charset(UTF-8))),
+//     Content-Encoding(ContentCoding(gzip, QValue(1.0)))
+//   ),
+//   Stream(..),
+//   org.http4s.AttributeMap@8cf85da
+// )
+val body3 = response3.as[String].unsafeRunSync
+// body3: String = &quot;\u001f\ufffd\b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\ufffdT(J-HM,Q\u022d,N\ufffdIS(\ufffdH\ufffdS\ufffdT\ufffdU(\ufffdKI-R(.)J-.\ufffdS\ufffd2\u0000UX\ufffd&lt;u\u0000\u0000\u0000&quot;
+body3.length
+// res2: Int = 59
 </code></pre>
 
 <p>Notice how the response no longer looks very String-like and it&rsquo;s shorter in
@@ -189,10 +223,6 @@ of a service or middleware code. You can work with values while keeping them ins
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/upgrading/">Upgrading from 0.18</a>
-            </li>
-            
-            <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/service/">Service</a>
             </li>
             
@@ -210,10 +240,6 @@ of a service or middleware code. You can work with values while keeping them ins
             
             <li class="nav-item">
 	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
-            </li>
-            
-            <li class="nav-item">
-	      <a class="nav-link" href="/v0.18/csrf/">CSRF</a>
             </li>
             
             <li class="nav-item">
@@ -269,7 +295,7 @@ of a service or middleware code. You can work with values while keeping them ins
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-<script src="https://http4s.org/v0.18/js/highlight.pack.js"></script>
+<script src="http://127.0.0.1:4000/v0.18/js/highlight.pack.js"></script>
 <script>
   hljs.initHighlightingOnLoad();
   

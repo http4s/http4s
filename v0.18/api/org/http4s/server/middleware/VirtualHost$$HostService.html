@@ -8,17 +8,17 @@
           <meta name="keywords" content="" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      
       <link href="../../../../lib/index.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../../../../lib/jquery.min.js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery.js"></script>
       <script type="text/javascript" src="../../../../lib/jquery.panzoom.min.js"></script>
       <script type="text/javascript" src="../../../../lib/jquery.mousewheel.min.js"></script>
       <script type="text/javascript" src="../../../../lib/index.js"></script>
       <script type="text/javascript" src="../../../../index.js"></script>
       <script type="text/javascript" src="../../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
       
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
@@ -56,7 +56,7 @@
                 <li name="_root_.root" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="_root_"></a><a id="root:_root_"></a>
       <span class="permalink">
-      <a href="../../../../index.html" title="Permalink">
+      <a href="index.html#_root_" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -72,7 +72,7 @@
     </li><li name="_root_.org" visbl="pub" class="indented1 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="org"></a><a id="org:org"></a>
       <span class="permalink">
-      <a href="../../../../org/index.html" title="Permalink">
+      <a href="index.html#org" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -88,7 +88,7 @@
     </li><li name="org.http4s" visbl="pub" class="indented2 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4s"></a><a id="http4s:http4s"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/index.html" title="Permalink">
+      <a href="../org/index.html#http4s" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -104,7 +104,7 @@
     </li><li name="org.http4s.server" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="server"></a><a id="server:server"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/index.html" title="Permalink">
+      <a href="../../org/http4s/index.html#server" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -120,7 +120,7 @@
     </li><li name="org.http4s.server.middleware" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="middleware"></a><a id="middleware:middleware"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/index.html" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#middleware" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -136,7 +136,7 @@
     </li><li name="org.http4s.server.middleware.VirtualHost" visbl="pub" class="indented5 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="VirtualHost"></a><a id="VirtualHost:VirtualHost"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/index.html#VirtualHost" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -178,7 +178,7 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">HostService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">HostService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -186,11 +186,11 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Specification of the virtual host service and predicate.</p><p>The predicate receives the the Host header information with the port
 filled in, if possible, using the request Uri or knowledge of the
 security of the underlying transport protocol.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2c21e66d8312973ba159c6c271bf9e6225077b60/server/src/main/scala/org/http4s/server/middleware/VirtualHost.scala" target="_blank">VirtualHost.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6aa08d32b0ffb769c0db08a602666f2e23045fcf/server/src/main/scala/org/http4s/server/middleware/VirtualHost.scala" target="_blank">VirtualHost.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -242,9 +242,9 @@ security of the underlying transport protocol.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.middleware.VirtualHost.HostService#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(http:org.http4s.Http[F,G],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F,G]"></a><a id="&lt;init&gt;:HostService[F,G]"></a>
+      <a id="&lt;init&gt;(service:org.http4s.HttpService[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="&lt;init&gt;:HostService[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#&lt;init&gt;(http:org.http4s.Http[F,G],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F,G]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#&lt;init&gt;(service:org.http4s.HttpService[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -253,7 +253,7 @@ security of the underlying transport protocol.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">HostService</span><span class="params">(<span name="http">http: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span>
+        <span class="name">HostService</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span>
       </span>
       
       
@@ -279,7 +279,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -295,7 +295,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -315,12 +315,12 @@ security of the underlying transport protocol.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(HostService[F,G],B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(HostService[F],B)"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
@@ -331,12 +331,12 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -354,7 +354,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -386,20 +386,20 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@native</span><span class="args">()</span>
+              
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
     </span>)</span>
               
-                <span class="name">@native</span><span class="args">()</span>
-              
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((HostService[F,G])⇒Boolean,⇒Any):HostService[F,G]"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((HostService[F])⇒Boolean,⇒Any):HostService[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
@@ -410,16 +410,16 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((HostService[F,G])⇒Boolean):HostService[F,G]"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((HostService[F])⇒Boolean):HostService[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
@@ -430,16 +430,16 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):HostService[F,G]"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):HostService[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
@@ -450,16 +450,16 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):HostService[F,G]"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):HostService[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
@@ -470,12 +470,12 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -490,7 +490,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -506,10 +506,10 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<span class="extype" name="java.lang">lang</span>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -532,8 +532,8 @@ security of the underlying transport protocol.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -558,22 +558,6 @@ security of the underlying transport protocol.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.VirtualHost.HostService#http" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="http:org.http4s.Http[F,G]"></a><a id="http:Http[F,G]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#http:org.http4s.Http[F,G]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http</span><span class="result">: <a href="../../index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]</span>
-      </span>
-      
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -586,7 +570,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -602,7 +586,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -618,7 +602,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -637,7 +621,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -656,7 +640,23 @@ security of the underlying transport protocol.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">p</span><span class="result">: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">p</span><span class="result">: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.VirtualHost.HostService#service" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="service:org.http4s.HttpService[F]"></a><a id="service:HttpService[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#service:org.http4s.HttpService[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">service</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       
@@ -688,7 +688,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -710,7 +710,7 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="https://www.scala-lang.org/api/2.12.10/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -732,20 +732,20 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@native</span><span class="args">()</span>
+              
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
     </span>)</span>
               
-                <span class="name">@native</span><span class="args">()</span>
-              
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(HostService[F,G],B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(HostService[F],B)"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
@@ -756,12 +756,12 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -775,33 +775,33 @@ security of the underlying transport protocol.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]]
+                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]]
+                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]]
+                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>, <span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.G">G</span>]]
+                <a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]]
               </h3>
             </div>
         </div>

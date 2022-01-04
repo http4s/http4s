@@ -8,17 +8,17 @@
           <meta name="keywords" content="" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      
       <link href="../../../lib/index.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../../../lib/jquery.min.js"></script>
+      <script type="text/javascript" src="../../../lib/jquery.js"></script>
       <script type="text/javascript" src="../../../lib/jquery.panzoom.min.js"></script>
       <script type="text/javascript" src="../../../lib/jquery.mousewheel.min.js"></script>
       <script type="text/javascript" src="../../../lib/index.js"></script>
       <script type="text/javascript" src="../../../index.js"></script>
       <script type="text/javascript" src="../../../lib/scheduler.js"></script>
       <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
       
       <script type="text/javascript">
         /* this variable can be used by the JS to determine the path to the root document */
@@ -56,7 +56,7 @@
                 <li name="_root_.root" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="_root_"></a><a id="root:_root_"></a>
       <span class="permalink">
-      <a href="../../../index.html" title="Permalink">
+      <a href="index.html#_root_" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -72,7 +72,7 @@
     </li><li name="_root_.org" visbl="pub" class="indented1 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="org"></a><a id="org:org"></a>
       <span class="permalink">
-      <a href="../../../org/index.html" title="Permalink">
+      <a href="index.html#org" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -88,7 +88,7 @@
     </li><li name="org.http4s" visbl="pub" class="indented2 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4s"></a><a id="http4s:http4s"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/index.html" title="Permalink">
+      <a href="../org/index.html#http4s" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -104,7 +104,7 @@
     </li><li name="org.http4s.util" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="util"></a><a id="util:util"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/index.html" title="Permalink">
+      <a href="../../org/http4s/index.html#util" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -129,6 +129,10 @@
                         <a class="object" href="Renderer$.html" title=""></a>
                         <a class="trait" href="Renderer.html" title="A type class that describes how to efficiently render a type"></a>
                         <a href="Renderer.html" title="A type class that describes how to efficiently render a type">Renderer</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="SegmentWriter.html" title="Writer that will result in a Segment"></a>
+                        <a href="SegmentWriter.html" title="Writer that will result in a Segment">SegmentWriter</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="StringWriter$.html" title=""></a>
                         <a class="class" href="StringWriter.html" title="Writer that will result in a String"></a>
@@ -178,21 +182,21 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">Renderable</span><span class="result"> extends <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
+        <span class="name">Renderable</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Mixin that makes a type writable by a <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> without needing a <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a> instance</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/2c21e66d8312973ba159c6c271bf9e6225077b60/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Mixin that makes a type writable by a <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> without needing a <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a> instance</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6aa08d32b0ffb769c0db08a602666f2e23045fcf/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
             </span>
-            <div class="subClasses hiddenContent"><a href="../CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a>, <a href="../CacheDirective$$max$minusage.html" class="extype" name="org.http4s.CacheDirective.max-age">max-age</a>, <a href="../CacheDirective$$max$minusstale.html" class="extype" name="org.http4s.CacheDirective.max-stale">max-stale</a>, <a href="../CacheDirective$$min$minusfresh.html" class="extype" name="org.http4s.CacheDirective.min-fresh">min-fresh</a>, <a href="../CacheDirective$$must$minusrevalidate$.html" class="extype" name="org.http4s.CacheDirective.must-revalidate">must-revalidate</a>, <a href="../CacheDirective$$no$minuscache.html" class="extype" name="org.http4s.CacheDirective.no-cache">no-cache</a>, <a href="../CacheDirective$$no$minusstore$.html" class="extype" name="org.http4s.CacheDirective.no-store">no-store</a>, <a href="../CacheDirective$$no$minustransform$.html" class="extype" name="org.http4s.CacheDirective.no-transform">no-transform</a>, <a href="../CacheDirective$$only$minusif$minuscached$.html" class="extype" name="org.http4s.CacheDirective.only-if-cached">only-if-cached</a>, <a href="../CacheDirective$$private.html" class="extype" name="org.http4s.CacheDirective.private">private</a>, <a href="../CacheDirective$$proxy$minusrevalidate$.html" class="extype" name="org.http4s.CacheDirective.proxy-revalidate">proxy-revalidate</a>, <a href="../CacheDirective$$public$.html" class="extype" name="org.http4s.CacheDirective.public">public</a>, <a href="../CacheDirective$$s$minusmaxage.html" class="extype" name="org.http4s.CacheDirective.s-maxage">s-maxage</a>, <a href="../CacheDirective$$stale$minusif$minuserror.html" class="extype" name="org.http4s.CacheDirective.stale-if-error">stale-if-error</a>, <a href="../CacheDirective$$stale$minuswhile$minusrevalidate.html" class="extype" name="org.http4s.CacheDirective.stale-while-revalidate">stale-while-revalidate</a>, <a href="../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../Charset.html" class="extype" name="org.http4s.Charset">Charset</a>, <a href="../CharsetRange.html" class="extype" name="org.http4s.CharsetRange">CharsetRange</a>, <a href="../CharsetRange$$$times.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="../CharsetRange$$$times$.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="../CharsetRange$$Atom.html" class="extype" name="org.http4s.CharsetRange.Atom">Atom</a>, <a href="../ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>, <a href="../Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a>, <a href="../Credentials$$AuthParams.html" class="extype" name="org.http4s.Credentials.AuthParams">AuthParams</a>, <a href="../Credentials$$Token.html" class="extype" name="org.http4s.Credentials.Token">Token</a>, <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a>, <a href="../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>, <a href="../Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a>, <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a>, <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>, <a href="../HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>, <a href="../LanguageTag.html" class="extype" name="org.http4s.LanguageTag">LanguageTag</a>, <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a>, <a href="../Method$$NoBody.html" class="extype" name="org.http4s.Method.NoBody">NoBody</a>, <a href="../Method$$PermitsBody.html" class="extype" name="org.http4s.Method.PermitsBody">PermitsBody</a>, <a href="../Query.html" class="extype" name="org.http4s.Query">Query</a>, <a href="../RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a>, <a href="../RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>, <a href="../ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a>, <a href="../SameSite.html" class="extype" name="org.http4s.SameSite">SameSite</a>, <a href="../SameSite$$Lax$.html" class="extype" name="org.http4s.SameSite.Lax">Lax</a>, <a href="../SameSite$$None$.html" class="extype" name="org.http4s.SameSite.None">None</a>, <a href="../SameSite$$Strict$.html" class="extype" name="org.http4s.SameSite.Strict">Strict</a>, <a href="../ServerSentEvent.html" class="extype" name="org.http4s.ServerSentEvent">ServerSentEvent</a>, <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>, <a href="../TransferCoding.html" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>, <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>, <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>, <a href="../Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a>, <a href="../Uri$$Ipv4Address.html" class="extype" name="org.http4s.Uri.Ipv4Address">Ipv4Address</a>, <a href="../Uri$$Ipv6Address.html" class="extype" name="org.http4s.Uri.Ipv6Address">Ipv6Address</a>, <a href="../Uri$$RegName.html" class="extype" name="org.http4s.Uri.RegName">RegName</a>, <a href="../headers/Accept.html" class="extype" name="org.http4s.headers.Accept">Accept</a>, <a href="../headers/Accept$minusCharset.html" class="extype" name="org.http4s.headers.Accept-Charset">Accept-Charset</a>, <a href="../headers/Accept$minusEncoding.html" class="extype" name="org.http4s.headers.Accept-Encoding">Accept-Encoding</a>, <a href="../headers/Accept$minusLanguage.html" class="extype" name="org.http4s.headers.Accept-Language">Accept-Language</a>, <a href="../headers/Accept$minusRanges.html" class="extype" name="org.http4s.headers.Accept-Ranges">Accept-Ranges</a>, <a href="../headers/Age.html" class="extype" name="org.http4s.headers.Age">Age</a>, <a href="../headers/AgentComment.html" class="extype" name="org.http4s.headers.AgentComment">AgentComment</a>, <a href="../headers/AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a>, <a href="../headers/AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>, <a href="../headers/Allow.html" class="extype" name="org.http4s.headers.Allow">Allow</a>, <a href="../headers/Authorization.html" class="extype" name="org.http4s.headers.Authorization">Authorization</a>, <a href="../headers/Cache$minusControl.html" class="extype" name="org.http4s.headers.Cache-Control">Cache-Control</a>, <a href="../headers/Connection.html" class="extype" name="org.http4s.headers.Connection">Connection</a>, <a href="../headers/Content$minusDisposition.html" class="extype" name="org.http4s.headers.Content-Disposition">Content-Disposition</a>, <a href="../headers/Content$minusEncoding.html" class="extype" name="org.http4s.headers.Content-Encoding">Content-Encoding</a>, <a href="../headers/Content$minusLength.html" class="extype" name="org.http4s.headers.Content-Length">Content-Length</a>, <a href="../headers/Content$minusRange.html" class="extype" name="org.http4s.headers.Content-Range">Content-Range</a>, <a href="../headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>, <a href="../headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">Cookie</a>, <a href="../headers/Date.html" class="extype" name="org.http4s.headers.Date">Date</a>, <a href="../headers/ETag.html" class="extype" name="org.http4s.headers.ETag">ETag</a>, <a href="../headers/Expires.html" class="extype" name="org.http4s.headers.Expires">Expires</a>, <a href="../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>, <a href="../headers/If$minusMatch.html" class="extype" name="org.http4s.headers.If-Match">If-Match</a>, <a href="../headers/If$minusModified$minusSince.html" class="extype" name="org.http4s.headers.If-Modified-Since">If-Modified-Since</a>, <a href="../headers/If$minusNone$minusMatch.html" class="extype" name="org.http4s.headers.If-None-Match">If-None-Match</a>, <a href="../headers/If$minusUnmodified$minusSince.html" class="extype" name="org.http4s.headers.If-Unmodified-Since">If-Unmodified-Since</a>, <a href="../headers/Last$minusEvent$minusId.html" class="extype" name="org.http4s.headers.Last-Event-Id">Last-Event-Id</a>, <a href="../headers/Last$minusModified.html" class="extype" name="org.http4s.headers.Last-Modified">Last-Modified</a>, <a href="../headers/Link.html" class="extype" name="org.http4s.headers.Link">Link</a>, <a href="../headers/LinkValue.html" class="extype" name="org.http4s.headers.LinkValue">LinkValue</a>, <a href="../headers/Location.html" class="extype" name="org.http4s.headers.Location">Location</a>, <a href="../headers/MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a>, <a href="../headers/Origin.html" class="extype" name="org.http4s.headers.Origin">Origin</a>, <a href="../headers/Origin$$Host.html" class="extype" name="org.http4s.headers.Origin.Host">Host</a>, <a href="../headers/Origin$$HostList.html" class="extype" name="org.http4s.headers.Origin.HostList">HostList</a>, <a href="../headers/Origin$$Null$.html" class="extype" name="org.http4s.headers.Origin.Null">Null</a>, <a href="../headers/Proxy$minusAuthenticate.html" class="extype" name="org.http4s.headers.Proxy-Authenticate">Proxy-Authenticate</a>, <a href="../headers/Range.html" class="extype" name="org.http4s.headers.Range">Range</a>, <a href="../headers/Range$$SubRange.html" class="extype" name="org.http4s.headers.Range.SubRange">SubRange</a>, <a href="../headers/Referer.html" class="extype" name="org.http4s.headers.Referer">Referer</a>, <a href="../headers/Retry$minusAfter.html" class="extype" name="org.http4s.headers.Retry-After">Retry-After</a>, <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">Set-Cookie</a>, <a href="../headers/Strict$minusTransport$minusSecurity.html" class="extype" name="org.http4s.headers.Strict-Transport-Security">Strict-Transport-Security</a>, <a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>, <a href="../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>, <a href="../headers/WWW$minusAuthenticate.html" class="extype" name="org.http4s.headers.WWW-Authenticate">WWW-Authenticate</a>, <a href="../headers/X$minusB3$minusFlags.html" class="extype" name="org.http4s.headers.X-B3-Flags">X-B3-Flags</a>, <a href="../headers/X$minusB3$minusParentSpanId.html" class="extype" name="org.http4s.headers.X-B3-ParentSpanId">X-B3-ParentSpanId</a>, <a href="../headers/X$minusB3$minusSampled.html" class="extype" name="org.http4s.headers.X-B3-Sampled">X-B3-Sampled</a>, <a href="../headers/X$minusB3$minusSpanId.html" class="extype" name="org.http4s.headers.X-B3-SpanId">X-B3-SpanId</a>, <a href="../headers/X$minusB3$minusTraceId.html" class="extype" name="org.http4s.headers.X-B3-TraceId">X-B3-TraceId</a>, <a href="../headers/X$minusForwarded$minusFor.html" class="extype" name="org.http4s.headers.X-Forwarded-For">X-Forwarded-For</a></div>
+            <div class="subClasses hiddenContent"><a href="../CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a>, <a href="../CacheDirective$$max$minusage.html" class="extype" name="org.http4s.CacheDirective.max-age">max-age</a>, <a href="../CacheDirective$$max$minusstale.html" class="extype" name="org.http4s.CacheDirective.max-stale">max-stale</a>, <a href="../CacheDirective$$min$minusfresh.html" class="extype" name="org.http4s.CacheDirective.min-fresh">min-fresh</a>, <a href="../CacheDirective$$must$minusrevalidate$.html" class="extype" name="org.http4s.CacheDirective.must-revalidate">must-revalidate</a>, <a href="../CacheDirective$$no$minuscache.html" class="extype" name="org.http4s.CacheDirective.no-cache">no-cache</a>, <a href="../CacheDirective$$no$minusstore$.html" class="extype" name="org.http4s.CacheDirective.no-store">no-store</a>, <a href="../CacheDirective$$no$minustransform$.html" class="extype" name="org.http4s.CacheDirective.no-transform">no-transform</a>, <a href="../CacheDirective$$only$minusif$minuscached$.html" class="extype" name="org.http4s.CacheDirective.only-if-cached">only-if-cached</a>, <a href="../CacheDirective$$private.html" class="extype" name="org.http4s.CacheDirective.private">private</a>, <a href="../CacheDirective$$proxy$minusrevalidate$.html" class="extype" name="org.http4s.CacheDirective.proxy-revalidate">proxy-revalidate</a>, <a href="../CacheDirective$$public$.html" class="extype" name="org.http4s.CacheDirective.public">public</a>, <a href="../CacheDirective$$s$minusmaxage.html" class="extype" name="org.http4s.CacheDirective.s-maxage">s-maxage</a>, <a href="../CacheDirective$$stale$minusif$minuserror.html" class="extype" name="org.http4s.CacheDirective.stale-if-error">stale-if-error</a>, <a href="../CacheDirective$$stale$minuswhile$minusrevalidate.html" class="extype" name="org.http4s.CacheDirective.stale-while-revalidate">stale-while-revalidate</a>, <a href="../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../Charset.html" class="extype" name="org.http4s.Charset">Charset</a>, <a href="../CharsetRange.html" class="extype" name="org.http4s.CharsetRange">CharsetRange</a>, <a href="../CharsetRange$$$times.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="../CharsetRange$$$times$.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="../CharsetRange$$Atom.html" class="extype" name="org.http4s.CharsetRange.Atom">Atom</a>, <a href="../ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>, <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>, <a href="../Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a>, <a href="../Credentials$$AuthParams.html" class="extype" name="org.http4s.Credentials.AuthParams">AuthParams</a>, <a href="../Credentials$$Token.html" class="extype" name="org.http4s.Credentials.Token">Token</a>, <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a>, <a href="../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>, <a href="../Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a>, <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a>, <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>, <a href="../HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>, <a href="../LanguageTag.html" class="extype" name="org.http4s.LanguageTag">LanguageTag</a>, <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>, <a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>, <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a>, <a href="../Method$$NoBody.html" class="extype" name="org.http4s.Method.NoBody">NoBody</a>, <a href="../Method$$PermitsBody.html" class="extype" name="org.http4s.Method.PermitsBody">PermitsBody</a>, <a href="../Query.html" class="extype" name="org.http4s.Query">Query</a>, <a href="../RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a>, <a href="../ServerSentEvent.html" class="extype" name="org.http4s.ServerSentEvent">ServerSentEvent</a>, <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>, <a href="../TransferCoding.html" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>, <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>, <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>, <a href="../Uri$$Host.html" class="extype" name="org.http4s.Uri.Host">Host</a>, <a href="../Uri$$IPv4.html" class="extype" name="org.http4s.Uri.IPv4">IPv4</a>, <a href="../Uri$$IPv6.html" class="extype" name="org.http4s.Uri.IPv6">IPv6</a>, <a href="../Uri$$RegName.html" class="extype" name="org.http4s.Uri.RegName">RegName</a>, <a href="../headers/Accept.html" class="extype" name="org.http4s.headers.Accept">Accept</a>, <a href="../headers/Accept$minusCharset.html" class="extype" name="org.http4s.headers.Accept-Charset">Accept-Charset</a>, <a href="../headers/Accept$minusEncoding.html" class="extype" name="org.http4s.headers.Accept-Encoding">Accept-Encoding</a>, <a href="../headers/Accept$minusLanguage.html" class="extype" name="org.http4s.headers.Accept-Language">Accept-Language</a>, <a href="../headers/Accept$minusRanges.html" class="extype" name="org.http4s.headers.Accept-Ranges">Accept-Ranges</a>, <a href="../headers/Age.html" class="extype" name="org.http4s.headers.Age">Age</a>, <a href="../headers/AgentComment.html" class="extype" name="org.http4s.headers.AgentComment">AgentComment</a>, <a href="../headers/AgentProduct.html" class="extype" name="org.http4s.headers.AgentProduct">AgentProduct</a>, <a href="../headers/AgentToken.html" class="extype" name="org.http4s.headers.AgentToken">AgentToken</a>, <a href="../headers/Allow.html" class="extype" name="org.http4s.headers.Allow">Allow</a>, <a href="../headers/Authorization.html" class="extype" name="org.http4s.headers.Authorization">Authorization</a>, <a href="../headers/Cache$minusControl.html" class="extype" name="org.http4s.headers.Cache-Control">Cache-Control</a>, <a href="../headers/Connection.html" class="extype" name="org.http4s.headers.Connection">Connection</a>, <a href="../headers/Content$minusDisposition.html" class="extype" name="org.http4s.headers.Content-Disposition">Content-Disposition</a>, <a href="../headers/Content$minusEncoding.html" class="extype" name="org.http4s.headers.Content-Encoding">Content-Encoding</a>, <a href="../headers/Content$minusLength.html" class="extype" name="org.http4s.headers.Content-Length">Content-Length</a>, <a href="../headers/Content$minusRange.html" class="extype" name="org.http4s.headers.Content-Range">Content-Range</a>, <a href="../headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>, <a href="../headers/Cookie.html" class="extype" name="org.http4s.headers.Cookie">Cookie</a>, <a href="../headers/Date.html" class="extype" name="org.http4s.headers.Date">Date</a>, <a href="../headers/ETag.html" class="extype" name="org.http4s.headers.ETag">ETag</a>, <a href="../headers/Expires.html" class="extype" name="org.http4s.headers.Expires">Expires</a>, <a href="../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>, <a href="../headers/If$minusModified$minusSince.html" class="extype" name="org.http4s.headers.If-Modified-Since">If-Modified-Since</a>, <a href="../headers/If$minusNone$minusMatch.html" class="extype" name="org.http4s.headers.If-None-Match">If-None-Match</a>, <a href="../headers/Last$minusEvent$minusId.html" class="extype" name="org.http4s.headers.Last-Event-Id">Last-Event-Id</a>, <a href="../headers/Last$minusModified.html" class="extype" name="org.http4s.headers.Last-Modified">Last-Modified</a>, <a href="../headers/Location.html" class="extype" name="org.http4s.headers.Location">Location</a>, <a href="../headers/MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a>, <a href="../headers/Proxy$minusAuthenticate.html" class="extype" name="org.http4s.headers.Proxy-Authenticate">Proxy-Authenticate</a>, <a href="../headers/Range.html" class="extype" name="org.http4s.headers.Range">Range</a>, <a href="../headers/Range$$SubRange.html" class="extype" name="org.http4s.headers.Range.SubRange">SubRange</a>, <a href="../headers/Referer.html" class="extype" name="org.http4s.headers.Referer">Referer</a>, <a href="../headers/Retry$minusAfter.html" class="extype" name="org.http4s.headers.Retry-After">Retry-After</a>, <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">Set-Cookie</a>, <a href="../headers/Strict$minusTransport$minusSecurity.html" class="extype" name="org.http4s.headers.Strict-Transport-Security">Strict-Transport-Security</a>, <a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>, <a href="../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>, <a href="../headers/WWW$minusAuthenticate.html" class="extype" name="org.http4s.headers.WWW-Authenticate">WWW-Authenticate</a>, <a href="../headers/X$minusB3$minusFlags.html" class="extype" name="org.http4s.headers.X-B3-Flags">X-B3-Flags</a>, <a href="../headers/X$minusB3$minusParentSpanId.html" class="extype" name="org.http4s.headers.X-B3-ParentSpanId">X-B3-ParentSpanId</a>, <a href="../headers/X$minusB3$minusSampled.html" class="extype" name="org.http4s.headers.X-B3-Sampled">X-B3-Sampled</a>, <a href="../headers/X$minusB3$minusSpanId.html" class="extype" name="org.http4s.headers.X-B3-SpanId">X-B3-SpanId</a>, <a href="../headers/X$minusB3$minusTraceId.html" class="extype" name="org.http4s.headers.X-B3-TraceId">X-B3-TraceId</a>, <a href="../headers/X$minusForwarded$minusFor.html" class="extype" name="org.http4s.headers.X-Forwarded-For">X-Forwarded-For</a></div>
           </div></div>
         
 
@@ -297,7 +301,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -313,7 +317,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -372,7 +376,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -404,7 +408,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
@@ -424,7 +428,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a>) ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
@@ -444,7 +448,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
@@ -464,7 +468,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
@@ -484,7 +488,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -523,7 +527,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -539,7 +543,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="https://www.scala-lang.org/api/2.12.10/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.7/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -606,7 +610,7 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="https://www.scala-lang.org/api/2.12.10/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.7/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
