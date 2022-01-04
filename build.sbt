@@ -2,17 +2,17 @@ import org.http4s.build.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-organization in ThisBuild := "org.http4s"
+ThisBuild / organization := "org.http4s"
 
 // Root project
 name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
 enablePlugins(PrivateProjectPlugin)
 
-cancelable in Global := true
+Global / cancelable := true
 
 // check for library updates whenever the project is [re]load
-onLoad in Global := { s =>
+Global / onLoad := { s =>
   "dependencyUpdates" :: s
 }
 
@@ -67,7 +67,7 @@ lazy val server = libraryProject("server")
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](
-      resourceDirectory in Test,
+      Test / resourceDirectory,
     ),
     buildInfoPackage := "org.http4s.server.test"
   )
@@ -303,7 +303,7 @@ lazy val docs = http4sProject("docs")
     HugoPlugin,
     PrivateProjectPlugin,
     ScalaUnidocPlugin,
-    TutPlugin
+    MdocPlugin
   )
   .settings(
     libraryDependencies ++= Seq(
@@ -313,7 +313,7 @@ lazy val docs = http4sProject("docs")
     ),
     description := "Documentation for http4s",
     autoAPIMappings := true,
-    unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
+    ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
         examples,
@@ -324,12 +324,12 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         loadTest
       ),
-    scalacOptions in Tut ~= {
-      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
+    Compile / scalacOptions ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Xlint:missing-interpolator", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
-    scalacOptions in (Compile, doc) ++= {
+    Compile / doc / scalacOptions ++= {
       scmInfo.value match {
         case Some(s) =>
           val isMaster = git.gitCurrentBranch.value == "master"
@@ -350,14 +350,14 @@ lazy val docs = http4sProject("docs")
             "-doc-source-url",
             path,
             "-sourcepath",
-            (baseDirectory in ThisBuild).value.getAbsolutePath
+            (ThisBuild / baseDirectory).value.getAbsolutePath
           )
         case _ => Seq.empty
       }
     },
-    scalacOptions in (Compile, doc) -= "-Ywarn-unused:imports",
-    makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
-    baseURL in Hugo := {
+    Compile / doc / scalacOptions -= "-Ywarn-unused:imports",
+    mdocIn := (sourceDirectory in Compile).value / "mdoc",
+    makeSite := makeSite.dependsOn(mdoc.toTask(""), http4sBuildData).value,    baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isTravisBuild.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
@@ -368,10 +368,10 @@ lazy val docs = http4sProject("docs")
     },
     siteMappings ++= {
       val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- (mappings in (ScalaUnidoc, packageDoc)).value)
+      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
         yield (f, s"$docsPrefix/api/$d")
     },
-    includeFilter in ghpagesCleanSite := {
+    ghpagesCleanSite / includeFilter := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
         def accept(f: File) =
@@ -386,14 +386,14 @@ lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
   .settings(
     description := "Common area of http4s.org",
-    baseURL in Hugo := {
+    Hugo / baseURL := {
       if (isTravisBuild.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     makeSite := makeSite.dependsOn(http4sBuildData).value,
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    excludeFilter in ghpagesCleanSite :=
+    ghpagesCleanSite / excludeFilter :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) =
@@ -422,7 +422,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
-    javaOptions in run ++= (managedClasspath in Runtime).map { attList =>
+    run / javaOptions ++= (Runtime / managedClasspath).map { attList =>
       for {
         file <- attList.map(_.data)
         path = file.getAbsolutePath if path.contains("jetty.alpn")
@@ -436,8 +436,8 @@ lazy val examplesDocker = http4sProject("examples-docker")
   .enablePlugins(JavaAppPackaging, DockerPlugin, PrivateProjectPlugin)
   .settings(
     description := "Builds a docker image for a blaze-server",
-    packageName in Docker := "http4s/blaze-server",
-    maintainer in Docker := "http4s",
+    Docker / packageName := "http4s/blaze-server",
+    Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
     libraryDependencies ++= Seq(
@@ -451,7 +451,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     fork := true,
-    mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
+    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
 
@@ -460,7 +460,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     fork := true,
-    mainClass in reStart := Some("com.example.http4s.tomcat.TomcatExample")
+    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
@@ -474,7 +474,7 @@ lazy val examplesWar = exampleProject("examples-war")
       javaxServletApi % "provided",
       logbackClassic % "runtime"
     ),
-    containerLibs in Jetty := List(jettyRunner),
+    Jetty / containerLibs := List(jettyRunner),
   )
   .dependsOn(servlet)
 
@@ -483,7 +483,7 @@ def http4sProject(name: String) =
     .settings(commonSettings)
     .settings(
       moduleName := s"http4s-$name",
-      testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
+      Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
       initCommands()
     )
 
@@ -502,10 +502,10 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   }.value,
-  scalacOptions in Compile ++= Seq(
+  Compile / scalacOptions ++= Seq(
     s"-target:jvm-${http4sJvmTarget.value}"
   ),
-  scalacOptions in (Compile, doc) += "-no-link-warnings",
+  Compile / doc / scalacOptions += "-no-link-warnings",
   javacOptions ++= Seq(
     "-source",
     http4sJvmTarget.value,
@@ -540,7 +540,7 @@ lazy val commonSettings = Seq(
   },
   ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
-  includeFilter in Hugo := (
+  Hugo / includeFilter := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |

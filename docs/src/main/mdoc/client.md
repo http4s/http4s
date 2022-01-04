@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 Then we create the [service] again so tut picks it up:
 
-```tut:book
+```scala mdoc
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -50,7 +50,7 @@ Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]
 to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to 
 create the client.
 
-```tut:book
+```scala mdoc
 import org.http4s.client.blaze._
 
 val httpClient = Http1Client[IO]().unsafeRunSync
@@ -61,7 +61,7 @@ val httpClient = Http1Client[IO]().unsafeRunSync
 To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
-```tut:book
+```scala mdoc
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
@@ -79,7 +79,7 @@ side effects to the end.
 Let's describe how we're going to greet a collection of people in
 parallel:
 
-```tut:book
+```scala mdoc
 import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -107,7 +107,7 @@ the world" varies by context:
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
-```tut:book
+```scala mdoc
 val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync
 ```
@@ -121,7 +121,7 @@ There are a number of ways to construct a `Uri`.
 
 If you have a literal string, you can use `Uri.uri(...)`:
 
-```tut:book
+```scala mdoc
 Uri.uri("https://my-awesome-service.com/foo/bar?wow=yeah")
 ```
 
@@ -131,7 +131,7 @@ format at compile-time.
 Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
 validation fails:
 
-```tut:book
+```scala mdoc
 val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
 val invalidUri = "yeah whatever"
 
@@ -142,7 +142,7 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 
 You can also build up a URI incrementally, e.g.:
 
-```tut:book
+```scala mdoc
 val baseUri = Uri.uri("http://foo.com")
 val withPath = baseUri.withPath("/bar/baz")
 val withQuery = withPath.withQueryParam("hello", "world")
@@ -154,14 +154,14 @@ val withQuery = withPath.withQueryParam("hello", "world")
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
-```tut:book
+```scala mdoc
 httpClient.expect[String](Uri.uri("https://google.com/"))
 ```
 
 If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
-```tut:book
+```scala mdoc
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType._
@@ -177,7 +177,7 @@ httpClient.expect[String](request)
 
 ### Post a form, decoding the JSON response to a case class
 
-```tut:book
+```scala mdoc
 case class AuthResponse(access_token: String)
 
 // See the JSON page for details on how to define this
@@ -200,14 +200,14 @@ httpClient.expect[AuthResponse](postRequest)
 Our client consumes system resources. Let's clean up after ourselves by shutting
 it down:
 
-```tut:book
+```scala mdoc
 httpClient.shutdownNow()
 ```
 
 If the client is created using `HttpClient.stream[F]()`, it will be shut down when
 the resulting stream finishes.
 
-```tut:book:invisible
+```scala mdoc:invisible
 server.shutdown.unsafeRunSync
 ```
 

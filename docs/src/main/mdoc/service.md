@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
-This tutorial is compiled as part of the build using [tut].  Each page
+This tutorial is compiled as part of the build using [mdoc].  Each page
 is its own REPL session.  If you copy and paste code samples starting
 from the top, you should be able to follow along in a REPL.
 
@@ -51,7 +51,7 @@ prefer you can read these introductions first:
 Wherever you are in your studies, let's create our first
 `HttpService`.  Start by pasting these imports into your SBT console:
 
-```tut:book
+```scala mdoc
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
@@ -60,7 +60,7 @@ matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
-```tut:book
+```scala mdoc
 val helloWorldService = HttpService[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -80,7 +80,7 @@ We've defined `tweetsEncoder` as being implicit so that we don't need to explici
 reference it when serving the response, which can be seen as
 `Ok(getPopularTweets())`.
 
-```tut:book
+```scala mdoc
 case class Tweet(id: Int, message: String)
 
 implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
@@ -109,11 +109,11 @@ matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpService`s can be combined with the `combineK` method (or its alias
-`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
+`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`.
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
 
-```tut:book
+```scala mdoc
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
@@ -128,7 +128,7 @@ associates a base path with a `HttpService`.
 
 A builder can be `run` to start the server.
 
-```tut:book
+```scala mdoc
 val server = builder.unsafeRunSync()
 ```
 
@@ -143,7 +143,7 @@ $ curl http://localhost:8080/hello/Pete
 Our server consumes system resources. Let's clean up by shutting it
 down:
 
-```tut:book
+```scala mdoc
 server.shutdown.unsafeRunSync()
 ```
 
@@ -160,7 +160,7 @@ with an abstract `main` method that returns a `Stream`.  A `StreamApp`
 runs the process and adds a JVM shutdown hook to interrupt the infinite
 process and gracefully shut down your server when a SIGTERM is received.
 
-```tut:book
+```scala mdoc
 import fs2.{Stream, StreamApp}
 import fs2.StreamApp.ExitCode
 import org.http4s.server.blaze._
@@ -176,7 +176,7 @@ object Main extends StreamApp[IO] {
 ```
 
 [blaze]: https://github.com/http4s/blaze
-[tut]: https://github.com/tpolecat/tut
+[mdoc]: https://github.com/scalameta/mdoc
 [Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
 [cats-effect: The IO Monad for Scala]: https://typelevel.org/cats-effect/
 [http4s-dsl]: ../dsl

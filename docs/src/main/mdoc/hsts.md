@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
+```scala mdoc
 import org.http4s._
 import org.http4s.dsl.io._
 import cats.effect.IO
@@ -27,7 +27,7 @@ import cats.effect.IO
 
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
-```tut:book
+```scala mdoc
 val service = HttpService[IO] {
   case _ =>
     Ok("ok")
@@ -36,19 +36,19 @@ val service = HttpService[IO] {
 val request = Request[IO](Method.GET, uri("/"))
 
 // Do not call 'unsafeRunSync' in your code
-val response = service.orNotFound(request).unsafeRunSync
-response.headers
+val response1 = service.orNotFound(request).unsafeRunSync
+response1.headers
 ```
 
 If we were to wrap this on the `HSTS` middleware.
 
-```tut:book
+```scala mdoc
 import org.http4s.server.middleware._
-val hstsService = HSTS(service)
+val hstsService2 = HSTS(service)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync
-response.headers
+val response2 = hstsService2.orNotFound(request).unsafeRunSync
+response2.headers
 ```
 
 Now the response has the `Strict-Transport-Security` header which will mandate browsers
@@ -64,16 +64,16 @@ should be done over `https` and it will contain the `includeSubDomains` directiv
 
 If you want to `preload` or change other default values you can pass a custom header, e.g.
 
-```tut:book
+```scala mdoc
 import org.http4s.headers._
 import scala.concurrent.duration._
 
 val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
-val hstsService = HSTS(service, hstsHeader)
+val hstsService3 = HSTS(service, hstsHeader)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync
-response.headers
+val response3 = hstsService3.orNotFound(request).unsafeRunSync
+response3.headers
 ```
 
 ## References

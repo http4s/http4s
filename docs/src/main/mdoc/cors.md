@@ -18,16 +18,16 @@ libraryDependencies ++= Seq(
 
 And we need some imports.
 
-```tut:silent
+```scala mdoc
 import cats.effect._
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 ```
 
 Let's start by making a simple service.
 
-```tut:book
+```scala mdoc
 val service = HttpService[IO] {
   case _ =>
     Ok()
@@ -40,7 +40,7 @@ service.orNotFound(request).unsafeRunSync
 
 Now we can wrap the service in the `CORS` middleware.
 
-```tut:book
+```scala mdoc
 import org.http4s.server.middleware._
 val corsService = CORS(service)
 
@@ -50,7 +50,7 @@ corsService.orNotFound(request).unsafeRunSync
 So far, there was no change. That's because an `Origin` header is required
 in the requests. This, of course, is the responsibility of the caller.
 
-```tut:book
+```scala mdoc
 val originHeader = Header("Origin", "somewhere.com")
 val corsRequest = request.putHeaders(originHeader)
 
@@ -69,7 +69,7 @@ are configuration options to modify that.
 First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
-```tut:book
+```scala mdoc
 val googleGet = Request[IO](Method.GET, uri("/"), headers = Headers(Header("Origin", "google.com")))
 val yahooPut = Request[IO](Method.PUT, uri("/"), headers = Headers(Header("Origin", "yahoo.com")))
 val duckPost = Request[IO](Method.POST, uri("/"), headers = Headers(Header("Origin", "duckduckgo.com")))
@@ -78,7 +78,7 @@ val duckPost = Request[IO](Method.POST, uri("/"), headers = Headers(Header("Orig
 Now, we'll create a configuration that limits the allowed methods to `GET`
 and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
-```tut:book
+```scala mdoc
 import scala.concurrent.duration._
 
 val methodConfig = CORSConfig(
@@ -99,7 +99,7 @@ As you can see, the CORS headers were only added to the `GET` and `POST` request
 Next, we'll create a configuration that limits the origins to "yahoo.com" and
 "duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
 
-```tut:book
+```scala mdoc
 val originConfig = CORSConfig(
   anyOrigin = false,
   allowedOrigins = Set("yahoo.com", "duckduckgo.com"),

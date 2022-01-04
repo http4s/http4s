@@ -16,7 +16,7 @@ function, or more likely, a `Request[F] => OptionT[F, User]`, because the `User`
 come from a database. We can convert that into an `AuthMiddleware` and apply it.
 Or in code, using `cats.effect.IO` as the effect type:
 
-```tut:book
+```scala mdoc
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -25,13 +25,13 @@ import org.http4s.server._
 
 case class User(id: Long, name: String)
 
-val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ => OptionT.liftF(IO(???)))
-val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
+val authUser1: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ => OptionT.liftF(IO(???)))
+val authMiddleware1: AuthMiddleware[IO, User] = AuthMiddleware(authUser1)
 val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
-val service: HttpService[IO] = middleware(authedService)
+val service1: HttpService[IO] = authMiddleware1(authedService)
 ```
 
 ## Returning an Error Response
@@ -47,13 +47,13 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 => F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
-```tut:book
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
+```scala mdoc
+val authUser2: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
-val middleware = AuthMiddleware(authUser, onFailure)
+val onFailure2: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+val authMiddleware2 = AuthMiddleware(authUser2, onFailure2)
 
-val service: HttpService[IO] = middleware(authedService)
+val service2: HttpService[IO] = authMiddleware2(authedService)
 ```
 
 ## Implementing authUser
@@ -78,7 +78,7 @@ use multiple application instances.
 
 The message is simply the user id.
 
-```tut:book
+```scala mdoc
 import org.reactormonk.{CryptoBits, PrivateKey}
 import java.time._
 
@@ -101,9 +101,9 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
-```tut:book
+```scala mdoc
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUser3: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- headers.Cookie.from(request.headers).toRight("Cookie parsing error")
     cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
@@ -120,11 +120,11 @@ There is no inherent way to set the Authorization header, send the token in any
 way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
-```tut:book
+```scala mdoc
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUser4: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
     token <- crypto.validateSignedToken(header.value).toRight("Cookie invalid")

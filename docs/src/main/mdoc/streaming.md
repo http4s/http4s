@@ -15,7 +15,7 @@ HTTP streaming is provided by both https' service support and its client support
 Because `EntityBody[F]`s are streams anyway, returning a stream as a response from your service is
 simplicity itself:
 
-```tut:silent
+```scala mdoc
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -76,7 +76,7 @@ example as a bonus!
 
 Putting it all together into a small app that will print the JSON objects forever:
 
-```tut:silent
+```scala mdoc
 import org.http4s._
 import org.http4s.client.blaze._
 import org.http4s.client.oauth1

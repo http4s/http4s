@@ -1,4 +1,4 @@
-resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
+resolvers += "jgit-repo" at "https://download.eclipse.org/jgit/maven"
 
 addSbtPlugin("com.earldouglas"     %  "xsbt-web-plugin"       % "4.0.2")
 addSbtPlugin("com.github.tkawachi" %  "sbt-doctest"           % "0.7.2")
@@ -11,7 +11,7 @@ addSbtPlugin("io.gatling"          %  "gatling-sbt"           % "2.2.2")
 addSbtPlugin("io.get-coursier"     %  "sbt-coursier"          % "1.0.3")
 addSbtPlugin("io.spray"            %  "sbt-revolver"          % "0.9.1")
 addSbtPlugin("io.verizon.build"    %  "sbt-rig"               % "5.0.39")
-addSbtPlugin("org.tpolecat"        %  "tut-plugin"            % "0.6.7")
+addSbtPlugin("org.scalameta"       %  "sbt-mdoc"              % "2.1.5" )
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"               % "0.3.4")
 addSbtPlugin("com.timushev.sbt"    %  "sbt-updates"           % "0.3.4")
 

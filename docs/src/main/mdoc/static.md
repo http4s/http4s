@@ -16,7 +16,7 @@ similar static file hoster, but they're often fast enough.
 ## Serving static files
 Http4s provides a few helpers to handle ETags for you, they're located in [StaticFile].
 
-```tut:book
+```scala mdoc:nest
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -33,11 +33,11 @@ val service = HttpService[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. Append to the `List` as needed.
 
-```tut:book
+```scala mdoc
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
-val service = HttpService[IO] {
+val service2 = HttpService[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
     static(path, request)
 }
@@ -48,7 +48,7 @@ val service = HttpService[IO] {
 A special service exists to load files from [WebJars](http://www.webjars.org). Add your WebJar to the
 class path, as you usually would:
 
-```tut:book:nofail
+```scala
 libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "3.1.1-1"
 )
@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
 
 Then, mount the `WebjarService` like any other service:
 
-```tut:book
+```scala mdoc
 import org.http4s.server.staticcontent.webjarService
 import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 
