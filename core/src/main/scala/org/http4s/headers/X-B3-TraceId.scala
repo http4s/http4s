@@ -49,7 +49,7 @@ object `X-B3-TraceId` {
             xB3RenderValueImpl(writer, h.idMostSigBits, h.idLeastSigBits)
 
         },
-      parse
+      parse,
     )
 
 }

@@ -42,12 +42,12 @@ object EntityTag {
   /*
    * entity-tag = [ weak ] opaque-tag
    *
-   * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
+   * @see [[https://datatracker.ietf.org/doc/html/rfc7232#section-2.3]]
    */
   private[http4s] val parser: Parser[EntityTag] = {
     import Parser.{charIn, string}
-    import Rfc5234.{dquote}
-    import Rfc7230.{obsText}
+    import Rfc5234.dquote
+    import Rfc7230.obsText
 
     // weak       = %x57.2F ; "W/", case-sensitive
     val weak = string("W/").as(EntityTag.Weak)

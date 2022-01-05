@@ -21,7 +21,7 @@ import cats.parse._
 import org.typelevel.ci._
 
 object Authorization {
-  //https://tools.ietf.org/html/rfc7235#section-4.2
+  // https://datatracker.ietf.org/doc/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[Authorization] = {
     import org.http4s.internal.parsing.Rfc7235.credentials
     credentials.map(Authorization(_))
@@ -39,7 +39,7 @@ object Authorization {
     Header.createRendered(
       name,
       _.credentials,
-      parse
+      parse,
     )
 }
 

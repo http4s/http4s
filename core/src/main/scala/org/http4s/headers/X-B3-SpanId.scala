@@ -47,7 +47,7 @@ object `X-B3-SpanId` {
             xB3RenderValueImpl(writer, h.id)
 
         },
-      parse
+      parse,
     )
 
 }

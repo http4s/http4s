@@ -34,11 +34,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
-final private[http4s] class IdleTimeoutStage[A](
+private[http4s] final class IdleTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
-    ec: ExecutionContext)
-    extends MidStage[A, A] { stage =>
+    ec: ExecutionContext,
+) extends MidStage[A, A] { stage =>
 
   private val timeoutState = new AtomicReference[State](Disabled)
 
@@ -147,7 +147,9 @@ object IdleTimeoutStage {
 
   sealed trait State
   case object Disabled extends State
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
   case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  // scalafix:on
   case object ShutDown extends State
 
 }

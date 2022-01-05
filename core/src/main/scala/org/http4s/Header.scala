@@ -80,8 +80,8 @@ object Header {
     * times.
     */
   sealed trait Type
-  case class Single() extends Type
-  case class Recurring() extends Type
+  case class Single() extends Type // scalafix:ok Http4sGeneralLinters; bincompat until 1.0
+  case class Recurring() extends Type // scalafix:ok Http4sGeneralLinters; bincompat until 1.0
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
 
@@ -91,7 +91,8 @@ object Header {
   def create[A, T <: Header.Type](
       name_ : CIString,
       value_ : A => String,
-      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+      parse_ : String => Either[ParseFailure, A],
+  ): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = value_(a)
     def parse(s: String) = parse_(s)
@@ -100,7 +101,8 @@ object Header {
   def createRendered[A, T <: Header.Type, B: Renderer](
       name_ : CIString,
       value_ : A => B,
-      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+      parse_ : String => Either[ParseFailure, A],
+  ): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = Renderer.renderString(value_(a))
     def parse(s: String) = parse_(s)
@@ -145,20 +147,23 @@ object Header {
         val values = h.headers
       }
 
-    implicit def modelledHeadersToRaw[H](h: H)(implicit
-        H: Header[H, _]): Header.ToRaw with Primitive =
+    implicit def modelledHeadersToRaw[H](
+        h: H
+    )(implicit H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(H.name, H.value(h)))
       }
 
-    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit
-        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def foldablesToRaw[F[_]: Foldable, H](
+        h: F[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
 
     // Required for 2.12 to convert variadic args.
-    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit
-        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def scalaCollectionSeqToRaw[H](
+        h: collection.Seq[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
   }
@@ -181,7 +186,8 @@ object Header {
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+        h: Header[A, Header.Recurring]
+    ): Select[A] { type F[B] = NonEmptyList[B] } =
       new Select[A] {
         type F[B] = NonEmptyList[B]
 
@@ -208,7 +214,8 @@ object Header {
       (h.name == Header[A].name).guard[Option].map(_ => Header[A].parse(h.value).toIor)
 
     implicit def singleHeaders[A](implicit
-        h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
+        h: Header[A, Header.Single]
+    ): Select[A] { type F[B] = B } =
       new Select[A] {
         type F[B] = B
 
@@ -223,7 +230,8 @@ object Header {
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = B } =
+        h: Header[A, Header.Recurring]
+    ): Select[A] { type F[B] = B } =
       new Select[A] {
         type F[B] = B
 

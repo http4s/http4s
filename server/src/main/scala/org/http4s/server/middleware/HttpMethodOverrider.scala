@@ -36,12 +36,13 @@ object HttpMethodOverrider {
     */
   class HttpMethodOverriderConfig[F[_], G[_]](
       val overrideStrategy: OverrideStrategy[F, G],
-      val overridableMethods: Set[Method]) {
+      val overridableMethods: Set[Method],
+  ) {
     type Self = HttpMethodOverriderConfig[F, G]
 
     private def copy(
         overrideStrategy: OverrideStrategy[F, G] = overrideStrategy,
-        overridableMethods: Set[Method] = overridableMethods
+        overridableMethods: Set[Method] = overridableMethods,
     ): Self =
       new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
 
@@ -55,7 +56,8 @@ object HttpMethodOverrider {
   object HttpMethodOverriderConfig {
     def apply[F[_], G[_]](
         overrideStrategy: OverrideStrategy[F, G],
-        overridableMethods: Set[Method]): HttpMethodOverriderConfig[F, G] =
+        overridableMethods: Set[Method],
+    ): HttpMethodOverriderConfig[F, G] =
       new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
   }
 
@@ -66,13 +68,14 @@ object HttpMethodOverrider {
       extends OverrideStrategy[F, G]
   final case class FormOverrideStrategy[F[_], G[_]](
       fieldName: String,
-      naturalTransformation: G ~> F)
-      extends OverrideStrategy[F, G]
+      naturalTransformation: G ~> F,
+  ) extends OverrideStrategy[F, G]
 
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
       HeaderOverrideStrategy(ci"X-HTTP-Method-Override"),
-      Set(Method.POST))
+      Set(Method.POST),
+    )
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[IO, Method].unsafeRunSync()
 
@@ -88,14 +91,16 @@ object HttpMethodOverrider {
     */
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(implicit
       F: Monad[F],
-      S: Sync[G]): Http[F, G] = {
+      S: Sync[G],
+  ): Http[F, G] = {
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
 
     val processRequestWithOriginalMethod = (req: Request[G]) => http(req)
 
     def processRequestWithMethod(
         req: Request[G],
-        parseResult: ParseResult[Method]): F[Response[G]] =
+        parseResult: ParseResult[Method],
+    ): F[Response[G]] =
       parseResult match {
         case Left(_) => F.pure(Response[G](Status.BadRequest))
         case Right(om) => http(updateRequestWithMethod(req, om)).map(updateVaryHeader)
@@ -134,7 +139,8 @@ object HttpMethodOverrider {
                 .entityDecoder[G]
                 .decode(req, strict = true)
                 .value
-                .map(_.toOption.map(_.values)))
+                .map(_.toOption.map(_.values))
+            )
           } yield formFields.flatMap(_.get(field).flatMap(_.uncons.map(_._1)))
       }
 

@@ -32,9 +32,8 @@ private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
     bufferMaxSize: Int,
-    omitEmptyContentLength: Boolean)(implicit
-    protected val F: Effect[F],
-    protected val ec: ExecutionContext)
+    omitEmptyContentLength: Boolean,
+)(implicit protected val F: Effect[F], protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   import ChunkWriter._
 
@@ -57,7 +56,7 @@ private[http4s] class CachingChunkWriter[F[_]](
     size = 0
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer)
 
   override protected def exceptionFlush(): Future[Unit] = {
     val c = toChunk

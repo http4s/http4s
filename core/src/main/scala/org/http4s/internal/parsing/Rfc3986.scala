@@ -29,7 +29,7 @@ import java.nio.ByteBuffer
 
 /** Common rules defined in Rfc3986
   *
-  * @see [[https://tools.ietf.org/html/rfc3986]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc3986]]
   */
 private[http4s] object Rfc3986 {
   def alpha: Parser[Char] = Rfc2234.alpha
@@ -134,7 +134,7 @@ private[http4s] object Rfc3986 {
     }
 
     val fullIpv6WihtOptionalIpv4 = (h16Colon.repExactlyAs[List[Short]](6) ~ ls32)
-      .map { case (ls: List[Short], rs) => toIpv6(ls.toList, rs) }
+      .map { case (ls: List[Short], rs) => toIpv6(ls, rs) }
 
     val shortIpv6WithIpv4 = for {
       lefts <- h16.repSep0(0, 5, colon).with1 <* doubleColon

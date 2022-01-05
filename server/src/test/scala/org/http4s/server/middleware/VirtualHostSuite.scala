@@ -43,7 +43,7 @@ class VirtualHostSuite extends Http4sSuite {
   val vhostExact = VirtualHost(
     VirtualHost.exact(default, "default", None),
     VirtualHost.exact(routesA, "routesA", None),
-    VirtualHost.exact(routesB, "routesB", Some(80))
+    VirtualHost.exact(routesB, "routesB", Some(80)),
   ).orNotFound
 
   test("exact should return a 400 BadRequest when no header is present on a NON HTTP/1.0 request") {
@@ -85,7 +85,7 @@ class VirtualHostSuite extends Http4sSuite {
   val vhostWildcard = VirtualHost(
     VirtualHost.wildcard(routesA, "routesa", None),
     VirtualHost.wildcard(routesB, "*.service", Some(80)),
-    VirtualHost.wildcard(default, "*.foo-service", Some(80))
+    VirtualHost.wildcard(default, "*.foo-service", Some(80)),
   ).orNotFound
 
   test("wildcard match an exact route") {
@@ -107,7 +107,8 @@ class VirtualHostSuite extends Http4sSuite {
     val reqs = List(
       req.withHeaders(Host("a.service", Some(80))),
       req.withHeaders(Host("A.service", Some(80))),
-      req.withHeaders(Host("b.service", Some(80))))
+      req.withHeaders(Host("b.service", Some(80))),
+    )
 
     reqs.traverse { req =>
       vhostWildcard(req).flatMap(_.as[String]).assertEquals("routesB")

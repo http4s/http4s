@@ -45,7 +45,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
       override def verify(s: String, sslSession: SSLSession): Boolean = true
     }
 
-    //For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
+    // For test cases, don't do any host name verification. Certificates are self-signed and not available to all hosts
     HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier)
   }
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
@@ -60,9 +60,9 @@ class BlazeServerMtlsSpec extends Http4sSuite {
         .lookup(ServerRequestKeys.SecureSession)
         .flatten
         .map { session =>
-          assert(session.sslSessionId != "")
-          assert(session.cipherSuite != "")
-          assert(session.keySize != 0)
+          assertNotEquals(session.sslSessionId, "")
+          assertNotEquals(session.cipherSuite, "")
+          assertNotEquals(session.keySize, 0)
 
           session.X509Certificate.head.getSubjectX500Principal.getName
         }
@@ -75,10 +75,10 @@ class BlazeServerMtlsSpec extends Http4sSuite {
         .lookup(ServerRequestKeys.SecureSession)
         .flatten
         .foreach { session =>
-          assert(session.sslSessionId != "")
-          assert(session.cipherSuite != "")
-          assert(session.keySize != 0)
-          assert(session.X509Certificate.isEmpty)
+          assertNotEquals(session.sslSessionId, "")
+          assertNotEquals(session.cipherSuite, "")
+          assertNotEquals(session.keySize, 0)
+          assertEquals(session.X509Certificate, Nil)
         }
 
       Ok("success")

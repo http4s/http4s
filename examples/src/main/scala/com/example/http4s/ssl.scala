@@ -42,7 +42,8 @@ object ssl {
   val storeInfo: StoreInfo = StoreInfo(keystorePath, keystorePassword)
 
   def loadContextFromClasspath[F[_]](keystorePassword: String, keyManagerPass: String)(implicit
-      F: Sync[F]): F[SSLContext] =
+      F: Sync[F]
+  ): F[SSLContext] =
     F.delay {
       val ksStream = this.getClass.getResourceAsStream("/server.jks")
       val ks = KeyStore.getInstance("JKS")
@@ -51,7 +52,8 @@ object ssl {
 
       val kmf = KeyManagerFactory.getInstance(
         Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+          .getOrElse(KeyManagerFactory.getDefaultAlgorithm)
+      )
 
       kmf.init(ks, keyManagerPass.toCharArray)
 
@@ -74,7 +76,10 @@ object ssl {
               Authority(
                 userInfo = request.uri.authority.flatMap(_.userInfo),
                 host = RegName(host),
-                port = securePort.some)))
+                port = securePort.some,
+              )
+            ),
+          )
           MovedPermanently(Location(baseUri.withPath(request.uri.path)))
         case _ =>
           BadRequest()

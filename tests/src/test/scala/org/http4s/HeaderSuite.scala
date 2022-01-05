@@ -36,8 +36,8 @@ class HeaderSuite extends munit.DisciplineSuite {
     val h1 = `Content-Length`.unsafeFromLong(4)
     val h2 = `Content-Length`.unsafeFromLong(5)
 
-    assert(!(h1 == h2))
-    assert(!(h2 == h1))
+    assertNotEquals(h1, h2)
+    assertNotEquals(h2, h1)
   }
 
   /*
@@ -65,7 +65,8 @@ class HeaderSuite extends munit.DisciplineSuite {
       assertEquals(
         h.isNameValid,
         h.name.toString.nonEmpty && h.name.toString.getBytes(ISO_8859_1).forall(tchar),
-        h.name)
+        h.name,
+      )
     }
   }
 

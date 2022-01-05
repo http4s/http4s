@@ -56,7 +56,8 @@ private class Http2NodeStage[F[_]](
     serviceErrorHandler: ServiceErrorHandler[F],
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
-    scheduler: TickWheelExecutor)(implicit F: ConcurrentEffect[F], timer: Timer[F])
+    scheduler: TickWheelExecutor,
+)(implicit F: ConcurrentEffect[F], timer: Timer[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -118,7 +119,7 @@ private class Http2NodeStage[F[_]](
             bytesRead += bytes.remaining()
 
             // Check length: invalid length is a stream error of type PROTOCOL_ERROR
-            // https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
+            // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
             if (complete && maxlen > 0 && bytesRead != maxlen) {
               val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
               val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
@@ -255,8 +256,10 @@ private class Http2NodeStage[F[_]](
       // Connection related headers must be removed from the message because
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
-      if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != Header[headers.Connection].name) {
+      if (
+        h.name != headers.`Transfer-Encoding`.name &&
+        h.name != Header[headers.Connection].name
+      ) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }

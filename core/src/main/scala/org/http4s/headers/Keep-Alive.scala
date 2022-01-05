@@ -49,13 +49,15 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   def apply(
       timeoutSeconds: Option[Long],
       max: Option[Long],
-      extension: List[(String, Option[String])]): ParseResult[`Keep-Alive`] =
+      extension: List[(String, Option[String])],
+  ): ParseResult[`Keep-Alive`] =
     if (timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) {
       val reservedTokens = List("token", "max")
       if (extension.exists(p => reservedTokens.contains(p._1))) {
         ParseResult.fail(
           "Invalid Keep-Alive header",
-          s"Reserved token of list $reservedTokens was found in the extensions.")
+          s"Reserved token of list $reservedTokens was found in the extensions.",
+        )
       } else {
         val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))
         val validatedMax = max.traverse(m => nonNegativeLong(m, "max"))
@@ -68,7 +70,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   def unsafeApply(
       timeoutSeconds: Option[Long],
       max: Option[Long],
-      extension: List[(String, Option[String])]): `Keep-Alive` =
+      extension: List[(String, Option[String])],
+  ): `Keep-Alive` =
     apply(timeoutSeconds, max, extension).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Keep-Alive`] =
@@ -79,7 +82,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     else
       ParseResult.fail(
         s"Invalid long for $fieldName",
-        s"$fieldName which was $l must be greater than or equal to 0 seconds")
+        s"$fieldName which was $l must be greater than or equal to 0 seconds",
+      )
 
   private def safeToLong(s: String): Option[Long] =
     try Some(s.toLong)
@@ -90,14 +94,14 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     import Rfc7230.{headerRep1, quotedString, token}
     import Numbers.digits
 
-    //"timeout" "=" delta-seconds
+    // "timeout" "=" delta-seconds
     val timeout: Parser[Timeout] =
       Parser.string("timeout=") *> digits.mapFilter(s => safeToLong(s).map(Timeout))
 
-    //"max" "=" 1*DIGIT
+    // "max" "=" 1*DIGIT
     val max: Parser[Max] = Parser.string("max=") *> digits.mapFilter(s => safeToLong(s).map(Max))
 
-    //keep-alive-extension = token [ "=" ( token / quoted-string ) ]
+    // keep-alive-extension = token [ "=" ( token / quoted-string ) ]
     val keepAliveExtension: Parser[Extension] =
       (token ~ (Parser.char('=') *> token.orElse(quotedString)).?).map(Extension)
 
@@ -126,7 +130,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
   private def impl(
       timeoutSeconds: Option[Long],
       max: Option[Long],
-      extension: List[(String, Option[String])]) =
+      extension: List[(String, Option[String])],
+  ) =
     new `Keep-Alive`(timeoutSeconds, max, extension) {}
 
   implicit val headerInstance: Header[`Keep-Alive`, Header.Recurring] = Header.createRendered(
@@ -154,12 +159,12 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
                   writer.quote(
                     qts
                   )
-                } //All tokens are valid if we quote them as if they were quoted-string
+                } // All tokens are valid if we quote them as if they were quoted-string
               }
               writer
           }
       },
-    parse
+    parse,
   )
 
   implicit val headerSemigroupInstance: Semigroup[`Keep-Alive`] = new Semigroup[`Keep-Alive`] {
@@ -167,7 +172,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       impl(
         x.timeoutSeconds.orElse(y.timeoutSeconds),
         x.max.orElse(y.max),
-        x.extension ++ y.extension
+        x.extension ++ y.extension,
       )
   }
 
@@ -176,7 +181,8 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
 sealed abstract case class `Keep-Alive` private (
     timeoutSeconds: Option[Long],
     max: Option[Long],
-    extension: List[(String, Option[String])]) {
+    extension: List[(String, Option[String])],
+) {
   def toTimeoutDuration: Option[FiniteDuration] =
     timeoutSeconds.map(FiniteDuration(_, TimeUnit.SECONDS))
 }

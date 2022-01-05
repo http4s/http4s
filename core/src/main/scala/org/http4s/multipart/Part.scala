@@ -43,10 +43,10 @@ object Part {
   private val ChunkSize = 8192
 
   @deprecated(
-    """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
+    """Empty parts are not allowed by the multipart spec, see: https://datatracker.ietf.org/doc/html/rfc7578#section-4.2
 
 Moreover, it allows the creation of potentially incorrect multipart bodies""",
-    "0.18.12"
+    "0.18.12",
   )
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
@@ -54,33 +54,37 @@ Moreover, it allows the creation of potentially incorrect multipart bodies""",
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Stream.emit(value).through(utf8Encode))
+      Stream.emit(value).through(utf8Encode),
+    )
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       file: File,
       blocker: Blocker,
-      headers: Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*
+  ): Part[F] =
     fileData(name, file.getName, readAll[F](file.toPath, blocker, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,
       resource: URL,
       blocker: Blocker,
-      headers: Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*
+  ): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), blocker, headers: _*)
 
   def fileData[F[_]](
       name: String,
       filename: String,
       entityBody: EntityBody[F],
-      headers: Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*
+  ): Part[F] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
-        "Content-Transfer-Encoding" -> "binary"
+        "Content-Transfer-Encoding" -> "binary",
       ).put(headers: _*),
-      entityBody
+      entityBody,
     )
 
   // The InputStream is passed by name, and we open it in the by-name
@@ -92,6 +96,7 @@ Moreover, it allows the creation of potentially incorrect multipart bodies""",
       filename: String,
       in: => InputStream,
       blocker: Blocker,
-      headers: Header.ToRaw*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
+      headers: Header.ToRaw*
+  )(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize, blocker), headers: _*)
 }

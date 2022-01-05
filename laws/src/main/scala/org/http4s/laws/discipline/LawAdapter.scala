@@ -33,7 +33,8 @@ trait LawAdapter {
 
   def isEqPropF[F[_]: Effect, A: Arbitrary: Shrink, B: Eq](
       propLabel: String,
-      prop: A => IsEq[F[B]]): (String, PropF[IO]) =
+      prop: A => IsEq[F[B]],
+  ): (String, PropF[IO]) =
     propLabel -> PropF
       .forAllF { (a: A) =>
         val isEq = prop(a)

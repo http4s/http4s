@@ -1,10 +1,5 @@
----
-menu: main
-weight: 350
-title: Testing
----
 
-## Introduction
+# Testing
 
 This document implements a simple `org.http4s.HttpRoutes` and then
 walk through the results of applying inputs, i.e. `org.http4s.Request`, to the service, i.e. `org.http4s.HttpService`.
@@ -56,7 +51,8 @@ def check[A](actual:        IO[Response[IO]],
    val actualResp         = actual.unsafeRunSync()
    val statusCheck        = actualResp.status == expectedStatus 
    val bodyCheck          = expectedBody.fold[Boolean](
-       actualResp.body.compile.toVector.unsafeRunSync().isEmpty)( // Verify Response's body is empty.
+       // Verify Response's body is empty.
+       actualResp.body.compile.toVector.unsafeRunSync().isEmpty)(
        expected => actualResp.as[A].unsafeRunSync() == expected
    )
    statusCheck && bodyCheck   
@@ -101,7 +97,8 @@ Finally, let's pass a `Request` which our service does not handle.
 
 ```scala mdoc:nest
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
-  def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException("Should not get called!"))
+  def find(id: String): IO[Option[User]] = 
+    IO.raiseError(new RuntimeException("Should not get called!"))
 } 
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
@@ -113,7 +110,7 @@ check[String](response, Status.NotFound, Some("Not found"))
 
 ## Conclusion
 
-The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
+The above documentation demonstrated how to define an `HttpService[F]`, pass `Request`'s, and then 
 test the expected `Response`.
 
 To add unit tests in your chosen Scala Testing Framework, please follow the above examples.

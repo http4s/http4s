@@ -46,13 +46,17 @@ private[http4s] object WebSocketHandshake {
 
     /** Check if the server response is a websocket handshake response */
     def checkResponse(headers: Iterable[(String, String)]): Either[String, Unit] =
-      if (!headers.exists { case (k, v) =>
+      if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-        })
+        }
+      )
         Left("Bad Connection header")
-      else if (!headers.exists { case (k, v) =>
+      else if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-        })
+        }
+      )
         Left("Bad Upgrade header")
       else
         headers
@@ -65,21 +69,28 @@ private[http4s] object WebSocketHandshake {
   }
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
-  def serverHandshake(headers: Iterable[(String, String)])
-      : Either[(Int, String), collection.Seq[(String, String)]] =
+  def serverHandshake(
+      headers: Iterable[(String, String)]
+  ): Either[(Int, String), collection.Seq[(String, String)]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") })
       Left((-1, "Missing Host Header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-      })
+      }
+    )
       Left((-1, "Bad Connection header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-      })
+      }
+    )
       Left((-1, "Bad Upgrade header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Sec-WebSocket-Version") && valueContains("13", v)
-      })
+      }
+    )
       Left((-1, "Bad Websocket Version header"))
     // we are past most of the 'just need them' headers
     else
@@ -91,7 +102,7 @@ private[http4s] object WebSocketHandshake {
           val respHeaders = collection.Seq(
             ("Upgrade", "websocket"),
             ("Connection", "Upgrade"),
-            ("Sec-WebSocket-Accept", genAcceptKey(v))
+            ("Sec-WebSocket-Accept", genAcceptKey(v)),
           )
 
           Right(respHeaders)
@@ -120,7 +131,8 @@ private[http4s] object WebSocketHandshake {
         s.startsWith("\"") &&
         s.endsWith("\"") &&
         s.substring(1, s.length - 1).equalsIgnoreCase(key)
-      })
+      }
+    )
   }
 
   private val magicString =
@@ -129,6 +141,6 @@ private[http4s] object WebSocketHandshake {
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),
     ("Upgrade", "websocket"),
-    ("Sec-WebSocket-Version", "13")
+    ("Sec-WebSocket-Version", "13"),
   )
 }

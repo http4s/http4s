@@ -54,7 +54,7 @@ object `Proxy-Authenticate` {
     Header.createRendered(
       ci"Proxy-Authenticate",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Proxy-Authenticate`] =
@@ -66,6 +66,6 @@ object `Proxy-Authenticate` {
   *   challenge that indicates the authentication scheme(s) and parameters
   *   applicable to the proxy for this effective request URI...
   * }}}
-  * From [[https://tools.ietf.org/html/rfc7235#section-4.3 RFC-7235]]
+  * From [[https://datatracker.ietf.org/doc/html/rfc7235#section-4.3 RFC-7235]]
   */
 final case class `Proxy-Authenticate`(values: NonEmptyList[Challenge])

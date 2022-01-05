@@ -36,7 +36,7 @@ final case class ResponseCookie(
     sameSite: Option[SameSite] = None,
     secure: Boolean = false,
     httpOnly: Boolean = false,
-    extension: Option[String] = None
+    extension: Option[String] = None,
 ) extends Renderable { self =>
   override lazy val renderString: String = super.renderString
 
@@ -49,7 +49,7 @@ final case class ResponseCookie(
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
     sameSite.foreach(writer.append("; SameSite=").append(_))
-    if (secure || sameSite.exists(_ == SameSite.None)) writer.append("; Secure")
+    if (secure || sameSite.contains(SameSite.None)) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
     writer
@@ -132,7 +132,7 @@ object ResponseCookie {
 
     /* domain-av         = "Domain=" domain-value
      *
-     * But https://tools.ietf.org/html/rfc6265#section-5.2.3 mandates
+     * But https://datatracker.ietf.org/doc/html/rfc6265#section-5.2.3 mandates
      * a leading dot, which is invalid per domain-value.
      */
     val domainAv = ignoreCase("Domain=") *> (char('.').? ~ domainValue).string.map {

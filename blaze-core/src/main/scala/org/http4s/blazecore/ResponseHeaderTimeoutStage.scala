@@ -28,11 +28,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-final private[http4s] class ResponseHeaderTimeoutStage[A](
+private[http4s] final class ResponseHeaderTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
-    ec: ExecutionContext)
-    extends MidStage[A, A] { stage =>
+    ec: ExecutionContext,
+) extends MidStage[A, A] { stage =>
   @volatile private[this] var cb: Callback[TimeoutException] = null
 
   private val timeoutState = new AtomicReference[Cancelable](NoOpCancelable)

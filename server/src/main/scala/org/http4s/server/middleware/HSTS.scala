@@ -32,15 +32,18 @@ object HSTS {
   private val defaultHSTSPolicy = `Strict-Transport-Security`.unsafeFromDuration(
     365.days,
     includeSubDomains = true,
-    preload = false)
+    preload = false,
+  )
 
   def apply[F[_]: Functor, A, G[_]](
-      routes: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
+      routes: Kleisli[F, A, Response[G]]
+  ): Kleisli[F, A, Response[G]] =
     apply(routes, defaultHSTSPolicy)
 
   def apply[F[_]: Functor, A, G[_]](
       http: Kleisli[F, A, Response[G]],
-      header: `Strict-Transport-Security`): Kleisli[F, A, Response[G]] =
+      header: `Strict-Transport-Security`,
+  ): Kleisli[F, A, Response[G]] =
     Kleisli { req =>
       http.map(_.putHeaders(header)).apply(req)
     }
@@ -49,7 +52,8 @@ object HSTS {
       http: Kleisli[F, A, Response[G]],
       maxAge: FiniteDuration = 365.days,
       includeSubDomains: Boolean = true,
-      preload: Boolean = false): Kleisli[F, A, Response[G]] = {
+      preload: Boolean = false,
+  ): Kleisli[F, A, Response[G]] = {
     val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
     apply(http, header)
   }
@@ -60,14 +64,16 @@ object HSTS {
 
     def apply[F[_]: Functor](
         httpRoutes: HttpRoutes[F],
-        header: `Strict-Transport-Security`): HttpRoutes[F] =
+        header: `Strict-Transport-Security`,
+    ): HttpRoutes[F] =
       HSTS.apply(httpRoutes, header)
 
     def unsafeFromDuration[F[_]: Functor](
         httpRoutes: HttpRoutes[F],
         maxAge: FiniteDuration = 365.days,
         includeSubDomains: Boolean = true,
-        preload: Boolean = false): HttpRoutes[F] =
+        preload: Boolean = false,
+    ): HttpRoutes[F] =
       HSTS.unsafeFromDuration(httpRoutes, maxAge, includeSubDomains, preload)
 
   }
@@ -83,7 +89,8 @@ object HSTS {
         httpApp: HttpApp[F],
         maxAge: FiniteDuration = 365.days,
         includeSubDomains: Boolean = true,
-        preload: Boolean = false): HttpApp[F] =
+        preload: Boolean = false,
+    ): HttpApp[F] =
       HSTS.unsafeFromDuration(httpApp, maxAge, includeSubDomains, preload)
   }
 }

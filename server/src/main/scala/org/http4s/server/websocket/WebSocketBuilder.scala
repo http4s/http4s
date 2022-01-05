@@ -40,7 +40,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
-    filterPingPongs: Boolean
+    filterPingPongs: Boolean,
 ) {
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -51,8 +51,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
           WebSocketContext(
             webSocket,
             headers,
-            onHandshakeFailure
-          )
+            onHandshakeFailure,
+          ),
         )
       )
 
@@ -110,7 +110,8 @@ final case class WebSocketBuilder[F[_]: Applicative](
     */
   def build(
       send: Stream[F, WebSocketFrame],
-      receive: Pipe[F, WebSocketFrame, Unit]): F[Response[F]] = {
+      receive: Pipe[F, WebSocketFrame, Unit],
+  ): F[Response[F]] = {
 
     val finalReceive: Pipe[F, WebSocketFrame, Unit] =
       if (filterPingPongs)
@@ -137,6 +138,6 @@ object WebSocketBuilder {
       onHandshakeFailure =
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
-      filterPingPongs = true
+      filterPingPongs = true,
     )
 }

@@ -45,10 +45,10 @@ object RequestLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
-      G: BracketThrow[G]
+      G: BracketThrow[G],
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -57,10 +57,10 @@ object RequestLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]]
+      logAction: Option[String => F[Unit]],
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
-      G: BracketThrow[G]
+      G: BracketThrow[G],
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))
@@ -123,7 +123,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -131,7 +131,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
@@ -139,7 +139,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -147,12 +147,13 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     impl[OptionT[F, *], F](
       logHeaders,
       Right(logBody),
       OptionT.liftK[F],
       redactHeadersWhen,
-      logAction)(httpRoutes)
+      logAction,
+    )(httpRoutes)
 }

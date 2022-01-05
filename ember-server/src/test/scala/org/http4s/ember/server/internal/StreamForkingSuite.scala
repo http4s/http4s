@@ -68,7 +68,7 @@ class StreamForkingSuite extends CatsEffectSuite {
   test("inner stream fails forking stream") {
     val stream = Stream(
       Stream.sleep_[IO](1.minute),
-      Stream.raiseError[IO](new RuntimeException)
+      Stream.raiseError[IO](new RuntimeException),
     )
 
     forking(stream).compile.drain

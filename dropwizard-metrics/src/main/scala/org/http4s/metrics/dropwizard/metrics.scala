@@ -34,7 +34,8 @@ package object dropwizard {
 
   /** Encodes a metric registry in JSON format */
   def metricRegistryEncoder[F[_]](
-      mapper: ObjectMapper = defaultMapper): EntityEncoder[F, MetricRegistry] =
+      mapper: ObjectMapper = defaultMapper
+  ): EntityEncoder[F, MetricRegistry] =
     EntityEncoder[F, String].contramap { metricRegistry =>
       val writer = mapper.writerWithDefaultPrettyPrinter()
       writer.writeValueAsString(metricRegistry)
@@ -43,7 +44,8 @@ package object dropwizard {
   /** Returns an OK response with a JSON dump of a MetricRegistry */
   def metricsResponse[F[_]: Applicative](
       registry: MetricRegistry,
-      mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
+      mapper: ObjectMapper = defaultMapper,
+  ): F[Response[F]] = {
     implicit val encoder: EntityEncoder[F, MetricRegistry] = metricRegistryEncoder[F](mapper)
     Response[F](Status.Ok).withEntity[MetricRegistry](registry).pure[F]
   }
@@ -51,7 +53,8 @@ package object dropwizard {
   /** Returns an OK response with a JSON dump of a MetricRegistry */
   def metricsService[F[_]: Sync](
       registry: MetricRegistry,
-      mapper: ObjectMapper = defaultMapper): HttpRoutes[F] =
+      mapper: ObjectMapper = defaultMapper,
+  ): HttpRoutes[F] =
     HttpRoutes.of {
       case req if req.method == Method.GET => metricsResponse(registry, mapper)
     }

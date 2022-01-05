@@ -32,7 +32,8 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
   def clientResource: Resource[IO, Client[IO]] = AsyncHttpClient.resource[IO]()
 
   test(
-    "AsyncHttpClient configure should evaluate to the defaultConfiguration given the identity function as the configuration function") {
+    "AsyncHttpClient configure should evaluate to the defaultConfiguration given the identity function as the configuration function"
+  ) {
     val defaultConfig = AsyncHttpClient.defaultConfig
     val customConfig = AsyncHttpClient.configure(identity)
 
@@ -87,8 +88,12 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
           (
             new ClientWithStats(
               AsyncHttpClient.apply(c),
-              new AsyncHttpClientStats[IO](c.getClientStats)),
-            IO.delay(c.close()))))
+              new AsyncHttpClientStats[IO](c.getClientStats),
+            ),
+            IO.delay(c.close()),
+          )
+        )
+    )
 
     val clientStats: Resource[IO, AsyncHttpClientStats[IO]] = clientWithStats.map {
       case client: ClientWithStats => client.getStats
@@ -96,7 +101,8 @@ class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with
 
     def extractStats[Stats](
         stats: Resource[IO, AsyncHttpClientStats[IO]],
-        f: AsyncHttpClientStats[IO] => IO[Stats]): IO[Stats] =
+        f: AsyncHttpClientStats[IO] => IO[Stats],
+    ): IO[Stats] =
       stats.map(f).use(identity)
 
     extractStats(clientStats, _.getTotalIdleConnectionCount).assertEquals(0L) *>

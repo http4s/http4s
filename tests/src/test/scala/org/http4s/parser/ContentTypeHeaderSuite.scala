@@ -32,7 +32,8 @@ class ContentTypeHeaderSuite extends Http4sSuite {
   def multipart =
     `Content-Type`(
       MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
-      Charset.`UTF-8`)
+      Charset.`UTF-8`,
+    )
 
   {
     test("ContentType Header should Generate the correct values") {
@@ -42,7 +43,8 @@ class ContentTypeHeaderSuite extends Http4sSuite {
       assertEquals(extensionsandset.value, """text/html; foo="bar"; charset=UTF-8""")
       assertEquals(
         multipart.value,
-        """multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""")
+        """multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""",
+      )
     }
 
     test("ContentType Header should Parse correctly") {

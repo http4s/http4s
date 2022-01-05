@@ -40,7 +40,7 @@ sealed abstract class CharsetRange extends HasQValue with Renderable {
 
 object CharsetRange {
   sealed case class `*`(qValue: QValue) extends CharsetRange {
-    final override def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
+    override final def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
 
     @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
     final def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable

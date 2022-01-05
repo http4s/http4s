@@ -46,9 +46,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows
     */
-  protected implicit def executionContext: ExecutionContext
+  implicit protected def executionContext: ExecutionContext
 
-  protected implicit def F: Effect[F]
+  implicit protected def F: Effect[F]
 
   protected def chunkBufferMaxSize: Int
 
@@ -57,7 +57,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   protected def contentComplete(): Boolean
 
   /** Check Connection header and add applicable headers to response */
-  final protected def checkCloseConnection(conn: Connection, rr: StringWriter): Boolean =
+  protected final def checkCloseConnection(conn: Connection, rr: StringWriter): Boolean =
     if (conn.hasKeepAlive) { // connection, look to the request
       logger.trace("Found Keep-Alive header")
       false
@@ -67,17 +67,19 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       true
     } else {
       logger.info(
-        s"Unknown connection header: '${conn.value}'. Closing connection upon completion.")
+        s"Unknown connection header: '${conn.value}'. Closing connection upon completion."
+      )
       rr << "Connection:close\r\n"
       true
     }
 
   /** Get the proper body encoder based on the request */
-  final protected def getEncoder(
+  protected final def getEncoder(
       req: Request[F],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] = {
+      closeOnFinish: Boolean,
+  ): Http1Writer[F] = {
     val headers = req.headers
     getEncoder(
       headers.get[Connection],
@@ -87,14 +89,14 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       rr,
       minor,
       closeOnFinish,
-      Http1Stage.omitEmptyContentLength(req)
+      Http1Stage.omitEmptyContentLength(req),
     )
   }
 
   /** Get the proper body encoder based on the request,
     * adding the appropriate Connection and Transfer-Encoding headers along the way
     */
-  final protected def getEncoder(
+  protected final def getEncoder(
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
       lengthHeader: Option[`Content-Length`],
@@ -102,7 +104,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean,
-      omitEmptyContentLength: Boolean): Http1Writer[F] =
+      omitEmptyContentLength: Boolean,
+  ): Http1Writer[F] =
     lengthHeader match {
       case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
         // HTTP 1.1: we have a length and no chunked encoding
@@ -110,7 +113,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
         bodyEncoding.foreach(enc =>
           logger.warn(
-            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."
+          )
+        )
 
         logger.trace("Using static encoder")
 
@@ -140,11 +145,13 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
             case Some(enc) => // Signaling chunked means flush every chunk
               if (!enc.hasChunked)
                 logger.warn(
-                  s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
+                  s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."
+                )
 
               if (lengthHeader.isDefined)
                 logger.warn(
-                  s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
+                  s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length."
+                )
 
               new FlushingChunkWriter(this, trailer)
 
@@ -161,10 +168,10 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */
-  final protected def collectBodyFromParser(
+  protected final def collectBodyFromParser(
       buffer: ByteBuffer,
-      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-      : (EntityBody[F], () => Future[ByteBuffer]) =
+      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
+  ): (EntityBody[F], () => Future[ByteBuffer]) =
     if (contentComplete())
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
@@ -190,8 +197,8 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   // Streams the body off the wire
   private def streamingBody(
       buffer: ByteBuffer,
-      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-      : (EntityBody[F], () => Future[ByteBuffer]) = {
+      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
+  ): (EntityBody[F], () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
@@ -250,7 +257,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   }
 
   /** Cleans out any remaining body from the parser */
-  final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
+  protected final def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
     logger.trace(s"Draining body: $buffer")
 
     while (!contentComplete() && doParseContent(buffer).nonEmpty) { /* NOOP */ }

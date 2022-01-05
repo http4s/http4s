@@ -38,7 +38,8 @@ import java.nio.file.Path
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
-  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
+  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found."
+)
 trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
@@ -58,7 +59,9 @@ trait EntityEncoder[F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
+    * if defined the headers
+    */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -104,7 +107,8 @@ object EntityEncoder {
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[F[_], A](implicit
       charset: Charset = `UTF-8`,
-      show: Show[A]): EntityEncoder[F, A] = {
+      show: Show[A],
+  ): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
@@ -120,7 +124,8 @@ object EntityEncoder {
     * advance.  This is for use with chunked transfer encoding.
     */
   implicit def streamEncoder[F[_], A](implicit
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+      W: EntityEncoder[F, A]
+  ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
@@ -138,13 +143,15 @@ object EntityEncoder {
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](implicit
-      charset: Charset = `UTF-8`): EntityEncoder[F, String] = {
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](implicit
-      charset: Charset = `UTF-8`): EntityEncoder[F, Array[Char]] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
@@ -171,21 +178,21 @@ object EntityEncoder {
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   def filePathEncoder[F[_]: Sync: ContextShift](blocker: Blocker): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { p =>
-      Entity(readAll[F](p, blocker, 4096)) //2 KB :P
+      Entity(readAll[F](p, blocker, 4096)) // 2 KB :P
     }
 
   // TODO parameterize chunk size
   def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
-      blocker: Blocker): EntityEncoder[F, F[IS]] =
+      blocker: Blocker
+  ): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { (in: F[IS]) =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blocker)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](blocker: Blocker)(implicit
-      F: Sync[F],
-      cs: ContextShift[F],
-      charset: Charset = `UTF-8`): EntityEncoder[F, F[R]] =
+  implicit def readerEncoder[F[_], R <: Reader](
+      blocker: Blocker
+  )(implicit F: Sync[F], cs: ContextShift[F], charset: Charset = `UTF-8`): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

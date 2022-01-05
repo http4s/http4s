@@ -179,7 +179,8 @@ object FormDataDecoder {
         .get(key + "[]")
         .orElse(data.get(key))
         .getOrElse(Chain.empty)
-        .traverse(v => qd.decode(QueryParameterValue(v))))
+        .traverse(v => qd.decode(QueryParameterValue(v)))
+    )
 
   def chainEither[A](
       key: String

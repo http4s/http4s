@@ -43,7 +43,8 @@ import scala.annotation.implicitNotFound
   * @tparam T result type produced by the decoder
   */
 @implicitNotFound(
-  "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
+  "Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found."
+)
 trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
@@ -75,22 +76,25 @@ trait EntityDecoder[F[_], T] { self =>
       case r @ Right(_) => r
     }
 
-  def handleErrorWith(f: DecodeFailure => DecodeResult[F, T])(implicit
-      F: Monad[F]): EntityDecoder[F, T] =
+  def handleErrorWith(
+      f: DecodeFailure => DecodeResult[F, T]
+  )(implicit F: Monad[F]): EntityDecoder[F, T] =
     transformWith {
       case Left(e) => f(e)
       case Right(r) => DecodeResult.successT(r)
     }
 
   def bimap[T2](f: DecodeFailure => DecodeFailure, s: T => T2)(implicit
-      F: Functor[F]): EntityDecoder[F, T2] =
+      F: Functor[F]
+  ): EntityDecoder[F, T2] =
     transform {
       case Left(e) => Left(f(e))
       case Right(r) => Right(s(r))
     }
 
-  def transform[T2](t: Either[DecodeFailure, T] => Either[DecodeFailure, T2])(implicit
-      F: Functor[F]): EntityDecoder[F, T2] =
+  def transform[T2](
+      t: Either[DecodeFailure, T] => Either[DecodeFailure, T2]
+  )(implicit F: Functor[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
@@ -99,14 +103,16 @@ trait EntityDecoder[F[_], T] { self =>
     }
 
   def biflatMap[T2](f: DecodeFailure => DecodeResult[F, T2], s: T => DecodeResult[F, T2])(implicit
-      F: Monad[F]): EntityDecoder[F, T2] =
+      F: Monad[F]
+  ): EntityDecoder[F, T2] =
     transformWith {
       case Left(e) => f(e)
       case Right(r) => s(r)
     }
 
-  def transformWith[T2](f: Either[DecodeFailure, T] => DecodeResult[F, T2])(implicit
-      F: Monad[F]): EntityDecoder[F, T2] =
+  def transformWith[T2](
+      f: Either[DecodeFailure, T] => DecodeResult[F, T2]
+  )(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
       override def consumes: Set[MediaRange] = self.consumes
 
@@ -149,7 +155,8 @@ object EntityDecoder {
     new SemigroupK[EntityDecoder[F, *]] {
       override def combineK[T](
           a: EntityDecoder[F, T],
-          b: EntityDecoder[F, T]): EntityDecoder[F, T] =
+          b: EntityDecoder[F, T],
+      ): EntityDecoder[F, T] =
         new EntityDecoder[F, T] {
           override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] = {
             val mediaType = m.contentType.fold(UndefinedMediaType)(_.mediaType)
@@ -180,7 +187,8 @@ object EntityDecoder {
     * system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
-      f: Media[F] => DecodeResult[F, T]): EntityDecoder[F, T] =
+      f: Media[F] => DecodeResult[F, T]
+  ): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         if (strict)
@@ -206,10 +214,11 @@ object EntityDecoder {
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
-      m: Media[F])(implicit F: Sync[F], defaultCharset: Charset = `UTF-8`): F[String] =
+      m: Media[F]
+  )(implicit F: Sync[F], defaultCharset: Charset = `UTF-8`): F[String] =
     m.bodyText.compile.string
 
-  /////////////////// Instances //////////////////////////////////////////////
+  // ///////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
@@ -234,10 +243,13 @@ object EntityDecoder {
 
   implicit def text[F[_]](implicit
       F: Sync[F],
-      defaultCharset: Charset = `UTF-8`): EntityDecoder[F, String] =
+      defaultCharset: Charset = `UTF-8`,
+  ): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(chunk =>
-        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)
+      )
+    )
 
   implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
@@ -245,7 +257,8 @@ object EntityDecoder {
   // File operations
   def binFile[F[_]](file: File, blocker: Blocker)(implicit
       F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+      cs: ContextShift[F],
+  ): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
@@ -253,7 +266,8 @@ object EntityDecoder {
 
   def textFile[F[_]](file: File, blocker: Blocker)(implicit
       F: Sync[F],
-      cs: ContextShift[F]): EntityDecoder[F, File] =
+      cs: ContextShift[F],
+  ): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val pipe = writeAll[F](file.toPath, blocker)
       DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => file)
@@ -267,7 +281,8 @@ object EntityDecoder {
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
-      failOnLimit: Boolean = false): EntityDecoder[F, Multipart[F]] =
+      failOnLimit: Boolean = false,
+  ): EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.mixedMultipart(blocker, headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
   /** An entity decoder that ignores the content and returns unit. */

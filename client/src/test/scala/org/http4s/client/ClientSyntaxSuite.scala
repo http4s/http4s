@@ -200,7 +200,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test(
-    "Client should return an unexpected status when expecting a URI returns unsuccessful status") {
+    "Client should return an unexpected status when expecting a URI returns unsuccessful status"
+  ) {
     client
       .expect[String](uri"http://www.foo.com/status/500")
       .attempt
@@ -209,11 +210,14 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
           UnexpectedStatus(
             Status.InternalServerError,
             Method.GET,
-            Uri.unsafeFromString("http://www.foo.com/status/500"))))
+            uri"http://www.foo.com/status/500",
+          )
+        )
+      )
   }
 
   test("Client should handle an unexpected status when calling a URI with expectOr") {
-    case class Boom(status: Status, body: String) extends Exception
+    sealed case class Boom(status: Status, body: String) extends Exception
     client
       .expectOr[String](uri"http://www.foo.com/status/500") { resp =>
         resp.as[String].map(Boom(resp.status, _))
@@ -240,23 +244,30 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
 
   test("Client should append Accept header to existing request headers on expect for requests") {
     client
-      .expect[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
-        .putHeaders(Accept(MediaRange.`application/*`)))
+      .expect[String](
+        Request[IO](GET, uri"http://www.foo.com/echoheaders")
+          .putHeaders(Accept(MediaRange.`application/*`))
+      )
       .assertEquals("Accept: application/*, text/*")
   }
 
   test(
-    "Client should append Accept header to existing request headers on expectOptionOr for requests") {
+    "Client should append Accept header to existing request headers on expectOptionOr for requests"
+  ) {
     client
-      .expectOptionOr[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
-        .putHeaders(Accept(MediaRange.`application/*`)))(_ => IO.raiseError(new Exception))
+      .expectOptionOr[String](
+        Request[IO](GET, uri"http://www.foo.com/echoheaders")
+          .putHeaders(Accept(MediaRange.`application/*`))
+      )(_ => IO.raiseError(new Exception))
       .assertEquals(Some("Accept: application/*, text/*"))
   }
 
   test("Client should append Accept header to existing request headers on fetchAs for requests") {
     client
-      .fetchAs[String](Request[IO](GET, uri"http://www.foo.com/echoheaders")
-        .putHeaders(Accept(MediaRange.`application/*`)))
+      .fetchAs[String](
+        Request[IO](GET, uri"http://www.foo.com/echoheaders")
+          .putHeaders(Accept(MediaRange.`application/*`))
+      )
       .assertEquals("Accept: application/*, text/*")
   }
 
@@ -266,7 +277,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
       EntityDecoder.decodeBy[IO, String](MediaType.image.jpeg)(_ => DecodeResult.successT("foo!"))
     client
       .expect(Request[IO](GET, uri"http://www.foo.com/echoheaders"))(
-        EntityDecoder.text[IO].orElse(edec))
+        EntityDecoder.text[IO].orElse(edec)
+      )
       .assertEquals("Accept: text/*, image/jpeg")
   }
 
@@ -316,7 +328,8 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
     assertDisposes(
       _.toHttpApp
         .flatMapF(_.body.flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
-        .run(req))
+        .run(req)
+    )
   }
 
   test("Client should toHttpApp allows the response to be read") {

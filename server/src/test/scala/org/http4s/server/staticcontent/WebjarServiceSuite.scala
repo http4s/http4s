@@ -147,7 +147,8 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](
       GET,
       uri"/test-lib/1.0.0/testresource.txt",
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
+    )
     val rb = runReq(req, routes = routes(preferGzipped = true))
 
     rb.flatMap { case (b, r) =>

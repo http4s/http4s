@@ -25,8 +25,8 @@ final case class LinkValue(
     rel: Option[String] = None,
     rev: Option[String] = None,
     title: Option[String] = None,
-    `type`: Option[MediaRange] = None)
-    extends Renderable {
+    `type`: Option[MediaRange] = None,
+) extends Renderable {
   override def render(writer: Writer): writer.type = {
     writer << "<" << uri.toString << ">"
     rel.foreach(writer.append("; rel=").append(_))

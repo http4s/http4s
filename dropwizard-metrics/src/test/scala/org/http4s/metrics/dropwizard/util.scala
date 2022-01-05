@@ -45,7 +45,8 @@ object util {
       IO.raiseError[Response[IO]](new TimeoutException("request timed out"))
     case GET -> Root / "abnormal-termination" =>
       Ok("200 OK").map(
-        _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination"))))
+        _.withBodyStream(Stream.raiseError[IO](new RuntimeException("Abnormal termination")))
+      )
     case _ =>
       NotFound("404 Not Found")
   }
@@ -59,8 +60,10 @@ object util {
   def valuesOf(registry: MetricRegistry, timer: Timer): Option[Array[Long]] =
     Option(registry.getTimers().get(timer.value)).map(_.getSnapshot.getValues)
 
+  // scalafix:off Http4sGeneralLinters.noCaseClassWithoutAccessModifier; bincompat until 1.0
   case class Counter(value: String)
   case class Timer(value: String)
+  // scalafix:on
 
   object FakeClock {
     def apply[F[_]: Sync] =

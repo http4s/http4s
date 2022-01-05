@@ -28,7 +28,8 @@ import org.http4s.headers.{Date => HDate}
   */
 object Date {
   def apply[G[_]: Monad: Clock, F[_], A](
-      k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
+      k: Kleisli[G, A, Response[F]]
+  ): Kleisli[G, A, Response[F]] =
     Kleisli { a =>
       for {
         resp <- k(a)

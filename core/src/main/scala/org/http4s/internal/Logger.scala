@@ -32,7 +32,8 @@ object Logger {
 
   def defaultLogHeaders[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  ): String =
     if (logHeaders)
       message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
     else ""
@@ -41,7 +42,8 @@ object Logger {
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
-        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
+        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
+      )
       val bodyStream = if (!isBinary || isJson) {
         message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
       } else {
@@ -53,8 +55,8 @@ object Logger {
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Sync[F]): F[Unit] = {
 
     val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
 
@@ -64,8 +66,8 @@ object Logger {
   def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
     def prelude =
       message match {
         case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"

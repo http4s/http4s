@@ -50,7 +50,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val additionalSocketOptions: List[SocketOptionMapping[_]],
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
-    val retryPolicy: RetryPolicy[F]
+    val retryPolicy: RetryPolicy[F],
 ) { self =>
 
   private def copy(
@@ -68,7 +68,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
-      retryPolicy: RetryPolicy[F] = self.retryPolicy
+      retryPolicy: RetryPolicy[F] = self.retryPolicy,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       blockerOpt = blockerOpt,
@@ -85,7 +85,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
-      retryPolicy = retryPolicy
+      retryPolicy = retryPolicy,
     )
 
   def withTLSContext(tlsContext: TLSContext) =
@@ -144,13 +144,15 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     tlsContextOptWithDefault,
                     checkEndpointIdentification,
                     sg,
-                    additionalSocketOptions
-                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                    additionalSocketOptions,
+                  )
+              ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             { case connection =>
               logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
+                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
+              ) >>
                 connection.cleanup
-            }
+            },
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -178,7 +180,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                 maxResponseHeaderSize,
                 idleConnectionTime,
                 timeout,
-                userAgent
+                userAgent,
               )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
@@ -188,7 +190,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                   response,
                   drain,
                   managed.value.nextBytes,
-                  managed.canBeReused)
+                  managed.canBeReused,
+                )
               case _ => Applicative[F].unit
             }
           }
@@ -217,7 +220,7 @@ object EmberClientBuilder {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
-      retryPolicy = Defaults.retryPolicy
+      retryPolicy = Defaults.retryPolicy,
     )
 
   private object Defaults {
@@ -235,7 +238,8 @@ object EmberClientBuilder {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
     val userAgent = Some(
-      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
+    )
 
     def retryPolicy[F[_]]: RetryPolicy[F] = ClientHelpers.RetryLogic.retryUntilFresh
   }

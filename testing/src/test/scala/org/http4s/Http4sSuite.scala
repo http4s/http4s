@@ -48,12 +48,13 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
   }
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource))
+    ResourceSuiteLocalFixture(name, resource)
+  )
 
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.get("CI").isDefined
+  override def munitFlakyOK = sys.env.contains("CI")
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))

@@ -69,13 +69,14 @@ class EmberServerWebSocketSuite extends Http4sSuite {
 
   def fixture = ResourceFixture(serverResource)
 
-  case class Client(
+  sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
-      client: WebSocketClient) {
+      client: WebSocketClient,
+  ) {
     def connect: IO[Unit] =
       IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def close: IO[Unit] =
@@ -124,7 +125,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("open and close connection to server") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.close
     } yield ()
@@ -133,7 +135,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("send and receive a message") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.send("foo")
       msg <- client.messages.dequeue1
@@ -144,7 +147,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("respond to pings") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+      )
       _ <- client.connect
       _ <- client.ping("hello")
       data <- client.pongs.dequeue1
@@ -155,7 +159,8 @@ class EmberServerWebSocketSuite extends Http4sSuite {
   fixture.test("initiate close sequence on stream termination") { server =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"))
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close")
+      )
       _ <- client.connect
       _ <- client.messages.dequeue1
       _ <- client.remoteClosed.get

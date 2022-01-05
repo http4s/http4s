@@ -52,14 +52,15 @@ class RouterSuite extends Http4sSuite {
   def middleware(routes: HttpRoutes[IO]): HttpRoutes[IO] =
     Kleisli((r: Request[IO]) =>
       if (r.uri.query.containsQueryParam("block")) OptionT.liftF(Ok(r.uri.path.renderString))
-      else routes(r))
+      else routes(r)
+    )
 
   val service = Router[IO](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
-    "/letters" -> letters
+    "/letters" -> letters,
   )
 
   test("translate mount prefixes") {

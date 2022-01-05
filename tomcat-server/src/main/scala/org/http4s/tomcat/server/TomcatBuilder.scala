@@ -60,7 +60,7 @@ sealed class TomcatBuilder[F[_]] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
-    classloader: Option[ClassLoader]
+    classloader: Option[ClassLoader],
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F] {
@@ -78,7 +78,7 @@ sealed class TomcatBuilder[F[_]] private (
       mounts: Vector[Mount[F]] = mounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
-      classloader: Option[ClassLoader] = classloader
+      classloader: Option[ClassLoader] = classloader,
   ): Self =
     new TomcatBuilder(
       socketAddress,
@@ -90,7 +90,7 @@ sealed class TomcatBuilder[F[_]] private (
       mounts,
       serviceErrorHandler,
       banner,
-      classloader
+      classloader,
     )
 
   def withSSL(
@@ -98,9 +98,11 @@ sealed class TomcatBuilder[F[_]] private (
       keyManagerPassword: String,
       protocol: String = "TLS",
       trustStore: Option[StoreInfo] = None,
-      clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested): Self =
+      clientAuth: SSLClientAuthMode = SSLClientAuthMode.NotRequested,
+  ): Self =
     copy(
-      sslConfig = new KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth))
+      sslConfig = new KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
+    )
 
   def withoutSsl: Self =
     copy(sslConfig = NoSsl)
@@ -119,7 +121,8 @@ sealed class TomcatBuilder[F[_]] private (
   override def mountServlet(
       servlet: HttpServlet,
       urlMapping: String,
-      name: Option[String] = None): Self =
+      name: Option[String] = None,
+  ): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
@@ -131,7 +134,8 @@ sealed class TomcatBuilder[F[_]] private (
       filter: Filter,
       urlMapping: String,
       name: Option[String],
-      dispatches: util.EnumSet[DispatcherType]): Self =
+      dispatches: util.EnumSet[DispatcherType],
+  ): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val filterName = name.getOrElse(s"filter-$index")
 
@@ -160,7 +164,7 @@ sealed class TomcatBuilder[F[_]] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        serviceErrorHandler = builder.serviceErrorHandler
+        serviceErrorHandler = builder.serviceErrorHandler,
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -207,7 +211,8 @@ sealed class TomcatBuilder[F[_]] private (
       conn.setPort(socketAddress.getPort)
       conn.setProperty(
         "connection_pool_timeout",
-        (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString)
+        (if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0).toString,
+      )
 
       externalExecutor.foreach { ee =>
         conn.getProtocolHandler match {
@@ -245,7 +250,8 @@ sealed class TomcatBuilder[F[_]] private (
         case _ => ServerInfo.getServerInfo // well, we tried
       }
       logger.info(
-        s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+        s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}"
+      )
 
       server -> shutdown
     })
@@ -263,7 +269,7 @@ object TomcatBuilder {
       mounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = defaults.Banner,
-      classloader = None
+      classloader = None,
     )
 
   private sealed trait SslConfig {
@@ -276,7 +282,7 @@ object TomcatBuilder {
       keyManagerPassword: String,
       protocol: String,
       trustStore: Option[StoreInfo],
-      clientAuth: SSLClientAuthMode
+      clientAuth: SSLClientAuthMode,
   ) extends SslConfig {
     def configureConnector(conn: Connector) = {
       conn.setSecure(true)
@@ -293,7 +299,7 @@ object TomcatBuilder {
           case SSLClientAuthMode.Required => "required"
           case SSLClientAuthMode.Requested => "optional"
           case SSLClientAuthMode.NotRequested => "none"
-        }
+        },
       )
       conn.setProperty("sslProtocol", protocol)
       trustStore.foreach { ts =>

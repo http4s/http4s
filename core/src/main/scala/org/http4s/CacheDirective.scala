@@ -83,8 +83,8 @@ object CacheDirective {
 
   private final case class CustomCacheDirective(
       override val name: CIString,
-      argument: Option[String] = None)
-      extends CacheDirective {
+      argument: Option[String] = None,
+  ) extends CacheDirective {
     override def value: String = name.toString + argument.fold("")("=\"" + _ + '"')
   }
 }

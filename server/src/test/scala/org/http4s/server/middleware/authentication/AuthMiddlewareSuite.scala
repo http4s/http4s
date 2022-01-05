@@ -244,17 +244,17 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val service = middleware(authedRoutes)
 
-    //Unauthenticated
+    // Unauthenticated
     (service <+> regularRoutes)
       .orNotFound(Request[IO](method = Method.POST))
       .map(_.status)
       .assertEquals(NotFound) *>
-      //Matched normally
+      // Matched normally
       (service <+> regularRoutes)
         .orNotFound(Request[IO](method = Method.GET))
         .map(_.status)
         .assertEquals(Ok) *>
-      //Unmatched
+      // Unmatched
       (service <+> regularRoutes)
         .orNotFound(Request[IO](method = Method.PUT))
         .map(_.status)

@@ -35,14 +35,15 @@ import scala.util.Failure
 import scala.util.Success
 
 private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit val F: ConcurrentEffect[F]
+  implicit protected val F: ConcurrentEffect[F]
 
   protected def maxBufferSize: Option[Int]
 
   override protected def renderResponse(
       req: Request[F],
       resp: Response[F],
-      cleanup: () => Future[ByteBuffer]): Unit = {
+      cleanup: () => Future[ByteBuffer],
+  ): Unit = {
     val ws = resp.attributes.lookup(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
@@ -59,8 +60,9 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                   .map(
                     _.withHeaders(
                       Connection(ci"close"),
-                      "Sec-WebSocket-Version" -> "13"
-                    ))
+                      "Sec-WebSocket-Version" -> "13",
+                    )
+                  )
               } {
                 case Right(resp) =>
                   IO(super.renderResponse(req, resp, cleanup))

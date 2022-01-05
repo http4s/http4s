@@ -45,7 +45,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
     Multipart[IO](
       Vector(
         Part.formData("name", "gvolpe"),
-        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png))
+        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png)),
       )
     )
 

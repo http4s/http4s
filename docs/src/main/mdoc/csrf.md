@@ -1,8 +1,5 @@
----
-menu: main
-title: CSRF
-weight: 123
----
+
+# CSRF
 
 Http4s provides [Middleware], named `CSRF`, to prevent Cross-site request forgery attacks. This middleware
 is modeled after the [double submit cookie pattern](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
@@ -53,7 +50,11 @@ More info on what is possible in the [CSRFBuilder] Docs,
 but we will create a fairly simple CSRF Middleware in our example.
 
 ```scala mdoc
-val csrf = csrfBuilder.withCookieName(cookieName).withCookieDomain(Some("localhost")).withCookiePath(Some("/")).build
+val csrf = csrfBuilder
+  .withCookieName(cookieName)
+  .withCookieDomain(Some("localhost"))
+  .withCookiePath(Some("/"))
+  .build
 ```
 
 Now we need to wrap this around our service! We're gonna start with a safe call
@@ -82,7 +83,8 @@ val dummyPostRequest: Request[IO] =
       "Origin" -> "http://localhost",
       "X-Csrf-Token" -> cookie.content
     ).addCookie(RequestCookie(cookie.name,cookie.content))
-val validateResp = csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
+val validateResp = 
+  csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
 ```
 
 [Middleware]: ../middleware

@@ -49,7 +49,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOptionMapping[_]],
-    private val logger: Logger[F]
+    private val logger: Logger[F],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -71,7 +71,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOptionMapping[_]] = self.additionalSocketOptions,
-      logger: Logger[F] = self.logger
+      logger: Logger[F] = self.logger,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -89,7 +89,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       idleTimeout = idleTimeout,
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
-      logger = logger
+      logger = logger,
     )
 
   def withHost(host: String) = copy(host = host)
@@ -115,7 +115,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
   def withOnError(onError: Throwable => Response[F]) =
-    withErrorHandler({ case e => onError(e).pure[F] })
+    withErrorHandler { case e => onError(e).pure[F] }
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
@@ -158,7 +158,7 @@ final class EmberServerBuilder[F[_]: Concurrent: Timer: ContextShift] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             additionalSocketOptions,
-            logger
+            logger,
           )
           .compile
           .drain
@@ -190,7 +190,7 @@ object EmberServerBuilder {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = Slf4jLogger.getLogger[F]
+      logger = Slf4jLogger.getLogger[F],
     )
 
   private object Defaults {

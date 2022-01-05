@@ -62,7 +62,7 @@ object `Content-Type` {
               case _ => MediaRange.http4sHttpCodecForMediaRange.render(writer, h.mediaType)
             }
         },
-      parse
+      parse,
     )
 
 }
@@ -74,9 +74,9 @@ object `Content-Type` {
   *   message semantics.
   * }}}
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-3.1.1.5 RFC-7231]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.5 RFC-7231]]
   */
-final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) {
+final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) { // scalafix:ok; private for API ergonomics, not correctness
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
   def withCharset(charset: Charset): `Content-Type` =

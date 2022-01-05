@@ -31,7 +31,7 @@ import MetricsOps.classifierFMethodWithOptionallyExcludedPath
 
 object MetricsOpsSpec {
 
-  private implicit val arbUUID: Arbitrary[UUID] =
+  implicit private val arbUUID: Arbitrary[UUID] =
     Arbitrary(Gen.uuid)
 }
 
@@ -44,7 +44,7 @@ class MetricsOpsSpec extends Http4sSuite {
       Prop.forAll { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
         val request: Request[IO] = Request[IO](
           method = method,
-          uri = Uri.unsafeFromString(s"/users/$uuid/comments")
+          uri = Uri.unsafeFromString(s"/users/$uuid/comments"),
         )
 
         val excludeUUIDs: String => Boolean = { (str: String) =>
@@ -57,7 +57,7 @@ class MetricsOpsSpec extends Http4sSuite {
           classifierFMethodWithOptionallyExcludedPath(
             exclude = excludeUUIDs,
             excludedValue = excludedValue,
-            pathSeparator = separator
+            pathSeparator = separator,
           )
 
         val result: Option[String] =
@@ -81,14 +81,14 @@ class MetricsOpsSpec extends Http4sSuite {
       Prop.forAll { (method: Method) =>
         val request: Request[IO] = Request[IO](
           method = method,
-          uri = uri"""/"""
+          uri = uri"""/""",
         )
 
         val classifier: Request[IO] => Option[String] =
           classifierFMethodWithOptionallyExcludedPath(
             _ => true,
             "*",
-            "_"
+            "_",
           )
 
         val result: Option[String] =

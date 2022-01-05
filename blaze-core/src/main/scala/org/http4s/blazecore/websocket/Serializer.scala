@@ -35,12 +35,12 @@ private trait Serializer[I] extends WriteSerializer[I] with ReadSerializer[I]
 /** Serializes write requests, storing intermediates in a queue */
 private trait WriteSerializer[I] extends TailStage[I] { self =>
 
-  ////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////
 
   private var serializerWriteQueue = new ArrayBuffer[I]
   private var serializerWritePromise: Promise[Unit] = null
 
-  ///  channel writing bits //////////////////////////////////////////////
+  // /  channel writing bits //////////////////////////////////////////////
   override def channelWrite(data: I): Future[Unit] =
     channelWrite(data :: Nil)
 
@@ -104,7 +104,7 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
 trait ReadSerializer[I] extends TailStage[I] {
   private val serializerReadRef = new AtomicReference[Future[I]](null)
 
-  ///  channel reading bits //////////////////////////////////////////////
+  // /  channel reading bits //////////////////////////////////////////////
 
   override def channelRead(size: Int = -1, timeout: Duration = Duration.Inf): Future[I] = {
     val p = Promise[I]()
@@ -135,7 +135,7 @@ trait ReadSerializer[I] extends TailStage[I] {
       .onComplete { t =>
         serializerReadRef.compareAndSet(
           p.future,
-          null
+          null,
         ) // don't hold our reference if the queue is idle
         p.complete(t)
       }(directec)

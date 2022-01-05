@@ -56,14 +56,14 @@ import scala.util.control.NonFatal
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
     val okHttpClient: OkHttpClient,
-    val blocker: Blocker
+    val blocker: Blocker,
 )(implicit protected val F: ConcurrentEffect[F], cs: ContextShift[F])
     extends BackendBuilder[F, Client[F]] {
   private[this] val logger = getLogger
 
   private def copy(
       okHttpClient: OkHttpClient = okHttpClient,
-      blocker: Blocker = blocker
+      blocker: Blocker = blocker,
   ) = new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
@@ -91,9 +91,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
       ()
     })
 
-  private def handler(cb: Either[Throwable, Resource[F, Response[F]]] => Unit)(implicit
-      F: ConcurrentEffect[F],
-      cs: ContextShift[F]): Callback =
+  private def handler(
+      cb: Either[Throwable, Resource[F, Response[F]]] => Unit
+  )(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
         invokeCallback(logger)(cb(Left(e)))
@@ -121,9 +121,11 @@ sealed abstract class OkHttpBuilder[F[_]] private (
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
-                    body = body),
-                  dispose
-                ))
+                    body = body,
+                  ),
+                  dispose,
+                )
+              )
             )
           }
           .leftMap { t =>
@@ -147,7 +149,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
           override def contentType(): OKMediaType =
             req.contentType.map(c => OKMediaType.parse(c.toString())).orNull
 
-          //OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
+          // OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
           override def contentLength(): Long = req.contentLength.getOrElse(-1L)
 
           override def writeTo(sink: BufferedSink): Unit =
@@ -198,7 +200,8 @@ object OkHttpBuilder {
     */
   def apply[F[_]: ConcurrentEffect: ContextShift](
       okHttpClient: OkHttpClient,
-      blocker: Blocker): OkHttpBuilder[F] =
+      blocker: Blocker,
+  ): OkHttpBuilder[F] =
     new OkHttpBuilder[F](okHttpClient, blocker) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
@@ -208,11 +211,13 @@ object OkHttpBuilder {
     * @param blocker $BLOCKER
     */
   def withDefaultClient[F[_]: ConcurrentEffect: ContextShift](
-      blocker: Blocker): Resource[F, OkHttpBuilder[F]] =
+      blocker: Blocker
+  ): Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blocker))
 
   private def defaultOkHttpClient[F[_]](implicit
-      F: ConcurrentEffect[F]): Resource[F, OkHttpClient] =
+      F: ConcurrentEffect[F]
+  ): Resource[F, OkHttpClient] =
     Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
 
   private def shutdown[F[_]](client: OkHttpClient)(implicit F: Sync[F]) =

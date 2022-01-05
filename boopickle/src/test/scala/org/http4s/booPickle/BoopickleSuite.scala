@@ -36,15 +36,15 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
     def color: String
   }
 
-  case class Banana(weight: Double) extends Fruit {
+  private case class Banana(weight: Double) extends Fruit {
     def color = "yellow"
   }
 
-  case class Kiwi(weight: Double) extends Fruit {
+  private case class Kiwi(weight: Double) extends Fruit {
     def color = "brown"
   }
 
-  case class Carambola(weight: Double) extends Fruit {
+  private case class Carambola(weight: Double) extends Fruit {
     def color = "yellow"
   }
 
@@ -66,13 +66,15 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
   test("have octet-stream content type") {
     assertEquals(
       encoder.headers.get[`Content-Type`],
-      Some(`Content-Type`(MediaType.application.`octet-stream`)))
+      Some(`Content-Type`(MediaType.application.`octet-stream`)),
+    )
   }
 
   test("have octect-stream content type") {
     assertEquals(
       booEncoderOf[IO, Fruit].headers.get[`Content-Type`],
-      Some(`Content-Type`(MediaType.application.`octet-stream`)))
+      Some(`Content-Type`(MediaType.application.`octet-stream`)),
+    )
   }
 
   test("decode a class from a boopickle decoder") {

@@ -32,7 +32,8 @@ import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
 import org.http4s.laws.discipline.EntityCodecTests
-import org.http4s.syntax.all._
+import org.http4s.laws.discipline.arbitrary
+import org.scalacheck.Prop._
 import org.typelevel.jawn.ParseException
 
 import java.nio.charset.StandardCharsets
@@ -47,18 +48,19 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     .withJsonDecodeError { (json, failures) =>
       val failureStr = failures.mkString_("", ", ", "")
       InvalidMessageBodyFailure(
-        s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr")
+        s"Custom Could not decode JSON: ${json.noSpaces}, errors: $failureStr"
+      )
     }
     .build
 
   testJsonDecoder(jsonDecoder)
   testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderIncremental)(
     emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => true },
-    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON jawn", _) => true }
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON jawn", _) => true },
   )
   testJsonDecoderError(CirceInstancesWithCustomErrors.jsonDecoderByteBuffer)(
     emptyBody = { case MalformedMessageBodyFailure("Custom Invalid JSON: empty body", _) => true },
-    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON circe", _) => true }
+    parseError = { case MalformedMessageBodyFailure("Custom Invalid JSON circe", _) => true },
   )
 
   sealed case class Foo(bar: Int)
@@ -126,7 +128,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   val jsons = Stream(
     Json.obj("test1" -> Json.fromString("CirceSupport")),
-    Json.obj("test2" -> Json.fromString("CirceSupport"))
+    Json.obj("test2" -> Json.fromString("CirceSupport")),
   ).lift[IO]
 
   test("stream json array encoder should have json content type") {
@@ -163,7 +165,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   val foos = Stream(
     Foo(42),
-    Foo(350)
+    Foo(350),
   ).lift[IO]
 
   test("stream json array encoder of should have json content type") {
@@ -174,7 +176,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
 
   test("stream json array encoder of should write compact JSON") {
     writeToString(foos)(streamJsonArrayEncoderOf[IO, Foo]).assertEquals(
-      """[{"bar":42},{"bar":350}]""")
+      """[{"bar":42},{"bar":350}]"""
+    )
   }
 
   test("stream json array encoder of should write JSON according to custom encoders") {
@@ -204,30 +207,36 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
-          Headers("content-type" -> "application/json")
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator
+          ),
+          Headers("content-type" -> "application/json"),
         ),
-        true
+        true,
       )
       list <- EitherT(
-        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure])
+      )
     } yield list).value.assertEquals(
       Right(
         List(
           """{"test1":"CirceSupport"}""",
-          """{"test2":"CirceSupport"}"""
-        )))
+          """{"test2":"CirceSupport"}""",
+        )
+      )
+    )
   }
 
   test(
-    "stream json array decoder should fail if `content-type: application/json` header is not present") {
+    "stream json array decoder should fail if `content-type: application/json` header is not present"
+  ) {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator),
-        Headers.empty
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator
+        ),
+        Headers.empty,
       ),
-      true
+      true,
     )
     result.value.assertEquals(Left(MediaTypeMissing(Set(MediaType.application.json))))
   }
@@ -236,10 +245,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
-        Headers("content-type" -> "application/json")
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator
+        ),
+        Headers("content-type" -> "application/json"),
       ),
-      true
+      true,
     )
     result.value.map(_.isRight).assertEquals(true)
   }
@@ -249,16 +259,19 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator),
-          Headers("content-type" -> "application/json")
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator
+          ),
+          Headers("content-type" -> "application/json"),
         ),
-        true
+        true,
       )
       list <- EitherT(
-        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure]))
+        stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure])
+      )
     } yield list).value.attempt
-      .assertEquals(Left(
-        ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36)))
+      .assertEquals(
+        Left(ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36))
+      )
   }
 
   test("json handle the optionality of asNumber") {
@@ -299,8 +312,13 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = CirceInstancesWithCustomErrors
       .jsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-    result.value.assertEquals(Left(InvalidMessageBodyFailure(
-      "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor")))
+    result.value.assertEquals(
+      Left(
+        InvalidMessageBodyFailure(
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"
+        )
+      )
+    )
   }
 
   test("accumulatingJsonOf should decode JSON from a Circe decoder") {
@@ -310,7 +328,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   }
 
   test(
-    "accumulatingJsonOf should return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages") {
+    "accumulatingJsonOf should return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages"
+  ) {
     val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
     val result = accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(json), strict = true)
@@ -324,14 +343,22 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = CirceInstancesWithCustomErrors
       .accumulatingJsonOf[IO, Bar]
       .decode(Request[IO]().withEntity(Json.obj("bar1" -> Json.fromInt(42))), strict = true)
-    result.value.assertEquals(Left(InvalidMessageBodyFailure(
-      "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor")))
+    result.value.assertEquals(
+      Left(
+        InvalidMessageBodyFailure(
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"
+        )
+      )
+    )
   }
 
-  test("Uri codec round trip") {
-    // TODO would benefit from Arbitrary[Uri]
-    val uri = uri"http://www.example.com/"
-    assertEquals(uri.asJson.as[Uri], Right(uri))
+  property("Uri codec round trip") {
+    forAll(arbitrary.createGenUri) { (uri: Uri) =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val preparedUri = uri.fragment.fold(uri)(f => uri.withFragment(Uri.encode(f)))
+      assertEquals(uri.asJson.as[Uri], Right(preparedUri))
+    }
   }
 
   test("Message[F].decodeJson[A] should decode json from a message") {
@@ -359,7 +386,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("should successfully decode when parser allows duplicate keys") {
     val circeInstanceAllowingDuplicateKeys = CirceInstances.builder
       .withCirceSupportParser(
-        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true))
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = true)
+      )
       .build
     val req = Request[IO]()
       .withEntity("""{"bar": 1, "bar":2}""")
@@ -379,7 +407,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("should should error out when parser does not allow duplicate keys") {
     val circeInstanceNotAllowingDuplicateKeys = CirceInstances.builder
       .withCirceSupportParser(
-        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false))
+        new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
+      )
       .build
     val req = Request[IO]()
       .withEntity("""{"bar": 1, "bar":2}""")
@@ -392,7 +421,9 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
         case Left(
               MalformedMessageBodyFailure(
                 "Invalid JSON",
-                Some(ParsingFailure("Invalid json, duplicate key name found: bar", _)))) =>
+                Some(ParsingFailure("Invalid json, duplicate key name found: bar", _)),
+              )
+            ) =>
           true
         case _ => false
       }

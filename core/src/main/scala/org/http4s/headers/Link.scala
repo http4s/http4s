@@ -46,7 +46,7 @@ object Link {
     final case class Title(value: String) extends LinkParam
     final case class Type(value: MediaRange) extends LinkParam
 
-    // https://tools.ietf.org/html/rfc3986#section-4.1
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-4.1
     val linkValue: Parser0[LinkValue] =
       Uri.Parser.uriReference(StandardCharsets.UTF_8).map { uri =>
         headers.LinkValue(uri)
@@ -68,7 +68,8 @@ object Link {
 
       val typeParser = {
         val mediaRange = string("type=") *> MediaRange.parser.orElse(
-          string("\"") *> MediaRange.parser <* string("\""))
+          string("\"") *> MediaRange.parser <* string("\"")
+        )
         mediaRange.map(tpe => Type(tpe))
       }
 
@@ -96,7 +97,7 @@ object Link {
     Header.createRendered(
       ci"Link",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Link] =

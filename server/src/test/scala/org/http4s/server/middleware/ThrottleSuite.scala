@@ -45,7 +45,7 @@ class ThrottleSuite extends Http4sSuite {
       val takeFiveTokens: IO[List[TokenAvailability]] =
         (1 to 5).toList.traverse(_ => testee.takeToken)
       val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
       (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
         .mapN(_ && _)
     }.assert
@@ -94,7 +94,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests") {
+    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests"
+  ) {
     val capacity = 1
     val createBucket =
       TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
@@ -111,7 +112,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky) {
+    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky
+  ) {
     val ctx = TestContext()
     val capacity = 1
     val createBucket =

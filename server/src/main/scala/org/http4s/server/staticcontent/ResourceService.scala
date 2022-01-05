@@ -50,7 +50,8 @@ class ResourceServiceBuilder[F[_]] private (
     bufferSize: Int,
     cacheStrategy: CacheStrategy[F],
     preferGzipped: Boolean,
-    classLoader: Option[ClassLoader]) {
+    classLoader: Option[ClassLoader],
+) {
   private[this] val logger = getLogger
 
   private def copy(
@@ -60,7 +61,8 @@ class ResourceServiceBuilder[F[_]] private (
       bufferSize: Int = bufferSize,
       cacheStrategy: CacheStrategy[F] = cacheStrategy,
       preferGzipped: Boolean = preferGzipped,
-      classLoader: Option[ClassLoader] = classLoader): ResourceServiceBuilder[F] =
+      classLoader: Option[ClassLoader] = classLoader,
+  ): ResourceServiceBuilder[F] =
     new ResourceServiceBuilder[F](
       basePath,
       blocker,
@@ -68,7 +70,8 @@ class ResourceServiceBuilder[F[_]] private (
       bufferSize,
       cacheStrategy,
       preferGzipped,
-      classLoader)
+      classLoader,
+    )
 
   def withBasePath(basePath: String): ResourceServiceBuilder[F] = copy(basePath = basePath)
 
@@ -114,7 +117,7 @@ class ResourceServiceBuilder[F[_]] private (
                   blocker,
                   Some(request),
                   preferGzipped = preferGzipped,
-                  classLoader
+                  classLoader,
                 )
               }
               .semiflatMap(cacheStrategy.cache(request.pathInfo, _))
@@ -126,7 +129,8 @@ class ResourceServiceBuilder[F[_]] private (
 
       case Failure(e) =>
         logger.error(e)(
-          s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail.")
+          s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail."
+        )
         Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
     }
   }
@@ -141,7 +145,8 @@ object ResourceServiceBuilder {
       bufferSize = 50 * 1024,
       cacheStrategy = NoopCacheStrategy[F],
       preferGzipped = false,
-      classLoader = None)
+      classLoader = None,
+    )
 }
 
 object ResourceService {
@@ -162,12 +167,14 @@ object ResourceService {
       pathPrefix: String = "",
       bufferSize: Int = 50 * 1024,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
-      preferGzipped: Boolean = false)
+      preferGzipped: Boolean = false,
+  )
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   @deprecated("use ResourceServiceBuilder", "1.0.0-M1")
   private[staticcontent] def apply[F[_]](
-      config: Config[F])(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
+      config: Config[F]
+  )(implicit F: Sync[F], cs: ContextShift[F]): HttpRoutes[F] = {
     val basePath = if (config.basePath.isEmpty) "/" else config.basePath
     object BadTraversal extends Exception with NoStackTrace
 
@@ -192,7 +199,7 @@ object ResourceService {
                   path.toString,
                   config.blocker,
                   Some(request),
-                  preferGzipped = config.preferGzipped
+                  preferGzipped = config.preferGzipped,
                 )
               }
               .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
@@ -204,7 +211,8 @@ object ResourceService {
 
       case Failure(e) =>
         logger.error(e)(
-          s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail.")
+          s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail."
+        )
         Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
     }
   }

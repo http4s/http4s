@@ -69,8 +69,9 @@ class StreamingParserSuite extends Http4sSuite {
         "POST /foo HTTP/1.1\r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\n",
-        "hello"
-      ))
+        "hello",
+      )
+    )
 
     val RequestChunkedBody = toBytes(
       List(
@@ -84,16 +85,18 @@ class StreamingParserSuite extends Http4sSuite {
         "7\r\n",
         "Network\r\n",
         "0\r\n",
-        "\r\n"
-      ))
+        "\r\n",
+      )
+    )
 
     val ResponseFixedBody = toBytes(
       List(
         "HTTP/1.1 200 OK\r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\n",
-        "hello"
-      ))
+        "hello",
+      )
+    )
 
     val ResponseVariableBody = toBytes(
       List(
@@ -107,8 +110,9 @@ class StreamingParserSuite extends Http4sSuite {
         "7\r\n",
         "Network\r\n",
         "0\r\n",
-        "\r\n"
-      ))
+        "\r\n",
+      )
+    )
 
     // followup: try to generate raw http messages
     def genRequest(min: Int = 0, max: Int = 25): Gen[List[List[Byte]]] =

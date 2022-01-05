@@ -44,7 +44,8 @@ object StaticFile {
   def fromString[F[_]: Sync: ContextShift](
       url: String,
       blocker: Blocker,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[Request[F]] = None,
+  ): OptionT[F, Response[F]] =
     fromFile(new File(url), blocker, req)
 
   def fromResource[F[_]: Sync: ContextShift](
@@ -52,7 +53,8 @@ object StaticFile {
       blocker: Blocker,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
-      classloader: Option[ClassLoader] = None): OptionT[F, Response[F]] = {
+      classloader: Option[ClassLoader] = None,
+  ): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
     val acceptEncodingHeader: Option[`Accept-Encoding`] =
@@ -60,7 +62,8 @@ object StaticFile {
     val tryGzipped =
       preferGzipped && acceptEncodingHeader.exists { acceptEncoding =>
         acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
-          ContentCoding.`x-gzip`)
+          ContentCoding.`x-gzip`
+        )
       }
     val normalizedName = name.split("/").filter(_.nonEmpty).mkString("/")
 
@@ -76,17 +79,20 @@ object StaticFile {
           _.removeHeader[`Content-Type`]
             .putHeaders(
               `Content-Encoding`(ContentCoding.gzip),
-              nameToContentType(normalizedName) // Guess content type from the name without ".gz"
+              nameToContentType(normalizedName), // Guess content type from the name without ".gz"
             )
         }
       }
-      .orElse(getResource(normalizedName)
-        .flatMap(fromURL(_, blocker, req)))
+      .orElse(
+        getResource(normalizedName)
+          .flatMap(fromURL(_, blocker, req))
+      )
   }
 
   def fromURL[F[_]](url: URL, blocker: Blocker, req: Option[Request[F]] = None)(implicit
       F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] = {
+      cs: ContextShift[F],
+  ): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(F.defer {
@@ -105,7 +111,7 @@ object StaticFile {
             lastmod.map(`Last-Modified`(_)),
             nameToContentType(url.getPath),
             if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
           )
 
           blocker
@@ -119,9 +125,10 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker)
-                  ))
-              }
+                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize, blocker),
+                  )
+                )
+              },
             )
         } else
           blocker
@@ -135,19 +142,22 @@ object StaticFile {
   def calcETag[F[_]: Sync]: File => F[String] =
     f =>
       Sync[F].delay(
-        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else ""
+      )
 
   def fromFile[F[_]: Sync: ContextShift](
       f: File,
       blocker: Blocker,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+      req: Option[Request[F]] = None,
+  ): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, blocker, req, calcETag[F])
 
   def fromFile[F[_]: Sync: ContextShift](
       f: File,
       blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String],
+  ): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, blocker, req, etagCalculator)
 
   def fromFile[F[_]: Sync: ContextShift](
@@ -155,7 +165,8 @@ object StaticFile {
       buffsize: Int,
       blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String],
+  ): OptionT[F, Response[F]] =
     fromFile(f, 0, f.length(), buffsize, blocker, req, etagCalculator)
 
   def fromFile[F[_]](
@@ -165,16 +176,16 @@ object StaticFile {
       buffsize: Int,
       blocker: Blocker,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(implicit
-      F: Sync[F],
-      cs: ContextShift[F]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String],
+  )(implicit F: Sync[F], cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- F.delay {
         if (f.isFile) {
           require(
             start >= 0 && end >= start && buffsize > 0,
-            s"start: $start, end: $end, buffsize: $buffsize")
+            s"start: $start, end: $end, buffsize: $buffsize",
+          )
 
           val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
@@ -188,13 +199,13 @@ object StaticFile {
                 lastModified.map(`Last-Modified`(_)),
                 `Content-Length`.fromLong(contentLength).toOption,
                 nameToContentType(f.getName),
-                etagCalc
+                etagCalc,
               )
 
             val r = Response(
               headers = hs,
               body = body,
-              attributes = Vault.empty.insert(staticFileKey, f)
+              attributes = Vault.empty.insert(staticFileKey, f),
             )
 
             logger.trace(s"Static file generated response: $r")
@@ -208,7 +219,8 @@ object StaticFile {
   private def notModified[F[_]](
       req: Option[Request[F]],
       etagCalc: ETag,
-      lastModified: Option[HttpDate]): Option[Response[F]] = {
+      lastModified: Option[HttpDate],
+  ): Option[Response[F]] = {
     implicit val conjunction = new Semigroup[Boolean] {
       def combine(x: Boolean, y: Boolean): Boolean = x && y
     }
@@ -224,7 +236,8 @@ object StaticFile {
       etagHeader <- r.headers.get[`If-None-Match`]
       etagMatch = etagHeader.tags.exists(_.exists(_ == etagCalc.tag))
       _ = logger.trace(
-        s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
+        s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc"
+      )
     } yield etagMatch
 
   private def notModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
@@ -234,14 +247,15 @@ object StaticFile {
       lm <- lastModified
       notModified = h.date >= lm
       _ = logger.trace(
-        s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm")
+        s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm"
+      )
     } yield notModified
 
   private def fileToBody[F[_]: Sync: ContextShift](
       f: File,
       start: Long,
       end: Long,
-      blocker: Blocker
+      blocker: Blocker,
   ): EntityBody[F] =
     readRange[F](f.toPath, blocker, DefaultBufferSize, start, end)
 

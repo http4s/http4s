@@ -39,7 +39,8 @@ import java.nio.ByteBuffer
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Item],
-    cb: Callback[Resource[F, Response[F]]])(implicit F: ConcurrentEffect[F])
+    cb: Callback[Resource[F, Response[F]]],
+)(implicit F: ConcurrentEffect[F])
     extends JettyResponse.Listener.Adapter {
   import ResponseListener.logger
 
@@ -51,19 +52,21 @@ private[jetty] final case class ResponseListener[F[_]](
       .fromInt(response.getStatus)
       .map { s =>
         responseSent = true
-        Resource.pure[F, Response[F]](Response(
-          status = s,
-          httpVersion = getHttpVersion(response.getVersion),
-          headers = getHeaders(response.getHeaders),
-          body = queue.dequeue.repeatPull {
-            _.uncons1.flatMap {
-              case None => Pull.pure(None)
-              case Some((Item.Done, _)) => Pull.pure(None)
-              case Some((Item.Buf(b), tl)) => Pull.output(Chunk.byteBuffer(b)).as(Some(tl))
-              case Some((Item.Raise(t), _)) => Pull.raiseError[F](t)
-            }
-          }
-        ))
+        Resource.pure[F, Response[F]](
+          Response(
+            status = s,
+            httpVersion = getHttpVersion(response.getVersion),
+            headers = getHeaders(response.getHeaders),
+            body = queue.dequeue.repeatPull {
+              _.uncons1.flatMap {
+                case None => Pull.pure(None)
+                case Some((Item.Done, _)) => Pull.pure(None)
+                case Some((Item.Buf(b), tl)) => Pull.output(Chunk.byteBuffer(b)).as(Some(tl))
+                case Some((Item.Raise(t), _)) => Pull.raiseError[F](t)
+              }
+            },
+          )
+        )
       }
       .leftMap { t => abort(t, response); t }
 
@@ -84,7 +87,8 @@ private[jetty] final case class ResponseListener[F[_]](
   override def onContent(
       response: JettyResponse,
       content: ByteBuffer,
-      callback: JettyCallback): Unit = {
+      callback: JettyCallback,
+  ): Unit = {
     val copy = ByteBuffer.allocate(content.remaining())
     copy.put(content).flip()
     enqueue(Item.Buf(copy)) {
@@ -123,14 +127,17 @@ private[jetty] object ResponseListener {
   sealed trait Item
   object Item {
     case object Done extends Item
+    // scalafix:off Http4sGeneralLinters; bincompat until 1.0
     case class Raise(t: Throwable) extends Item
     case class Buf(b: ByteBuffer) extends Item
+    // scalafix:on
   }
 
   private val logger = getLogger
 
-  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(implicit
-      F: ConcurrentEffect[F]): F[ResponseListener[F]] =
+  def apply[F[_]](
+      cb: Callback[Resource[F, Response[F]]]
+  )(implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Item]
       .map(q => ResponseListener(q, cb))

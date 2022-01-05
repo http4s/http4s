@@ -62,8 +62,9 @@ object AsyncHttpClient {
 
   /** Allocates a Client and its shutdown mechanism for freeing resources.
     */
-  def allocate[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
+  def allocate[F[_]](
+      config: AsyncHttpClientConfig = defaultConfig
+  )(implicit F: ConcurrentEffect[F]): F[(Client[F], F[Unit])] =
     F.delay(new DefaultAsyncHttpClient(config))
       .map(c => (apply(c), F.delay(c.close())))
 
@@ -72,7 +73,8 @@ object AsyncHttpClient {
     * @param config configuration for the client
     */
   def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+      F: ConcurrentEffect[F]
+  ): Resource[F, Client[F]] =
     Resource(allocate(config))
 
   /** Create a bracketed HTTP client based on the AsyncHttpClient library.
@@ -82,7 +84,8 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(implicit
-      F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+      F: ConcurrentEffect[F]
+  ): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
   /** Create a custom AsyncHttpClientConfig
@@ -97,8 +100,9 @@ object AsyncHttpClient {
     configurationFn(defaultConfigBuilder).build()
   }
 
-  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(implicit
-      F: ConcurrentEffect[F]) =
+  private def asyncHandler[F[_]](
+      cb: Callback[(Response[F], F[Unit])]
+  )(implicit F: ConcurrentEffect[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -152,7 +156,8 @@ object AsyncHttpClient {
         onStreamCalled.get
           .ifM(
             ifTrue = deferredThrowable.complete(throwable),
-            ifFalse = invokeCallbackF(cb(Left(throwable))))
+            ifFalse = invokeCallbackF(cb(Left(throwable))),
+          )
           .runAsync(_ => IO.unit)
           .unsafeRunSync()
 
@@ -180,7 +185,8 @@ object AsyncHttpClient {
 
   private def getBodyGenerator[F[_]: ConcurrentEffect](req: Request[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
-      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
+      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray))
+    )
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
       req.contentLength match {

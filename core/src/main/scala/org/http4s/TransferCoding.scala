@@ -64,8 +64,9 @@ object TransferCoding {
         ignoreCase("compress").as(compress),
         ignoreCase("deflate").as(deflate),
         ignoreCase("gzip").as(gzip),
-        ignoreCase("identity").as(identity)
-      ))
+        ignoreCase("identity").as(identity),
+      )
+    )
   }
 
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =
