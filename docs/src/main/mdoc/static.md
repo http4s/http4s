@@ -18,7 +18,7 @@ The service will automatically serve index.html if the request path is not a fil
 remove dot segments, to prevent attackers from reading files not contained in the directory 
 being served. 
 
-```tut:book
+```scala mdoc
 import cats.effect._
 import cats.implicits._
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -37,13 +37,14 @@ object SimpleHttpServer extends IOApp {
 ```
 
 Static content services can be composed into a larger application by using a `Router`:
-```tut:book:nofail
+```scala
 val httpApp: HttpApp[IO] =
     Router(
-      "api"    -> anotherService
-      "assets" -> fileService(FileService.Config("./assets))
+      "api"    -> anotherService,
+      "assets" -> fileService(FileService.Config("./assets"))
     ).orNotFound
 ```
+
 
 ## ETags
 
@@ -58,7 +59,7 @@ Static file support uses a blocking API, so we'll need a blocking execution
 context. The helpers in `org.http4s.server.staticcontent._` will use the global execution context, but
 for best results this should overriden according to the desired characteristics of your server.  
 
-```tut:silent
+```scala mdoc:silent
 import java.util.concurrent._
 import scala.concurrent.ExecutionContext
 
@@ -68,21 +69,21 @@ val blockingEc = ExecutionContext.fromExecutorService(Executors.newFixedThreadPo
 It also needs a main thread pool to shift back to.  This is provided when
 we're in IOApp, but you'll need one if you're following along in a REPL:
 
-```tut:silent
+```scala mdoc:silent:nest
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 ```
 
-```tut:silent
+```scala mdoc:silent
 val routes = fileService[IO](FileService.Config(".", executionContext = blockingEc))
 ```
 
 For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
-```tut:silent
+```scala mdoc:silent
 import org.http4s._
 import org.http4s.dsl.io._
 import java.io.File
 
-val routes = HttpRoutes.of[IO] {
+val routes2 = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), blockingEc, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
@@ -94,18 +95,18 @@ val routes = HttpRoutes.of[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
-```tut:book
-val routes = resourceService[IO](ResourceService.Config("/assets", ExecutionContext.global))
+```scala mdoc
+val routes3 = resourceService[IO](ResourceService.Config("/assets", ExecutionContext.global))
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example, 
 only files matching a list of extensions are served. Append to the `List` as needed.
 
-```tut:book
+```scala mdoc
 def static(file: String, blockingEc: ExecutionContext, request: Request[IO]) =
   StaticFile.fromResource("/" + file, blockingEc, Some(request)).getOrElseF(NotFound())
 
-val routes = HttpRoutes.of[IO] {
+val routes4 = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
     static(path, blockingEc, request)
 }
@@ -116,7 +117,7 @@ val routes = HttpRoutes.of[IO] {
 A special service exists to load files from [WebJars](http://www.webjars.org). Add your WebJar to the
 class path, as you usually would:
 
-```tut:book:nofail
+```scala
 libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "3.1.1-1"
 )
@@ -124,12 +125,12 @@ libraryDependencies ++= Seq(
 
 Then, mount the `WebjarService` like any other service:
 
-```tut:silent
+```scala mdoc:silent
 import org.http4s.server.staticcontent.webjarService
 import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 ```
 
-```tut:book
+```scala mdoc
 // only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
@@ -142,7 +143,7 @@ val webjars: HttpRoutes[IO] = webjarService(
 )
 ```
 
-```tut:silent
+```scala mdoc:silent
 blockingEc.shutdown()
 ```
 

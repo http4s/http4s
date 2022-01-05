@@ -13,7 +13,7 @@ After reading this doc, the reader should feel comfortable writing a unit test u
 
 Now, let's define an `org.http4s.HttpService`.
 
-```tut:silent
+```scala mdoc:silent
 import cats.implicits._
 import io.circe._
 import io.circe.syntax._
@@ -25,8 +25,8 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 ```
 
-```tut:book
-final case class User(name: String, age: Int) 
+```scala mdoc
+case class User(name: String, age: Int)
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
 
 trait UserRepo[F[_]] {
@@ -46,7 +46,7 @@ def service[F[_]](repo: UserRepo[F])(
 
 For testing, let's define a `check` function:
 
-```tut:book
+```scala mdoc
 // Return true if match succeeds; otherwise false
 def check[A](actual:        IO[Response[IO]], 
             expectedStatus: Status, 
@@ -66,12 +66,12 @@ def check[A](actual:        IO[Response[IO]],
 
 Let's define service by passing a `UserRepo` that returns `Ok(user)`. 
 
-```tut:book
+```scala mdoc
 val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User("johndoe", 42)))
 }
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response1: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
@@ -80,35 +80,35 @@ val expectedJson = Json.obj(
   ("age",  Json.fromBigInt(42))
 )
 
-check[Json](response, Status.Ok, Some(expectedJson))
+check[Json](response1, Status.Ok, Some(expectedJson))
 ```
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
 
-```tut:book
+```scala mdoc
 val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
 
-val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
+val response2: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
-check[Json](response, Status.NotFound, None)
+check[Json](response2, Status.NotFound, None)
 ```
 
 Finally, let's pass a `Request` which our service does not handle.  
 
-```tut:book
+```scala mdoc
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException("Should not get called!"))
 } 
 
-val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
+val response3: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/not-a-matching-path") )
 )
 
-check[String](response, Status.NotFound, Some("Not found"))
+check[String](response3, Status.NotFound, Some("Not found"))
 ```
 
 ## Conclusion
