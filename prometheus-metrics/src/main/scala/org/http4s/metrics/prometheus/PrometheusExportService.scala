@@ -21,9 +21,9 @@ import cats.syntax.all._
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot._
-import org.http4s.Http4s._
 import org.http4s.Uri.Path
 import org.http4s._
+import org.http4s.implicits._
 
 import java.io.StringWriter
 
