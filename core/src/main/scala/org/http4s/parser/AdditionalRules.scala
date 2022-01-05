@@ -14,14 +14,14 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0, Parser => P}
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.internal.parsing.Rfc7230
 
 private[http4s] object AdditionalRules {
-  def EOI = P.char('\uFFFF')
+  def EOI: P[Unit] = P.char('\uFFFF')
 
-  def EOL = Rfc7230.ows *> EOI.rep0
+  def EOL: P0[List[Unit]] = Rfc7230.ows *> EOI.rep0
 
   val NonNegativeLong: P[Long] = Rfc3986.digit.rep.string.mapFilter { s =>
     try Some(s.toLong)
