@@ -17,12 +17,18 @@
 package org.http4s.client.websocket
 
 import cats._
-import cats.data.{Chain, OptionT}
+import cats.data.Chain
+import cats.data.OptionT
 import cats.effect._
-import cats.effect.concurrent.{Deferred, Ref, TryableDeferred}
+import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
+import cats.effect.concurrent.TryableDeferred
 import cats.implicits._
-import fs2.{Pipe, Stream}
-import org.http4s.{Headers, Method, Uri}
+import fs2.Pipe
+import fs2.Stream
+import org.http4s.Headers
+import org.http4s.Method
+import org.http4s.Uri
 import scodec.bits.ByteVector
 
 /** A websocket request.
