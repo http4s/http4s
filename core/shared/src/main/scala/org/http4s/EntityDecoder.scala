@@ -205,7 +205,13 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(bytes => Chunk.concat(bytes)))
+    DecodeResult.success(
+      m.entity match {
+        case Entity.Empty => Chunk.empty[Byte].pure[F]
+        case Entity.Strict(chunk) => chunk.pure[F]
+        case d: Entity.Default[F] => d.body.compile.to(Chunk)
+      }
+    )
 
   /** Helper method which simply gathers the body into a single ByteVector */
   private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
