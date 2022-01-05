@@ -134,7 +134,6 @@ object WSClient {
           override def send(wsf: WSDataFrame) = conn.send(wsf)
           override def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]): F[Unit] =
             conn.sendMany(wsfs)
-          override def sendPing(data: ByteVector) = conn.send(WSFrame.Ping(data))
           override def sendClose(reason: String) =
             conn.send(WSFrame.Close(1000, reason)) *> outputOpen.set(false)
           override def receive: F[Option[WSDataFrame]] = {
