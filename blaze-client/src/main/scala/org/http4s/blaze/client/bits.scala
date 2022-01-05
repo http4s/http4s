@@ -32,7 +32,7 @@ private[http4s] object bits {
   val DefaultResponseHeaderTimeout: Duration = 10.seconds
   val DefaultTimeout: Duration = 60.seconds
   val DefaultBufferSize: Int = 8 * 1024
-  val DefaultUserAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version))))
+  val DefaultUserAgent: Option[`User-Agent`] = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version))))
   val DefaultMaxTotalConnections = 10
   val DefaultMaxWaitQueueLimit = 256
 
