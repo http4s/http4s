@@ -35,10 +35,10 @@ import scodec.bits.ByteVector
   * @param method
   *   The method of the intial HTTP request. Ignored by some clients.
   */
-case class WSRequest(
+final case class WSRequest(
     uri: Uri,
     headers: Headers = Headers.empty,
-    method: Method = Method.GET
+    method: Method = Method.GET,
 )
 
 sealed trait WSFrame extends Product with Serializable
