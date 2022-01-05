@@ -89,9 +89,6 @@ trait WSConnectionHighLevel[F[_]] {
   /** A `Pipe` which sends websocket frames and emits a `()` for each chunk sent. */
   final def sendPipe: Pipe[F, WSDataFrame, Unit] = _.chunks.evalMap(sendMany(_))
 
-  /** Send a Ping frame. */
-  def sendPing(data: ByteVector = ByteVector.empty): F[Unit]
-
   /** Send a Close frame. The sending side of this connection will be closed. */
   def sendClose(reason: String = ""): F[Unit]
 
