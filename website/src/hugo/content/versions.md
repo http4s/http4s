@@ -17,7 +17,7 @@
 * _I'll upgrade to Scala 3 before Cats-Effect 3:_ ${version.http4s.latest.0.22}
 * _I'm ready for Cats-Effect 3:_ ${version.http4s.latest.0.23}
 * _I'm new here, pick one:_ ${version.http4s.latest.0.23}
-* _I'm using Scala.js serverless or in the [browser](https://http4s.github.io/http4s-dom):_ ${version.http4s.latest.0.23}
+* _I'm using Scala.js [serverless](https://github.com/typelevel/feral) or in the [browser](https://http4s.github.io/http4s-dom):_ ${version.http4s.latest.0.23}
 * _I live on the bleeding edge:_ ${version.http4s.latest.1.0}
 
 

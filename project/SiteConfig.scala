@@ -54,6 +54,10 @@ object SiteConfig {
         "Streaming",
         "http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.",
       ),
+      Teaser(
+        "Cross-platform",
+        "http4s cross-builds for Scala.js, enabling you to share code across browsers, Node.js apps, serverless functions, and JVM servers."
+      ),
     )
 
     val projectLinks: Seq[TextLink] = Seq(
