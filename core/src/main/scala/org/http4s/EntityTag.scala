@@ -22,13 +22,18 @@ import cats.parse.Rfc5234
 import org.http4s.EntityTag.Strong
 import org.http4s.EntityTag.Weakness
 import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
-final case class EntityTag(tag: String, weakness: Weakness = Strong) {
+final case class EntityTag(tag: String, weakness: Weakness = Strong) extends Renderable {
   override def toString(): String =
     weakness match {
       case EntityTag.Weak => "W/\"" + tag + '"'
       case EntityTag.Strong => "\"" + tag + '"'
     }
+
+  override def render(writer: Writer): writer.type =
+    writer << toString()
 }
 
 object EntityTag {
