@@ -310,23 +310,23 @@ private final class Http1Connection[F[_]](
         cb(Left(t))
     }(executionContext)
 
-  // it's called when the body is known
-  private def terminationConditionParsingPrelude(): Either[Throwable, Option[Chunk[Byte]]] =
-    stageState.get match { // if we don't have a length, EOF signals the end of the body.
-      case Error(e) if e != EOF => Either.left(e)
-      case _ =>
-        if (parser.definedContentLength() || parser.isChunked())
-          Either.left(InvalidBodyException("Received premature EOF."))
-        else Either.right(None)
-    }
-
-  private def cleanupParsingPrelude(closeOnFinish: Boolean, headers: Headers): Unit =
-    if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
-      logger.debug("Message body complete. Shutting down.")
-      stageShutdown()
-    } else {
-      logger.debug(s"Resetting $name after completing request.")
-      resetRead()
+  private def parsePrelude(
+      buffer: ByteBuffer,
+      closeOnFinish: Boolean,
+      doesntHaveBody: Boolean,
+      cb: Callback[Response[F]],
+      idleTimeoutS: F[Either[Throwable, Unit]],
+  ): Unit =
+    try if (!parser.finishedResponseLine(buffer))
+      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
+    else if (!parser.finishedHeaders(buffer))
+      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
+    else
+      parsePreludeFinished(buffer, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
+    catch {
+      case t: Throwable =>
+        logger.error(t)("Error during client request decode loop")
+        cb(Left(t))
     }
 
   // it's called when headers and response line parsing are finished
@@ -403,23 +403,23 @@ private final class Http1Connection[F[_]](
     )
   }
 
-  private def parsePrelude(
-      buffer: ByteBuffer,
-      closeOnFinish: Boolean,
-      doesntHaveBody: Boolean,
-      cb: Callback[Response[F]],
-      idleTimeoutS: F[Either[Throwable, Unit]],
-  ): Unit =
-    try if (!parser.finishedResponseLine(buffer))
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
-    else if (!parser.finishedHeaders(buffer))
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
-    else
-      parsePreludeFinished(buffer, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
-    catch {
-      case t: Throwable =>
-        logger.error(t)("Error during client request decode loop")
-        cb(Left(t))
+  // it's called when the body is known
+  private def terminationConditionParsingPrelude(): Either[Throwable, Option[Chunk[Byte]]] =
+    stageState.get match { // if we don't have a length, EOF signals the end of the body.
+      case Error(e) if e != EOF => Either.left(e)
+      case _ =>
+        if (parser.definedContentLength() || parser.isChunked())
+          Either.left(InvalidBodyException("Received premature EOF."))
+        else Either.right(None)
+    }
+
+  private def cleanupParsingPrelude(closeOnFinish: Boolean, headers: Headers): Unit =
+    if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
+      logger.debug("Message body complete. Shutting down.")
+      stageShutdown()
+    } else {
+      logger.debug(s"Resetting $name after completing request.")
+      resetRead()
     }
 
   // /////////////////////// Private helpers /////////////////////////
