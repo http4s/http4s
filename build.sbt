@@ -156,8 +156,10 @@ lazy val server = libraryProject("server")
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
-    buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
-    buildInfoPackage := "org.http4s.server.test",
+    buildInfoKeys := Seq[BuildInfoKey](
+      Test / resourceDirectory,
+    ),
+    buildInfoPackage := "org.http4s.server.test"
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
@@ -624,7 +626,7 @@ lazy val website = http4sProject("website")
     makeSite := makeSite.dependsOn(http4sBuildData).value,
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    ghpagesCleanSite / excludeFilter  :=
+    ghpagesCleanSite / excludeFilter :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) =
