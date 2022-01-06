@@ -131,7 +131,7 @@ object FileService {
     )
     override def productElement(n: Int): Any = n match {
       case 0 => systemPath
-      case 1 => pathCollector
+      case 1 => if (Platform.isJvm) pathCollector else fs2PathCollector
       case 2 => pathPrefix
       case 3 => bufferSize
       case 4 => cacheStrategy
