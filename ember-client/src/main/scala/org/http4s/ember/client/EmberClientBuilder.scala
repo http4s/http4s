@@ -228,6 +228,7 @@ object EmberClientBuilder {
     )
 
   private object Defaults {
+    val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
     val idleConnectionTime: FiniteDuration = org.http4s.client.defaults.RequestTimeout
@@ -240,7 +241,7 @@ object EmberClientBuilder {
     val maxTotal: Int = 100
     val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
-    val userAgent: Option[`User-Agent`] = Some(
+    val userAgent = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
     )
 
