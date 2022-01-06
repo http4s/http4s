@@ -375,8 +375,7 @@ object Uri extends UriPlatform {
     def indexOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
     def findSplit(prefix: Path): Option[Int] =
-      if (prefix.isEmpty) None
-      else if (startsWith(prefix)) Some(prefix.segments.size)
+      if (startsWith(prefix)) Some(prefix.segments.size)
       else None
     def findSplitOfString(path: String): Option[Int] = findSplit(Path.unsafeFromString(path))
 
@@ -390,20 +389,20 @@ object Uri extends UriPlatform {
         segments: Vector[Path.Segment] = segments,
         absolute: Boolean = absolute,
         endsWithSlash: Boolean = endsWithSlash,
-    ) =
-      new Path(segments, absolute, endsWithSlash)
+    ): Path = Path(segments, absolute, endsWithSlash)
 
-    def dropEndsWithSlash = copy(endsWithSlash = false)
-    def addEndsWithSlash = copy(endsWithSlash = true)
+    def dropEndsWithSlash: Path = copy(endsWithSlash = false)
+    def addEndsWithSlash: Path = copy(endsWithSlash = true)
 
-    def toAbsolute = copy(absolute = true)
-    def toRelative = copy(absolute = false)
+    def toAbsolute: Path = copy(absolute = true)
+    def toRelative: Path = copy(absolute = false)
   }
 
   object Path {
-    val empty = Path(Vector.empty)
-    val Root = Path(Vector.empty, absolute = true)
-    lazy val Asterisk = Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+    val empty: Path = new Path(Vector.empty, absolute = false, endsWithSlash = false)
+    val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = false)
+    lazy val Asterisk: Path =
+      new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
@@ -494,7 +493,9 @@ object Uri extends UriPlatform {
         absolute: Boolean = false,
         endsWithSlash: Boolean = false,
     ): Path =
-      new Path(segments, absolute, endsWithSlash)
+      // make sure that we never end up with Path(Vector(), true, true) or Path(Vector(), false, true)
+      if (segments.isEmpty && (absolute || endsWithSlash)) Root
+      else new Path(segments, absolute, endsWithSlash)
 
     // def unapply(path: Path): Some[(Vector[Segment], Boolean, Boolean)] =
     //   Some((path.segments, path.absolute, path.endsWithSlash))
