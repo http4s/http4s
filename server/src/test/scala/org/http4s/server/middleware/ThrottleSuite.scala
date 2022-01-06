@@ -131,7 +131,8 @@ class ThrottleSuite extends Http4sSuite {
       }
     }.assert
   }
-  val alwaysOkApp = HttpApp[IO] { _ =>
+
+  private val alwaysOkApp = HttpApp[IO] { _ =>
     Ok()
   }
 

@@ -33,7 +33,7 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   testJsonDecoder(jsonDecoder)
 
   sealed case class Foo(bar: Int)
-  val foo = Foo(42)
+  private val foo = Foo(42)
   implicit val format: OFormat[Foo] = Json.format[Foo]
 
   val json: JsValue = Json.obj("test" -> JsString("PlaySupport"))

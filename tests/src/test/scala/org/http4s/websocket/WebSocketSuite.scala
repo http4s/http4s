@@ -28,10 +28,10 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.UTF_8
 
 class WebSocketSuite extends Http4sSuite {
-  def helloTxtMasked =
+  private def helloTxtMasked =
     Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58).map(_.toByte)
 
-  def helloTxt = Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f).map(_.toByte)
+  private def helloTxt = Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f).map(_.toByte)
 
   def decode(msg: Array[Byte], isClient: Boolean): WebSocketFrame =
     new FrameTranscoder(isClient).bufferToFrame(ByteBuffer.wrap(msg))

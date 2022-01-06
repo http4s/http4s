@@ -25,27 +25,27 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class RouterSuite extends Http4sSuite {
-  val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  private val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
     Ok("one")
   }
-  val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  private val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
     Ok("two")
   }
 
-  val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
+  private val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
     Ok("bee")
   }
-  val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
+  private val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
     Ok("visible")
   }
-  val root = HttpRoutes.of[IO] {
+  private val root = HttpRoutes.of[IO] {
     case GET -> Root / "about" =>
       Ok("about")
     case GET -> Root / "shadow" / "shadowed" =>
       Ok("invisible")
   }
 
-  val notFound = HttpRoutes.of[IO] { case _ =>
+  private val notFound = HttpRoutes.of[IO] { case _ =>
     NotFound("Custom NotFound")
   }
 
@@ -55,7 +55,7 @@ class RouterSuite extends Http4sSuite {
       else routes(r)
     )
 
-  val service = Router[IO](
+  private val service = Router[IO](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,

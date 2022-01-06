@@ -28,8 +28,8 @@ final case class Limit(l: Long)
 
 class PathInHttpRoutesSuite extends Http4sSuite {
   object List {
-    def unapplySeq(params: Map[String, collection.Seq[String]]) = params.get("list")
-    def unapply(params: Map[String, collection.Seq[String]]) = unapplySeq(params)
+    def unapplySeq(params: Map[String, collection.Seq[String]]): Option[Seq[String]] = params.get("list")
+    def unapply(params: Map[String, collection.Seq[String]]): Option[Seq[String]] = unapplySeq(params)
   }
 
   object I extends QueryParamDecoderMatcher[Int]("start")

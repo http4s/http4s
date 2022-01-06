@@ -217,7 +217,7 @@ object Uri extends UriPlatform {
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
-    override def equals(o: Any) =
+    override def equals(o: Any): Boolean =
       o match {
         case that: Scheme => this.value.equalsIgnoreCase(that.value)
         case _ => false
@@ -393,17 +393,17 @@ object Uri extends UriPlatform {
     ) =
       new Path(segments, absolute, endsWithSlash)
 
-    def dropEndsWithSlash = copy(endsWithSlash = false)
-    def addEndsWithSlash = copy(endsWithSlash = true)
+    def dropEndsWithSlash: Path = copy(endsWithSlash = false)
+    def addEndsWithSlash: Path = copy(endsWithSlash = true)
 
-    def toAbsolute = copy(absolute = true)
-    def toRelative = copy(absolute = false)
+    def toAbsolute: Path = copy(absolute = true)
+    def toRelative: Path = copy(absolute = false)
   }
 
   object Path {
-    val empty = Path(Vector.empty)
-    val Root = Path(Vector.empty, absolute = true)
-    lazy val Asterisk = Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+    val empty: Path = Path(Vector.empty)
+    val Root: Path = Path(Vector.empty, absolute = true)
+    lazy val Asterisk: Path = Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty

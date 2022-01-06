@@ -146,7 +146,7 @@ class StatusDeprecatedSpec extends Http4sSuite {
     assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
   }
 
-  protected def getStatus(code: Int, reason: String) =
+  protected def getStatus(code: Int, reason: String): Status =
     fromIntAndReason(code, reason) match {
       case Right(s) => s
       case Left(t) => throw t

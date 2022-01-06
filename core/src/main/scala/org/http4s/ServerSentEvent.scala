@@ -54,7 +54,7 @@ final case class ServerSentEvent(
 }
 
 object ServerSentEvent {
-  val empty = ServerSentEvent()
+  val empty: ServerSentEvent = ServerSentEvent()
 
   final case class EventId(value: String)
 
@@ -71,7 +71,7 @@ object ServerSentEvent {
       def append(line: String): LineBuffer =
         // val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
         copy(lines = lines :+ line)
-      def reify =
+      def reify: Option[String] =
         if (lines.nonEmpty) {
           Some(lines.iterator.mkString("\n"))
         } else

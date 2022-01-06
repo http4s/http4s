@@ -25,9 +25,9 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class UrlFormLifterSuite extends Http4sSuite {
-  val urlForm = UrlForm("foo" -> "bar")
+  private val urlForm = UrlForm("foo" -> "bar")
 
-  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> _ =>
+  private val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> _ =>
     r.uri.multiParams.get("foo") match {
       case Some(ps) =>
         Ok(ps.mkString(","))
