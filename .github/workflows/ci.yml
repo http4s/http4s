@@ -80,7 +80,8 @@ jobs:
           path: ~/.sbt
           key: sbt-${{ hashFiles('**/build.sbt') }}
       - name: Add ~/bin to PATH
-        run: echo "::add-path::$HOME/bin"
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
       - name: Install Hugo
         run: scripts/install-hugo
       - name: Build project site
@@ -102,7 +103,8 @@ jobs:
           path: ~/.sbt
           key: sbt-${{ hashFiles('**/build.sbt') }}
       - name: Add ~/bin to PATH
-        run: echo "::add-path::$HOME/bin"
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
       - name: Install Hugo
         run: scripts/install-hugo
       - name: Build project site
