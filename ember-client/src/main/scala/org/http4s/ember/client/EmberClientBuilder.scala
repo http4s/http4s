@@ -201,7 +201,7 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
           }
         } yield responseResource._1
       }
-      val stackClient = Retry(retryPolicy)(client)
+      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
       new EmberClient[F](stackClient, pool)
     }
 }

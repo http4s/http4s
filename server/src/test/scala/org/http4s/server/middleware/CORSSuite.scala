@@ -800,7 +800,7 @@ class CORSDeprecatedSuite extends Http4sSuite {
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 
   test("Be omitted when unrequested") {
-    val req = buildRequest("foo")
+    val req = buildRequest("/other")
     cors1.orNotFound(req).map(_.headers.headers.exists(headerCheck _)).assertEquals(false) *>
       cors2.orNotFound(req).map(_.headers.headers.exists(headerCheck _)).assertEquals(false)
   }
