@@ -30,9 +30,9 @@ import java.io.File
 import java.nio.file._
 
 class FileServiceSuite extends Http4sSuite with StaticContentShared {
-  private val defaultSystemPath =
+  val defaultSystemPath =
     org.http4s.server.test.BuildInfo.test_resourceDirectory.getAbsolutePath
-  val routes: HttpRoutes[IO] = fileService(
+  val routes = fileService(
     FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath, testBlocker)
   )
 
