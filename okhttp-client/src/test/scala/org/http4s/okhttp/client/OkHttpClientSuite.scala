@@ -18,10 +18,10 @@ package org.http4s
 package okhttp
 package client
 
-import cats.effect.IO
-import org.http4s.client.ClientRouteTestBattery
+import cats.effect.{IO, Resource}
+import org.http4s.client.{Client, ClientRouteTestBattery}
 
 class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
-  def clientResource =
+  def clientResource: Resource[IO, Client[IO]] =
     OkHttpBuilder.withDefaultClient[IO](testBlocker).map(_.create)
 }

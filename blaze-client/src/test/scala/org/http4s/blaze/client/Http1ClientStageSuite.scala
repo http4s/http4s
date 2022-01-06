@@ -40,13 +40,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class Http1ClientStageSuite extends Http4sSuite {
-  val trampoline = org.http4s.blaze.util.Execution.trampoline
+  private val trampoline = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_test = uri"http://www.foo.test"
-  val FooRequest = Request[IO](uri = www_foo_test)
-  val FooRequestKey = RequestKey.fromRequest(FooRequest)
-
-  val LongDuration = 30.seconds
+  private val www_foo_test = uri"http://www.foo.test"
+  private val FooRequest = Request[IO](uri = www_foo_test)
+  private val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"

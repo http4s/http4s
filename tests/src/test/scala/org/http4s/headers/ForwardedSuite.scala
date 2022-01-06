@@ -32,7 +32,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
   import Forwarded.Node
   import Node.{Name, Obfuscated}
 
-  def Port(num: Int) = Node.Port.fromInt(num).toTry.get
+  private def Port(num: Int) = Node.Port.fromInt(num).toTry.get
 
   test("Node fromString should parse valid node definitions") {
     List(
@@ -83,7 +83,6 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
       }
     }
   }
-  import Forwarded.Node.Obfuscated
 
   test("Node.Obfuscated fromString should parse valid obfuscated values") {
     implicit val gen: Arbitrary[String] = Arbitrary[String](obfuscatedStringGen)

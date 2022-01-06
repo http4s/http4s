@@ -28,7 +28,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
   import Forwarded.Element
   import ForwardedHeaderSpec._
 
-  def parse(input: String) = Forwarded.parse(input)
+  private def parse(input: String) = Forwarded.parse(input)
 
   test("FORWARDED should parse single simple elements") {
     val values = List(

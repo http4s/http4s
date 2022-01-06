@@ -31,7 +31,7 @@ import java.io.File
 class MultipartSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  val url = uri"https://example.com/path/to/some/where"
+  private val url = uri"https://example.com/path/to/some/where"
 
   implicit def partIOEq: Eq[Part[IO]] =
     Eq.instance[Part[IO]] { case (a, b) =>
@@ -50,7 +50,7 @@ class MultipartSuite extends Http4sSuite {
       a.parts === b.parts
     }
 
-  def multipartSpec(name: String)(implicit E: EntityDecoder[IO, Multipart[IO]]) = {
+  private def multipartSpec(name: String)(implicit E: EntityDecoder[IO, Multipart[IO]]) = {
     test(s"Multipart form data $name should be encoded and decoded with content types") {
       val field1 =
         Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
@@ -197,7 +197,7 @@ I am a big moose
   multipartSpec("with default decoder")(implicitly)
   multipartSpec("with mixed decoder")(EntityDecoder.mixedMultipart[IO](Http4sSuite.TestBlocker))
 
-  def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
+  private def testPart[F[_]] = Part[F](Headers.empty, EmptyBody)
 
   test("Part.covary should disallow unrelated effects") {
     assert(

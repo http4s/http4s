@@ -125,9 +125,9 @@ class MessageSuite extends Http4sSuite {
     )
   }
 
-  val path1 = uri"/path1"
-  val path2 = path"/somethingelse"
-  val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
+  private val path1 = uri"/path1"
+  private val path2 = path"/somethingelse"
+  private val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
 
   test("Request.with...reset pathInfo if uri is changed") {
     val originalReq = Request(uri = path1, attributes = attributes)
@@ -218,8 +218,8 @@ class MessageSuite extends Http4sSuite {
     Request[F2]().covary[F1]
   }
 
-  val uri = uri"http://localhost:1234/foo"
-  val request = Request[IO](Method.GET, uri)
+  private val uri = uri"http://localhost:1234/foo"
+  private val request = Request[IO](Method.GET, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
     assertEquals(request.asCurl(), "curl -X GET 'http://localhost:1234/foo'")

@@ -28,14 +28,14 @@ import org.http4s.syntax.all._
 import org.typelevel.vault.Vault
 
 class ErrorActionSuite extends Http4sSuite {
-  val remote = Ipv4Address.fromBytes(192, 168, 0, 1)
+  private val remote = Ipv4Address.fromBytes(192, 168, 0, 1)
 
-  def httpRoutes(error: Throwable = new RuntimeException()) =
+  private def httpRoutes(error: Throwable = new RuntimeException()) =
     HttpRoutes.of[IO] { case GET -> Root / "error" =>
       IO.raiseError(error)
     }
 
-  val req = Request[IO](
+  private val req = Request[IO](
     GET,
     uri"/error",
     attributes = Vault.empty.insert(
@@ -48,7 +48,7 @@ class ErrorActionSuite extends Http4sSuite {
     ),
   )
 
-  def testApp(app: Ref[IO, Vector[String]] => HttpApp[IO], expected: Vector[String])(
+  private def testApp(app: Ref[IO, Vector[String]] => HttpApp[IO], expected: Vector[String])(
       req: Request[IO]
   ) =
     (for {
@@ -57,7 +57,7 @@ class ErrorActionSuite extends Http4sSuite {
       logs <- logsRef.get
     } yield logs).assertEquals(expected)
 
-  def testHttpRoutes(
+  private def testHttpRoutes(
       httpRoutes: Ref[IO, Vector[String]] => HttpRoutes[IO],
       expected: Vector[String],
   ) =
