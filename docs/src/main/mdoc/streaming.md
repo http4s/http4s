@@ -15,7 +15,7 @@ HTTP streaming is provided by both http4s' service support and its client suppor
 Because `EntityBody[F]`s are streams anyway, returning a stream as a response from your service is
 simplicity itself:
 
-```tut:silent
+```scala mdoc
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -79,7 +79,7 @@ example as a bonus!
 
 Putting it all together into a small app that will print the JSON objects forever:
 
-```tut:silent
+```scala mdoc
 import org.http4s._
 import org.http4s.client.blaze._
 import org.http4s.client.oauth1
@@ -92,7 +92,6 @@ import io.circe.Json
 import jawnfs2._
 import java.util.concurrent.{Executors, ExecutorService}
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.global
 
 class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
   // jawn-fs2 needs to know what JSON AST you want
@@ -154,7 +153,7 @@ pick a concrete effect, such as `cats.effect.IO`, to actually run it.
 We'll make use of `cats.effect.IOApp`, which defines a program in terms
 in the form `run(args: List[String]): IO[ExitCode]`:
 
-```tut:silent
+```scala mdoc:silent
 object TWStreamApp extends IOApp {
   def run(args: List[String]) =
     (new TWStream[IO]).run.as(ExitCode.Success)

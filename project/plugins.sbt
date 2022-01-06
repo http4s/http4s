@@ -22,5 +22,5 @@ addSbtPlugin("io.get-coursier"            %  "sbt-coursier"              % "1.0.
 addSbtPlugin("io.github.davidgregory084"  %  "sbt-tpolecat"              % "0.1.5")
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("org.scalastyle"             %% "scalastyle-sbt-plugin"     % "1.0.0")
-addSbtPlugin("org.tpolecat"               %  "tut-plugin"                % "0.6.11")
+addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.1.5" )
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.3.6")
