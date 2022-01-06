@@ -52,7 +52,7 @@ This runs:
   builds the static site.
 * `mimaReportBinaryIssues`: checks for binary compatibility changes,
   which are relevant past patch release .0.
-  
+
 [SBT]: http://www.scala-sbt.org/0.13/tutorial/Setup.html
 [Hugo]: https://gohugo.io/getting-started/installing/
 
@@ -136,11 +136,11 @@ case class Foo(seconds: Long)
 object Foo {
   def fromFiniteDuration(d: FiniteDuration): Foo =
     apply(d.toSeconds)
-    
+
   def fromString(s: String): ParseResult[Foo] =
     try s.toLong
-    catch { case e: NumberFormatException => 
-      new ParseFailure("not a long") 
+    catch { case e: NumberFormatException =>
+      new ParseFailure("not a long")
     }
 }
 ```
@@ -156,7 +156,7 @@ All constructors that are partial on their input should be prefixed with `unsafe
 def fromLong(l: Long): ParseResult[Foo] =
   if (l < 0) Left(ParseFailure("l must be non-negative"))
   else Right(new Foo(l))
-def unsafeFromLong(l: Long): Foo = 
+def unsafeFromLong(l: Long): Foo =
   fromLong(l).fold(throw _, identity)
 
 // Bad
@@ -228,6 +228,8 @@ documentation as part of the build.
 All pages have an edit link at the top right for direct editing of the
 markdown via GitHub.  Be aware that the Travis build will fail if invalid
 code is added.
+
+[mdoc]: https://github.com/scalameta/mdoc
 
 ## Submit a pull request
 
