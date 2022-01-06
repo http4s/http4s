@@ -35,7 +35,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class PoolManagerSuite extends Http4sSuite with AllSyntax {
-  private val key = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.Ipv4Address(ipv4"127.0.0.1")))
+  private val key =
+    RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.Ipv4Address(ipv4"127.0.0.1")))
   private val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.RegName("localhost")))
 
   class TestConnection extends Connection[IO] {

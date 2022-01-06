@@ -14,7 +14,8 @@
 package org.http4s
 package parser
 
-import cats.parse.{Parser0 => P0, Parser => P}
+import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.internal.parsing.Rfc7230
 

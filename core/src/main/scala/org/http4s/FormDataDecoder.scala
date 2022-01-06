@@ -147,7 +147,9 @@ object FormDataDecoder {
 
   def field[A: QueryParamDecoder](key: String): FormDataDecoder[A] = fieldEither(key).required
 
-  def fieldOptional[A: QueryParamDecoder](key: String): FormDataDecoder[Option[A]] = fieldEither(key).optional
+  def fieldOptional[A: QueryParamDecoder](key: String): FormDataDecoder[Option[A]] = fieldEither(
+    key
+  ).optional
 
   /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
     * E.g. For a field named "bar" inside a nested class under the field "foo",

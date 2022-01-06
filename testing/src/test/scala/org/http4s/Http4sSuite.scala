@@ -47,9 +47,10 @@ trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaC
     fixture
   }
 
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]): Fixture[A] = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource)
-  )
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]): Fixture[A] =
+    registerSuiteFixture(
+      ResourceSuiteLocalFixture(name, resource)
+    )
 
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 

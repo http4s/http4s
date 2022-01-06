@@ -65,7 +65,10 @@ class Http1WriterSpec extends Http4sSuite {
   private val message = "Hello world!"
   private val messageBuffer = Chunk.bytes(message.getBytes(StandardCharsets.ISO_8859_1))
 
-  final def runNonChunkedTests(name: String, builder: TailStage[ByteBuffer] => Http1Writer[IO]): Unit = {
+  final def runNonChunkedTests(
+      name: String,
+      builder: TailStage[ByteBuffer] => Http1Writer[IO],
+  ): Unit = {
     test(s"$name Write a single emit") {
       writeEntityBody(chunk(messageBuffer))(builder)
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message)

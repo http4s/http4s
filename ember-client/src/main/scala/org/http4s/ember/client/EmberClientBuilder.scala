@@ -98,8 +98,10 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withSocketGroup(sg: SocketGroup): EmberClientBuilder[F] = copy(sgOpt = sg.some)
 
   def withMaxTotal(maxTotal: Int): EmberClientBuilder[F] = copy(maxTotal = maxTotal)
-  def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] = copy(maxPerKey = maxPerKey)
-  def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] = copy(idleTimeInPool = idleTimeInPool)
+  def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
+    copy(maxPerKey = maxPerKey)
+  def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] =
+    copy(idleTimeInPool = idleTimeInPool)
   def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
     copy(idleConnectionTime = idleConnectionTime)
 
@@ -109,7 +111,9 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
   def withTimeout(timeout: Duration): EmberClientBuilder[F] = copy(timeout = timeout)
-  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]): EmberClientBuilder[F] =
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOptionMapping[_]]
+  ): EmberClientBuilder[F] =
     copy(additionalSocketOptions = additionalSocketOptions)
 
   def withUserAgent(userAgent: `User-Agent`): EmberClientBuilder[F] =
@@ -120,7 +124,8 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): EmberClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
-  def withoutCheckEndpointAuthentication: EmberClientBuilder[F] = copy(checkEndpointIdentification = false)
+  def withoutCheckEndpointAuthentication: EmberClientBuilder[F] =
+    copy(checkEndpointIdentification = false)
 
   def withRetryPolicy(retryPolicy: RetryPolicy[F]): EmberClientBuilder[F] =
     copy(retryPolicy = retryPolicy)
@@ -147,12 +152,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     additionalSocketOptions,
                   )
               ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { connection =>
+            connection =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
               ) >>
-                connection.cleanup
-            },
+                connection.cleanup,
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)

@@ -23,7 +23,8 @@ import cats.kernel.laws.discipline.MonoidTests
 import cats.syntax.all.{catsSyntaxEq => _, _}
 import org.http4s.internal.CollectionCompat
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.{Prop, Test}
+import org.scalacheck.Prop
+import org.scalacheck.Test
 import org.scalacheck.effect.PropF
 
 class UrlFormSpec extends Http4sSuite {

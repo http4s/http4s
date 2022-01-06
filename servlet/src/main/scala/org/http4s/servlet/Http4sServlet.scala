@@ -25,7 +25,8 @@ import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
-import org.log4s.{Logger, getLogger}
+import org.log4s.Logger
+import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
 

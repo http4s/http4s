@@ -116,5 +116,6 @@ trait BlazeClientBase extends Http4sSuite {
     )
 
   val server: Fixture[ServerScaffold[IO]] = resourceSuiteFixture("http", makeScaffold(2, false))
-  val secureServer: Fixture[ServerScaffold[IO]] = resourceSuiteFixture("https", makeScaffold(1, true))
+  val secureServer: Fixture[ServerScaffold[IO]] =
+    resourceSuiteFixture("https", makeScaffold(1, true))
 }

@@ -18,8 +18,10 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect.{IO, Resource}
-import org.http4s.client.{Client, ClientRouteTestBattery}
+import cats.effect.IO
+import cats.effect.Resource
+import org.http4s.client.Client
+import org.http4s.client.ClientRouteTestBattery
 import org.http4s.internal.threads.newDaemonPoolExecutionContext
 
 class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {

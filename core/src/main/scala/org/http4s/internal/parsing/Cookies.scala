@@ -16,9 +16,10 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
 import cats.parse.Parser.char
 import cats.parse.Parser.charIn
+import cats.parse.Parser0
 import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
@@ -33,7 +34,8 @@ private[http4s] abstract class Cookies(cookieOctet: Parser[Char]) {
   def cookieName: Parser[String] = token
 
   /* cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE ) */
-  val cookieValue: Parser0[String] = (dquote *> cookieOctet.rep0 <* dquote).orElse(cookieOctet.rep0).string
+  val cookieValue: Parser0[String] =
+    (dquote *> cookieOctet.rep0 <* dquote).orElse(cookieOctet.rep0).string
 
   /* cookie-pair       = cookie-name "=" cookie-value */
   val cookiePair: Parser[(String, String)] = (cookieName <* char('=')) ~ cookieValue
