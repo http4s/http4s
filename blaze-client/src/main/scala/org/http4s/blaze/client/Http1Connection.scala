@@ -344,12 +344,12 @@ private final class Http1Connection[F[_]](
 
     val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
       // responses to HEAD requests do not have a body
-      cleanupParsingPrelude(closeOnFinish, headers)
+      cleanUpAfterReceivingResponse(closeOnFinish, headers)
       (Vault.empty, EmptyBody)
     } else {
       // We are to the point of parsing the body and then cleaning up
       val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
-        collectBodyFromParser(buffer, terminationConditionParsingPrelude _)
+        collectBodyFromParser(buffer, onEofWhileReadingBody _)
 
       // to collect the trailers we need a cleanup helper and an effect in the attribute map
       val (trailerCleanup, attributes): (() => Unit, Vault) =
@@ -375,17 +375,18 @@ private final class Http1Connection[F[_]](
 
       if (parser.contentComplete()) {
         trailerCleanup()
-        cleanupParsingPrelude(closeOnFinish, headers)
+        cleanUpAfterReceivingResponse(closeOnFinish, headers)
         attributes -> rawBody
       } else
         attributes -> rawBody.onFinalizeCaseWeak {
           case ExitCase.Completed =>
             Async.shift(executionContext) *>
-              F.delay { trailerCleanup(); cleanupParsingPrelude(closeOnFinish, headers); }
+              F.delay { trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers); }
           case ExitCase.Error(_) | ExitCase.Canceled =>
             Async.shift(executionContext) *>
               F.delay {
-                trailerCleanup(); cleanupParsingPrelude(closeOnFinish, headers); stageShutdown()
+                trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers);
+                stageShutdown()
               }
         }
     }
@@ -403,8 +404,9 @@ private final class Http1Connection[F[_]](
     )
   }
 
-  // it's called when the body is known
-  private def terminationConditionParsingPrelude(): Either[Throwable, Option[Chunk[Byte]]] =
+  // It's called when an EOF is received while reading response body.
+  // It's responsible for deciding if the EOF should be considered an error or an indication of the end of the body.
+  private def onEofWhileReadingBody(): Either[Throwable, Option[Chunk[Byte]]] =
     stageState.get match { // if we don't have a length, EOF signals the end of the body.
       case Error(e) if e != EOF => Either.left(e)
       case _ =>
@@ -413,7 +415,7 @@ private final class Http1Connection[F[_]](
         else Either.right(None)
     }
 
-  private def cleanupParsingPrelude(closeOnFinish: Boolean, headers: Headers): Unit =
+  private def cleanUpAfterReceivingResponse(closeOnFinish: Boolean, headers: Headers): Unit =
     if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
       logger.debug("Message body complete. Shutting down.")
       stageShutdown()
