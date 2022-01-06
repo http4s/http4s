@@ -33,39 +33,206 @@ import org.log4s.getLogger
 import org.typelevel.ci._
 
 import java.io.File
+import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 object FileService {
   private[this] val logger = getLogger
 
+  @deprecated("use FileService.Fs2PathCollector", "0.23.8")
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
+
+  type Fs2PathCollector[F[_]] = (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
     * @param systemPath path prefix to the folder from which content will be served
+    * @param fs2PathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param pathPrefix prefix of Uri from which content will be served
-    * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
-    * @param bufferSize buffer size to use for internal read buffers
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+    * @param bufferSize buffer size to use for internal read buffers
     */
-  final case class Config[F[_]](
-      systemPath: String,
-      pathCollector: PathCollector[F],
-      pathPrefix: String,
-      bufferSize: Int,
-      cacheStrategy: CacheStrategy[F],
-  )
+  final class Config[F[_]](
+      val systemPath: String,
+      val fs2PathCollector: Fs2PathCollector[F],
+      val pathPrefix: String,
+      val cacheStrategy: CacheStrategy[F],
+      val bufferSize: Int,
+  ) extends Product
+      with Serializable
+      with Equals {
+
+    /** For binary compatibility.
+      * @param systemPath path prefix to the folder from which content will be served
+      * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+      * @param pathPrefix prefix of Uri from which content will be served
+      * @param bufferSize buffer size to use for internal read buffers
+      * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+      */
+    @deprecated("use the constructor with fs2PathCollector", "0.23.8")
+    def this(
+        systemPath: String,
+        pathCollector: PathCollector[F],
+        pathPrefix: String,
+        bufferSize: Int,
+        cacheStrategy: CacheStrategy[F],
+    ) =
+      this(
+        systemPath,
+        (path: Path, config: Config[F], request: Request[F]) =>
+          pathCollector(
+            path.toNioPath.toFile,
+            config,
+            request,
+          ),
+        pathPrefix,
+        cacheStrategy,
+        bufferSize,
+      )
+
+    /** For binary compatibility.
+      * @return an instance of PathCollector[F] created (converted) from fs2PathCollector
+      */
+    @deprecated("use fs2PathCollector", "0.23.8")
+    def pathCollector: PathCollector[F] = (file, config, request) =>
+      fs2PathCollector(
+        Path.fromNioPath(file.toPath()),
+        config,
+        request,
+      )
+
+    @deprecated(
+      "Config is no longer a case class. The copy method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def copy(
+        systemPath: String = this.systemPath,
+        @nowarn pathCollector: PathCollector[F] = this.pathCollector,
+        pathPrefix: String = this.pathPrefix,
+        bufferSize: Int = this.bufferSize,
+        cacheStrategy: CacheStrategy[F] = this.cacheStrategy,
+    ): Config[F] = new Config[F](
+      systemPath,
+      fs2PathCollector,
+      pathPrefix,
+      cacheStrategy,
+      bufferSize,
+    )
+
+    @deprecated(
+      "Config is no longer a case class. The productArity method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    override def productArity: Int = 5
+
+    @deprecated(
+      "Config is no longer a case class. The productElement method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    override def productElement(n: Int): Any = n match {
+      case 0 => systemPath
+      case 1 => pathCollector
+      case 2 => pathPrefix
+      case 3 => bufferSize
+      case 4 => cacheStrategy
+    }
+
+    override def canEqual(that: Any): Boolean = that match {
+      case _: Config[_] => true
+      case _ => false
+    }
+
+    override def equals(other: Any): Boolean = other match {
+      case that: Config[_] =>
+        systemPath == that.systemPath &&
+          fs2PathCollector == that.fs2PathCollector &&
+          pathPrefix == that.pathPrefix &&
+          cacheStrategy == that.cacheStrategy &&
+          bufferSize == that.bufferSize
+      case _ => false
+    }
+
+    override def hashCode(): Int = {
+      val state = Seq[Any](systemPath, fs2PathCollector, pathPrefix, bufferSize, cacheStrategy)
+      state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
+
+    override def toString =
+      s"Config($systemPath, $fs2PathCollector, $pathPrefix, $bufferSize, $cacheStrategy)"
+
+  }
 
   object Config {
+
+    @deprecated(
+      "Config is no longer a case class. The Config.unapply method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def unapply[F[_]](
+        config: Config[F]
+    ): Option[(String, PathCollector[F], String, Int, CacheStrategy[F])] =
+      Some(
+        (
+          config.systemPath,
+          config.pathCollector,
+          config.pathPrefix,
+          config.bufferSize,
+          config.cacheStrategy,
+        )
+      )
+
+    /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
+      *
+      * @param systemPath path prefix to the folder from which content will be served
+      * @param fs2PathCollector function that performs the work of collecting the file or rendering the directory into a response.
+      * @param pathPrefix prefix of Uri from which content will be served
+      * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+      * @param bufferSize buffer size to use for internal read buffers
+      */
+    def apply[F[_]](
+        systemPath: String,
+        fs2PathCollector: Fs2PathCollector[F],
+        pathPrefix: String,
+        cacheStrategy: CacheStrategy[F],
+        bufferSize: Int,
+    ): Config[F] =
+      new Config[F](systemPath, fs2PathCollector, pathPrefix, cacheStrategy, bufferSize)
+
+    /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
+      * A constructor that accepts PathCollector[F] for binary compatibility.
+      *
+      * @param systemPath path prefix to the folder from which content will be served
+      * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+      * @param pathPrefix prefix of Uri from which content will be served
+      * @param bufferSize buffer size to use for internal read buffers
+      * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+      */
+    @deprecated(
+      "use FileService.Config(systemPath: String, fs2PathCollector: Fs2PathCollector[F], ...)",
+      "0.23.8",
+    )
+    def apply[F[_]](
+        systemPath: String,
+        pathCollector: PathCollector[F],
+        pathPrefix: String,
+        bufferSize: Int,
+        cacheStrategy: CacheStrategy[F],
+    ): Config[F] = new Config[F](
+      systemPath,
+      pathCollector,
+      pathPrefix,
+      bufferSize,
+      cacheStrategy,
+    )
+
     def apply[F[_]: Async](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
         cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
     ): Config[F] = {
-      val pathCollector: PathCollector[F] = (f, c, r) =>
-        filesOnly(Path.fromNioPath(f.toPath()), c, r)
-      Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
+      val pathCollector: Fs2PathCollector[F] = (f, c, r) => filesOnly(f, c, r)
+      Config(systemPath, pathCollector, pathPrefix, cacheStrategy, bufferSize)
     }
   }
 
@@ -98,8 +265,8 @@ object FileService {
                       none[Path].pure,
                     )
                   )
-                  .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
-                  .flatMap(f => config.pathCollector(f, config, request))
+                  .collect { case path if path.startsWith(rootPath) => path }
+                  .flatMap(path => config.fs2PathCollector(path, config, request))
                   .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
                   .recoverWith { case BadTraversal =>
                     OptionT.some(Response(Status.BadRequest))

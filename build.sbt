@@ -342,7 +342,9 @@ lazy val server = libraryCrossProject("server")
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
-    buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
+    buildInfoKeys := Seq[BuildInfoKey](
+      BuildInfoKey.map(Test / resourceDirectory) { case (k, v) => k -> v.toString }
+    ),
     buildInfoPackage := "org.http4s.server.test",
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
