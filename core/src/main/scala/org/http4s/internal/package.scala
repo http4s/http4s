@@ -16,36 +16,47 @@
 
 package org.http4s
 
-import java.util.concurrent.{
-  CancellationException,
-  CompletableFuture,
-  CompletionException,
-  CompletionStage
-}
-
-import cats.{Comonad, Eval, Order}
+import cats.Comonad
+import cats.Eval
+import cats.Order
 import cats.data.NonEmptyChain
+import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
+import cats.effect.Effect
+import cats.effect.IO
 import cats.effect.implicits._
-import cats.effect.{Async, Concurrent, ConcurrentEffect, ContextShift, Effect, IO}
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
-import java.nio.{ByteBuffer, CharBuffer}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.RaiseThrowable
+import fs2.Stream
 import org.log4s.Logger
 
-import scala.concurrent.ExecutionContext
-import scala.util.control.NoStackTrace
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.concurrent.CompletionStage
+import scala.concurrent.ExecutionContext
+import scala.util.control.NoStackTrace
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
   // have an ExecutionContext but not a Timer.
   private[http4s] def unsafeRunAsync[F[_], A](fa: F[A])(
-      f: Either[Throwable, A] => IO[Unit])(implicit F: Effect[F], ec: ExecutionContext): Unit =
+      f: Either[Throwable, A] => IO[Unit]
+  )(implicit F: Effect[F], ec: ExecutionContext): Unit =
     F.runAsync(Async.shift(ec) *> fa)(f).unsafeRunSync()
 
-  private[http4s] def loggingAsyncCallback[A](logger: Logger)(
-      attempt: Either[Throwable, A]): IO[Unit] =
+  private[http4s] def loggingAsyncCallback[A](
+      logger: Logger
+  )(attempt: Either[Throwable, A]): IO[Unit] =
     attempt match {
       case Left(e) => IO(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => IO.unit
@@ -53,7 +64,8 @@ package object internal {
 
   // Inspired by https://github.com/functional-streams-for-scala/fs2/blob/14d20f6f259d04df410dc3b1046bc843a19d73e5/io/src/main/scala/fs2/io/io.scala#L140-L141
   private[http4s] def invokeCallback[F[_]](logger: Logger)(f: => Unit)(implicit
-      F: ConcurrentEffect[F]): Unit =
+      F: ConcurrentEffect[F]
+  ): Unit =
     F.runAsync(F.start(F.delay(f)).flatMap(_.join))(loggingAsyncCallback(logger)).unsafeRunSync()
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
@@ -133,10 +145,12 @@ package object internal {
   }
 
   private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
-      fcs: F[CF[A]])(implicit
+      fcs: F[CF[A]]
+  )(implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
       F: Concurrent[F],
-      CS: ContextShift[F]): F[A] =
+      CS: ContextShift[F],
+  ): F[A] =
     fcs.flatMap { cs =>
       F.async[A] { cb =>
         cs.handle[Unit] { (result, err) =>
@@ -164,7 +178,8 @@ package object internal {
 
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}"
+    )
 
   // TODO Remove in 1.0. We can do better with MurmurHash3.
   private[http4s] def hashLower(s: String): Int = {
@@ -269,7 +284,7 @@ package object internal {
   private[http4s] def compareField[A, B: Order](
       a: A,
       b: A,
-      f: A => B
+      f: A => B,
   ): Int =
     Order.by[A, B](f).compare(a, b)
 

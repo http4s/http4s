@@ -1,10 +1,8 @@
----
-title: Integrations
-menu: main
-weight: 2
----
+{%
+laika.title: Integrations
+%}
 
-## Http Backend integrations
+# Http Backend Integrations
 
 Http4s provides a frontend interface compatible with cats-effect, but it supports many different backend implementations
 
@@ -17,10 +15,10 @@ Http4s provides a frontend interface compatible with cats-effect, but it support
 | [Jetty](https://www.eclipse.org/jetty/)                                       | 8+          | All (0.2+)        | ?                              | ☒                        | `http4s-jetty`        |                    |                  | ☑︎     |
 | [OkHttp](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/) | 8+          | 0.18+             | ☒ Blocking                   | `http4s-okhttp-client`     | ☒                   | ☒                | ☒              | ☑︎     |
 
-## Entity integrations
+## Entity Integrations
 
 Http4s has multiple smaller modules for Entity encoding and Decoding support of common types.
 
-- Circe: `http4s-circe`. See the [json] docs for more.
+- Circe: `http4s-circe`. See the [json](json.md) docs for more.
 - Scalatags: `http4s-scalatags`
 - Scala-Xml: `http4s-scala-xml`

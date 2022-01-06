@@ -20,10 +20,11 @@ package util
 
 import cats.effect._
 import fs2._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.collection.mutable.Buffer
 import scala.concurrent._
 
@@ -31,9 +32,8 @@ private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
     bufferMaxSize: Int,
-    omitEmptyContentLength: Boolean)(implicit
-    protected val F: Effect[F],
-    protected val ec: ExecutionContext)
+    omitEmptyContentLength: Boolean,
+)(implicit protected val F: Effect[F], protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   import ChunkWriter._
 
@@ -56,7 +56,7 @@ private[http4s] class CachingChunkWriter[F[_]](
     size = 0
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer)
 
   override protected def exceptionFlush(): Future[Unit] = {
     val c = toChunk

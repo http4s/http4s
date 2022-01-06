@@ -18,16 +18,19 @@ package org.http4s
 
 import cats.Eq
 import cats.effect.IO
-import cats.syntax.all._
-import cats.laws.discipline.{ContravariantTests, ExhaustiveCheck, MiniInt}
-import cats.laws.discipline.eq._
+import cats.laws.discipline.ContravariantTests
+import cats.laws.discipline.ExhaustiveCheck
+import cats.laws.discipline.MiniInt
 import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.eq._
+import cats.syntax.all._
 import fs2._
+import org.http4s.headers._
+import org.http4s.laws.discipline.arbitrary._
+
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
-import org.http4s.headers._
-import org.http4s.laws.discipline.arbitrary._
 import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSuite {
@@ -45,7 +48,8 @@ class EntityEncoderSpec extends Http4sSuite {
     }
 
     test(
-      "EntityEncoder should render streams with chunked transfer encoding without wiping out other encodings") {
+      "EntityEncoder should render streams with chunked transfer encoding without wiping out other encodings"
+    ) {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.empty)
@@ -57,11 +61,13 @@ class EntityEncoderSpec extends Http4sSuite {
     }
 
     test(
-      "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding") {
+      "EntityEncoder should render streams with chunked transfer encoding without duplicating chunked transfer encoding"
+    ) {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
-          Entity.empty)
+          Entity.empty
+        )
       EntityEncoder[IO, Stream[IO, Foo]].headers.get[`Transfer-Encoding`] match {
         case Some(coding: `Transfer-Encoding`) =>
           assertEquals(coding, `Transfer-Encoding`(TransferCoding.chunked))
@@ -70,9 +76,12 @@ class EntityEncoderSpec extends Http4sSuite {
     }
 
     test("EntityEncoder should render entity bodies with chunked transfer encoding") {
-      assert(
-        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`] == Some(
-          `Transfer-Encoding`(TransferCoding.chunked)))
+      assertEquals(
+        EntityEncoder[IO, EntityBody[IO]].headers.get[`Transfer-Encoding`],
+        Some(
+          `Transfer-Encoding`(TransferCoding.chunked)
+        ),
+      )
     }
 
     test("EntityEncoder should render files") {
@@ -117,10 +126,12 @@ class EntityEncoderSpec extends Http4sSuite {
     test("EntityEncoder should give the content type") {
       assertEquals(
         EntityEncoder[IO, String].contentType,
-        Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)))
+        Some(`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)),
+      )
       assertEquals(
         EntityEncoder[IO, Array[Byte]].contentType,
-        Some(`Content-Type`(MediaType.application.`octet-stream`)))
+        Some(`Content-Type`(MediaType.application.`octet-stream`)),
+      )
     }
 
     test("EntityEncoder should work with local defined EntityEncoders") {
@@ -157,6 +168,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",
-      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt])
+      ContravariantTests[EntityEncoder[IO, *]].contravariant[MiniInt, MiniInt, MiniInt],
+    )
   }
 }

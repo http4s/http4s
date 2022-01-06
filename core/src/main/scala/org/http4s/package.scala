@@ -34,6 +34,7 @@ package object http4s {
 
   type ParseResult[+A] = Either[ParseFailure, A]
 
+  @deprecated("Use Charset.`UTF-8` directly", "0.22.8")
   val DefaultCharset = Charset.`UTF-8`
 
   /** A kleisli with a [[Request]] input and a [[Response]] output.  This type

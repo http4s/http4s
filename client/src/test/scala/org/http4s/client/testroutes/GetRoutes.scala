@@ -21,10 +21,12 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.Status._
+
 import scala.concurrent.duration._
 
 object GetRoutes {
   val SimplePath = "/simple"
+  val LargePath = "/large"
   val ChunkedPath = "/chunked"
   val DelayedPath = "/delayed"
   val NoContentPath = "/no-content"
@@ -35,6 +37,9 @@ object GetRoutes {
   def getPaths(implicit timer: Timer[IO]): Map[String, IO[Response[IO]]] =
     Map(
       SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
+      LargePath -> Response[IO](Ok)
+        .withEntity("a" * 8 * 1024)
+        .pure[IO], // must be at least as large as the buffers used by the client
       ChunkedPath -> Response[IO](Ok)
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
         .pure[IO],
@@ -44,6 +49,6 @@ object GetRoutes {
       NoContentPath -> Response[IO](NoContent).pure[IO],
       NotFoundPath -> Response[IO](NotFound).withEntity("not found").pure[IO],
       EmptyNotFoundPath -> Response[IO](NotFound).pure[IO],
-      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO]
+      InternalServerErrorPath -> Response[IO](InternalServerError).pure[IO],
     )
 }

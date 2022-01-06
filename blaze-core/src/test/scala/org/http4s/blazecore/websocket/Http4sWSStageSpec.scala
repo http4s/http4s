@@ -17,20 +17,22 @@
 package org.http4s.blazecore
 package websocket
 
-import fs2.Stream
-import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
 import cats.syntax.all._
-import java.util.concurrent.atomic.AtomicBoolean
+import fs2.Stream
+import fs2.concurrent.Queue
+import fs2.concurrent.SignallingRef
 import org.http4s.Http4sSuite
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.websocket.{WebSocketFrame, WebSocketSeparatePipe}
-import org.http4s.websocket.WebSocketFrame._
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
+import org.http4s.websocket.WebSocketSeparatePipe
+import scodec.bits.ByteVector
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
 
 class Http4sWSStageSpec extends Http4sSuite {
   implicit val testExecutionContext: ExecutionContext =
@@ -40,7 +42,8 @@ class Http4sWSStageSpec extends Http4sSuite {
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
       closeHook: AtomicBoolean,
-      backendInQ: Queue[IO, WebSocketFrame]) {
+      backendInQ: Queue[IO, WebSocketFrame],
+  ) {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
@@ -103,7 +106,8 @@ class Http4sWSStageSpec extends Http4sSuite {
   }
 
   test(
-    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame") {
+    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame"
+  ) {
     for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Close())
@@ -169,6 +173,6 @@ class Http4sWSStageSpec extends Http4sSuite {
           .compile
           .toList
           .timeout(5.seconds)
-    } yield assert(reasonReceived == List(reasonSent))
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }

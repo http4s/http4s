@@ -16,8 +16,9 @@
 
 package org.http4s.websocket
 
-import java.nio.ByteBuffer
 import scodec.bits.ByteVector
+
+import java.nio.ByteBuffer
 
 private[http4s] object FrameTranscoder {
   final class TranscodeError(val message: String) extends Exception(message)
@@ -26,7 +27,7 @@ private[http4s] object FrameTranscoder {
     val data = new Array[Byte](in.remaining)
     in.get(data)
     if (mask != null) // We can use the charset decode
-      for (i <- 0 until data.length)
+      for (i <- data.indices)
         data(i) = (data(i) ^ mask(i & 0x3)).toByte // i mod 4 is the same as i & 0x3 but slower
     data
   }
@@ -125,7 +126,8 @@ class FrameTranscoder(val isClient: Boolean) {
         ((mask >>> 24) & 0xff).toByte,
         ((mask >>> 16) & 0xff).toByte,
         ((mask >>> 8) & 0xff).toByte,
-        ((mask >>> 0) & 0xff).toByte)
+        ((mask >>> 0) & 0xff).toByte,
+      )
 
       buff.put(maskBits)
 

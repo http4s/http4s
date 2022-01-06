@@ -16,18 +16,24 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
+import cats.effect.Blocker
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
+import cats.effect.Resource
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
-import java.net.URL
-import org.http4s._
 import org.http4s.Method._
+import org.http4s._
 import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
-import org.http4s.client.Client
-import org.http4s.multipart.{Multipart, Part}
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
+
+import java.net.URL
 import scala.concurrent.ExecutionContext.global
 
 object MultipartClient extends MultipartHttpClient
@@ -39,7 +45,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
     Multipart[IO](
       Vector(
         Part.formData("name", "gvolpe"),
-        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png))
+        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png)),
       )
     )
 

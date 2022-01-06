@@ -10,8 +10,10 @@
 
 package org.http4s
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci.CIString
+
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {
@@ -81,8 +83,8 @@ object CacheDirective {
 
   private final case class CustomCacheDirective(
       override val name: CIString,
-      argument: Option[String] = None)
-      extends CacheDirective {
+      argument: Option[String] = None,
+  ) extends CacheDirective {
     override def value: String = name.toString + argument.fold("")("=\"" + _ + '"')
   }
 }

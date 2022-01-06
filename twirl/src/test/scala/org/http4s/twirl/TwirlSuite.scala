@@ -20,9 +20,14 @@ package twirl
 import cats.effect.IO
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.Prop
 import org.scalacheck.effect.PropF
-import org.scalacheck.{Arbitrary, Gen, Prop}
-import play.twirl.api.{Html, JavaScript, Txt, Xml}
+import play.twirl.api.Html
+import play.twirl.api.JavaScript
+import play.twirl.api.Txt
+import play.twirl.api.Xml
 
 class TwirlSuite extends Http4sSuite {
   implicit val arbCharset: Arbitrary[Charset] = Arbitrary {
@@ -32,7 +37,7 @@ class TwirlSuite extends Http4sSuite {
       Charset.fromString("Windows-1251").yolo,
       Charset.fromString("GB2312").yolo,
       Charset.fromString("Shift-JIS").yolo,
-      Charset.fromString("Windows-1252").yolo
+      Charset.fromString("Windows-1252").yolo,
     )
   }
 

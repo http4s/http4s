@@ -10,9 +10,10 @@
 
 package org.http4s
 
+import cats.Order
+import cats.Show
 import cats.parse.Parser
 import cats.syntax.all._
-import cats.{Order, Show}
 import org.http4s.util._
 
 import java.{util => ju}

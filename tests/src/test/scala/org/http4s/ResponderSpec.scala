@@ -98,7 +98,8 @@ class ResponderSpec extends Http4sSuite {
   test("Responder should Set cookie from Cookie") {
     assertEquals(
       resp.addCookie(ResponseCookie("foo", "bar")).cookies,
-      List(ResponseCookie("foo", "bar")))
+      List(ResponseCookie("foo", "bar")),
+    )
   }
 
   test("Responder should Set multiple cookies") {
@@ -109,8 +110,8 @@ class ResponderSpec extends Http4sSuite {
         .cookies,
       List(
         ResponseCookie("foo", "bar"),
-        ResponseCookie("baz", "quux")
-      )
+        ResponseCookie("baz", "quux"),
+      ),
     )
   }
 
@@ -120,7 +121,8 @@ class ResponderSpec extends Http4sSuite {
       resp.removeCookie(cookie).cookies,
       List(
         ResponseCookie("foo", "", expires = Option(HttpDate.Epoch))
-      ))
+      ),
+    )
   }
 
   test("Responder should Remove multiple cookies") {
@@ -130,8 +132,8 @@ class ResponderSpec extends Http4sSuite {
       resp.removeCookie(cookie1).removeCookie(cookie2).cookies,
       List(
         ResponseCookie("foo1", "", expires = Option(HttpDate.Epoch)),
-        ResponseCookie("foo2", "", expires = Option(HttpDate.Epoch))
-      )
+        ResponseCookie("foo2", "", expires = Option(HttpDate.Epoch)),
+      ),
     )
   }
 }

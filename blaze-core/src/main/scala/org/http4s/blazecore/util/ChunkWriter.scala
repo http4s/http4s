@@ -18,14 +18,16 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.Effect
+import cats.effect.IO
 import cats.syntax.all._
 import fs2._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.concurrent._
 
 private[util] object ChunkWriter {
@@ -46,7 +48,8 @@ private[util] object ChunkWriter {
 
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Effect[F],
-      ec: ExecutionContext): Future[Boolean] = {
+      ec: ExecutionContext,
+  ): Future[Boolean] = {
     val promise = Promise[Boolean]()
     val f = trailer.map { trailerHeaders =>
       if (!trailerHeaders.isEmpty) {

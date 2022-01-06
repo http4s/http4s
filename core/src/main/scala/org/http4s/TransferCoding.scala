@@ -10,9 +10,10 @@
 
 package org.http4s
 
+import cats.Order
+import cats.Show
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import cats.{Order, Show}
 import org.http4s.internal.hashLower
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util._
@@ -63,8 +64,9 @@ object TransferCoding {
         ignoreCase("compress").as(compress),
         ignoreCase("deflate").as(deflate),
         ignoreCase("gzip").as(gzip),
-        ignoreCase("identity").as(identity)
-      ))
+        ignoreCase("identity").as(identity),
+      )
+    )
   }
 
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =

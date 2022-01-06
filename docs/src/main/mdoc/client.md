@@ -1,8 +1,5 @@
----
-menu: main
-weight: 200
-title: HTTP Client
----
+
+# HTTP Client
 
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
@@ -12,7 +9,7 @@ A recap of the dependencies for this example, in case you skipped the [service] 
 ```scala
 scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = "{{< version "http4s.doc" >}}"
+val http4sVersion = "@{version.http4s.doc}"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -54,7 +51,10 @@ val app = HttpRoutes.of[IO] {
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(app).resource
+val server = BlazeServerBuilder[IO](global)
+  .bindHttp(8080, "localhost")
+  .withHttpApp(app)
+  .resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
@@ -316,10 +316,11 @@ implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = 
+  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
-A `classifier` is just a function Request[F] => Option[String] that allows
+A `classifier` is just a function `Request[F] => Option[String]` that allows
 to add a subprefix to every metric based on the `Request`
 
 #### Prometheus Metrics Middleware
@@ -353,7 +354,7 @@ val meteredClient: Resource[IO, Client[IO]] =
 ```
 
 
-A `classifier` is just a function Request[F] => Option[String] that allows
+A `classifier` is just a function `Request[F] => Option[String]` that allows
 to add a label to every metric based on the `Request`
 
 ## Examples

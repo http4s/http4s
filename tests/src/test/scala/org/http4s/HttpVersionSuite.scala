@@ -16,7 +16,9 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
+import cats.kernel.laws.discipline.BoundedEnumerableTests
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen._

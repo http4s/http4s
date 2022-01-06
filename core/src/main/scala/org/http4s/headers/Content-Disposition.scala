@@ -17,12 +17,17 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.internal.CharPredicate
-import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
-import org.http4s.util.{Renderable, Writer}
-import java.nio.charset.StandardCharsets
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.internal.parsing.Rfc7230
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
+
+import java.nio.charset.StandardCharsets
 import scala.collection.immutable.TreeMap
 
 object `Content-Disposition` {
@@ -49,8 +54,10 @@ object `Content-Disposition` {
     val language = Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0
     val charset = Parser.ignoreCase("UTF-8").as(StandardCharsets.UTF_8)
     val extValue = (Rfc5234.dquote *> Parser.charsWhile0(
-      CharPredicate.All -- '"') <* Rfc5234.dquote) | (charset ~ (Parser.string(
-      "'") *> language.? <* Parser.string("'")) ~ valueChars).map { case ((charset, _), values) =>
+      CharPredicate.All -- '"'
+    ) <* Rfc5234.dquote) | (charset ~ (Parser.string("'") *> language.? <* Parser.string(
+      "'"
+    )) ~ valueChars).map { case ((charset, _), values) =>
       values
         .map {
           case EncodedChar(a: Char, b: Char) =>
@@ -105,9 +112,9 @@ object `Content-Disposition` {
             writer
           }
         },
-      parse
+      parse,
     )
 }
 
-// see http://tools.ietf.org/html/rfc2183
+// see https://datatracker.ietf.org/doc/html/rfc2183
 final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String])

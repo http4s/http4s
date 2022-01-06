@@ -30,7 +30,7 @@ object `Access-Control-Allow-Credentials` {
     Header.create(
       ci"Access-Control-Allow-Credentials",
       _.value,
-      parse
+      parse,
     )
 }
 

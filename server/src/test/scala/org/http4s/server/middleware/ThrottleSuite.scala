@@ -16,14 +16,19 @@
 
 package org.http4s.server.middleware
 
+import cats.effect.IO
 import cats.effect.IO.ioEffect
+import cats.effect.Timer
 import cats.effect.laws.util.TestContext
-import cats.effect.{IO, Timer}
 import cats.implicits._
-import org.http4s.{Http4sSuite, HttpApp, Request, Status}
-import org.http4s.syntax.all._
+import org.http4s.Http4sSuite
+import org.http4s.HttpApp
+import org.http4s.Request
+import org.http4s.Status
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
+import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
 class ThrottleSuite extends Http4sSuite {
@@ -40,7 +45,7 @@ class ThrottleSuite extends Http4sSuite {
       val takeFiveTokens: IO[List[TokenAvailability]] =
         (1 to 5).toList.traverse(_ => testee.takeToken)
       val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.exists(_ == TokenAvailable))
+        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
       (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
         .mapN(_ && _)
     }.assert
@@ -89,7 +94,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests") {
+    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests"
+  ) {
     val capacity = 1
     val createBucket =
       TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, munitTimer.clock)
@@ -106,7 +112,8 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test(
-    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky) {
+    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky
+  ) {
     val ctx = TestContext()
     val capacity = 1
     val createBucket =

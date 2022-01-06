@@ -18,32 +18,37 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.Concurrent
+import cats.effect.Resource
+import cats.effect.Timer
 import cats.syntax.all._
 import org.http4s.Status._
-import org.http4s.headers.{`Idempotency-Key`, `Retry-After`}
+import org.http4s.headers.`Idempotency-Key`
+import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
-import scala.math.{min, pow, random}
+import scala.math.min
+import scala.math.pow
+import scala.math.random
 
 object Retry {
   private[this] val logger = getLogger
 
   def apply[F[_]](
       policy: RetryPolicy[F],
-      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] =
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] =
     create[F](policy, redactHeaderWhen)(client)
 
   def create[F[_]](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logRetries: Boolean = true)(
-      client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
+      logRetries: Boolean = true,
+  )(client: Client[F])(implicit F: Concurrent[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): Resource[F, Response[F]] =
       Resource.suspend[F, Response[F]](F.continual(client.run(req).allocated) {
         case Right((response, dispose)) =>
@@ -51,9 +56,11 @@ object Retry {
             case Some(duration) =>
               if (logRetries)
                 logger.info(
-                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                )
               dispose >> F.pure(
-                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`]))
+                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`])
+              )
             case None =>
               F.pure(Resource.make(F.pure(response))(_ => dispose))
           }
@@ -64,7 +71,8 @@ object Retry {
               // info instead of error(e), because e is not discarded
               if (logRetries)
                 logger.info(e)(
-                  s"Request threw an exception on attempt #$attempts. Retrying after $duration")
+                  s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                )
               F.pure(nextAttempt(req, attempts, duration, None))
             case None =>
               if (logRetries)
@@ -86,7 +94,8 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`]): Resource[F, Response[F]] = {
+        retryHeader: Option[`Retry-After`],
+    ): Resource[F, Response[F]] = {
       val headerDuration =
         retryHeader
           .map { h =>
@@ -120,7 +129,7 @@ object RetryPolicy {
     */
   def apply[F[_]](
       backoff: Int => Option[FiniteDuration],
-      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _
+      retriable: (Request[F], Either[Throwable, Response[F]]) => Boolean = defaultRetriable[F] _,
   ): RetryPolicy[F] = { (req, result, retries) =>
     if (retriable(req, result)) backoff(retries)
     else None
@@ -133,7 +142,7 @@ object RetryPolicy {
     InternalServerError,
     ServiceUnavailable,
     BadGateway,
-    GatewayTimeout
+    GatewayTimeout,
   )
 
   /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)

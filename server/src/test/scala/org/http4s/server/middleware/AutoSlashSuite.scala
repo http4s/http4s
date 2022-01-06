@@ -17,9 +17,13 @@
 package org.http4s.server.middleware
 
 import cats.effect._
+import org.http4s.Http4sSuite
+import org.http4s.HttpRoutes
+import org.http4s.Request
+import org.http4s.Status
+import org.http4s.server.MockRoute
+import org.http4s.server.Router
 import org.http4s.syntax.all._
-import org.http4s.server.{MockRoute, Router}
-import org.http4s.{Http4sSuite, HttpRoutes, Request, Status}
 
 class AutoSlashSuite extends Http4sSuite {
   val route = MockRoute.route()

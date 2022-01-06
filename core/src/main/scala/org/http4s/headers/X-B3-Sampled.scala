@@ -17,7 +17,8 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.Header
 import org.typelevel.ci._
 
@@ -33,7 +34,7 @@ object `X-B3-Sampled` {
     Header.create(
       ci"X-B3-Sampled",
       v => if (v.sampled) "1" else "0",
-      parse
+      parse,
     )
 
 }

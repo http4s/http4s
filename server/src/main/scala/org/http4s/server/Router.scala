@@ -34,8 +34,9 @@ object Router {
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */
-  def define[F[_]: Monad](mappings: (String, HttpRoutes[F])*)(
-      default: HttpRoutes[F]): HttpRoutes[F] =
+  def define[F[_]: Monad](
+      mappings: (String, HttpRoutes[F])*
+  )(default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
       val prefixPath = Uri.Path.unsafeFromString(prefix)
       if (prefixPath.isEmpty) routes <+> acc
