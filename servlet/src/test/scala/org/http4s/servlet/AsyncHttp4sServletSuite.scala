@@ -21,12 +21,6 @@ import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import org.eclipse.jetty.server.HttpConfiguration
-import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.{Server => EclipseServer}
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.syntax.all._
@@ -50,7 +44,7 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  private val servletServer = ResourceFixture[Int](serverPortR)
+  private val servletServer = ResourceFixture[Int](Dispatcher[IO].flatMap(d => TestEclipseServer(servlet(d))))
 
   private def get(serverPort: Int, path: String): IO[String] =
     IO.blocking[String](
@@ -105,29 +99,10 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     get(server, "shifted").assertEquals("shifted")
   }
 
-  private lazy val serverPortR = for {
-    dispatcher <- Dispatcher[IO]
-    server <- Resource.make(IO(new EclipseServer))(server => IO(server.stop()))
-    servlet = new AsyncHttp4sServlet[IO](
-      service = service,
-      dispatcher = dispatcher,
-      servletIo = NonBlockingServletIo[IO](4096),
-      serviceErrorHandler = DefaultServiceErrorHandler[IO],
-    )
-    port <- Resource.eval(IO {
-      val connector =
-        new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
-
-      val context = new ServletContextHandler
-      context.addServlet(new ServletHolder(servlet), "/*")
-
-      server.addConnector(connector)
-      server.setHandler(context)
-
-      server.start()
-
-      connector.getLocalPort
-    })
-  } yield port
-
+  private def servlet(dispatcher: Dispatcher[IO]) = new AsyncHttp4sServlet[IO](
+    service = service,
+    servletIo = NonBlockingServletIo[IO](4096),
+    serviceErrorHandler = DefaultServiceErrorHandler[IO],
+    dispatcher = dispatcher,
+  )
 }
