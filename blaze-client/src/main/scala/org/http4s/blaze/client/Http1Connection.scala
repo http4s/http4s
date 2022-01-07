@@ -395,7 +395,8 @@ private final class Http1Connection[F[_]](
       } else
         attributes -> rawBody.onFinalizeCaseWeak {
           case ExitCase.Succeeded =>
-            F.delay { trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers); }.evalOn(executionContext)
+            F.delay { trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers); }
+              .evalOn(executionContext)
           case ExitCase.Errored(_) | ExitCase.Canceled =>
             F.delay {
               trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers);
