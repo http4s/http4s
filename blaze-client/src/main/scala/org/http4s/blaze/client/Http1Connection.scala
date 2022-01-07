@@ -357,36 +357,17 @@ private final class Http1Connection[F[_]](
     val status: Status = parser.getStatus()
     val httpVersion: HttpVersion = parser.getHttpVersion()
 
-    // we are now to the body
-    def terminationCondition(): Either[Throwable, Option[Chunk[Byte]]] =
-      stageState.get match { // if we don't have a length, EOF signals the end of the body.
-        case Error(e) if e != EOF => Either.left(e)
-        case _ =>
-          if (parser.definedContentLength() || parser.isChunked())
-            Either.left(InvalidBodyException("Received premature EOF."))
-          else Either.right(None)
-      }
-
-    def cleanup(): Unit =
-      if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
-        logger.debug("Message body complete. Shutting down.")
-        stageShutdown()
-      } else {
-        logger.debug(s"Resetting $name after completing request.")
-        resetRead()
-      }
-
     val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
       // responses to HEAD requests do not have a body
-      cleanup()
+      cleanUpAfterReceivingResponse(closeOnFinish, headers)
       (Vault.empty, EmptyBody)
     } else {
       // We are to the point of parsing the body and then cleaning up
       val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
-        collectBodyFromParser(buffer, terminationCondition _)
+        collectBodyFromParser(buffer, onEofWhileReadingBody _)
 
       // to collect the trailers we need a cleanup helper and an effect in the attribute map
-      val (trailerCleanup, attributes): (() => Unit, Vault) = {
+      val (trailerCleanup, attributes): (() => Unit, Vault) =
         if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
           val trailers = new AtomicReference(Headers.empty)
 
@@ -405,28 +386,24 @@ private final class Http1Connection[F[_]](
 
           (() => trailers.set(parser.getHeaders()), attrs)
         } else
-          (
-            { () =>
-              ()
-            },
-            Vault.empty,
-          )
-      }
+          (() => (), Vault.empty)
 
       if (parser.contentComplete()) {
         trailerCleanup()
-        cleanup()
+        cleanUpAfterReceivingResponse(closeOnFinish, headers)
         attributes -> rawBody
       } else
         attributes -> rawBody.onFinalizeCaseWeak {
           case ExitCase.Succeeded =>
-            F.delay { trailerCleanup(); cleanup(); }.evalOn(executionContext)
+            F.delay { trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers); }.evalOn(executionContext)
           case ExitCase.Errored(_) | ExitCase.Canceled =>
             F.delay {
-              trailerCleanup(); cleanup(); stageShutdown()
+              trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers);
+              stageShutdown()
             }.evalOn(executionContext)
         }
     }
+
     cb(
       Right(
         Response[F](
