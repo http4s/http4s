@@ -104,7 +104,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   private def mkConnection(
       idleTimeoutStage: Option[IdleTimeoutStage[ByteBuffer]],
-      dispatcher: Dispatcher[IO]
+      dispatcher: Dispatcher[IO],
   ): Http1Connection[IO] =
     new Http1Connection[IO](
       requestKey = FooRequestKey,
@@ -119,14 +119,14 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       dispatcher = dispatcher,
     )
 
-    fixture.test("Idle timeout on slow response") { case (tickWheel, dispatcher) =>
+  fixture.test("Idle timeout on slow response") { case (tickWheel, dispatcher) =>
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
     val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
-    fixture.test("Request timeout on slow response") { case (tickWheel, dispatcher) =>
+  fixture.test("Request timeout on slow response") { case (tickWheel, dispatcher) =>
     val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
     val c = mkClient(h, tickWheel, dispatcher)(requestTimeout = 1.second)
 
@@ -135,52 +135,51 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("Idle timeout on slow request body before receiving response") {
     case (tickWheel, dispatcher) =>
-    // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request
-    val body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
-    val req = Request(method = Method.POST, uri = www_foo_com, body = body)
-    val h = new SlowTestHead(Seq(mkBuffer(resp)), 3.seconds, tickWheel)
-    val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
+      // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request
+      val body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
+      val req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      val h = new SlowTestHead(Seq(mkBuffer(resp)), 3.seconds, tickWheel)
+      val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 
-    c.fetchAs[String](req).intercept[TimeoutException]
+      c.fetchAs[String](req).intercept[TimeoutException]
   }
 
   fixture.test("Idle timeout on slow request body while receiving response body".fail) {
     case (tickWheel, dispatcher) =>
-    // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request.
-    // But with current implementation the cancellation of the request hangs (waits for the request body).
-    (for {
-      _ <- IO.unit
-      body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
-      req = Request(method = Method.POST, uri = www_foo_com, body = body)
-      q <- Queue.unbounded[IO, Option[ByteBuffer]]
-      h = new QueueTestHead(q)
-      (f, b) = resp.splitAt(resp.length - 1)
-      _ <- (q.offer(Some(mkBuffer(f))) >> IO.sleep(3.seconds) >> q.offer(
-        Some(mkBuffer(b))
-      )).start
-      c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
-      s <- c.fetchAs[String](req)
-    } yield s).intercept[TimeoutException]
+      // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request.
+      // But with current implementation the cancellation of the request hangs (waits for the request body).
+      (for {
+        _ <- IO.unit
+        body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
+        req = Request(method = Method.POST, uri = www_foo_com, body = body)
+        q <- Queue.unbounded[IO, Option[ByteBuffer]]
+        h = new QueueTestHead(q)
+        (f, b) = resp.splitAt(resp.length - 1)
+        _ <- (q.offer(Some(mkBuffer(f))) >> IO.sleep(3.seconds) >> q.offer(
+          Some(mkBuffer(b))
+        )).start
+        c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
+        s <- c.fetchAs[String](req)
+      } yield s).intercept[TimeoutException]
   }
 
   fixture.test("Not timeout on only marginally slow request body".flaky) {
     case (tickWheel, dispatcher) =>
-    // Sending request body will take 1500ms. But there will be some activity every 500ms.
-    // If the idle timeout wasn't reset every time something is sent, it would kick-in after 1 second.
-    // The chunks need to be larger than the buffer in CachingChunkWriter
-    val body = Stream
-      .fixedRate[IO](500.millis)
-      .take(3)
-      .mapChunks(_ => Chunk.array(Array.fill(chunkBufferMaxSize + 1)(1.toByte)))
-    val req = Request(method = Method.POST, uri = www_foo_com, body = body)
-    val h = new SlowTestHead(Seq(mkBuffer(resp)), 2000.millis, tickWheel)
-    val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
+      // Sending request body will take 1500ms. But there will be some activity every 500ms.
+      // If the idle timeout wasn't reset every time something is sent, it would kick-in after 1 second.
+      // The chunks need to be larger than the buffer in CachingChunkWriter
+      val body = Stream
+        .fixedRate[IO](500.millis)
+        .take(3)
+        .mapChunks(_ => Chunk.array(Array.fill(chunkBufferMaxSize + 1)(1.toByte)))
+      val req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      val h = new SlowTestHead(Seq(mkBuffer(resp)), 2000.millis, tickWheel)
+      val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 
-    c.fetchAs[String](req)
+      c.fetchAs[String](req)
   }
 
-  fixture.test("Request timeout on slow response body".flaky) {
-    case (tickWheel, dispatcher) =>
+  fixture.test("Request timeout on slow response body".flaky) { case (tickWheel, dispatcher) =>
     val h = new SlowTestHead(Seq(mkBuffer(resp)), 1500.millis, tickWheel)
     val c = mkClient(h, tickWheel, dispatcher)(requestTimeout = 1.second, idleTimeout = 10.second)
 

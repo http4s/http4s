@@ -45,9 +45,9 @@ object Retry {
     create[F](policy, redactHeaderWhen)(client)
 
   def create[F[_]](
-    policy: RetryPolicy[F],
-    redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-    logRetries: Boolean = true,
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logRetries: Boolean = true,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")

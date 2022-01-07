@@ -51,11 +51,19 @@ class RouterInServletSuite extends Http4sSuite {
   private val server =
     ResourceFixture[Int](Dispatcher[IO].flatMap(d => mkServer(router, dispatcher = d)))
   private val serverWithContextPath =
-    ResourceFixture[Int](Dispatcher[IO].flatMap(d => mkServer(router, contextPath = "/context", dispatcher = d)))
+    ResourceFixture[Int](
+      Dispatcher[IO].flatMap(d => mkServer(router, contextPath = "/context", dispatcher = d))
+    )
   private val serverWithServletPath =
-    ResourceFixture[Int](Dispatcher[IO].flatMap(d => mkServer(router, servletPath = "/servlet/*", dispatcher = d)))
+    ResourceFixture[Int](
+      Dispatcher[IO].flatMap(d => mkServer(router, servletPath = "/servlet/*", dispatcher = d))
+    )
   private val serverWithContextAndServletPath =
-    ResourceFixture[Int](Dispatcher[IO].flatMap(d => mkServer(router, contextPath = "/context", servletPath = "/servlet/*", dispatcher = d)))
+    ResourceFixture[Int](
+      Dispatcher[IO].flatMap(d =>
+        mkServer(router, contextPath = "/context", servletPath = "/servlet/*", dispatcher = d)
+      )
+    )
 
   serverWithoutRouter.test(
     "Http4s servlet without router should handle root request"
@@ -125,14 +133,15 @@ class RouterInServletSuite extends Http4sSuite {
       routes: HttpRoutes[IO],
       contextPath: String = "/",
       servletPath: String = "/*",
-      dispatcher: Dispatcher[IO]
+      dispatcher: Dispatcher[IO],
   ): Resource[IO, Int] = TestEclipseServer(servlet(routes, dispatcher), contextPath, servletPath)
 
-  private def servlet(routes: HttpRoutes[IO], dispatcher: Dispatcher[IO]) = new BlockingHttp4sServlet[IO](
-    service = routes.orNotFound,
-    servletIo = org.http4s.servlet.BlockingServletIo(4096),
-    serviceErrorHandler = DefaultServiceErrorHandler,
-    dispatcher = dispatcher,
-  )
+  private def servlet(routes: HttpRoutes[IO], dispatcher: Dispatcher[IO]) =
+    new BlockingHttp4sServlet[IO](
+      service = routes.orNotFound,
+      servletIo = org.http4s.servlet.BlockingServletIo(4096),
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      dispatcher = dispatcher,
+    )
 
 }

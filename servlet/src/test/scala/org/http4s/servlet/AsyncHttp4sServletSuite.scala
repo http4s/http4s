@@ -44,7 +44,8 @@ class AsyncHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  private val servletServer = ResourceFixture[Int](Dispatcher[IO].flatMap(d => TestEclipseServer(servlet(d))))
+  private val servletServer =
+    ResourceFixture[Int](Dispatcher[IO].flatMap(d => TestEclipseServer(servlet(d))))
 
   private def get(serverPort: Int, path: String): IO[String] =
     IO.blocking[String](
