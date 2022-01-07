@@ -34,7 +34,7 @@ object `If-Range` {
   private val parser: Parser[`If-Range`] =
     EntityTag.parser
       .eitherOr(HttpDate.parser)
-      .map(_.fold(LastModified, ETag))
+      .map(_.fold(LastModified(_), ETag(_)))
 
   implicit val headerInstance: Header[`If-Range`, Header.Single] =
     Header.createRendered(
