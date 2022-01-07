@@ -175,13 +175,14 @@ private[blaze] class Http1ServerStage[F[_]](
     logRequest(buff)
     parser.synchronized {
       if (!isClosed)
-        try if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
-          requestLoop()
-        else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
-          requestLoop()
-        else
-          // we have enough to start the request
-          runRequest(buff)
+        try
+          if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
+            requestLoop()
+          else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
+            requestLoop()
+          else
+            // we have enough to start the request
+            runRequest(buff)
         catch {
           case t: BadMessage =>
             badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())

@@ -104,7 +104,6 @@ private final class Http1Connection[F[_]](
         else closePipeline(Some(t))
 
       case Error(_) => // NOOP: already shutdown
-
       case x =>
         if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
         else {
@@ -317,12 +316,19 @@ private final class Http1Connection[F[_]](
       cb: Callback[Response[F]],
       idleTimeoutS: F[Either[Throwable, Unit]],
   ): Unit =
-    try if (!parser.finishedResponseLine(buffer))
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing", idleTimeoutS)
-    else if (!parser.finishedHeaders(buffer))
-      readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
-    else
-      parsePreludeFinished(buffer, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
+    try
+      if (!parser.finishedResponseLine(buffer))
+        readAndParsePrelude(
+          cb,
+          closeOnFinish,
+          doesntHaveBody,
+          "Response Line Parsing",
+          idleTimeoutS,
+        )
+      else if (!parser.finishedHeaders(buffer))
+        readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing", idleTimeoutS)
+      else
+        parsePreludeFinished(buffer, closeOnFinish, doesntHaveBody, cb, idleTimeoutS)
     catch {
       case t: Throwable =>
         logger.error(t)("Error during client request decode loop")
