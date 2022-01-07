@@ -18,15 +18,8 @@ package org.http4s
 package servlet
 
 import cats.effect.IO
-import cats.effect.Resource
 import cats.effect.Timer
 import cats.syntax.all._
-import org.eclipse.jetty.server.HttpConfiguration
-import org.eclipse.jetty.server.HttpConnectionFactory
-import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.{Server => EclipseServer}
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.syntax.all._
@@ -53,7 +46,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     }
     .orNotFound
 
-  private val servletServer = ResourceFixture[Int](serverPortR)
+  private val servletServer = ResourceFixture[Int](TestEclipseServer(servlet))
 
   private def get(serverPort: Int, path: String): IO[String] =
     testBlocker.delay[IO, String](
@@ -95,23 +88,4 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
     servletIo = org.http4s.servlet.BlockingServletIo(4096, testBlocker),
     serviceErrorHandler = DefaultServiceErrorHandler,
   )
-
-  private lazy val serverPortR = Resource
-    .make(IO(new EclipseServer))(server => IO(server.stop()))
-    .evalMap { server =>
-      IO {
-        val connector =
-          new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()))
-
-        val context = new ServletContextHandler
-        context.addServlet(new ServletHolder(servlet), "/*")
-
-        server.addConnector(connector)
-        server.setHandler(context)
-
-        server.start()
-
-        connector.getLocalPort
-      }
-    }
 }

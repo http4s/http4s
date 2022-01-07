@@ -284,7 +284,7 @@ When you update any input sources, mdoc will detect this and compile the Scala c
 sources to its output directory which in turn Laika is watching. Note that when running `laikaPreview` Laika does
 not write any output to disk, it serves the site entirely from memory. And btw: it uses http4s for that.
 
-## Submit a Pull Request    
+## Submit a Pull Request
 
 Before you open a pull request, you should make sure that `sbt ci` runs
 successfully. Github Actions will run this as well, but it may save you some
