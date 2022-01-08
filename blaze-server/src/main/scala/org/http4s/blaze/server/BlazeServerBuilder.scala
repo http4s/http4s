@@ -18,7 +18,6 @@ package org.http4s
 package blaze
 package server
 
-import cats.Alternative
 import cats.Applicative
 import cats.data.Kleisli
 import cats.effect.Async
@@ -269,39 +268,34 @@ class BlazeServerBuilder[F[_]] private (
     def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
         case (local: InetSocketAddress, remote: InetSocketAddress) =>
-          () =>
+          () => {
+            val connection = Request.Connection(
+              local = SocketAddress(
+                IpAddress.fromBytes(local.getAddress.getAddress).get,
+                Port.fromInt(local.getPort).get,
+              ),
+              remote = SocketAddress(
+                IpAddress.fromBytes(remote.getAddress.getAddress).get,
+                Port.fromInt(remote.getPort).get,
+              ),
+              secure = secure,
+            )
+
+            // Create SSLSession object only for https requests and if current SSL session is not empty.
+            // Here, each condition is checked inside a "flatMap" to handle possible "null" values
+            def secureSession: Option[SecureSession] =
+              for {
+                engine <- optionalSslEngine
+                session <- Option(engine.getSession)
+                hex <- Option(session.getId).map(ByteVector(_).toHex)
+                cipher <- Option(session.getCipherSuite)
+              } yield SecureSession(hex, cipher, deduceKeyLength(cipher), getCertChain(session))
+
             Vault.empty
-              .insert(
-                Request.Keys.ConnectionInfo,
-                Request.Connection(
-                  local = SocketAddress(
-                    IpAddress.fromBytes(local.getAddress.getAddress).get,
-                    Port.fromInt(local.getPort).get,
-                  ),
-                  remote = SocketAddress(
-                    IpAddress.fromBytes(remote.getAddress.getAddress).get,
-                    Port.fromInt(remote.getPort).get,
-                  ),
-                  secure = secure,
-                ),
-              )
-              .insert(
-                ServerRequestKeys.SecureSession,
-                // Create SSLSession object only for https requests and if current SSL session is not empty. Here, each
-                // condition is checked inside a "flatMap" to handle possible "null" values
-                Alternative[Option]
-                  .guard(secure)
-                  .flatMap(_ => optionalSslEngine)
-                  .flatMap(engine => Option(engine.getSession))
-                  .flatMap { session =>
-                    (
-                      Option(session.getId).map(ByteVector(_).toHex),
-                      Option(session.getCipherSuite),
-                      Option(session.getCipherSuite).map(deduceKeyLength),
-                      getCertChain(session).some,
-                    ).mapN(SecureSession.apply)
-                  },
-              )
+              .insert(Request.Keys.ConnectionInfo, connection)
+              .insert(ServerRequestKeys.SecureSession, if (secure) secureSession else None)
+          }
+
         case _ =>
           () => Vault.empty
       }
