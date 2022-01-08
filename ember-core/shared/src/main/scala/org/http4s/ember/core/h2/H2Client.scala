@@ -27,6 +27,7 @@ import fs2.io.net.tls._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
+import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 import scala.concurrent.duration._
@@ -75,6 +76,7 @@ private[ember] class H2Client[F[_]: Async](
         org.http4s.Request[fs2.Pure],
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
+    logger: Logger[F],
 ) {
   import org.http4s._
   import H2Client._
@@ -207,6 +209,7 @@ private[ember] class H2Client[F[_]: Async](
         settingsAck,
         acc,
         socket,
+        logger,
       )
       bgRead <- h2.readLoop.compile.drain.background
       bgWrite <- h2.writeLoop.compile.drain.background
@@ -246,15 +249,13 @@ private[ember] class H2Client[F[_]: Async](
                 _ <- ref.update(_ - i)
                 out <- outE.liftTo[F]
               } yield out
-              x.onError { case e => Sync[F].delay(println(s"Error Handling Push Promise $e")) }
-                .attempt
-                .void
+              x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
             } else Applicative[F].unit
             f
           }
           .compile
           .drain
-          .onError { case e => Sync[F].delay(println(s"Server Connection Processing Halted $e")) }
+          .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
           .background
 
       _ <- Resource.eval(
@@ -326,6 +327,7 @@ private[ember] object H2Client {
           F[org.http4s.Response[F]],
       ) => F[Outcome[F, Throwable, Unit]],
       tlsContext: TLSContext[F],
+      logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
@@ -353,7 +355,7 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise)
+      h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined

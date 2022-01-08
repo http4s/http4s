@@ -186,7 +186,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   Stream
                     .resource(
                       H2Server
-                        .fromSocket[F](socket, httpApp, H2Frame.Settings.ConnectionSettings.default)
+                        .fromSocket[F](
+                          socket,
+                          httpApp,
+                          H2Frame.Settings.ConnectionSettings.default,
+                          logger,
+                        )
                     )
                     .drain
               case (socket, Some(_)) =>
@@ -237,6 +242,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                               socket,
                               httpApp,
                               H2Frame.Settings.ConnectionSettings.default,
+                              logger,
                             )
                           )
                           .drain
@@ -466,6 +472,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                             socket,
                             httpApp,
                             H2Frame.Settings.ConnectionSettings.default,
+                            logger,
                             settings,
                             newReq.some,
                           )

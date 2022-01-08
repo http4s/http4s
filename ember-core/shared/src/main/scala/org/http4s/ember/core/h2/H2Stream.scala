@@ -21,6 +21,7 @@ import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
+import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
@@ -35,6 +36,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
     val onClosed: F[Unit],
     val goAway: H2Error => F[Unit],
+    private[this] val logger: Logger[F],
 ) {
   import H2Stream.StreamState
 
@@ -143,7 +145,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
           }
           for {
             h <- hpack.decodeHeaders(block).onError { case e =>
-              println(s"Issue in headers $e"); goAway(H2Error.CompressionError)
+              logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
             }
             newstate =
               if (headers.endStream) s.state match {
@@ -186,8 +188,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                             if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
                           }
                       case None =>
-                        println("Headers Unable to be parsed")
-                        rstStream(H2Error.ProtocolError)
+                        logger.error("Headers Unable to be parsed") >>
+                          rstStream(H2Error.ProtocolError)
                     },
                     s.trailers
                       .complete(
@@ -222,8 +224,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                             if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
                           }
                       case None =>
-                        println("Headers Unable to be parsed")
-                        rstStream(H2Error.ProtocolError)
+                        logger.error("Headers Unable to be parsed") >>
+                          rstStream(H2Error.ProtocolError)
                     },
                     s.trailers
                       .complete(
@@ -256,7 +258,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
             }
             for {
               h <- hpack.decodeHeaders(block).onError { case e =>
-                println(s"Issue in headers $e"); goAway(H2Error.CompressionError)
+                logger.error(e)("Issue in headers"); goAway(H2Error.CompressionError)
               }
               _ <- state.update(s => s.copy(state = StreamState.ReservedRemote))
               _ <- PseudoHeaders.headersToRequestNoBody(h) match {

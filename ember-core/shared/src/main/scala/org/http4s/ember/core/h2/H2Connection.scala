@@ -21,6 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
+import org.typelevel.log4cats.Logger
 import scodec.bits._
 // import cats.data._
 // import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
@@ -42,6 +43,7 @@ private[h2] class H2Connection[F[_]](
     val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
     acc: ByteVector, // Any Bytes Already Read
     socket: Socket[F],
+    logger: Logger[F],
 )(implicit F: Temporal[F]) {
 
   def initiateLocalStream: F[H2Stream[F]] = for {
@@ -85,6 +87,7 @@ private[h2] class H2Connection[F[_]](
       outgoing,
       closedStreams.offer(id),
       goAway,
+      logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
   } yield stream
@@ -120,6 +123,7 @@ private[h2] class H2Connection[F[_]](
       outgoing,
       closedStreams.offer(id),
       goAway,
+      logger,
     )
     _ <- mapRef.update(m => m + (id -> stream))
     _ <- state.update(s =>
@@ -198,7 +202,10 @@ private[h2] class H2Connection[F[_]](
       if (acc.isEmpty) {
         Pull.eval(socket.read(localSettings.initialWindowSize.windowSize)).flatMap {
           case Some(chunk) => p(chunk.toByteVector)
-          case None => println(s"Connection $host:$port readLoop Terminated with empty"); Pull.done
+          case None =>
+            Pull.eval(
+              logger.debug(s"Connection $host:$port readLoop Terminated with empty")
+            ) >> Pull.done
         }
       } else {
         H2Frame.RawFrame.fromByteVector(acc) match {
@@ -208,8 +215,10 @@ private[h2] class H2Connection[F[_]](
                 Pull.output1(frame) >>
                   p(leftover)
               case Left(e) =>
-                s"Connection $host:$port readLoop Terminated invalid Raw to Frame"
-                Pull.eval(goAway(e)) >>
+                Pull.eval(
+                  logger.warn(s"Connection $host:$port readLoop Terminated invalid Raw to Frame $e")
+                ) >>
+                  Pull.eval(goAway(e)) >>
                   Pull.done
             }
           case None =>
@@ -217,16 +226,19 @@ private[h2] class H2Connection[F[_]](
               case Some(chunk) =>
                 p(acc ++ chunk.toByteVector)
               case None =>
-                println(s"Connection $host:$port readLoop Terminated with $acc"); Pull.done
+                //
+                Pull.eval(
+                  logger.debug(s"Connection $host:$port readLoop Terminated with $acc")
+                ) >> Pull.done
             }
 
         }
       }
     p(acc).stream
   }
-    // .debug(formatter = {c => s"Connection $host:$port Read- $c"})
-    .evalMap(f => state.get.map(s => (f, s)))
-    .evalTap {
+    .evalTapChunk(frame => logger.debug(s"Connection $host:$port Read - $frame"))
+    .evalMapChunk(f => state.get.map(s => (f, s)))
+    .evalTapChunk {
       // Headers and Continuation Frames are Stateful
       // Headers if not closed MUST
       case (
@@ -248,8 +260,8 @@ private[h2] class H2Connection[F[_]](
                 )
             }
         } else {
-          println("Invalid Continuation - Protocol Error")
-          goAway(H2Error.ProtocolError)
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
@@ -271,8 +283,8 @@ private[h2] class H2Connection[F[_]](
                 )
             }
         } else {
-          println("Invalid Continuation - Protocol Error")
-          goAway(H2Error.ProtocolError)
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
@@ -281,8 +293,8 @@ private[h2] class H2Connection[F[_]](
         if (h.identifier == id) {
           state.update(s => s.copy(pushPromiseInProgress = (h, cs ::: c :: Nil).some))
         } else {
-          println("Invalid Continuation - Protocol Error")
-          goAway(H2Error.ProtocolError)
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
         }
 
       case (
@@ -292,23 +304,27 @@ private[h2] class H2Connection[F[_]](
         if (h.identifier == id) {
           state.update(s => s.copy(headersInProgress = (h, cs ::: c :: Nil).some))
         } else {
-          println("Invalid Continuation - Protocol Error")
-          goAway(H2Error.ProtocolError)
+          logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
+            goAway(H2Error.ProtocolError)
         }
       case (f, H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None)) =>
         // Only Continuation Frames Are Valid While there is a value
-        println(s"Continuation for headers in process, retrieved unexpected frame $f")
-        goAway(H2Error.ProtocolError)
+        logger.warn(
+          s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
+        ) >>
+          goAway(H2Error.ProtocolError)
       case (f, H2Connection.State(_, _, _, _, _, _, _, None, Some(_))) =>
         // Only Continuation Frames Are Valid While there is a value
-        println(s"Continuation for push promise in process, retrieved unexpected frame $f")
-        goAway(H2Error.ProtocolError)
+        logger.warn(
+          s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
+        ) >>
+          goAway(H2Error.ProtocolError)
 
       case (h @ H2Frame.Headers(i, sd, _, true, headerBlock, _), s) =>
         val size = headerBlock.size.toInt
         if (size > s.remoteSettings.maxFrameSize.frameSize) {
-          println("Header Size too large for frame size")
-          goAway(H2Error.FrameSizeError)
+          logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
+            goAway(H2Error.FrameSizeError)
         } else if (sd.exists(s => s.dependency == i)) {
           goAway(H2Error.ProtocolError)
         } else {
@@ -321,10 +337,10 @@ private[h2] class H2Connection[F[_]](
                 case H2Connection.ConnectionType.Client => i % 2 == 0
               }
               if (!isValidToCreate || i <= s.remoteHighestStream) {
-                println(
-                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error"
-                )
-                goAway(H2Error.ProtocolError)
+                logger.warn(
+                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.highestStream} - Protocol Error - Issuing GoAway"
+                ) >>
+                  goAway(H2Error.ProtocolError)
               } else {
                 streamCreateAndHeaders.use(_ =>
                   for {
@@ -347,11 +363,13 @@ private[h2] class H2Connection[F[_]](
       case (h @ H2Frame.PushPromise(attachedTo, true, i, headerBlock, _), s) =>
         val size = headerBlock.size.toInt
         if (connectionType == H2Connection.ConnectionType.Server) {
-          println("Encountered Push Promise Frame a a Server")
-          goAway(H2Error.ProtocolError)
+          logger.warn(
+            "Encountered Push Promise Frame a a Server - Protocol Error - Issuing GoAway"
+          ) >>
+            goAway(H2Error.ProtocolError)
         } else if (size > s.remoteSettings.maxFrameSize.frameSize) {
-          println("Header Size too large for frame size")
-          goAway(H2Error.FrameSizeError)
+          logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
+            goAway(H2Error.FrameSizeError)
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
@@ -359,8 +377,8 @@ private[h2] class H2Connection[F[_]](
             case None =>
               val isValidToCreate = i % 2 == 0
               if (!isValidToCreate || i <= s.remoteHighestStream) {
-                println(
-                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.remoteHighestStream} - Protocol Error"
+                logger.warn(
+                  s"Not Valid Stream to Create $i - $isValidToCreate, ${s.remoteHighestStream} - Protocol Error - Issuing GoAway"
                 )
                 goAway(H2Error.ProtocolError)
               } else {
@@ -413,8 +431,8 @@ private[h2] class H2Connection[F[_]](
         } yield ()
       case (H2Frame.Settings(0, true, _), s) => Applicative[F].unit
       case (H2Frame.Settings(_, _, _), s) =>
-        println("Received Settings Not Oriented at Identifier 0")
-        goAway(H2Error.ProtocolError)
+        logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
+          goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, bv), s) =>
         mapRef.get.flatMap { m =>
           m.values.toList.traverse_(connection => connection.receiveGoAway(g))
@@ -428,12 +446,11 @@ private[h2] class H2Connection[F[_]](
         goAway(H2Error.ProtocolError)
 
       case (w @ H2Frame.WindowUpdate(_, 0), _) =>
-        println("Encounted 0 Sized Window Update - Procol Error")
-        goAway(H2Error.ProtocolError)
+        logger.warn("Encountered 0 Sized Window Update - Procol Error - Issuing GoAway") >>
+          goAway(H2Error.ProtocolError)
       case (w @ H2Frame.WindowUpdate(i, size), s) =>
         i match {
           case 0 =>
-            // println("Received Window Update for Connection")
             for {
               newWriteBlock <- Deferred[F, Either[Throwable, Unit]]
               t <- state.modify { s =>
@@ -457,16 +474,18 @@ private[h2] class H2Connection[F[_]](
               case Some(s) =>
                 s.receiveWindowUpdate(w)
               case None =>
-                println(s"Received WindowUpdate for Closed or Idle Stream - $w, $i")
-                goAway(H2Error.ProtocolError)
+                logger.warn(s"Received WindowUpdate for Closed or Idle Stream - $w, $i") >>
+                  goAway(H2Error.ProtocolError)
             }
         }
 
       case (d @ H2Frame.Data(i, data, _, _), st) =>
         val size = data.size.toInt
         if (size > localSettings.maxFrameSize.frameSize) {
-          println("Receive Data Size Larger than Allowed Frame Size - Frame Size Error")
-          goAway(H2Error.FrameSizeError)
+          logger.warn(
+            "Receive Data Size Larger than Allowed Frame Size - Frame Size Error - Issuing GoAway"
+          ) >>
+            goAway(H2Error.FrameSizeError)
         } else {
           mapRef.get.map(_.get(i)).flatMap {
             case Some(s) =>
@@ -495,8 +514,10 @@ private[h2] class H2Connection[F[_]](
                 _ <- s.receiveData(d)
               } yield ()
             case None =>
-              println(s"Received Data Frame for Idle or Closed Stream $i - Protocol Error")
-              goAway(H2Error.ProtocolError)
+              logger.warn(
+                s"Received Data Frame for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
+              ) >>
+                goAway(H2Error.ProtocolError)
           }
         }
 
@@ -505,8 +526,10 @@ private[h2] class H2Connection[F[_]](
           case Some(s) =>
             s.receiveRstStream(rst)
           case None =>
-            println(s"Received RstStream for Idle or Closed Stream $i - Protocol Error")
-            goAway(H2Error.ProtocolError)
+            logger.warn(
+              s"Received RstStream for Idle or Closed Stream $i - Protocol Error - Issuing GoAway"
+            ) >>
+              goAway(H2Error.ProtocolError)
         }
       case (H2Frame.Priority(i, _, i2, _), s) =>
         if (i == i2) goAway(H2Error.ProtocolError) // Can't depend on yourself
@@ -516,10 +539,10 @@ private[h2] class H2Connection[F[_]](
     .drain
     .onFinalizeCase[F] {
       case Resource.ExitCase.Errored(H2Connection.KillWithoutMessage()) =>
-        Applicative[F].unit.map(_ => println(s"ReadLoop has received that is should kill")) >>
+        logger.debug(s"ReadLoop has received that is should kill") >>
           state.update(s => s.copy(closed = true))
       case Resource.ExitCase.Errored(e) =>
-        Applicative[F].unit.map(_ => println(s"ReadLoop has errored: $e")) >>
+        logger.error(e)(s"ReadLoop has errored") >>
           goAway(H2Error.InternalError) >>
           state.update(s => s.copy(closed = true))
 

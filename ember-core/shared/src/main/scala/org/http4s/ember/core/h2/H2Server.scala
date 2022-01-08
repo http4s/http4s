@@ -24,6 +24,7 @@ import fs2._
 import fs2.io.net._
 import org.http4s._
 import org.typelevel.ci._
+import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 import scala.concurrent.duration._
@@ -166,6 +167,7 @@ private[ember] object H2Server {
       socket: Socket[F],
       httpApp: HttpApp[F],
       localSettings: H2Frame.Settings.ConnectionSettings,
+      logger: Logger[F],
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
       initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       initialRequest: Option[Request[fs2.Pure]] = None,
@@ -216,6 +218,7 @@ private[ember] object H2Server {
         settingsAck,
         ByteVector.empty,
         socket,
+        logger,
       )
       bgWrite <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(
@@ -329,7 +332,7 @@ private[ember] object H2Server {
           .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
           .compile
           .drain
-          .onError { case e => Sync[F].delay(println(s"Server Connection Processing Halted $e")) }
+          .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }
           .background
 
       _ <- Resource.eval(

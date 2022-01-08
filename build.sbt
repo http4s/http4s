@@ -412,6 +412,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
+      log4catsCore.value,
       log4catsTesting.value % Test
     ),
     scalacOptions --= Seq(
@@ -457,7 +458,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     ),
   )
   .jvmSettings(
-    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
+    libraryDependencies += "com.twitter" % "hpack" % "1.0.2",
   )
   .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
