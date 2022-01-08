@@ -18,8 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.Kleisli
-import cats.data.OptionT
 import cats.effect.kernel.Temporal
 import cats.syntax.applicative._
 
@@ -43,9 +41,9 @@ object Timeout {
     * @param timeout Finite duration to wait before returning the provided response
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
-      http: Kleisli[F, A, Response[G]]
-  )(implicit F: Temporal[F]): Kleisli[F, A, Response[G]] =
-    http.mapF(F.timeoutTo(_, timeout, timeoutResponse))
+      http: (A => F[Response[G]])
+  )(implicit F: Temporal[F]): A => F[Response[G]] =
+    (a: A) => F.timeoutTo(http(a), timeout, timeoutResponse)
 
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
@@ -63,9 +61,9 @@ object Timeout {
     * @param timeout Finite duration to wait before returning
     * a `503 Service Unavailable` response
     */
-  def apply[F[_]: Temporal, G[_], A](timeout: FiniteDuration)(
-      http: Kleisli[F, A, Response[G]]
-  ): Kleisli[F, A, Response[G]] =
+  def apply[F[_], G[_], A](timeout: FiniteDuration)(http: A => F[Response[G]])(implicit
+      F: Temporal[F]
+  ): (A => F[Response[G]]) =
     apply(timeout, Response.timeout[G].pure[F])(http)
 
   /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)*]], but for HttpRoutes */

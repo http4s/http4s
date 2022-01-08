@@ -21,7 +21,6 @@ package middleware
 
 import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
@@ -50,7 +49,7 @@ object RequestId {
   def apply[G[_], F[_]](
       headerName: CIString
   )(http: Http[G, F])(implicit G: Sync[G], gen: UUIDGen[G]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
+    (req: Request[F]) =>
       for {
         header <- req.headers.get(headerName).map(_.head) match {
           case None => UUIDGen.randomString[G].map(Header.Raw(headerName, _))
@@ -59,14 +58,13 @@ object RequestId {
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
       } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-    }
 
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
       genReqId: F[UUID],
   )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
+    (req: Request[F]) =>
       for {
         header <- fk(req.headers.get(headerName) match {
           case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
@@ -75,7 +73,6 @@ object RequestId {
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
       } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-    }
 
   object httpApp {
     def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =

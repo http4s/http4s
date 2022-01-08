@@ -28,18 +28,13 @@ import org.http4s.headers.{Date => HDate}
   */
 object Date {
   def apply[G[_]: MonadThrow: Clock, F[_], A](
-      k: Kleisli[G, A, Response[F]]
-  ): Kleisli[G, A, Response[F]] =
-    Kleisli { a =>
-      for {
-        resp <- k(a)
-        header <-
-          resp.headers
-            .get[HDate]
-            .fold(
-              HttpDate.current[G].map(HDate(_))
-            )(_.pure[G])
-      } yield resp.putHeaders(header)
+      k: A => G[Response[F]]
+  ): (A => G[Response[F]]) =
+    (a: A) => k(a).flatMap { (resp: Response[F]) =>
+      resp.headers.get[HDate] match {
+        case Some(_) => resp.pure[G]
+        case None => HttpDate.current[G].map(d => resp.putHeaders(HDate(d)))
+      }
     }
 
   def httpRoutes[F[_]: MonadThrow: Clock](routes: HttpRoutes[F]): HttpRoutes[F] =
@@ -47,4 +42,5 @@ object Date {
 
   def httpApp[F[_]: MonadThrow: Clock](app: HttpApp[F]): HttpApp[F] =
     apply(app)
+
 }

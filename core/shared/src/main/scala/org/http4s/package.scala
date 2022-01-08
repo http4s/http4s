@@ -35,15 +35,6 @@ package object http4s {
   @deprecated("Use Charset.`UTF-8` directly", "0.22.8")
   val DefaultCharset = Charset.`UTF-8`
 
-  /** A kleisli with a [[Request]] input and a [[Response]] output.  This type
-    * is useful for writing middleware that are polymorphic over the return
-    * type F.
-    *
-    * @tparam F the effect type in which the [[Response]] is returned
-    * @tparam G the effect type of the [[Request]] and [[Response]] bodies
-    */
-  type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
-
   /** A kleisli with a [[Request]] input and a [[Response]] output, such
     * that the response effect is the same as the request and response bodies'.
     * An HTTP app is total on its inputs.  An HTTP app may be run by a server,
@@ -66,13 +57,6 @@ package object http4s {
   type HttpRoutes[F[_]] = Http[OptionT[F, *], F]
 
   type AuthedRequest[F[_], T] = ContextRequest[F, T]
-
-  /** The type parameters need to be in this order to make partial unification
-    * trigger. See https://github.com/http4s/http4s/issues/1506
-    */
-  type AuthedRoutes[T, F[_]] = Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]
-
-  type ContextRoutes[T, F[_]] = Kleisli[OptionT[F, *], ContextRequest[F, T], Response[F]]
 
   type Callback[A] = Either[Throwable, A] => Unit
 

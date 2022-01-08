@@ -20,7 +20,6 @@ package middleware
 
 import cats.Applicative
 import cats.Monad
-import cats.data.Kleisli
 import cats.data.NonEmptyList
 import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.Authority
@@ -42,7 +41,7 @@ object HttpsRedirect {
   private[HttpsRedirect] val logger = Platform.loggerFactory.getLogger
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
-    Kleisli { req =>
+    (req: Request[G]) =>
       (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
         case (Some(NonEmptyList(proto, _)), Some(host))
             if Scheme.fromString(proto.value).contains(Scheme.http) =>
@@ -56,7 +55,6 @@ object HttpsRedirect {
         case _ =>
           http(req)
       }
-    }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)

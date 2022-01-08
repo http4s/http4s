@@ -42,7 +42,7 @@ object ResponseTiming {
       timeUnit: TimeUnit = MILLISECONDS,
       headerName: CIString = ci"X-Response-Time",
   )(implicit F: Sync[F], clock: Clock[F]): HttpApp[F] =
-    Kleisli { req =>
+    req => {
       val getTime = clock.monotonic.map(_.toUnit(timeUnit).toLong)
       for {
         before <- getTime

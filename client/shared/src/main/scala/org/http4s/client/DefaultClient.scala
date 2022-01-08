@@ -50,11 +50,10 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * HTTP connection.
     */
   def toHttpApp: HttpApp[F] =
-    Kleisli { req =>
+    (req: Request[F]) =>
       F.map(run(req).allocated) { case (resp, release) =>
         resp.pipeBodyThrough(_.onFinalizeWeak(release))
       }
-    }
 
   def stream(req: Request[F]): Stream[F, Response[F]] =
     Stream.resource(run(req))

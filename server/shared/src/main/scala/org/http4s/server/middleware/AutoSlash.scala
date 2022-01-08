@@ -31,18 +31,16 @@ import cats.syntax.all._
   */
 object AutoSlash {
   def apply[F[_], G[_], B](
-      http: Kleisli[F, Request[G], B]
-  )(implicit F: MonoidK[F]): Kleisli[F, Request[G], B] =
-    Kleisli { req =>
+      http: Request[G] => F[B]
+  )(implicit F: MonoidK[F]): Request[G] => F[B] =
+    (req: Request[G]) =>
       http(req) <+> {
         val pathInfo = req.pathInfo
-
         if (pathInfo.isEmpty)
           F.empty
         else
           http.apply(req.withPathInfo(pathInfo.dropEndsWithSlash))
       }
-    }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)

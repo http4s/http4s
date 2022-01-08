@@ -36,24 +36,22 @@ object HSTS {
   )
 
   def apply[F[_]: Functor, A, G[_]](
-      routes: Kleisli[F, A, Response[G]]
-  ): Kleisli[F, A, Response[G]] =
+      routes: A => F[Response[G]]
+  ): (A => F[Response[G]]) =
     apply(routes, defaultHSTSPolicy)
 
   def apply[F[_]: Functor, A, G[_]](
-      http: Kleisli[F, A, Response[G]],
+      http: (A => F[Response[G]]),
       header: `Strict-Transport-Security`,
-  ): Kleisli[F, A, Response[G]] =
-    Kleisli { req =>
-      http.map(_.putHeaders(header)).apply(req)
-    }
+  ): (A => F[Response[G]]) =
+    req => http.map(_.putHeaders(header)).apply(req)
 
   def unsafeFromDuration[F[_]: Functor, A, G[_]](
-      http: Kleisli[F, A, Response[G]],
+      http: A => F[Response[G]],
       maxAge: FiniteDuration = 365.days,
       includeSubDomains: Boolean = true,
       preload: Boolean = false,
-  ): Kleisli[F, A, Response[G]] = {
+  ): A => F[Response[G]] = {
     val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
     apply(http, header)
   }
@@ -91,6 +89,6 @@ object HSTS {
         includeSubDomains: Boolean = true,
         preload: Boolean = false,
     ): HttpApp[F] =
-      HSTS.unsafeFromDuration(httpApp, maxAge, includeSubDomains, preload)
+      HSTS.unsafeFromDuration(httpApp(_), maxAge, includeSubDomains, preload)
   }
 }

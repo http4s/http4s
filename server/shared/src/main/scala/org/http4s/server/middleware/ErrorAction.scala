@@ -25,15 +25,13 @@ import org.http4s._
 
 object ErrorAction {
   def apply[F[_]: ApplicativeThrow, G[_], B](
-      k: Kleisli[F, Request[G], B],
+      k: Request[G] => F[B],
       f: (Request[G], Throwable) => F[Unit],
-  ): Kleisli[F, Request[G], B] =
-    Kleisli { req =>
-      k.run(req).onError { case e => f(req, e) }
-    }
+  ): Request[F] => F[B] =
+    (req: Request[F]) => k(req).onError { case e => f(req, e) }
 
   def log[F[_]: ApplicativeThrow, G[_], B](
-      http: Kleisli[F, Request[G], B],
+      http: Request[G] => F[B],
       messageFailureLogAction: (Throwable, => String) => F[Unit],
       serviceErrorLogAction: (Throwable, => String) => F[Unit],
   ): Kleisli[F, Request[G], B] =
@@ -60,14 +58,14 @@ object ErrorAction {
         httpApp: HttpApp[F],
         f: (Request[F], Throwable) => F[Unit],
     ): HttpApp[F] =
-      ErrorAction(httpApp, f)
+      req => ErrorAction(httpApp, f)(req)
 
     def log[F[_]: ApplicativeThrow, G[_], B](
         httpApp: HttpApp[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
         serviceErrorLogAction: (Throwable, => String) => F[Unit],
     ): HttpApp[F] =
-      ErrorAction.log(httpApp, messageFailureLogAction, serviceErrorLogAction)
+      req => ErrorAction.log(httpApp, messageFailureLogAction, serviceErrorLogAction)(req)
   }
 
   object httpRoutes {
@@ -75,14 +73,14 @@ object ErrorAction {
         httpRoutes: HttpRoutes[F],
         f: (Request[F], Throwable) => F[Unit],
     ): HttpRoutes[F] =
-      ErrorAction(httpRoutes, (t, msg) => OptionT.liftF(f(t, msg)))
+      req => ErrorAction(httpRoutes, (t, msg) => OptionT.liftF(f(t, msg)))(req)
 
     def log[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
         serviceErrorLogAction: (Throwable, => String) => F[Unit],
     ): HttpRoutes[F] =
-      ErrorAction.log(
+      req =>  ErrorAction.log(
         httpRoutes,
         (t, msg) => OptionT.liftF(messageFailureLogAction(t, msg)),
         (t, msg) => OptionT.liftF(serviceErrorLogAction(t, msg)),

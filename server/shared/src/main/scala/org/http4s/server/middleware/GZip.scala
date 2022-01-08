@@ -19,7 +19,7 @@ package server
 package middleware
 
 import cats.Functor
-import cats.data.Kleisli
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.compression._
 import org.http4s.headers._
@@ -35,12 +35,10 @@ object GZip {
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] =
-    Kleisli { (req: Request[G]) =>
-      req.headers.get[`Accept-Encoding`] match {
-        case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          http(req).map(zipOrPass(_, bufferSize, level, isZippable))
-        case _ => http(req)
-      }
+    (req: Request[G]) => req.headers.get[`Accept-Encoding`] match {
+      case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
+        http(req).map(zipOrPass(_, bufferSize, level, isZippable))
+      case _ => http(req)
     }
 
   def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {

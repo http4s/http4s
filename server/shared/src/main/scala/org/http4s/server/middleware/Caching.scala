@@ -39,14 +39,9 @@ object Caching {
     * This is a best attempt, many implementors of caching have done so differently.
     */
   def `no-store`[G[_]: Monad: Clock, F[_], A](
-      http: Kleisli[G, A, Response[F]]
-  ): Kleisli[G, A, Response[F]] =
-    Kleisli { (a: A) =>
-      for {
-        resp <- http(a)
-        out <- `no-store-response`[G](resp)
-      } yield out
-    }
+      http: (A => G[Response[F]])
+  ): (A => G[Response[F]]) =
+    (a: A) => http(a).flatMap(`no-store-response`[G])
 
   /** Transform a Response so that it will not be cached.
     */
@@ -148,16 +143,12 @@ object Caching {
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
       http: Http[G, F],
-  ): Http[G, F] = {
-    val cacher = cacheResponse[G](lifetime, isPublic)
-    Kleisli { (req: Request[F]) =>
-      if (methodToSetOn(req.method)) {
-        http(req).flatMap { resp =>
-          if (statusToSetOn(resp.status)) cacher(resp) else resp.pure[G]
-        }
-      } else http(req)
+  ): Http[G, F] =
+    (req: Request[F]) => http(req).flatMap { (resp: Response[F]) =>
+      if (methodToSetOn(req.method) && statusToSetOn(resp.status))
+        cacheResponse[G](lifetime, isPublic)(resp)
+      else resp.pure[G]
     }
-  }
 
   // Here as an optimization so we don't recreate durations
   // in cacheResponse #TeamStatic

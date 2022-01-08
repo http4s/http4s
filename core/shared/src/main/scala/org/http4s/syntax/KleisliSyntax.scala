@@ -19,45 +19,45 @@ package syntax
 
 import cats.Functor
 import cats.Monad
-import cats.data.Kleisli
 import cats.data.OptionT
 import cats.syntax.functor._
 import cats.~>
 
 trait KleisliSyntax {
-  implicit def http4sKleisliResponseSyntaxOptionT[F[_]: Functor, A](
-      kleisli: Kleisli[OptionT[F, *], A, Response[F]]
-  ): KleisliResponseOps[F, A] =
-    new KleisliResponseOps[F, A](kleisli)
 
-  implicit def http4sKleisliHttpRoutesSyntax[F[_]](routes: HttpRoutes[F]): KleisliHttpRoutesOps[F] =
-    new KleisliHttpRoutesOps[F](routes)
+  implicit def http4sResponseSyntaxOptionT[F[_]: Functor, A](
+      kleisli: Http[OptionT[F, *], F]
+  ): HttpResponseOps[F, A] =
+    new HttpResponseOps[F, A](kleisli)
 
-  implicit def http4sKleisliHttpAppSyntax[F[_]: Functor](app: HttpApp[F]): KleisliHttpAppOps[F] =
-    new KleisliHttpAppOps[F](app)
+  implicit def http4sHttpRoutesSyntax[F[_]](routes: HttpRoutes[F]): HttpRoutesOps[F] =
+    new HttpRoutesOps[F](routes)
 
-  implicit def http4sKleisliAuthedRoutesSyntax[F[_], A](
+  implicit def http4sHttpAppSyntax[F[_]: Functor](app: HttpApp[F]): HttpAppOps[F] =
+    new HttpAppOps[F](app)
+
+  implicit def http4sAuthedRoutesSyntax[F[_], A](
       authedRoutes: AuthedRoutes[A, F]
-  ): KleisliAuthedRoutesOps[F, A] =
-    new KleisliAuthedRoutesOps[F, A](authedRoutes)
+  ): AuthedRoutesOps[F, A] =
+    new AuthedRoutesOps[F, A](authedRoutes)
 }
 
-final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, *], A, Response[F]]) {
-  def orNotFound: Kleisli[F, A, Response[F]] =
-    Kleisli(a => self.run(a).getOrElse(Response.notFound))
+final class HttpResponseOps[F[_]: Functor, A](self: Http[OptionT[F, *], F]) {
+  def orNotFound: Http[F, F] =
+    a => self(a).getOrElse(Response.notFound)
 }
 
-final class KleisliHttpRoutesOps[F[_]](self: HttpRoutes[F]) {
+final class HttpRoutesOps[F[_]](self: HttpRoutes[F]) {
   def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): HttpRoutes[G] =
-    HttpRoutes(request => self.run(request.mapK(gK)).mapK(fk).map(_.mapK(fk)))
+    HttpRoutes(request => self(request.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }
 
-final class KleisliHttpAppOps[F[_]: Functor](self: HttpApp[F]) {
+final class HttpAppOps[F[_]: Functor](self: HttpApp[F]) {
   def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): HttpApp[G] =
-    HttpApp(request => fk(self.run(request.mapK(gK)).map(_.mapK(fk))))
+    HttpApp(request => fk(self(request.mapK(gK)).map(_.mapK(fk))))
 }
 
-final class KleisliAuthedRoutesOps[F[_], A](self: AuthedRoutes[A, F]) {
+final class AuthedRoutesOps[F[_], A](self: AuthedRoutes[A, F]) {
   def translate[G[_]: Monad](fk: F ~> G)(gK: G ~> F): AuthedRoutes[A, G] =
-    AuthedRoutes(authedReq => self.run(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
+    AuthedRoutes(authedReq => self(authedReq.mapK(gK)).mapK(fk).map(_.mapK(fk)))
 }

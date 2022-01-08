@@ -20,7 +20,6 @@ package middleware
 
 import cats.FlatMap
 import cats.arrow.FunctionK
-import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
@@ -44,10 +43,11 @@ import scala.collection.mutable.ListBuffer
   *  https://datatracker.ietf.org/doc/html/rfc7230#section-4.1
   */
 object ChunkAggregator {
+
   def apply[F[_]: FlatMap, G[_]: Sync, A](
       f: G ~> F
-  )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
-    http.flatMapF(response => f(aggregate(response)))
+  )(http: (A => F[Response[G]])): (A => F[Response[G]]) =
+    http.flatMap(response => f(aggregate(response)))
 
   private[this] def aggregate[G[_]: Sync](r: Response[G]): G[Response[G]] =
     r.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
@@ -59,7 +59,7 @@ object ChunkAggregator {
       }
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(OptionT.liftK[F])(httpRoutes)
+    apply(OptionT.liftK[F])(httpRoutes.apply(_))
 
   def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
     apply(FunctionK.id[F])(httpApp)

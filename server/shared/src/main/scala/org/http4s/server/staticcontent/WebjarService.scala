@@ -65,11 +65,10 @@ class WebjarServiceBuilder[F[_]] private (
     copy(preferGzipped = preferGzipped)
 
   def toRoutes(implicit F: Async[F]): HttpRoutes[F] = {
-    object BadTraversal extends Exception with NoStackTrace
     val Root = Paths.get("")
-    Kleisli {
+    (req: Request[F]) => {
       // Intercepts the routes that match webjar asset names
-      case request if request.method == Method.GET =>
+      if (request.method == Method.GET) {
         val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
         OptionT
           .liftF(F.catchNonFatal {
@@ -85,7 +84,7 @@ class WebjarServiceBuilder[F[_]] private (
           .recover { case BadTraversal =>
             Response(Status.BadRequest)
           }
-      case _ => OptionT.none
+      } else OptionT.none
     }
   }
 
@@ -120,6 +119,8 @@ class WebjarServiceBuilder[F[_]] private (
 }
 
 object WebjarServiceBuilder {
+  private[WebjarServiceBuilder] object BadTraversal extends Exception with NoStackTrace
+
   def apply[F[_]] =
     new WebjarServiceBuilder(
       webjarAssetFilter = _ => true,

@@ -87,8 +87,9 @@ class ResourceServiceBuilder[F[_]] private (
 
     Try(Paths.get(basePath)) match {
       case Success(rootPath) =>
-        TranslateUri(pathPrefix)(Kleisli {
-          case request if request.pathInfo.nonEmpty =>
+        TranslateUri(pathPrefix){ (req: Request[F]) =>
+          if (request.pathInfo.nonEmpty) {
+
             val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
             OptionT
               .liftF(F.catchNonFatal {
@@ -98,9 +99,7 @@ class ResourceServiceBuilder[F[_]] private (
                     path.resolve(segment)
                 }
               })
-              .collect {
-                case path if path.startsWith(rootPath) => path
-              }
+              .filter(_.startsWith(rootPath))
               .flatMap { path =>
                 StaticFile.fromResource(
                   path.toString,
@@ -113,8 +112,8 @@ class ResourceServiceBuilder[F[_]] private (
               .recoverWith { case BadTraversal =>
                 OptionT.some(Response(Status.BadRequest))
               }
-          case _ => OptionT.none
-        })
+          } else OptionT.none
+        }
 
       case Failure(e) =>
         logger
@@ -122,7 +121,7 @@ class ResourceServiceBuilder[F[_]] private (
             s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail."
           )
           .unsafeRunSync()
-        Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
+        _ => OptionT.pure(Response(Status.InternalServerError))
     }
   }
 }
@@ -166,7 +165,7 @@ object ResourceService {
 
     Try(Paths.get(basePath)) match {
       case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli {
+        val inner: HttpRoutes[F] = {
           case request if request.pathInfo.nonEmpty =>
             val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
             OptionT
@@ -192,7 +191,8 @@ object ResourceService {
                 OptionT.some(Response(Status.BadRequest))
               }
           case _ => OptionT.none
-        })
+        }
+        TranslateUri(config.pathPrefix)(inner)
 
       case Failure(e) =>
         logger
@@ -200,7 +200,7 @@ object ResourceService {
             s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail."
           )
           .unsafeRunSync()
-        Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
+        _ => OptionT.pure(Response(Status.InternalServerError))
     }
   }
 }

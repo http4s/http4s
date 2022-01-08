@@ -18,7 +18,6 @@ package org.http4s
 
 import cats.Applicative
 import cats.Monad
-import cats.data.Kleisli
 
 /** Functions for creating [[HttpApp]] kleislis. */
 object HttpApp {
@@ -41,7 +40,7 @@ object HttpApp {
     * @return an [[HttpApp]] that always returns `fr`
     */
   def liftF[F[_]](fr: F[Response[F]]): HttpApp[F] =
-    Kleisli.liftF(fr)
+    _ => fr
 
   /** Lifts a [[Response]] into an [[HttpApp]].
     *
@@ -49,8 +48,8 @@ object HttpApp {
     * @param r the [[Response]] to lift
     * @return an [[Http]] that always returns `r` in effect `F`
     */
-  def pure[F[_]: Applicative](r: Response[F]): HttpApp[F] =
-    Kleisli.pure(r)
+  def pure[F[_]](r: Response[F])(implicit F: Applicative[F]): HttpApp[F] =
+    _ => F.pure(r)
 
   /** Transforms an [[HttpApp]] on its input.  The application of the
     * transformed function is suspended in `F` to permit more

@@ -105,7 +105,7 @@ object PushSupport {
         }
         .getOrElse(resp)
 
-    Kleisli(req => routes(req).map(gather(req)))
+    req => routes(req).map(gather(req))
   }
 
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)

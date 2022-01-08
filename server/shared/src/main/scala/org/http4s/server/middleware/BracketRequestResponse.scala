@@ -228,7 +228,8 @@ object BracketRequestResponse {
   )(implicit F: MonadCancelThrow[F]): ContextMiddleware[F, A] = {
     (contextRoutes: ContextRoutes[A, F]) =>
       val contextRoutes0: ContextRoutes[(A, F[Unit]), F] =
-        contextRoutes.local(_.map(_._1))
+        (cr: ContextRequest[(A, F[Unit]), F]) => contextRoutes(cr.map(_._1))
+
       bracketRequestResponseRoutes(
         resource.allocated
       )(_._2)(F)(contextRoutes0)

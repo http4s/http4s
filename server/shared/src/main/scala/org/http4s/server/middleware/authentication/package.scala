@@ -27,7 +27,7 @@ package object authentication {
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]
   )(routes: AuthedRoutes[A, F])(implicit F: Monad[F]): HttpRoutes[F] =
-    Kleisli { req =>
+    req => {
       OptionT[F, Response[F]] {
         F.flatMap(challenge(req)) {
           case Left(challenge) => F.pure(Some(unauthorized(challenge)))

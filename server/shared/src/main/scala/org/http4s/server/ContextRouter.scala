@@ -96,12 +96,11 @@ object ContextRouter {
       val prefixSegments = Uri.Path.unsafeFromString(prefix)
       if (prefixSegments.isEmpty) routes <+> acc
       else
-        Kleisli { case creq @ ContextRequest(_, req) =>
-          if (req.pathInfo.startsWith(prefixSegments)) {
+        (creq: ContextRequest[F, A]) =>
+          if (creq.req.pathInfo.startsWith(prefixSegments)) {
             val treq = Router.translate(prefixSegments)(creq.req)
             routes(creq.copy(req = treq)).orElse(acc(creq))
-          } else acc(creq)
-        }
+          } else acc(req)
     }
 
   def of[F[_]: Sync, A](mappings: Routable[F, A]*): ContextRoutes[A, F] =

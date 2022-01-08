@@ -202,7 +202,7 @@ object CORS {
           "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning."
         )
         .unsafeRunSync()
-    Kleisli { req =>
+    (req: Request[F]) => {
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(
           origin: Origin,

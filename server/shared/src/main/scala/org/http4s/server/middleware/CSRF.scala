@@ -20,7 +20,6 @@ package middleware
 
 import cats.Applicative
 import cats.data.EitherT
-import cats.data.Kleisli
 import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
@@ -244,11 +243,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def validate(
       predicate: Request[G] => Boolean = _.method.isSafe
-  ): Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
-    Kleisli { (r: Request[G]) =>
+  ): (Http[F, G] => Http[F, G]) =
+    (http: Http[F, G]) => (r: Request[G]) => 
       if (predicate(r)) validate(r, http(r)) else checkCSRF(r, http(r))
-    }
-  }
 
   def onfailureF: F[Response[G]] = F.pure(onFailure)
 

@@ -17,7 +17,6 @@
 package org.http4s
 
 import cats._
-import cats.data.Kleisli
 import cats.data.OptionT
 import cats.syntax.all._
 
@@ -42,7 +41,7 @@ object HttpRoutes {
     * @return an [[HttpRoutes]] that always returns `fr`
     */
   def liftF[F[_]](fr: OptionT[F, Response[F]]): HttpRoutes[F] =
-    Kleisli.liftF(fr)
+    _ => fr
 
   /** Lifts a [[Response]] into an [[HttpRoutes]].
     *
@@ -51,7 +50,7 @@ object HttpRoutes {
     * @return an [[HttpRoutes]] that always returns `r` in effect `OptionT[F, *]`
     */
   def pure[F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, *]]): HttpRoutes[F] =
-    Kleisli.pure(r)
+    _ => FO.pure(r)
 
   /** Transforms an [[HttpRoutes]] on its input.  The application of the
     * transformed function is suspended in `F` to permit more
@@ -64,7 +63,7 @@ object HttpRoutes {
     * being applied to `fa`
     */
   def local[F[_]: Monad](f: Request[F] => Request[F])(fa: HttpRoutes[F]): HttpRoutes[F] =
-    Http.local[OptionT[F, *], F](f)(fa)
+    fa.local(f)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination
@@ -77,7 +76,7 @@ object HttpRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def of[F[_]: Monad](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
-    Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
+    req => OptionT(Applicative[F].unit >> pf.lift(req).sequence)
 
   /** Lifts a partial function into an [[HttpRoutes]].  The application of the
     * partial function is not suspended in `F`, unlike [[of]]. This allows for less
@@ -89,7 +88,7 @@ object HttpRoutes {
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
     */
   def strict[F[_]: Applicative](pf: PartialFunction[Request[F], F[Response[F]]]): HttpRoutes[F] =
-    Kleisli(req => OptionT(pf.lift(req).sequence))
+    req => OptionT(pf.lift(req).sequence)
 
   /** An empty set of routes.  Always responds with `OptionT.none`.
     *

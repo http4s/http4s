@@ -18,9 +18,15 @@ package org.http4s
 
 import cats.Applicative
 import cats.Monad
-import cats.data.Kleisli
 import cats.data.OptionT
 import cats.syntax.all._
+
+trait ContextRoutes[T, F[_]] { self =>
+  def apply(req: ContextRequest[F, T]): OptionT[F, Response[F]]
+
+  def <+>(other: ContextRoutes[T, F])(implicit F: Monad[F]): ContextRoutes[T, F] =
+    req => self(req) orElse other(req)
+}
 
 object ContextRoutes {
 
@@ -36,7 +42,7 @@ object ContextRoutes {
   def apply[T, F[_]](run: ContextRequest[F, T] => OptionT[F, Response[F]])(implicit
       F: Monad[F]
   ): ContextRoutes[T, F] =
-    Kleisli(req => OptionT(F.unit >> run(req).value))
+    req => OptionT(F.unit >> run(req).value)
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
     * partial function is suspended in `F` to permit more efficient combination
@@ -50,7 +56,7 @@ object ContextRoutes {
   def of[T, F[_]](pf: PartialFunction[ContextRequest[F, T], F[Response[F]]])(implicit
       F: Monad[F]
   ): ContextRoutes[T, F] =
-    Kleisli(req => OptionT(Applicative[F].unit >> pf.lift(req).sequence))
+    req => OptionT(Applicative[F].unit >> pf.lift(req).sequence)
 
   /** Lifts a partial function into an [[ContextRoutes]].  The application of the
     * partial function is not suspended in `F`, unlike [[of]]. This allows for less
@@ -64,7 +70,7 @@ object ContextRoutes {
   def strict[T, F[_]: Applicative](
       pf: PartialFunction[ContextRequest[F, T], F[Response[F]]]
   ): ContextRoutes[T, F] =
-    Kleisli(req => OptionT(pf.lift(req).sequence))
+    req => OptionT(pf.lift(req).sequence)
 
   /** The empty service (all requests fallthrough).
     *
@@ -72,5 +78,5 @@ object ContextRoutes {
     * @return
     */
   def empty[T, F[_]: Applicative]: ContextRoutes[T, F] =
-    Kleisli.liftF(OptionT.none)
+    _ => OptionT.none
 }

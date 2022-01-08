@@ -89,40 +89,41 @@ package object server {
     * @tparam C the request type of the resulting service
     * @tparam D the response type of the resulting service
     */
-  type Middleware[F[_], A, B, C, D] = Kleisli[F, A, B] => Kleisli[F, C, D]
+  type Middleware[F[_], A, B, C, D] =
+    (A => F[B]) => (C => F[D])
 
   /** An HTTP middleware converts an [[HttpRoutes]] to another.
     */
-  type HttpMiddleware[F[_]] =
-    Middleware[OptionT[F, *], Request[F], Response[F], Request[F], Response[F]]
+  type HttpMiddleware[F[_]] = HttpRoutes[F] => HttpRoutes[F]
 
   /** An HTTP middleware that authenticates users.
     */
-  type AuthMiddleware[F[_], T] =
-    Middleware[OptionT[F, *], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
+  type AuthMiddleware[F[_], T] = AuthedRoutes[T, F] => HttpRoutes[F]
 
   /** An HTTP middleware that adds a context.
     */
   type ContextMiddleware[F[_], T] =
-    Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
+    ContextRoutes[T, F] => HttpRoutes[F]
+
 
   object AuthMiddleware {
     def apply[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, *], Request[F], T]
+        authUser: Request[F] => OptionT[F, T]
     ): AuthMiddleware[F, T] =
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
     def withFallThrough[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, *], Request[F], T]
+        authUser: Request[F] => OptionT[F, T]
     ): AuthMiddleware[F, T] =
-      _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
+      (authedRoutes: AuthedRoutes[F]) => (req: Request[F]) =>
+        authUser(req).map(AuthedRequest(_, req)).flatMap(authedRoutes)
 
     def noSpider[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, *], Request[F], T],
-        onAuthFailure: Request[F] => F[Response[F]],
-    ): AuthMiddleware[F, T] = { service =>
-      Kleisli { (r: Request[F]) =>
-        val resp = authUser(r).value.flatMap {
+        authUser: Request[F] => F[Option[T]],
+        onAuthFailure: HttpApp[F],
+    ): AuthMiddleware[F, T] = { (service: AuthedRoutes[F]) =>
+      (r: Request[F]) => {
+        val resp = authUser(r).flatMap {
           case Some(authReq) =>
             service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
           case None => onAuthFailure(r)

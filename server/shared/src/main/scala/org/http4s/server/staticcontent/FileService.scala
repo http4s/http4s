@@ -66,9 +66,10 @@ object FileService {
     }
   }
 
+  private[this] object BadTraversal extends Exception with NoStackTrace
+
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
-    object BadTraversal extends Exception with NoStackTrace
     def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
       val resolvePath: F[Path] =
         if (request.pathInfo.isEmpty) F.pure(rootPath)
@@ -119,7 +120,6 @@ object FileService {
           .as(HttpRoutes.pure(Response(Status.InternalServerError)))
     }
 
-    Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
   private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit

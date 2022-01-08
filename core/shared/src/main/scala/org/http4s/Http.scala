@@ -17,8 +17,32 @@
 package org.http4s
 
 import cats._
-import cats.data.Kleisli
 import cats.syntax.all._
+
+
+/** A function with a [[Request]] input and a [[Response]] output.  This type
+    * is useful for writing middleware that are polymorphic over the return
+    * type F.
+    *
+    * @tparam F the effect type in which the [[Response]] is returned
+    * @tparam G the effect type of the [[Request]] and [[Response]] bodies
+    */
+trait Http[F[_], G[_]] { self =>
+
+  def apply(req: Request[G]): F[Response[G]]
+
+  def <+>(other: Http[F, G])(implicit F: Alternative[F]): Http[F, G] =
+    req => self(req) <+> other(req)
+
+  def map(post: Response[G] => Response[G])(implicit F: Functor[F]): Http[F, G] =
+    req => self(req).map(post)
+
+  def contramap(pre: Request[G] => Request[G])(implicit F: Monad[F]): Http[F, G] =
+    req => F.unit >> self(pre(req))
+
+  def local(pre: Request[G] => Request[G])(implicit F: Monad[F]): Http[F, G] =
+    contramap(pre)
+}
 
 /** Functions for creating [[Http]] kleislis. */
 object Http {
@@ -33,7 +57,7 @@ object Http {
     * @return an [[Http]] that suspends `run`.
     */
   def apply[F[_], G[_]](run: Request[G] => F[Response[G]])(implicit F: Monad[F]): Http[F, G] =
-    Kleisli(req => F.unit >> run(req))
+    req => F.unit >> run(req)
 
   /** Lifts an effectful [[Response]] into an [[Http]] kleisli.
     *
@@ -43,7 +67,7 @@ object Http {
     * @return an [[Http]] that always returns `fr`
     */
   def liftF[F[_], G[_]](fr: F[Response[G]]): Http[F, G] =
-    Kleisli.liftF(fr)
+    _ => fr
 
   /** Lifts a [[Response]] into an [[Http]] kleisli.
     *
@@ -52,8 +76,8 @@ object Http {
     * @param r the [[Response]] to lift
     * @return an [[Http]] that always returns `r` in effect `F`
     */
-  def pure[F[_]: Applicative, G[_]](r: Response[G]): Http[F, G] =
-    Kleisli.pure(r)
+  def pure[F[_], G[_]](r: Response[G])(implicit F: Applicative[F]): Http[F, G] =
+    _ => F.pure(r)
 
   /** Transforms an [[Http]] on its input.  The application of the
     * transformed function is suspended in `F` to permit more
@@ -69,5 +93,5 @@ object Http {
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
       F: Monad[F]
   ): Http[F, G] =
-    Kleisli(req => F.unit >> fa.run(f(req)))
+    (req => F.unit >> fa(f(req)))
 }

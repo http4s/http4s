@@ -89,34 +89,31 @@ object RequestLogger {
         } <* fk(logAct)
     }
 
-    Kleisli {
-      case req if !logBody =>
-        logRequest(req)
-      case req =>
-        req.entity match {
-          case Entity.Empty | Entity.Strict(_) =>
-            logRequest(req)
+    if (!logBody)
+      (req: Request[F]) => logRequest(req)
+    else
+      (req: Request[F]) => {
+        case Request(_, _, _, _, Entity.Empty | Entity.Strict(_), _) =>
+          logRequest(req)
 
-          case Entity.Default(_, _) =>
-            fk(F.ref(Vector.empty[Chunk[Byte]]))
-              .flatMap { vec =>
-                val collectChunks: Pipe[F, Byte, Nothing] =
-                  _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
+        case Request(_, _, _, _, Entity.Default(_, _), _) =>
+          fk(F.ref(Vector.empty[Chunk[Byte]])).flatMap { vec =>
+            val collectChunks: Pipe[F, Byte, Nothing] =
+              _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
-                val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
+            val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
 
-                val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-                val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
 
-                http(changedRequest)
-                  .guaranteeCase {
-                    case Outcome.Succeeded(_) => G.unit
-                    case _ => fk(logRequest)
-                  }
-                  .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
+            http(changedRequest)
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => G.unit
+                case _ => fk(logRequest)
               }
-        }
-    }
+              .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
+          }
+      }
   }
 
   def httpApp[F[_]: Async](

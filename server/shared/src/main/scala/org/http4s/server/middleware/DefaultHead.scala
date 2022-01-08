@@ -20,7 +20,6 @@ package middleware
 
 import cats.Functor
 import cats.MonoidK
-import cats.data.Kleisli
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
@@ -36,12 +35,11 @@ import org.http4s.Method.HEAD
   */
 object DefaultHead {
   def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
-    Kleisli { req =>
+    (req: Request[G]) => 
       req.method match {
         case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
         case _ => http(req)
       }
-    }
 
   def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)

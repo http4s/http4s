@@ -155,12 +155,11 @@ object Throttle {
       bucket: TokenBucket[F],
       throttleResponse: Option[FiniteDuration] => Response[G] = defaultResponse[G] _,
   )(http: Http[F, G])(implicit F: Monad[F]): Http[F, G] =
-    Kleisli { req =>
+    (req: Request[G]) =>
       bucket.takeToken.flatMap {
         case TokenAvailable => http(req)
         case TokenUnavailable(retryAfter) => throttleResponse(retryAfter).pure[F]
       }
-    }
 
   /** As [[[apply[F[_],G[_]](bucket:org\.http4s\.server\.middleware\.Throttle\.TokenBucket[F],throttleResponse:Option[scala\.concurrent\.duration\.FiniteDuration]=>org\.http4s\.Response[G]* apply(bucket,throttleResponse)]]], but for HttpRoutes[F]
     */

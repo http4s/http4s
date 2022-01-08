@@ -146,9 +146,11 @@ object HttpMethodOverrider {
         case None => http(req)
       }
 
-    Kleisli { (req: Request[G]) =>
-      val isOverridden = config.overridableMethods.contains(req.method)
-      if (isOverridden) processRequest(req) else http(req)
+    new Http[F, G] {
+      def apply(req: Request[G]): F[Response[G]] = {
+        val isOverridden = config.overridableMethods.contains(req.method)
+        if (isOverridden) processRequest(req) else http(req)
+      }
     }
   }
 }

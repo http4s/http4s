@@ -17,7 +17,6 @@
 package org.http4s
 package server
 
-import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
@@ -66,11 +65,10 @@ class ContextRouterSuite extends Http4sSuite {
   }
 
   def middleware(routes: ContextRoutes[Unit, IO]): ContextRoutes[Unit, IO] =
-    Kleisli((r: ContextRequest[IO, Unit]) =>
+    (r: ContextRequest[IO, Unit]) =>
       if (r.req.uri.query.containsQueryParam("block"))
         OptionT.liftF(Ok(r.req.uri.path.renderString))
       else routes(r)
-    )
 
   private val service = ContextRouter[IO, Unit](
     "/numbers" -> numbers,
