@@ -56,6 +56,7 @@ object EmberClientH2Example extends IOApp {
             .default[F]
             .withHttp2
             .withTLSContext(tls)
+            .withLogger(org.typelevel.log4cats.slf4j.Slf4jLogger.getLogger[F])
             .withPushPromiseSupport(printPushPromiseSupport)
             .build
         }
@@ -82,7 +83,7 @@ object EmberClientH2Example extends IOApp {
               resp.body.compile.drain >> resp.trailerHeaders
                 .flatMap(h => Sync[F].delay(println(s"Resp $resp: trailers: $h")))
             )
-          p >> p >> Temporal[F].sleep(5.seconds)
+          p
         }
   }
 
