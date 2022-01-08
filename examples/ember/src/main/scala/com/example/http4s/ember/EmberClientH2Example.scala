@@ -25,8 +25,6 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.h2._
 import org.http4s.implicits._
 
-import scala.concurrent.duration._
-
 object EmberClientH2Example extends IOApp {
 
   object ClientTest {
