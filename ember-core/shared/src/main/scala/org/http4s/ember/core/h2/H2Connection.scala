@@ -166,7 +166,8 @@ private[h2] class H2Connection[F[_]](
             }
             state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
               socket.isOpen.ifM(
-                socket.write(Chunk.byteVector(bv)),
+                socket.write(Chunk.byteVector(bv)) >>
+                  chunk.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
                 new Throwable("Socket Closed when attempting to write").raiseError,
               )
           } else {
@@ -184,7 +185,8 @@ private[h2] class H2Connection[F[_]](
               acc ++ H2Frame.toByteVector(frame)
             }
             socket.isOpen.ifM(
-              socket.write(Chunk.byteVector(bv)),
+              socket.write(Chunk.byteVector(bv)) >>
+                nonData.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
               new Throwable("Socket Closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
@@ -236,7 +238,7 @@ private[h2] class H2Connection[F[_]](
       }
     p(acc).stream
   }
-    .evalTapChunk(frame => logger.debug(s"Connection $host:$port Read - $frame"))
+    .evalTapChunk(frame => logger.debug(s"$host:$port Read - $frame"))
     .evalMapChunk(f => state.get.map(s => (f, s)))
     .evalTapChunk {
       // Headers and Continuation Frames are Stateful
