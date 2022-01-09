@@ -33,6 +33,7 @@ import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
 import org.http4s.headers._
+import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -304,8 +305,10 @@ final class Request[F[_]] private (
       attributes = attributes,
     )
 
-  lazy val (scriptName, pathInfo) =
-    uri.path.splitAt(caret)
+  lazy val (scriptName, pathInfo) = {
+    val (l, r) = uri.path.splitAt(caret)
+    (l.toAbsolute, r.toAbsolute)
+  }
 
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
@@ -323,28 +326,11 @@ final class Request[F[_]] private (
 
   /** cURL representation of the request.
     *
-    * Supported cURL-Parameters are: -X, -H
+    * Supported cURL-Parameters are: --request, --url, --header.
+    * Note that `asCurl` will not print the request body.
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
-
-    /*
-     * escapes characters that are used in the curl-command, such as '
-     */
-    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
-
-    val elements = List(
-      s"-X ${method.name}",
-      s"'${escapeQuotationMarks(uri.renderString)}'",
-      headers
-        .redactSensitive(redactHeadersWhen)
-        .headers
-        .map { header =>
-          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
-        }
-        .mkString(" "),
-    )
-    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
-  }
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+    CurlConverter.requestToCurlWithoutBody(this, redactHeadersWhen)
 
   /** Representation of the query string as a map
     *
