@@ -41,6 +41,13 @@ object Retry {
   def apply[F[_]](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
+    create[F](policy, redactHeaderWhen)(client)
+
+  def create[F[_]](
+      policy: RetryPolicy[F],
+      redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logRetries: Boolean = true,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
@@ -79,9 +86,10 @@ object Retry {
           case Right(response) =>
             policy(req, Right(response), attempts) match {
               case Some(duration) =>
-                logger.info(
-                  s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
-                )
+                if (logRetries)
+                  logger.info(
+                    s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                  )
                 nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
               case None =>
                 F.pure(response)
@@ -91,14 +99,16 @@ object Retry {
             policy(req, Left(e), attempts) match {
               case Some(duration) =>
                 // info instead of error(e), because e is not discarded
-                logger.info(e)(
-                  s"Request threw an exception on attempt #$attempts. Retrying after $duration"
-                )
+                if (logRetries)
+                  logger.info(e)(
+                    s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                  )
                 nextAttempt(req, attempts, duration, None, hotswap)
               case None =>
-                logger.info(e)(
-                  s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-                )
+                if (logRetries)
+                  logger.info(e)(
+                    s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+                  )
                 F.raiseError(e)
             }
         }
