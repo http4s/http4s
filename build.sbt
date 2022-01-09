@@ -911,7 +911,8 @@ addCommandAlias(
   ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
+// Use this command for checking before submitting a PR
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  """;set ThisBuild / scalacOptions += "-Xfatal-warnings" ;clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues""",
 )
