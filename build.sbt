@@ -1080,12 +1080,29 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
+lazy val setFatalWarnings: String =
+  """set ThisBuild / scalacOptions += "-Xfatal-warnings""""
+
+lazy val unsetFatalWarnings: String =
+  """set ThisBuild / scalacOptions -= "-Xfatal-warnings""""
+
 addCommandAlias(
   "quicklint",
   ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
 )
 
+// Use this command for checking before submitting a PR
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;scalafixAll --triggered ;scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  List(
+    setFatalWarnings,
+    "clean",
+    "+test:compile",
+    "scalafixAll --triggered",
+    "scalafixAll",
+    "+scalafmtAll",
+    "scalafmtSbt",
+    "+mimaReportBinaryIssues",
+    unsetFatalWarnings,
+  ).mkString(" ;"),
 )
