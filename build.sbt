@@ -905,7 +905,6 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-// OrganizeImports needs to run separately to clean up after the other rules
 addCommandAlias(
   "quicklint",
   ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
@@ -913,5 +912,5 @@ addCommandAlias(
 
 addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  ";clean ;+test:compile ;scalafixAll --triggered ;scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
 )
