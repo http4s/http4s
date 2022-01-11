@@ -347,7 +347,9 @@ lazy val server = libraryCrossProject("server")
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
   .settings(
-    buildInfoKeys := Seq[BuildInfoKey](Test / resourceDirectory),
+    buildInfoKeys := Seq[BuildInfoKey](
+      BuildInfoKey.map(Test / resourceDirectory) { case (k, v) => k -> v.toString }
+    ),
     buildInfoPackage := "org.http4s.server.test",
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
@@ -391,7 +393,7 @@ lazy val client = libraryCrossProject("client")
       nettyCodecHttp % Test,
     )
   )
-  .dependsOn(core, server, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
@@ -512,8 +514,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      keypool.value,
-      log4catsSlf4j,
+      keypool.value
     ),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters

@@ -206,9 +206,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     (for {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
-          Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
-            128,
+          Entity(
+            Stream.fromIterator[IO](
+              """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+              128,
+            )
           ),
           Headers("content-type" -> "application/json"),
         ),
@@ -232,9 +234,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   ) {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
-        Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
-          128,
+        Entity(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+            128,
+          )
         ),
         Headers.empty,
       ),
@@ -246,9 +250,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("stream json array decoder should not fail on improper JSON") {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
-        Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
-          128,
+        Entity(
+          Stream.fromIterator[IO](
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+            128,
+          )
         ),
         Headers("content-type" -> "application/json"),
       ),
@@ -261,9 +267,11 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     (for {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
-          Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
-            128,
+          Entity(
+            Stream.fromIterator[IO](
+              """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+              128,
+            )
           ),
           Headers("content-type" -> "application/json"),
         ),

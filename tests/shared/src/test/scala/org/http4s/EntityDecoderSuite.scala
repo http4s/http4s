@@ -455,7 +455,7 @@ class EntityDecoderSuite extends Http4sSuite {
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
     val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
-    val msg = Request[IO](body = body)
+    val msg = Request[IO](entity = Entity(body))
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }

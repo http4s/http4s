@@ -1,7 +1,6 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
@@ -28,7 +27,7 @@ object Http4sPlugin extends AutoPlugin {
   val scala_3 = "3.1.0"
 
   override lazy val globalSettings = Seq(
-    isCi := sys.env.get("CI").isDefined
+    isCi := sys.env.contains("CI")
   )
 
   override lazy val buildSettings = Seq(
@@ -198,20 +197,20 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
-    val catsEffect = "3.3.0"
+    val catsEffect = "3.3.3"
     val catsParse = "0.3.6"
     val circe = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.4.0"
-    val dropwizardMetrics = "4.2.5"
-    val fs2 = "3.2.3"
+    val dropwizardMetrics = "4.2.7"
+    val fs2 = "3.2.4"
     val ip4s = "3.1.2"
     val javaWebSocket = "1.5.2"
-    val jawn = "1.3.0"
-    val jawnFs2 = "2.1.0"
+    val jawn = "1.3.2"
+    val jawnFs2 = "2.2.0"
     val jetty = "9.4.44.v20210927"
-    val jnrUnixSocket = "0.38.15"
+    val jnrUnixSocket = "0.38.17"
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
@@ -220,11 +219,11 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.70.Final"
+    val netty = "4.1.72.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
-    val prometheusClient = "0.11.0"
+    val prometheusClient = "0.14.1"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
@@ -287,7 +286,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jnrUnixSocket = "com.github.jnr" % "jnr-unixsocket" % V.jnrUnixSocket
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
   lazy val literally = Def.setting("org.typelevel" %%% "literally" % V.literally)
-  lazy val log4catsCore = "org.typelevel" %% "log4cats-core" % V.log4cats
+  lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)
   lazy val log4catsNoop = Def.setting("org.typelevel" %%% "log4cats-noop" % V.log4cats)
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)

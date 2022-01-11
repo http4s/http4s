@@ -56,7 +56,9 @@ trait EntityEncoder[+F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
+    * if defined the headers
+    */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -99,10 +101,7 @@ object EntityEncoder {
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
   def simple[A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder.Pure[A] =
-    encodeBy(hs: _*) { a =>
-      val c = toChunk(a)
-      Entity(Stream.chunk(c), Some(c.size.toLong))
-    }
+    encodeBy(hs: _*)(a => Entity.strict(toChunk(a)))
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[A](implicit charset: Charset = `UTF-8`, show: Show[A]): EntityEncoder.Pure[A] = {

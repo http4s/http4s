@@ -67,7 +67,7 @@ object ResponseLogger {
           Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText(resp)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {
@@ -86,16 +86,18 @@ object ResponseLogger {
               F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
                 val newBody = Stream
                   .eval(vec.get)
-                  .flatMap(v => Stream.emits(v).covary[F])
-                  .flatMap(c => Stream.chunk(c).covary[F])
+                  .flatMap(v => Stream.emits(v))
+                  .flatMap(c => Stream.chunk(c))
 
                 response.copy(
-                  body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                    .onFinalizeWeak {
-                      logMessage(response.withBodyStream(newBody))
-                    }
+                  entity = Entity(
+                    response.body
+                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                      .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+                      .onFinalizeWeak {
+                        logMessage(response.withBodyStream(newBody))
+                      }
+                  )
                 )
               }
           fk(out)

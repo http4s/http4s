@@ -29,6 +29,7 @@ import io.netty.channel.ChannelInboundHandler
 import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http._
 import org.http4s
+import org.http4s.Entity
 import org.http4s.Headers
 import org.http4s.HttpRoutes
 import org.http4s.Method
@@ -74,7 +75,7 @@ class RoutesToHandlerAdapter[F[_]](
         bodyQueue <- Queue.unbounded[F, Option[Chunk[Byte]]]
         _ <- requestBodyQueue.set(bodyQueue)
         body = fs2.Stream.fromQueueNoneTerminatedChunk(bodyQueue)
-        http4sRequest = http4s.Request(method, uri, headers = headers, body = body)
+        http4sRequest = http4s.Request(method, uri, headers = headers, entity = Entity(body))
         _ <- processRequest(ctx, http4sRequest).start
       } yield ()
     )

@@ -159,7 +159,7 @@ private class Http2NodeStage[F[_]](
       }
     }
 
-    repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F])
+    repeatEval(t).unNoneTerminate.flatMap(chunk(_))
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
@@ -234,7 +234,7 @@ private class Http2NodeStage[F[_]](
     else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = Headers(headers.result())
-      val req = Request(method, path, HttpVersion.`HTTP/2`, hs, body, attributes())
+      val req = Request(method, path, HttpVersion.`HTTP/2`, hs, Entity(body), attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = F

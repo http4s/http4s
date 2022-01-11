@@ -33,21 +33,26 @@ import io.netty.handler.codec.http._
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
+import org.http4s.Uri
 import org.log4s.getLogger
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 
 trait TestServer[F[_]] {
   def localAddress: SocketAddress[IpAddress]
   def establishedConnections: F[Long]
   def resetEstablishedConnections: F[Unit]
+  def secure: Boolean
+  def uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
 }
 
 class NettyTestServer[F[_]](
     establishedConnectionsRef: Ref[F, Long],
     val localAddress: SocketAddress[IpAddress],
+    val secure: Boolean,
 ) extends TestServer[F] {
   def establishedConnections: F[Long] = establishedConnectionsRef.get
   def resetEstablishedConnections: F[Unit] = establishedConnectionsRef.set(0L)
@@ -74,7 +79,7 @@ object NettyTestServer {
       .childHandler(new ChannelInitializer[NioSocketChannel]() {
         def initChannel(ch: NioSocketChannel): Unit = {
           logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].")
-          establishedConnections.update(_ + 1)
+          dispatcher.unsafeRunSync(establishedConnections.update(_ + 1))
           sslContext.foreach { sslContext =>
             val engine = sslContext.createSSLEngine()
             engine.setUseClientMode(false)
@@ -90,10 +95,12 @@ object NettyTestServer {
     channel <- server[F](bootstrap, port)
     localInetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
     localAddress <- Resource.eval(toSocketAddress(localInetSocketAddress).liftTo[F])
-  } yield new NettyTestServer(establishedConnections, localAddress)
+  } yield new NettyTestServer(establishedConnections, localAddress, secure = sslContext.isDefined)
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
-    Resource.make(F.delay(new NioEventLoopGroup()))(el => F.delay(el.shutdownGracefully()).liftToF)
+    Resource.make(
+      F.delay(new NioEventLoopGroup())
+    )(el => F.delay(el.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS)).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
       F: Async[F]

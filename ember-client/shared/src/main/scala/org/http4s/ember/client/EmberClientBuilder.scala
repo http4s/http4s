@@ -233,7 +233,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             unixSocketClient(request, address)
           }
       }
-      val stackClient = Retry(retryPolicy)(client)
+      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
       new EmberClient[F](stackClient, pool)
     }
 }

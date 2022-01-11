@@ -70,7 +70,7 @@ object RequestLogger {
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Request[F]](r)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText(r)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {
@@ -94,8 +94,8 @@ object RequestLogger {
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.chunk(c).covary[F])
+              .flatMap(v => Stream.emits(v))
+              .flatMap(c => Stream.chunk(c))
 
             val changedRequest = req.withBodyStream(
               req.body

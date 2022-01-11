@@ -30,6 +30,7 @@ import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
 import org.http4s.headers._
+import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -46,15 +47,11 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
 
   def httpVersion: HttpVersion
 
-  def headers: Headers
-
-  def body: EntityBody[F]
-
   def attributes: Vault
 
   protected def change[F1[_]](
       httpVersion: HttpVersion = httpVersion,
-      body: EntityBody[F1] = body,
+      entity: Entity[F1] = entity,
       headers: Headers = headers,
       attributes: Vault = attributes,
   ): SelfF[F1]
@@ -96,7 +93,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
 
       case None => w.headers
     }
-    change(body = entity.body, headers = headers ++ hs)
+    change(entity = entity, headers = headers ++ hs)
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -104,7 +101,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
   def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
-    change(body = body)
+    change(entity = Entity(body))
 
   /** Set an empty entity body on this message, and remove all payload headers
     * that make no sense with an empty body.
@@ -231,7 +228,7 @@ object Message {
       self.change(
         httpVersion = httpVersion,
         headers = headers,
-        body = body.translate(f),
+        entity = entity.translate(f),
         attributes = attributes,
       )
   }
@@ -260,7 +257,7 @@ final class Request[+F[_]] private (
     val uri: Uri,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val entity: Entity[F],
     val attributes: Vault,
 ) extends Message[F]
     with Product
@@ -274,7 +271,7 @@ final class Request[+F[_]] private (
       uri: Uri = this.uri,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F1] = this.body,
+      entity: Entity[F1] = this.entity,
       attributes: Vault = this.attributes,
   ): Request[F1] =
     Request(
@@ -282,7 +279,7 @@ final class Request[+F[_]] private (
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -294,19 +291,21 @@ final class Request[+F[_]] private (
 
   override protected def change[F1[_]](
       httpVersion: HttpVersion,
-      body: EntityBody[F1],
+      entity: Entity[F1],
       headers: Headers,
       attributes: Vault,
   ): Request[F1] =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes,
     )
 
-  lazy val (scriptName, pathInfo) =
-    uri.path.splitAt(caret)
+  lazy val (scriptName, pathInfo) = {
+    val (l, r) = uri.path.splitAt(caret)
+    (l.toAbsolute, r.toAbsolute)
+  }
 
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
@@ -324,28 +323,11 @@ final class Request[+F[_]] private (
 
   /** cURL representation of the request.
     *
-    * Supported cURL-Parameters are: -X, -H
+    * Supported cURL-Parameters are: --request, --url, --header.
+    * Note that `asCurl` will not print the request body.
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
-
-    /*
-     * escapes characters that are used in the curl-command, such as '
-     */
-    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
-
-    val elements = List(
-      s"-X ${method.name}",
-      s"'${escapeQuotationMarks(uri.renderString)}'",
-      headers
-        .redactSensitive(redactHeadersWhen)
-        .headers
-        .map { header =>
-          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
-        }
-        .mkString(" "),
-    )
-    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
-  }
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+    CurlConverter.requestToCurlWithoutBody(this, redactHeadersWhen)
 
   /** Representation of the query string as a map
     *
@@ -519,7 +501,7 @@ object Request {
       uri: Uri = Uri(path = Uri.Path.Root),
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      entity: Entity[F] = Entity.empty,
       attributes: Vault = Vault.empty,
   ): Request[F] =
     new Request(
@@ -527,7 +509,7 @@ object Request {
       uri = uri,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -566,7 +548,7 @@ object Request {
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
   * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+  * @param attributes [[org.typelevel.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
@@ -574,25 +556,25 @@ final class Response[+F[_]] private (
     val status: Status,
     val httpVersion: HttpVersion,
     val headers: Headers,
-    val body: EntityBody[F],
+    val entity: Entity[F],
     val attributes: Vault,
 ) extends Message[F]
     with Product
     with Serializable {
-  type SelfF[+F0[_]] = Response[F0]
+  type SelfF[F0[_]] = Response[F0]
 
   def withStatus(status: Status): Response[F] =
     copy(status = status)
 
   override protected def change[F1[_]](
       httpVersion: HttpVersion,
-      body: EntityBody[F1],
+      entity: Entity[F1],
       headers: Headers,
       attributes: Vault,
   ): Response[F1] =
     copy(
       httpVersion = httpVersion,
-      body = body,
+      entity = entity,
       headers = headers,
       attributes = attributes,
     )
@@ -601,21 +583,21 @@ final class Response[+F[_]] private (
   def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+  /** Returns a list of cookies from the [[org.http4s.headers.`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
@@ -628,14 +610,14 @@ final class Response[+F[_]] private (
       status: Status = this.status,
       httpVersion: HttpVersion = this.httpVersion,
       headers: Headers = this.headers,
-      body: EntityBody[F1] = this.body,
+      entity: Entity[F1] = this.entity,
       attributes: Vault = this.attributes,
   ): Response[F1] =
     Response(
       status = status,
       httpVersion = httpVersion,
       headers = headers,
-      body = body,
+      entity = entity,
       attributes = attributes,
     )
 
@@ -683,7 +665,7 @@ object Response extends KleisliSyntax {
     * @param status [[Status]] code and message
     * @param headers [[Headers]] containing all response headers
     * @param body EntityBody[F] representing the possible body of the response
-    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    * @param attributes [[org.typelevel.vault.Vault]] containing additional
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object
     */
@@ -691,10 +673,10 @@ object Response extends KleisliSyntax {
       status: Status = Status.Ok,
       httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
       headers: Headers = Headers.empty,
-      body: EntityBody[F] = EmptyBody,
+      entity: Entity[F] = Entity.empty,
       attributes: Vault = Vault.empty,
   ): Response[F] =
-    new Response(status, httpVersion, headers, body, attributes)
+    new Response(status, httpVersion, headers, entity, attributes)
 
   def unapply[F[_]](
       response: Response[F]
@@ -706,7 +688,7 @@ object Response extends KleisliSyntax {
   val notFound: Response.Pure =
     Response(
       Status.NotFound,
-      body = Stream("Not found").through(utf8.encode),
+      entity = Entity(Stream("Not found").through(utf8.encode)),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

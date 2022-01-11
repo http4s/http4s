@@ -69,27 +69,18 @@ import scala.concurrent.duration._
   *
   * Variables:
   * @param socketAddress: Socket Address the server will be mounted at
-  * @param executionContext: Execution Context the underlying blaze futures
-  *    will be executed upon.
   * @param responseHeaderTimeout: Time from when the request is made until a
   *    response line is generated before a 503 response is returned and the
   *    `HttpApp` is canceled
   * @param idleTimeout: Period of Time a connection can remain idle before the
   *    connection is timed out and disconnected.
   *    Duration.Inf disables this feature.
-  * @param isNio2: Whether or not to use NIO2 or NIO1 Socket Server Group
   * @param connectorPoolSize: Number of worker threads for the new Socket Server Group
   * @param bufferSize: Buffer size to use for IO operations
-  * @param sslBits: If defined enables secure communication to the server using the
-  *    sslContext
   * @param isHttp2Enabled: Whether or not to enable Http2 Server Features
-  * @param maxRequestLineLength: Maximum request line to parse
-  *    If exceeded returns a 400 Bad Request.
   * @param maxHeadersLen: Maximum data that composes the headers.
   *    If exceeded returns a 400 Bad Request.
   * @param chunkBufferMaxSize Size of the buffer that is used when Content-Length header is not specified.
-  * @param serviceMounts: The services that are mounted on this server to serve.
-  *    These services get assembled into a Router with the longer prefix winning.
   * @param serviceErrorHandler: The last resort to recover and generate a response
   *    this is necessary to recover totality from the error condition.
   * @param banner: Pretty log to display on server start. An empty sequence

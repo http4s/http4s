@@ -67,7 +67,6 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       _ <-
         Stream(Stream.eval(pool.borrow(key))).repeat
           .take(2)
-          .covary[IO]
           .parJoinUnbounded
           .compile
           .toList
@@ -82,7 +81,6 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       att <-
         Stream(Stream.eval(pool.borrow(key))).repeat
           .take(3)
-          .covary[IO]
           .parJoinUnbounded
           .compile
           .toList

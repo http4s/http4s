@@ -40,7 +40,7 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { response =>
-      Logger.logMessage[F, Response[F]](response)(
+      Logger.logMessage(response)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -54,7 +54,7 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
+      InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -83,22 +83,21 @@ object ResponseLogger {
             Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
               Resource.make(
                 F.pure(
-                  response.copy(body =
-                    response.body
-                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                  response.copy(entity =
+                    Entity(
+                      response.body
+                        // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                        .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                    )
                   )
                 )
               ) { _ =>
                 val newBody = Stream
                   .eval(vec.get)
-                  .flatMap(v => Stream.emits(v).covary[F])
-                  .flatMap(c => Stream.chunk(c).covary[F])
-                logMessage(response.withBodyStream(newBody)).attempt
-                  .flatMap {
-                    case Left(t) => F.delay(logger.error(t)("Error logging response body"))
-                    case Right(()) => F.unit
-                  }
+                  .flatMap(v => Stream.emits(v))
+                  .flatMap(c => Stream.chunk(c))
+                logMessage(response.withBodyStream(newBody))
+                  .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
               }
             }
           }
@@ -123,10 +122,10 @@ object ResponseLogger {
       val prelude = s"${response.httpVersion} ${response.status}"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(response)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
+        InternalLogger.defaultLogBody(response)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

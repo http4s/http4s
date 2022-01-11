@@ -123,7 +123,7 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
+                    entity = Entity(readInputStream[F](F.pure(inputStream), DefaultBufferSize)),
                   )
                 )
               },
@@ -197,7 +197,7 @@ object StaticFile {
 
                 F.pure(notModified(req, etagCalc, lastModified).orElse {
                   val (body, contentLength) =
-                    if (attr.size < end) (Stream.empty.covary[F], 0L)
+                    if (attr.size < end) (Stream.empty, 0L)
                     else (fileToBody[F](f, start, end), end - start)
 
                   val contentType = nameToContentType(f.fileName.toString)
@@ -211,7 +211,7 @@ object StaticFile {
 
                   val r = Response(
                     headers = hs,
-                    body = body,
+                    entity = Entity(body),
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 

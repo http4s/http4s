@@ -222,28 +222,55 @@ class MessageSuite extends Http4sSuite {
   val request = Request[IO](Method.GET, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
-    assertEquals(request.asCurl(), "curl -X GET 'http://localhost:1234/foo'")
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo'""".stripMargin
+
+    assertEquals(request.asCurl(), expected)
   }
 
   test("asCurl should build cURL representation with headers") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'k1: v1' \
+        |  --header 'k2: v2'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("k1" -> "v1", "k2" -> "v2")
         .asCurl(),
-      "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'",
+      expected,
     )
   }
 
   test("asCurl should build cURL representation but redact sensitive information on default") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Cookie: <REDACTED>' \
+        |  --header 'Authorization: <REDACTED>'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("Cookie" -> "k3=v3; k4=v4", Authorization(BasicCredentials("user", "pass")))
         .asCurl(),
-      "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'",
+      expected,
     )
   }
 
   test("asCurl should build cURL representation but display sensitive headers on demand") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Cookie: k3=v3; k4=v4' \
+        |  --header 'k5: v5' \
+        |  --header 'Authorization: Basic dXNlcjpwYXNz'""".stripMargin
+
     assertEquals(
       request
         .withHeaders(
@@ -252,16 +279,23 @@ class MessageSuite extends Http4sSuite {
           Authorization(BasicCredentials("user", "pass")),
         )
         .asCurl(_ => false),
-      "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'",
+      expected,
     )
   }
 
   test("asCurl should escape quotation marks in header") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'k6: '\''v6'\''' \
+        |  --header ''\''k7'\'': v7'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("k6" -> "'v6'", "'k7'" -> "v7")
         .asCurl(),
-      s"""curl -X GET 'http://localhost:1234/foo' -H 'k6: '\\''v6'\\''' -H ''\\''k7'\\'': v7'""",
+      expected,
     )
   }
 

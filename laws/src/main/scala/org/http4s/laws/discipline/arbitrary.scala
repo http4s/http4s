@@ -860,7 +860,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body.covary[F], length)
+      } yield Entity(body, length)
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
@@ -973,7 +973,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, body)
+      } yield try Request(method, uri, httpVersion, headers, Entity(body))
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -999,7 +999,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, body)
+      } yield Response(status, httpVersion, headers, Entity(body))
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =
@@ -1113,4 +1113,26 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  val genObsText = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
+  val genVcharExceptDquote = genVchar.filter(_ != 0x22.toChar)
+
+  val genEntityTag: Gen[EntityTag] =
+    for {
+      tag <- Gen.oneOf(genObsText, genVcharExceptDquote.map(_.toString))
+      strength <- Gen.oneOf(EntityTag.Weak, EntityTag.Strong)
+    } yield EntityTag(tag, strength)
+
+  implicit val http4sTestingArbitraryForIfRangeLastModified: Arbitrary[`If-Range`] = Arbitrary {
+    Gen.oneOf(
+      genHttpDate.map(`If-Range`.LastModified(_)),
+      genEntityTag.map(`If-Range`.ETag(_)),
+    )
+  }
+
+  implicit val http4sTestingArbitraryTrailer: Arbitrary[Trailer] = Arbitrary(
+    nonEmptyListOf(genToken.map(CIString(_))).map(headers =>
+      Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
+    )
+  )
 }

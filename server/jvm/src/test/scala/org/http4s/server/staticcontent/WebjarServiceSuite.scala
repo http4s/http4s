@@ -20,6 +20,7 @@ package staticcontent
 
 import cats.effect.IO
 import cats.syntax.all._
+import fs2.io.file.Path
 import org.http4s.Method.GET
 import org.http4s.Method.POST
 import org.http4s.headers.`Accept-Encoding`
@@ -43,10 +44,9 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .toRoutes
 
   val defaultBase =
-    org.http4s.server.test.BuildInfo.test_resourceDirectory.toPath
+    Path(defaultSystemPath)
       .resolve("META-INF/resources/webjars")
       .toString
-      .replace("jvm", "shared")
 
   test("Return a 200 Ok file") {
     val req = Request[IO](GET, uri"/test-lib/1.0.0/testresource.txt")

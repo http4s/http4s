@@ -36,6 +36,10 @@ trait Http4sClientDsl[F[_]] {
   }
 }
 
+object Http4sClientDsl {
+  def apply[F[_]]: Http4sClientDsl[F] = new Http4sClientDsl[F] {}
+}
+
 class MethodOps[F[_]](private val method: Method) extends AnyVal {
 
   /** Make a [[org.http4s.Request]] using this [[Method]] */
@@ -53,6 +57,6 @@ class MethodOps[F[_]](private val method: Method) extends AnyVal {
         `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
       }
       .getOrElse(h)
-    Request(method = method, uri = uri, headers = newHeaders, body = entity.body)
+    Request(method = method, uri = uri, headers = newHeaders, entity = entity)
   }
 }
