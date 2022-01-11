@@ -239,55 +239,53 @@ object FileService {
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
-    Kleisli
-      .liftF[OptionT[F, *], Any, HttpRoutes[F]] {
-        OptionT.liftF[F, HttpRoutes[F]] {
-          Files[F].realPath(Path(config.systemPath)).attempt.map {
-            case Right(rootPath) =>
-              TranslateUri(config.pathPrefix)(Kleisli { request =>
-                def resolvedPath: OptionT[F, Path] = {
-                  val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
-                  if (request.pathInfo.isEmpty) OptionT.some(rootPath)
-                  else
-                    OptionT
-                      .liftF(F.catchNonFatal {
-                        segments.foldLeft(rootPath) {
-                          case (_, "" | "." | "..") => throw BadTraversal
-                          case (path, segment) =>
-                            path.resolve(segment)
-                        }
-                      })
-                }
-                resolvedPath
-                  .flatMapF(path =>
-                    F.ifM(Files[F].exists(path, false))(
-                      path.absolute.normalize.some.pure,
-                      none[Path].pure,
-                    )
-                  )
-                  .collect { case path if path.startsWith(rootPath) => path }
-                  .flatMap(path => config.fs2PathCollector(path, config, request))
-                  .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-                  .recoverWith { case BadTraversal =>
-                    OptionT.some(Response(Status.BadRequest))
-                  }
-              })
-
-            case Left(_: NoSuchFileException) =>
-              logger.error(
-                s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
-              )
-              Kleisli(_ => OptionT.none)
-
-            case Left(e) =>
-              logger.error(e)(
-                s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
-              )
-              Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
+    def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
+      val resolvePath: F[Path] =
+        if (request.pathInfo.isEmpty) F.pure(rootPath)
+        else {
+          val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+          F.catchNonFatal {
+            segments.foldLeft(rootPath) {
+              case (_, "" | "." | "..") => throw BadTraversal
+              case (path, segment) => path.resolve(segment)
+            }
           }
         }
-      }
-      .flatten
+
+      val matchingPath: F[Option[Path]] =
+        for {
+          path <- resolvePath
+          existsPath <- Files[F].exists(path, false)
+        } yield
+          if (existsPath && path.startsWith(rootPath))
+            Some(path.absolute.normalize)
+          else None
+
+      OptionT(matchingPath)
+        .flatMap(path => config.fs2PathCollector(path, config, request))
+        .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+        .recoverWith { case BadTraversal => OptionT.some(Response(Status.BadRequest)) }
+    }
+
+    val readPath: F[Path] = Files[F].realPath(Path(config.systemPath))
+    val inner: F[HttpRoutes[F]] = readPath.attempt.map {
+      case Right(rootPath) =>
+        TranslateUri(config.pathPrefix)(Kleisli(withPath(rootPath)))
+
+      case Left(_: NoSuchFileException) =>
+        logger.error(
+          s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
+        )
+        HttpRoutes.empty
+
+      case Left(e) =>
+        logger.error(e)(
+          s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
+        )
+        HttpRoutes.pure(Response(Status.InternalServerError))
+    }
+
+    Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
   private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
