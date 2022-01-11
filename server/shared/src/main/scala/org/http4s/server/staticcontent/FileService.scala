@@ -145,10 +145,10 @@ object FileService {
     override def equals(other: Any): Boolean = other match {
       case that: Config[_] =>
         systemPath == that.systemPath &&
-          fs2PathCollector == that.fs2PathCollector &&
-          pathPrefix == that.pathPrefix &&
-          cacheStrategy == that.cacheStrategy &&
-          bufferSize == that.bufferSize
+        fs2PathCollector == that.fs2PathCollector &&
+        pathPrefix == that.pathPrefix &&
+        cacheStrategy == that.cacheStrategy &&
+        bufferSize == that.bufferSize
       case _ => false
     }
 
