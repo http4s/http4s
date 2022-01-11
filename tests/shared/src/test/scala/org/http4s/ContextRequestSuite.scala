@@ -25,7 +25,7 @@ class ContextRequestSuite extends Http4sSuite {
   implicit def nonBodyEquality[F[_], A: Eq]: Eq[ContextRequest[F, A]] =
     Eq.instance { case (first, second) =>
       first.context === second.context &&
-        first.req == second.req
+      first.req == second.req
     }
 
   checkAll(
