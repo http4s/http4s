@@ -87,7 +87,9 @@ class EmberServerSuite extends Http4sSuite {
     EmberServerBuilder
       .default[IO]
       .withPort(server.addressIp4s.port)
-      .build.use(_ => IO.unit).intercept[BindException]
+      .build
+      .use(_ => IO.unit)
+      .intercept[BindException]
   }
 
   fixture(receiveBufferSize = 256).test("#4731 - read socket is drained after writing") {
