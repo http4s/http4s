@@ -62,6 +62,7 @@ class EmberServerSuite extends Http4sSuite {
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
+      .withPort(Port.fromInt(0).get)
       .withReceiveBufferSize(receiveBufferSize)
       .build
   )
