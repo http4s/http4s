@@ -48,6 +48,7 @@ trait BlazeClientBase extends Http4sSuite {
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
+      retries: Int = 0,
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO](munitExecutionContext)
@@ -58,6 +59,7 @@ trait BlazeClientBase extends Http4sSuite {
         .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
         .withChunkBufferMaxSize(chunkBufferMaxSize)
         .withScheduler(scheduler = tickWheel)
+        .withRetries(retries)
 
     sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }
@@ -112,6 +114,11 @@ trait BlazeClientBase extends Http4sSuite {
           HandlerHelpers.sendResponse(ctx, HttpResponseStatus.OK)
           ()
         }
+      },
+      (HttpMethod.POST, "/close-without-response") -> new Handler {
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
+          ctx.channel.close()
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       },
     )
 
