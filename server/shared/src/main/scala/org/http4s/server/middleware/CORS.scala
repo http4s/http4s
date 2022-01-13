@@ -96,13 +96,13 @@ final class CORSConfig private (
   override def equals(x: Any): Boolean = x match {
     case config: CORSConfig =>
       anyOrigin === config.anyOrigin &&
-        allowCredentials === config.allowCredentials &&
-        maxAge === config.maxAge &&
-        anyMethod === config.anyMethod &&
-        allowedOrigins == config.allowedOrigins &&
-        allowedMethods === config.allowedMethods &&
-        allowedHeaders === config.allowedHeaders &&
-        exposedHeaders === config.exposedHeaders
+      allowCredentials === config.allowCredentials &&
+      maxAge === config.maxAge &&
+      anyMethod === config.anyMethod &&
+      allowedOrigins == config.allowedOrigins &&
+      allowedMethods === config.allowedMethods &&
+      allowedHeaders === config.allowedHeaders &&
+      exposedHeaders === config.exposedHeaders
     case _ => false
   }
 

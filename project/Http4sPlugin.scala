@@ -22,7 +22,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.7"
+  val scala_213 = "2.13.8"
   val scala_212 = "2.12.15"
   val scala_3 = "3.1.0"
 
@@ -197,7 +197,7 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
-    val catsEffect = "3.3.3"
+    val catsEffect = "3.3.4"
     val catsParse = "0.3.6"
     val circe = "0.15.0-M1"
     val crypto = "0.2.0"
@@ -219,7 +219,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.72.Final"
+    val netty = "4.1.73.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
@@ -228,7 +228,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.3"
-    val scalaJavaLocales = "1.2.1"
+    val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.11.0"
     val scalaXml = "2.0.1"
