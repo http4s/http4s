@@ -316,6 +316,7 @@ class BlazeClientSuite extends BlazeClientBase {
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
           attempts.update(_ + 1).unsafeRunSync()
           ctx.channel.close()
+          ()
         }
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       })
@@ -337,6 +338,7 @@ class BlazeClientSuite extends BlazeClientBase {
         override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
           attempts.update(_ + 1).unsafeRunSync()
           ctx.channel.close()
+          ()
         }
         override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
       })

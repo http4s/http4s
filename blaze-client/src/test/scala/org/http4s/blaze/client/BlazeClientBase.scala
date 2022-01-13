@@ -115,11 +115,6 @@ trait BlazeClientBase extends Http4sSuite {
           ()
         }
       },
-      (HttpMethod.POST, "/close-without-response") -> new Handler {
-        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit =
-          ctx.channel.close()
-        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
-      },
     )
 
   val server = resourceSuiteFixture("http", makeScaffold(2, false))
