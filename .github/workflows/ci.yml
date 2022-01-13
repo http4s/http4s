@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.7, 2.12.15, 3.1.0]
+        scala: [2.13.8, 2.12.15, 3.1.0]
         java: [temurin@8, temurin@11, temurin@17]
         ci: [ciJVM, ciNodeJS]
         exclude:
@@ -229,7 +229,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.7, 2.12.15, 3.1.0]
+        scala: [2.13.8, 2.12.15, 3.1.0]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -272,7 +272,7 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Scalafix tests
-        if: matrix.scala == '2.13.7'
+        if: matrix.scala == '2.13.8'
         run: |
           cd scalafix
           sbt ci
