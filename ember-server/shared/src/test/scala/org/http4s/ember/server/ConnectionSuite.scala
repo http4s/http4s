@@ -59,6 +59,7 @@ class ConnectionSuite extends Http4sSuite {
   ): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
+      .withPort(ip4s.Port.fromInt(0).get)
       .withHttpApp(service)
       .withIdleTimeout(idleTimeout)
       .withRequestHeaderReceiveTimeout(headerTimeout)
