@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.7"
+  val scala_213 = "2.13.8"
   val scala_212 = "2.12.15"
   val scala_3 = "3.1.0"
 
@@ -223,7 +223,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.72.Final"
+    val netty = "4.1.73.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
