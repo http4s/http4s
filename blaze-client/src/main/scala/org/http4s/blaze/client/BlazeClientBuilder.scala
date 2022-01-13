@@ -112,7 +112,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
-      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] = None,
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
+        customDnsResolver,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
