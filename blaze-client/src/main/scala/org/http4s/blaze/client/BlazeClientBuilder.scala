@@ -91,6 +91,55 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
+  @deprecated("Preserved for binary compatibility", "0.22.9")
+  private[BlazeClientBuilder] def this(
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      requestTimeout: Duration,
+      connectTimeout: Duration,
+      userAgent: Option[`User-Agent`],
+      maxTotalConnections: Int,
+      maxWaitQueueLimit: Int,
+      maxConnectionsPerRequestKey: RequestKey => Int,
+      sslContext: SSLContextOption,
+      checkEndpointIdentification: Boolean,
+      maxResponseLineSize: Int,
+      maxHeaderLength: Int,
+      maxChunkSize: Int,
+      chunkBufferMaxSize: Int,
+      parserMode: ParserMode,
+      bufferSize: Int,
+      executionContext: ExecutionContext,
+      scheduler: Resource[F, TickWheelExecutor],
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+      channelOptions: ChannelOptions,
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
+      F: ConcurrentEffect[F],
+  ) = this(
+    responseHeaderTimeout,
+    idleTimeout,
+    requestTimeout,
+    connectTimeout,
+    userAgent,
+    maxTotalConnections,
+    maxWaitQueueLimit,
+    maxConnectionsPerRequestKey,
+    sslContext,
+    checkEndpointIdentification,
+    maxResponseLineSize,
+    maxHeaderLength,
+    maxChunkSize,
+    chunkBufferMaxSize,
+    parserMode,
+    bufferSize,
+    executionContext,
+    scheduler,
+    asynchronousChannelGroup,
+    channelOptions,
+    customDnsResolver,
+    retries = 0,
+  )(F)
+
   protected final val logger = getLogger(this.getClass)
 
   private def copy(
