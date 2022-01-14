@@ -234,7 +234,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
-    val slf4j = "1.7.32"
+    val slf4j = "1.7.33"
     val tomcat = "9.0.56"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
