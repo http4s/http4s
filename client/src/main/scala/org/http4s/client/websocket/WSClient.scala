@@ -41,7 +41,7 @@ import scodec.bits.ByteVector
   * @param method
   *   The method of the intial HTTP request. Ignored by some clients.
   */
-final case class WSRequest(
+final case class WSRequest private (
     uri: Uri,
     headers: Headers = Headers.empty,
     method: Method = Method.GET,
