@@ -20,7 +20,7 @@ package client
 
 import org.http4s.client.RequestKey
 
-trait Connection[F[_]] {
+private[client] trait Connection[F[_]] {
 
   /** Determine if the connection is closed and resources have been freed */
   def isClosed: Boolean

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.blaze
+package org.http4s.blaze.client
 
 import org.http4s.client.RequestKey
 
-package object client {
-  type ConnectionBuilder[F[_], A <: Connection[F]] = RequestKey => F[A]
+private[client] trait ConnectionBuilder[F[_], A <: Connection[F]] {
+  def apply(key: RequestKey): F[A]
 }
