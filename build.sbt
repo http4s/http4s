@@ -445,6 +445,8 @@ lazy val blazeClient = libraryProject("blaze-client")
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
     mimaBinaryIssueFilters ++= Seq(
+      // These are all private to blaze-client and fallout from from
+      // the deprecation of org.http4s.client.Connection
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.invalidate"),
       ProblemFilters
@@ -480,6 +482,14 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.release"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.invalidate"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
     ),
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
