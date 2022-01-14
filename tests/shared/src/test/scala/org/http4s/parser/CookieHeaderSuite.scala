@@ -17,11 +17,14 @@
 package org.http4s
 package parser
 
+import cats.Id
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import org.http4s.headers.Cookie
+import org.typelevel.ci.CIStringSyntax
 
 class CookieHeaderSuite extends munit.FunSuite {
-  def parse(value: String) = headers.Cookie.parse(value).valueOr(throw _)
+  def parse(value: String): Cookie = headers.Cookie.parse(value).valueOr(throw _)
 
   val cookiestr = "key1=value1; key2=\"value2\""
   val cookiestrSemicolon: String = cookiestr + ";"
@@ -39,6 +42,13 @@ class CookieHeaderSuite extends munit.FunSuite {
       NonEmptyList.one(
         RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")
       ),
+    )
+  }
+
+  test("Cookie parse should omit invalid cookies?") {
+    assertEquals(
+      parse("""key1=value1; key2={"aField":{}}""").values,
+      NonEmptyList.one(RequestCookie("key1", "value1")),
     )
   }
 }
