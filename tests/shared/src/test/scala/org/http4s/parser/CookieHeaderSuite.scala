@@ -17,11 +17,9 @@
 package org.http4s
 package parser
 
-import cats.Id
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import org.http4s.headers.Cookie
-import org.typelevel.ci.CIStringSyntax
 
 class CookieHeaderSuite extends munit.FunSuite {
   def parse(value: String): Cookie = headers.Cookie.parse(value).valueOr(throw _)
