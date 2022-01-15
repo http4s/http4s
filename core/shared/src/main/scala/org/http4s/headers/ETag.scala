@@ -43,9 +43,9 @@ object ETag {
     entityTagParser.map(ETag.apply)
 
   implicit val headerInstance: Header[ETag, Header.Single] =
-    Header.create(
+    Header.createRendered(
       ci"ETag",
-      _.tag.toString,
+      _.tag,
       parse,
     )
 }

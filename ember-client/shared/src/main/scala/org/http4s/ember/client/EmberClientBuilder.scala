@@ -270,7 +270,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             unixSocketClient(request, address)
           }
       }
-      val stackClient = Retry(retryPolicy)(client)
+      val stackClient = Retry(retryPolicy, logRetries = false)(client)
       val iClient = new EmberClient[F](stackClient, pool)
 
       optH2.fold(iClient) { h2 =>

@@ -18,6 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.implicits._
+import com.comcast.ip4s
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
@@ -125,6 +126,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
       tlsContext <- authTlsClientContext
       emberServer <- EmberServerBuilder
         .default[IO]
+        .withPort(ip4s.Port.fromInt(0).get)
         .withHttpApp(service[IO])
         .withTLS(
           tlsContext,
