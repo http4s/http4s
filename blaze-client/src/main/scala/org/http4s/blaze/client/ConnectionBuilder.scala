@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s
-package blaze
-package client
+package org.http4s.blaze.client
 
-import cats.effect._
-import cats.syntax.all._
 import org.http4s.client.RequestKey
 
-private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
-    implicit F: Sync[F]
-) extends ConnectionManager[F, A] {
-  def borrow(requestKey: RequestKey): F[NextConnection] =
-    builder(requestKey).map(NextConnection(_, fresh = true))
-
-  override def shutdown: F[Unit] =
-    F.unit
-
-  override def invalidate(connection: A): F[Unit] =
-    F.delay(connection.shutdown())
-
-  override def release(connection: A): F[Unit] =
-    invalidate(connection)
+private[client] trait ConnectionBuilder[F[_], A <: Connection[F]] {
+  def apply(key: RequestKey): F[A]
 }
