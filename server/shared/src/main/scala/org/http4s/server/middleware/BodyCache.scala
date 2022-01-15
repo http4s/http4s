@@ -63,7 +63,7 @@ object BodyCache {
     apply(routes)(identity, _ => identity)(OptionT.liftK)
 
   def contextRoutes[T, F[_]: Concurrent](routes: ContextRoutes[T, F]): ContextRoutes[T, F] =
-    apply(routes)(_.req, in => cached => in.copy(req = cached))(OptionT.liftK)
+    apply(routes)(_.req, in => cached => in.copy(message = cached))(OptionT.liftK)
 
   def httpApp[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
     apply(app)(identity, _ => identity)(FunctionK.id)

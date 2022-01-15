@@ -20,37 +20,70 @@ import cats._
 import cats.data.Kleisli
 import cats.syntax.all._
 
-final case class ContextRequest[F[_], A](context: A, req: Request[F]) {
-  def mapK[G[_]](fk: F ~> G): ContextRequest[G, A] =
-    ContextRequest(context, req.mapK(fk))
+final case class WithContext[Msg, A](context: A, message: Msg) {
 
-  @deprecated("Use context instead", "0.21.0")
-  def authInfo: A = context
+  def mapContext[B](f: A => B): WithContext[Msg, B] =
+    WithContext(f(context), message)
+
 }
 
-object ContextRequest {
-  def apply[F[_]: Functor, T](
-      getContext: Request[F] => F[T]
-  ): Kleisli[F, Request[F], ContextRequest[F, T]] =
-    Kleisli(request => getContext(request).map(ctx => ContextRequest(ctx, request)))
+object WithContext {
 
-  implicit def contextRequestInstances[F[_]]: NonEmptyTraverse[ContextRequest[F, *]] =
-    new NonEmptyTraverse[ContextRequest[F, *]] {
-      override def foldLeft[A, B](fa: ContextRequest[F, A], b: B)(f: (B, A) => B): B =
+  implicit class ContextRequestOps[A, F[_]](private val creq: ContextRequest[F, A]) extends AnyVal {
+    def req: Request[F] = creq.message
+
+    def mapK[G[_]](fk: F ~> G): ContextRequest[G, A] =
+      WithContext(creq.context, creq.message.mapK(fk))
+  }
+
+  implicit class ContextResponseOps[A, F[_]](private val creq: ContextResponse[F, A])
+      extends AnyVal {
+    def response: Response[F] = creq.message
+
+    def mapK[G[_]](fk: F ~> G): ContextResponse[G, A] =
+      WithContext(creq.context, creq.message.mapK(fk))
+  }
+
+  implicit def withContextInstances[M]: NonEmptyTraverse[WithContext[M, *]] =
+    new NonEmptyTraverse[WithContext[M, *]] {
+      override def foldLeft[A, B](fa: WithContext[M, A], b: B)(f: (B, A) => B): B =
         f(b, fa.context)
-      override def foldRight[A, B](fa: ContextRequest[F, A], lb: Eval[B])(
+      override def foldRight[A, B](fa: WithContext[M, A], lb: Eval[B])(
           f: (A, Eval[B]) => Eval[B]
       ): Eval[B] =
         f(fa.context, lb)
-      override def nonEmptyTraverse[G[_]: Apply, A, B](fa: ContextRequest[F, A])(
+      override def nonEmptyTraverse[G[_]: Apply, A, B](fa: WithContext[M, A])(
           f: A => G[B]
-      ): G[ContextRequest[F, B]] =
-        f(fa.context).map(b => ContextRequest(b, fa.req))
-      def reduceLeftTo[A, B](fa: ContextRequest[F, A])(f: A => B)(g: (B, A) => B): B =
+      ): G[WithContext[M, B]] =
+        f(fa.context).map(b => WithContext(b, fa.message))
+      def reduceLeftTo[A, B](fa: WithContext[M, A])(f: A => B)(g: (B, A) => B): B =
         f(fa.context)
-      def reduceRightTo[A, B](fa: ContextRequest[F, A])(f: A => B)(
+      def reduceRightTo[A, B](fa: WithContext[M, A])(f: A => B)(
           g: (A, Eval[B]) => Eval[B]
       ): Eval[B] =
         Eval.later(f(fa.context))
     }
+}
+
+object ContextRequest {
+  def apply[F[_], T](t: T, req: Request[F]): ContextRequest[F, T] =
+    WithContext(t, req)
+
+  def unapply[F[_], T](creq: WithContext[Request[F], T]): Option[(T, Request[F])] =
+    Some((creq.context, creq.message))
+
+  def apply[F[_]: Functor, T](
+      getContext: Request[F] => F[T]
+  ): Kleisli[F, Request[F], ContextRequest[F, T]] =
+    Kleisli(request => getContext(request).map(ctx => WithContext(ctx, request)))
+
+}
+
+object ContextResponse {
+
+  def apply[F[_], T](t: T, res: Response[F]): ContextResponse[F, T] =
+    WithContext(t, res)
+
+  def unapply[F[_], T](cres: ContextResponse[F, T]): Option[(T, Response[F])] =
+    Some((cres.context, cres.message))
 }

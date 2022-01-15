@@ -54,23 +54,16 @@ object MaxActiveRequests {
   )(implicit
       F: Async[F],
       G: Sync[G],
-  ): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
+  ): G[Kleisli[F, Request[F], Response[F]] => Kleisli[F, Request[F], Response[F]]] = {
+    def aux(http: HttpApp[F]): ContextApp[Long, F] =
+      Kleisli { (creq: ContextRequest[F, Long]) =>
+        if (creq.context > maxActive) defaultResp.pure[F] else http(creq.message)
+      }
+
     ConcurrentRequests
-      .app2[G, F](
-        Function.const(F.unit),
-        Function.const(F.unit),
-      )
-      .map(middleware =>
-        (
-            httpApp =>
-              middleware(Kleisli {
-                case ContextRequest(concurrent, _) if concurrent > maxActive =>
-                  defaultResp.pure[F]
-                case ContextRequest(_, req) =>
-                  httpApp(req)
-              })
-        )
-      )
+      .app2[G, F](Function.const(F.unit), Function.const(F.unit))
+      .map(_.compose(aux))
+  }
 
   @deprecated(message = "Please use forHttpRoutes instead.", since = "0.21.14")
   def httpRoutes[F[_]: Async](
@@ -95,9 +88,7 @@ object MaxActiveRequests {
   def forHttpRoutes[F[_]: Async](
       maxActive: Long,
       defaultResp: Response[F] = Response[F](status = Status.ServiceUnavailable),
-  ): F[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[OptionT[F, *], Request[
-    F
-  ], Response[F]]] =
+  ): F[HttpRoutes[F] => HttpRoutes[F]] =
     forHttpRoutes2[F, F](maxActive, defaultResp)
 
   def forHttpRoutes2[G[_], F[_]](
@@ -106,23 +97,14 @@ object MaxActiveRequests {
   )(implicit
       F: Async[F],
       G: Sync[G],
-  ): G[Kleisli[OptionT[F, *], Request[F], Response[F]] => Kleisli[OptionT[F, *], Request[
-    F
-  ], Response[F]]] =
+  ): G[HttpRoutes[F] => HttpRoutes[F]] = {
+    def aux(http: HttpRoutes[F]): ContextRoutes[Long, F] =
+      Kleisli { (creq: ContextRequest[F, Long]) =>
+        if (creq.context > maxActive) OptionT.pure(defaultResp) else http(creq.message)
+      }
+
     ConcurrentRequests
-      .route2[G, F](
-        Function.const(F.unit),
-        Function.const(F.unit),
-      )
-      .map(middleware =>
-        (
-            httpRoutes =>
-              middleware(Kleisli {
-                case ContextRequest(concurrent, _) if concurrent > maxActive =>
-                  defaultResp.pure[OptionT[F, *]]
-                case ContextRequest(_, req) =>
-                  httpRoutes(req)
-              })
-        )
-      )
+      .route2[G, F](Function.const(F.unit), Function.const(F.unit))
+      .map(_.compose(aux))
+  }
 }
