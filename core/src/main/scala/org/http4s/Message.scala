@@ -214,7 +214,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   // Attribute methods
 
   /** Generates a new message object with the specified key/value pair appended
-    * to the [[#attributes]].
+    * to the [[attributes]].
     *
     * @param key [[org.typelevel.vault.Key]] with which to associate the value
     * @param value value associated with the key
@@ -225,7 +225,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(attributes = attributes.insert(key, value))
 
   /** Returns a new message object without the specified key in the
-    * [[#attributes]].
+    * [[attributes]].
     *
     * @param key [[org.typelevel.vault.Key]] to remove
     * @return a new message object without the key

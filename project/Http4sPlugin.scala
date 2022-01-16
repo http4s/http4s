@@ -242,7 +242,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.2"
+    val blaze = "0.15.3"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
@@ -262,7 +262,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.3.5"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "1.4.0"
+    val log4cats = "1.5.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
@@ -280,7 +280,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
-    val slf4j = "1.7.32"
+    val slf4j = "1.7.33"
     val tomcat = "9.0.56"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
