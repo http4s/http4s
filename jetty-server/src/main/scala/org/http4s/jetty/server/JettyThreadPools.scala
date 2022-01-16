@@ -30,10 +30,10 @@ object JettyThreadPools {
     * Jetty [[org.eclipse.jetty.util.thread.ThreadPool]] have some rather
     * unusual properties. [[org.eclipse.jetty.util.thread.ThreadPool]] itself
     * does not implement any of the standard JVM or Jetty lifecycle systems,
-    * e.g. [[java.lang.Closeable]] or
+    * e.g. [[java.io.Closeable]] or
     * [[org.eclipse.jetty.util.component.LifeCycle]], but ''all'' the concrete
     * implementations of it provided by Jetty ''do'' implement
-    * [[[[org.eclipse.jetty.util.component.LifeCycle]]]].
+    * [[org.eclipse.jetty.util.component.LifeCycle]].
     *
     * The [[cats.effect.Resource]] implemented here will use the
     * [[org.eclipse.jetty.util.component.LifeCycle]] shutdown semantics if the
@@ -59,7 +59,7 @@ object JettyThreadPools {
 
   /** The default [[org.eclipse.jetty.util.thread.ThreadPool]] used by
     * [[JettyBuilder]]. If you require specific constraints on this (a certain
-    * number of threads, etc.) please use [[#resource]] and take a look at the
+    * number of threads, etc.) please use [[resource]] and take a look at the
     * concrete implementations of [[org.eclipse.jetty.util.thread.ThreadPool]]
     * provided by Jetty.
     */
