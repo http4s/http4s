@@ -127,7 +127,7 @@ object BracketRequestResponse {
                 None: Option[Response[F]]))(contextResponse =>
                 F.pure(Some(contextResponse.response.copy(body =
                   contextResponse.response.body.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
+                    release(contextRequest.context, Some(contextResponse.context), ec.toOutcome))))))
               .guaranteeCase {
                   case Outcome.Succeeded(_) =>
                     F.unit
@@ -185,9 +185,7 @@ object BracketRequestResponse {
           contextService
             .run(ContextRequest(a, request))
             .map(response =>
-              response.copy(body =
-                response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))
-              )
+              response.copy(body = response.body.onFinalizeCaseWeak(ec => release(a, ec.toOutcome)))
             )
             .guaranteeCase {
               case Outcome.Succeeded(_) =>
@@ -257,7 +255,7 @@ object BracketRequestResponse {
       )(_._2)(F)(contextApp0)
   }
 
-  // TODO (ce3-ra): replace with ExitCase#toOutcome after CE3-M5
+  @deprecated("Use ExitCase.toOutcome instead", "0.23.8")
   def exitCaseToOutcome[F[_]](
       ec: ExitCase
   )(implicit F: Applicative[F]): Outcome[F, Throwable, Unit] =
