@@ -246,9 +246,7 @@ private final class Http1Connection[F[_]](
                   idleTimeoutS,
                   idleRead,
                   // We need to wait for the write to complete so that by the time we attempt to recycle the connection it is fully idle.
-                ).map(response =>
-                  Resource.make(F.pure(writeFiber))(_.join.attempt.void).as(response)
-                )
+                ).map(response => Resource.onFinalize(writeFiber.join.attempt.void).as(response))
               ) {
                 case (_, Outcome.Succeeded(_)) => F.unit
                 case (writeFiber, Outcome.Canceled() | Outcome.Errored(_)) => writeFiber.cancel
