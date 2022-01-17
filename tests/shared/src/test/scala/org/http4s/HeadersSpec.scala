@@ -39,6 +39,11 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(base.get(ci"raw-header"), Some(NonEmptyList.of(raw)))
   }
 
+  test("contains") {
+    assert(base.contains[`Content-Length`])
+    assert(!base.contains[`Content-Type`])
+  }
+
   test("Headers should Replaces headers") {
     val newlen = `Content-Length`.zero
     assertEquals(base.put(newlen).get[`Content-Length`], Some(newlen))

@@ -290,8 +290,8 @@ object MediaType extends MimeDB {
 
   /** Parse a MediaType
     *
-    * For totality, call [[#parse]]. For compile-time
-    * verification of literals, call [[#mediaType]].
+    * For totality, call [[parse]]. For compile-time
+    * verification of literals, call [[mediaType]].
     */
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)

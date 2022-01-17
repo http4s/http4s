@@ -83,11 +83,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1641671288,
-        "narHash": "sha256-HsBfPkmGHYaxD5DSWIOGEbb+efZ2gSIk0cnb/Fcq3ls=",
+        "lastModified": 1642102721,
+        "narHash": "sha256-+idWVqOlnIziKDKAd4tP5XBYgAPt7HXknRPR4t0kP/c=",
         "owner": "rossabaker",
         "repo": "typelevel-nix",
-        "rev": "84647afdc8daee2abcbdcc520dbd3f212050f066",
+        "rev": "f0712172fcb658e2032deb771aec58e3c9f8a13c",
         "type": "github"
       },
       "original": {
