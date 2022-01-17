@@ -32,10 +32,10 @@ import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.client.RequestKey
-import org.http4s.headers.Connection
 import org.http4s.headers.Host
 import org.http4s.headers.`Content-Length`
 import org.http4s.headers.`User-Agent`
+import org.http4s.headers.{Connection => HConnection}
 import org.http4s.internal.CharPredicate
 import org.http4s.util.StringWriter
 import org.http4s.util.Writer
@@ -212,7 +212,7 @@ private final class Http1Connection[F[_]](
           if (userAgent.nonEmpty && req.headers.get[`User-Agent`].isEmpty)
             rr << userAgent.get << "\r\n"
 
-          val mustClose: Boolean = req.headers.get[Connection] match {
+          val mustClose: Boolean = req.headers.get[HConnection] match {
             case Some(conn) => checkCloseConnection(conn, rr)
             case None => getHttpMinor(req) == 0
           }
@@ -434,7 +434,7 @@ private final class Http1Connection[F[_]](
     }
 
   private def cleanUpAfterReceivingResponse(closeOnFinish: Boolean, headers: Headers): Unit =
-    if (closeOnFinish || headers.get[Connection].exists(_.hasClose)) {
+    if (closeOnFinish || headers.get[HConnection].exists(_.hasClose)) {
       logger.debug("Message body complete. Shutting down.")
       stageShutdown()
     } else {

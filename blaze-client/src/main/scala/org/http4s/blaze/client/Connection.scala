@@ -18,22 +18,19 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect._
-import cats.syntax.all._
 import org.http4s.client.RequestKey
 
-private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
-    implicit F: Sync[F]
-) extends ConnectionManager[F, A] {
-  def borrow(requestKey: RequestKey): F[NextConnection] =
-    builder(requestKey).map(NextConnection(_, fresh = true))
+private[client] trait Connection[F[_]] {
 
-  override def shutdown: F[Unit] =
-    F.unit
+  /** Determine if the connection is closed and resources have been freed */
+  def isClosed: Boolean
 
-  override def invalidate(connection: A): F[Unit] =
-    F.delay(connection.shutdown())
+  /** Determine if the connection is in a state that it can be recycled for another request. */
+  def isRecyclable: Boolean
 
-  override def release(connection: A): F[Unit] =
-    invalidate(connection)
+  /** Close down the connection, freeing resources and potentially aborting a [[Response]] */
+  def shutdown(): Unit
+
+  /** The key for requests we are able to serve */
+  def requestKey: RequestKey
 }

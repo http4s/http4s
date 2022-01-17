@@ -28,7 +28,6 @@ import org.http4s.blazecore.BlazeBackendBuilder
 import org.http4s.blazecore.ExecutionContextConfig
 import org.http4s.blazecore.tickWheelResource
 import org.http4s.client.Client
-import org.http4s.client.ConnectionBuilder
 import org.http4s.client.RequestKey
 import org.http4s.client.defaults
 import org.http4s.headers.`User-Agent`
@@ -115,7 +114,8 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
-      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] = None,
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
+        customDnsResolver,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
