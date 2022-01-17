@@ -320,25 +320,28 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
       F: Async[F]
   ): Resource[F, ConnectionManager.Stateful[F, BlazeConnection[F]]] = {
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = sslContext,
-      bufferSize = bufferSize,
-      asynchronousChannelGroup = asynchronousChannelGroup,
-      executionContextConfig = executionContextConfig,
-      scheduler = scheduler,
-      checkEndpointIdentification = checkEndpointIdentification,
-      maxResponseLineSize = maxResponseLineSize,
-      maxHeaderLength = maxHeaderLength,
-      maxChunkSize = maxChunkSize,
-      chunkBufferMaxSize = chunkBufferMaxSize,
-      parserMode = parserMode,
-      userAgent = userAgent,
-      channelOptions = channelOptions,
-      connectTimeout = connectTimeout,
-      dispatcher = dispatcher,
-      idleTimeout = idleTimeout,
-      getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
-    ).makeClient
+    val http1: ConnectionBuilder[F, BlazeConnection[F]] =
+      (requestKey: RequestKey) =>
+        new Http1Support[F](
+          sslContextOption = sslContext,
+          bufferSize = bufferSize,
+          asynchronousChannelGroup = asynchronousChannelGroup,
+          executionContextConfig = executionContextConfig,
+          scheduler = scheduler,
+          checkEndpointIdentification = checkEndpointIdentification,
+          maxResponseLineSize = maxResponseLineSize,
+          maxHeaderLength = maxHeaderLength,
+          maxChunkSize = maxChunkSize,
+          chunkBufferMaxSize = chunkBufferMaxSize,
+          parserMode = parserMode,
+          userAgent = userAgent,
+          channelOptions = channelOptions,
+          connectTimeout = connectTimeout,
+          dispatcher = dispatcher,
+          idleTimeout = idleTimeout,
+          getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
+        ).makeClient(requestKey)
+
     Resource.make(
       executionContextConfig.getExecutionContext.flatMap(executionContext =>
         ConnectionManager.pool(
