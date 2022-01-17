@@ -284,7 +284,9 @@ object Prometheus {
       collector: C,
       registry: CollectorRegistry,
   )(implicit F: Sync[F]): Resource[F, C] =
-    Resource.make(F.blocking(collector.register[C](registry)))(c => F.blocking(registry.unregister(c)))
+    Resource.make(F.blocking(collector.register[C](registry)))(c =>
+      F.blocking(registry.unregister(c))
+    )
 
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
   private val DefaultHistogramBuckets: NonEmptyList[Double] =
