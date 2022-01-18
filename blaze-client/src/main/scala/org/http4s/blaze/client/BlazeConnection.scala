@@ -20,7 +20,6 @@ package client
 
 import cats.effect.Resource
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.client.Connection
 
 import java.nio.ByteBuffer
 

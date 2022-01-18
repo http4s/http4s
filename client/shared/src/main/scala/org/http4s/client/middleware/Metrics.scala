@@ -107,7 +107,7 @@ object Metrics {
       _ <- Resource.make(ops.increaseActiveRequests(classifier))(_ =>
         ops.decreaseActiveRequests(classifier)
       )
-      _ <- Resource.make(C.unit) { _ =>
+      _ <- Resource.onFinalize(
         F.monotonic
           .flatMap(now =>
             statusRef.get.flatMap(oStatus =>
@@ -116,7 +116,7 @@ object Metrics {
               )
             )
           )
-      }
+      )
       resp <- client.run(req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
       end <- Resource.eval(F.monotonic)

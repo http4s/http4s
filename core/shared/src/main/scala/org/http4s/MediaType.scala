@@ -67,8 +67,8 @@ sealed class MediaRange private[http4s] (
       case _: MediaType => false
       case x: MediaRange =>
         (this eq x) ||
-          mainType === x.mainType &&
-          extensions === x.extensions
+        mainType === x.mainType &&
+        extensions === x.extensions
       case _ =>
         false
     }
@@ -216,8 +216,8 @@ sealed class MediaType(
     mediaType match {
       case mediaType: MediaType =>
         (this eq mediaType) ||
-          mainType === mediaType.mainType &&
-          subType === mediaType.subType
+        mainType === mediaType.mainType &&
+        subType === mediaType.subType
 
       case _ => false
     }
@@ -226,9 +226,9 @@ sealed class MediaType(
     obj match {
       case x: MediaType =>
         (this eq x) ||
-          mainType === x.mainType &&
-          subType === x.subType &&
-          extensions === x.extensions
+        mainType === x.mainType &&
+        subType === x.subType &&
+        extensions === x.extensions
       case _ => false
     }
 
@@ -290,8 +290,8 @@ object MediaType extends MimeDB {
 
   /** Parse a MediaType
     *
-    * For totality, call [[#parse]]. For compile-time
-    * verification of literals, call [[#mediaType]].
+    * For totality, call [[parse]]. For compile-time
+    * verification of literals, call [[mediaType]].
     */
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)

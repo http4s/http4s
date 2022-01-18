@@ -222,9 +222,10 @@ object Client {
             }
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
+
           Resource
             .eval(app(req0))
-            .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
+            .onFinalize(disposed.set(true))
             .map(resp => resp.copy(entity = Entity(go(resp.body).stream)))
         }
       }

@@ -77,9 +77,7 @@ object BlazeClient {
                 new SocketException(s"HTTP connection closed: ${key}")
               }
               .map { (response: Resource[F, Response[F]]) =>
-                response.flatMap(r =>
-                  Resource.make(F.pure(r))(_ => manager.release(next.connection))
-                )
+                response.onFinalize(manager.release(next.connection))
               }
 
             responseHeaderTimeout match {

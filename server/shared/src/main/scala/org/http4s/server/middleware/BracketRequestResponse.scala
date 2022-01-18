@@ -66,8 +66,8 @@ object BracketRequestResponse {
     * interaction. It is required to express certain types of bracketing use
     * cases (see Metrics), but for most cases it is more general than is
     * needed. Before attempting to use this middleware, you should consider if
-    * [[#bracketRequestResponseRoutes]] or
-    * [[#bracketRequestResponseCaseRoutes]] will work for your use case.
+    * [[bracketRequestResponseRoutes]] or
+    * [[bracketRequestResponseCaseRoutes]] will work for your use case.
     *
     * @note $releaseWarning
     *
@@ -127,7 +127,7 @@ object BracketRequestResponse {
                 None: Option[Response[F]]))(contextResponse =>
                 F.pure(Some(contextResponse.response.copy(entity = Entity(
                   contextResponse.response.body.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), exitCaseToOutcome(ec)))))))
+                    release(contextRequest.context, Some(contextResponse.context), ec.toOutcome))))))
                 )
               .guaranteeCase {
                   case Outcome.Succeeded(_) =>
@@ -170,7 +170,7 @@ object BracketRequestResponse {
         contextRoutes.map(resp => ContextResponse[F, Unit]((), resp))
       )
 
-  /** As [[#bracketRequestResponseCaseRoutes]] but defined for [[HttpApp]],
+  /** As [[bracketRequestResponseCaseRoutes]] but defined for [[HttpApp]],
     * rather than [[HttpRoutes]].
     *
     * @note $releaseWarning
@@ -188,7 +188,7 @@ object BracketRequestResponse {
             .map(response =>
               response.copy(entity =
                 Entity(
-                  response.body.onFinalizeCaseWeak(ec => release(a, exitCaseToOutcome(ec)))
+                  response.body.onFinalizeCaseWeak(ec => release(a, ec.toOutcome))
                 )
               )
             )
@@ -202,7 +202,7 @@ object BracketRequestResponse {
         )
       )
 
-  /** As [[#bracketRequestResponseCaseRoutes]], but `release` is simplified, ignoring
+  /** As [[bracketRequestResponseCaseRoutes]], but `release` is simplified, ignoring
     * the exit condition.
     *
     * @note $releaseWarning
@@ -214,7 +214,7 @@ object BracketRequestResponse {
       release(a)
     }
 
-  /** As [[#bracketRequestResponseCaseApp]], but `release` is simplified, ignoring
+  /** As [[bracketRequestResponseCaseApp]], but `release` is simplified, ignoring
     * the exit condition.
     *
     * @note $releaseWarning
@@ -226,7 +226,7 @@ object BracketRequestResponse {
       release(a)
     }
 
-  /** As [[#bracketRequestResponseRoutes]], but `acquire` and `release` are
+  /** As [[bracketRequestResponseRoutes]], but `acquire` and `release` are
     * defined in terms of a [[cats.effect.Resource]].
     *
     * @note $releaseWarning
@@ -242,7 +242,7 @@ object BracketRequestResponse {
       )(_._2)(F)(contextRoutes0)
   }
 
-  /** As [[#bracketRequestResponseApp]], but `acquire` and `release` are defined
+  /** As [[bracketRequestResponseApp]], but `acquire` and `release` are defined
     * in terms of a [[cats.effect.Resource]].
     *
     * @note $releaseWarning
@@ -260,7 +260,7 @@ object BracketRequestResponse {
       )(_._2)(F)(contextApp0)
   }
 
-  // TODO (ce3-ra): replace with ExitCase#toOutcome after CE3-M5
+  @deprecated("Use ExitCase.toOutcome instead", "0.23.8")
   def exitCaseToOutcome[F[_]](
       ec: ExitCase
   )(implicit F: Applicative[F]): Outcome[F, Throwable, Unit] =
