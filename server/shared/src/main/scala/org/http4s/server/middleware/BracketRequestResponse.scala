@@ -259,14 +259,4 @@ object BracketRequestResponse {
         resource.allocated
       )(_._2)(F)(contextApp0)
   }
-
-  @deprecated("Use ExitCase.toOutcome instead", "0.23.8")
-  def exitCaseToOutcome[F[_]](
-      ec: ExitCase
-  )(implicit F: Applicative[F]): Outcome[F, Throwable, Unit] =
-    ec match {
-      case ExitCase.Succeeded => Outcome.succeeded(F.unit)
-      case ExitCase.Errored(e) => Outcome.errored(e)
-      case ExitCase.Canceled => Outcome.canceled
-    }
 }
