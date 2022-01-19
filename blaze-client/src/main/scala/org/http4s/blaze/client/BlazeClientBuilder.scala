@@ -28,7 +28,6 @@ import org.http4s.blazecore.BlazeBackendBuilder
 import org.http4s.blazecore.ExecutionContextConfig
 import org.http4s.blazecore.tickWheelResource
 import org.http4s.client.Client
-import org.http4s.client.ConnectionBuilder
 import org.http4s.client.RequestKey
 import org.http4s.client.defaults
 import org.http4s.headers.`User-Agent`
@@ -115,7 +114,8 @@ final class BlazeClientBuilder[F[_]] private (
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
-      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] = None,
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
+        customDnsResolver,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -320,25 +320,28 @@ final class BlazeClientBuilder[F[_]] private (
   private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
       F: Async[F]
   ): Resource[F, ConnectionManager.Stateful[F, BlazeConnection[F]]] = {
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = sslContext,
-      bufferSize = bufferSize,
-      asynchronousChannelGroup = asynchronousChannelGroup,
-      executionContextConfig = executionContextConfig,
-      scheduler = scheduler,
-      checkEndpointIdentification = checkEndpointIdentification,
-      maxResponseLineSize = maxResponseLineSize,
-      maxHeaderLength = maxHeaderLength,
-      maxChunkSize = maxChunkSize,
-      chunkBufferMaxSize = chunkBufferMaxSize,
-      parserMode = parserMode,
-      userAgent = userAgent,
-      channelOptions = channelOptions,
-      connectTimeout = connectTimeout,
-      dispatcher = dispatcher,
-      idleTimeout = idleTimeout,
-      getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
-    ).makeClient
+    val http1: ConnectionBuilder[F, BlazeConnection[F]] =
+      (requestKey: RequestKey) =>
+        new Http1Support[F](
+          sslContextOption = sslContext,
+          bufferSize = bufferSize,
+          asynchronousChannelGroup = asynchronousChannelGroup,
+          executionContextConfig = executionContextConfig,
+          scheduler = scheduler,
+          checkEndpointIdentification = checkEndpointIdentification,
+          maxResponseLineSize = maxResponseLineSize,
+          maxHeaderLength = maxHeaderLength,
+          maxChunkSize = maxChunkSize,
+          chunkBufferMaxSize = chunkBufferMaxSize,
+          parserMode = parserMode,
+          userAgent = userAgent,
+          channelOptions = channelOptions,
+          connectTimeout = connectTimeout,
+          dispatcher = dispatcher,
+          idleTimeout = idleTimeout,
+          getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
+        ).makeClient(requestKey)
+
     Resource.make(
       executionContextConfig.getExecutionContext.flatMap(executionContext =>
         ConnectionManager.pool(

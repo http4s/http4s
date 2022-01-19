@@ -182,7 +182,7 @@ object AsyncHttpClient {
       }
     }
 
-  // use fibers to access the ContextShift and ensure that we get off of the AHC thread pool
+  // use fibers to ensure that we get off of the AHC thread pool
   private def invokeCallbackF[F[_]](invoked: => Unit)(implicit F: Async[F]): F[Unit] =
     F.start(F.delay(invoked)).flatMap(_.joinWithNever)
 

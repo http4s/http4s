@@ -20,8 +20,6 @@ package client
 
 import cats.effect._
 import cats.syntax.all._
-import org.http4s.client.Connection
-import org.http4s.client.ConnectionBuilder
 import org.http4s.client.RequestKey
 
 private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(

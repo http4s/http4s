@@ -165,7 +165,7 @@ sealed class JettyBuilder[F[_]] private (
 
   /** Set the [[org.eclipse.jetty.util.thread.ThreadPool]] that Jetty will use.
     *
-    * @note You should prefer [[#withThreadPoolResource]] instead of this
+    * @note You should prefer [[withThreadPoolResource]] instead of this
     *       method. If you invoke this method the provided
     *       [[org.eclipse.jetty.util.thread.ThreadPool]] ''will not'' be
     *       joined, stopped, or destroyed when/if the Jetty server stops. This
