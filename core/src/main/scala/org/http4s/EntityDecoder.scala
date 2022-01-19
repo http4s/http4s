@@ -206,7 +206,7 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.to(Chunk))
+    DecodeResult.success(m.body.chunks.compile.to(Chunk).map(_.flatten))
 
   /** Helper method which simply gathers the body into a single ByteVector */
   private def collectByteVector[F[_]: Sync](m: Media[F]): DecodeResult[F, ByteVector] =
