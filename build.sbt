@@ -127,14 +127,14 @@ lazy val core = libraryProject("core")
       log4s,
       munit % Test,
       scodecBits,
-      slf4jApi, // residual dependency from macros
       vault,
     ),
     libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
         Seq(
-          scalaReflect(scalaVersion.value) % Provided
+          slf4jApi, // residual dependency from macros
+          scalaReflect(scalaVersion.value) % Provided,
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
