@@ -191,7 +191,7 @@ lazy val testing = libraryProject("testing")
       munitDiscipline,
       scalacheckEffect,
       scalacheckEffectMunit,
-    ),
+    ).map(_ % Test),
   )
   .dependsOn(laws)
 
