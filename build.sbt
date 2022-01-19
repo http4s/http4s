@@ -150,6 +150,31 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
+
+      // private[syntax]
+      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
+      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
+      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
+      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
+      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUriScheme"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateMediatype"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
     ),
   )
 
