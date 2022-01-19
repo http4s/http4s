@@ -44,7 +44,6 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.concurrent.duration.Deadline
 import scala.util.Failure
 import scala.util.Success
 
@@ -68,8 +67,6 @@ private final class Http1Connection[F[_]](
     new BlazeHttp1ClientParser(maxResponseLineSize, maxHeaderLength, maxChunkSize, parserMode)
 
   private val stageState = new AtomicReference[State](Idle(None))
-
-  var borrowDeadline: Option[Deadline] = None
 
   override def isClosed: Boolean =
     stageState.get match {

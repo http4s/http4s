@@ -37,8 +37,5 @@ private[client] trait Connection[F[_]] {
   def requestKey: RequestKey
 
   /** Deadline for the connection to be borrowed before we evict it */
-  def borrowDeadline: Option[Deadline]
-
-  /** Set the deadline for the connection to be borrowed before we evict it */
-  def borrowDeadline_=(deadline: Option[Deadline]): Unit
+  @volatile var borrowDeadline: Option[Deadline] = None
 }

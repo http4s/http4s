@@ -40,10 +40,8 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
     @volatile var isClosed = false
     def isRecyclable = true
     def requestKey = key
-    def shutdown() = {
+    def shutdown() =
       isClosed = true
-    }
-    var borrowDeadline: Option[Deadline] = None
   }
 
   private def mkPool(

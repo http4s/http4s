@@ -53,6 +53,30 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxIdleDuration: Duration,
 )(implicit F: Concurrent[F])
     extends ConnectionManager.Stateful[F, A] { self =>
+
+  @deprecated("Preserved for binary compatibility", "0.22.9")
+  private[PoolManager] def this(
+      builder: ConnectionBuilder[F, A],
+      maxTotal: Int,
+      maxWaitQueueLimit: Int,
+      maxConnectionsPerRequestKey: RequestKey => Int,
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
+      semaphore: Semaphore[F],
+      executionContext: ExecutionContext,
+      F: Concurrent[F],
+  ) = this(
+    builder,
+    maxTotal,
+    maxWaitQueueLimit,
+    maxConnectionsPerRequestKey,
+    responseHeaderTimeout,
+    requestTimeout,
+    semaphore,
+    executionContext,
+    Duration.Inf,
+  )(F)
+
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],
@@ -189,7 +213,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 } else {
                   conn.borrowDeadline match {
                     case Some(deadline) if deadline.isOverdue() =>
-                      F.delay(logger.debug(s"Shutting down expired connection for $key: $stats")) *>
+                      F.delay(
+                        logger.debug(
+                          s"Shutting down and evicting expired connection for $key: $stats"
+                        )
+                      ) *>
                         decrConnection(key) *>
                         F.delay(conn.shutdown()) *>
                         go()
