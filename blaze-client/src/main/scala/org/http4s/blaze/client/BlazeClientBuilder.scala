@@ -60,6 +60,9 @@ import scala.concurrent.duration._
   * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
   * @param channelOptions custom socket options
   * @param customDnsResolver customDnsResolver to use other than the system default
+  * @param maxIdleDuration maximum time a connection can be idle and still
+  * be borrowed.  Helps deal with connections that are closed while
+  * idling in the pool for an extended period.
   */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
@@ -83,6 +86,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
     val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
+    val maxIdleDuration: Duration,
 )(implicit protected val F: ConcurrentEffect[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
@@ -113,6 +117,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       channelOptions: ChannelOptions = channelOptions,
       customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
         customDnsResolver,
+      maxIdleDuration: Duration = maxIdleDuration,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -136,6 +141,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
       customDnsResolver = customDnsResolver,
+      maxIdleDuration = maxIdleDuration,
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -334,6 +340,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         responseHeaderTimeout = responseHeaderTimeout,
         requestTimeout = requestTimeout,
         executionContext = executionContext,
+        maxIdleDuration = maxIdleDuration,
       )
     )(_.shutdown)
   }
@@ -368,6 +375,7 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
       customDnsResolver = None,
+      maxIdleDuration = Duration.Inf,
     ) {}
 
   def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =

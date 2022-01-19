@@ -20,6 +20,8 @@ package client
 
 import org.http4s.client.RequestKey
 
+import scala.concurrent.duration.Deadline
+
 private[client] trait Connection[F[_]] {
 
   /** Determine if the connection is closed and resources have been freed */
@@ -33,4 +35,10 @@ private[client] trait Connection[F[_]] {
 
   /** The key for requests we are able to serve */
   def requestKey: RequestKey
+
+  /** Deadline for the connection to be borrowed before we evict it */
+  def borrowDeadline: Option[Deadline]
+
+  /** Set the deadline for the connection to be borrowed before we evict it */
+  def borrowDeadline_=(deadline: Option[Deadline]): Unit
 }

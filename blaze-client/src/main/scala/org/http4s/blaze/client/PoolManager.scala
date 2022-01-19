@@ -38,6 +38,9 @@ final case class WaitQueueFullFailure() extends RuntimeException {
   override def getMessage: String = "Wait queue is full"
 }
 
+/** @param maxIdleDuration the maximum time a connection can be idle
+  * and still be borrowed
+  */
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
@@ -47,6 +50,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     requestTimeout: Duration,
     semaphore: Semaphore[F],
     implicit private val executionContext: ExecutionContext,
+    maxIdleDuration: Duration,
 )(implicit F: Concurrent[F])
     extends ConnectionManager.Stateful[F, A] { self =>
   private sealed case class Waiting(
@@ -99,7 +103,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
     curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
-  private def isExpired(t: Instant): Boolean = {
+  private def isRequestExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
     (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis)
   }
@@ -143,6 +147,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def addToIdleQueue(connection: A, key: RequestKey): F[Unit] =
     F.delay {
+      connection.borrowDeadline = maxIdleDuration match {
+        case finite: FiniteDuration => Some(Deadline.now + finite)
+        case _ => None
+      }
       val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
       q.enqueue(connection)
       idleQueues.update(key, q)
@@ -173,14 +181,23 @@ private final class PoolManager[F[_], A <: Connection[F]](
         if (!isClosed) {
           def go(): F[Unit] =
             getConnectionFromQueue(key).flatMap {
-              case Some(conn) if !conn.isClosed =>
-                F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
-                  F.delay(callback(Right(NextConnection(conn, fresh = false))))
-
-              case Some(closedConn @ _) =>
-                F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
-                  decrConnection(key) *>
-                  go()
+              case Some(conn) =>
+                if (conn.isClosed) {
+                  F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
+                    decrConnection(key) *>
+                    go()
+                } else {
+                  conn.borrowDeadline match {
+                    case Some(deadline) if deadline.isOverdue() =>
+                      F.delay(logger.debug(s"Shutting down expired connection for $key: $stats")) *>
+                        decrConnection(key) *>
+                        F.delay(conn.shutdown()) *>
+                        go()
+                    case _ =>
+                      F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
+                        F.delay(callback(Right(NextConnection(conn, fresh = false))))
+                  }
+                }
 
               case None if numConnectionsCheckHolds(key) =>
                 F.delay(
@@ -236,7 +253,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def releaseRecyclable(key: RequestKey, connection: A): F[Unit] =
     F.delay(waitQueue.dequeueFirst(_.key == key)).flatMap {
       case Some(Waiting(_, callback, at)) =>
-        if (isExpired(at))
+        if (isRequestExpired(at))
           F.delay(logger.debug(s"Request expired for $key")) *>
             F.delay(callback(Left(WaitQueueTimeoutException))) *>
             releaseRecyclable(key, connection)
@@ -322,7 +339,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def findFirstAllowedWaiter: F[Option[Waiting]] =
     F.delay {
-      val (expired, rest) = waitQueue.span(w => isExpired(w.at))
+      val (expired, rest) = waitQueue.span(w => isRequestExpired(w.at))
       expired.foreach(_.callback(Left(WaitQueueTimeoutException)))
       if (expired.nonEmpty) {
         logger.debug(s"expired requests: ${expired.length}")

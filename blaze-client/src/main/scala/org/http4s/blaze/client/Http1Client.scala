@@ -69,6 +69,7 @@ object Http1Client {
             responseHeaderTimeout = config.responseHeaderTimeout,
             requestTimeout = config.requestTimeout,
             executionContext = config.executionContext,
+            maxIdleDuration = Duration.Inf,
           )
       )(_.shutdown)
       .map(pool => BlazeClient(pool, config, pool.shutdown, config.executionContext))

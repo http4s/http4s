@@ -41,6 +41,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
     def isRecyclable = true
     def requestKey = key
     def shutdown() = ()
+    var borrowDeadline: Option[Deadline] = None
   }
 
   private def mkPool(
@@ -57,6 +58,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       responseHeaderTimeout = Duration.Inf,
       requestTimeout = requestTimeout,
       executionContext = ExecutionContext.Implicits.global,
+      maxIdleDuration = Duration.Inf,
     )
 
   test("A pool manager should wait up to maxWaitQueueLimit") {
