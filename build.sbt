@@ -386,6 +386,13 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
+      // private[ember]
+      ProblemFilters
+        .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.MessageTooLongError"),
+      ProblemFilters
+        .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.EndOfStreamError"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.fromProduct"),
     ),
   )
   .dependsOn(core, testing % "test->test")
