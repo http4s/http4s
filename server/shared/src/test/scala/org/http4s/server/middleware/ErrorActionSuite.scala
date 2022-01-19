@@ -18,9 +18,7 @@ package org.http4s.server.middleware
 
 import cats.effect.IO
 import cats.effect.Ref
-import com.comcast.ip4s.Ipv4Address
-import com.comcast.ip4s.Port
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s._
 import org.http4s.Request.Connection
 import org.http4s._
 import org.http4s.dsl.io._
@@ -41,8 +39,8 @@ class ErrorActionSuite extends Http4sSuite {
     attributes = Vault.empty.insert(
       Request.Keys.ConnectionInfo,
       Connection(
-        SocketAddress(Ipv4Address.fromBytes(127, 0, 0, 1), Port.fromInt(80).get),
-        SocketAddress(remote, Port.fromInt(80).get),
+        SocketAddress(Ipv4Address.fromBytes(127, 0, 0, 1), port"80"),
+        SocketAddress(remote, port"80"),
         false,
       ),
     ),
