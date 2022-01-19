@@ -20,7 +20,6 @@ import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.effect.std.Queue
 import cats.syntax.all._
-import com.comcast.ip4s
 import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
