@@ -336,7 +336,24 @@ lazy val client = libraryProject("client")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.client.oauth1.*.generateHMAC"
       ), // private[oauth1]
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq( // private[oauth1]
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
 
@@ -458,7 +475,15 @@ lazy val emberClient = libraryProject("ember-client")
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.client.internal.ClientHelpers#RetryLogic.isEmptyStreamError"
+          )
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -481,7 +506,23 @@ lazy val blazeServer = libraryProject("blaze-server")
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
+          ),
+        )
+      else Seq.empty,
+    },
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -535,7 +576,15 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
+          )
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
