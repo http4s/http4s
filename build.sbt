@@ -717,6 +717,7 @@ lazy val playJson = libraryProject("play-json")
     ),
     publish / skip := tlIsScala3.value,
     compile / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -743,6 +744,7 @@ lazy val twirl = http4sProject("twirl")
       }
     },
     publish / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -758,6 +760,7 @@ lazy val scalatags = http4sProject("scalatags")
         scalatagsApi
     ),
     publish / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -1036,6 +1039,15 @@ lazy val commonSettings = Seq(
     scalacheck,
   ).map(_ % Test),
   apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
+)
+
+lazy val skipUnusedDependenciesTestOnScala3 = Seq(
+  unusedCompileDependenciesTest := Def.taskDyn {
+    val skip = tlIsScala3.value
+    Def.task {
+      if (!skip) unusedCompileDependenciesTest.value
+    }
+  }
 )
 
 def initCommands(additionalImports: String*) =
