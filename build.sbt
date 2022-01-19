@@ -199,7 +199,20 @@ lazy val laws = libraryProject("laws")
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this"
-      ) // private
+      ), // private
+      // private[discipline]
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
+      ),
     ),
   )
   .dependsOn(core)
