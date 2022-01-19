@@ -150,32 +150,41 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
-
-      // private[syntax]
-      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
-      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
-      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
-      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
-      ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUriScheme"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateMediatype"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[syntax]
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.syntax.LiteralsSyntax.validateUriScheme"
+            ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.syntax.LiteralsSyntax.validateMediatype"
+            ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
+          ProblemFilters
+            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
+        )
+      else Seq.empty
+    },
   )
 
 lazy val laws = libraryProject("laws")
@@ -199,21 +208,26 @@ lazy val laws = libraryProject("laws")
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this"
-      ), // private
-      // private[discipline]
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
-      ),
-    ),
+      ) // private
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[discipline]
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
+          ),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core)
 
@@ -386,14 +400,23 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
-      // private[ember]
-      ProblemFilters
-        .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.MessageTooLongError"),
-      ProblemFilters
-        .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.EndOfStreamError"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.fromProduct"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[ember]
+          ProblemFilters
+            .exclude[MissingFieldProblem](
+              "org.http4s.ember.core.Parser#MessageP.MessageTooLongError"
+            ),
+          ProblemFilters
+            .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.EndOfStreamError"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.ember.core.Parser#MessageP.fromProduct"
+            ),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core, testing % "test->test")
 
