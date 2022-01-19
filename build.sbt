@@ -8,36 +8,24 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 Global / excludeLintKeys += laikaDescribe
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
-ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.22"
-ThisBuild / publishGithubUser := "rossabaker"
-ThisBuild / publishFullName := "Ross A. Baker"
+ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
+ThisBuild / tlBaseVersion := "0.22"
+ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isDotty.value
-ThisBuild / ScalafixConfig / skip := isDotty.value
+ThisBuild / scalafixAll / skip := tlIsScala3.value
+ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 
-ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(List("scalafmtCheckAll", "scalafmtSbtCheck"), name = Some("Check formatting")),
-  WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-  WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+ThisBuild / githubWorkflowBuild ++= Seq(
   WorkflowStep.Sbt(
     List("scalafixAll --check"),
     name = Some("Check Scalafix rules"),
     cond = Some(s"matrix.scala != '$scala_3'"),
-  ),
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-  // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
-  // WorkflowStep.Sbt(
-  // List("unusedCompileDependenciesTest"),
-  // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
-  WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-  WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
+  )
 )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
@@ -54,19 +42,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     scalas = crossScalaVersions.value.toList,
     javas = List(JavaSpec.temurin("8")),
   )
-)
-
-ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  for {
-    scala <- (ThisBuild / crossScalaVersions).value.tail
-    java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("scala" -> scala, "java" -> java.render))
-}
-
-enablePlugins(SonatypeCiReleasePlugin)
-
-versionIntroduced.withRank(KeyRanks.Invisible) := Map(
-  scala_3 -> "0.22.0"
 )
 
 lazy val modules: List[ProjectReference] = List(
@@ -154,7 +129,7 @@ lazy val core = libraryProject("core")
       vault,
     ),
     libraryDependencies ++= {
-      if (isDotty.value) Seq.empty
+      if (tlIsScala3.value) Seq.empty
       else
         Seq(
           scalaReflect(scalaVersion.value) % Provided
@@ -618,8 +593,8 @@ lazy val playJson = libraryProject("play-json")
     libraryDependencies ++= Seq(
       Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
     ),
-    publish / skip := isDotty.value,
-    compile / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
+    compile / skip := tlIsScala3.value,
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -645,7 +620,7 @@ lazy val twirl = http4sProject("twirl")
         case module => module
       }
     },
-    publish / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -657,7 +632,7 @@ lazy val scalatags = http4sProject("scalatags")
     libraryDependencies ++= Seq(
       scalatagsApi.cross(CrossVersion.for3Use2_13)
     ),
-    publish / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -706,7 +681,7 @@ lazy val docs = http4sProject("docs")
         scalafixInternalTests,
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    fatalWarningsInCI := false,
+    tlFatalWarningsInCi := false,
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
@@ -867,7 +842,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isDotty.value)
+    ).filter(_ => !tlIsScala3.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -892,7 +867,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isDotty.value),
+    ).filter(_ => !tlIsScala3.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -935,7 +910,7 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalacheck,
   ).map(_ % Test),
-  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+  apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
 )
 
 def initCommands(additionalImports: String*) =
