@@ -638,9 +638,10 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.playJson
+      Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
     ),
-    crossScalaVersions := Seq(scala_212, scala_213),
+    publish / skip := tlIsScala3.value,
+    compile / skip := tlIsScala3.value,
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -659,7 +660,14 @@ lazy val twirl = http4sProject("twirl")
     description := "Twirl template support for http4s",
     startYear := Some(2014),
     TwirlKeys.templateImports := Nil,
-    crossScalaVersions := Seq(scala_212, scala_213),
+    libraryDependencies := {
+      libraryDependencies.value.map {
+        case module if module.name == "twirl-api" =>
+          module.cross(CrossVersion.for3Use2_13)
+        case module => module
+      }
+    },
+    publish / skip := tlIsScala3.value,
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -669,9 +677,9 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi
+      scalatagsApi.cross(CrossVersion.for3Use2_13)
     ),
-    crossScalaVersions := Seq(scala_212, scala_213),
+    publish / skip := tlIsScala3.value,
   )
   .dependsOn(core, testing % "test->test")
 
