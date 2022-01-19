@@ -718,6 +718,7 @@ lazy val playJson = libraryProject("play-json")
     publish / skip := tlIsScala3.value,
     compile / skip := tlIsScala3.value,
     skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -745,6 +746,7 @@ lazy val twirl = http4sProject("twirl")
     },
     publish / skip := tlIsScala3.value,
     skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -761,6 +763,7 @@ lazy val scalatags = http4sProject("scalatags")
     ),
     publish / skip := tlIsScala3.value,
     skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .dependsOn(core, testing % "test->test")
 
