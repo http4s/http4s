@@ -420,8 +420,8 @@ final class Request[+F[_]] private (
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   /** A request is idempotent if its method is idempotent or it contains
-   * an `Idempotency-Key` header.
-   */
+    * an `Idempotency-Key` header.
+    */
   def isIdempotent: Boolean =
     method.isIdempotent || headers.contains[`Idempotency-Key`]
 
