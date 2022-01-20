@@ -29,6 +29,7 @@ import fs2.Stream
 import org.http4s.Headers
 import org.http4s.Method
 import org.http4s.Uri
+import org.http4s.internal.reduceComparisons
 import scodec.bits.ByteVector
 
 /** A websocket request.
@@ -41,11 +42,50 @@ import scodec.bits.ByteVector
   * @param method
   *   The method of the intial HTTP request. Ignored by some clients.
   */
-final case class WSRequest private (
-    uri: Uri,
-    headers: Headers = Headers.empty,
-    method: Method = Method.GET,
-)
+sealed abstract class WSRequest {
+  def uri: Uri
+  def headers: Headers
+  def method: Method
+
+  def withUri(uri: Uri): WSRequest
+  def withHeaders(headers: Headers): WSRequest
+  def withMethod(method: Method): WSRequest
+}
+
+object WSRequest {
+  def apply(uri: Uri): WSRequest = apply(uri, Headers.empty, Method.GET)
+
+  def apply(uri: Uri, headers: Headers, method: Method): WSRequest =
+    WSRequestImpl(uri, headers, method)
+
+  private[this] final case class WSRequestImpl(
+      override val uri: Uri,
+      override val headers: Headers,
+      override val method: Method,
+  ) extends WSRequest {
+    def withUri(uri: Uri) = copy(uri = uri)
+    def withHeaders(headers: Headers) = copy(headers = headers)
+    def withMethod(method: Method) = copy(method = method)
+  }
+
+  implicit val catsHashAndOrderForWSRequest: Hash[WSRequest] with Order[WSRequest] =
+    new Hash[WSRequest] with Order[WSRequest] {
+      override def hash(x: WSRequest): Int = x.hashCode
+
+      override def compare(x: WSRequest, y: WSRequest): Int =
+        reduceComparisons(
+          x.headers.compare(y.headers),
+          Eval.later(x.method.compare(y.method)),
+          Eval.later(x.uri.compare(y.uri)),
+        )
+    }
+
+  implicit val catsShowForWSRequest: Show[WSRequest] =
+    Show.fromToString
+
+  implicit def stdLibOrdering: Ordering[WSRequest] =
+    catsHashAndOrderForWSRequest.toOrdering
+}
 
 sealed trait WSFrame extends Product with Serializable
 
