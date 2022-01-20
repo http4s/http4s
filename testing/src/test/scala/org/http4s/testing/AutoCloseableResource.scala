@@ -41,10 +41,11 @@ private[http4s] object AutoCloseableResource {
       case t: Throwable =>
         toThrow = t
         null.asInstanceOf[A]
-    } finally if (toThrow eq null) resource.close()
-    else {
-      try resource.close()
-      finally throw toThrow
-    }
+    } finally
+      if (toThrow eq null) resource.close()
+      else {
+        try resource.close()
+        finally throw toThrow
+      }
   }
 }

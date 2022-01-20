@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,22 @@
  */
 
 package org.http4s
+package blaze
+package client
 
-import cats._
-import cats.laws.discipline.NonEmptyTraverseTests
-import cats.syntax.all._
-import org.http4s.laws.discipline.arbitrary._
+import org.http4s.client.RequestKey
 
-class ContextRequestSuite extends Http4sSuite {
-  implicit def nonBodyEquality[F[_], A: Eq]: Eq[ContextRequest[F, A]] =
-    Eq.instance { case (first, second) =>
-      first.context === second.context &&
-      first.req == second.req
-    }
+private[client] trait Connection[F[_]] {
 
-  checkAll(
-    "ContextRequest[F, *]",
-    NonEmptyTraverseTests[ContextRequest[Option, *]]
-      .nonEmptyTraverse[Option, Int, Int, Int, Int, Option, Option],
-  )
+  /** Determine if the connection is closed and resources have been freed */
+  def isClosed: Boolean
+
+  /** Determine if the connection is in a state that it can be recycled for another request. */
+  def isRecyclable: Boolean
+
+  /** Close down the connection, freeing resources and potentially aborting a [[Response]] */
+  def shutdown(): Unit
+
+  /** The key for requests we are able to serve */
+  def requestKey: RequestKey
 }
