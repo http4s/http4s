@@ -84,6 +84,7 @@ lazy val modules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalRules,
   scalafixInternalInput,
   scalafixInternalOutput,
   scalafixInternalTests,
