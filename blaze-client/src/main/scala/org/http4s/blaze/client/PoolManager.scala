@@ -209,15 +209,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
                   decrConnection(key) *>
                   go()
-              case Some(conn) if conn.borrowDeadline.exists(_.isOverdue()) => 
+
+              case Some(conn) if conn.borrowDeadline.exists(_.isOverdue()) =>
                 F.delay(logger.debug(s"Shutting down and evicting expired connection for $key: $stats")) *>
                   decrConnection(key) *>
                   F.delay(conn.shutdown()) *>
                   go()
+
               case Some(conn) =>
                 F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
                   F.delay(callback(Right(NextConnection(conn, fresh = false))))
-              }
 
               case None if numConnectionsCheckHolds(key) =>
                 F.delay(

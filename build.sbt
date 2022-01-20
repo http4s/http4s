@@ -8,36 +8,27 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 Global / excludeLintKeys += laikaDescribe
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_213, scala_212, scala_3)
-ThisBuild / scalaVersion := (ThisBuild / crossScalaVersions).value.filter(_.startsWith("2.")).last
-ThisBuild / baseVersion := "0.22"
-ThisBuild / publishGithubUser := "rossabaker"
-ThisBuild / publishFullName := "Ross A. Baker"
+ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
+ThisBuild / tlBaseVersion := "0.22"
+ThisBuild / tlCiReleaseBranches := Seq("series/0.22")
+ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / scalafixAll / skip := isDotty.value
-ThisBuild / ScalafixConfig / skip := isDotty.value
+ThisBuild / tlFatalWarningsInCi := !tlIsScala3.value
 
-ThisBuild / githubWorkflowBuild := Seq(
-  WorkflowStep.Sbt(List("scalafmtCheckAll", "scalafmtSbtCheck"), name = Some("Check formatting")),
-  WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-  WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
+ThisBuild / scalafixAll / skip := tlIsScala3.value
+ThisBuild / ScalafixConfig / skip := tlIsScala3.value
+
+ThisBuild / githubWorkflowBuild ++= Seq(
   WorkflowStep.Sbt(
     List("scalafixAll --check"),
     name = Some("Check Scalafix rules"),
     cond = Some(s"matrix.scala != '$scala_3'"),
-  ),
-  WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-  // TODO: this gives false positives for boopickle, scalatags, twirl and play-json
-  // WorkflowStep.Sbt(
-  // List("unusedCompileDependenciesTest"),
-  // name = Some("Check unused compile dependencies"), cond = Some(s"matrix.scala != '$scala_3'")), // todo disable on dotty for now
-  WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-  WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
+  )
 )
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
@@ -54,19 +45,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     scalas = crossScalaVersions.value.toList,
     javas = List(JavaSpec.temurin("8")),
   )
-)
-
-ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  for {
-    scala <- (ThisBuild / crossScalaVersions).value.tail
-    java <- (ThisBuild / githubWorkflowJavaVersions).value.tail
-  } yield MatrixExclude(Map("scala" -> scala, "java" -> java.render))
-}
-
-enablePlugins(SonatypeCiReleasePlugin)
-
-versionIntroduced.withRank(KeyRanks.Invisible) := Map(
-  scala_3 -> "0.22.0"
 )
 
 lazy val modules: List[ProjectReference] = List(
@@ -150,14 +128,14 @@ lazy val core = libraryProject("core")
       log4s,
       munit % Test,
       scodecBits,
-      slf4jApi, // residual dependency from macros
       vault,
     ),
     libraryDependencies ++= {
-      if (isDotty.value) Seq.empty
+      if (tlIsScala3.value) Seq.empty
       else
         Seq(
-          scalaReflect(scalaVersion.value) % Provided
+          slf4jApi, // residual dependency from macros
+          scalaReflect(scalaVersion.value) % Provided,
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
@@ -173,7 +151,51 @@ lazy val core = libraryProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[syntax]
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
+          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.syntax.LiteralsSyntax.validateUriScheme"
+            ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.syntax.LiteralsSyntax.validateMediatype"
+            ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
+          ProblemFilters
+            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
+          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
+          ProblemFilters
+            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
+          ProblemFilters
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
+          ProblemFilters
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
+          ProblemFilters
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
+        )
+      else Seq.empty
+    },
   )
 
 lazy val laws = libraryProject("laws")
@@ -198,7 +220,61 @@ lazy val laws = libraryProject("laws")
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this"
       ) // private
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[discipline]
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genObsText"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genObsText_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genVcharExceptDquote"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genVcharExceptDquote_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genEntityTag"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genEntityTag_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForIfRangeLastModified"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForIfRangeLastModified_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryTrailer"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryTrailer_="
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForKeepAlive"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForKeepAlive_="
+          ),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core)
 
@@ -214,7 +290,7 @@ lazy val testing = libraryProject("testing")
       munitDiscipline,
       scalacheckEffect,
       scalacheckEffectMunit,
-    ),
+    ).map(_ % Test),
   )
   .dependsOn(laws)
 
@@ -307,7 +383,30 @@ lazy val client = libraryProject("client")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.client.oauth1.*.generateHMAC"
       ), // private[oauth1]
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq( // private[oauth1]
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.WaitQueueTimeoutException.getStackTraceDepth"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
+          ),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
 
@@ -371,7 +470,23 @@ lazy val emberCore = libraryProject("ember-core")
       ProblemFilters
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          // private[ember]
+          ProblemFilters
+            .exclude[MissingFieldProblem](
+              "org.http4s.ember.core.Parser#MessageP.MessageTooLongError"
+            ),
+          ProblemFilters
+            .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.EndOfStreamError"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem](
+              "org.http4s.ember.core.Parser#MessageP.fromProduct"
+            ),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core, testing % "test->test")
 
@@ -413,7 +528,15 @@ lazy val emberClient = libraryProject("ember-client")
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.client.internal.ClientHelpers#RetryLogic.isEmptyStreamError"
+          )
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -436,7 +559,23 @@ lazy val blazeServer = libraryProject("blaze-server")
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
+          ),
+        )
+      else Seq.empty,
+    },
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -497,7 +636,15 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters.exclude[InheritedNewAbstractMethodProblem](
         "org.http4s.blaze.client.BlazeConnection.borrowDeadline_="
       ),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
+          )
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
@@ -603,6 +750,7 @@ lazy val boopickle = libraryProject("boopickle")
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle
     ),
+    tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
   .dependsOn(core, testing % "test->test")
 
@@ -623,10 +771,15 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
+      if (tlIsScala3.value)
+        Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
+      else
+        Http4sPlugin.playJson
     ),
-    publish / skip := isDotty.value,
-    compile / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
+    compile / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -647,12 +800,14 @@ lazy val twirl = http4sProject("twirl")
     TwirlKeys.templateImports := Nil,
     libraryDependencies := {
       libraryDependencies.value.map {
-        case module if module.name == "twirl-api" =>
+        case module if module.name == "twirl-api" && tlIsScala3.value =>
           module.cross(CrossVersion.for3Use2_13)
         case module => module
       }
     },
-    publish / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -662,9 +817,14 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      scalatagsApi.cross(CrossVersion.for3Use2_13)
+      if (tlIsScala3.value)
+        scalatagsApi.cross(CrossVersion.for3Use2_13)
+      else
+        scalatagsApi
     ),
-    publish / skip := isDotty.value,
+    publish / skip := tlIsScala3.value,
+    skipUnusedDependenciesTestOnScala3,
+    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .dependsOn(core, testing % "test->test")
 
@@ -713,7 +873,7 @@ lazy val docs = http4sProject("docs")
         scalafixInternalTests,
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    fatalWarningsInCI := false,
+    tlFatalWarningsInCi := false,
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
@@ -874,7 +1034,7 @@ lazy val scalafixInternalRules = project
   .settings(
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !isDotty.value)
+    ).filter(_ => !tlIsScala3.value)
   )
 
 lazy val scalafixInternalInput = project
@@ -899,7 +1059,7 @@ lazy val scalafixInternalTests = project
     libraryDependencies ++= Seq(
       ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
         .cross(CrossVersion.full)
-    ).filter(_ => !isDotty.value),
+    ).filter(_ => !tlIsScala3.value),
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
@@ -942,7 +1102,16 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalacheck,
   ).map(_ % Test),
-  apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+  apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
+)
+
+lazy val skipUnusedDependenciesTestOnScala3 = Seq(
+  unusedCompileDependenciesTest := Def.taskDyn {
+    val skip = tlIsScala3.value
+    Def.task {
+      if (!skip) unusedCompileDependenciesTest.value
+    }
+  }
 )
 
 def initCommands(additionalImports: String*) =

@@ -60,6 +60,7 @@ import scala.concurrent.duration._
   * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
   * @param channelOptions custom socket options
   * @param customDnsResolver customDnsResolver to use other than the system default
+  * @param retries the number of times an idempotent request that fails with a `SocketException` will be retried.  This is a means to deal with connections that expired while in the pool.  Retries happen immediately.  The default is 2.  For a more sophisticated retry strategy, see the [[org.http4s.client.middleware.Retry]] middleware.
   * @param maxIdleDuration maximum time a connection can be idle and still
   * be borrowed.  Helps deal with connections that are closed while
   * idling in the pool for an extended period.
@@ -86,6 +87,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
     val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
+    val retries: Int,
     val maxIdleDuration: Duration,
 )(implicit protected val F: ConcurrentEffect[F])
     extends BlazeBackendBuilder[Client[F]]
@@ -140,6 +142,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     asynchronousChannelGroup = asynchronousChannelGroup,
     channelOptions = channelOptions,
     customDnsResolver = customDnsResolver,
+    retries = 0,
     maxIdleDuration = Duration.Inf,
   )(F)
 
@@ -166,6 +169,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       channelOptions: ChannelOptions = channelOptions,
       customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
         customDnsResolver,
+      retries: Int = retries,
       maxIdleDuration: Duration = maxIdleDuration,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
@@ -190,6 +194,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
       customDnsResolver = customDnsResolver,
+      retries = retries,
       maxIdleDuration = maxIdleDuration,
     ) {}
 
@@ -236,6 +241,12 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     */
   def withDefaultSslContext: BlazeClientBuilder[F] =
     withSslContext(SSLContext.getDefault())
+
+  /** Number of times to immediately retry idempotent requests that fail
+    * with a `SocketException`.
+    */
+  def withRetries(retries: Int = retries): BlazeClientBuilder[F] =
+    copy(retries = retries)
 
   /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
   @deprecated(
@@ -313,6 +324,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         requestTimeout = requestTimeout,
         scheduler = scheduler,
         ec = executionContext,
+        retries = retries,
       )
     } yield (client, manager.state)
 
@@ -424,6 +436,7 @@ object BlazeClientBuilder {
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
       customDnsResolver = None,
+      retries = 2,
       maxIdleDuration = Duration.Inf,
     ) {}
 
