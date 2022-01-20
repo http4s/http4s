@@ -1029,7 +1029,7 @@ lazy val scalafixInternalRules = project
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !tlIsScala3.value)
+    ).filter(_ => !tlIsScala3.value),
   )
 
 lazy val scalafixInternalInput = project
