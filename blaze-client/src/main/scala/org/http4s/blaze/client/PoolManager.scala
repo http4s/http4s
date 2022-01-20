@@ -205,27 +205,19 @@ private final class PoolManager[F[_], A <: Connection[F]](
         if (!isClosed) {
           def go(): F[Unit] =
             getConnectionFromQueue(key).flatMap {
+              case Some(conn) if conn.isClosed =>
+                F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
+                  decrConnection(key) *>
+                  go()
+              case Some(conn) if conn.borrowDeadline.exists(_.isOverdue()) => 
+                F.delay(logger.debug(s"Shutting down and evicting expired connection for $key: $stats")) *>
+                  decrConnection(key) *>
+                  F.delay(conn.shutdown()) *>
+                  go()
               case Some(conn) =>
-                if (conn.isClosed) {
-                  F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
-                    decrConnection(key) *>
-                    go()
-                } else {
-                  conn.borrowDeadline match {
-                    case Some(deadline) if deadline.isOverdue() =>
-                      F.delay(
-                        logger.debug(
-                          s"Shutting down and evicting expired connection for $key: $stats"
-                        )
-                      ) *>
-                        decrConnection(key) *>
-                        F.delay(conn.shutdown()) *>
-                        go()
-                    case _ =>
-                      F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
-                        F.delay(callback(Right(NextConnection(conn, fresh = false))))
-                  }
-                }
+                F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
+                  F.delay(callback(Right(NextConnection(conn, fresh = false))))
+              }
 
               case None if numConnectionsCheckHolds(key) =>
                 F.delay(
