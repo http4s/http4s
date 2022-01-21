@@ -68,7 +68,7 @@ object BlazeClient {
       scheduler: TickWheelExecutor,
       ec: ExecutionContext,
       retries: Int,
-  )(implicit F: ConcurrentEffect[F]) =
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
     Client[F] { req =>
       Resource.suspend {
         val key = RequestKey.fromRequest(req)
@@ -163,4 +163,14 @@ object BlazeClient {
         }
       }
     }
+
+  @deprecated("Preserved for binary compatibility", "0.22.9")
+  private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
+      manager: ConnectionManager[F, A],
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
+      scheduler: TickWheelExecutor,
+      ec: ExecutionContext,
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
+    makeClient(manager, responseHeaderTimeout, requestTimeout, scheduler, ec, 0)
 }
