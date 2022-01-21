@@ -629,13 +629,6 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
-      // Couldn't figure this one out, but it's private
-      ProblemFilters.exclude[InheritedNewAbstractMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.borrowDeadline"
-      ),
-      ProblemFilters.exclude[InheritedNewAbstractMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.borrowDeadline_="
-      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(

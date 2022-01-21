@@ -77,6 +77,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     Duration.Inf,
   )(F)
 
+  private sealed case class PooledConnection(conn: A, borrowDeadline: Option[Deadline])
+
   private sealed case class Waiting(
       key: RequestKey,
       callback: Callback[NextConnection],
@@ -88,19 +90,19 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private var isClosed = false
   private var curTotal = 0
   private val allocated = mutable.Map.empty[RequestKey, Int]
-  private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[A]]
+  private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[PooledConnection]]
   private var waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
     s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
 
-  private def getConnectionFromQueue(key: RequestKey): F[Option[A]] =
+  private def getConnectionFromQueue(key: RequestKey): F[Option[PooledConnection]] =
     F.delay {
       idleQueues.get(key).flatMap { q =>
         if (q.nonEmpty) {
-          val con = q.dequeue()
+          val pooled = q.dequeue()
           if (q.isEmpty) idleQueues.remove(key)
-          Some(con)
+          Some(pooled)
         } else None
       }
     }
@@ -169,14 +171,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     }
 
-  private def addToIdleQueue(connection: A, key: RequestKey): F[Unit] =
+  private def addToIdleQueue(conn: A, key: RequestKey): F[Unit] =
     F.delay {
-      connection.borrowDeadline = maxIdleDuration match {
+      val borrowDeadline = maxIdleDuration match {
         case finite: FiniteDuration => Some(Deadline.now + finite)
         case _ => None
       }
-      val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
-      q.enqueue(connection)
+      val q = idleQueues.getOrElse(key, mutable.Queue.empty[PooledConnection])
+      q.enqueue(PooledConnection(conn, borrowDeadline))
       idleQueues.update(key, q)
     }
 
@@ -205,20 +207,22 @@ private final class PoolManager[F[_], A <: Connection[F]](
         if (!isClosed) {
           def go(): F[Unit] =
             getConnectionFromQueue(key).flatMap {
-              case Some(conn) if conn.isClosed =>
+              case Some(pooled) if pooled.conn.isClosed =>
                 F.delay(logger.debug(s"Evicting closed connection for $key: $stats")) *>
                   decrConnection(key) *>
                   go()
 
-              case Some(conn) if conn.borrowDeadline.exists(_.isOverdue()) =>
-                F.delay(logger.debug(s"Shutting down and evicting expired connection for $key: $stats")) *>
+              case Some(pooled) if pooled.borrowDeadline.exists(_.isOverdue()) =>
+                F.delay(
+                  logger.debug(s"Shutting down and evicting expired connection for $key: $stats")
+                ) *>
                   decrConnection(key) *>
-                  F.delay(conn.shutdown()) *>
+                  F.delay(pooled.conn.shutdown()) *>
                   go()
 
-              case Some(conn) =>
+              case Some(pooled) =>
                 F.delay(logger.debug(s"Recycling connection for $key: $stats")) *>
-                  F.delay(callback(Right(NextConnection(conn, fresh = false))))
+                  F.delay(callback(Right(NextConnection(pooled.conn, fresh = false))))
 
               case None if numConnectionsCheckHolds(key) =>
                 F.delay(
@@ -242,7 +246,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                         getConnectionFromQueue(randKey).map(
                           _.fold(
                             logger.warn(s"No connection to evict from the idleQueue for $randKey")
-                          )(_.shutdown())
+                          )(_.conn.shutdown())
                         ) *>
                           decrConnection(randKey)
                     } *>
@@ -430,7 +434,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         logger.info(s"Shutting down connection pool: $stats")
         if (!isClosed) {
           isClosed = true
-          idleQueues.foreach(_._2.foreach(_.shutdown()))
+          idleQueues.foreach(_._2.foreach(_.conn.shutdown()))
           idleQueues.clear()
           allocated.clear()
           curTotal = 0
