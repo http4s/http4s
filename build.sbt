@@ -10,7 +10,6 @@ Global / excludeLintKeys += laikaDescribe
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBaseVersion := "0.22"
-ThisBuild / tlCiReleaseBranches := Seq("series/0.22")
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
 ThisBuild / semanticdbEnabled := true
