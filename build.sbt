@@ -83,6 +83,7 @@ lazy val modules: List[ProjectReference] = List(
   examplesJetty,
   examplesTomcat,
   examplesWar,
+  scalafixInternalRules,
   scalafixInternalInput,
   scalafixInternalOutput,
   scalafixInternalTests,
@@ -633,7 +634,9 @@ lazy val blazeClient = libraryProject("blaze-client")
         Seq(
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
-          )
+          ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeClient.makeClient"),
         )
       else Seq.empty
     },
@@ -1024,9 +1027,10 @@ lazy val scalafixInternalRules = project
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
+    startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
-    ).filter(_ => !tlIsScala3.value)
+    ).filter(_ => !tlIsScala3.value),
   )
 
 lazy val scalafixInternalInput = project
