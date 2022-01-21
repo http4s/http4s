@@ -18,9 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.Port
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
@@ -52,7 +50,7 @@ class EmberServerSuite extends Http4sSuite {
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
-      .withPort(Port.fromInt(0).get)
+      .withPort(port"0")
       .withHttpApp(service[IO])
       .build
 
@@ -62,7 +60,7 @@ class EmberServerSuite extends Http4sSuite {
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
-      .withPort(Port.fromInt(0).get)
+      .withPort(port"0")
       .withReceiveBufferSize(receiveBufferSize)
       .build
   )

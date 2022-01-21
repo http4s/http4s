@@ -361,6 +361,27 @@ class ParsingSuite extends Http4sSuite {
     }
   }
 
+  test("Parser.Response.parser should Parse a response without Content-Length") {
+    val defaultMaxHeaderLength = 4096
+    val raw =
+      """HTTP/1.0 200 OK
+      |Content-Type: text/plain
+      |
+      |helloallthethings""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .map(Helpers.httpifyString)
+      .through(text.utf8.encode)
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8.decode).compile.string
+    } yield assertEquals(body, "helloallthethings")
+  }
+
   test("Header Parser should handle headers in a section") {
     val base = """Content-Type: text/plain; charset=UTF-8
       |Content-Length: 11

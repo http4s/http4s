@@ -120,7 +120,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       Stream
         .eval(
           ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), Port.fromInt(0).get))
+            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
           )
         ) // Sketchy
         .drain ++
