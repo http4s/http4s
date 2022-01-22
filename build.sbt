@@ -50,7 +50,11 @@ ThisBuild / githubWorkflowBuild := Seq(
     name = Some("FastOptJS"),
     cond = Some("matrix.ci != 'ciJVM'"),
   ),
-  WorkflowStep.Run(List("./jstack.sh &"), name = Some("Background stack dumps")),
+  WorkflowStep.Use(
+    UseRef.Public("mxschmitt", "action-tmate", "v3"),
+    params = Map("limit-access-to-actor" -> "true"),
+    name = Some("Backdoor"),
+  ),
   WorkflowStep.Sbt(List("${{ matrix.ci }}", "test"), name = Some("Run tests")),
   WorkflowStep.Sbt(
     List("${{ matrix.ci }}", "doc"),

@@ -111,8 +111,10 @@ jobs:
         if: matrix.ci != 'ciJVM'
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
 
-      - name: Background stack dumps
-        run: ./jstack.sh &
+      - name: Backdoor
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
       - name: Run tests
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
