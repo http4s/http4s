@@ -169,7 +169,7 @@ trait WSClient[F[_]] extends WSClientHighLevel[F] {
 }
 
 object WSClient {
-  def defaultImpl[F[_]](
+  def apply[F[_]](
       respondToPings: Boolean
   )(f: WSRequest => Resource[F, WSConnection[F]])(implicit F: Concurrent[F]): WSClient[F] =
     new WSClient[F] {
