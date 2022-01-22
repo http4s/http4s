@@ -196,15 +196,20 @@ lazy val core = libraryCrossProject("core")
     },
   )
   .jvmSettings(
-    libraryDependencies ++= Seq(
-      slf4jApi // residual dependency from macros
-    )
+    libraryDependencies ++= {
+      if (tlIsScala3.value) Seq.empty
+      else
+        Seq(
+          slf4jApi // residual dependency from macros
+        )
+    }
   )
   .jsSettings(
     libraryDependencies ++= Seq(
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
-    )
+    ),
+    jsVersionIntroduced("0.23.5"),
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -287,6 +292,9 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
     },
   )
   .dependsOn(core)
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
+  )
 
 lazy val testing = libraryCrossProject("testing", CrossType.Full)
   .enablePlugins(NoPublishPlugin)
@@ -361,6 +369,9 @@ lazy val server = libraryCrossProject("server")
     ),
     buildInfoPackage := "org.http4s.server.test",
   )
+  .jsSettings(
+    jsVersionIntroduced("0.23.7")
+  )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
@@ -424,6 +435,9 @@ lazy val client = libraryCrossProject("client")
       nettyBuffer % Test,
       nettyCodecHttp % Test,
     )
+  )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
@@ -506,6 +520,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
       else Seq.empty
     },
   )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryCrossProject("ember-server")
@@ -545,7 +562,8 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    )
+    ),
+    jsVersionIntroduced("0.23.7"),
   )
   .dependsOn(
     emberCore % "compile;test->test",
@@ -581,7 +599,8 @@ lazy val emberClient = libraryCrossProject("ember-client")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    )
+    ),
+    jsVersionIntroduced("0.23.5"),
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -807,6 +826,9 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
   )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
@@ -817,6 +839,9 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
       jawnFs2.value,
       jawnParser.value,
     ),
+  )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
   )
   .dependsOn(core, testing % "test->test")
 
@@ -829,6 +854,9 @@ lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
     ),
     tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val circe = libraryCrossProject("circe", CrossType.Pure)
@@ -839,6 +867,9 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
       circeCore.value,
       circeTesting.value % Test,
     ),
+  )
+  .jsSettings(
+    jsVersionIntroduced("0.23.5")
   )
   .jvmSettings(libraryDependencies += circeJawn.value)
   .jsSettings(libraryDependencies += circeJawn15.value)
@@ -1208,6 +1239,10 @@ lazy val commonSettings = Seq(
     scalacheck.value,
   ).map(_ % Test),
   apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
+)
+
+def jsVersionIntroduced(v: String) = Seq(
+  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> v).toMap
 )
 
 lazy val skipUnusedDependenciesTestOnScala3 = Seq(
