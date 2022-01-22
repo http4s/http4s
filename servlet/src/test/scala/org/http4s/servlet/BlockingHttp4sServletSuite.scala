@@ -51,7 +51,7 @@ class BlockingHttp4sServletSuite extends Http4sSuite {
   )
 
   private def get(serverPort: Int, path: String): IO[String] =
-    IO(
+    IO.blocking(
       AutoCloseableResource.resource(
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
