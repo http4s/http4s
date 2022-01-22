@@ -21,7 +21,7 @@ package staticcontent
 import scala.annotation.nowarn
 import scala.deriving.Mirror
 
-private[staticcontent] trait FileServiceConfigCompanionPlatform extends Mirror.Product {
+private[staticcontent] trait FileServiceConfigCompanionCompat extends Mirror.Product {
   type MirroredMonoType = FileService.Config[_]
 
   @deprecated(

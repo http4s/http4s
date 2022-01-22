@@ -18,7 +18,7 @@ package org.http4s
 package server
 package staticcontent
 
-private[staticcontent] trait FileServiceConfigCompanionPlatform {
+private[staticcontent] trait FileServiceConfigCompanionCompat {
   @deprecated(
     "Config is no longer a case class. The Config.unapply method is provided for binary compatibility.",
     "0.23.8",

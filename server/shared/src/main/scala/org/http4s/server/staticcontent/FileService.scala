@@ -189,7 +189,7 @@ object FileService {
 
   }
 
-  object Config extends FileServiceConfigCompanionPlatform {
+  object Config extends FileServiceConfigCompanionCompat {
 
     /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
       *
