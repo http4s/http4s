@@ -81,6 +81,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout: Duration = Duration.Inf,
       requestTimeout: Duration = Duration.Inf,
       idleTimeout: Duration = Duration.Inf,
+      retries: Int = 0,
   ): Client[IO] = {
     val manager = ConnectionManager.basic[IO, Http1Connection[IO]]((_: RequestKey) =>
       IO {
@@ -99,6 +100,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
       ec = Http4sSuite.TestExecutionContext,
+      retries = retries,
     )
   }
 
@@ -226,6 +228,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       requestTimeout = 50.millis,
       scheduler = tickWheel,
       ec = munitExecutionContext,
+      retries = 0,
     )
 
     // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
