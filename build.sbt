@@ -190,7 +190,13 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
           ProblemFilters
             .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.headers.Upgrade.parser"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.StaticFile.<clinit>"),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.websocket.WebSocket.imapK"
+          ),
         )
       else Seq.empty
     },
@@ -553,7 +559,16 @@ lazy val emberServer = libraryCrossProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.server.internal.ServerHelpers.runConnection"
       ),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.server.internal.ServerHelpers.server"
+          )
+        )
+      else
+        Seq.empty
+    },
     Test / parallelExecution := false,
   )
   .jvmSettings(
@@ -664,6 +679,9 @@ lazy val blazeServer = libraryProject("blaze-server")
             .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.blaze.server.WebSocketSupport.webSocketKey"
           ),
         )
       else Seq.empty,
