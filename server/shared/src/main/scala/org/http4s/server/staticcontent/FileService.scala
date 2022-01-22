@@ -137,6 +137,13 @@ object FileService {
       case 4 => cacheStrategy
     }
 
+    def _1: String = systemPath
+    def _2: Function3[_, _, _, _] =
+      if (Platform.isJvm) (pathCollector: @nowarn("msg=deprecated")) else fs2PathCollector
+    def _3: String = pathPrefix
+    def _4: Int = bufferSize
+    def _5: CacheStrategy[F] = cacheStrategy
+
     override def canEqual(that: Any): Boolean = that match {
       case _: Config[_] => true
       case _ => false
@@ -162,24 +169,7 @@ object FileService {
 
   }
 
-  object Config {
-
-    @deprecated(
-      "Config is no longer a case class. The Config.unapply method is provided for binary compatibility.",
-      "0.23.8",
-    )
-    def unapply[F[_]](
-        config: Config[F]
-    ): Option[(String, PathCollector[F], String, Int, CacheStrategy[F])] =
-      Some(
-        (
-          config.systemPath,
-          config.pathCollector,
-          config.pathPrefix,
-          config.bufferSize,
-          config.cacheStrategy,
-        )
-      )
+  object Config extends FileServiceConfigCompanionPlatform {
 
     /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
       *
