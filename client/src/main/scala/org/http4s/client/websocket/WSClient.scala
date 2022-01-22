@@ -153,16 +153,19 @@ trait WSConnectionHighLevel[F[_]] {
   def closeFrame: TryableDeferred[F, WSFrame.Close]
 }
 
-trait WSClient[F[_]] {
-
-  /** Establish a websocket connection. It will be closed automatically if necessary. */
-  def connect(request: WSRequest): Resource[F, WSConnection[F]]
+trait WSClientHighLevel[F[_]] {
 
   /** Establish a "high level" websocket connection. You only get to handle Text and Binary frames.
     * Pongs will be replied automatically. Received frames are grouped by the `last` attribute. The
     * connection will be closed automatically.
     */
   def connectHighLevel(request: WSRequest): Resource[F, WSConnectionHighLevel[F]]
+}
+
+trait WSClient[F[_]] extends WSClientHighLevel[F] {
+
+  /** Establish a websocket connection. It will be closed automatically if necessary. */
+  def connect(request: WSRequest): Resource[F, WSConnection[F]]
 }
 
 object WSClient {
