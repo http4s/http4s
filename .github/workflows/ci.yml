@@ -111,6 +111,9 @@ jobs:
         if: matrix.ci != 'ciJVM'
         run: 'sbt ++${{ matrix.scala }} ''${{ matrix.ci }}'' fastOptJS test:fastOptJS'
 
+      - name: Background stack dumps
+        run: ./jstack.sh &
+
       - name: Run tests
         run: sbt ++${{ matrix.scala }} '${{ matrix.ci }}' test
 
