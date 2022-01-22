@@ -437,7 +437,11 @@ lazy val client = libraryCrossProject("client")
     )
   )
   .jsSettings(
-    jsVersionIntroduced("0.23.5")
+    jsVersionIntroduced("0.23.5"),
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder$"),
+    ),
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
