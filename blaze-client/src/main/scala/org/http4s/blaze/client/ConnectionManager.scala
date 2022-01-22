@@ -102,7 +102,7 @@ private object ConnectionManager {
       )
     }
 
-  @deprecated("Preserved for binary compatibility", "0.22.9")
+  @deprecated("Preserved for binary compatibility", "0.23.8")
   def pool[F[_]: Async, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,

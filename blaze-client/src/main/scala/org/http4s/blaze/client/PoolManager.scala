@@ -52,7 +52,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 )(implicit F: Async[F])
     extends ConnectionManager.Stateful[F, A] { self =>
 
-  @deprecated("Preserved for binary compatibility", "0.22.9")
+  @deprecated("Preserved for binary compatibility", "0.23.8")
   private[PoolManager] def this(
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,

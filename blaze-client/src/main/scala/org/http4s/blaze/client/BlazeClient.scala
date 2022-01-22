@@ -156,7 +156,7 @@ object BlazeClient {
       }
     }
 
-  @deprecated("Preserved for binary compatibility", "0.22.9")
+  @deprecated("Preserved for binary compatibility", "0.23.8")
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       responseHeaderTimeout: Duration,

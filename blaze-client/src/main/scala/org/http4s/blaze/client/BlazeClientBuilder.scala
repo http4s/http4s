@@ -99,7 +99,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
 
   protected final val logger = getLogger(this.getClass)
 
-  @deprecated("Preserved for binary compatibility", "0.22.9")
+  @deprecated("Preserved for binary compatibility", "0.23.8")
   private[BlazeClientBuilder] def this(
       responseHeaderTimeout: Duration,
       idleTimeout: Duration,
