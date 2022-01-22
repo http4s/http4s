@@ -18,8 +18,6 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
-ThisBuild / tlFatalWarningsInCi := !tlIsScala3.value
-
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 
@@ -47,18 +45,18 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   )
 )
 
-lazy val jvmModules: List[ProjectReference] = List(
-  core.jvm,
-  laws.jvm,
-  testing.jvm,
-  tests.jvm,
-  server.jvm,
+lazy val modules: List[CompositeProject] = List(
+  core,
+  laws,
+  testing,
+  tests,
+  server,
   prometheusMetrics,
-  client.jvm,
+  client,
   dropwizardMetrics,
-  emberCore.jvm,
-  emberServer.jvm,
-  emberClient.jvm,
+  emberCore,
+  emberServer,
+  emberClient,
   blazeCore,
   blazeServer,
   blazeClient,
@@ -68,10 +66,11 @@ lazy val jvmModules: List[ProjectReference] = List(
   okHttpClient,
   servlet,
   tomcatServer,
-  theDsl.jvm,
-  jawn.jvm,
-  boopickle.jvm,
-  circe.jvm,
+  nodeServerless,
+  theDsl,
+  jawn,
+  boopickle,
+  circe,
   playJson,
   scalaXml,
   twirl,
@@ -90,26 +89,7 @@ lazy val jvmModules: List[ProjectReference] = List(
   scalafixInternalTests,
 )
 
-lazy val jsModules: List[ProjectReference] = List(
-  core.js,
-  laws.js,
-  testing.js,
-  tests.js,
-  server.js,
-  client.js,
-  emberCore.js,
-  emberServer.js,
-  emberClient.js,
-  nodeServerless,
-  theDsl.js,
-  jawn.js,
-  boopickle.js,
-  circe.js,
-)
-
-lazy val root = project
-  .in(file("."))
-  .enablePlugins(NoPublishPlugin)
+lazy val root = tlCrossRootProject
   .disablePlugins(ScalafixPlugin)
   .settings(
     // Root project
@@ -117,17 +97,7 @@ lazy val root = project
     description := "A minimal, Scala-idiomatic library for HTTP",
     startYear := Some(2013),
   )
-  .aggregate(rootJVM, rootJS)
-
-lazy val rootJVM = project
-  .enablePlugins(NoPublishPlugin)
-  .disablePlugins(ScalafixPlugin)
-  .aggregate(jvmModules: _*)
-
-lazy val rootJS = project
-  .enablePlugins(NoPublishPlugin)
-  .disablePlugins(ScalafixPlugin)
-  .aggregate(jsModules: _*)
+  .aggregate(modules: _*)
 
 lazy val core = libraryCrossProject("core")
   .enablePlugins(
@@ -980,7 +950,7 @@ lazy val docs = http4sProject("docs")
           scalafixInternalOutput,
           scalafixInternalRules,
           scalafixInternalTests,
-        ) ++ jsModules): _*
+        ) ++ root.js.aggregate): _*
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     tlFatalWarningsInCi := false,
