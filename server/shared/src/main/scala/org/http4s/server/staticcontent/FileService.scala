@@ -137,6 +137,33 @@ object FileService {
       case 4 => cacheStrategy
     }
 
+    @deprecated(
+      "Config is no longer a case class. The _1 method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def _1: String = systemPath
+    @deprecated(
+      "Config is no longer a case class. The _2 method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def _2: Function3[_, _, _, _] =
+      if (Platform.isJvm) pathCollector else fs2PathCollector
+    @deprecated(
+      "Config is no longer a case class. The _3 method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def _3: String = pathPrefix
+    @deprecated(
+      "Config is no longer a case class. The _4 method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def _4: Int = bufferSize
+    @deprecated(
+      "Config is no longer a case class. The _5 method is provided for binary compatibility.",
+      "0.23.8",
+    )
+    def _5: CacheStrategy[F] = cacheStrategy
+
     override def canEqual(that: Any): Boolean = that match {
       case _: Config[_] => true
       case _ => false
@@ -162,24 +189,7 @@ object FileService {
 
   }
 
-  object Config {
-
-    @deprecated(
-      "Config is no longer a case class. The Config.unapply method is provided for binary compatibility.",
-      "0.23.8",
-    )
-    def unapply[F[_]](
-        config: Config[F]
-    ): Option[(String, PathCollector[F], String, Int, CacheStrategy[F])] =
-      Some(
-        (
-          config.systemPath,
-          config.pathCollector,
-          config.pathPrefix,
-          config.bufferSize,
-          config.cacheStrategy,
-        )
-      )
+  object Config extends FileServiceConfigCompanionCompat {
 
     /** Creates an instance of [[org.http4s.server.staticcontent.FileService]] configuration.
       *

@@ -10,9 +10,8 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
-import sbtghactions.GenerativeKeys._
-import sbtghactions.JavaSpec
-import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
+import org.typelevel.sbt.gha.GenerativeKeys._
+import org.typelevel.sbt.gha.JavaSpec
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -43,7 +42,6 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
-    nowarnCompatAnnotationProvider := None,
     doctestTestFramework := DoctestTestFramework.Munit,
   )
 
@@ -118,8 +116,8 @@ object Http4sPlugin extends AutoPlugin {
     )
 
   def sbtghactionsSettings: Seq[Setting[_]] = {
-    import sbtghactions.GenerativeKeys._
-    import sbtghactions._
+    import org.typelevel.sbt.gha.GenerativeKeys._
+    import org.typelevel.sbt.gha._
 
     def siteBuildJob(subproject: String, runMdoc: Boolean) = {
       val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
@@ -154,36 +152,16 @@ object Http4sPlugin extends AutoPlugin {
       )
     }
 
-    Http4sOrgPlugin.githubActionsSettings ++ Seq(
-      githubWorkflowBuild := Seq(
-        WorkflowStep
-          .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
-        WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-        WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep
-          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
-        WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
-      ),
-      githubWorkflowTargetBranches :=
-        // "*" doesn't include slashes
-        List("*", "series/*"),
+    Seq(
       githubWorkflowPublishPreamble := {
         githubWorkflowPublishPreamble.value ++ Seq(
           WorkflowStep.Run(List("git status"))
         )
       },
-      githubWorkflowPublishTargetBranches := Seq(
-        RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v")),
-      ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false)
         // sitePublishStep("docs", runMdoc = true)
       ),
-      // this results in nonexistent directories trying to be compressed
-      githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website", runMdoc = false),
         siteBuildJob("docs", runMdoc = true),
@@ -239,7 +217,7 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
     val slf4j = "1.7.33"
-    val tomcat = "9.0.56"
+    val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.1.0"

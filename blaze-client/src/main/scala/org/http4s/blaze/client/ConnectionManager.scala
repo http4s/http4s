@@ -86,6 +86,7 @@ private object ConnectionManager {
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
       executionContext: ExecutionContext,
+      maxIdleDuration: Duration,
   ): F[ConnectionManager.Stateful[F, A]] =
     Semaphore(1).map { semaphore =>
       new PoolManager[F, A](
@@ -97,6 +98,28 @@ private object ConnectionManager {
         requestTimeout,
         semaphore,
         executionContext,
+        maxIdleDuration,
       )
     }
+
+  @deprecated("Preserved for binary compatibility", "0.23.8")
+  def pool[F[_]: Async, A <: Connection[F]](
+      builder: ConnectionBuilder[F, A],
+      maxTotal: Int,
+      maxWaitQueueLimit: Int,
+      maxConnectionsPerRequestKey: RequestKey => Int,
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
+      executionContext: ExecutionContext,
+  ): F[ConnectionManager.Stateful[F, A]] =
+    pool(
+      builder,
+      maxTotal,
+      maxWaitQueueLimit,
+      maxConnectionsPerRequestKey,
+      responseHeaderTimeout,
+      requestTimeout,
+      executionContext,
+      Duration.Inf,
+    )
 }
