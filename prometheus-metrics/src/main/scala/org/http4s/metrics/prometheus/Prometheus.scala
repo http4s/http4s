@@ -81,7 +81,7 @@ import org.http4s.metrics.TerminationType.Timeout
   */
 object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
-    Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
+    Resource.make(F.delay(new CollectorRegistry()))(cr => F.blocking(cr.clear()))
 
   /** Creates a [[MetricsOps]] that supports Prometheus metrics
     *
@@ -284,7 +284,9 @@ object Prometheus {
       collector: C,
       registry: CollectorRegistry,
   )(implicit F: Sync[F]): Resource[F, C] =
-    Resource.make(F.delay(collector.register[C](registry)))(c => F.delay(registry.unregister(c)))
+    Resource.make(F.blocking(collector.register[C](registry)))(c =>
+      F.blocking(registry.unregister(c))
+    )
 
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
   private val DefaultHistogramBuckets: NonEmptyList[Double] =

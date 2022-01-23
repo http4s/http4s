@@ -42,7 +42,6 @@ import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
-import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
@@ -259,8 +258,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
         req: Request[F],
         result: Either[Throwable, Response[F]],
     ): Boolean =
-      (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
-        isRetryableError(result)
+      req.isIdempotent && isRetryableError(result)
 
     def isRetryableError[F[_]](result: Either[Throwable, Response[F]]): Boolean =
       result match {

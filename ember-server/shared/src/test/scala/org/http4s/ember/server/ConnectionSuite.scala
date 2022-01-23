@@ -18,6 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import com.comcast.ip4s
+import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Stream
 import fs2.io.net._
@@ -59,6 +60,7 @@ class ConnectionSuite extends Http4sSuite {
   ): Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
+      .withPort(port"0")
       .withHttpApp(service)
       .withIdleTimeout(idleTimeout)
       .withRequestHeaderReceiveTimeout(headerTimeout)

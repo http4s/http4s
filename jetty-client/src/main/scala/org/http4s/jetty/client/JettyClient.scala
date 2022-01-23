@@ -62,9 +62,10 @@ object JettyClient {
           })
         }
       )
-    val dispose = F
-      .delay(client.stop())
-      .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
+    val dispose =
+      F
+        .blocking(client.stop())
+        .handleErrorWith(t => F.delay(logger.error(t)("Unable to shut down Jetty client")))
     Resource.make(acquire)(_ => dispose)
   }
 

@@ -137,7 +137,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     }
 
   def resource: Resource[F, Client[F]] =
-    Resource.make(F.delay(create))(_ => F.unit)
+    Resource.eval(F.delay(create))
 
   private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {

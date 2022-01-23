@@ -18,8 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
@@ -51,6 +50,7 @@ class EmberServerSuite extends Http4sSuite {
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
+      .withPort(port"0")
       .withHttpApp(service[IO])
       .build
 
@@ -60,6 +60,7 @@ class EmberServerSuite extends Http4sSuite {
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
+      .withPort(port"0")
       .withReceiveBufferSize(receiveBufferSize)
       .build
   )
@@ -81,8 +82,13 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
-  server().test("server startup fails if address is already in use") { case _ =>
-    serverResource.use(_ => IO.unit).intercept[BindException]
+  server().test("server startup fails if address is already in use") { server =>
+    EmberServerBuilder
+      .default[IO]
+      .withPort(server.addressIp4s.port)
+      .build
+      .use(_ => IO.unit)
+      .intercept[BindException]
   }
 
   fixture(receiveBufferSize = 256).test("#4731 - read socket is drained after writing") {

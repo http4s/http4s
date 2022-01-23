@@ -20,6 +20,7 @@ import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.effect.std.Queue
 import cats.syntax.all._
+import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
 import org.http4s._
@@ -65,6 +66,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
+      .withPort(port"0")
       .withHttpWebSocketApp(service[IO])
       .build
 

@@ -209,7 +209,7 @@ final class EmberServerBuilder[F[_]: Async] private (
           .drain
           .background
       }
-      _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
+      _ <- Resource.onFinalize(shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Ip4sServer {

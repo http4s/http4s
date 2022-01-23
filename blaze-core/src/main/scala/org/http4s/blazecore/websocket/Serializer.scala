@@ -76,7 +76,7 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
             serializerWritePromise = null
           else {
             // stuff to write
-            val f = {
+            val f =
               if (serializerWriteQueue.length > 1) { // multiple messages, just give them the queue
                 val a = serializerWriteQueue
                 serializerWriteQueue = new ArrayBuffer[I](a.size + 10)
@@ -86,7 +86,6 @@ private trait WriteSerializer[I] extends TailStage[I] { self =>
                 serializerWriteQueue.clear()
                 super.channelWrite(h)
               }
-            }
 
             val p = serializerWritePromise
             serializerWritePromise = Promise[Unit]()

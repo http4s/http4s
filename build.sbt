@@ -582,6 +582,51 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
+      // These are all private to blaze-client and fallout from from
+      // the deprecation of org.http4s.client.Connection
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.invalidate"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.release"),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.BlazeConnection"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.release"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager.invalidate"
+      ),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.ConnectionManager.release"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.blaze.client.ConnectionManager.invalidate"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager#NextConnection.connection"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy$default$1"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager#NextConnection.this"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.blaze.client.ConnectionManager#NextConnection.apply"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.Http1Connection"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.release"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.invalidate"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
+      ProblemFilters
+        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
     ),
   )
   .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
@@ -1085,13 +1130,36 @@ def initCommands(additionalImports: String*) =
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
 
-// OrganizeImports needs to run separately to clean up after the other rules
-addCommandAlias(
-  "quicklint",
-  ";scalafixAll --triggered ;scalafixAll ;scalafmtAll ;scalafmtSbt",
-)
+lazy val enableFatalWarnings: String =
+  """set ThisBuild / scalacOptions += "-Xfatal-warnings""""
+
+lazy val disableFatalWarnings: String =
+  """set ThisBuild / scalacOptions -= "-Xfatal-warnings""""
 
 addCommandAlias(
+  "quicklint",
+  List(
+    enableFatalWarnings,
+    "scalafixAll --triggered",
+    "scalafixAll",
+    "scalafmtAll",
+    "scalafmtSbt",
+    disableFatalWarnings,
+  ).mkString(" ;"),
+)
+
+// Use this command for checking before submitting a PR
+addCommandAlias(
   "lint",
-  ";clean ;+test:compile ;+scalafixAll --triggered ;+scalafixAll ;+scalafmtAll ;scalafmtSbt ;+mimaReportBinaryIssues",
+  List(
+    enableFatalWarnings,
+    "clean",
+    "+test:compile",
+    "scalafixAll --triggered",
+    "scalafixAll",
+    "+scalafmtAll",
+    "scalafmtSbt",
+    "+mimaReportBinaryIssues",
+    disableFatalWarnings,
+  ).mkString(" ;"),
 )

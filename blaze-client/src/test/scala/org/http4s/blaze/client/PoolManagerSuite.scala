@@ -23,8 +23,6 @@ import cats.effect.std._
 import cats.implicits._
 import com.comcast.ip4s._
 import fs2.Stream
-import org.http4s.client.Connection
-import org.http4s.client.ConnectionBuilder
 import org.http4s.client.ConnectionFailure
 import org.http4s.client.RequestKey
 import org.http4s.syntax.AllSyntax
