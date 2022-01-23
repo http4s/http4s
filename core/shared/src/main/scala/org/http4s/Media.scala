@@ -30,7 +30,7 @@ trait Media[+F[_]] {
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
-  def bodyText[F2[x] >: F[x]](implicit
+  final def bodyText[F2[x] >: F[x]](implicit
       RT: RaiseThrowable[F2],
       defaultCharset: Charset = `UTF-8`,
   ): Stream[F2, String] = {
