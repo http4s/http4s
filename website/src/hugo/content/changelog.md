@@ -29,6 +29,9 @@ This release is binary compatible with 0.22.x series.  The jawn upgrade mitigate
     * Add `apply`-builder for `Http4sClientDsl` by @armanbilge in https://github.com/http4s/http4s/pull/5742
     * Deprecate client.Connection and client.ConnectionBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5871
 
+* http4s-server
+    * HttpMethodOverrider: simplify by @diesalbla in https://github.com/http4s/http4s/pull/5835
+
 * http4s-ember-core
     * Update log4cats-slf4j, log4cats-testing to 1.5.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5880
 
