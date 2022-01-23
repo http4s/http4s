@@ -395,6 +395,9 @@ final class Request[+F[_]] private (
 
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
+  def remoteHost[F1[x] >: F[x]](implicit F: Monad[F1], dns: Dns[F1]): F1[Option[Hostname]] =
+    OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value
+
   def remotePort: Option[Port] = remote.map(_.port)
 
   def remoteUser: Option[String] = None
@@ -485,9 +488,6 @@ object Request {
         f: A => F[Response[F]]
     )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
       decodeWith(decoder, strict = true)(f)
-
-    def remoteHost(implicit F: Monad[F], dns: Dns[F]): F[Option[Hostname]] =
-      OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value
   }
 
   /** Representation of an incoming HTTP message
