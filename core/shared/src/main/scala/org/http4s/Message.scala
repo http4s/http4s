@@ -660,6 +660,9 @@ object Response extends KleisliSyntax {
     */
   type Pure = Response[fs2.Pure]
 
+  /** An implicit conversion to covary pure `Response` instances up to an effect `G`.
+    * Improves type inference when constructing responses in an effectful context.
+    */
   @nowarn("msg=never used")
   implicit def covaryF[F[_], G[_]](fresp: F[Response[Nothing]])(implicit
       F: Functor[F]
