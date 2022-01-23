@@ -528,10 +528,7 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        scalatagsApi.cross(CrossVersion.for3Use2_13)
-      else
-        scalatagsApi
+      scalatagsApi
     ),
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
