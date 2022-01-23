@@ -528,4 +528,5 @@ private object Http1Connection {
   }
 
   private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
+
 }

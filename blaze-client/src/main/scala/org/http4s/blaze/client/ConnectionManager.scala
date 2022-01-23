@@ -86,6 +86,7 @@ private object ConnectionManager {
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
       executionContext: ExecutionContext,
+      maxIdleDuration: Duration,
   ): F[ConnectionManager.Stateful[F, A]] =
     Semaphore(1).map { semaphore =>
       new PoolManager[F, A](
@@ -97,6 +98,7 @@ private object ConnectionManager {
         requestTimeout,
         semaphore,
         executionContext,
+        maxIdleDuration,
       )
     }
 }
