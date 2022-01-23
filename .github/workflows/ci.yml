@@ -84,12 +84,6 @@ jobs:
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
-      - name: Setup NodeJS v16
-        if: matrix.ci == 'ciNodeJS'
-        uses: actions/setup-node@v2.4.0
-        with:
-          node-version: 16
-
       - name: Check that workflows are up to date
         run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'project /' githubWorkflowCheck
 
