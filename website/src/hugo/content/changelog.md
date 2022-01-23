@@ -12,7 +12,6 @@ ordered chronologically, so each release contains all changes described below it
 
 ## What's Changed
 ### http4s-core
-* Update discipline to 1.4.0 by @rossabaker in https://github.com/http4s/http4s/pull/5696
 * Add `Trailer` header by @danicheg in https://github.com/http4s/http4s/pull/5614
 * Model If-Range header by @mcarolan in https://github.com/http4s/http4s/pull/5613
 * Make the output of `asCurl` more human-readable by @danicheg in https://github.com/http4s/http4s/pull/5786
@@ -21,6 +20,8 @@ ordered chronologically, so each release contains all changes described below it
 * Add Request#isIdempotent by @rossabaker in https://github.com/http4s/http4s/pull/5859
 * Update slf4j-api to 1.7.33 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5869
 * Add EntityEncoder[F, ByteVector] by @sideeffffect in https://github.com/http4s/http4s/pull/5907
+### http4s-laws
+* Update discipline to 1.4.0 by @rossabaker in https://github.com/http4s/http4s/pull/5696
 ### http4s-client
 * Netty based ServerScaffold (0.22)  by @RafalSumislawski in https://github.com/http4s/http4s/pull/5601
 * Add `apply`-builder for `Http4sClientDsl` by @armanbilge in https://github.com/http4s/http4s/pull/5742
