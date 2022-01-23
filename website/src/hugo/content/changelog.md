@@ -16,11 +16,17 @@ ordered chronologically, so each release contains all changes described below it
 * Model If-Range header by @mcarolan in https://github.com/http4s/http4s/pull/5613
 * Path info index fix by @RafalSumislawski in https://github.com/http4s/http4s/pull/5793
 * Law-driven-design of Path#concat and Path#splitAt by @RafalSumislawski in https://github.com/http4s/http4s/pull/5794
+* Add Request#isIdempotent by @rossabaker in https://github.com/http4s/http4s/pull/5859
+* Add EntityEncoder[F, ByteVector] by @sideeffffect in https://github.com/http4s/http4s/pull/5907
 ### http4s-client
 * Netty based ServerScaffold (0.22)  by @RafalSumislawski in https://github.com/http4s/http4s/pull/5601
 * Add `apply`-builder for `Http4sClientDsl` by @armanbilge in https://github.com/http4s/http4s/pull/5742
 * Deprecate client.Connection and client.ConnectionBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5871
 * Use loopback address for Netty scaffold by @armanbilge in https://github.com/http4s/http4s/pull/5901
+### http4s-ember-core
+* Update log4cats-slf4j, log4cats-testing to 1.5.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5880
+### http4s-ember-client
+* Disable logging for Ember client internal retry by @RaasAhsan in https://github.com/http4s/http4s/pull/5496
 ### http4s-blaze-client
 * Introduce blaze-client connection reuse tests by @RafalSumislawski in https://github.com/http4s/http4s/pull/5319
 * Fix customDnsResolver in BlazeClientBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5864
@@ -28,6 +34,7 @@ ordered chronologically, so each release contains all changes described below it
 * maxIdleDuration on blaze connections by @rossabaker in https://github.com/http4s/http4s/pull/5899
 ### http4s-tomcat
 * Update tomcat-catalina, tomcat-coyote, ... to 9.0.56 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5687
+* Update tomcat-catalina, tomcat-coyote, ... to 9.0.58 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5915
 ### http4s-async-http-client
 * Update netty-buffer, netty-codec-http to 4.1.71.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5705
 * Update netty-buffer, netty-codec-http to 4.1.72.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5732
@@ -65,7 +72,6 @@ ordered chronologically, so each release contains all changes described below it
 * Update jawn-parser to 1.3.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5815
 * Merge #5808 to 0.20 by @rossabaker in https://github.com/http4s/http4s/pull/5811
 * Update jawn-fs2 to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5820
-* Disable logging for Ember client internal retry by @RaasAhsan in https://github.com/http4s/http4s/pull/5496
 * Make the output of `asCurl` more human-readable by @danicheg in https://github.com/http4s/http4s/pull/5786
 * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
 * Merge branch 'series/0.21' into series/0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5824
@@ -77,16 +83,12 @@ ordered chronologically, so each release contains all changes described below it
 * Fix description for pinned CE2 dependencies by @bplommer in https://github.com/http4s/http4s/pull/5855
 * Update netty-buffer, netty-codec-http to 4.1.73.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5857
 * Update sbt-scalafix to 0.9.34 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5851
-* Add Request#isIdempotent by @rossabaker in https://github.com/http4s/http4s/pull/5859
 * Upgrade typelevel-nix to pick up Metals by @rossabaker in https://github.com/http4s/http4s/pull/5863
 * Update slf4j-api to 1.7.33 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5869
 * Update blaze-http to 0.15.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5873
-* Update log4cats-slf4j, log4cats-testing to 1.5.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5880
 * Update to sbt-http4s-org 0.10.0 by @armanbilge in https://github.com/http4s/http4s/pull/5900
 * Update scalafmt-core to 3.3.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5910
-* Add EntityEncoder[F, ByteVector] by @sideeffffect in https://github.com/http4s/http4s/pull/5907
 * Enable snapshots for 0.22 by @armanbilge in https://github.com/http4s/http4s/pull/5908
-* Update tomcat-catalina, tomcat-coyote, ... to 9.0.58 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5915
 * Revert "Enable snapshots for 0.22" (#5908) by @rossabaker in https://github.com/http4s/http4s/pull/5920
 * Add `scalafixInternalRules` to root project by @armanbilge in https://github.com/http4s/http4s/pull/5918
 * Update sbt-http4s-org to 0.10.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5922
@@ -98,7 +100,7 @@ ordered chronologically, so each release contains all changes described below it
 * @niij made their first contribution in https://github.com/http4s/http4s/pull/5808
 * @mcarolan made their first contribution in https://github.com/http4s/http4s/pull/5613
 
-**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.8...series/0.22
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.8...v0.22.9
 
 # v0.23.7 (2021-12-07)
 
