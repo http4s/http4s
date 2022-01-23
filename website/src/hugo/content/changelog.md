@@ -20,7 +20,7 @@ This release is binary compatible with 0.22.x series.  The jawn upgrade mitigate
     * Law-driven-design of Path#concat and Path#splitAt by @RafalSumislawski in https://github.com/http4s/http4s/pull/5794
     * Add Request#isIdempotent by @rossabaker in https://github.com/http4s/http4s/pull/5859
     * Update slf4j-api to 1.7.33 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5869
-    * Add EntityEncoder[F, ByteVector] by @sideeffffect in https://github.com/http4s/http4s/pull/5907
+    * Add `EntityEncoder[F, ByteVector]` by @sideeffffect in https://github.com/http4s/http4s/pull/5907
 
 * http4s-laws
     * Update discipline to 1.4.0 by @rossabaker in https://github.com/http4s/http4s/pull/5696
