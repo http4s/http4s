@@ -1,8 +1,4 @@
 changelog:
-  exclude:
-    labels:
-      # - series/0.22
-      # - series/0.23
   categories:
 
     - title: http4s-core
