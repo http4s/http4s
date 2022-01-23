@@ -20,7 +20,6 @@ import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
-import org.http4s.Charset
 import org.http4s.Headers
 import org.http4s.MediaType
 import org.http4s.Message
@@ -47,7 +46,7 @@ object Logger {
         mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
       )
       val bodyStream = if (!isBinary || isJson) {
-        message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
+        message.bodyText
       } else {
         message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
       }

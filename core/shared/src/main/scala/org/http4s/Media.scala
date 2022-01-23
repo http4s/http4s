@@ -30,6 +30,14 @@ trait Media[+F[_]] {
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
+  def bodyText[F2[x] >: F[x]](implicit
+      RT: RaiseThrowable[F2],
+      defaultCharset: Charset = `UTF-8`,
+  ): Stream[F2, String] = {
+    val cs = charset.getOrElse(defaultCharset).nioCharset
+    body.through(decodeWithCharset(cs))
+  }
+
   final def contentType: Option[`Content-Type`] =
     headers.get[`Content-Type`]
 
@@ -38,21 +46,11 @@ trait Media[+F[_]] {
 
   final def charset: Option[Charset] =
     contentType.flatMap(_.charset)
-
 }
 
 object Media {
 
   implicit final class InvariantOps[F[_]](private val self: Media[F]) extends AnyVal {
-    import self._
-
-    def bodyText(implicit
-        RT: RaiseThrowable[F],
-        defaultCharset: Charset = `UTF-8`,
-    ): Stream[F, String] = {
-      val cs = charset.getOrElse(defaultCharset).nioCharset
-      body.through(decodeWithCharset(cs))
-    }
 
     // Decoding methods
 
