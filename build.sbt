@@ -256,7 +256,7 @@ lazy val client = libraryCrossProject("client")
     )
   )
   .jsSettings(
-    jsVersionIntroduced("0.23.5"),
+    jsVersionIntroduced("0.23.5")
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
