@@ -23,168 +23,168 @@ pull_request_rules:
 
 - name: label core PRs
   conditions:
-  - file~=^core/
+  - files~=^core/
   actions:
     label:
       add: ['module:core']
 
 - name: label dsl PRs
   conditions:
-  - file~=^dsl/
+  - files~=^dsl/
   actions:
     label:
       add: ['module:dsl']
 
 - name: label laws PRs
   conditions:
-  - file~=^laws/
+  - files~=^laws/
   actions:
     label:
       add: ['module:laws']
 
 - name: label server PRs
   conditions:
-  - file~=^server/
+  - files~=^server/
   actions:
     label:
       add: ['module:server']
 
 - name: label client PRs
   conditions:
-  - file~=^client/
+  - files~=^client/
   actions:
     label:
       add: ['module:client']
 
 - name: label ember-core PRs
   conditions:
-  - file~=^ember-core/
+  - files~=^ember-core/
   actions:
     label:
       add: ['module:ember-core']
 
 - name: label ember-server PRs
   conditions:
-  - file~=^ember-server/
+  - files~=^ember-server/
   actions:
     label:
       add: ['module:ember-server']
 
 - name: label ember-client PRs
   conditions:
-  - file~=^ember-client/
+  - files~=^ember-client/
   actions:
     label:
       add: ['module:ember-client']
 
 - name: label blaze-core PRs
   conditions:
-  - file~=^blaze-core/
+  - files~=^blaze-core/
   actions:
     label:
       add: ['module:blaze-core']
 
 - name: label blaze-server PRs
   conditions:
-  - file~=^blaze-server/
+  - files~=^blaze-server/
   actions:
     label:
       add: ['module:blaze-server']
 
 - name: label blaze-client PRs
   conditions:
-  - file~=^blaze-client/
+  - files~=^blaze-client/
   actions:
     label:
       add: ['module:blaze-client']
 
 - name: label servlet PRs
   conditions:
-  - file~=^servlet/
+  - files~=^servlet/
   actions:
     label:
       add: ['module:servlet']
 
 - name: label tomcat PRs
   conditions:
-  - file~=^tomcat/
+  - files~=^tomcat/
   actions:
     label:
       add: ['module:tomcat']
 
 - name: label jetty-server PRs
   conditions:
-  - file~=^jetty-server/
+  - files~=^jetty-server/
   actions:
     label:
       add: ['module:jetty-server']
 
 - name: label jetty-client PRs
   conditions:
-  - file~=^jetty-client/
+  - files~=^jetty-client/
   actions:
     label:
       add: ['module:jetty-client']
 
 - name: label async-http-client PRs
   conditions:
-  - file~=^async-http-client/
+  - files~=^async-http-client/
   actions:
     label:
       add: ['module:async-http-client']
 
 - name: label okhttp-client PRs
   conditions:
-  - file~=^okhttp-client/
+  - files~=^okhttp-client/
   actions:
     label:
       add: ['module:okhttp-client']
 
 - name: label jawn PRs
   conditions:
-  - file~=^jawn/
+  - files~=^jawn/
   actions:
     label:
       add: ['module:jawn']
 
 - name: label circe PRs
   conditions:
-  - file~=^circe/
+  - files~=^circe/
   actions:
     label:
       add: ['module:circe']
 
 - name: label play-json PRs
   conditions:
-  - file~=^play-json/
+  - files~=^play-json/
   actions:
     label:
       add: ['module:play-json']
 
 - name: label scalatags PRs
   conditions:
-  - file~=^scalatags/
+  - files~=^scalatags/
   actions:
     label:
       add: ['module:scalatags']
 
 - name: label twirl PRs
   conditions:
-  - file~=^twirl/
+  - files~=^twirl/
   actions:
     label:
       add: ['module:twirl']
 
 - name: label dropwizard-metrics PRs
   conditions:
-  - file~=^dropwizard-metrics/
+  - files~=^dropwizard-metrics/
   actions:
     label:
       add: ['module:dropwizard-metrics']
 
 - name: label prometheus-metrics PRs
   conditions:
-  - file~=^prometheus-metrics/
+  - files~=^prometheus-metrics/
   actions:
     label:
       add: ['module:prometheus-metrics']
