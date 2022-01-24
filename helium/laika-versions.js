@@ -27,7 +27,7 @@ function populateMenu (data, localRootPrefix, currentPath, currentVersion) {
     link.appendChild(document.createTextNode(version.displayValue));
     link.setAttribute("href", href);
     document.body.appendChild(link);
-    
+
     const listItem = document.createElement("li");
     listItem.classList.add("level1");
     if (version.pathSegment === currentVersion) listItem.classList.add("active");
