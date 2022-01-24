@@ -8,7 +8,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.22.9 (2022-01-23)
+# v0.22.9 (2022-01-24)
 
 This release is binary compatible with 0.22.x series.  The jawn upgrade mitigates [CVE-2022-21653](https://github.com/typelevel/jawn/security/advisories/GHSA-vc89-hccf-rq55) out of the box for `http4s-play-json`.
 
