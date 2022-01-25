@@ -18,11 +18,6 @@ package org.http4s
 
 import cats.effect.IO
 import cats.effect.Resource
-import org.http4s.internal.threads.threadFactory
-
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 
 trait Http4sSuitePlatform { this: Http4sSuite =>
 
@@ -32,15 +27,4 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
 
   // allow flaky tests on ci
   override def munitFlakyOK = sys.env.contains("CI")
-}
-
-trait Http4sSuiteCompanionPlatform {
-
-  val TestScheduler: ScheduledExecutorService = {
-    val s =
-      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
-    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
-    s.allowCoreThreadTimeOut(true)
-    s
-  }
 }

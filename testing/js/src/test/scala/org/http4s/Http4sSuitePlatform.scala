@@ -24,5 +24,3 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
   override def munitFlakyOK =
     Try(js.Dynamic.global.process.env.CI).toOption.filterNot(js.isUndefined).isDefined
 }
-
-trait Http4sSuiteCompanionPlatform

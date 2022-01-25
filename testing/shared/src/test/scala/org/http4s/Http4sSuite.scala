@@ -65,4 +65,3 @@ trait Http4sSuite
       .map(_.getOrElse(""))
 
 }
-object Http4sSuite extends Http4sSuiteCompanionPlatform
