@@ -21,7 +21,7 @@ package client
 import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
-import cats.implicits._
+import cats.syntax.all._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.Client
@@ -65,6 +65,7 @@ object BlazeClient {
       ec: ExecutionContext,
   )(implicit F: ConcurrentEffect[F]): Client[F] =
     new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec)
+
 }
 
 private class BlazeClient[F[_], A <: BlazeConnection[F]](
@@ -96,7 +97,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
   private def borrowConnection(key: RequestKey): Resource[F, A] =
     Resource.makeCase(manager.borrow(key).map(_.connection)) {
       case (conn, ExitCase.Canceled) =>
-        // Currently we can't just release in case of cancellation, beause cancellation clears the Write state of Http1Connection, so it might result in isRecycle=true even if there's a half-written request.
+        // Currently we can't just release in case of cancellation, because cancellation clears the Write state of Http1Connection, so it might result in isRecycle=true even if there's a half-written request.
         manager.invalidate(conn)
       case (conn, _) => manager.release(conn)
     }
@@ -109,12 +110,12 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
             F.delay {
               val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
               conn.spliceBefore(stage)
-              stage.init(e => timeout.complete(e).toIO.unsafeRunSync())
+              stage.init(e => timeout.complete(e).runAsync(_ => IO.unit).unsafeRunSync())
               (timeout.get.rethrow, F.delay(stage.removeStage()))
             }
           )
         )
-      case _ => Resource.pure[F, F[TimeoutException]](F.never)
+      case _ => resourceNeverTimeoutException
     }
 
   private def scheduleRequestTimeout(key: RequestKey): Resource[F, F[TimeoutException]] =
@@ -129,7 +130,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
           )
           F.delay(c.cancel())
         }.background
-      case _ => Resource.pure[F, F[TimeoutException]](F.never)
+      case _ => resourceNeverTimeoutException
     }
 
   private def runRequest(
@@ -141,5 +142,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
       .runRequest(req, timeout)
       .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_)))
       .map(_.merge)
+
+  private val resourceNeverTimeoutException = Resource.pure[F, F[TimeoutException]](F.never)
 
 }
