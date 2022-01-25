@@ -18,7 +18,6 @@ package org.http4s
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
@@ -32,8 +31,6 @@ trait Http4sSuite
     with DisciplineSuite
     with munit.ScalaCheckEffectSuite
     with Http4sSuitePlatform {
-
-  implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
 
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
@@ -68,5 +65,4 @@ trait Http4sSuite
       .map(_.getOrElse(""))
 
 }
-
 object Http4sSuite extends Http4sSuiteCompanionPlatform
