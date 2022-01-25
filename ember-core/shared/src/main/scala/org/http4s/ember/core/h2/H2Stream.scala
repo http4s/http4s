@@ -23,7 +23,6 @@ import cats.syntax.all._
 import fs2._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
-import fs2.io.IOException
 import java.util.concurrent.CancellationException
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
