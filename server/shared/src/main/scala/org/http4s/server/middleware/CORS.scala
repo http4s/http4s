@@ -145,7 +145,7 @@ object CORSConfig {
 }
 
 /** Implements the CORS protocol.  The actual middleware is a [[CORSPolicy]],
-  * which can be obtained via [[#policy]].
+  * which can be obtained via [[policy]].
   *
   * @see [[CORSPolicy]]
   * @see [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
@@ -602,7 +602,7 @@ sealed class CORSPolicy(
     * rendering matches predicate `p`.  A concession to the fact
     * that constructing [[Origin.Host]] values is verbose.
     *
-    * @see [[#withAllowOriginHost]]
+    * @see [[withAllowOriginHost]]
     */
   def withAllowOriginHostCi(p: CIString => Boolean): CORSPolicy =
     withAllowOriginHost(p.compose(host => CIString(host.renderString)))

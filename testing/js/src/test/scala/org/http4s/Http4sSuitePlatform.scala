@@ -16,8 +16,6 @@
 
 package org.http4s
 
-import cats.effect.unsafe.IORuntime
-
 import scala.scalajs.js
 import scala.util.Try
 
@@ -25,8 +23,4 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
   // allow flaky tests on ci
   override def munitFlakyOK =
     Try(js.Dynamic.global.process.env.CI).toOption.filterNot(js.isUndefined).isDefined
-}
-
-trait Http4sSuiteCompanionPlatform {
-  val TestIORuntime: IORuntime = IORuntime.global
 }

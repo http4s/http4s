@@ -66,7 +66,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Option[IdleTimeoutStage[ByteBuffer]] =
     idleTimeout match {
       case d: FiniteDuration =>
-        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, Http4sSuite.TestExecutionContext))
+        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, munitExecutionContext))
       case _ => None
     }
 
@@ -81,6 +81,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout: Duration = Duration.Inf,
       requestTimeout: Duration = Duration.Inf,
       idleTimeout: Duration = Duration.Inf,
+      retries: Int = 0,
   ): Client[IO] = {
     val manager = ConnectionManager.basic[IO, Http1Connection[IO]]((_: RequestKey) =>
       IO {
@@ -98,7 +99,8 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout = responseHeaderTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSuite.TestExecutionContext,
+      ec = munitExecutionContext,
+      retries = retries,
     )
   }
 
@@ -108,7 +110,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Http1Connection[IO] =
     new Http1Connection[IO](
       requestKey = FooRequestKey,
-      executionContext = Http4sSuite.TestExecutionContext,
+      executionContext = munitExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
@@ -226,6 +228,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       requestTimeout = 50.millis,
       scheduler = tickWheel,
       ec = munitExecutionContext,
+      retries = 0,
     )
 
     // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,

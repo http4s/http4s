@@ -356,4 +356,14 @@ class MessageSuite extends Http4sSuite {
     // Should preserve only the EntityEncoder's Content-Type
     assertEquals(hdrs, List(Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8")))
   }
+
+  test("isIdempotent") {
+    assert(Request[IO](method = Method.GET).isIdempotent)
+    assert(Request[IO](method = Method.DELETE).isIdempotent)
+    assert(Request[IO](method = Method.PUT).isIdempotent)
+    assert(!Request[IO](method = Method.POST).isIdempotent)
+    assert(
+      Request[IO](method = Method.POST, headers = Headers("Idempotency-Key" -> "123")).isIdempotent
+    )
+  }
 }

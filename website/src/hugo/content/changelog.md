@@ -8,6 +8,197 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.8 (2022-01-25)
+
+This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.9.
+
+Scala.js users must upgrade to at least 1.8.0 as of this release.
+
+* http4s-core
+    * Update sbt-scalajs, scalajs-compiler, ... to 1.8.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5716
+    * Update fs2-core, fs2-io, ... to 3.2.4 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5788
+    * Update cats-effect, cats-effect-laws, ... to 3.3.4 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5838
+    * Update locales-minimal-en_us-db to 1.3.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5853
+
+* http4s-server
+    * cross-platforming server FileService by @yurique in https://github.com/http4s/http4s/pull/5758
+    * Fix FileService Config linking on JS by @armanbilge in https://github.com/http4s/http4s/pull/5825
+    * Deprecate the `BracketRequestResponse#exitCaseToOutcome` by @danicheg in https://github.com/http4s/http4s/pull/5875
+
+* http4s-ember-core
+    * Support parsing response bodies without Content-Length in ember by @wemrysi in https://github.com/http4s/http4s/pull/5881
+
+* http4s-ember-server
+    * Update jnr-unixsocket to 0.38.17 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5827
+
+* http4s-ember-client
+    * Remove jvm log4cats dependency in ember client js by @kubukoz in https://github.com/http4s/http4s/pull/5757
+
+* http4s-jetty-server
+    * Use blocking thread pool on joining Jetty's thread pool by @danicheg in https://github.com/http4s/http4s/pull/5886
+
+* http4s-jetty-client
+    * Use blocking thread pool in the `JettyClient#resource` by @danicheg in https://github.com/http4s/http4s/pull/5897
+
+* http4s-jawn
+    * Update jawn-fs2 to 2.2.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5821
+
+* http4s-prometheus-metrics
+    * Use blocking thread pool in the Prometheus metrics by @danicheg in https://github.com/http4s/http4s/pull/5887
+
+* Documentation
+    * Remove some outdated params in scaladocs by @danicheg in https://github.com/http4s/http4s/pull/5729
+    * Remove mentioning of `ContextShift` in the AHC scaladoc by @danicheg in https://github.com/http4s/http4s/pull/5885
+
+* Behind the scenes
+    * Update jnr-unixsocket to 0.38.15 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5681
+    * Netty based ServerScaffold (0.23) by @RafalSumislawski in https://github.com/http4s/http4s/pull/5587
+    * Merge 0.22 to 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5701
+    * Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5718
+    * Merge `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5730
+    * Merge `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5753
+    * Code cleanup (mostly variance-related) by @bplommer in https://github.com/http4s/http4s/pull/5755
+    * Update cats-effect, cats-effect-laws, ... to 3.3.1 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5770
+    * Merge branch `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5778
+    * Update cats-effect, cats-effect-laws, ... to 3.3.2 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5801
+    * Update cats-effect, cats-effect-laws, ... to 3.3.3 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5803
+    * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
+    * Merge `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5833
+    * Re-enable broken ember client test by @armanbilge in https://github.com/http4s/http4s/pull/5840
+    * Enable fatal warnings in `lint`/`quicklint` commands by @danicheg in https://github.com/http4s/http4s/pull/5843
+    * FileService Server Middleware: readability by @diesalbla in https://github.com/http4s/http4s/pull/5837
+    * Merge from v0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5847
+    * Steward exclusions in 0.23 for dependencies merged forward from 0.22 by @bplommer in https://github.com/http4s/http4s/pull/5856
+    * Merge series/0.22 into series/0.23 by @bplommer in https://github.com/http4s/http4s/pull/5860
+    * Auto-select available port for ember suites by @armanbilge in https://github.com/http4s/http4s/pull/5848
+    * Refactor some `Resource` usage by @danicheg in https://github.com/http4s/http4s/pull/5884
+    * Merge `series/0.22` into `series/0.23` by @danicheg in https://github.com/http4s/http4s/pull/5888
+    * Update log4cats-noop, log4cats-slf4j, ... to 2.2.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5891
+    * Use `port` syntax by @danicheg in https://github.com/http4s/http4s/pull/5896
+    * Add sbt-http4s-org to steward ignores by @armanbilge in https://github.com/http4s/http4s/pull/5924
+    * Non-deadlocking RouterInServletSuite by @rossabaker in https://github.com/http4s/http4s/pull/5928
+    * Merge scalafmt-core forward from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5933
+    * Merge 0.22 -> 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5926
+    * Merge from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5940
+    * Delete zombie specs2 code by @rossabaker in https://github.com/http4s/http4s/pull/5943
+    * Replace our TestExecutionContext by @rossabaker in https://github.com/http4s/http4s/pull/5944
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.7...v0.23.8
+
+# v0.22.9 (2022-01-24)
+
+This release is binary compatible with 0.22.x series.  The jawn upgrade mitigates [CVE-2022-21653](https://github.com/typelevel/jawn/security/advisories/GHSA-vc89-hccf-rq55) out of the box for `http4s-play-json`.
+
+* http4s-core
+    * Add `Trailer` header by @danicheg in https://github.com/http4s/http4s/pull/5614
+    * Model If-Range header by @mcarolan in https://github.com/http4s/http4s/pull/5613
+    * Make the output of `asCurl` more human-readable by @danicheg in https://github.com/http4s/http4s/pull/5786
+    * Path info index fix by @RafalSumislawski in https://github.com/http4s/http4s/pull/5793
+    * Law-driven-design of Path#concat and Path#splitAt by @RafalSumislawski in https://github.com/http4s/http4s/pull/5794
+    * Add Request#isIdempotent by @rossabaker in https://github.com/http4s/http4s/pull/5859
+    * Update slf4j-api to 1.7.33 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5869
+    * Add `EntityEncoder[F, ByteVector]` by @sideeffffect in https://github.com/http4s/http4s/pull/5907
+
+* http4s-laws
+    * Update discipline to 1.4.0 by @rossabaker in https://github.com/http4s/http4s/pull/5696
+
+* http4s-client
+    * Add `apply`-builder for `Http4sClientDsl` by @armanbilge in https://github.com/http4s/http4s/pull/5742
+    * Deprecate client.Connection and client.ConnectionBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5871
+
+* http4s-server
+    * HttpMethodOverrider: simplify by @diesalbla in https://github.com/http4s/http4s/pull/5835
+
+* http4s-ember-core
+    * Update log4cats-slf4j, log4cats-testing to 1.5.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5880
+
+* http4s-ember-client
+    * Disable logging for Ember client internal retry by @RaasAhsan in https://github.com/http4s/http4s/pull/5496
+
+* http4s-blaze-core
+    * Update blaze-http to 0.15.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5873
+
+* http4s-blaze-client
+    * Fix customDnsResolver in BlazeClientBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5864
+    * Stale connection mitigation in blaze-client by @rossabaker in https://github.com/http4s/http4s/pull/5861
+    * maxIdleDuration on blaze connections by @rossabaker in https://github.com/http4s/http4s/pull/5899
+
+* http4s-tomcat
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.58 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5915
+
+* http4s-async-http-client
+    * Update netty-buffer, netty-codec-http to 4.1.73.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5857
+
+* http4s-jawn
+    * Update jawn-parser to 1.3.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5815
+    * Update jawn-fs2 to 1.2.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5820
+
+* http4s-dropwizard-metrics
+    * Update metrics-core, metrics-json to 4.2.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5763
+
+* Documentation
+    * Fix scaladoc references to `io.chrisdavenport.vault` in the `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5765
+    * Fix some scaladoc references to headers by @danicheg in https://github.com/http4s/http4s/pull/5766
+    * Fix links to the license on the site by @danicheg in https://github.com/http4s/http4s/pull/5829
+    * Fix some links in the scaladoc by @danicheg in https://github.com/http4s/http4s/pull/5876
+
+* Behind the scenes
+    * Update http4s-circe, http4s-ember-client to 0.23.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5693
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.56 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5687
+    * Configure mergify & release notes by @armanbilge in https://github.com/http4s/http4s/pull/5690
+    * Update metrics-core, metrics-json to 4.2.5 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5698
+    * Netty based ServerScaffold (0.22)  by @RafalSumislawski in https://github.com/http4s/http4s/pull/5601
+    * Fix of the #5691 for `series/0.22` by @danicheg in https://github.com/http4s/http4s/pull/5700
+    * Update netty-buffer, netty-codec-http to 4.1.71.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5705
+    * Update sbt to 1.5.6 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5713
+    * Introduce blaze-client connection reuse tests by @RafalSumislawski in https://github.com/http4s/http4s/pull/5319
+    * Mark the failing tests as flaky because they sometimes pass by @RafalSumislawski in https://github.com/http4s/http4s/pull/5728
+    * Update laika-sbt to 0.18.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5726
+    * Speed up shutdown of NioEventLoopGroups by @RafalSumislawski in https://github.com/http4s/http4s/pull/5723
+    * Update netty-buffer, netty-codec-http to 4.1.72.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5732
+    * Update logback-classic to 1.2.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5738
+    * Mark one more connection reuse test as flaky by @RafalSumislawski in https://github.com/http4s/http4s/pull/5735
+    * `Http1ClientStageSuite` purity by @RafalSumislawski in https://github.com/http4s/http4s/pull/5741
+    * Update sbt to 1.5.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5747
+    * Update logback-classic to 1.2.9 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5751
+    * Update sbt to 1.5.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5768
+    * Collection micro-opts by @danicheg in https://github.com/http4s/http4s/pull/5767
+    * Rm `sbt-updates` plugin by @danicheg in https://github.com/http4s/http4s/pull/5777
+    * Improve ClientTimeoutSuite by @RafalSumislawski in https://github.com/http4s/http4s/pull/5761
+    * Update logback-classic to 1.2.10 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5781
+    * Update sbt to 1.6.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5790
+    * Update sbt to 1.6.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5796
+    * switch from tut to mdoc for 0.18.x by @niij in https://github.com/http4s/http4s/pull/5808
+    * Replace deprecated object in the imports by @danicheg in https://github.com/http4s/http4s/pull/5810
+    * Merge #5808 to 0.20 by @rossabaker in https://github.com/http4s/http4s/pull/5811
+    * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
+    * Merge branch 'series/0.21' into series/0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5824
+    * Refactor some `Http1Connection` methods by @danicheg in https://github.com/http4s/http4s/pull/5789
+    * Update scalafmt-core to 3.2.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5784
+    * Update scalafmt-core to 3.3.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5834
+    * Fix the `lint` command by @danicheg in https://github.com/http4s/http4s/pull/5842
+    * Update dev shell by @rossabaker in https://github.com/http4s/http4s/pull/5846
+    * Fix description for pinned CE2 dependencies by @bplommer in https://github.com/http4s/http4s/pull/5855
+    * Update sbt-scalafix to 0.9.34 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5851
+    * Upgrade typelevel-nix to pick up Metals by @rossabaker in https://github.com/http4s/http4s/pull/5863
+    * Use loopback address for Netty scaffold by @armanbilge in https://github.com/http4s/http4s/pull/5901
+    * Update to sbt-http4s-org 0.10.0 by @armanbilge in https://github.com/http4s/http4s/pull/5900
+    * Update scalafmt-core to 3.3.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5910
+    * Enable snapshots for 0.22 by @armanbilge in https://github.com/http4s/http4s/pull/5908
+    * Revert "Enable snapshots for 0.22" (#5908) by @rossabaker in https://github.com/http4s/http4s/pull/5920
+    * Add `scalafixInternalRules` to root project by @armanbilge in https://github.com/http4s/http4s/pull/5918
+    * Update sbt-http4s-org to 0.10.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5922
+    * Update scalafmt-core to 3.3.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5931
+    * Update sbt-http4s-org to 0.11.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5935
+    * remove empty excludes from release notes config by @armanbilge in https://github.com/http4s/http4s/pull/5937
+    * Push behind-the-scenes label down the changelog by @rossabaker in https://github.com/http4s/http4s/pull/5939
+
+* New Contributors
+    * @niij made their first contribution in https://github.com/http4s/http4s/pull/5808
+    * @mcarolan made their first contribution in https://github.com/http4s/http4s/pull/5613
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.8...v0.22.9
+
 # v0.23.7 (2021-12-07)
 
 This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.8.

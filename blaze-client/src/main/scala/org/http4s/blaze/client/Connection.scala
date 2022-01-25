@@ -18,10 +18,19 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect.IO
-import org.http4s.client.ClientRouteTestBattery
+import org.http4s.client.RequestKey
 
-class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
-  def clientResource =
-    BlazeClientBuilder[IO].resource
+private[client] trait Connection[F[_]] {
+
+  /** Determine if the connection is closed and resources have been freed */
+  def isClosed: Boolean
+
+  /** Determine if the connection is in a state that it can be recycled for another request. */
+  def isRecyclable: Boolean
+
+  /** Close down the connection, freeing resources and potentially aborting a [[Response]] */
+  def shutdown(): Unit
+
+  /** The key for requests we are able to serve */
+  def requestKey: RequestKey
 }

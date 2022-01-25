@@ -51,6 +51,10 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
     ev.from(headers)
 
+  /** Returns true if there is at least one header by the specified name. */
+  def contains[A](implicit ev: Header[A, _]): Boolean =
+    headers.exists(_.name == ev.name)
+
   /** Attempt to get headers by key from this collection of headers.
     *
     * @param key name of the headers to find.
