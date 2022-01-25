@@ -54,7 +54,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
                 _ <- enqueue.offer(Chunk.singleton(frame))
               } yield ()
-            case _ => new IllegalStateException("Push Promises are only allowed on an idle Stream").raiseError
+            case _ =>
+              new IllegalStateException(
+                "Push Promises are only allowed on an idle Stream"
+              ).raiseError
           }
         }
       case H2Connection.ConnectionType.Client =>
@@ -368,7 +371,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new CancellationException(s"Received RstStream, cancelling: $rst") // Unsure of this, but also unsure about exposing custom throwable
+    t = new CancellationException(
+      s"Received RstStream, cancelling: $rst"
+    ) // Unsure of this, but also unsure about exposing custom throwable
     _ <- s.writeBlock.complete(Left(t))
     _ <- s.request.complete(Left(t))
     _ <- s.response.complete(Left(t))
