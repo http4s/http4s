@@ -66,7 +66,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Option[IdleTimeoutStage[ByteBuffer]] =
     idleTimeout match {
       case d: FiniteDuration =>
-        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, Http4sSuite.TestExecutionContext))
+        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, munitExecutionContext))
       case _ => None
     }
 
@@ -99,7 +99,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout = responseHeaderTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSuite.TestExecutionContext,
+      ec = munitExecutionContext,
       retries = retries,
     )
   }
@@ -110,7 +110,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Http1Connection[IO] =
     new Http1Connection[IO](
       requestKey = FooRequestKey,
-      executionContext = Http4sSuite.TestExecutionContext,
+      executionContext = munitExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
