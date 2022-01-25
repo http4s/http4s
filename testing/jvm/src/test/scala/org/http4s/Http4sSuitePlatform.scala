@@ -41,8 +41,6 @@ trait Http4sSuitePlatform { this: Http4sSuite =>
 }
 
 trait Http4sSuiteCompanionPlatform {
-  val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
 
   val TestScheduler: ScheduledExecutorService = {
     val s =
