@@ -144,6 +144,21 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withHttp2 = copy(enableHttp2 = true)
   def withoutHttp2 = copy(enableHttp2 = false)
 
+  /**
+   * Push promises are implemented via responding with a PushPromise frame
+   * which is effectively a request headers frame for a request that wasn't
+   * sent by the client.
+   * 
+   * The second param is the response once it is available that you can wait
+   * for OR you can cancel the Outcome to send a termination signal to 
+   * ask the remote server to stop sending additional data from this data stream.
+   * If you want to handle these the outcome can just be outcome successful. But
+   * you can save significant data by canceling requests you don't want.
+   * 
+   * Push promises are very useful to get all the data necessary to render a page in parallel
+   * to the actual data for that page leading to much faster render times, or sending
+   * additional cache enriching information.
+   **/
   def withPushPromiseSupport(
       f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
   ) =

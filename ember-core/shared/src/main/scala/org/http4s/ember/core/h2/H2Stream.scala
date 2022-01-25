@@ -23,6 +23,8 @@ import cats.syntax.all._
 import fs2._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
+import fs2.io.IOException
+import java.util.concurrent.CancellationException
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
 // in StreamState
@@ -52,11 +54,11 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
                 _ <- enqueue.offer(Chunk.singleton(frame))
               } yield ()
-            case _ => new Throwable("Push Promises are only allowed on an idle Stream").raiseError
+            case _ => new IllegalStateException("Push Promises are only allowed on an idle Stream").raiseError
           }
         }
       case H2Connection.ConnectionType.Client =>
-        new Throwable("Clients Are Not Allowed To Send PushPromises").raiseError
+        new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
     }
 
   // TODO Check Settings to Split Headers into Headers and Continuation
@@ -88,7 +90,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                 if (state == StreamState.Closed) onClosed else Applicative[F].unit
               }
               .void
-        case _ => new Throwable("Stream Was Closed").raiseError
+        case _ => new IllegalStateException("Stream Was Closed").raiseError
       }
     }
 
@@ -131,7 +133,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
           } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
         }
-      case _ => new Throwable("Stream Was Closed").raiseError
+      case _ => new IllegalStateException("Stream Was Closed").raiseError
     }
   }
 
@@ -342,7 +344,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     for {
       s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
       _ <- enqueue.offer(Chunk.singleton(rst))
-      t = new Throwable(s"Sending RstStream, cancelling: $rst")
+      t = new CancellationException(s"Sending RstStream, cancelling: $rst")
       _ <- s.writeBlock.complete(Left(t))
       _ <- s.request.complete(Left(t))
       _ <- s.response.complete(Left(t))
@@ -356,7 +358,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new Throwable(s"Received GoAway, cancelling: $goAway")
+    t = new CancellationException(s"Received GoAway, cancelling: $goAway")
     _ <- s.writeBlock.complete(Left(t))
     _ <- s.request.complete(Left(t))
     _ <- s.response.complete(Left(t))
@@ -366,7 +368,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new Throwable(s"Received RstStream, cancelling: $rst")
+    t = new CancellationException(s"Received RstStream, cancelling: $rst") // Unsure of this, but also unsure about exposing custom throwable
     _ <- s.writeBlock.complete(Left(t))
     _ <- s.request.complete(Left(t))
     _ <- s.response.complete(Left(t))

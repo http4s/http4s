@@ -25,7 +25,7 @@ private[h2] abstract class H2TLSPlatform {
     TLSParameters(
       requestCert = params.requestCert,
       rejectUnauthorized = params.rejectUnauthorized,
-      alpnProtocols = List("http/1.1").some, // "h2", first needs support for application extraction
+      alpnProtocols = List("h2", "http/1.1").some,
       sniCallback = params.sniCallback,
       session = params.session,
       requestOCSP = params.requestOCSP,

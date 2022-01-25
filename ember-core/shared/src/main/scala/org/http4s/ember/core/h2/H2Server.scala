@@ -30,6 +30,7 @@ import scodec.bits._
 import scala.concurrent.duration._
 
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
+import fs2.io.IOException
 
 private[ember] object H2Server {
 
@@ -145,10 +146,10 @@ private[ember] object H2Server {
     socket.read(Preface.clientBV.size.toInt).flatMap {
       case Some(s) =>
         val received = s.toByteVector
-        if (received == Preface.clientBV) Applicative[F].pure(Either.right(()))
+        if (received == Preface.clientBV) Applicative[F].pure(Either.unit)
         else Applicative[F].pure(Either.left(received))
       case None =>
-        new Throwable("Input Closed Before Receiving Data").raiseError
+        new IOException("Input Closed Before Receiving Data").raiseError
     }
 
   // For Anything that is guaranteed to only be h2 this method will fail
@@ -156,7 +157,7 @@ private[ember] object H2Server {
   // on an SSL connection.
   def requireConnectionPreface[F[_]: MonadThrow](socket: Socket[F]): F[Unit] =
     checkConnectionPreface(socket).flatMap {
-      case Left(e) => new Throwable("Invalid Connection Preface").raiseError
+      case Left(e) => new IllegalArgumentException("Invalid Connection Preface").raiseError
       case Right(unit) => unit.pure[F]
     }
 
@@ -350,46 +351,4 @@ private[ember] object H2Server {
       _ <- s.compile.resource.drain
     } yield ()
   }
-
-  // def impl[F[_]: Async: Parallel](
-  //   host: Host,
-  //   port: Port,
-  //   tlsContextOpt: Option[TLSContext[F]],
-  //   httpApp: HttpApp[F],
-  //   localSettings: H2Frame.Settings.ConnectionSettings = defaultSettings
-  // ) = for {
-  //   _ <- Network[F].server(Some(host),Some(port)).map{socket =>
-  //     val r = for {
-  //       socket <- {
-  //         tlsContextOpt.fold(socket.pure[({ type R[A] = Resource[F, A]})#R])(tlsContext =>
-  //           for {
-  //             tlsSocket <- tlsContext.serverBuilder(
-  //               socket
-  //             ).withParameters(
-  //               TLSParameters(
-  //                 applicationProtocols = Some(List("h2", "http/1.1")),
-  //                 handshakeApplicationProtocolSelector = {(t: SSLEngine, l:List[String])  =>
-  //                   l.find(_ === "h2").getOrElse("http/1.1")
-  //                 }.some
-  //               )
-  //             ).build
-  //           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-  //           protocol <- Resource.eval(tlsSocket.applicationProtocol)
-  //           } yield tlsSocket
-  //         )
-  //       }
-  //       _ <- Resource.eval(requireConnectionPreface(socket))
-  //       _ <- fromSocket(socket, httpApp, localSettings)
-  //     } yield ()
-
-  //     Stream.resource(r).handleErrorWith(e =>
-  //       Stream.eval(Sync[F].delay(println(s"Encountered Error With Connection $e")))
-  //     )
-
-  //   }.parJoin(200)
-  //     .compile
-  //     .resource
-  //     .drain
-  // } yield ()
-
 }

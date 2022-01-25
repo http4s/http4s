@@ -69,7 +69,7 @@ trait HpackPlatform {
     tDecoder.endHeaderBlock()
 
     val decoded = buffer.toList
-    NonEmptyList.fromList(decoded).toRight(new Throwable("Header List Was Empty"))
+    NonEmptyList.fromList(decoded).toRight(new NoSuchElementException("Header List Was Empty"))
   }.rethrow
 
   def encodeHeaders[F[_]: Sync](
