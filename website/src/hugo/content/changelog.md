@@ -80,6 +80,8 @@ Scala.js users must upgrade to at least 1.8.0 as of this release.
     * Merge scalafmt-core forward from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5933
     * Merge 0.22 -> 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/5926
     * Merge from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5940
+    * Delete zombie specs2 code by @rossabaker in https://github.com/http4s/http4s/pull/5943
+    * Replace our TestExecutionContext by @rossabaker in https://github.com/http4s/http4s/pull/5944
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.7...v0.23.8
 
