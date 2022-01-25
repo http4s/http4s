@@ -60,7 +60,6 @@ final class EmberClientBuilder[F[_]: Async] private (
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
-    // private[this] val logger: Logger[F],
 ) { self =>
 
   private def copy(

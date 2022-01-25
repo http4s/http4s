@@ -17,11 +17,12 @@
 package org.http4s.ember.core.h2
 
 import scodec.bits._
+import java.nio.charset.StandardCharsets
 // Preface must always be sent an happens before anything else.
 private[h2] object Preface {
   val client = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
   // This sequence MUST be followed by a SETTINGS frame
-  val clientBV = ByteVector(client.getBytes)
+  val clientBV = ByteVector(client.getBytes(StandardCharsets.ISO_8859_1))
 
   // The server connection preface consists of a potentially empty
   // SETTINGS frame (Section 6.5) that MUST be the first frame the server
