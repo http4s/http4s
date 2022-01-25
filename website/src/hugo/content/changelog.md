@@ -8,7 +8,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.23.8 (2022-01-24)
+# v0.23.8 (2022-01-25)
 
 This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.9.
 
