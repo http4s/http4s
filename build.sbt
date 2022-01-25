@@ -476,7 +476,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
       log4catsCore.value,
-      log4catsTesting.value % Test
+      log4catsTesting.value % Test,
     ),
     scalacOptions --= Seq(
       "-Ywarn-numeric-widen",
@@ -540,7 +540,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     jsVersionIntroduced("0.23.5")
   )
   .jvmSettings(
-    libraryDependencies += "com.twitter" % "hpack" % "1.0.2",
+    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
   )
   .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
