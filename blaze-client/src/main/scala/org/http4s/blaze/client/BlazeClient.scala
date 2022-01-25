@@ -76,16 +76,17 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
 )(implicit F: ConcurrentEffect[F])
     extends DefaultClient[F] {
 
-  override def run(req: Request[F]): Resource[F, Response[F]] = for {
-    _ <- Resource.pure[F, Unit](())
-    key = RequestKey.fromRequest(req)
-    requestTimeoutF <- scheduleRequestTimeout(key)
-    preparedConnection <- prepareConnection(key)
-    (conn, responseHeaderTimeoutF) = preparedConnection
-    timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
-    responseResource <- Resource.eval(runRequest(conn, req, timeout))
-    response <- responseResource
-  } yield response
+  override def run(req: Request[F]): Resource[F, Response[F]] = {
+    val key = RequestKey.fromRequest(req)
+    for {
+      requestTimeoutF <- scheduleRequestTimeout(key)
+      preparedConnection <- prepareConnection(key)
+      (conn, responseHeaderTimeoutF) = preparedConnection
+      timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
+      responseResource <- Resource.eval(runRequest(conn, req, timeout))
+      response <- responseResource
+    } yield response
+  }
 
   private def prepareConnection(key: RequestKey): Resource[F, (A, F[TimeoutException])] = for {
     conn <- borrowConnection(key)
