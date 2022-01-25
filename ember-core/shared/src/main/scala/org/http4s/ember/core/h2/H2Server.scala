@@ -21,6 +21,7 @@ import cats.effect._
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
+import fs2.io.IOException
 import fs2.io.net._
 import org.http4s._
 import org.typelevel.ci._
@@ -30,7 +31,6 @@ import scodec.bits._
 import scala.concurrent.duration._
 
 import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
-import fs2.io.IOException
 
 private[ember] object H2Server {
 

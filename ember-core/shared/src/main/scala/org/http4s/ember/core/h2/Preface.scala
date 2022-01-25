@@ -17,6 +17,7 @@
 package org.http4s.ember.core.h2
 
 import scodec.bits._
+
 import java.nio.charset.StandardCharsets
 // Preface must always be sent an happens before anything else.
 private[h2] object Preface {
