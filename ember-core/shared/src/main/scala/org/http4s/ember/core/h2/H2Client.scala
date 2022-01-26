@@ -146,7 +146,7 @@ private[ember] class H2Client[F[_]: Async](
             case Some("http/1.1") => Resource.pure[F, SocketType](Http1)
             case Some(other) =>
               Resource.raiseError[F, SocketType, Throwable](
-                new ProtocolException(s"Unknown protocol")
+                new ProtocolException("Unknown protocol")
               )
             case None => Resource.pure[F, SocketType](Http1)
           }
