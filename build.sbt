@@ -648,6 +648,10 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "org.http4s.blaze.client.Http1Connection.isRecyclable"
       ),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
