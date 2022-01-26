@@ -326,8 +326,12 @@ class BlazeClientSuite extends BlazeClientBase {
         val port = address.port
         val uri = Uri.fromString(s"http://$name:$port/close-without-response").yolo
         val req = Request[IO](method = Method.GET, uri = uri)
-        builder(1, retries = 3).resource
-          .use(client => client.status(req).attempt *> attempts.get.assertEquals(4))
+        val key = RequestKey.fromRequest(req)
+        builder(1, retries = 3).resourceWithState
+          .use { case (client, state) =>
+            client.status(req).attempt *> attempts.get.assertEquals(4) *>
+              state.allocated.map(_.get(key)).assertEquals(Some(0))
+          }
       }
     }
   }
