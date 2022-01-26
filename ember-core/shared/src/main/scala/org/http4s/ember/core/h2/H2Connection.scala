@@ -21,10 +21,9 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
+import fs2.io.net.SocketException
 import org.typelevel.log4cats.Logger
 import scodec.bits._
-// import cats.data._
-// import H2Frame.Settings.ConnectionSettings.{default => defaultSettings}
 
 private[h2] class H2Connection[F[_]](
     host: com.comcast.ip4s.Host,
@@ -168,7 +167,7 @@ private[h2] class H2Connection[F[_]](
               socket.isOpen.ifM(
                 socket.write(Chunk.byteVector(bv)) >>
                   chunk.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
-                new Throwable("Socket Closed when attempting to write").raiseError,
+                new SocketException("Socket closed when attempting to write").raiseError,
               )
           } else {
             val list = chunk.toList
@@ -187,7 +186,7 @@ private[h2] class H2Connection[F[_]](
             socket.isOpen.ifM(
               socket.write(Chunk.byteVector(bv)) >>
                 nonData.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
-              new Throwable("Socket Closed when attempting to write").raiseError,
+              new SocketException("Socket closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
               go(Chunk.seq(after))
