@@ -122,7 +122,7 @@ class RouterInServletSuite extends Http4sSuite {
   )(server => get(server, "context/servlet/prefix/suffix").assertEquals("suffix"))
 
   private def get(serverPort: Int, path: String): IO[String] =
-    IO.delay(
+    IO.blocking(
       AutoCloseableResource.resource(
         Source
           .fromURL(new URL(s"http://127.0.0.1:$serverPort/$path"))
@@ -137,7 +137,7 @@ class RouterInServletSuite extends Http4sSuite {
   ): Resource[IO, Int] = TestEclipseServer(servlet(routes, dispatcher), contextPath, servletPath)
 
   private def servlet(routes: HttpRoutes[IO], dispatcher: Dispatcher[IO]) =
-    new BlockingHttp4sServlet[IO](
+    new AsyncHttp4sServlet[IO](
       service = routes.orNotFound,
       servletIo = org.http4s.servlet.BlockingServletIo(4096),
       serviceErrorHandler = DefaultServiceErrorHandler,
