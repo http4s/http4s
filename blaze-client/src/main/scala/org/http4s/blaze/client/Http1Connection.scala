@@ -77,11 +77,11 @@ private final class Http1Connection[F[_]](
       case _ => false
     }
 
-  override def isRecyclable: Boolean =
-    stageState.get match {
+  override def isRecyclable: F[Boolean] =
+    F.delay(stageState.get match {
       case ReadIdle(_) => true
       case _ => false
-    }
+    })
 
   override def shutdown(): Unit = stageShutdown()
 

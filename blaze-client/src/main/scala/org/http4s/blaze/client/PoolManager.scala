@@ -355,7 +355,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   def release(connection: A): F[Unit] = {
     val key = connection.requestKey
     semaphore.withPermit {
-      F.delay(connection.isRecyclable)
+      connection.isRecyclable
         .ifM(releaseRecyclable(key, connection), releaseNonRecyclable(key, connection))
     }
   }
