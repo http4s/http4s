@@ -31,6 +31,7 @@ import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartEncoder
+import scodec.bits.ByteVector
 
 import java.io._
 import java.nio.CharBuffer
@@ -159,6 +160,9 @@ object EntityEncoder {
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)
+
+  implicit def byteVectorEncoder[F[_]]: EntityEncoder[F, ByteVector] =
+    chunkEncoder[F].contramap(Chunk.byteVector)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know

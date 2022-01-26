@@ -21,8 +21,6 @@ package middleware
 import cats.Monad
 import cats.data.Kleisli
 import cats.effect._
-import cats.instances.option._
-import cats.syntax.alternative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.~>
@@ -95,8 +93,6 @@ object HttpMethodOverrider {
   ): Http[F, G] = {
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
 
-    val processRequestWithOriginalMethod = (req: Request[G]) => http(req)
-
     def processRequestWithMethod(
         req: Request[G],
         parseResult: ParseResult[Method],
@@ -147,15 +143,12 @@ object HttpMethodOverrider {
     def processRequest(req: Request[G]): F[Response[G]] =
       getUnsafeOverrideMethod(req).flatMap {
         case Some(m: String) => parseMethod.andThen(processRequestWithMethod(req, _)).apply(m)
-        case None => processRequestWithOriginalMethod(req)
+        case None => http(req)
       }
 
     Kleisli { (req: Request[G]) =>
-      config.overridableMethods
-        .contains(req.method)
-        .guard[Option]
-        .as(processRequest(req))
-        .getOrElse(processRequestWithOriginalMethod(req))
+      val isOverridden = config.overridableMethods.contains(req.method)
+      if (isOverridden) processRequest(req) else http(req)
     }
   }
 }

@@ -28,6 +28,7 @@ import org.http4s.client.Client
 import org.http4s.client.DefaultClient
 import org.http4s.client.RequestKey
 
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import scala.concurrent.ExecutionContext
@@ -55,6 +56,7 @@ object BlazeClient {
       requestTimeout = config.requestTimeout,
       scheduler = bits.ClientTickWheel,
       ec = ec,
+      retries = 0,
     )
 
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
@@ -63,9 +65,19 @@ object BlazeClient {
       requestTimeout: Duration,
       scheduler: TickWheelExecutor,
       ec: ExecutionContext,
+      retries: Int,
   )(implicit F: ConcurrentEffect[F]): Client[F] =
-    new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec)
+    new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec, retries)
 
+  @deprecated("Preserved for binary compatibility", "0.22.9")
+  private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
+      manager: ConnectionManager[F, A],
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
+      scheduler: TickWheelExecutor,
+      ec: ExecutionContext,
+  )(implicit F: ConcurrentEffect[F]): Client[F] =
+    new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec, 0)
 }
 
 private class BlazeClient[F[_], A <: BlazeConnection[F]](
@@ -74,17 +86,24 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     requestTimeout: Duration,
     scheduler: TickWheelExecutor,
     ec: ExecutionContext,
+    retries: Int,
 )(implicit F: ConcurrentEffect[F])
     extends DefaultClient[F] {
 
-  override def run(req: Request[F]): Resource[F, Response[F]] = {
+  override def run(req: Request[F]): Resource[F, Response[F]] =
+    runLoop(req, retries)
+
+  private def runLoop(req: Request[F], remaining: Int): Resource[F, Response[F]] = {
     val key = RequestKey.fromRequest(req)
     for {
       requestTimeoutF <- scheduleRequestTimeout(key)
       preparedConnection <- prepareConnection(key)
       (conn, responseHeaderTimeoutF) = preparedConnection
       timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
-      responseResource <- Resource.eval(runRequest(conn, req, timeout))
+      responseResource <- Resource.eval(runRequest(conn, req, timeout)).recoverWith {
+        case _: SocketException if remaining > 0 && req.isIdempotent =>
+          Resource.eval(manager.invalidate(conn) *> F.pure(runLoop(req, remaining - 1)))
+      }
       response <- responseResource
     } yield response
   }

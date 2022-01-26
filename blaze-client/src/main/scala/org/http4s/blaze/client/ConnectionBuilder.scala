@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s
-package blaze
-package client
+package org.http4s.blaze.client
 
-import cats.effect.Resource
-import org.http4s.blaze.pipeline.TailStage
+import org.http4s.client.RequestKey
 
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F], cancellation: F[TimeoutException]): F[Resource[F, Response[F]]]
+private[client] trait ConnectionBuilder[F[_], A <: Connection[F]] {
+  def apply(key: RequestKey): F[A]
 }

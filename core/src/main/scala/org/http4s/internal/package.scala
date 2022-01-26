@@ -294,7 +294,7 @@ package object internal {
     *
     * The intended use case for this function is to reduce the amount of code
     * needed to write an `Order` instance for Product types. One can use
-    * [[#compareField]] to generate a comparison for each field in a product
+    * [[compareField]] to generate a comparison for each field in a product
     * type, then apply this function to get a ordering for the entire Product
     * type.
     *
@@ -325,7 +325,7 @@ package object internal {
       .getOrElse(0)
   }
 
-  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval`
+  /** Similar to [[reduceComparisons_]] but with the `F` type forced to `Eval`
     * for every comparison other than the first one. This encodes the commonly
     * desired use case of only evaluating the minimum number of comparisons
     * required to determine the ordering.

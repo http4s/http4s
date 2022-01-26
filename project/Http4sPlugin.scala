@@ -9,9 +9,8 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import sbt.Keys._
 import sbt._
-import sbtghactions.GenerativeKeys._
-import sbtghactions.JavaSpec
-import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
+import org.typelevel.sbt.gha.GenerativeKeys._
+import org.typelevel.sbt.gha.JavaSpec
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -24,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.7"
+  val scala_213 = "2.13.8"
   val scala_212 = "2.12.15"
   val scala_3 = "3.0.2"
 
@@ -83,13 +82,6 @@ object Http4sPlugin extends AutoPlugin {
           "src/test/scala/org/http4s/testing/ErrorReporting.scala",
         )
       },
-    nowarnCompatAnnotationProvider := None,
-    mimaPreviousArtifacts := {
-      mimaPreviousArtifacts.value.filterNot(
-        // cursed release
-        _.revision == "0.21.10"
-      )
-    },
     doctestTestFramework := DoctestTestFramework.Munit,
   )
 
@@ -164,8 +156,8 @@ object Http4sPlugin extends AutoPlugin {
     )
 
   def sbtghactionsSettings: Seq[Setting[_]] = {
-    import sbtghactions.GenerativeKeys._
-    import sbtghactions._
+    import org.typelevel.sbt.gha.GenerativeKeys._
+    import org.typelevel.sbt.gha._
 
     def siteBuildJob(subproject: String, runMdoc: Boolean) = {
       val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
@@ -200,36 +192,16 @@ object Http4sPlugin extends AutoPlugin {
       )
     }
 
-    Http4sOrgPlugin.githubActionsSettings ++ Seq(
-      githubWorkflowBuild := Seq(
-        WorkflowStep
-          .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
-        WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-        WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep
-          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
-        WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
-      ),
-      githubWorkflowTargetBranches :=
-        // "*" doesn't include slashes
-        List("*", "series/*"),
+    Seq(
       githubWorkflowPublishPreamble := {
         githubWorkflowPublishPreamble.value ++ Seq(
           WorkflowStep.Run(List("git status"))
         )
       },
-      githubWorkflowPublishTargetBranches := Seq(
-        RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v")),
-      ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false)
         // sitePublishStep("docs", runMdoc = true)
       ),
-      // this results in nonexistent directories trying to be compressed
-      githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website", runMdoc = false),
         siteBuildJob("docs", runMdoc = true),
@@ -242,7 +214,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
-    val blaze = "0.15.2"
+    val blaze = "0.15.3"
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
@@ -262,12 +234,12 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.3.5"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "1.4.0"
+    val log4cats = "1.5.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.72.Final"
+    val netty = "4.1.73.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
@@ -280,8 +252,8 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.29"
     val servlet = "3.1.0"
-    val slf4j = "1.7.32"
-    val tomcat = "9.0.56"
+    val slf4j = "1.7.33"
+    val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.1.13"

@@ -18,12 +18,19 @@ package org.http4s
 package blaze
 package client
 
-import cats.effect.Resource
-import org.http4s.blaze.pipeline.TailStage
+import org.http4s.client.RequestKey
 
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
+private[client] trait Connection[F[_]] {
 
-private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F], cancellation: F[TimeoutException]): F[Resource[F, Response[F]]]
+  /** Determine if the connection is closed and resources have been freed */
+  def isClosed: Boolean
+
+  /** Determine if the connection is in a state that it can be recycled for another request. */
+  def isRecyclable: Boolean
+
+  /** Close down the connection, freeing resources and potentially aborting a [[Response]] */
+  def shutdown(): Unit
+
+  /** The key for requests we are able to serve */
+  def requestKey: RequestKey
 }
