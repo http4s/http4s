@@ -22,11 +22,13 @@ import cats.effect._
 import cats.effect.concurrent._
 import cats.effect.implicits._
 import cats.syntax.all._
+import fs2.Hotswap
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.Client
 import org.http4s.client.DefaultClient
 import org.http4s.client.RequestKey
+import org.log4s.getLogger
 
 import java.net.SocketException
 import java.nio.ByteBuffer
@@ -90,20 +92,42 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
 )(implicit F: ConcurrentEffect[F])
     extends DefaultClient[F] {
 
-  override def run(req: Request[F]): Resource[F, Response[F]] =
-    runLoop(req, retries)
+  private[this] val logger = getLogger
 
-  private def runLoop(req: Request[F], remaining: Int): Resource[F, Response[F]] = {
+  override def run(req: Request[F]): Resource[F, Response[F]] =
+    Hotswap.create[F, Either[Throwable, Response[F]]].flatMap { hotswap =>
+      Resource.eval(retryLoop(req, retries, hotswap))
+    }
+
+  // A light implementation of the Retry middleware.  That needs a
+  // Timer, which we don't have.
+  private def retryLoop(
+      req: Request[F],
+      remaining: Int,
+      hotswap: Hotswap[F, Either[Throwable, Response[F]]],
+  ): F[Response[F]] =
+    hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
+      hotswap.swap(respond(req).attempt).flatMap {
+        case Right(response) =>
+          F.pure(response)
+        case Left(_: SocketException) if remaining > 0 && req.isIdempotent =>
+          val key = RequestKey.fromRequest(req)
+          logger.debug(
+            s"Encountered a SocketException on ${key}.  Retrying up to ${remaining} more times."
+          )
+          retryLoop(req, remaining - 1, hotswap)
+        case Left(e) =>
+          F.raiseError(e)
+      }
+
+  private def respond(req: Request[F]): Resource[F, Response[F]] = {
     val key = RequestKey.fromRequest(req)
     for {
       requestTimeoutF <- scheduleRequestTimeout(key)
       preparedConnection <- prepareConnection(key)
       (conn, responseHeaderTimeoutF) = preparedConnection
       timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
-      responseResource <- Resource.eval(runRequest(conn, req, timeout)).recoverWith {
-        case _: SocketException if remaining > 0 && req.isIdempotent =>
-          Resource.eval(manager.invalidate(conn) *> F.pure(runLoop(req, remaining - 1)))
-      }
+      responseResource <- Resource.eval(runRequest(conn, req, timeout))
       response <- responseResource
     } yield response
   }

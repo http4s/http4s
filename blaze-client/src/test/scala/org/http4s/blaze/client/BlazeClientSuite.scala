@@ -330,7 +330,7 @@ class BlazeClientSuite extends BlazeClientBase {
         builder(1, retries = 3).resourceWithState
           .use { case (client, state) =>
             client.status(req).attempt *> attempts.get.assertEquals(4) *>
-              state.allocated.map(_.get(key)).assertEquals(Some(0))
+              state.allocated.map(_.get(key)).assertEquals(None)
           }
       }
     }
