@@ -146,7 +146,7 @@ private[ember] class H2Client[F[_]: Async](
             case Some("http/1.1") => Resource.pure[F, SocketType](Http1)
             case Some(other) =>
               Resource.raiseError[F, SocketType, Throwable](
-                new Throwable("Unknown Protocol Received")
+                new ProtocolException(s"Unknown protocol")
               )
             case None => Resource.pure[F, SocketType](Http1)
           }
@@ -233,7 +233,9 @@ private[ember] class H2Client[F[_]: Async](
                 //
                 stream <- ref.get
                   .map(_.get(i))
-                  .flatMap(_.liftTo(new Throwable("Stream Missing for push promise"))) // FOLD
+                  .flatMap(
+                    _.liftTo(new ProtocolException("Stream missing for push promise"))
+                  ) // FOLD
                 // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
                 req <- stream.getRequest
 
