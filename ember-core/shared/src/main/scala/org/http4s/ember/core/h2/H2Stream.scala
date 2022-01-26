@@ -214,8 +214,16 @@ private[h2] class H2Stream[F[_]: Concurrent](
                     PseudoHeaders.headersToRequestNoBody(h) match {
                       case Some(req) =>
                         val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
+                        val outReq = req.headers
+                          .get[org.http4s.headers.Trailer]
+                          .fold(iReq)(_ =>
+                            iReq.withAttribute(
+                              org.http4s.Message.Keys.TrailerHeaders[F],
+                              s.trailers.get.rethrow,
+                            )
+                          )
                         request.complete(
-                          Either.right(iReq)
+                          Either.right(outReq)
                         ) >>
                           req.contentLength.traverse(length =>
                             state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
