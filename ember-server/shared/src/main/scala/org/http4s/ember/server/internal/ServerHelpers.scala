@@ -33,6 +33,10 @@ import org.http4s.ember.core.Encoder
 import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util._
+import org.http4s.ember.core.h2.H2Frame
+import org.http4s.ember.core.h2.H2Keys
+import org.http4s.ember.core.h2.H2Server
+import org.http4s.ember.core.h2.H2TLS
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
@@ -40,6 +44,7 @@ import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
+import scodec.bits.ByteVector
 
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
@@ -68,6 +73,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -92,6 +98,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       true,
       webSocketKey,
+      enableHttp2,
     )
   }
 
@@ -114,6 +121,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       idleTimeout: Duration,
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -143,6 +151,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       false,
       webSocketKey,
+      enableHttp2,
     )
   }
 
@@ -162,28 +171,101 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
-        val handler = shutdown.trackConnection >>
+        val handler: Stream[F, fs2.INothing] = shutdown.trackConnection >>
           Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger))
-            .flatMap(
-              runConnection(
-                _,
-                logger,
-                idleTimeout,
-                receiveBufferSize,
-                maxHeaderSize,
-                requestHeaderReceiveTimeout,
-                httpApp,
-                errorHandler,
-                onWriteFailure,
-                createRequestVault,
-                webSocketKey,
-              )
-            )
+            .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .flatMap {
+              case (socket, Some("h2")) =>
+                // ALPN H2 Strategy
+                Stream.exec(H2Server.requireConnectionPreface(socket)) ++
+                  Stream
+                    .resource(
+                      H2Server
+                        .fromSocket[F](
+                          socket,
+                          httpApp,
+                          H2Frame.Settings.ConnectionSettings.default,
+                          logger,
+                        )
+                    )
+                    .drain
+              case (socket, Some(_)) =>
+                // SSL Connection, not h2, will be http/1.1 but thats not how types align
+                // Prior Knowledge is only allowed over clear where application
+                // protocol has not been agreed via handshake
+                runConnection(
+                  socket,
+                  logger,
+                  idleTimeout,
+                  receiveBufferSize,
+                  maxHeaderSize,
+                  requestHeaderReceiveTimeout,
+                  httpApp,
+                  errorHandler,
+                  onWriteFailure,
+                  createRequestVault,
+                  webSocketKey,
+                  ByteVector.empty,
+                  enableHttp2,
+                ).drain
+              case (socket, None) => // Cleartext Protocol
+                enableHttp2 match {
+                  case true =>
+                    // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                    // Otherwise this is now http1
+                    Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+                      case Left(bv) =>
+                        runConnection(
+                          socket,
+                          logger,
+                          idleTimeout,
+                          receiveBufferSize,
+                          maxHeaderSize,
+                          requestHeaderReceiveTimeout,
+                          httpApp,
+                          errorHandler,
+                          onWriteFailure,
+                          createRequestVault,
+                          webSocketKey,
+                          bv, // Pass read bytes we thought might be the prelude
+                          enableHttp2,
+                        ).drain
+                      case Right(_) =>
+                        Stream
+                          .resource(
+                            H2Server.fromSocket[F](
+                              socket,
+                              httpApp,
+                              H2Frame.Settings.ConnectionSettings.default,
+                              logger,
+                            )
+                          )
+                          .drain
+                    }
+                  // Since its not enabled, run connection normally.
+                  case false =>
+                    runConnection(
+                      socket,
+                      logger,
+                      idleTimeout,
+                      receiveBufferSize,
+                      maxHeaderSize,
+                      requestHeaderReceiveTimeout,
+                      httpApp,
+                      errorHandler,
+                      onWriteFailure,
+                      createRequestVault,
+                      webSocketKey,
+                      ByteVector.empty,
+                      enableHttp2,
+                    ).drain
+                }
+            }
 
         handler.handleErrorWith { t =>
           Stream.eval(logger.error(t)("Request handler failed with exception")).drain
@@ -210,14 +292,25 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F],
-  ): Resource[F, Socket[F]] =
-    tlsInfoOpt.fold(socketInit.pure[Resource[F, *]]) { case (context, params) =>
-      context
-        .serverBuilder(socketInit)
-        .withParameters(params)
-        .withLogging(s => logger.trace(s))
-        .build
-        .widen[Socket[F]]
+      enableHttp2: Boolean,
+  ): Resource[F, (Socket[F], Option[String])] =
+    tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
+      case (context, params) =>
+        val newParams = if (enableHttp2) {
+          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
+          // As this is the only JVM specific code
+          H2TLS.transform(params)
+        } else params
+
+        context
+          .serverBuilder(socketInit)
+          .withParameters(newParams)
+          .withLogging(s => logger.trace(s))
+          .build
+          .evalMap(tlsSocket =>
+            tlsSocket.write(fs2.Chunk.empty) >>
+              tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
+          )
     }
 
   private[internal] def runApp[F[_]](
@@ -292,16 +385,19 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      initialBuffer: ByteVector,
+      enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val _ = logger
+    val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
     Stream
-      .unfoldEval[F, State, (Request[F], Response[F])](Array.emptyByteArray -> false) {
+      .unfoldEval[F, State, (Request[F], Response[F])](initialBuffer.toArray -> false) {
         case (buffer, reuse) =>
           val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
             // next request has already been (partially) received
@@ -325,7 +421,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               read,
               maxHeaderSize,
               requestHeaderReceiveTimeout,
-              httpApp,
+              finalApp,
               errorHandler,
               socket,
               createRequestVault,
@@ -357,11 +453,33 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       Applicative[F].pure(None)
                   }
                 case None =>
-                  for {
-                    nextResp <- postProcessResponse(req, resp)
-                    _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                    nextBuffer <- drain
-                  } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                  resp.attributes.lookup(H2Keys.H2cUpgrade) match {
+                    // Http1.1
+                    case None =>
+                      for {
+                        nextResp <- postProcessResponse(req, resp)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        nextBuffer <- drain
+                      } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
+                    // h2c escalation of the connection
+                    case Some((settings, newReq)) =>
+                      for {
+                        nextResp <- postProcessResponse(req, resp)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        _ <- H2Server.requireConnectionPreface(socket)
+                        out <- H2Server
+                          .fromSocket(
+                            socket,
+                            httpApp,
+                            H2Frame.Settings.ConnectionSettings.default,
+                            logger,
+                            settings,
+                            newReq.some,
+                          )
+                          .use(_ => Async[F].never[Unit])
+                          .as(None)
+                      } yield out
+                  }
               }
             case Left(err) =>
               err match {

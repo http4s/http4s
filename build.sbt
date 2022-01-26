@@ -469,13 +469,19 @@ lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
     server.jvm % "test->compile",
   )
 
-lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
+lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
     description := "Base library for ember http4s clients and servers",
     startYear := Some(2019),
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
-      log4catsTesting.value % Test
+      log4catsCore.value,
+      log4catsTesting.value % Test,
+    ),
+    scalacOptions --= Seq(
+      "-Ywarn-numeric-widen",
+      "-Werror",
+      "-Xfatal-warnings",
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -533,6 +539,16 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
+  .jvmSettings(
+    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
+  )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
+  .jsSettings(
+    Compile / npmDependencies += "hpack.js" -> "2.1.6",
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
+    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val emberServer = libraryCrossProject("ember-server")
@@ -564,7 +580,16 @@ lazy val emberServer = libraryCrossProject("ember-server")
         Seq(
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.ember.server.internal.ServerHelpers.server"
-          )
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.server.internal.ServerHelpers.upgradeSocket"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.server.internal.ServerHelpers.serverInternal"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.server.internal.ServerHelpers.unixSocketServer"
+          ),
         )
       else
         Seq.empty
@@ -578,10 +603,13 @@ lazy val emberServer = libraryCrossProject("ember-server")
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
     ),
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
     jsVersionIntroduced("0.23.7"),
   )
   .dependsOn(
@@ -615,10 +643,13 @@ lazy val emberClient = libraryCrossProject("ember-client")
       log4catsSlf4j
     )
   )
+  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
     ),
+    useYarn := true,
+    yarnExtraArgs += "--frozen-lockfile",
     jsVersionIntroduced("0.23.5"),
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
@@ -1112,8 +1143,21 @@ lazy val examplesEmber = exampleProject("examples-ember")
     description := "Examples of http4s server and clients on blaze",
     startYear := Some(2020),
     fork := true,
+    scalacOptions -= "-Xfatal-warnings",
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
+
+lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
+  .dependsOn(emberServer.js)
+  .settings(
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
+lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
+  .dependsOn(emberClient.js)
+  .settings(
+    scalacOptions -= "-Xfatal-warnings"
+  )
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
@@ -1252,6 +1296,18 @@ def exampleProject(name: String) =
     .enablePlugins(NoPublishPlugin)
     .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
+
+def exampleJSProject(name: String) =
+  http4sProject(name)
+    .in(file(name.replace("examples-", "examples/")))
+    .enablePlugins(NoPublishPlugin, ScalaJSBundlerPlugin)
+    .settings(
+      useYarn := true,
+      yarnExtraArgs += "--frozen-lockfile",
+      scalaJSUseMainModuleInitializer := true,
+      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+    )
+    .dependsOn(theDsl.js)
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",

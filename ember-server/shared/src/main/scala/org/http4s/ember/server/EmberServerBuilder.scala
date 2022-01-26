@@ -56,6 +56,7 @@ final class EmberServerBuilder[F[_]: Async] private (
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
+    private val enableHttp2: Boolean,
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -79,6 +80,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
+      enableHttp2: Boolean = self.enableHttp2,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -97,6 +99,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       additionalSocketOptions = additionalSocketOptions,
       logger = logger,
       unixSocketConfig = unixSocketConfig,
+      enableHttp2 = enableHttp2,
     )
 
   def withHostOption(host: Option[Host]) = copy(host = host)
@@ -142,6 +145,9 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]) = copy(logger = l)
 
+  def withHttp2 = copy(enableHttp2 = true)
+  def withoutHttp2 = copy(enableHttp2 = false)
+
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
       unixSockets: UnixSockets[F],
@@ -180,6 +186,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               idleTimeout,
               logger,
               wsKey,
+              enableHttp2,
             )
             .compile
             .drain
@@ -204,6 +211,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             idleTimeout,
             logger,
             wsKey,
+            enableHttp2,
           )
           .compile
           .drain
@@ -237,6 +245,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
       None,
+      false,
     )
 
   private object Defaults {
