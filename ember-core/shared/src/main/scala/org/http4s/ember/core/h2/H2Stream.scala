@@ -25,9 +25,11 @@ import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 import java.util.concurrent.CancellationException
+import scala.annotation.nowarn
 
 // Will eventually hold client/server through single interface matching that of the designed paradigm
 // in StreamState
+@nowarn("msg=implicit numeric widening")
 private[h2] class H2Stream[F[_]: Concurrent](
     val id: Int,
     localSettings: H2Frame.Settings.ConnectionSettings,
@@ -178,7 +180,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         val iResp = resp.withAttribute(H2Keys.StreamIdentifier, id)
                         val outResp = resp.headers
                           .get[org.http4s.headers.Trailer]
-                          .fold(iResp)(t =>
+                          .fold(iResp)(_ =>
                             iResp.withAttribute(
                               org.http4s.Message.Keys.TrailerHeaders[F],
                               s.trailers.get.rethrow,
@@ -212,14 +214,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
                     PseudoHeaders.headersToRequestNoBody(h) match {
                       case Some(req) =>
                         val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
-                        val outReq = req.headers
-                          .get[org.http4s.headers.Trailer]
-                          .fold(iReq)(_ =>
-                            iReq.withAttribute(
-                              org.http4s.Message.Keys.TrailerHeaders[F],
-                              s.trailers.get.rethrow,
-                            )
-                          )
                         request.complete(
                           Either.right(iReq)
                         ) >>

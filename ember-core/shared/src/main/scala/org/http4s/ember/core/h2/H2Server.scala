@@ -157,7 +157,7 @@ private[ember] object H2Server {
   // on an SSL connection.
   def requireConnectionPreface[F[_]: MonadThrow](socket: Socket[F]): F[Unit] =
     checkConnectionPreface(socket).flatMap {
-      case Left(e) => new IllegalArgumentException("Invalid Connection Preface").raiseError
+      case Left(_) => new IllegalArgumentException("Invalid Connection Preface").raiseError
       case Right(unit) => unit.pure[F]
     }
 
@@ -221,13 +221,13 @@ private[ember] object H2Server {
         socket,
         logger,
       )
-      bgWrite <- h2.writeLoop.compile.drain.background
+      _ <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(
         queue.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
       )
-      bgRead <- h2.readLoop.compile.drain.background
+      _ <- h2.readLoop.compile.drain.background
 
-      settings <- Resource.eval(h2.settingsAck.get.rethrow)
+      _ <- Resource.eval(h2.settingsAck.get.rethrow)
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
         initialRequest.traverse_(req =>
@@ -264,7 +264,7 @@ private[ember] object H2Server {
           .drain
           .background
 
-      created <-
+      _ <-
         Stream
           .fromQueueUnterminated(created)
           .map { i =>
@@ -301,7 +301,7 @@ private[ember] object H2Server {
                 } yield (resp.body, stream)
               }
 
-              _ <- responses.parTraverse { case (body, stream) =>
+              _ <- responses.parTraverse { case (_, stream) =>
                 resp.body.chunks
                   .evalMap(c => stream.sendData(c.toByteVector, false))
                   .compile

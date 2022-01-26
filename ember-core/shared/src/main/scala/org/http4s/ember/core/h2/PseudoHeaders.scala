@@ -152,7 +152,7 @@ private[h2] object PseudoHeaders {
 
   def findWithNoDuplicates[A](l: List[A])(bool: A => Boolean): Option[A] =
     l.foldLeft(Either.right[Unit, Option[A]](None)) {
-      case (Left(e), a) => Left(e)
+      case (Left(e), _) => Left(e)
       case (Right(Some(a)), next) =>
         if (bool(next)) Left(())
         else Right(Some(a))

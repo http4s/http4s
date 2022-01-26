@@ -53,16 +53,18 @@ trait HpackPlatform {
       tDecoder: com.twitter.hpack.Decoder,
       bv: ByteVector,
   ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
-    var buffer = new ListBuffer[(String, String)]
+    val buffer = new ListBuffer[(String, String)]
     val is = new ByteArrayInputStream(bv.toArray)
     val listener = new HeaderListener {
-      def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit =
+      def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
         buffer.+=(
           new String(name, StandardCharsets.ISO_8859_1) -> new String(
             value,
             StandardCharsets.ISO_8859_1,
           )
         )
+        ()
+      }
     }
 
     tDecoder.decode(is, listener)
