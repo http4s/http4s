@@ -50,7 +50,15 @@ object BlazeClient {
       retries: Int,
       dispatcher: Dispatcher[F],
   )(implicit F: Async[F]): Client[F] =
-    new BlazeClient[F, A](manager, responseHeaderTimeout, requestTimeout, scheduler, ec, retries, dispatcher)
+    new BlazeClient[F, A](
+      manager,
+      responseHeaderTimeout,
+      requestTimeout,
+      scheduler,
+      ec,
+      retries,
+      dispatcher,
+    )
 }
 
 private class BlazeClient[F[_], A <: BlazeConnection[F]](
@@ -137,12 +145,16 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     requestTimeout match {
       case d: FiniteDuration =>
         Resource.pure(F.async[TimeoutException] { cb =>
-          F.delay(scheduler.schedule(
-            () =>
-              cb(Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms"))),
-            ec,
-            d,
-          )).map(c => Some(F.delay(c.cancel())))
+          F.delay(
+            scheduler.schedule(
+              () =>
+                cb(
+                  Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms"))
+                ),
+              ec,
+              d,
+            )
+          ).map(c => Some(F.delay(c.cancel())))
         })
       case _ => resourceNeverTimeoutException
     }
