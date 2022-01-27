@@ -105,7 +105,6 @@ lazy val core = libraryCrossProject("core")
   .settings(
     description := "Core http4s library for servers and clients",
     startYear := Some(2013),
-    scalacOptions += "-Ysafe-init",
     buildInfoKeys := Seq[BuildInfoKey](
       version,
       scalaVersion,
