@@ -775,6 +775,29 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
+      // inside private trait/clas/object
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.blaze.client.BlazeConnection.runRequest"
+      ),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.resetWrite"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Read$"),
+      ProblemFilters
+        .exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$ReadWrite$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Write$"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.blaze.client.Http1Connection.isRecyclable"
+      ),
+      ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
+      ProblemFilters
+        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
