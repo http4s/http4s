@@ -19,6 +19,8 @@ package org.http4s.ember.core.h2
 import cats.syntax.all._
 import fs2.io.net.tls.TLSParameters
 
+import javax.net.ssl.SSLEngine
+
 private[h2] abstract class H2TLSPlatform {
 
   def transform(params: TLSParameters): TLSParameters =
@@ -35,7 +37,7 @@ private[h2] abstract class H2TLSPlatform {
       useCipherSuitesOrder = params.useCipherSuitesOrder,
       needClientAuth = params.needClientAuth,
       wantClientAuth = params.wantClientAuth,
-      handshakeApplicationProtocolSelector = { (t: javax.net.ssl.SSLEngine, l: List[String]) =>
+      handshakeApplicationProtocolSelector = { (_: SSLEngine, l: List[String]) =>
         l.find(_ === "h2").getOrElse("http/1.1")
       }.some,
     )

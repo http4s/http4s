@@ -19,7 +19,11 @@ package org.http4s.ember.core.h2
 import cats.syntax.all._
 import scodec.bits._
 
+import scala.annotation.nowarn
+
 private[ember] sealed trait H2Frame
+
+@nowarn("msg=implicit numeric widening")
 private[ember] object H2Frame {
   /*
   All frames begin with a fixed 9-octet header followed by a variable-
@@ -197,7 +201,7 @@ private[ember] object H2Frame {
         )
         .getOrElse(data.data)
       val flags: Byte = {
-        var init: Int = 0x0
+        val init: Int = 0x0
         val endStreamBitSet: Int = if (data.endStream) (init | (1 << 0)) else init
         val paddedSet: Int = if (data.pad.isDefined) endStreamBitSet | (1 << 3) else endStreamBitSet
         paddedSet.toByte
@@ -575,13 +579,13 @@ private[ember] object H2Frame {
           value.toInt match {
             case 1 => SettingsEnablePush(true).asRight
             case 0 => SettingsEnablePush(false).asRight
-            case other => H2Error.ProtocolError.asLeft
+            case _ => H2Error.ProtocolError.asLeft
           }
         case 0x3 => SettingsMaxConcurrentStreams(value).asRight
         case 0x4 => SettingsInitialWindowSize.fromInt(value)
         case 0x5 => SettingsMaxFrameSize.fromInt(value)
         case 0x6 => SettingsMaxHeaderListSize(value).asRight
-        case other => Unknown(identifier, value).asRight
+        case _ => Unknown(identifier, value).asRight
       }
     }
     // The initial value is 4,096 octets

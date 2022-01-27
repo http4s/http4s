@@ -255,7 +255,7 @@ private[h2] class H2Connection[F[_]](
                 streamCreateAndHeaders.use(_ =>
                   for {
                     stream <- initiateRemoteStreamById(id)
-                    enqueue <- createdStreams.offer(id)
+                    _ <- createdStreams.offer(id)
                     _ <- stream.receiveHeaders(h, cs ::: c :: Nil: _*)
                   } yield ()
                 )
@@ -277,7 +277,7 @@ private[h2] class H2Connection[F[_]](
                 streamCreateAndHeaders.use(_ =>
                   for {
                     stream <- initiateRemoteStreamById(id)
-                    enqueue <- createdStreams.offer(id)
+                    _ <- createdStreams.offer(id)
                     _ <- stream.receivePushPromise(p, cs ::: c :: Nil: _*)
 
                   } yield ()
@@ -308,7 +308,7 @@ private[h2] class H2Connection[F[_]](
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
             goAway(H2Error.ProtocolError)
         }
-      case (f, H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None)) =>
+      case (f, H2Connection.State(_, _, _, _, _, _, _, Some(_), None)) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
@@ -346,7 +346,7 @@ private[h2] class H2Connection[F[_]](
                 streamCreateAndHeaders.use(_ =>
                   for {
                     stream <- initiateRemoteStreamById(i)
-                    enqueue <- createdStreams.offer(i)
+                    _ <- createdStreams.offer(i)
                     _ <- stream.receiveHeaders(h)
 
                   } yield ()
@@ -361,7 +361,7 @@ private[h2] class H2Connection[F[_]](
         else {
           state.update(s => s.copy(headersInProgress = Some((h, List.empty))))
         }
-      case (h @ H2Frame.PushPromise(attachedTo, true, i, headerBlock, _), s) =>
+      case (h @ H2Frame.PushPromise(_, true, i, headerBlock, _), s) =>
         val size = headerBlock.size.toInt
         if (connectionType == H2Connection.ConnectionType.Server) {
           logger.warn(
@@ -386,24 +386,24 @@ private[h2] class H2Connection[F[_]](
                 streamCreateAndHeaders.use(_ =>
                   for {
                     stream <- initiateRemoteStreamById(i)
-                    enqueue <- createdStreams.offer(i)
+                    _ <- createdStreams.offer(i)
                     _ <- stream.receivePushPromise(h)
                   } yield ()
                 )
               }
           }
         }
-      case (h @ H2Frame.PushPromise(i, false, _, headerBlock, _), s) =>
+      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), s) =>
         val size = headerBlock.size.toInt
         if (size > s.remoteSettings.maxFrameSize.frameSize) goAway(H2Error.FrameSizeError)
         else {
           state.update(s => s.copy(pushPromiseInProgress = Some((h, List.empty))))
         }
 
-      case (H2Frame.Continuation(_, _, _), s) =>
+      case (H2Frame.Continuation(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
 
-      case (settings @ H2Frame.Settings(0, false, _), s) =>
+      case (settings @ H2Frame.Settings(0, false, _), _) =>
         for {
           newWriteBlock <- Deferred[F, Either[Throwable, Unit]]
           t <- state.modify { s =>
@@ -430,26 +430,26 @@ private[h2] class H2Connection[F[_]](
           _ <- settingsAck.complete(Either.right(settings)).void
 
         } yield ()
-      case (H2Frame.Settings(0, true, _), s) => Applicative[F].unit
-      case (H2Frame.Settings(_, _, _), s) =>
+      case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
+      case (H2Frame.Settings(_, _, _), _) =>
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
-      case (g @ H2Frame.GoAway(0, _, _, bv), s) =>
+      case (g @ H2Frame.GoAway(0, _, _, _), _) =>
         mapRef.get.flatMap { m =>
           m.values.toList.traverse_(connection => connection.receiveGoAway(g))
         } >> outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
-      case (H2Frame.Ping(0, false, bv), s) =>
+      case (H2Frame.Ping(0, false, bv), _) =>
         outgoing.offer(Chunk.singleton(H2Frame.Ping.ack.copy(data = bv)))
-      case (H2Frame.Ping(0, true, _), s) => Applicative[F].unit
-      case (H2Frame.Ping(x, _, _), s) =>
+      case (H2Frame.Ping(0, true, _), _) => Applicative[F].unit
+      case (H2Frame.Ping(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
 
-      case (w @ H2Frame.WindowUpdate(_, 0), _) =>
+      case (H2Frame.WindowUpdate(_, 0), _) =>
         logger.warn("Encountered 0 Sized Window Update - Procol Error - Issuing GoAway") >>
           goAway(H2Error.ProtocolError)
-      case (w @ H2Frame.WindowUpdate(i, size), s) =>
+      case (w @ H2Frame.WindowUpdate(i, size), _) =>
         i match {
           case 0 =>
             for {
@@ -480,7 +480,7 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-      case (d @ H2Frame.Data(i, data, _, _), st) =>
+      case (d @ H2Frame.Data(i, data, _, _), _) =>
         val size = data.size.toInt
         if (size > localSettings.maxFrameSize.frameSize) {
           logger.warn(
@@ -522,7 +522,7 @@ private[h2] class H2Connection[F[_]](
           }
         }
 
-      case (rst @ H2Frame.RstStream(i, _), s) =>
+      case (rst @ H2Frame.RstStream(i, _), _) =>
         mapRef.get.map(_.get(i)).flatMap {
           case Some(s) =>
             s.receiveRstStream(rst)
@@ -532,7 +532,7 @@ private[h2] class H2Connection[F[_]](
             ) >>
               goAway(H2Error.ProtocolError)
         }
-      case (H2Frame.Priority(i, _, i2, _), s) =>
+      case (H2Frame.Priority(i, _, i2, _), _) =>
         if (i == i2) goAway(H2Error.ProtocolError) // Can't depend on yourself
         else Applicative[F].unit // We Do Nothing with these presently
       case (H2Frame.Unknown(_), _) => Applicative[F].unit // Ignore Unknown Frames

@@ -118,7 +118,7 @@ private[ember] class H2Client[F[_]: Async](
   ): Resource[F, H2Connection[F]] =
     createSocket(key, useTLS, priorKnowledge).flatMap {
       case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
-      case (socket, Http1) => Resource.eval(InvalidSocketType().raiseError)
+      case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
     }
 
   // This is currently how we create http2 only sockets, will need to actually handle which
@@ -144,7 +144,7 @@ private[ember] class H2Client[F[_]: Async](
           socketType <- protocol match {
             case Some("h2") => Resource.pure[F, SocketType](Http2)
             case Some("http/1.1") => Resource.pure[F, SocketType](Http1)
-            case Some(other) =>
+            case Some(_) =>
               Resource.raiseError[F, SocketType, Throwable](
                 new ProtocolException("Unknown protocol")
               )
@@ -211,8 +211,8 @@ private[ember] class H2Client[F[_]: Async](
         socket,
         logger,
       )
-      bgRead <- h2.readLoop.compile.drain.background
-      bgWrite <- h2.writeLoop.compile.drain.background
+      _ <- h2.readLoop.compile.drain.background
+      _ <- h2.writeLoop.compile.drain.background
       _ <-
         Stream
           .fromQueueUnterminated(closed)
@@ -224,7 +224,7 @@ private[ember] class H2Client[F[_]: Async](
           .compile
           .drain
           .background
-      created <-
+      _ <-
         Stream
           .fromQueueUnterminated(created)
           .parEvalMap(10) { i =>
@@ -245,7 +245,7 @@ private[ember] class H2Client[F[_]: Async](
                 // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
                 outE <- onPushPromise(req, resp).flatMap {
                   case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Errored(e) => stream.rstStream(H2Error.RefusedStream)
+                  case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
                   case Outcome.Succeeded(f) => f
                 }.attempt
                 _ <- ref.update(_ - i)
