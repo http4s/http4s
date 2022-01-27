@@ -349,7 +349,7 @@ object Uri extends UriPlatform {
       if (endsWithSlash && segments.nonEmpty) writer << "/" else writer
     }
 
-    override val renderString: String = super.renderString
+    override lazy val renderString: String = super.renderString
     override def toString: String = renderString
 
     /** This is an alias to [[addSegment]]

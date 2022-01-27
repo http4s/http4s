@@ -101,18 +101,18 @@ sealed abstract class CharPredicate extends (Char => Boolean) {
 object CharPredicate {
   val Empty: CharPredicate = MaskBased(0L, 0L)
   val All: CharPredicate = from(_ => true)
-  val LowerAlpha = CharPredicate('a' to 'z')
-  val UpperAlpha = CharPredicate('A' to 'Z')
-  val Alpha = LowerAlpha ++ UpperAlpha
-  val Digit = CharPredicate('0' to '9')
-  val Digit19 = CharPredicate('1' to '9')
-  val AlphaNum = Alpha ++ Digit
-  val LowerHexLetter = CharPredicate('a' to 'f')
-  val UpperHexLetter = CharPredicate('A' to 'F')
-  val HexLetter = LowerHexLetter ++ UpperHexLetter
-  val HexDigit = Digit ++ HexLetter
-  val Visible = CharPredicate('\u0021' to '\u007e')
-  val Printable = Visible ++ ' '
+  lazy val LowerAlpha = CharPredicate('a' to 'z')
+  lazy val UpperAlpha = CharPredicate('A' to 'Z')
+  lazy val Alpha = LowerAlpha ++ UpperAlpha
+  lazy val Digit = CharPredicate('0' to '9')
+  lazy val Digit19 = CharPredicate('1' to '9')
+  lazy val AlphaNum = Alpha ++ Digit
+  lazy val LowerHexLetter = CharPredicate('a' to 'f')
+  lazy val UpperHexLetter = CharPredicate('A' to 'F')
+  lazy val HexLetter = LowerHexLetter ++ UpperHexLetter
+  lazy val HexDigit = Digit ++ HexLetter
+  lazy val Visible = CharPredicate('\u0021' to '\u007e')
+  lazy val Printable = Visible ++ ' '
 
   def from(predicate: Char => Boolean): CharPredicate =
     predicate match {

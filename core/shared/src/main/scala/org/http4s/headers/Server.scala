@@ -22,7 +22,7 @@ import org.http4s.util.Writer
 
 object Server extends HeaderCompanion[Server]("Server") {
 
-  override val name = super.name
+  override lazy val name = super.name
 
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
