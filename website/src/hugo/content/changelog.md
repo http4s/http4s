@@ -8,6 +8,24 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.22.10 (2022-01-28)
+
+This release is focused on the client.  The blaze-client is substantially refactored internally to improve resource safety.  A new internal websocket client is published for implementation across repos.  We expect to release this as a public API in the next release.
+
+* http4s-core
+    * Update slf4j-api to 1.7.35 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5947
+
+* http4s-blaze-client
+    * Resourcify blaze client by @RafalSumislawski in https://github.com/http4s/http4s/pull/5385
+    * Add withMaxIdleDuration setter to BlazeClientBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5950
+
+* Behind the scenes
+    * Update http4s-circe, http4s-ember-client to 0.23.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5952
+    * Remove mdoc/laika sbt plugins by @armanbilge in https://github.com/http4s/http4s/pull/5963
+    * Create WebSocket client API by @armanbilge in https://github.com/http4s/http4s/pull/5520
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.9...v0.22.10
+
 # v0.22.9 (2022-01-24)
 
 This release is binary compatible with 0.22.x series.  The jawn upgrade mitigates [CVE-2022-21653](https://github.com/typelevel/jawn/security/advisories/GHSA-vc89-hccf-rq55) out of the box for `http4s-play-json`.
