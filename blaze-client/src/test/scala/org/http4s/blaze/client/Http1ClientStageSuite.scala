@@ -86,7 +86,7 @@ class Http1ClientStageSuite extends Http4sSuite {
         b
       })
       _ <- Resource.eval(IO(LeafBuilder(stage).base(head)))
-      resp <- Resource.suspend(stage.runRequest(req))
+      resp <- Resource.suspend(stage.runRequest(req, IO.never))
     } yield resp
 
   private def getSubmission(
@@ -111,7 +111,7 @@ class Http1ClientStageSuite extends Http4sSuite {
         .compile
         .drain).start
       req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(())))
-      response <- stage.runRequest(req0)
+      response <- stage.runRequest(req0, IO.never)
       result <- response.use(_.as[String])
       _ <- IO(h.stageShutdown())
       buff <- IO.fromFuture(IO(h.result))
@@ -155,8 +155,8 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     (for {
-      _ <- tail.runRequest(FooRequest) // we remain in the body
-      _ <- tail.runRequest(FooRequest)
+      _ <- tail.runRequest(FooRequest, IO.never) // we remain in the body
+      _ <- tail.runRequest(FooRequest, IO.never)
     } yield ()).intercept[Http1Connection.InProgressException.type]
   }
 
@@ -167,7 +167,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     Resource
-      .suspend(tail.runRequest(FooRequest))
+      .suspend(tail.runRequest(FooRequest, IO.never))
       .use(_.body.compile.drain)
       .intercept[InvalidBodyException]
   }
@@ -251,7 +251,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    Resource.suspend(tail.runRequest(headRequest)).use { response =>
+    Resource.suspend(tail.runRequest(headRequest, IO.never)).use { response =>
       assertEquals(response.contentLength, Some(contentLength))
 
       // body is empty due to it being HEAD request
@@ -305,7 +305,7 @@ class Http1ClientStageSuite extends Http4sSuite {
     LeafBuilder(tail).base(h)
 
     for {
-      _ <- tail.runRequest(FooRequest) // the first request succeeds
+      _ <- tail.runRequest(FooRequest, IO.never) // the first request succeeds
       _ <- IO.sleep(200.millis) // then the server closes the connection
       isClosed <- IO(
         tail.isClosed

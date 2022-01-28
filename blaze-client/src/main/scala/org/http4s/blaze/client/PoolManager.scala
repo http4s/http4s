@@ -352,15 +352,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param connection The connection to be released.
     * @return An effect of Unit
     */
-  def release(connection: A): F[Unit] =
+  def release(connection: A): F[Unit] = {
+    val key = connection.requestKey
     semaphore.withPermit {
-      val key = connection.requestKey
-      logger.debug(s"Recycling connection for $key: $stats")
-      if (connection.isRecyclable)
-        releaseRecyclable(key, connection)
-      else
-        releaseNonRecyclable(key, connection)
+      connection.isRecyclable
+        .ifM(releaseRecyclable(key, connection), releaseNonRecyclable(key, connection))
     }
+  }
 
   private def findFirstAllowedWaiter: F[Option[Waiting]] =
     F.delay {
