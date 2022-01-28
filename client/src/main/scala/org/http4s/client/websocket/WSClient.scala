@@ -153,6 +153,9 @@ trait WSConnectionHighLevel[F[_]] {
   def closeFrame: TryableDeferred[F, WSFrame.Close]
 }
 
+/** A websocket client capable of establishing [[WSClientHighLevel#connectHighLevel "high level" connections]].
+  * @see [[WSClient]] for a client also capable of "low-level" connections
+  */
 trait WSClientHighLevel[F[_]] {
 
   /** Establish a "high level" websocket connection. You only get to handle Text and Binary frames.
