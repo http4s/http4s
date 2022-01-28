@@ -23,6 +23,7 @@ This release is focused on the client.  The blaze-client is substantially refact
     * Update http4s-circe, http4s-ember-client to 0.23.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5952
     * Remove mdoc/laika sbt plugins by @armanbilge in https://github.com/http4s/http4s/pull/5963
     * Create WebSocket client API by @armanbilge in https://github.com/http4s/http4s/pull/5520
+    * Privatize web socket client pending concrete implementation by @rossabaker in https://github.com/http4s/http4s/pull/5965
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.9...v0.22.10
 
