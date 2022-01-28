@@ -20,9 +20,8 @@ import cats._
 import cats.data.Chain
 import cats.data.OptionT
 import cats.effect._
-import cats.effect.concurrent.Deferred
-import cats.effect.concurrent.Ref
-import cats.effect.concurrent.TryableDeferred
+import cats.effect.kernel.Deferred
+import cats.effect.kernel.Ref
 import cats.implicits._
 import fs2.Pipe
 import fs2.Stream
@@ -150,7 +149,7 @@ trait WSConnectionHighLevel[F[_]] {
   def subprocotol: Option[String]
 
   /** The close frame, if available. */
-  def closeFrame: TryableDeferred[F, WSFrame.Close]
+  def closeFrame: Deferred[F, WSFrame.Close]
 }
 
 /** A websocket client capable of establishing [[WSClientHighLevel#connectHighLevel "high level" connections]].
@@ -179,7 +178,7 @@ object WSClient {
       override def connect(request: WSRequest) = f(request)
       override def connectHighLevel(request: WSRequest) =
         for {
-          recvCloseFrame <- Resource.eval(Deferred.tryable[F, WSFrame.Close])
+          recvCloseFrame <- Resource.eval(Deferred[F, WSFrame.Close])
           outputOpen <- Resource.eval(Ref[F].of(false))
           conn <- f(request)
         } yield new WSConnectionHighLevel[F] {
@@ -221,7 +220,7 @@ object WSClient {
             defrag(Chain.empty, ByteVector.empty).value
           }
           override def subprocotol: Option[String] = conn.subprotocol
-          override def closeFrame: TryableDeferred[F, WSFrame.Close] = recvCloseFrame
+          override def closeFrame: Deferred[F, WSFrame.Close] = recvCloseFrame
         }
     }
 }
