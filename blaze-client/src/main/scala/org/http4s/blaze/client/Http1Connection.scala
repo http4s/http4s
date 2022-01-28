@@ -219,13 +219,15 @@ private final class Http1Connection[F[_]](
           }
 
           idleTimeoutF.start.flatMap { timeoutFiber =>
+            // the request timeout, the response header timeout, and the idle timeout
+            val mergedTimeouts = cancellation.race(timeoutFiber.joinWithNever).map(_.merge)
             F.bracketCase(
               writeRequest.start
             )(writeFiber =>
               receiveResponse(
                 mustClose,
                 doesntHaveBody = req.method == Method.HEAD,
-                cancellation.race(timeoutFiber.joinWithNever).map(e => Left(e.merge)),
+                mergedTimeouts.map(Left(_)),
                 idleRead,
               ).map(response =>
                 // We need to finish writing before we attempt to recycle the connection. We consider three scenarios:
@@ -240,7 +242,7 @@ private final class Http1Connection[F[_]](
               case (_, Outcome.Succeeded(_)) => F.unit
               case (_, Outcome.Canceled()) => F.delay(shutdown())
               case (_, Outcome.Errored(e)) => F.delay(shutdownWithError(e))
-            }.race(timeoutFiber.joinWithNever)
+            }.race(mergedTimeouts)
               .flatMap {
                 case Left(r) => F.pure(r)
                 case Right(t) => F.raiseError(t)
