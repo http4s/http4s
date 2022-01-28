@@ -258,6 +258,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withRetries(retries: Int = retries): BlazeClientBuilder[F] =
     copy(retries = retries)
 
+  /** Time a connection can be idle and still be borrowed.  Helps deal
+    * with connections that are closed while idling in the pool for an
+    * extended period.  `Duration.Inf` means no timeout.
+    */
+  def withMaxIdleDuration(maxIdleDuration: Duration = maxIdleDuration): BlazeClientBuilder[F] =
+    copy(maxIdleDuration = maxIdleDuration)
+
   /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
   @deprecated(
     message =
@@ -337,6 +344,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         scheduler = scheduler,
         ec = executionContext,
         retries = retries,
+        dispatcher = dispatcher,
       )
 
     } yield (client, manager.state)
