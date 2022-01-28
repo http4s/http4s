@@ -240,7 +240,11 @@ private final class Http1Connection[F[_]](
               case (_, Outcome.Succeeded(_)) => F.unit
               case (_, Outcome.Canceled()) => F.delay(shutdown())
               case (_, Outcome.Errored(e)) => F.delay(shutdownWithError(e))
-            }
+            }.race(timeoutFiber.joinWithNever)
+              .flatMap {
+                case Left(r) => F.pure(r)
+                case Right(t) => F.raiseError(t)
+              }
           }
         }.adaptError { case EOF =>
           new SocketException(s"HTTP connection closed: ${requestKey}")
