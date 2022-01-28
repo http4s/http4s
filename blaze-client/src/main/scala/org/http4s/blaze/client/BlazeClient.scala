@@ -24,14 +24,14 @@ import cats.effect.kernel.Deferred
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Resource.ExitCase
 import cats.effect.std.Dispatcher
-import cats.effect.std.Hotswap
 import cats.syntax.all._
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.Client
 import org.http4s.client.DefaultClient
 import org.http4s.client.RequestKey
-import org.log4s.getLogger
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
 
 import java.net.SocketException
 import java.nio.ByteBuffer
@@ -49,16 +49,28 @@ object BlazeClient {
       ec: ExecutionContext,
       retries: Int,
       dispatcher: Dispatcher[F],
-  )(implicit F: Async[F]): Client[F] =
-    new BlazeClient[F, A](
+  )(implicit F: Async[F]): Client[F] = {
+    val base = new BlazeClient[F, A](
       manager,
       responseHeaderTimeout,
       requestTimeout,
       scheduler,
       ec,
-      retries,
       dispatcher,
     )
+    if (retries > 0)
+      Retry(retryPolicy(retries))(base)
+    else
+      base
+  }
+
+  private[this] val retryNow = Duration.Zero.some
+  private def retryPolicy[F[_]](retries: Int): RetryPolicy[F] = { (req, result, n) =>
+    result match {
+      case Left(_: SocketException) if n <= retries && req.isIdempotent => retryNow
+      case _ => None
+    }
+  }
 }
 
 private class BlazeClient[F[_], A <: BlazeConnection[F]](
@@ -67,40 +79,11 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
     requestTimeout: Duration,
     scheduler: TickWheelExecutor,
     ec: ExecutionContext,
-    retries: Int,
     dispatcher: Dispatcher[F],
 )(implicit F: Async[F])
     extends DefaultClient[F] {
 
-  private[this] val logger = getLogger
-
-  override def run(req: Request[F]): Resource[F, Response[F]] =
-    Hotswap.create[F, Either[Throwable, Response[F]]].flatMap { hotswap =>
-      Resource.eval(retryLoop(req, retries, hotswap))
-    }
-
-  // A light implementation of the Retry middleware.  That needs a
-  // Timer, which we don't have.
-  private def retryLoop(
-      req: Request[F],
-      remaining: Int,
-      hotswap: Hotswap[F, Either[Throwable, Response[F]]],
-  ): F[Response[F]] =
-    hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
-      hotswap.swap(respond(req).attempt).flatMap {
-        case Right(response) =>
-          F.pure(response)
-        case Left(_: SocketException) if remaining > 0 && req.isIdempotent =>
-          val key = RequestKey.fromRequest(req)
-          logger.debug(
-            s"Encountered a SocketException on ${key}.  Retrying up to ${remaining} more times."
-          )
-          retryLoop(req, remaining - 1, hotswap)
-        case Left(e) =>
-          F.raiseError(e)
-      }
-
-  private def respond(req: Request[F]): Resource[F, Response[F]] = {
+  override def run(req: Request[F]): Resource[F, Response[F]] = {
     val key = RequestKey.fromRequest(req)
     for {
       requestTimeoutF <- scheduleRequestTimeout(key)
