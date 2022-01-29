@@ -7,7 +7,7 @@ http4s to try our service.
 A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
 
 ```scala
-scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
+scalaVersion := "2.13.8" // Also supports 2.11.x and 2.12.x
 
 val http4sVersion = "@{version.http4s.doc}"
 
@@ -16,8 +16,8 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 ```
 
@@ -25,10 +25,13 @@ Then we create the [service] again so [mdoc] picks it up:
 >
 ```scala mdoc:silent
 import cats.effect._
+import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
+import org.http4s.server.middleware.Logger
+import scala.concurrent.duration._
 ```
 
 The following is provided by an `IOApp`, but necessary if following
@@ -47,32 +50,37 @@ val app = HttpRoutes.of[IO] {
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO]
-  .bindHttp(8080, "localhost")
-  .withHttpApp(app)
-  .resource
+val finalHttpApp = Logger.httpApp(true, true)(app)
+
+val server = EmberServerBuilder
+  .default[IO]
+  .withHost(ipv4"0.0.0.0")
+  .withPort(port"8080")
+  .withHttpApp(finalHttpApp)
+  .build
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
 running until we cancel the fiber.
 
 ```scala mdoc
-val fiber = server.use(_ => IO.never).start.unsafeRunSync()
+val startAndSleep = server.use(_ => IO.never).start <* IO.sleep(2.seconds)
+val fiber = startAndSleep.unsafeRunSync()
 ```
 
 
 ### Creating the client
 
-A good default choice is the `BlazeClientBuilder`.  The
-`BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
+A good default choice is the `EmberClientBuilder`.  The
+`EmberClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
 ```scala mdoc
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client._
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO].resource.use { client =>
+EmberClientBuilder.default[IO].build.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.
@@ -81,8 +89,8 @@ BlazeClientBuilder[IO].resource.use { client =>
 ```
 
 For the remainder of this tutorial, we'll use an alternate client backend
-built on the standard `java.net` library client.  Unlike the blaze
-client, it does not need to be shut down.  Like the blaze-client, and
+built on the standard `java.net` library client.  Unlike the ember
+client, it does not need to be shut down.  Like the ember-client, and
 any other http4s backend, it presents the exact same `Client`
 interface!
 
