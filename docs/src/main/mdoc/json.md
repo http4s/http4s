@@ -219,14 +219,18 @@ import cats.effect.unsafe.implicits.global
 ```scala mdoc:silent
 import cats.effect._
 
+import com.comcast.ip4s._
+
 import io.circe.generic.auto._
 import io.circe.syntax._
 
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 import org.http4s.implicits._
+
+import scala.concurrent.duration._
 
 case class User(name: String)
 case class Hello(greeting: String)
@@ -243,12 +247,16 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO]
-  .bindHttp(8080)
-  .withHttpApp(jsonApp)
-  .resource
 
-val fiber = server.use(_ => IO.never).start.unsafeRunSync()
+val server = EmberServerBuilder
+  .default[IO]
+  .withHost(ipv4"0.0.0.0")
+  .withPort(port"8080")
+  .withHttpApp(jsonApp)
+  .build
+
+val startAndSleep = server.use(_ => IO.never).start <* IO.sleep(2.seconds)
+val fiber = startAndSleep.unsafeRunSync()
 ```
 
 ## A Hello World Client
@@ -257,7 +265,7 @@ Now let's make a client for the service above:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 import fs2.Stream
@@ -267,7 +275,7 @@ def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
-  BlazeClientBuilder[IO].stream.flatMap { httpClient =>
+  Stream.resource(EmberClientBuilder.default[IO].build).flatMap { httpClient =>
     // Decode a Hello response
     Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }
