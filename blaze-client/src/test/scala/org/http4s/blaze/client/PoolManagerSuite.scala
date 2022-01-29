@@ -37,7 +37,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
 
   class TestConnection extends Connection[IO] {
     @volatile var isClosed = false
-    def isRecyclable = true
+    val isRecyclable = IO.pure(true)
     def requestKey = key
     def shutdown() =
       isClosed = true
