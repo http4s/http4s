@@ -1035,6 +1035,7 @@ lazy val docs = http4sProject("docs")
       circeGeneric,
       circeLiteral,
       cryptobits,
+      logbackClassic % Runtime,
     ),
     description := "Documentation for http4s",
     startYear := Some(2013),
