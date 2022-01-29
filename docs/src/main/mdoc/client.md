@@ -34,14 +34,14 @@ import org.http4s.blaze.server._
 The following is provided by an `IOApp`, but necessary if following
 along in a REPL:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 Finish setting up our server:
 
-```scala mdoc:nest
+```scala mdoc
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -56,7 +56,7 @@ val server = BlazeServerBuilder[IO]
 We'll start the server in the background.  The `IO.never` keeps it
 running until we cancel the fiber.
 
-```scala mdoc:nest
+```scala mdoc
 val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
@@ -89,7 +89,7 @@ interface!
 It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import java.util.concurrent._
 
 val blockingPool = Executors.newFixedThreadPool(5)
@@ -148,7 +148,7 @@ the world" varies by context:
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
-```scala mdoc:nest
+```scala mdoc
 val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync()
 ```
@@ -162,7 +162,7 @@ There are a number of ways to construct a `Uri`.
 
 If you have a literal string, you can use `uri"..."`:
 
-```scala mdoc:nest
+```scala mdoc
 uri"https://my-awesome-service.com/foo/bar?wow=yeah"
 ```
 
@@ -172,7 +172,7 @@ format at compile-time.
 Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
 validation fails:
 
-```scala mdoc:nest
+```scala mdoc
 val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
 val invalidUri = "yeah whatever"
 
@@ -183,7 +183,7 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 
 You can also build up a URI incrementally, e.g.:
 
-```scala mdoc:nest
+```scala mdoc
 val baseUri: Uri = uri"http://foo.com"
 val withPath: Uri = baseUri.withPath(path"/bar/baz")
 val withQuery: Uri = withPath.withQueryParam("hello", "world")
@@ -304,7 +304,7 @@ import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```scala mdoc:nest
+```scala mdoc
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
@@ -334,14 +334,14 @@ import cats.effect.{Resource, IO}
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 ```
-```scala mdoc:nest
-val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+```scala mdoc
+val classifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient: Resource[IO, Client[IO]] =
+val prefixedClient: Resource[IO, Client[IO]] =
   for {
     registry <- Prometheus.collectorRegistry[IO]
     metrics <- Prometheus.metricsOps[IO](registry, "prefix")
-  } yield Metrics[IO](metrics, requestMethodClassifier)(httpClient)
+  } yield Metrics[IO](metrics, classifier)(httpClient)
 ```
 
 
@@ -354,7 +354,7 @@ to add a label to every metric based on the `Request`
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
-```scala mdoc:nest
+```scala mdoc
 httpClient.expect[String](uri"https://google.com/")
 ```
 
@@ -365,10 +365,9 @@ can build up a request object and pass that to `expect`:
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
-import org.http4s.Method._
 ```
 
-```scala mdoc:nest
+```scala mdoc
 val request = GET(
   uri"https://my-lovely-api.com/",
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
@@ -380,7 +379,7 @@ httpClient.expect[String](request)
 
 ### Post a form, decoding the JSON response to a case class
 
-```scala mdoc:nest
+```scala mdoc
 import org.http4s.circe._
 import io.circe.generic.auto._
 
@@ -401,7 +400,7 @@ val postRequest = POST(
 httpClient.expect[AuthResponse](postRequest)
 ```
 
-```scala mdoc:nest:invisible
+```scala mdoc:invisible
 fiber.cancel.unsafeRunSync()
 ```
 
@@ -440,7 +439,7 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```scala mdoc:nest:invisible
+```scala mdoc:invisible
 blockingPool.shutdown()
 ```
 
