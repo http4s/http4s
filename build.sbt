@@ -1030,6 +1030,7 @@ lazy val docs = http4sProject("docs")
   )
   .settings(docsProjectSettings)
   .settings(
+    run / fork := true,
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
