@@ -60,12 +60,10 @@ val server = EmberServerBuilder
   .build
 ```
 
-We'll start the server in the background.  The `IO.never` keeps it
-running until we cancel the fiber.
+We'll start the server in the background.
 
 ```scala mdoc
-val startAndSleep = server.use(_ => IO.never).start <* IO.sleep(2.seconds)
-val fiber = startAndSleep.unsafeRunSync()
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 
@@ -409,7 +407,7 @@ httpClient.expect[AuthResponse](postRequest)
 ```
 
 ```scala mdoc:invisible
-fiber.cancel.unsafeRunSync()
+shutdown.unsafeRunSync()
 ```
 
 ## Calls to a JSON API

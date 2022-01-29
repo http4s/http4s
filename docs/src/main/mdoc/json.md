@@ -254,9 +254,12 @@ val server = EmberServerBuilder
   .withPort(port"8080")
   .withHttpApp(jsonApp)
   .build
+```
 
-val startAndSleep = server.use(_ => IO.never).start <* IO.sleep(2.seconds)
-val fiber = startAndSleep.unsafeRunSync()
+We start a server resource in the background.
+
+```scala mdoc
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 ## A Hello World Client
@@ -293,7 +296,7 @@ helloAlice.compile.last.unsafeRunSync()
 Finally, shut down our example server.
 
 ```scala mdoc:silent
-fiber.cancel.unsafeRunSync()
+shutdown.unsafeRunSync()
 ```
 
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation

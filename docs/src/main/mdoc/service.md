@@ -140,11 +140,10 @@ val server = EmberServerBuilder
 
 The `withHttpApp` call associates the specified routes with this http server instance.
 
-We start a server resource in the background.  The server will run until we cancel the fiber:
+We start a server resource in the background.
 
 ```scala mdoc
-val startAndSleep = server.use(_ => IO.never).start <* IO.sleep(2.seconds)
-val fiber = startAndSleep.unsafeRunSync()
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -158,7 +157,7 @@ $ curl http://localhost:8080/hello/Pete
 We can shut down the server by canceling its fiber.
 
 ```scala mdoc
-fiber.cancel.unsafeRunSync()
+shutdown.unsafeRunSync()
 ```
 
 ### Running Your Service as an `App`
