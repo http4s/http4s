@@ -103,44 +103,88 @@ final class EmberClientBuilder[F[_]: Async] private (
       pushPromiseSupport = pushPromiseSupport,
     )
 
+  /** Sets a custom `TLSContext`.
+    * By default a `TLSContext` is created from the system default `SSLContext`.
+    */
   def withTLSContext(tlsContext: TLSContext[F]) =
     copy(tlsContextOpt = tlsContext.some)
+
+  /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
   def withoutTLSContext = copy(tlsContextOpt = None)
 
+  /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
   def withSocketGroup(sg: SocketGroup[F]) = copy(sgOpt = sg.some)
 
+  /** Sets the connection pool's total maximum number of idle connections.
+    * Per `RequestKey` values set with `withMaxPerKey` cannot override this total maximum.
+    */
   def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
+
+  /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
+
+  /** Sets the connection pool's maximum time a connection can be idle. */
   def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
+
+  /** Sets the idle timeout on connections. */
   def withIdleConnectionTime(idleConnectionTime: Duration) =
     copy(idleConnectionTime = idleConnectionTime)
 
+  /** Sets the `Logger`. */
   def withLogger(logger: Logger[F]) = copy(logger = logger)
+
+  /** Sets the max `chunkSize` in bytes to read from sockets at a time. */
   def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
+
+  /** Sets the max size in bytes the to read from sockets. */
   def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
+  /** Sets the header receive timeout on connections. */
   def withTimeout(timeout: Duration) = copy(timeout = timeout)
+
+  /** Sets additional socket options to apply to the underlying sockets. */
   def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOption]) =
     copy(additionalSocketOptions = additionalSocketOptions)
 
+  /** Sets the User-Agent string.
+    * Manually setting a `User-Agent` header takes priority over this setting.
+    */
   def withUserAgent(userAgent: `User-Agent`) =
     copy(userAgent = userAgent.some)
+
+  /** Sets the User-Agent string to nothing, no User-Agent header would be sent.
+    * Manually setting a `User-Agent` header takes priority over this setting.
+    */
   def withoutUserAgent =
     copy(userAgent = None)
 
+  /** Sets whether or not to force endpoint authentication/verification on the `TLSContext`.
+    * Enabled by default. When enabled the server's identity will be checked against the server's
+    * certificate during SSL/TLS handshaking. This is important to avoid man in the middle attacks
+    * by confirming server identity against their certificate.
+    */
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
+  /** Disables endpoint authentication/verification. */
   def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
 
+  /** Sets the `RetryPolicy`. */
   def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
     copy(retryPolicy = retryPolicy)
 
+  /** Sets underlying `UnixSockets` to use for requests with a `UnixSocketAddress`.
+    * Useful for secure and efficient inter-process communication.
+    * See also `UnixSocket` client middleware to direct all requests to a `UnixSocketAddress`.
+    */
   def withUnixSockets(unixSockets: UnixSockets[F]) =
     copy(unixSockets = Some(unixSockets))
 
+  /** Enables HTTP2 support. Disabled by default. */
   def withHttp2 = copy(enableHttp2 = true)
+
+  /** Disables HTTP2 support. Disabled by default. */
   def withoutHttp2 = copy(enableHttp2 = false)
 
   /** Push promises are implemented via responding with a PushPromise frame
@@ -156,11 +200,17 @@ final class EmberClientBuilder[F[_]: Async] private (
     * Push promises are very useful to get all the data necessary to render a page in parallel
     * to the actual data for that page leading to much faster render times, or sending
     * additional cache enriching information.
+    *
+    * Push promise support is disabled by default.
     */
   def withPushPromiseSupport(
       f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
   ) =
     copy(pushPromiseSupport = f.some)
+
+  /** Disables Push promise support.
+    * Push promise support is disabled by default.
+    */
   def withoutPushPromiseSupport =
     copy(pushPromiseSupport = None)
 
