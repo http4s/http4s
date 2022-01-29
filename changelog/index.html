@@ -67,7 +67,7 @@
   <g class="svg-shape">
     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
   </g>
-</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a><a class="icon-link" href="https://http4s.org/v0.23/downloads/"><i class="icofont-laika" title="Download">&#xef08;</i></a></span>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a><a class="icon-link" href="https://http4s.org/v0.22/downloads/"><i class="icofont-laika" title="Download">&#xef08;</i></a></span>
 
 </header>
 
@@ -119,31 +119,6 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
-        <h1 id="v0-23-9-2022-01-29" class="section">v0.23.9 (2022-01-29)<a class="anchor-link right" href="#v0-23-9-2022-01-29"><i class="icofont-laika">&#xef71;</i></a></h1>
-        <p>This release is binary compatible with the 0.23.x series.  It merges forward the changes of v0.22.10.</p>
-        <p>The signficant new feature is HTTP/2 support for Ember.  Turn it on with a <code>.withHttp2</code> on either the <code>EmberClientBuilder</code> or <code>EmberServerBuilder</code>.</p>
-        <ul>
-          <li>
-            <p>http4s-ember-core</p>
-            <ul>
-              <li>Ember H2 support by @ChristopherDavenport in <a href="https://github.com/http4s/http4s/pull/5657">https://github.com/http4s/http4s/pull/5657</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>Behind the scenes</p>
-            <ul>
-              <li>Ignore slf4j-api by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5949">https://github.com/http4s/http4s/pull/5949</a></li>
-              <li>Remove janky thread pool from BlazeHttp1ClientSuite by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5945">https://github.com/http4s/http4s/pull/5945</a></li>
-              <li>Clean up Throwables in HTTP/2 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5955">https://github.com/http4s/http4s/pull/5955</a></li>
-              <li>Fix HTTP/2 warnings and restore compiler settings by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5954">https://github.com/http4s/http4s/pull/5954</a></li>
-              <li>Get http4s upgrades for build from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5958">https://github.com/http4s/http4s/pull/5958</a></li>
-              <li>Merge from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5957">https://github.com/http4s/http4s/pull/5957</a></li>
-              <li>Update cats-effect, cats-effect-laws, ... to 3.3.5 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5967">https://github.com/http4s/http4s/pull/5967</a></li>
-            </ul>
-          </li>
-        </ul>
-        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.23.8...v0.23.9">https://github.com/http4s/http4s/compare/v0.23.8...v0.23.9</a></p>
-        
         <h1 id="v0-22-10-2022-01-28" class="section">v0.22.10 (2022-01-28)<a class="anchor-link right" href="#v0-22-10-2022-01-28"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is focused on the client.  The blaze-client is substantially refactored internally to improve resource safety.  A new internal websocket client is published for implementation across repos.  We expect to release this as a public API in the next release.</p>
         <ul>
@@ -171,115 +146,6 @@
           </li>
         </ul>
         <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.22.9...v0.22.10">https://github.com/http4s/http4s/compare/v0.22.9...v0.22.10</a></p>
-        
-        <h1 id="v0-23-8-2022-01-25" class="section">v0.23.8 (2022-01-25)<a class="anchor-link right" href="#v0-23-8-2022-01-25"><i class="icofont-laika">&#xef71;</i></a></h1>
-        <p>This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.9.</p>
-        <p>Scala.js users must upgrade to at least 1.8.0 as of this release.</p>
-        <ul>
-          <li>
-            <p>http4s-core</p>
-            <ul>
-              <li>Update sbt-scalajs, scalajs-compiler, ... to 1.8.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5716">https://github.com/http4s/http4s/pull/5716</a></li>
-              <li>Update fs2-core, fs2-io, ... to 3.2.4 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5788">https://github.com/http4s/http4s/pull/5788</a></li>
-              <li>Update cats-effect, cats-effect-laws, ... to 3.3.4 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5838">https://github.com/http4s/http4s/pull/5838</a></li>
-              <li>Update locales-minimal-en_us-db to 1.3.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5853">https://github.com/http4s/http4s/pull/5853</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-server</p>
-            <ul>
-              <li>cross-platforming server FileService by @yurique in <a href="https://github.com/http4s/http4s/pull/5758">https://github.com/http4s/http4s/pull/5758</a></li>
-              <li>Fix FileService Config linking on JS by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5825">https://github.com/http4s/http4s/pull/5825</a></li>
-              <li>Deprecate the <code>BracketRequestResponse#exitCaseToOutcome</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5875">https://github.com/http4s/http4s/pull/5875</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-ember-core</p>
-            <ul>
-              <li>Support parsing response bodies without Content-Length in ember by @wemrysi in <a href="https://github.com/http4s/http4s/pull/5881">https://github.com/http4s/http4s/pull/5881</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-ember-server</p>
-            <ul>
-              <li>Update jnr-unixsocket to 0.38.17 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5827">https://github.com/http4s/http4s/pull/5827</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-ember-client</p>
-            <ul>
-              <li>Remove jvm log4cats dependency in ember client js by @kubukoz in <a href="https://github.com/http4s/http4s/pull/5757">https://github.com/http4s/http4s/pull/5757</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-jetty-server</p>
-            <ul>
-              <li>Use blocking thread pool on joining Jetty&#39;s thread pool by @danicheg in <a href="https://github.com/http4s/http4s/pull/5886">https://github.com/http4s/http4s/pull/5886</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-jetty-client</p>
-            <ul>
-              <li>Use blocking thread pool in the <code>JettyClient#resource</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5897">https://github.com/http4s/http4s/pull/5897</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-jawn</p>
-            <ul>
-              <li>Update jawn-fs2 to 2.2.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5821">https://github.com/http4s/http4s/pull/5821</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>http4s-prometheus-metrics</p>
-            <ul>
-              <li>Use blocking thread pool in the Prometheus metrics by @danicheg in <a href="https://github.com/http4s/http4s/pull/5887">https://github.com/http4s/http4s/pull/5887</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>Documentation</p>
-            <ul>
-              <li>Remove some outdated params in scaladocs by @danicheg in <a href="https://github.com/http4s/http4s/pull/5729">https://github.com/http4s/http4s/pull/5729</a></li>
-              <li>Remove mentioning of <code>ContextShift</code> in the AHC scaladoc by @danicheg in <a href="https://github.com/http4s/http4s/pull/5885">https://github.com/http4s/http4s/pull/5885</a></li>
-            </ul>
-          </li>
-          <li>
-            <p>Behind the scenes</p>
-            <ul>
-              <li>Update jnr-unixsocket to 0.38.15 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5681">https://github.com/http4s/http4s/pull/5681</a></li>
-              <li>Netty based ServerScaffold (0.23) by @RafalSumislawski in <a href="https://github.com/http4s/http4s/pull/5587">https://github.com/http4s/http4s/pull/5587</a></li>
-              <li>Merge 0.22 to 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5701">https://github.com/http4s/http4s/pull/5701</a></li>
-              <li>Merge branch <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5718">https://github.com/http4s/http4s/pull/5718</a></li>
-              <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5730">https://github.com/http4s/http4s/pull/5730</a></li>
-              <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5753">https://github.com/http4s/http4s/pull/5753</a></li>
-              <li>Code cleanup (mostly variance-related) by @bplommer in <a href="https://github.com/http4s/http4s/pull/5755">https://github.com/http4s/http4s/pull/5755</a></li>
-              <li>Update cats-effect, cats-effect-laws, ... to 3.3.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5770">https://github.com/http4s/http4s/pull/5770</a></li>
-              <li>Merge branch <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5778">https://github.com/http4s/http4s/pull/5778</a></li>
-              <li>Update cats-effect, cats-effect-laws, ... to 3.3.2 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5801">https://github.com/http4s/http4s/pull/5801</a></li>
-              <li>Update cats-effect, cats-effect-laws, ... to 3.3.3 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5803">https://github.com/http4s/http4s/pull/5803</a></li>
-              <li>Merge series/0.20 to series/0.21 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5818">https://github.com/http4s/http4s/pull/5818</a></li>
-              <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5833">https://github.com/http4s/http4s/pull/5833</a></li>
-              <li>Re-enable broken ember client test by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5840">https://github.com/http4s/http4s/pull/5840</a></li>
-              <li>Enable fatal warnings in <code>lint</code>/<code>quicklint</code> commands by @danicheg in <a href="https://github.com/http4s/http4s/pull/5843">https://github.com/http4s/http4s/pull/5843</a></li>
-              <li>FileService Server Middleware: readability by @diesalbla in <a href="https://github.com/http4s/http4s/pull/5837">https://github.com/http4s/http4s/pull/5837</a></li>
-              <li>Merge from v0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5847">https://github.com/http4s/http4s/pull/5847</a></li>
-              <li>Steward exclusions in 0.23 for dependencies merged forward from 0.22 by @bplommer in <a href="https://github.com/http4s/http4s/pull/5856">https://github.com/http4s/http4s/pull/5856</a></li>
-              <li>Merge series/0.22 into series/0.23 by @bplommer in <a href="https://github.com/http4s/http4s/pull/5860">https://github.com/http4s/http4s/pull/5860</a></li>
-              <li>Auto-select available port for ember suites by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5848">https://github.com/http4s/http4s/pull/5848</a></li>
-              <li>Refactor some <code>Resource</code> usage by @danicheg in <a href="https://github.com/http4s/http4s/pull/5884">https://github.com/http4s/http4s/pull/5884</a></li>
-              <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5888">https://github.com/http4s/http4s/pull/5888</a></li>
-              <li>Update log4cats-noop, log4cats-slf4j, ... to 2.2.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5891">https://github.com/http4s/http4s/pull/5891</a></li>
-              <li>Use <code>port</code> syntax by @danicheg in <a href="https://github.com/http4s/http4s/pull/5896">https://github.com/http4s/http4s/pull/5896</a></li>
-              <li>Add sbt-http4s-org to steward ignores by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5924">https://github.com/http4s/http4s/pull/5924</a></li>
-              <li>Non-deadlocking RouterInServletSuite by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5928">https://github.com/http4s/http4s/pull/5928</a></li>
-              <li>Merge scalafmt-core forward from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5933">https://github.com/http4s/http4s/pull/5933</a></li>
-              <li>Merge 0.22 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5926">https://github.com/http4s/http4s/pull/5926</a></li>
-              <li>Merge from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5940">https://github.com/http4s/http4s/pull/5940</a></li>
-              <li>Delete zombie specs2 code by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5943">https://github.com/http4s/http4s/pull/5943</a></li>
-              <li>Replace our TestExecutionContext by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5944">https://github.com/http4s/http4s/pull/5944</a></li>
-            </ul>
-          </li>
-        </ul>
-        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.23.7...v0.23.8">https://github.com/http4s/http4s/compare/v0.23.7...v0.23.8</a></p>
         
         <h1 id="v0-22-9-2022-01-24" class="section">v0.22.9 (2022-01-24)<a class="anchor-link right" href="#v0-22-9-2022-01-24"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.22.x series.  The jawn upgrade mitigates <a href="https://github.com/typelevel/jawn/security/advisories/GHSA-vc89-hccf-rq55">CVE-2022-21653</a> out of the box for <code>http4s-play-json</code>.</p>
