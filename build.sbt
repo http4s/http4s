@@ -1095,6 +1095,8 @@ lazy val docs = http4sProject("docs")
     theDsl.jvm,
     blazeServer,
     blazeClient,
+    emberServer.jvm,
+    emberClient.jvm,
     circe.jvm,
     dropwizardMetrics,
     prometheusMetrics,
