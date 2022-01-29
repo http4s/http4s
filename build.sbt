@@ -1030,10 +1030,12 @@ lazy val docs = http4sProject("docs")
   )
   .settings(docsProjectSettings)
   .settings(
+    run / fork := true,
     libraryDependencies ++= Seq(
       circeGeneric,
       circeLiteral,
       cryptobits,
+      logbackClassic % Runtime,
     ),
     description := "Documentation for http4s",
     startYear := Some(2013),
@@ -1092,8 +1094,8 @@ lazy val docs = http4sProject("docs")
     client.jvm,
     core.jvm,
     theDsl.jvm,
-    blazeServer,
-    blazeClient,
+    emberServer.jvm,
+    emberClient.jvm,
     circe.jvm,
     dropwizardMetrics,
     prometheusMetrics,

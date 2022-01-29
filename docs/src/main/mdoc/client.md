@@ -7,7 +7,7 @@ http4s to try our service.
 A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
 
 ```scala
-scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
+scalaVersion := "2.13.8" // Also supports 2.11.x and 2.12.x
 
 val http4sVersion = "@{version.http4s.doc}"
 
@@ -16,8 +16,8 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 ```
 
@@ -25,54 +25,60 @@ Then we create the [service] again so [mdoc] picks it up:
 >
 ```scala mdoc:silent
 import cats.effect._
+import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
+import org.http4s.server.middleware.Logger
+import scala.concurrent.duration._
 ```
 
 The following is provided by an `IOApp`, but necessary if following
 along in a REPL:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 Finish setting up our server:
 
-```scala mdoc:nest
+```scala mdoc
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO]
-  .bindHttp(8080, "localhost")
-  .withHttpApp(app)
-  .resource
+val finalHttpApp = Logger.httpApp(true, true)(app)
+
+val server = EmberServerBuilder
+  .default[IO]
+  .withHost(ipv4"0.0.0.0")
+  .withPort(port"8080")
+  .withHttpApp(finalHttpApp)
+  .build
 ```
 
-We'll start the server in the background.  The `IO.never` keeps it
-running until we cancel the fiber.
+We'll start the server in the background.
 
-```scala mdoc:nest
-val fiber = server.use(_ => IO.never).start.unsafeRunSync()
+```scala mdoc
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 
 ### Creating the client
 
-A good default choice is the `BlazeClientBuilder`.  The
-`BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
+A good default choice is the `EmberClientBuilder`.  The
+`EmberClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
 ```scala mdoc
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client._
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO].resource.use { client =>
+EmberClientBuilder.default[IO].build.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.
@@ -81,15 +87,15 @@ BlazeClientBuilder[IO].resource.use { client =>
 ```
 
 For the remainder of this tutorial, we'll use an alternate client backend
-built on the standard `java.net` library client.  Unlike the blaze
-client, it does not need to be shut down.  Like the blaze-client, and
+built on the standard `java.net` library client.  Unlike the ember
+client, it does not need to be shut down.  Like the ember-client, and
 any other http4s backend, it presents the exact same `Client`
 interface!
 
 It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import java.util.concurrent._
 
 val blockingPool = Executors.newFixedThreadPool(5)
@@ -148,7 +154,7 @@ the world" varies by context:
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
-```scala mdoc:nest
+```scala mdoc
 val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync()
 ```
@@ -162,7 +168,7 @@ There are a number of ways to construct a `Uri`.
 
 If you have a literal string, you can use `uri"..."`:
 
-```scala mdoc:nest
+```scala mdoc
 uri"https://my-awesome-service.com/foo/bar?wow=yeah"
 ```
 
@@ -172,7 +178,7 @@ format at compile-time.
 Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
 validation fails:
 
-```scala mdoc:nest
+```scala mdoc
 val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
 val invalidUri = "yeah whatever"
 
@@ -183,7 +189,7 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 
 You can also build up a URI incrementally, e.g.:
 
-```scala mdoc:nest
+```scala mdoc
 val baseUri: Uri = uri"http://foo.com"
 val withPath: Uri = baseUri.withPath(path"/bar/baz")
 val withQuery: Uri = withPath.withQueryParam("hello", "world")
@@ -304,7 +310,7 @@ import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.dropwizard.Dropwizard
 import com.codahale.metrics.SharedMetricRegistries
 ```
-```scala mdoc:nest
+```scala mdoc
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
@@ -334,14 +340,14 @@ import cats.effect.{Resource, IO}
 import org.http4s.client.middleware.Metrics
 import org.http4s.metrics.prometheus.Prometheus
 ```
-```scala mdoc:nest
-val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
+```scala mdoc
+val classifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient: Resource[IO, Client[IO]] =
+val prefixedClient: Resource[IO, Client[IO]] =
   for {
     registry <- Prometheus.collectorRegistry[IO]
     metrics <- Prometheus.metricsOps[IO](registry, "prefix")
-  } yield Metrics[IO](metrics, requestMethodClassifier)(httpClient)
+  } yield Metrics[IO](metrics, classifier)(httpClient)
 ```
 
 
@@ -354,7 +360,7 @@ to add a label to every metric based on the `Request`
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
-```scala mdoc:nest
+```scala mdoc
 httpClient.expect[String](uri"https://google.com/")
 ```
 
@@ -365,10 +371,9 @@ can build up a request object and pass that to `expect`:
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
-import org.http4s.Method._
 ```
 
-```scala mdoc:nest
+```scala mdoc
 val request = GET(
   uri"https://my-lovely-api.com/",
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
@@ -380,7 +385,7 @@ httpClient.expect[String](request)
 
 ### Post a form, decoding the JSON response to a case class
 
-```scala mdoc:nest
+```scala mdoc
 import org.http4s.circe._
 import io.circe.generic.auto._
 
@@ -401,8 +406,8 @@ val postRequest = POST(
 httpClient.expect[AuthResponse](postRequest)
 ```
 
-```scala mdoc:nest:invisible
-fiber.cancel.unsafeRunSync()
+```scala mdoc:invisible
+shutdown.unsafeRunSync()
 ```
 
 ## Calls to a JSON API
@@ -440,7 +445,7 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```scala mdoc:nest:invisible
+```scala mdoc:invisible
 blockingPool.shutdown()
 ```
 
