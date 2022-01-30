@@ -22,7 +22,6 @@ import cats.data.OptionT
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.DeferredSource
-import cats.effect.kernel.Ref
 import cats.implicits._
 import fs2.Pipe
 import fs2.Stream
@@ -142,9 +141,6 @@ private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
   /** A `Pipe` which sends websocket frames and emits a `()` for each chunk sent. */
   def sendPipe: Pipe[F, WSDataFrame, Unit] = _.chunks.evalMap(sendMany(_))
 
-  /** Send a Close frame. The sending side of this connection will be closed. */
-  def sendClose(reason: String = ""): F[Unit]
-
   /** Wait for a websocket frame to be received. Returns `None` if the receiving side is closed.
     * Fragmentation is handled automatically, the `last` attribute can be ignored.
     */
@@ -163,7 +159,6 @@ private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
     new WSConnectionHighLevel[G] {
       def send(wsf: WSDataFrame): G[Unit] = fk(outer.send(wsf))
       def sendMany[H[_]: Foldable, A <: WSDataFrame](wsfs: H[A]): G[Unit] = fk(outer.sendMany(wsfs))
-      def sendClose(reason: String = ""): G[Unit] = fk(outer.sendClose(reason))
       def receive: G[Option[WSDataFrame]] = fk(outer.receive)
       def subprotocol: Option[String] = outer.subprotocol
       def closeFrame: DeferredSource[G, WSFrame.Close] = new DeferredSource[G, WSFrame.Close] {
@@ -219,21 +214,18 @@ private[http4s] object WSClient {
       override def connectHighLevel(request: WSRequest) =
         for {
           recvCloseFrame <- Resource.eval(Deferred[F, WSFrame.Close])
-          outputOpen <- Resource.eval(Ref[F].of(false))
           conn <- f(request)
         } yield new WSConnectionHighLevel[F] {
           override def send(wsf: WSDataFrame) = conn.send(wsf)
           override def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]): F[Unit] =
             conn.sendMany(wsfs)
-          override def sendClose(reason: String) =
-            conn.send(WSFrame.Close(1000, reason)) *> outputOpen.set(false)
           override def receive: F[Option[WSDataFrame]] = {
             def receiveDataFrame: OptionT[F, WSDataFrame] =
               OptionT(conn.receive).flatMap { wsf =>
                 OptionT.liftF(wsf match {
                   case WSFrame.Ping(data) if respondToPings => conn.send(WSFrame.Pong(data))
                   case wsf: WSFrame.Close =>
-                    recvCloseFrame.complete(wsf) *> outputOpen.get.flatMap(conn.send(wsf).whenA(_))
+                    recvCloseFrame.complete(wsf) *> conn.send(wsf)
                   case _ => F.unit
                 }) >> (wsf match {
                   case wsdf: WSDataFrame => OptionT.pure[F](wsdf)
