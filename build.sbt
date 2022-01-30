@@ -432,6 +432,12 @@ lazy val client = libraryCrossProject("client")
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
           ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.client.websocket.WSConnectionHighLevel.closeFrame"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.client.websocket.WSConnectionHighLevel.closeFrame"
+          ),
         )
       else Seq.empty
     },
