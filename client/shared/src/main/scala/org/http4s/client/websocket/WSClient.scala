@@ -21,6 +21,7 @@ import cats.data.Chain
 import cats.data.OptionT
 import cats.effect._
 import cats.effect.kernel.Deferred
+import cats.effect.kernel.DeferredSource
 import cats.effect.kernel.Ref
 import cats.implicits._
 import fs2.Pipe
@@ -109,7 +110,7 @@ private[http4s] trait WSConnection[F[_]] {
   def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit]
 
   /** A `Pipe` which sends websocket frames and emits a `()` for each chunk sent. */
-  final def sendPipe: Pipe[F, WSFrame, Unit] = _.chunks.evalMap(sendMany(_))
+  def sendPipe: Pipe[F, WSFrame, Unit] = _.chunks.evalMap(sendMany(_))
 
   /** Wait for a single websocket frame to be received. Returns `None` if the receiving side is
     * closed.
@@ -117,7 +118,7 @@ private[http4s] trait WSConnection[F[_]] {
   def receive: F[Option[WSFrame]]
 
   /** A stream of the incoming websocket frames. */
-  final def receiveStream: Stream[F, WSFrame] = Stream.repeatEval(receive).unNoneTerminate
+  def receiveStream: Stream[F, WSFrame] = Stream.repeatEval(receive).unNoneTerminate
 
   /** The negotiated subprotocol, if any. */
   def subprotocol: Option[String]
@@ -132,7 +133,7 @@ private[http4s] trait WSConnectionHighLevel[F[_]] {
   def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]): F[Unit]
 
   /** A `Pipe` which sends websocket frames and emits a `()` for each chunk sent. */
-  final def sendPipe: Pipe[F, WSDataFrame, Unit] = _.chunks.evalMap(sendMany(_))
+  def sendPipe: Pipe[F, WSDataFrame, Unit] = _.chunks.evalMap(sendMany(_))
 
   /** Send a Close frame. The sending side of this connection will be closed. */
   def sendClose(reason: String = ""): F[Unit]
@@ -143,13 +144,13 @@ private[http4s] trait WSConnectionHighLevel[F[_]] {
   def receive: F[Option[WSDataFrame]]
 
   /** A stream of the incoming websocket frames. */
-  final def receiveStream: Stream[F, WSDataFrame] = Stream.repeatEval(receive).unNoneTerminate
+  def receiveStream: Stream[F, WSDataFrame] = Stream.repeatEval(receive).unNoneTerminate
 
   /** The negotiated subprotocol, if any. */
   def subprocotol: Option[String]
 
   /** The close frame, if available. */
-  def closeFrame: Deferred[F, WSFrame.Close]
+  def closeFrame: DeferredSource[F, WSFrame.Close]
 }
 
 /** A websocket client capable of establishing [[WSClientHighLevel#connectHighLevel "high level" connections]].
@@ -220,7 +221,7 @@ private[http4s] object WSClient {
             defrag(Chain.empty, ByteVector.empty).value
           }
           override def subprocotol: Option[String] = conn.subprotocol
-          override def closeFrame: Deferred[F, WSFrame.Close] = recvCloseFrame
+          override def closeFrame: DeferredSource[F, WSFrame.Close] = recvCloseFrame
         }
     }
 }
