@@ -147,7 +147,7 @@ private[http4s] trait WSConnectionHighLevel[F[_]] {
   def receiveStream: Stream[F, WSDataFrame] = Stream.repeatEval(receive).unNoneTerminate
 
   /** The negotiated subprotocol, if any. */
-  def subprocotol: Option[String]
+  def subprotocol: Option[String]
 
   /** The close frame, if available. */
   def closeFrame: DeferredSource[F, WSFrame.Close]
@@ -220,7 +220,7 @@ private[http4s] object WSClient {
               }
             defrag(Chain.empty, ByteVector.empty).value
           }
-          override def subprocotol: Option[String] = conn.subprotocol
+          override def subprotocol: Option[String] = conn.subprotocol
           override def closeFrame: DeferredSource[F, WSFrame.Close] = recvCloseFrame
         }
     }
