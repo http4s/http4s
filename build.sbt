@@ -444,6 +444,15 @@ lazy val client = libraryCrossProject("client")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.client.websocket.WSConnectionHighLevel.subprotocol"
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.websocket.WSConnectionHighLevel.sendClose"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1$"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1"
+          ),
         )
       else Seq.empty
     },
