@@ -161,7 +161,12 @@ private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
       def sendMany[H[_]: Foldable, A <: WSDataFrame](wsfs: H[A]): G[Unit] = fk(outer.sendMany(wsfs))
       def receive: G[Option[WSDataFrame]] = fk(outer.receive)
       def subprotocol: Option[String] = outer.subprotocol
-      def closeFrame: TryableDeferred[G, WSFrame.Close] = outer.closeFrame.mapK(fk)
+      def closeFrame: TryableDeferred[G, WSFrame.Close] =
+        new TryableDeferred[G, WSFrame.Close] {
+          def complete(wsf: WSFrame.Close): G[Unit] = fk(outer.closeFrame.complete(wsf))
+          def get: G[WSFrame.Close] = fk(outer.closeFrame.get)
+          def tryGet: G[Option[WSFrame.Close]] = fk(outer.closeFrame.tryGet)
+        }
     }
 }
 
