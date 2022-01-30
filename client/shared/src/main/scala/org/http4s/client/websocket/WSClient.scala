@@ -101,7 +101,7 @@ private[http4s] object WSFrame {
   final case class Binary(data: ByteVector, last: Boolean = true) extends WSDataFrame
 }
 
-private[http4s] trait WSConnection[F[_]] {
+private[http4s] trait WSConnection[F[_]] { outer =>
 
   /** Send a single websocket frame. The sending side of this connection has to be open. */
   def send(wsf: WSFrame): F[Unit]
@@ -122,9 +122,16 @@ private[http4s] trait WSConnection[F[_]] {
 
   /** The negotiated subprotocol, if any. */
   def subprotocol: Option[String]
+
+  def mapK[G[_]](fk: F ~> G): WSConnection[G] = new WSConnection[G] {
+    def send(wsf: WSFrame): G[Unit] = fk(outer.send(wsf))
+    def sendMany[H[_]: Foldable, A <: WSFrame](wsfs: H[A]): G[Unit] = fk(outer.sendMany(wsfs))
+    def receive: G[Option[WSFrame]] = fk(outer.receive)
+    def subprotocol: Option[String] = outer.subprotocol
+  }
 }
 
-private[http4s] trait WSConnectionHighLevel[F[_]] {
+private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
 
   /** Send a single websocket frame. The sending side of this connection has to be open. */
   def send(wsf: WSDataFrame): F[Unit]
@@ -151,24 +158,56 @@ private[http4s] trait WSConnectionHighLevel[F[_]] {
 
   /** The close frame, if available. */
   def closeFrame: DeferredSource[F, WSFrame.Close]
+
+  def mapK[G[_]](fk: F ~> G): WSConnectionHighLevel[G] =
+    new WSConnectionHighLevel[G] {
+      def send(wsf: WSDataFrame): G[Unit] = fk(outer.send(wsf))
+      def sendMany[H[_]: Foldable, A <: WSDataFrame](wsfs: H[A]): G[Unit] = fk(outer.sendMany(wsfs))
+      def sendClose(reason: String = ""): G[Unit] = fk(outer.sendClose(reason))
+      def receive: G[Option[WSDataFrame]] = fk(outer.receive)
+      def subprotocol: Option[String] = outer.subprotocol
+      def closeFrame: DeferredSource[G, WSFrame.Close] = new DeferredSource[G, WSFrame.Close] {
+        def get = fk(outer.closeFrame.get)
+        def tryGet = fk(outer.closeFrame.tryGet)
+      }
+    }
 }
 
 /** A websocket client capable of establishing [[WSClientHighLevel#connectHighLevel "high level" connections]].
   * @see [[WSClient]] for a client also capable of "low-level" connections
   */
-private[http4s] trait WSClientHighLevel[F[_]] {
+private[http4s] trait WSClientHighLevel[F[_]] { outer =>
 
   /** Establish a "high level" websocket connection. You only get to handle Text and Binary frames.
     * Pongs will be replied automatically. Received frames are grouped by the `last` attribute. The
     * connection will be closed automatically.
     */
   def connectHighLevel(request: WSRequest): Resource[F, WSConnectionHighLevel[F]]
+
+  def mapK[G[_]](
+      fk: F ~> G
+  )(implicit F: MonadCancel[F, _], G: MonadCancel[G, _]): WSClientHighLevel[G] =
+    new WSClientHighLevel[G] {
+      def connectHighLevel(request: WSRequest): Resource[G, WSConnectionHighLevel[G]] =
+        outer.connectHighLevel(request).map(_.mapK(fk)).mapK(fk)
+    }
 }
 
-private[http4s] trait WSClient[F[_]] extends WSClientHighLevel[F] {
+private[http4s] trait WSClient[F[_]] extends WSClientHighLevel[F] { outer =>
 
   /** Establish a websocket connection. It will be closed automatically if necessary. */
   def connect(request: WSRequest): Resource[F, WSConnection[F]]
+
+  override def mapK[G[_]](
+      fk: F ~> G
+  )(implicit F: MonadCancel[F, _], G: MonadCancel[G, _]): WSClient[G] =
+    new WSClient[G] {
+      def connectHighLevel(request: WSRequest): Resource[G, WSConnectionHighLevel[G]] =
+        outer.connectHighLevel(request).map(_.mapK(fk)).mapK(fk)
+
+      def connect(request: WSRequest): Resource[G, WSConnection[G]] =
+        outer.connect(request).map(_.mapK(fk)).mapK(fk)
+    }
 }
 
 private[http4s] object WSClient {
