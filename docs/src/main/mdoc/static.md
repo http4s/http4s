@@ -27,14 +27,12 @@ object SimpleHttpServer extends IOApp {
     app.use(_ => IO.never).as(ExitCode.Success)
 
   val app: Resource[IO, Server] =
-    for {
-      server <- EmberServerBuilder
-        .default[IO]
-        .withHost(ipv4"0.0.0.0")
-        .withPort(port"8080")
-        .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
-        .build
-    } yield server
+    EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"0.0.0.0")
+      .withPort(port"8080")
+      .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
+      .build
 }
 ```
 
@@ -56,16 +54,16 @@ data over the wire again.
 
 ## Inline in a Route
 
-For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
+For custom behaviour, `StaticFile.fromPath` can also be used directly in a route, to respond with a file:
 
 ```scala mdoc:silent:nest
 import org.http4s._
 import org.http4s.dsl.io._
-import java.io.File
+import fs2.io.file.Path
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
-    StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
+    StaticFile.fromPath(Path("relative/path/to/index.html"), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```
