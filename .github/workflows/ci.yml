@@ -83,15 +83,18 @@ jobs:
         run: sbt '++${{ matrix.scala }}' 'project /' githubWorkflowCheck
 
       - name: Check headers and formatting
+        if: matrix.java == 'temurin@8'
         run: sbt '++${{ matrix.scala }}' headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck
 
       - name: Test
         run: sbt '++${{ matrix.scala }}' test
 
       - name: Check binary compatibility
+        if: matrix.java == 'temurin@8'
         run: sbt '++${{ matrix.scala }}' mimaReportBinaryIssues
 
       - name: Generate API documentation
+        if: matrix.java == 'temurin@8'
         run: sbt '++${{ matrix.scala }}' doc
 
       - name: Check Scalafix rules
@@ -99,18 +102,22 @@ jobs:
         run: sbt '++${{ matrix.scala }}' 'scalafixAll --check'
 
       - name: Check unused compile dependencies
+        if: matrix.java == 'temurin@8'
         run: sbt '++${{ matrix.scala }}' unusedCompileDependenciesTest
 
       - name: Make target directories
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
         run: mkdir -p website/target examples/ember/target blaze-client/target server/target examples/target scalafix-internal/input/target blaze-server/target scalafix-internal/tests/target scalatags/target target examples/docker/target twirl/target docs/target laws/target tests/target tomcat-server/target prometheus-metrics/target scalafix-internal/output/target servlet/target examples/tomcat/target examples/jetty/target testing/target ember-server/target okhttp-client/target examples/blaze/target scalafix-internal/rules/target client/target blaze-core/target circe/target examples/war/target jetty-client/target ember-client/target boopickle/target play-json/target async-http-client/target core/target scala-xml/target dsl/target dropwizard-metrics/target jetty-server/target ember-core/target jawn/target bench/target project/target
 
       - name: Compress target directories
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
         run: tar cf targets.tar website/target examples/ember/target blaze-client/target server/target examples/target scalafix-internal/input/target blaze-server/target scalafix-internal/tests/target scalatags/target target examples/docker/target twirl/target docs/target laws/target tests/target tomcat-server/target prometheus-metrics/target scalafix-internal/output/target servlet/target examples/tomcat/target examples/jetty/target testing/target ember-server/target okhttp-client/target examples/blaze/target scalafix-internal/rules/target client/target blaze-core/target circe/target examples/war/target jetty-client/target ember-client/target boopickle/target play-json/target async-http-client/target core/target scala-xml/target dsl/target dropwizard-metrics/target jetty-server/target ember-core/target jawn/target bench/target project/target
 
       - name: Upload target directories
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
         uses: actions/upload-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
+          name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}
           path: targets.tar
 
   publish:
@@ -165,7 +172,7 @@ jobs:
       - name: Download target directories (3.0.2)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-3.0.2-${{ matrix.java }}
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.0.2
 
       - name: Inflate target directories (3.0.2)
         run: |
@@ -175,7 +182,7 @@ jobs:
       - name: Download target directories (2.12.15)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-2.12.15-${{ matrix.java }}
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.15
 
       - name: Inflate target directories (2.12.15)
         run: |
@@ -185,7 +192,7 @@ jobs:
       - name: Download target directories (2.13.8)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-2.13.8-${{ matrix.java }}
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.8
 
       - name: Inflate target directories (2.13.8)
         run: |
