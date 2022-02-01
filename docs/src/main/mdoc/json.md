@@ -113,7 +113,7 @@ Hello("Alice").asJson
 Oops!  We haven't told Circe how we want to encode our case class.
 Let's provide an encoder:
 
-```scala mdoc
+```scala mdoc:nest
 implicit val HelloEncoder: Encoder[Hello] =
   Encoder.instance { (hello: Hello) =>
     json"""{"hello": ${hello.name}}"""
