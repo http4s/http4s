@@ -208,7 +208,7 @@ import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
 ```
-```scala mdoc:nest
+```scala mdoc
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
     metricsSvc <- PrometheusExportService.build[IO]
