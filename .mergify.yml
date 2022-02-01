@@ -188,3 +188,12 @@ pull_request_rules:
   actions:
     label:
       add: ['module:prometheus-metrics']
+
+- name: label docs PRs
+  conditions:
+  - or:
+    - files~=^docs/
+    - files~=^website/
+  actions:
+    label:
+      add: ['docs']
