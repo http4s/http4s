@@ -55,7 +55,7 @@ import cats.effect._, org.http4s._, org.http4s.dsl.io._
 
 If you're in a REPL, we also need a runtime.  This comes for free in `IOApp`:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
