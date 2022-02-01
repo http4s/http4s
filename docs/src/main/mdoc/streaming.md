@@ -73,6 +73,7 @@ Putting it all together into a small app that will print the JSON objects foreve
 import org.http4s._
 import org.http4s.ember.client._
 import org.http4s.client.oauth1
+import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
@@ -91,9 +92,16 @@ class TWStream[F[_]: Async] {
   def sign(consumerKey: String, consumerSecret: String, 
              accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
-    val consumer = oauth1.Consumer(consumerKey, consumerSecret)
-    val token    = oauth1.Token(accessToken, accessSecret)
-    oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
+    val consumer = Consumer(consumerKey, consumerSecret)
+    val token    = Token(accessToken, accessSecret)
+    oauth1.signRequest(
+      req,
+      consumer,
+      Some(token),
+      realm = None,
+      timestampGenerator = Timestamp.now,
+      nonceGenerator = Nonce.now,
+      )
   }
 
   /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
