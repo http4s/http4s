@@ -505,7 +505,10 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 To support a `QueryParamDecoderMatcher[Instant]`, consider `QueryParamCodec#instantQueryParamCodec`. That
 outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`.
 
-```scala mdoc:silent:warn
+```scala mdoc:silent
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+
 implicit val isoInstantCodec: QueryParamCodec[Instant] =
   QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
