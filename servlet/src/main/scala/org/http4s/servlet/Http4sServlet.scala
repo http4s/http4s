@@ -23,7 +23,6 @@ import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import org.http4s._
-import scala.jdk.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.getLogger
@@ -36,6 +35,7 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpSession
+import scala.jdk.CollectionConverters._
 
 abstract class Http4sServlet[F[_]](
     service: HttpApp[F],
