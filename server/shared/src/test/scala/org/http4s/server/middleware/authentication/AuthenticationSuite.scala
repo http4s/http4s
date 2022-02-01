@@ -24,6 +24,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
+
 import scala.concurrent.duration._
 
 class AuthenticationSuite extends Http4sSuite {
@@ -79,38 +80,44 @@ class AuthenticationSuite extends Http4sSuite {
         assertEquals(res.status, Unauthorized)
         assertEquals(
           res.headers.get[`WWW-Authenticate`].map(_.value),
-          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString))
+          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString),
+        )
       }
     }
 
     test("BasicAuthentication should respond to a request with unknown username with 401") {
       val req = Request[IO](
         uri = uri"/",
-        headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
+        headers = Headers(Authorization(BasicCredentials("Wrong User", password))),
+      )
       basicAuthedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         assertEquals(
           res.headers.get[`WWW-Authenticate`].map(_.value),
-          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString))
+          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString),
+        )
       }
     }
 
     test("BasicAuthentication should respond to a request with wrong password with 401") {
       val req = Request[IO](
         uri = uri"/",
-        headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
+        headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))),
+      )
       basicAuthedService.orNotFound(req).map { res =>
         assertEquals(res.status, Unauthorized)
         assertEquals(
           res.headers.get[`WWW-Authenticate`].map(_.value),
-          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString))
+          Some(Challenge("Basic", realm, Map("charset" -> "UTF-8")).toString),
+        )
       }
     }
 
     test("BasicAuthentication should respond to a request with correct credentials") {
       val req = Request[IO](
         uri = uri"/",
-        headers = Headers(Authorization(BasicCredentials(username, password))))
+        headers = Headers(Authorization(BasicCredentials(username, password))),
+      )
       basicAuthedService
         .orNotFound(req)
         .map(_.status)
@@ -139,7 +146,8 @@ class AuthenticationSuite extends Http4sSuite {
             case Challenge("Digest", `realm`, _) => true
             case _ => false
           },
-          challenge)
+          challenge,
+        )
       }
     }
 
@@ -160,7 +168,8 @@ class AuthenticationSuite extends Http4sSuite {
     def doDigestAuth2(
         digest: HttpApp[IO],
         challenge: Challenge,
-        withReplay: Boolean): IO[(Response[IO], Response[IO])] = {
+        withReplay: Boolean,
+    ): IO[(Response[IO], Response[IO])] = {
       // Second request with credentials
       val method = "GET"
       val uri = "/"
@@ -181,7 +190,7 @@ class AuthenticationSuite extends Http4sSuite {
             "nc" -> nc,
             "cnonce" -> cnonce,
             "response" -> response,
-            "method" -> method
+            "method" -> method,
           )
           val header = Authorization(Credentials.AuthParams(ci"Digest", params))
 
@@ -205,7 +214,8 @@ class AuthenticationSuite extends Http4sSuite {
               case Challenge("Digest", `realm`, _) => true
               case _ => false
             },
-            challenge)
+            challenge,
+          )
         }
         results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
         (res2, res3) = results
@@ -218,7 +228,8 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test(
-      "DigestAuthentication should respond to many concurrent requests while cleaning up nonces") {
+      "DigestAuthentication should respond to many concurrent requests while cleaning up nonces"
+    ) {
       val n = 100
       val digestAuthMiddleware = DigestAuth(realm, authStore, 2.millis, 2.millis)
       val digestAuthService = digestAuthMiddleware(service)
@@ -232,7 +243,8 @@ class AuthenticationSuite extends Http4sSuite {
                   case Challenge("Digest", `realm`, _) => true
                   case _ => false
                 }),
-                challenge)
+                challenge,
+              )
             }
             res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
               .map(_._1)
@@ -240,7 +252,8 @@ class AuthenticationSuite extends Http4sSuite {
           // We don't check whether res.status is Ok since it may not
           // be due to the low nonce stale timer.  Instead, we check
           // that it's found.
-          assertNotEquals(res.status, NotFound))
+          assertNotEquals(res.status, NotFound)
+        )
         .toList
       results.parSequence
     }
@@ -252,8 +265,9 @@ class AuthenticationSuite extends Http4sSuite {
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         results <- (1 to n)
           .map(_ =>
-            doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false).map(
-              _._1.status))
+            doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
+              .map(_._1.status)
+          )
           .toList
           .parSequence
       } yield results
@@ -275,7 +289,7 @@ class AuthenticationSuite extends Http4sSuite {
 
       DigestUtil
         .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
-        .map { response =>
+        .flatMap { response =>
           val params = NonEmptyList.of(
             "username" -> username,
             "realm" -> realm,
@@ -285,7 +299,7 @@ class AuthenticationSuite extends Http4sSuite {
             "nc" -> nc,
             "cnonce" -> cnonce,
             "response" -> response,
-            "method" -> method
+            "method" -> method,
           )
 
           val expected = List.fill(params.size + 1)(Unauthorized)
@@ -293,7 +307,8 @@ class AuthenticationSuite extends Http4sSuite {
           val result = (0 to params.size).map { i =>
             val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
             val header = Authorization(
-              Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*))
+              Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*)
+            )
             val req = Request[IO](uri = uri"/", headers = Headers(header))
             digestAuthService.orNotFound(req).map(_.status)
           }

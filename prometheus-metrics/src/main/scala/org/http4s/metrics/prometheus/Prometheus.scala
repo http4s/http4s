@@ -17,13 +17,18 @@
 package org.http4s.metrics.prometheus
 
 import cats.data.NonEmptyList
-import cats.effect.{Resource, Sync}
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.apply._
 import io.prometheus.client._
-import org.http4s.{Method, Status}
+import org.http4s.Method
+import org.http4s.Status
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
-import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
+import org.http4s.metrics.TerminationType.Abnormal
+import org.http4s.metrics.TerminationType.Canceled
+import org.http4s.metrics.TerminationType.Error
+import org.http4s.metrics.TerminationType.Timeout
 
 /** [[MetricsOps]] algebra capable of recording Prometheus metrics
   *
@@ -76,17 +81,17 @@ import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error, Timeout}
   */
 object Prometheus {
   def collectorRegistry[F[_]](implicit F: Sync[F]): Resource[F, CollectorRegistry] =
-    Resource.make(F.delay(new CollectorRegistry()))(cr => F.delay(cr.clear()))
+    Resource.make(F.delay(new CollectorRegistry()))(cr => F.blocking(cr.clear()))
 
-  /** Creates a  [[MetricsOps]] that supports Prometheus metrics
-    * *
-    * * @param registry a metrics collector registry
-    * * @param prefix a prefix that will be added to all metrics
+  /** Creates a [[MetricsOps]] that supports Prometheus metrics
+    *
+    * @param registry a metrics collector registry
+    * @param prefix a prefix that will be added to all metrics
     */
   def metricsOps[F[_]: Sync](
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets,
   ): Resource[F, MetricsOps[F]] =
     for {
       metrics <- createMetricsCollection(registry, prefix, responseDurationSecondsHistogramBuckets)
@@ -113,7 +118,7 @@ object Prometheus {
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
-          classifier: Option[String]
+          classifier: Option[String],
       ): F[Unit] =
         F.delay {
           metrics.responseDuration
@@ -125,7 +130,7 @@ object Prometheus {
           method: Method,
           status: Status,
           elapsed: Long,
-          classifier: Option[String]
+          classifier: Option[String],
       ): F[Unit] =
         F.delay {
           metrics.responseDuration
@@ -139,7 +144,8 @@ object Prometheus {
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
-          classifier: Option[String]): F[Unit] =
+          classifier: Option[String],
+      ): F[Unit] =
         terminationType match {
           case Abnormal(e) => recordAbnormal(elapsed, classifier, e)
           case Error(e) => recordError(elapsed, classifier, e)
@@ -153,33 +159,38 @@ object Prometheus {
             .labels(
               label(classifier),
               AbnormalTermination.report(AbnormalTermination.Canceled),
-              label(Option.empty))
+              label(Option.empty),
+            )
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
         }
 
       private def recordAbnormal(
           elapsed: Long,
           classifier: Option[String],
-          cause: Throwable): F[Unit] =
+          cause: Throwable,
+      ): F[Unit] =
         F.delay {
           metrics.abnormalTerminations
             .labels(
               label(classifier),
               AbnormalTermination.report(AbnormalTermination.Abnormal),
-              label(Option(cause.getClass.getName)))
+              label(Option(cause.getClass.getName)),
+            )
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
         }
 
       private def recordError(
           elapsed: Long,
           classifier: Option[String],
-          cause: Throwable): F[Unit] =
+          cause: Throwable,
+      ): F[Unit] =
         F.delay {
           metrics.abnormalTerminations
             .labels(
               label(classifier),
               AbnormalTermination.report(AbnormalTermination.Error),
-              label(Option(cause.getClass.getName)))
+              label(Option(cause.getClass.getName)),
+            )
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
         }
 
@@ -189,7 +200,8 @@ object Prometheus {
             .labels(
               label(classifier),
               AbnormalTermination.report(AbnormalTermination.Timeout),
-              label(Option.empty))
+              label(Option.empty),
+            )
             .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
         }
 
@@ -222,7 +234,7 @@ object Prometheus {
   private def createMetricsCollection[F[_]: Sync](
       registry: CollectorRegistry,
       prefix: String,
-      responseDurationSecondsHistogramBuckets: NonEmptyList[Double]
+      responseDurationSecondsHistogramBuckets: NonEmptyList[Double],
   ): Resource[F, MetricsCollection] = {
     val responseDuration: Resource[F, Histogram] = registerCollector(
       Histogram
@@ -232,7 +244,7 @@ object Prometheus {
         .help("Response Duration in seconds.")
         .labelNames("classifier", "method", "phase")
         .create(),
-      registry
+      registry,
     )
 
     val activeRequests: Resource[F, Gauge] = registerCollector(
@@ -242,7 +254,7 @@ object Prometheus {
         .help("Total Active Requests.")
         .labelNames("classifier")
         .create(),
-      registry
+      registry,
     )
 
     val requests: Resource[F, Counter] = registerCollector(
@@ -252,7 +264,7 @@ object Prometheus {
         .help("Total Requests.")
         .labelNames("classifier", "method", "status")
         .create(),
-      registry
+      registry,
     )
 
     val abnormalTerminations: Resource[F, Histogram] = registerCollector(
@@ -262,7 +274,7 @@ object Prometheus {
         .help("Total Abnormal Terminations.")
         .labelNames("classifier", "termination_type", "cause")
         .create(),
-      registry
+      registry,
     )
 
     (responseDuration, activeRequests, requests, abnormalTerminations).mapN(MetricsCollection.apply)
@@ -270,9 +282,11 @@ object Prometheus {
 
   private[prometheus] def registerCollector[F[_], C <: Collector](
       collector: C,
-      registry: CollectorRegistry
+      registry: CollectorRegistry,
   )(implicit F: Sync[F]): Resource[F, C] =
-    Resource.make(F.delay(collector.register[C](registry)))(c => F.delay(registry.unregister(c)))
+    Resource.make(F.blocking(collector.register[C](registry)))(c =>
+      F.blocking(registry.unregister(c))
+    )
 
   // https://github.com/prometheus/client_java/blob/parent-0.6.0/simpleclient/src/main/java/io/prometheus/client/Histogram.java#L73
   private val DefaultHistogramBuckets: NonEmptyList[Double] =
@@ -283,7 +297,7 @@ final case class MetricsCollection(
     responseDuration: Histogram,
     activeRequests: Gauge,
     requests: Counter,
-    abnormalTerminations: Histogram
+    abnormalTerminations: Histogram,
 )
 
 private sealed trait Phase

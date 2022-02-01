@@ -1,8 +1,8 @@
----
-menu: main
-title: HSTS
-weight: 126
----
+{%
+laika.title: HSTS
+%}
+
+# HTTP Strict Transport Security
 
 Http4s provides a [Middleware] giving support for *HTTP Strict Transport Security (HSTS)*.
 The middleware is called `HSTS` and simply adds a header to enable a HSTS security policy.
@@ -81,7 +81,8 @@ import scala.concurrent.duration._
 ```
 
 ```scala mdoc:nest
-val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
+val hstsHeader = `Strict-Transport-Security`
+  .unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 val hstsService = HSTS(service, hstsHeader)
 
 // Do not call 'unsafeRunSync' in your code

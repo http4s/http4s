@@ -16,12 +16,13 @@
 
 package org.http4s
 
-import cats.effect.{IO, Resource}
-import cats.effect.unsafe.IORuntime
+import cats.effect.IO
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
 import munit._
+import org.scalacheck.Prop
 
 /** Common stack for http4s' munit based tests
   */
@@ -31,11 +32,15 @@ trait Http4sSuite
     with munit.ScalaCheckEffectSuite
     with Http4sSuitePlatform {
 
-  implicit val ioRuntime: IORuntime = Http4sSuite.TestIORuntime
-
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+
+  // Override to remove implicit modifier
+  override def unitToProp = super.unitToProp
+
+  // Scala 3 likes this better
+  implicit def saneUnitToProp(unit: Unit): Prop = unitToProp(unit)
 
   def registerSuiteFixture[A](fixture: Fixture[A]) = {
     suiteFixtures += fixture
@@ -52,7 +57,6 @@ trait Http4sSuite
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): IO[String] =
     Stream
       .emit(W.toEntity(a))
-      .covary[IO]
       .flatMap(_.body)
       .through(utf8.decode)
       .foldMonoid
@@ -61,5 +65,3 @@ trait Http4sSuite
       .map(_.getOrElse(""))
 
 }
-
-object Http4sSuite extends Http4sSuiteCompanionPlatform

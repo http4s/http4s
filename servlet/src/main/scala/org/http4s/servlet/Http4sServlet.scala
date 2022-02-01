@@ -19,10 +19,9 @@ package org.http4s.servlet
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import com.comcast.ip4s.{IpAddress, Port, SocketAddress}
-import java.security.cert.X509Certificate
-import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.Port
+import com.comcast.ip4s.SocketAddress
 import org.http4s._
 import scala.jdk.CollectionConverters._
 import org.http4s.server.SecureSession
@@ -31,10 +30,18 @@ import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
 
+import java.security.cert.X509Certificate
+import javax.servlet.ServletConfig
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpSession
+
 abstract class Http4sServlet[F[_]](
     service: HttpApp[F],
     servletIo: ServletIo[F],
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends HttpServlet {
   protected val logger = getLogger
 
@@ -62,7 +69,7 @@ abstract class Http4sServlet[F[_]](
   protected def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] = {
     val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
     renderResponse(response, servletResponse, bodyWriter)
@@ -71,7 +78,7 @@ abstract class Http4sServlet[F[_]](
   protected def renderResponse(
       response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
+      bodyWriter: BodyWriter[F],
   ): F[Unit] =
     F.delay {
       servletResponse.setStatus(response.status.code)
@@ -94,52 +101,67 @@ abstract class Http4sServlet[F[_]](
           .map { q =>
             s"${req.getRequestURI}?$q"
           }
-          .getOrElse(req.getRequestURI))
+          .getOrElse(req.getRequestURI)
+      )
       version <- HttpVersion.fromString(req.getProtocol)
+      pathInfoIndex <- getPathInfoIndex(req, uri)
+      attributes <- ParseResult.fromTryCatchNonFatal("")(
+        Vault.empty
+          .insert(Request.Keys.PathInfoCaret, pathInfoIndex)
+          .insert(
+            Request.Keys.ConnectionInfo,
+            Request.Connection(
+              local = SocketAddress(
+                IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
+                Port.fromInt(req.getLocalPort).get,
+              ),
+              remote = SocketAddress(
+                IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
+                Port.fromInt(req.getRemotePort).get,
+              ),
+              secure = req.isSecure,
+            ),
+          )
+          .insert(Request.Keys.ServerSoftware, serverSoftware)
+          .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
+          .insert(
+            ServerRequestKeys.SecureSession,
+            (
+              Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
+              Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
+              Option(
+                req
+                  .getAttribute("javax.servlet.request.X509Certificate")
+                  .asInstanceOf[Array[X509Certificate]]
+              ),
+            )
+              .mapN(SecureSession.apply),
+          )
+      )
     } yield Request(
       method = method,
       uri = uri,
       httpVersion = version,
       headers = toHeaders(req),
-      body = servletIo.reader(req),
-      attributes = Vault.empty
-        .insert(Request.Keys.PathInfoCaret, getPathInfoIndex(req, uri))
-        .insert(
-          Request.Keys.ConnectionInfo,
-          Request.Connection(
-            local = SocketAddress(
-              IpAddress.fromString(stripBracketsFromAddr(req.getLocalAddr)).get,
-              Port.fromInt(req.getLocalPort).get),
-            remote = SocketAddress(
-              IpAddress.fromString(stripBracketsFromAddr(req.getRemoteAddr)).get,
-              Port.fromInt(req.getRemotePort).get),
-            secure = req.isSecure
-          )
-        )
-        .insert(Request.Keys.ServerSoftware, serverSoftware)
-        .insert(ServletRequestKeys.HttpSession, Option(req.getSession(false)))
-        .insert(
-          ServerRequestKeys.SecureSession,
-          (
-            Option(req.getAttribute("javax.servlet.request.ssl_session_id").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.cipher_suite").asInstanceOf[String]),
-            Option(req.getAttribute("javax.servlet.request.key_size").asInstanceOf[Int]),
-            Option(
-              req
-                .getAttribute("javax.servlet.request.X509Certificate")
-                .asInstanceOf[Array[X509Certificate]]))
-            .mapN(SecureSession.apply)
-        )
+      entity = Entity(servletIo.reader(req)),
+      attributes = attributes,
     )
 
-  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri) = {
-    val pathInfo =
+  private def getPathInfoIndex(req: HttpServletRequest, uri: Uri): ParseResult[Int] = {
+    val prefix =
       Uri.Path
         .unsafeFromString(req.getContextPath)
         .concat(Uri.Path.unsafeFromString(req.getServletPath))
+
     uri.path
-      .findSplit(pathInfo)
-      .getOrElse(-1)
+      .findSplit(prefix)
+      .toRight(
+        ParseFailure(
+          uri.path.renderString,
+          s"Couldn't find pathInfoIndex given the contextPath='${req.getContextPath}' and servletPath='${req.getServletPath}'.",
+        )
+      )
   }
 
   protected def toHeaders(req: HttpServletRequest): Headers = {

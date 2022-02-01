@@ -20,8 +20,9 @@ package middleware
 
 import cats.effect.IO
 import org.http4s.dsl.io._
-import org.http4s.headers.{`Content-Encoding`, `Content-Length`}
-import org.http4s.syntax.all._
+import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.`Content-Length`
+import org.http4s.syntax.literals._
 
 class GZipSuite extends Http4sSuite {
   private val service = server.middleware.GZip(HttpApp[IO] {
@@ -35,14 +36,14 @@ class GZipSuite extends Http4sSuite {
   test("Client Gzip should return data correctly") {
     gzipClient
       .get(uri"/gziptest") { response =>
-        assert(response.status == Status.Ok)
-        assert(response.headers.get[`Content-Encoding`].isEmpty)
-        assert(response.headers.get[`Content-Length`].isEmpty)
+        assertEquals(response.status, Status.Ok)
+        assertEquals(response.headers.get[`Content-Encoding`], None)
+        assertEquals(response.headers.get[`Content-Length`], None)
 
         response.as[String]
       }
       .map { body =>
-        assert(body == "Dummy response")
+        assertEquals(body, "Dummy response")
       }
   }
 
@@ -51,14 +52,14 @@ class GZipSuite extends Http4sSuite {
     gzipClient
       .run(request)
       .use { response =>
-        assert(response.status == Status.Ok)
-        assert(response.headers.get[`Content-Encoding`].isEmpty)
-        assert(response.headers.get[`Content-Length`].isEmpty)
+        assertEquals(response.status, Status.Ok)
+        assertEquals(response.headers.get[`Content-Encoding`], None)
+        assertEquals(response.headers.get[`Content-Length`], None)
 
         response.as[String]
       }
       .map { body =>
-        assert(body == "")
+        assertEquals(body, "")
       }
   }
 }

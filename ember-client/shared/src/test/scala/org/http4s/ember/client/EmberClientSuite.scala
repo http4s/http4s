@@ -17,18 +17,14 @@
 package org.http4s
 package ember.client
 
-import org.http4s.client.ClientRouteTestBattery
-import org.http4s.Http4sSuite
 import cats.effect.IO
 import cats.effect.Resource
+import org.http4s.Http4sSuite
 import org.http4s.client.Client
+import org.http4s.client.ClientRouteTestBattery
 
 class EmberClientSuite extends ClientRouteTestBattery("EmberClient") with Http4sSuite {
 
   override def clientResource: Resource[IO, Client[IO]] = EmberClientBuilder.default[IO].build
-
-  override def munitTests() =
-    // TODO https://github.com/http4s/http4s/issues/5256
-    super.munitTests().filterNot(_.name.endsWith("Execute GET /no-content") && Platform.isJvm)
 
 }

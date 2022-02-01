@@ -26,6 +26,7 @@ class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
   def clientResource =
     BlazeClientBuilder[IO]
       .withExecutionContext(
-        newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true))
+        newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true)
+      )
       .resource
 }

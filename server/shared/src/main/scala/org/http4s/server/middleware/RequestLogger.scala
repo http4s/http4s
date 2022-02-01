@@ -18,13 +18,18 @@ package org.http4s
 package server
 package middleware
 
-import cats.~>
 import cats.arrow.FunctionK
-import cats.data.{Kleisli, OptionT}
-import cats.effect.kernel.{Async, MonadCancelThrow, Outcome, Sync}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.implicits._
+import cats.effect.kernel.Async
+import cats.effect.kernel.MonadCancelThrow
+import cats.effect.kernel.Outcome
+import cats.effect.kernel.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import cats.~>
+import fs2.Chunk
+import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
@@ -38,10 +43,10 @@ object RequestLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit
       F: Async[F],
-      G: MonadCancelThrow[G]
+      G: MonadCancelThrow[G],
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
@@ -50,10 +55,10 @@ object RequestLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]]
+      logAction: Option[String => F[Unit]],
   )(http: Http[G, F])(implicit
       F: Async[F],
-      G: MonadCancelThrow[G]
+      G: MonadCancelThrow[G],
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
       Sync[F].delay(logger.info(s))
@@ -65,7 +70,7 @@ object RequestLogger {
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Request[F]](r)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText(r)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {
@@ -89,8 +94,8 @@ object RequestLogger {
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.chunk(c).covary[F])
+              .flatMap(v => Stream.emits(v))
+              .flatMap(c => Stream.chunk(c))
 
             val changedRequest = req.withBodyStream(
               req.body
@@ -116,7 +121,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -124,7 +129,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
@@ -132,7 +137,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -140,12 +145,13 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     impl[OptionT[F, *], F](
       logHeaders,
       Right(logBody),
       OptionT.liftK[F],
       redactHeadersWhen,
-      logAction)(httpRoutes)
+      logAction,
+    )(httpRoutes)
 }

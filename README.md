@@ -13,7 +13,7 @@ val http = HttpRoutes.of {
 
 Learn more at [http4s.org](https://http4s.org/).
 
-If you run into any difficulties please enable partial unification in your `build.sbt` (not needed for Scala 2.13 and beyond, because Scala 2.13.0+ has partial unification switched on by default)
+If you run into any difficulties on Scala 2.12 please enable partial unification in your `build.sbt` (not needed for Scala 2.13 and beyond, because they enable partial unification by default)
 
 ```scala
 scalacOptions ++= Seq("-Ypartial-unification")
@@ -35,12 +35,12 @@ Code of Conduct](https://http4s.org/code-of-conduct/).
 
 This software is licensed under the Apache 2 license, quoted below.
 
-> Copyright 2013-2021 http4s [[https://http4s.org](https://http4s.org/)]
-
+> Copyright 2013-2022 http4s [[https://http4s.org](https://http4s.org/)]
+>
 > Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
-
+>
 > [[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)]
-
+>
 > Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 ## Acknowledgments

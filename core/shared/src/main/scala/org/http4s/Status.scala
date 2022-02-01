@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.Order
+import cats.Show
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 
@@ -26,7 +27,7 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
-  * @see [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
   * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
 sealed abstract case class Status private (code: Int) extends Ordered[Status] with Renderable {
@@ -133,7 +134,8 @@ object Status {
   // scalastyle:off magic.number
   val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))
   val SwitchingProtocols: Status = register(
-    trust(101, "Switching Protocols", isEntityAllowed = false))
+    trust(101, "Switching Protocols", isEntityAllowed = false)
+  )
   val Processing: Status = register(trust(102, "Processing", isEntityAllowed = false))
   val EarlyHints: Status = register(trust(103, "Early Hints", isEntityAllowed = false))
 
@@ -198,7 +200,8 @@ object Status {
   val LoopDetected: Status = register(trust(508, "Loop Detected"))
   val NotExtended: Status = register(trust(510, "Not Extended"))
   val NetworkAuthenticationRequired: Status = register(
-    trust(511, "Network Authentication Required"))
+    trust(511, "Network Authentication Required")
+  )
   // scalastyle:on magic.number
 
   implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]

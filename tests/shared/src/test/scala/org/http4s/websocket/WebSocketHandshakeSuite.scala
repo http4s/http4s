@@ -17,18 +17,16 @@
 package org.http4s
 package websocket
 
-import org.http4s.Http4sSuite
-import cats.effect.IO
 import cats.data.EitherT
+import cats.effect.IO
+import org.http4s.Http4sSuite
 
 class WebSocketHandshakeSpec extends Http4sSuite {
 
   test("WebSocketHandshake should Be able to split multi value header keys") {
     val totalValue = "keep-alive, Upgrade"
     val values = List("upgrade", "Upgrade", "keep-alive", "Keep-alive")
-    assert(values.foldLeft(true) { (b, v) =>
-      b && WebSocketHandshake.valueContains(v, totalValue)
-    })
+    assert(values.forall(v => WebSocketHandshake.valueContains(v, totalValue)))
   }
 
   test("WebSocketHandshake should Do a round trip") {

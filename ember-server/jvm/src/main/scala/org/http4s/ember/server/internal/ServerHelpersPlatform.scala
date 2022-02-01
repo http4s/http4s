@@ -26,12 +26,12 @@ import javax.net.ssl.SSLSession
 
 private[internal] trait ServerHelpersPlatform {
 
-  private[internal] def parseSSLSession(session: SSLSession): Option[SecureSession] =
+  def parseSSLSession(session: SSLSession): Option[SecureSession] =
     (
       Option(session.getId).map(ByteVector(_).toHex),
       Option(session.getCipherSuite),
       Option(session.getCipherSuite).map(deduceKeyLength),
-      Some(getCertChain(session))
+      Some(getCertChain(session)),
     ).mapN(SecureSession.apply)
 
 }

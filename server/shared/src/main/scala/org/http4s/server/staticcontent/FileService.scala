@@ -18,22 +18,26 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.Kleisli
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.kernel.Async
 import cats.syntax.all._
-import fs2.io.file.{Files, NoSuchFileException, Path}
-import java.io.File
+import fs2.io.file.Files
+import fs2.io.file.NoSuchFileException
+import fs2.io.file.Path
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.log4s.getLogger
 import org.typelevel.ci._
+
 import scala.util.control.NoStackTrace
 
 object FileService {
   private[this] val logger = getLogger
 
-  type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
+  type PathCollector[F[_]] = (Path, Config[F], Request[F]) => OptionT[F, Response[F]]
 
   /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
@@ -41,7 +45,6 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param blocker to use for blocking I/O
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
@@ -49,16 +52,17 @@ object FileService {
       pathCollector: PathCollector[F],
       pathPrefix: String,
       bufferSize: Int,
-      cacheStrategy: CacheStrategy[F])
+      cacheStrategy: CacheStrategy[F],
+  )
 
   object Config {
     def apply[F[_]: Async](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
-        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
-      val pathCollector: PathCollector[F] = (f, c, r) =>
-        filesOnly(Path.fromNioPath(f.toPath()), c, r)
+        cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+    ): Config[F] = {
+      val pathCollector: PathCollector[F] = (p, c, r) => filesOnly(p, c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
   }
@@ -66,55 +70,58 @@ object FileService {
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
-    Kleisli
-      .liftF[OptionT[F, *], Any, HttpRoutes[F]] {
-        OptionT.liftF[F, HttpRoutes[F]] {
-          Files[F].realPath(Path(config.systemPath)).attempt.map {
-            case Right(rootPath) =>
-              TranslateUri(config.pathPrefix)(Kleisli { request =>
-                def resolvedPath: OptionT[F, Path] = {
-                  val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
-                  if (request.pathInfo.isEmpty) OptionT.some(rootPath)
-                  else
-                    OptionT
-                      .liftF(F.catchNonFatal {
-                        segments.foldLeft(rootPath) {
-                          case (_, "" | "." | "..") => throw BadTraversal
-                          case (path, segment) =>
-                            path.resolve(segment)
-                        }
-                      })
-                }
-                resolvedPath
-                  .flatMapF(path =>
-                    F.ifM(Files[F].exists(path, false))(
-                      path.absolute.normalize.some.pure,
-                      none[Path].pure))
-                  .collect { case path if path.startsWith(rootPath) => path.toNioPath.toFile }
-                  .flatMap(f => config.pathCollector(f, config, request))
-                  .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-                  .recoverWith { case BadTraversal =>
-                    OptionT.some(Response(Status.BadRequest))
-                  }
-              })
-
-            case Left(_: NoSuchFileException) =>
-              logger.error(
-                s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none.")
-              Kleisli(_ => OptionT.none)
-
-            case Left(e) =>
-              logger.error(e)(
-                s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500.")
-              Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
+    def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
+      val resolvePath: F[Path] =
+        if (request.pathInfo.isEmpty) F.pure(rootPath)
+        else {
+          val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
+          F.catchNonFatal {
+            segments.foldLeft(rootPath) {
+              case (_, "" | "." | "..") => throw BadTraversal
+              case (path, segment) => path.resolve(segment)
+            }
           }
         }
-      }
-      .flatten
+
+      val matchingPath: F[Option[Path]] =
+        for {
+          path <- resolvePath
+          existsPath <- Files[F].exists(path, false)
+        } yield
+          if (existsPath && path.startsWith(rootPath))
+            Some(path.absolute.normalize)
+          else None
+
+      OptionT(matchingPath)
+        .flatMap(path => config.pathCollector(path, config, request))
+        .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+        .recoverWith { case BadTraversal => OptionT.some(Response(Status.BadRequest)) }
+    }
+
+    val readPath: F[Path] = Files[F].realPath(Path(config.systemPath))
+    val inner: F[HttpRoutes[F]] = readPath.attempt.map {
+      case Right(rootPath) =>
+        TranslateUri(config.pathPrefix)(Kleisli(withPath(rootPath)))
+
+      case Left(_: NoSuchFileException) =>
+        logger.error(
+          s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
+        )
+        HttpRoutes.empty
+
+      case Left(e) =>
+        logger.error(e)(
+          s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
+        )
+        HttpRoutes.pure(Response(Status.InternalServerError))
+    }
+
+    Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
   private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): OptionT[F, Response[F]] =
+      F: Async[F]
+  ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
       if (attr.isDirectory)
         StaticFile
@@ -139,7 +146,8 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]): F[Option[Response[F]]] =
+      F: Async[F]
+  ): F[Option[Response[F]]] =
     Files[F].getBasicFileAttributes(file).flatMap { attr =>
       def nope: F[Option[Response[F]]] =
         Some(
@@ -148,7 +156,10 @@ object FileService {
             headers = Headers
               .apply(
                 AcceptRangeHeader,
-                `Content-Range`(SubRange(0, attr.size - 1), Some(attr.size))))).pure[F].widen
+                `Content-Range`(SubRange(0, attr.size - 1), Some(attr.size)),
+              ),
+          )
+        ).pure[F].widen
 
       req.headers.get[Range] match {
         case Some(Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))) =>
@@ -164,7 +175,8 @@ object FileService {
                 end + 1,
                 config.bufferSize,
                 Some(req),
-                StaticFile.calculateETag)
+                StaticFile.calculateETag,
+              )
               .map { resp =>
                 val hs = resp.headers
                   .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

@@ -16,19 +16,25 @@
 
 package org.http4s
 
-import cats.{Applicative, Monad}
-import cats.data.{Kleisli, OptionT}
-import cats.syntax.all._
+import cats.Applicative
+import cats.Monad
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.SyncIO
-import org.http4s.headers.{Connection, `Content-Length`}
+import cats.syntax.all._
+import com.comcast.ip4s
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
+
+import java.net.InetAddress
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 package object server {
-  object defaults extends DefaultsPlatform {
+  object defaults {
     val Banner =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
@@ -36,7 +42,24 @@ package object server {
          | |_||_\__|\__| .__/ |_|/__/
          |             |_|""".stripMargin.split("\n").toList
 
+    val IPv4Host: String =
+      if (Platform.isJvm)
+        InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
+      else
+        "127.0.0.1"
+    val IPv6Host: String =
+      if (Platform.isJvm)
+        InetAddress
+          .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
+          .getHostAddress
+      else "0:0:0:0:0:0:0:1"
+
     val HttpPort = 8080
+
+    val IPv4SocketAddress: ip4s.SocketAddress[ip4s.Ipv4Address] =
+      ip4s.SocketAddress(ip4s.Ipv4Address.fromString(IPv4Host).get, ip4s.Port.fromInt(HttpPort).get)
+    val IPv6SocketAddress: ip4s.SocketAddress[ip4s.Ipv6Address] =
+      ip4s.SocketAddress(ip4s.Ipv6Address.fromString(IPv6Host).get, ip4s.Port.fromInt(HttpPort).get)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout
@@ -92,12 +115,13 @@ package object server {
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
     def withFallThrough[F[_]: Monad, T](
-        authUser: Kleisli[OptionT[F, *], Request[F], T]): AuthMiddleware[F, T] =
+        authUser: Kleisli[OptionT[F, *], Request[F], T]
+    ): AuthMiddleware[F, T] =
       _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
 
     def noSpider[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T],
-        onAuthFailure: Request[F] => F[Response[F]]
+        onAuthFailure: Request[F] => F[Response[F]],
     ): AuthMiddleware[F, T] = { service =>
       Kleisli { (r: Request[F]) =>
         val resp = authUser(r).value.flatMap {
@@ -114,7 +138,7 @@ package object server {
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedRoutes[Err, F]
+        onFailure: AuthedRoutes[Err, F],
     )(implicit F: Monad[F]): AuthMiddleware[F, T] =
       (routes: AuthedRoutes[T, F]) =>
         Kleisli { (req: Request[F]) =>
@@ -133,28 +157,34 @@ package object server {
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
   def DefaultServiceErrorHandler[F[_]](implicit
-      F: Monad[F]): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
+      F: Monad[F]
+  ): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
   def inDefaultServiceErrorHandler[F[_], G[_]](implicit
-      F: Monad[F]): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
+      F: Monad[F]
+  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
         messageFailureLogger.debug(mf)(
           s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
+            .getOrElse("<unknown>")}"""
+        )
         mf.toHttpResponse[G](req.httpVersion).pure[F]
       case NonFatal(t) =>
         serviceErrorLogger.error(t)(
           s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-            .getOrElse("<unknown>")}""")
+            .getOrElse("<unknown>")}"""
+        )
         F.pure(
           Response(
             Status.InternalServerError,
             req.httpVersion,
             Headers(
               Connection(ci"close"),
-              `Content-Length`.zero
-            )))
+              `Content-Length`.zero,
+            ),
+          )
+        )
     }
 }

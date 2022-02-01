@@ -16,11 +16,11 @@
 
 package org.http4s.jetty.server
 
-import cats.syntax.all._
-import org.eclipse.jetty.util.component.LifeCycle
-import org.eclipse.jetty.util.component.Destroyable
 import cats.effect._
+import cats.syntax.all._
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
+import org.eclipse.jetty.util.component.Destroyable
+import org.eclipse.jetty.util.component.LifeCycle
 
 private[jetty] object JettyLifeCycle {
 
@@ -125,12 +125,20 @@ private[jetty] object JettyLifeCycle {
       //   http4s codebase.
       if (lifeCycle.isStarted) {
         cb(
-          Left(new IllegalStateException(
-            "Attempting to start Jetty LifeCycle component, but it is already started.")))
+          Left(
+            new IllegalStateException(
+              "Attempting to start Jetty LifeCycle component, but it is already started."
+            )
+          )
+        )
       } else if (lifeCycle.isStarting) {
         cb(
-          Left(new IllegalStateException(
-            "Attempting to start Jetty LifeCycle component, but it is already starting.")))
+          Left(
+            new IllegalStateException(
+              "Attempting to start Jetty LifeCycle component, but it is already starting."
+            )
+          )
+        )
       } else {
         lifeCycle.start()
       }

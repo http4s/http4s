@@ -16,29 +16,34 @@
 
 package org.http4s
 
-import java.util.concurrent.{
-  CancellationException,
-  CompletableFuture,
-  CompletionException,
-  CompletionStage
-}
-
 import cats._
 import cats.data._
+import cats.effect.Async
+import cats.effect.Sync
 import cats.effect.std.Dispatcher
-import cats.effect.{Async, Sync}
 import cats.syntax.all._
-import fs2.{Chunk, Pipe, Pull, RaiseThrowable, Stream}
-import java.nio.{ByteBuffer, CharBuffer}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.RaiseThrowable
+import fs2.Stream
+import org.log4s.Logger
+
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.nio.charset.MalformedInputException
 import java.nio.charset.UnmappableCharacterException
-import org.log4s.Logger
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
 package object internal {
 
-  private[http4s] def loggingAsyncCallback[F[_], A](logger: Logger)(attempt: Either[Throwable, A])(
-      implicit F: Sync[F]): F[Unit] =
+  private[http4s] def loggingAsyncCallback[F[_], A](
+      logger: Logger
+  )(attempt: Either[Throwable, A])(implicit F: Sync[F]): F[Unit] =
     attempt match {
       case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => F.unit
@@ -120,10 +125,11 @@ package object internal {
     }
   }
 
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](
-      fcs: F[CF[A]])(implicit
+  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
+      implicit
       // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
-      F: Async[F]): F[A] =
+      F: Async[F]
+  ): F[A] =
     fcs.flatMap { cs =>
       F.async_ { cb =>
         cs.handle[Unit] {
@@ -142,7 +148,7 @@ package object internal {
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],
-      dispatcher: Dispatcher[F]
+      dispatcher: Dispatcher[F],
   )(implicit F: Sync[F]): CompletionStage[A] = {
     val cf = new CompletableFuture[A]()
     dispatcher.unsafeToFuture(fa.attemptTap {
@@ -154,7 +160,8 @@ package object internal {
 
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
-      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}"
+    )
 
   // TODO Remove in 1.0. We can do better with MurmurHash3.
   private[http4s] def hashLower(s: String): Int = {
@@ -173,6 +180,7 @@ package object internal {
     h
   }
 
+  @deprecated("Use fs2.text.decodeWithCharset", "0.23.5")
   def decode[F[_]: RaiseThrowable](charset: Charset): Pipe[F, Byte, String] = { in =>
     val decoder = charset.nioCharset.newDecoder
     val byteBufferSize = 16
@@ -259,7 +267,7 @@ package object internal {
   private[http4s] def compareField[A, B: Order](
       a: A,
       b: A,
-      f: A => B
+      f: A => B,
   ): Int =
     Order.by[A, B](f).compare(a, b)
 
@@ -269,7 +277,7 @@ package object internal {
     *
     * The intended use case for this function is to reduce the amount of code
     * needed to write an `Order` instance for Product types. One can use
-    * [[#compareField]] to generate a comparison for each field in a product
+    * [[compareField]] to generate a comparison for each field in a product
     * type, then apply this function to get a ordering for the entire Product
     * type.
     *
@@ -300,7 +308,7 @@ package object internal {
       .getOrElse(0)
   }
 
-  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval`
+  /** Similar to [[reduceComparisons_]] but with the `F` type forced to `Eval`
     * for every comparison other than the first one. This encodes the commonly
     * desired use case of only evaluating the minimum number of comparisons
     * required to determine the ordering.

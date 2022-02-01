@@ -18,13 +18,16 @@ package org.http4s
 package server
 package staticcontent
 
-import java.net.URL
 import cats.effect.IO
 import cats.syntax.all._
-import java.nio.file.Paths
-import org.http4s.Method.{GET, POST}
+import fs2.io.file.Path
+import org.http4s.Method.GET
+import org.http4s.Method.POST
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.syntax.all._
+
+import java.net.URL
+import java.nio.file.Paths
 
 class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
   def routes: HttpRoutes[IO] =
@@ -41,7 +44,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .toRoutes
 
   val defaultBase =
-    org.http4s.server.test.BuildInfo.test_resourceDirectory.toPath
+    Path(defaultSystemPath)
       .resolve("META-INF/resources/webjars")
       .toString
 
@@ -145,7 +148,8 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](
       GET,
       uri"/test-lib/1.0.0/testresource.txt",
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
+    )
     val rb = runReq(req, routes = routes(preferGzipped = true))
 
     rb.flatMap { case (b, r) =>

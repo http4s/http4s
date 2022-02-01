@@ -17,8 +17,11 @@
 package org.http4s
 package blazecore
 
-import java.net.{SocketOption, StandardSocketOptions}
-import org.http4s.blaze.channel.{ChannelOptions, OptionValue}
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.channel.OptionValue
+
+import java.net.SocketOption
+import java.net.StandardSocketOptions
 
 private[http4s] trait BlazeBackendBuilder[B] {
   type Self
@@ -33,7 +36,8 @@ private[http4s] trait BlazeBackendBuilder[B] {
   def withChannelOptions(channelOptions: ChannelOptions): Self
   def withChannelOption[A](key: SocketOption[A], value: A): Self =
     withChannelOptions(
-      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value)))
+      ChannelOptions(channelOptions.options.filterNot(_.key == key) :+ OptionValue(key, value))
+    )
   def withDefaultChannelOption[A](key: SocketOption[A]): Self =
     withChannelOptions(ChannelOptions(channelOptions.options.filterNot(_.key == key)))
 

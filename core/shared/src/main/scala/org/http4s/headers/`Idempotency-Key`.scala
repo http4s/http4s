@@ -16,8 +16,10 @@
 
 package org.http4s.headers
 
-import org.http4s.internal.parsing.Rfc7230.{quotedString, token}
-import org.http4s.{Header, ParseResult}
+import org.http4s.Header
+import org.http4s.ParseResult
+import org.http4s.internal.parsing.Rfc7230.quotedString
+import org.http4s.internal.parsing.Rfc7230.token
 import org.typelevel.ci._
 
 object `Idempotency-Key` {
@@ -33,6 +35,6 @@ object `Idempotency-Key` {
 
 /** Request header defines request to be idempotent used by client retry middleware.
   *
-  *  [[https://tools.ietf.org/html/draft-idempotency-header-00#section-2.1 idempotency-header]]
+  *  [[https://datatracker.ietf.org/doc/html/draft-idempotency-header-00#section-2.1 idempotency-header]]
   */
 final case class `Idempotency-Key`(key: String)

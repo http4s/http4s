@@ -17,14 +17,14 @@
 package org.http4s
 package bench
 
-import java.util.concurrent.TimeUnit
-
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.parser._
 import org.http4s.circe._
 import org.openjdk.jmh.annotations._
+
+import java.util.concurrent.TimeUnit
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.CirceJsonBench"
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -72,7 +72,8 @@ object CirceJsonBench {
       val json = Json.arr((1 to arraySize).map(_ => obj): _*)
       req = Request[IO]().withEntity(json)
       println(
-        s"Array size: $arraySize; Approx. Content-Length: $approxContentLength; Content-Length: ${req.contentLength}")
+        s"Array size: $arraySize; Approx. Content-Length: $approxContentLength; Content-Length: ${req.contentLength}"
+      )
     }
   }
 }

@@ -20,7 +20,8 @@ package server
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import fs2.concurrent.{Signal, SignallingRef}
+import fs2.concurrent.Signal
+import fs2.concurrent.SignallingRef
 import org.http4s.internal.BackendBuilder
 
 import java.net.InetSocketAddress
@@ -29,7 +30,7 @@ import scala.collection.immutable
 trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
   type Self <: ServerBuilder[F]
 
-  protected implicit def F: Concurrent[F]
+  implicit protected def F: Concurrent[F]
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
@@ -45,7 +46,8 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
     * parsing a request or handling a context timeout.
     */
   def withServiceErrorHandler(
-      serviceErrorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]): Self
+      serviceErrorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]
+  ): Self
 
   /** Returns a Server resource.  The resource is not acquired until the
     * server is started and ready to accept requests.
@@ -67,7 +69,8 @@ trait ServerBuilder[F[_]] extends BackendBuilder[F, Server] {
     */
   final def serveWhile(
       terminateWhenTrue: Signal[F, Boolean],
-      exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
+      exitWith: Ref[F, ExitCode],
+  ): Stream[F, ExitCode] =
     Stream.resource(resource) *> (terminateWhenTrue.discrete
       .takeWhile(_ === false)
       .drain ++ Stream.eval(exitWith.get))

@@ -16,13 +16,19 @@
 
 package org.http4s
 
-import cats.{Foldable, Hash, Order, Semigroup, Show}
+import cats.Foldable
+import cats.Hash
+import cats.Order
+import cats.Semigroup
+import cats.Show
+import cats.data.Ior
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.typelevel.ci.CIString
 import org.http4s.internal.CharPredicate
-import org.http4s.util.{Renderer, StringWriter, Writer}
-import cats.data.Ior
+import org.http4s.util.Renderer
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 /** Typeclass representing an HTTP header, which all the http4s
   * default headers satisfy.
@@ -48,7 +54,7 @@ trait Header[A, T <: Header.Type] {
 }
 
 object Header {
-  final case class Raw(val name: CIString, val value: String) {
+  final case class Raw(name: CIString, value: String) {
     override def toString: String = s"${name}: ${value}"
 
     /** True if [[name]] is a valid field-name per RFC7230.  Where it
@@ -90,15 +96,19 @@ object Header {
     * times.
     */
   sealed trait Type
-  case class Single() extends Type
-  case class Recurring() extends Type
+  final case class Single() extends Type
+  final case class Recurring() extends Type
 
   def apply[A](implicit ev: Header[A, _]): ev.type = ev
+
+  @deprecated("use Header.Raw.apply", "0.22.0")
+  def apply(name: String, value: String): Header.Raw = Raw(CIString(name), value)
 
   def create[A, T <: Header.Type](
       name_ : CIString,
       value_ : A => String,
-      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+      parse_ : String => Either[ParseFailure, A],
+  ): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = value_(a)
     def parse(s: String) = parse_(s)
@@ -107,7 +117,8 @@ object Header {
   def createRendered[A, T <: Header.Type, B: Renderer](
       name_ : CIString,
       value_ : A => B,
-      parse_ : String => Either[ParseFailure, A]): Header[A, T] = new Header[A, T] {
+      parse_ : String => Either[ParseFailure, A],
+  ): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = Renderer.renderString(value_(a))
     def parse(s: String) = parse_(s)
@@ -152,20 +163,23 @@ object Header {
         val values = h.headers
       }
 
-    implicit def modelledHeadersToRaw[H](h: H)(implicit
-        H: Header[H, _]): Header.ToRaw with Primitive =
+    implicit def modelledHeadersToRaw[H](
+        h: H
+    )(implicit H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
         val values = List(Header.Raw(H.name, H.value(h)))
       }
 
-    implicit def foldablesToRaw[F[_]: Foldable, H](h: F[H])(implicit
-        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def foldablesToRaw[F[_]: Foldable, H](
+        h: F[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
 
     // Required for 2.12 to convert variadic args.
-    implicit def scalaCollectionSeqToRaw[H](h: collection.Seq[H])(implicit
-        convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
+    implicit def scalaCollectionSeqToRaw[H](
+        h: collection.Seq[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h.toList.foldMap(v => convert(v).values)
     }
   }
@@ -188,7 +202,8 @@ object Header {
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = NonEmptyList[B] } =
+        h: Header[A, Header.Recurring]
+    ): Select[A] { type F[B] = NonEmptyList[B] } =
       new Select[A] {
         type F[B] = NonEmptyList[B]
 
@@ -215,7 +230,8 @@ object Header {
       (h.name == Header[A].name).guard[Option].map(_ => Header[A].parse(h.value).toIor)
 
     implicit def singleHeaders[A](implicit
-        h: Header[A, Header.Single]): Select[A] { type F[B] = B } =
+        h: Header[A, Header.Single]
+    ): Select[A] { type F[B] = B } =
       new Select[A] {
         type F[B] = B
 
@@ -230,7 +246,8 @@ object Header {
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
-        h: Header[A, Header.Recurring]): Select[A] { type F[B] = B } =
+        h: Header[A, Header.Recurring]
+    ): Select[A] { type F[B] = B } =
       new Select[A] {
         type F[B] = B
 

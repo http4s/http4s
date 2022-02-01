@@ -19,13 +19,13 @@ package client
 package middleware
 
 import cats.effect._
-import org.http4s.syntax.all._
 import org.http4s.dsl.io._
+import org.http4s.syntax.all._
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
 class LoggerSuite extends Http4sSuite {
-  val testApp = HttpApp[IO] {
+  private val testApp = HttpApp[IO] {
     case req @ POST -> Root / "post" =>
       Ok(req.body)
     case GET -> Root / "request" =>
@@ -34,11 +34,11 @@ class LoggerSuite extends Http4sSuite {
       NotFound()
   }
 
-  def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes()).covary
+  private def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes())
 
-  val expectedBody: String = "This is a test resource."
+  private val expectedBody: String = "This is a test resource."
 
-  val responseLoggerClient =
+  private val responseLoggerClient =
     ResponseLogger(true, true)(Client.fromHttpApp(testApp))
 
   test("ResponseLogger should not affect a Get") {
@@ -78,13 +78,5 @@ class LoggerSuite extends Http4sSuite {
     val res = loggerApp(req)
     res.map(_.status).assertEquals(Status.Ok)
     res.flatMap(_.as[String]).assertEquals(expectedBody)
-  }
-
-  def loggerColoredCompiles(): Unit = {
-    val _ = Logger.colored[IO](
-      logHeaders = true,
-      logBody = false,
-      logAction = Some(s => IO(println(s)))
-    ) _
   }
 }

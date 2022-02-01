@@ -16,23 +16,28 @@
 
 package org.http4s.metrics.dropwizard
 
+import cats.effect.Clock
+import cats.effect.IO
 import cats.syntax.all._
-import cats.effect.{Clock, IO}
-import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
-
-import java.io.IOException
-import java.util.concurrent.TimeoutException
-import org.http4s.{EntityDecoder, Http4sSuite, HttpApp, Request, Status, Uri}
-import org.http4s.client.{Client, UnexpectedStatus}
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.SharedMetricRegistries
+import org.http4s.EntityDecoder
+import org.http4s.Http4sSuite
+import org.http4s.HttpApp
+import org.http4s.Request
+import org.http4s.client.Client
+import org.http4s.client.UnexpectedStatus
 import org.http4s.client.middleware.Metrics
 import org.http4s.dsl.io._
 import org.http4s.metrics.dropwizard.util._
 import org.http4s.syntax.all._
 
+import java.io.IOException
 import java.util.Arrays
+import java.util.concurrent.TimeoutException
 
 class DropwizardClientMetricsSuite extends Http4sSuite {
-  val client = Client.fromHttpApp[IO](HttpApp[IO](stub))
+  private val client = Client.fromHttpApp[IO](HttpApp[IO](stub))
 
   test("A http client with a dropwizard metrics middleware should register a 2xx response") {
     implicit val clock: Clock[IO] = FakeClock[IO]
@@ -43,14 +48,18 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.default.2xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -60,20 +69,22 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
     meteredClient.expect[String]("/bad-request").attempt.map { resp =>
-      assert(resp match {
-        case Left(UnexpectedStatus(Status(400), _, _)) => true
-        case _ => false
-      })
+      val Left(UnexpectedStatus(status, _, _)) = resp
+      assertEquals(status, BadRequest)
       assertEquals(count(registry, Timer("client.default.4xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -83,21 +94,23 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
     meteredClient.expect[String]("/internal-server-error").attempt.map { resp =>
-      assert(resp match {
-        case Left(UnexpectedStatus(Status(500), _, _)) => true
-        case _ => false
-      })
+      val Left(UnexpectedStatus(status, _, _)) = resp
 
+      assertEquals(status, InternalServerError)
       assertEquals(count(registry, Timer("client.default.5xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.total"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -111,18 +124,24 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, Timer("client.default.get-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
       assertEquals(count(registry, Timer("client.default.requests.total")), 1L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.get-requests"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -136,18 +155,24 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, Timer("client.default.post-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
       assertEquals(count(registry, Timer("client.default.requests.total")), 1L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.post-requests"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -161,18 +186,24 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, Timer("client.default.put-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
       assertEquals(count(registry, Timer("client.default.requests.total")), 1L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.put-requests"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -186,18 +217,24 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(count(registry, Timer("client.default.delete-requests")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
       assertEquals(count(registry, Timer("client.default.requests.total")), 1L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.default.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.delete-requests"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.default.2xx-responses"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -207,14 +244,11 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
     meteredClient.expect[String]("/error").attempt.map { resp =>
-      assert(resp match {
-        case Left(_: IOException) => true
-        case _ => false
-      })
+      val Left(_: IOException) = resp
       assertEquals(count(registry, Timer("client.default.errors")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
-      assert(valuesOf(registry, Timer("client.default.requests.headers")).isEmpty)
-      assert(valuesOf(registry, Timer("client.default.requests.total")).isEmpty)
+      assertEquals(valuesOf(registry, Timer("client.default.requests.headers")), None)
+      assertEquals(valuesOf(registry, Timer("client.default.requests.total")), None)
     }
   }
 
@@ -224,19 +258,17 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
     val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
     meteredClient.expect[String]("/timeout").attempt.map { resp =>
-      assert(resp match {
-        case Left(_: TimeoutException) => true
-        case _ => false
-      })
+      val Left(_: TimeoutException) = resp
       assertEquals(count(registry, Timer("client.default.timeouts")), 1L)
       assertEquals(count(registry, Counter("client.default.active-requests")), 0L)
-      assert(valuesOf(registry, Timer("client.default.requests.headers")).isEmpty)
-      assert(valuesOf(registry, Timer("client.default.requests.total")).isEmpty)
+      assertEquals(valuesOf(registry, Timer("client.default.requests.headers")), None)
+      assertEquals(valuesOf(registry, Timer("client.default.requests.total")), None)
     }
   }
 
   test(
-    "A http client with a dropwizard metrics middleware should use the provided request classifier") {
+    "A http client with a dropwizard metrics middleware should use the provided request classifier"
+  ) {
     implicit val clock: Clock[IO] = FakeClock[IO]
     val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
     val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test10")
@@ -247,14 +279,18 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
       assertEquals(resp, Right("200 OK"))
       assertEquals(count(registry, Timer("client.get.2xx-responses")), 1L)
       assertEquals(count(registry, Counter("client.get.active-requests")), 0L)
-      assert(
+      assertEquals(
         valuesOf(registry, Timer("client.get.requests.headers"))
-          .map(Arrays.equals(_, (Array(50000000L))))
-          .getOrElse(false))
-      assert(
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(50000000L),
+      )
+      assertEquals(
         valuesOf(registry, Timer("client.get.requests.total"))
-          .map(Arrays.equals(_, (Array(100000000L))))
-          .getOrElse(false))
+          .getOrElse(Array.empty[Long])
+          .toList,
+        List(100000000L),
+      )
     }
   }
 
@@ -263,24 +299,25 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
   val clientRunResource = meteredClient
-    .run(Request[IO](uri = Uri.unsafeFromString("/ok")))
+    .run(Request[IO](uri = uri"/ok"))
 
   ResourceFixture(clientRunResource).test(
-    "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases") {
-    resp =>
-      IO {
-        EntityDecoder[IO, String].decode(resp, false).value.map { r =>
-          assertEquals(r, Right("200 OK"))
-          assertEquals(count(registry, Counter("client.default.active-requests")), 1L)
-          assertEquals(
-            valuesOf(registry, Timer("client.default.requests.headers")).map(
-              Arrays.equals(_, Array(50000000L))),
-            Some(true))
-          assertEquals(
-            Either.catchNonFatal(count(registry, Timer("client.default.2xx-responses"))).toOption,
-            None)
-          assertEquals(valuesOf(registry, Timer("client.default.requests.total")), none)
-        }
-      }
+    "A http client with a dropwizard metrics middleware should only record total time and decr active requests after client.run releases"
+  ) { resp =>
+    EntityDecoder[IO, String].decode(resp, false).value.map { r =>
+      assertEquals(r, Right("200 OK"))
+      assertEquals(count(registry, Counter("client.default.active-requests")), 1L)
+      assertEquals(
+        valuesOf(registry, Timer("client.default.requests.headers"))
+          .map(Arrays.equals(_, Array(50000000L))),
+        Some(true),
+      )
+      assertEquals(
+        Either.catchNonFatal(count(registry, Timer("client.default.2xx-responses"))).toOption,
+        None,
+      )
+      assertEquals(valuesOf(registry, Timer("client.default.requests.total")), none)
+    }
   }
+
 }

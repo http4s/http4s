@@ -18,11 +18,14 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Async, IO}
+import cats.effect.Async
+import cats.effect.IO
 import fs2._
 import org.http4s.blaze.util.Execution
+
 import scala.collection.mutable.Buffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 object DumpingWriter {
   def dump(p: EntityBody[IO]): IO[Array[Byte]] = {
@@ -38,7 +41,7 @@ class DumpingWriter(implicit protected val F: Async[IO]) extends EntityBodyWrite
 
   def toArray: Array[Byte] =
     buffer.synchronized {
-      Chunk.concat(buffer.toSeq).toArray
+      Chunk.concat(buffer).toArray
     }
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =

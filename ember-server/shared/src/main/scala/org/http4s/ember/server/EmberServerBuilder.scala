@@ -16,6 +16,7 @@
 
 package org.http4s.ember.server
 
+import _root_.org.typelevel.log4cats.Logger
 import cats._
 import cats.effect._
 import cats.effect.syntax.all._
@@ -25,16 +26,17 @@ import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
+import org.http4s.ember.server.internal.ServerHelpers
+import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.websocket.WebSocketContext
+import org.typelevel.vault.Key
 
 import scala.concurrent.duration._
-import _root_.org.typelevel.log4cats.Logger
-import org.http4s.ember.server.internal.{ServerHelpers, Shutdown}
-import org.typelevel.vault.Key
-import org.http4s.websocket.WebSocketContext
-import org.http4s.server.websocket.WebSocketBuilder
 
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
@@ -52,7 +54,7 @@ final class EmberServerBuilder[F[_]: Async] private (
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
-    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)]
+    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -75,7 +77,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
-        self.unixSocketConfig
+        self.unixSocketConfig,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -93,7 +95,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
       logger = logger,
-      unixSocketConfig = unixSocketConfig
+      unixSocketConfig = unixSocketConfig,
     )
 
   def withHostOption(host: Option[Host]) = copy(host = host)
@@ -120,7 +122,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
   def withOnError(onError: Throwable => Response[F]) =
-    withErrorHandler({ case e => onError(e).pure[F] })
+    withErrorHandler { case e => onError(e).pure[F] }
 
   def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
@@ -144,7 +146,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
-      deleteOnClose: Boolean = true) =
+      deleteOnClose: Boolean = true,
+  ) =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
   def withoutUnixSocketConfig =
     copy(unixSocketConfig = None)
@@ -175,11 +178,12 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsKey
+              wsKey,
             )
             .compile
             .drain
-        )) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
+        )
+      ) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
           .unixSocketServer(
             unixSockets,
@@ -198,18 +202,18 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey
+            wsKey,
           )
           .compile
           .drain
           .background
       }
-      _ <- Resource.make(Applicative[F].unit)(_ => shutdown.await)
+      _ <- Resource.onFinalize(shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Server {
-      val address = bindAddress
-      val isSecure = tlsInfoOpt.isDefined
+      def address: SocketAddress[IpAddress] = bindAddress
+      def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }
 
@@ -231,7 +235,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
-      None
+      None,
     )
 
   private object Defaults {

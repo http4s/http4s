@@ -1,8 +1,6 @@
----
-menu: main
-weight: 450
-title: Adopters
----
+
+# Adopters
+
 
 ## Industrial
 
@@ -139,6 +137,9 @@ title: Adopters
 [Smart Backpacker App](https://github.com/SmartBackpacker/core)
 : Backend of the traveler's app using the Typelevel stack
 
+[SurfsUp Alerts](https://github.com/manocha-aman/wind-alerts)
+: Backend of [app](https://play.google.com/store/apps/details?id=com.passiondigital.surfsup.android) for surfers .
+
 [todo-backend-typelevel](https://github.com/aeons/todo-backend-typelevel)
 : todo-backend implementation using the Typelevel stack
 
@@ -168,8 +169,8 @@ G8 templates provide a fast way to get started with SBT projects by just running
 : Typelevel Stack (Http4s / Doobie / Circe / Cats Effect / Fs2)
 
 
-<hr />
+----
 
-<small>
-[<i class="fa fa-edit" aria-hidden="true"></i> Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
-</small>
+@:style(footer)
+[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
+@:@

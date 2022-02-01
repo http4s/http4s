@@ -19,10 +19,10 @@ package server
 package middleware
 package authentication
 
-import org.http4s.crypto.Hash
-import org.http4s.crypto.HashAlgorithm
 import cats.Monad
 import cats.syntax.all._
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
 
 private[authentication] object DigestUtil {
@@ -51,7 +51,8 @@ private[authentication] object DigestUtil {
       nonce: String,
       nc: String,
       cnonce: String,
-      qop: String): F[String] = for {
+      qop: String,
+  ): F[String] = for {
     ha1str <- (username + ":" + realm + ":" + password).pure[F]
     ha1 <- md5(ha1str)
     ha2str = method + ":" + uri

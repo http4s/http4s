@@ -17,16 +17,17 @@
 package org.http4s
 package headers
 
+import org.http4s.syntax.header._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Prop._
 import org.typelevel.discipline.Laws
-import org.http4s.syntax.header._
 
 trait HeaderLaws extends munit.DisciplineSuite with Laws {
   def headerLaws[A](implicit
       arbHeader: Arbitrary[A],
       header: Header[A, _],
-      select: Header.Select[A]): RuleSet =
+      select: Header.Select[A],
+  ): RuleSet =
     new SimpleRuleSet(
       "header",
       """parse(a.value) == right(a)"""" -> forAll { (a: A) =>
@@ -42,8 +43,8 @@ trait HeaderLaws extends munit.DisciplineSuite with Laws {
         noise.nonEmpty ==> {
           val malformedName = a.name.toString + noise
           val properValue = a.value
-          assert(Headers((malformedName, properValue)).get[A].isEmpty)
+          unitToProp(assert(Headers((malformedName, properValue)).get[A].isEmpty))
         }
-      }
+      },
     )
 }

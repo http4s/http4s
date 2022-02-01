@@ -19,10 +19,9 @@ package blaze
 package client
 
 import cats.effect.Resource
+import org.http4s.blaze.pipeline.TailStage
 
 import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.client.Connection
 
 private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
   def runRequest(req: Request[F]): F[Resource[F, Response[F]]]

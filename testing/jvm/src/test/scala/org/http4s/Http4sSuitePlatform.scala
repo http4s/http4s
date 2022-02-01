@@ -16,47 +16,15 @@
 
 package org.http4s
 
-import cats.effect.{IO, Resource}
-import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
-import org.http4s.internal.threads.{newBlockingPool, newDaemonPool, threadFactory}
-import scala.concurrent.ExecutionContext
+import cats.effect.IO
+import cats.effect.Resource
 
 trait Http4sSuitePlatform { this: Http4sSuite =>
 
   def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource))
+    ResourceSuiteLocalFixture(name, resource)
+  )
 
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.get("CI").isDefined
-}
-
-trait Http4sSuiteCompanionPlatform {
-  val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(newDaemonPool("http4s-suite", timeout = true))
-
-  val TestScheduler: ScheduledExecutorService = {
-    val s =
-      new ScheduledThreadPoolExecutor(2, threadFactory(i => s"http4s-test-scheduler-$i", true))
-    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
-    s.allowCoreThreadTimeOut(true)
-    s
-  }
-
-  val TestIORuntime: IORuntime = {
-    val blockingPool = newBlockingPool("http4s-suite-blocking")
-    val computePool = newDaemonPool("http4s-suite", timeout = true)
-    val scheduledExecutor = TestScheduler
-    IORuntime.apply(
-      ExecutionContext.fromExecutor(computePool),
-      ExecutionContext.fromExecutor(blockingPool),
-      Scheduler.fromScheduledExecutor(scheduledExecutor),
-      () => {
-        blockingPool.shutdown()
-        computePool.shutdown()
-        scheduledExecutor.shutdown()
-      },
-      IORuntimeConfig()
-    )
-  }
+  override def munitFlakyOK = sys.env.contains("CI")
 }

@@ -18,21 +18,23 @@ package org.http4s
 package scalaxml
 
 import cats.effect.Concurrent
-import java.io.{ByteArrayInputStream, StringWriter}
-import javax.xml.parsers.SAXParserFactory
-
+import org.http4s.Charset.`UTF-8`
 import org.http4s.headers.`Content-Type`
 
+import java.io.ByteArrayInputStream
+import java.io.StringWriter
+import javax.xml.parsers.SAXParserFactory
 import scala.util.control.NonFatal
-import scala.xml.{Elem, InputSource, SAXParseException, XML}
+import scala.xml.Elem
+import scala.xml.InputSource
+import scala.xml.SAXParseException
+import scala.xml.XML
 
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
-    EntityEncoder
-      .stringEncoder[F]
+  implicit def xmlEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Elem] =
+    EntityEncoder.stringEncoder
       .contramap[Elem] { node =>
         val sw = new StringWriter
         XML.write(sw, node, charset.nioCharset.name, true, null)

@@ -17,14 +17,15 @@
 package org.http4s
 package client
 
-import cats.~>
 import cats.data.Kleisli
-import cats.effect._
 import cats.effect.Ref
+import cats.effect._
 import cats.syntax.all._
+import cats.~>
 import fs2._
-import java.io.IOException
 import org.http4s.headers.Host
+
+import java.io.IOException
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
@@ -78,7 +79,8 @@ trait Client[F[_]] {
   def stream(req: Request[F]): Stream[F, Response[F]]
 
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
@@ -87,12 +89,14 @@ trait Client[F[_]] {
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
@@ -101,7 +105,8 @@ trait Client[F[_]] {
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A]
+      d: EntityDecoder[F, A]
+  ): F[A]
 
   /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
@@ -110,7 +115,8 @@ trait Client[F[_]] {
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[Option[A]]
+      d: EntityDecoder[F, A]
+  ): F[Option[A]]
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
@@ -163,20 +169,32 @@ trait Client[F[_]] {
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
+  @deprecated("use public method with MonadCancelThrow instead", since = "0.23.7")
+  private[client] def translate[G[_]: Async](
+      fk: F ~> G
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
+
   /** Translates the effect type of this client from F to G
     */
-  def translate[G[_]: Async](fk: F ~> G)(gK: G ~> F)(implicit
-      F: MonadCancel[F, Throwable]): Client[G] =
+  def translate[G[_]: MonadCancelThrow](
+      fk: F ~> G
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
+
+  private[client] def translateImpl[G[_]: MonadCancelThrow](
+      fk: F ~> G
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
     Client((req: Request[G]) =>
       run(
         req.mapK(gK)
       ).mapK(fk)
-        .map(_.mapK(fk)))
+        .map(_.mapK(fk))
+    )
 }
 
 object Client {
-  def apply[F[_]](f: Request[F] => Resource[F, Response[F]])(implicit
-      F: MonadCancelThrow[F]): Client[F] =
+  def apply[F[_]](
+      f: Request[F] => Resource[F, Response[F]]
+  )(implicit F: MonadCancelThrow[F]): Client[F] =
     new DefaultClient[F] {
       def run(req: Request[F]): Resource[F, Response[F]] = f(req)
     }
@@ -204,10 +222,11 @@ object Client {
             }
           val req0 =
             addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
+
           Resource
             .eval(app(req0))
-            .flatTap(_ => Resource.make(F.unit)(_ => disposed.set(true)))
-            .map(resp => resp.copy(body = go(resp.body).stream))
+            .onFinalize(disposed.set(true))
+            .map(resp => resp.copy(entity = Entity(go(resp.body).stream)))
         }
       }
     }

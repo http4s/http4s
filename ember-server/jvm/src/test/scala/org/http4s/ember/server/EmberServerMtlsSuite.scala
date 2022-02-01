@@ -18,18 +18,19 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.implicits._
+import com.comcast.ip4s._
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
+import org.http4s._
+import org.http4s.dsl.Http4sDsl
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.implicits._
+import org.http4s.server.ServerRequestKeys
 
 import java.io.IOException
 import java.security.KeyStore
 import javax.net.ssl._
-import org.http4s._
-import org.http4s.implicits._
-import org.http4s.dsl.Http4sDsl
-import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.server.ServerRequestKeys
 
 /** Test cases for mTLS support in Ember Server.
   */
@@ -49,9 +50,9 @@ class EmberServerMtlsSuite extends Http4sSuite {
             .lookup(ServerRequestKeys.SecureSession)
             .flatten
             .map { session =>
-              assert(session.sslSessionId != "")
-              assert(session.cipherSuite != "")
-              assert(session.keySize != 0)
+              assertNotEquals(session.sslSessionId, "")
+              assertNotEquals(session.cipherSuite, "")
+              assertNotEquals(session.keySize, 0)
 
               session.X509Certificate.head.getSubjectX500Principal.getName
             }
@@ -62,9 +63,9 @@ class EmberServerMtlsSuite extends Http4sSuite {
             .lookup(ServerRequestKeys.SecureSession)
             .flatten
             .foreach { session =>
-              assert(session.sslSessionId != "")
-              assert(session.cipherSuite != "")
-              assert(session.keySize != 0)
+              assertNotEquals(session.sslSessionId, "")
+              assertNotEquals(session.cipherSuite, "")
+              assertNotEquals(session.keySize, 0)
               assert(session.X509Certificate.isEmpty)
             }
 
@@ -79,8 +80,9 @@ class EmberServerMtlsSuite extends Http4sSuite {
         .fromKeyStoreResource(
           "keystore.jks",
           "password".toCharArray,
-          "password".toCharArray
-        ))
+          "password".toCharArray,
+        )
+    )
 
   lazy val noAuthClientContext: SSLContext = {
     val js = KeyStore.getInstance("JKS")
@@ -124,43 +126,45 @@ class EmberServerMtlsSuite extends Http4sSuite {
       tlsContext <- authTlsClientContext
       emberServer <- EmberServerBuilder
         .default[IO]
+        .withPort(port"0")
         .withHttpApp(service[IO])
         .withTLS(
           tlsContext,
-          tlsParams
+          tlsParams,
         )
         .build
     } yield emberServer
 
   fixture(
     TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some),
-    authTlsClientContext).test("Server should handle mTLS request correctly") {
-    case (server, client) =>
-      import org.http4s.dsl.io._
-      import org.http4s.client.dsl.io._
+    authTlsClientContext,
+  ).test("Server should handle mTLS request correctly") { case (server, client) =>
+    import org.http4s.dsl.io._
+    import org.http4s.client.dsl.io._
 
-      val uri = Uri
-        .fromString(s"https://${server.address}/dummy")
-        .toOption
-        .get
-      val request = GET(uri)
-      for {
-        response <- client.fetchAs[String](request)
-      } yield assertEquals(clientCertCn, response)
+    val uri = Uri
+      .fromString(s"https://${server.address}/dummy")
+      .toOption
+      .get
+    val request = GET(uri)
+    for {
+      response <- client.fetchAs[String](request)
+    } yield assertEquals(clientCertCn, response)
   }
 
   fixture(
     TLSParameters(needClientAuth = true, protocols = List("TLSv1.2").some),
-    noAuthTlsClientContext).test("Server should fail for invalid client auth") {
-    case (server, client) =>
-      client
-        .statusFromString(s"https://${server.address}/dummy")
-        .intercept[IOException]
+    noAuthTlsClientContext,
+  ).test("Server should fail for invalid client auth") { case (server, client) =>
+    client
+      .statusFromString(s"https://${server.address}/dummy")
+      .intercept[IOException]
   }
 
   fixture(
     TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some),
-    authTlsClientContext).test("Server should handle mTLS request correctly with optional auth") {
+    authTlsClientContext,
+  ).test("Server should handle mTLS request correctly with optional auth") {
     case (server, client) =>
       import org.http4s.dsl.io._
       import org.http4s.client.dsl.io._
@@ -177,7 +181,8 @@ class EmberServerMtlsSuite extends Http4sSuite {
 
   fixture(
     TLSParameters(wantClientAuth = true, protocols = List("TLSv1.2").some),
-    noAuthTlsClientContext).test("Server should handle mTLS request correctly without clientAuth") {
+    noAuthTlsClientContext,
+  ).test("Server should handle mTLS request correctly without clientAuth") {
     case (server, client) =>
       import org.http4s.dsl.io._
       import org.http4s.client.dsl.io._

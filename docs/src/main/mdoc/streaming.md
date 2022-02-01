@@ -1,14 +1,10 @@
----
-menu: main
-title: Streaming
-weight: 305
----
 
-## Introduction
+# Streaming
 
 Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
 is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both http4s' service support and its client support.
+
 
 ## Streaming responses from your service
 
@@ -38,7 +34,7 @@ For a more realistic example of streaming results from database queries to the c
 [ScalaSyd 2015] example. In particular, if you want to stream JSON responses, please take note of how
 it converts a stream of JSON objects to a JSON array, which is friendlier to clients.
 
-## Consuming streams with the client
+## Consuming Streams with the Client
 
 The http4s [client] supports consuming chunked HTTP responses as a stream, again because the
 `EntityBody[F]` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
@@ -57,8 +53,8 @@ First, let's assume we want to use [Circe] for JSON support. Please see [json] f
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "{{< version "http4s.doc" >}}",
-  "io.circe" %% "circe-generic" % "{{< version circe >}}"
+  "org.http4s" %% "http4s-circe" % "@{version.http4s.doc}",
+  "io.circe" %% "circe-generic" % "@{version.circe}"
 )
 ```
 
@@ -87,7 +83,6 @@ import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
-import scala.concurrent.ExecutionContext.global
 
 class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
@@ -96,7 +91,8 @@ class TWStream[F[_]: Async] {
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+  def sign(consumerKey: String, consumerSecret: String, 
+           accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
     val consumer = Consumer(consumerKey, consumerSecret)
     val token    = Token(accessToken, accessSecret)
@@ -114,10 +110,11 @@ class TWStream[F[_]: Async] {
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
-            (req: Request[F]): Stream[F, Json] =
+  def jsonStream(consumerKey: String, consumerSecret: String, 
+                 accessToken: String, accessSecret: String)
+                (req: Request[F]): Stream[F, Json] =
     for {
-      client <- BlazeClientBuilder(global).stream
+      client <- BlazeClientBuilder[F].stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
@@ -128,8 +125,10 @@ class TWStream[F[_]: Async] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   val stream: Stream[F, Unit] = {
-    val req = Request[F](Method.GET, uri"https://stream.twitter.com/1.1/statuses/sample.json")
-    val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
+    val req = Request[F](Method.GET, 
+                uri"https://stream.twitter.com/1.1/statuses/sample.json")
+    val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
+                "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout)
   }
 

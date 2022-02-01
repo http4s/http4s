@@ -16,16 +16,21 @@
 
 package org.http4s
 
+import cats.Eval
+import cats.Foldable
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.parse.Parser0
 import cats.syntax.all._
-import cats.{Eval, Foldable, Hash, Order, Show}
-import java.nio.charset.StandardCharsets
 import org.http4s.Query._
 import org.http4s.internal.UriCoding
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
+import java.nio.charset.StandardCharsets
 import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -111,7 +116,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
           s,
           spaceIsPlus = false,
           charset = StandardCharsets.UTF_8,
-          toSkip = UriCoding.QueryNoEncode)
+          toSkip = UriCoding.QueryNoEncode,
+        )
 
       pairs.foreach {
         case (n, None) =>
@@ -129,7 +135,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
       }
       writer
     },
-    raw => writer.append(raw)
+    raw => writer.append(raw),
   )
 
   /** Map[String, String] representation of the [[Query]]
@@ -163,12 +169,12 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   override def hashCode: Int = 31 + toVector.##
 
-  /////////////////////// QueryOps methods and types /////////////////////////
+  // ///////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
   override protected def self: Self = this
   override protected def replaceQuery(query: Query): Self = query
-  ////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////
 }
 
 object Query {

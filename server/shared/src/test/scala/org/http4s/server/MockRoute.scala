@@ -19,7 +19,8 @@ package server
 
 import cats.effect._
 import cats.syntax.all._
-import org.http4s.Status.{Accepted, Ok}
+import org.http4s.Status.Accepted
+import org.http4s.Status.Ok
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.syntax.literals._
 
@@ -30,7 +31,7 @@ object MockRoute {
         Response[IO](Ok).withEntity("pong").pure[IO]
 
       case req if req.method === Method.POST && req.uri.path === path"/echo" =>
-        IO.pure(Response[IO](body = req.body))
+        IO.pure(Response[IO](entity = req.entity))
 
       case req if req.uri.path === path"/withslash" =>
         IO.pure(Response(Ok))

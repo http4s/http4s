@@ -17,8 +17,8 @@
 package org.http4s
 
 import cats._
-import cats.syntax.all._
 import cats.data.Kleisli
+import cats.syntax.all._
 
 /** Functions for creating [[Http]] kleislis. */
 object Http {
@@ -67,6 +67,7 @@ object Http {
     * being applied to `fa`
     */
   def local[F[_], G[_]](f: Request[G] => Request[G])(fa: Http[F, G])(implicit
-      F: Monad[F]): Http[F, G] =
+      F: Monad[F]
+  ): Http[F, G] =
     Kleisli(req => F.unit >> fa.run(f(req)))
 }

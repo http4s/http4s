@@ -16,15 +16,19 @@
 
 package com.example.http4s.blaze
 
-import cats.effect.{ExitCode, IO, IOApp}
-import java.net.URL
-import org.http4s._
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import org.http4s.Uri._
-import org.http4s.client.Client
+import org.http4s._
 import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+import org.http4s.syntax.literals._
+
+import java.net.URL
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
   val bottle: URL = getClass.getResource("/beerbottle.png")
@@ -34,13 +38,15 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val url = Uri(
       scheme = Some(Scheme.http),
       authority = Some(Authority(host = RegName("ptscom"))),
-      path = Uri.Path.unsafeFromString("/t/http4s/post"))
+      path = path"/t/http4s/post",
+    )
 
     val multipart = Multipart[IO](
       Vector(
         Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png))
-      ))
+        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png)),
+      )
+    )
 
     val request: Request[IO] =
       Method.POST(multipart, url).withHeaders(multipart.headers)

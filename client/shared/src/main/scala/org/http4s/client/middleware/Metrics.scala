@@ -16,13 +16,18 @@
 
 package org.http4s.client.middleware
 
+import cats.effect.Clock
 import cats.effect.Concurrent
-import cats.effect.{Clock, Ref, Resource}
+import cats.effect.Ref
+import cats.effect.Resource
 import cats.syntax.all._
-import org.http4s.{Request, Response, Status}
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.{Error, Timeout}
+import org.http4s.metrics.TerminationType.Error
+import org.http4s.metrics.TerminationType.Timeout
 
 import scala.concurrent.TimeoutException
 
@@ -50,7 +55,8 @@ object Metrics {
       ops: MetricsOps[F],
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
-      })(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
+      },
+  )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     effect(ops, classifierF.andThen(_.pure[F]))(client)
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
@@ -66,14 +72,15 @@ object Metrics {
     * @return the metrics middleware wrapping the [[Client]]
     */
   def effect[F[_]](ops: MetricsOps[F], classifierF: Request[F] => F[Option[String]])(
-      client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
+      client: Client[F]
+  )(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
   private def withMetrics[F[_]](
       client: Client[F],
       ops: MetricsOps[F],
-      classifierF: Request[F] => F[Option[String]])(
-      req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
+      classifierF: Request[F] => F[Option[String]],
+  )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     for {
       statusRef <- Resource.eval(C.ref[Option[Status]](None))
       start <- Resource.eval(F.monotonic)
@@ -83,7 +90,7 @@ object Metrics {
         classifierF,
         req,
         statusRef,
-        start.toNanos
+        start.toNanos,
       )
     } yield resp
 
@@ -93,30 +100,36 @@ object Metrics {
       classifierF: Request[F] => F[Option[String]],
       req: Request[F],
       statusRef: Ref[F, Option[Status]],
-      start: Long
+      start: Long,
   )(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     (for {
       classifier <- Resource.eval(classifierF(req))
       _ <- Resource.make(ops.increaseActiveRequests(classifier))(_ =>
-        ops.decreaseActiveRequests(classifier))
-      _ <- Resource.make(C.unit) { _ =>
+        ops.decreaseActiveRequests(classifier)
+      )
+      _ <- Resource.onFinalize(
         F.monotonic
           .flatMap(now =>
             statusRef.get.flatMap(oStatus =>
               oStatus.traverse_(status =>
-                ops.recordTotalTime(req.method, status, now.toNanos - start, classifier))))
-      }
+                ops.recordTotalTime(req.method, status, now.toNanos - start, classifier)
+              )
+            )
+          )
+      )
       resp <- client.run(req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
       end <- Resource.eval(F.monotonic)
       _ <- Resource.eval(ops.recordHeadersTime(req.method, end.toNanos - start, classifier))
     } yield resp).handleErrorWith { (e: Throwable) =>
       Resource.eval(
-        classifierF(req).flatMap(registerError(start, ops, _)(e)) *> C.raiseError[Response[F]](e))
+        classifierF(req).flatMap(registerError(start, ops, _)(e)) *> C.raiseError[Response[F]](e)
+      )
     }
 
   private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
-      e: Throwable)(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
+      e: Throwable
+  )(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
     F.monotonic
       .flatMap { now =>
         if (e.isInstanceOf[TimeoutException])

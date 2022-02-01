@@ -1,19 +1,17 @@
----
-menu: main
-title: CORS
-weight: 122
----
+
+# CORS
 
 For security reasons, modern web browsers enforce a [same origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy),
 restricting the ability of sites from a given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin) 
 to access resources at a different origin. Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
 to responses to allow limited exceptions to this via [cross origin resource sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS).
 
-## ⚠️ Warning ⚠️
+@:callout(warning)
 This guide assumes you are already familiar with CORS and its attendant security risks. 
 By enabling CORS you are bypassing an important protection against malicious third-party 
 websites - before doing so for any potentially sensitive resource, make sure you understand 
 what you are doing and why.
+@:@
 
 ## Usage
 Examples in this document have the following dependencies.
@@ -88,9 +86,12 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```scala mdoc
-val googleGet = Request[IO](Method.GET, uri"/", headers = Headers("Origin" -> "https://google.com"))
-val yahooPut = Request[IO](Method.PUT, uri"/", headers = Headers("Origin" -> "https://yahoo.com"))
-val duckPost = Request[IO](Method.POST, uri"/", headers = Headers("Origin" -> "https://duckduckgo.com"))
+val googleGet = Request[IO](Method.GET, uri"/", 
+  headers = Headers("Origin" -> "https://google.com"))
+val yahooPut = Request[IO](Method.PUT, uri"/", 
+  headers = Headers("Origin" -> "https://yahoo.com"))
+val duckPost = Request[IO](Method.POST, uri"/", 
+  headers = Headers("Origin" -> "https://duckduckgo.com"))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`

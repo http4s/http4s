@@ -17,22 +17,28 @@
 package org.http4s
 package blazecore
 
+import org.http4s.blaze.pipeline.MidStage
+import org.http4s.blaze.util.Cancelable
+import org.http4s.blaze.util.Execution
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.IdleTimeoutStage.Disabled
+import org.http4s.blazecore.IdleTimeoutStage.Enabled
+import org.http4s.blazecore.IdleTimeoutStage.ShutDown
+import org.http4s.blazecore.IdleTimeoutStage.State
+
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.util.{Cancelable, Execution, TickWheelExecutor}
-import org.http4s.blazecore.IdleTimeoutStage.{Disabled, Enabled, ShutDown, State}
-
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
-final private[http4s] class IdleTimeoutStage[A](
+private[http4s] final class IdleTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
-    ec: ExecutionContext)
-    extends MidStage[A, A] { stage =>
+    ec: ExecutionContext,
+) extends MidStage[A, A] { stage =>
 
   private val timeoutState = new AtomicReference[State](Disabled)
 
@@ -141,7 +147,7 @@ object IdleTimeoutStage {
 
   sealed trait State
   case object Disabled extends State
-  case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  final case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
   case object ShutDown extends State
 
 }

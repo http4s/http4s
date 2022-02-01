@@ -34,7 +34,7 @@ object HttpServer {
       s"/${endpoints.ApiVersion}/protected" -> ctx.basicAuthHttpEndpoint,
       s"/${endpoints.ApiVersion}" -> ctx.fileHttpEndpoint,
       s"/${endpoints.ApiVersion}/nonstream" -> ctx.nonStreamFileHttpEndpoint,
-      "/" -> ctx.httpServices
+      "/" -> ctx.httpServices,
     ).orNotFound
 
   def stream[F[_]: Async]: Stream[F, ExitCode] =

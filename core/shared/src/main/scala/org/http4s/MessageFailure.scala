@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import cats.{Eq, MonadError}
-import cats.syntax.all._
+import cats.Eq
+import cats.MonadError
 import cats.instances.either._
 import cats.parse.Parser0
-import scala.util.control.{NoStackTrace, NonFatal}
+import cats.syntax.all._
+
+import scala.util.control.NoStackTrace
+import scala.util.control.NonFatal
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 trait MessageFailure extends RuntimeException {
@@ -29,11 +32,11 @@ trait MessageFailure extends RuntimeException {
   def message: String
 
   /* Overridden for sensible logging of the failure */
-  final override def getMessage: String = message
+  override final def getMessage: String = message
 
   def cause: Option[Throwable]
 
-  final override def getCause: Throwable = cause.orNull
+  override final def getCause: Throwable = cause.orNull
 
   /** Provides a default rendering of this failure as a [[Response]]. */
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F]
@@ -58,7 +61,7 @@ final case class ParseFailure(sanitized: String, details: String)
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(sanitized)(EntityEncoder.stringEncoder[F])
+      .withEntity(sanitized)
 }
 
 object ParseFailure {
@@ -79,7 +82,8 @@ object ParseResult {
     }
 
   private[http4s] def fromParser[A](parser: Parser0[A], errorMessage: => String)(
-      s: String): ParseResult[A] =
+      s: String
+  ): ParseResult[A] =
     try parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.toString))
     catch { case p: ParseFailure => p.asLeft[A] }
 
@@ -107,7 +111,7 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was malformed.")
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
@@ -118,7 +122,7 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.UnprocessableEntity, httpVersion)
-      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was invalid.")
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
@@ -133,7 +137,7 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.UnsupportedMediaType, httpVersion)
-      .withEntity(responseMsg)(EntityEncoder.stringEncoder[F])
+      .withEntity(responseMsg)
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no

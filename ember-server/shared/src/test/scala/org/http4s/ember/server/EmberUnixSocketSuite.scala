@@ -16,15 +16,16 @@
 
 package org.http4s.ember.server
 
-import cats.syntax.all._
 import cats.effect._
+import cats.syntax.all._
 import fs2.io.file._
-import org.http4s._
-import org.http4s.ember.client.EmberClientBuilder
 import fs2.io.net.unixsocket.UnixSocketAddress
-import org.http4s.client.middleware.UnixSocket
-import scala.concurrent.duration._
 import fs2.io.net.unixsocket.UnixSockets
+import org.http4s._
+import org.http4s.client.middleware.UnixSocket
+import org.http4s.ember.client.EmberClientBuilder
+
+import scala.concurrent.duration._
 
 class EmberUnixSocketSuite extends Http4sSuite {
 

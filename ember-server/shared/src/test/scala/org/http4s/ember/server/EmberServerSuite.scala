@@ -18,8 +18,7 @@ package org.http4s.ember.server
 
 import cats.effect._
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
@@ -51,6 +50,7 @@ class EmberServerSuite extends Http4sSuite {
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
       .default[IO]
+      .withPort(port"0")
       .withHttpApp(service[IO])
       .build
 
@@ -60,8 +60,10 @@ class EmberServerSuite extends Http4sSuite {
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
+      .withPort(port"0")
       .withReceiveBufferSize(receiveBufferSize)
-      .build)
+      .build
+  )
 
   def fixture(receiveBufferSize: Int = 256 * 1024) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
@@ -80,8 +82,13 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
-  server().test("server startup fails if address is already in use") { case _ =>
-    serverResource.use(_ => IO.unit).intercept[BindException]
+  server().test("server startup fails if address is already in use") { server =>
+    EmberServerBuilder
+      .default[IO]
+      .withPort(server.address.port)
+      .build
+      .use(_ => IO.unit)
+      .intercept[BindException]
   }
 
   fixture(receiveBufferSize = 256).test("#4731 - read socket is drained after writing") {
@@ -92,7 +99,7 @@ class EmberServerSuite extends Http4sSuite {
       import org.http4s.client.dsl.io._
 
       val body: Stream[IO, Byte] =
-        Stream.emits(Seq("hello")).repeatN(256).through(fs2.text.utf8.encode).covary[IO]
+        Stream.emit("hello").repeatN(256).through(fs2.text.utf8.encode)
       val expected = "hello" * 256
 
       val uri = Uri

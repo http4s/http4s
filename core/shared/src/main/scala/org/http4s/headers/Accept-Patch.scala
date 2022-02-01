@@ -36,12 +36,12 @@ object `Accept-Patch` {
     Header.createRendered(
       ci"Accept-Patch",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Patch`] =
     (a, b) => `Accept-Patch`(a.values.concatNel(b.values))
 }
 
-// see https://tools.ietf.org/html/rfc5789#section-3.1
+// see https://datatracker.ietf.org/doc/html/rfc5789#section-3.1
 final case class `Accept-Patch`(values: NonEmptyList[MediaType])

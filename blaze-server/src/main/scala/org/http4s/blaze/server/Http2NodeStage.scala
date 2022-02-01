@@ -23,20 +23,26 @@ import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
-import java.util.Locale
-import java.util.concurrent.TimeoutException
+import org.http4s.blaze.http.HeaderNames
+import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http2._
-import org.http4s.blaze.http.{HeaderNames, Headers}
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.IdleTimeoutStage
-import org.http4s.blazecore.util.{End, Http2Writer}
+import org.http4s.blazecore.util.End
+import org.http4s.blazecore.util.Http2Writer
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.{Method => HMethod}
 import org.typelevel.vault._
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+
+import java.util.Locale
+import java.util.concurrent.TimeoutException
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util._
 
 private class Http2NodeStage[F[_]](
@@ -49,7 +55,8 @@ private class Http2NodeStage[F[_]](
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
-    dispatcher: Dispatcher[F])(implicit F: Async[F])
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
     extends TailStage[StreamFrame] {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val runApp = httpApp.run
@@ -112,7 +119,7 @@ private class Http2NodeStage[F[_]](
               bytesRead += bytes.remaining()
 
               // Check length: invalid length is a stream error of type PROTOCOL_ERROR
-              // https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
+              // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
               if (complete && maxlen > 0 && bytesRead != maxlen) {
                 val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
                 val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
@@ -152,7 +159,7 @@ private class Http2NodeStage[F[_]](
       }
     }
 
-    repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F])
+    repeatEval(t).unNoneTerminate.flatMap(chunk(_))
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
@@ -227,7 +234,7 @@ private class Http2NodeStage[F[_]](
     else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = Headers(headers.result())
-      val req = Request(method, path, HttpVersion.`HTTP/2`, hs, body, attributes())
+      val req = Request(method, path, HttpVersion.`HTTP/2`, hs, Entity(body), attributes())
       executionContext.execute(new Runnable {
         def run(): Unit = {
           val action = F
@@ -239,7 +246,8 @@ private class Http2NodeStage[F[_]](
             case Right(_) => F.unit
             case Left(t) =>
               F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
-                closePipeline(None))
+                closePipeline(None)
+              )
           }
 
           dispatcher.unsafeRunSync(fa)
@@ -257,8 +265,10 @@ private class Http2NodeStage[F[_]](
       // Connection related headers must be removed from the message because
       // this information is conveyed by other means.
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
-      if (h.name != headers.`Transfer-Encoding`.name &&
-        h.name != Header[headers.Connection].name) {
+      if (
+        h.name != headers.`Transfer-Encoding`.name &&
+        h.name != Header[headers.Connection].name
+      ) {
         hs += ((h.name.toString.toLowerCase(Locale.ROOT), h.value))
         ()
       }

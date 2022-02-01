@@ -17,20 +17,20 @@
 package org.http4s
 
 import cats._
-import cats.syntax.all._
 import cats.laws.discipline.NonEmptyTraverseTests
+import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 
 class ContextRequestSuite extends Http4sSuite {
   implicit def nonBodyEquality[F[_], A: Eq]: Eq[ContextRequest[F, A]] =
     Eq.instance { case (first, second) =>
       first.context === second.context &&
-        first.req == second.req
+      first.req == second.req
     }
 
   checkAll(
     "ContextRequest[F, *]",
     NonEmptyTraverseTests[ContextRequest[Option, *]]
-      .nonEmptyTraverse[Option, Int, Int, Int, Int, Option, Option]
+      .nonEmptyTraverse[Option, Int, Int, Int, Int, Option, Option],
   )
 }

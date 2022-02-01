@@ -17,9 +17,10 @@
 package org.http4s
 package server
 
-import cats.syntax.all._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
@@ -52,14 +53,15 @@ class ContextRouterSuite extends Http4sSuite {
     Kleisli((r: ContextRequest[IO, Unit]) =>
       if (r.req.uri.query.containsQueryParam("block"))
         OptionT.liftF(Ok(r.req.uri.path.renderString))
-      else routes(r))
+      else routes(r)
+    )
 
   val service = ContextRouter[IO, Unit](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
-    "/letters" -> letters
+    "/letters" -> letters,
   )
 
   test("translate mount prefixes") {

@@ -31,11 +31,11 @@ object ExampleApp {
   def serverStream[F[_]: Async]: Stream[F, ExitCode] =
     BlazeServerBuilder[F]
       .bindHttp(port = 8080, host = "0.0.0.0")
-      .withHttpApp(ExampleRoutes[F]().routes.orNotFound)
+      .withHttpApp(new ExampleRoutes[F].routes.orNotFound)
       .serve
 }
 
-case class ExampleRoutes[F[_]: Sync]() extends Http4sDsl[F] {
+final case class ExampleRoutes[F[_]: Sync]() extends Http4sDsl[F] {
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] { case GET -> Root / "ping" =>
       Ok("ping")

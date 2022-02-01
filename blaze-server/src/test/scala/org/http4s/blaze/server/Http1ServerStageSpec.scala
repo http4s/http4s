@@ -19,28 +19,32 @@ package blaze
 package server
 
 import cats.data.Kleisli
-import cats.syntax.all._
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.effect.std.Dispatcher
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import org.http4s.blaze.pipeline.Command.{Connected, Disconnected}
+import cats.syntax.all._
+import org.http4s.blaze.pipeline.Command.Connected
+import org.http4s.blaze.pipeline.Command.Disconnected
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{ResponseParser, SeqTestHead}
+import org.http4s.blazecore.ResponseParser
+import org.http4s.blazecore.SeqTestHead
 import org.http4s.dsl.io._
-import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.headers.Date
+import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.syntax.all._
 import org.http4s.testing.ErrorReporting._
 import org.http4s.websocket.WebSocketContext
 import org.http4s.{headers => H}
 import org.typelevel.ci._
 import org.typelevel.vault._
-import scala.concurrent.ExecutionContext
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
-  implicit val ec: ExecutionContext = Http4sSuite.TestExecutionContext
+
   val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })
@@ -81,9 +85,11 @@ class Http1ServerStageSpec extends Http4sSuite {
       req: Seq[String],
       httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
-      maxHeaders: Int = 16 * 1024): SeqTestHead = {
+      maxHeaders: Int = 16 * 1024,
+  ): SeqTestHead = {
     val head = new SeqTestHead(
-      req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
+      req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1)))
+    )
     val httpStage = server.Http1ServerStage[IO](
       httpApp,
       () => Vault.empty,
@@ -96,7 +102,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       30.seconds,
       30.seconds,
       tw,
-      dispatcher()
+      dispatcher(),
+      None,
     )
 
     pipeline.LeafBuilder(httpStage).base(head)
@@ -123,7 +130,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
   fixture.test("Http1ServerStage: Invalid Lengths should fail on too long of a header") {
     tickwheel =>
-      (runRequest(tickwheel, Seq(req), routes, maxHeaders = 1).result).map { buff =>
+      runRequest(tickwheel, Seq(req), routes, maxHeaders = 1).result.map { buff =>
         val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
         // make sure we don't have signs of chunked encoding.
         assert(str.contains("400 Bad Request"))
@@ -135,7 +142,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       if (i == 7 || i == 8) // Awful temporary hack
         fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
-            .split("\r\n\r\n")(0)}\n") { tw =>
+            .split("\r\n\r\n")(0)}\n"
+        ) { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
             .map(parseAndDropDate)
             .map(assertEquals(_, (status, headers, resp)))
@@ -144,7 +152,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       else
         fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
-            .split("\r\n\r\n")(0)}\n") { tw =>
+            .split("\r\n\r\n")(0)}\n"
+        ) { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
             .map(parseAndDropDate)
             .map(assertEquals(_, (status, headers, resp)))
@@ -176,46 +185,53 @@ class Http1ServerStageSpec extends Http4sSuite {
   fixture.test("Http1ServerStage: Errors should Deal with synchronous errors") { tw =>
     val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assert(s == InternalServerError && c)
+      assert(c)
+      assertEquals(s, InternalServerError)
     }
   }
 
   fixture.test("Http1ServerStage: Errors should Call toHttpResponse on synchronous errors") { tw =>
     val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assert(s == UnprocessableEntity && !c)
+      assert(!c)
+      assertEquals(s, UnprocessableEntity)
     }
   }
 
   fixture.test("Http1ServerStage: Errors should Deal with asynchronous errors") { tw =>
     val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assert(s == InternalServerError && c)
+      assert(c)
+      assertEquals(s, InternalServerError)
     }
   }
 
   fixture.test("Http1ServerStage: Errors should Call toHttpResponse on asynchronous errors") { tw =>
     val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
     runError(tw, path).map { case (s, c, _) =>
-      assert(s == UnprocessableEntity && !c)
+      assert(!c)
+      assertEquals(s, UnprocessableEntity)
     }
   }
 
   fixture.test("Http1ServerStage: Errors should Handle parse error") { tw =>
     val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
     runError(tw, path).map { case (s, c, _) =>
-      assert(s == BadRequest && c)
+      assert(c)
+      assertEquals(s, BadRequest)
     }
   }
 
   fixture.test(
-    "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response") { tw =>
+    "Http1ServerStage: routes should Do not send `Transfer-Encoding: identity` response"
+  ) { tw =>
     val routes = HttpRoutes
       .of[IO] { case _ =>
         val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
         IO.pure(
           Response[IO](headers = headers)
-            .withEntity("hello world"))
+            .withEntity("hello world")
+        )
       }
       .orNotFound
 
@@ -234,40 +250,41 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   fixture.test(
-    "Http1ServerStage: routes should Do not send an entity or entity-headers for a status that doesn't permit it") {
-    tw =>
-      val routes: HttpApp[IO] = HttpRoutes
-        .of[IO] { case _ =>
-          IO.pure(
-            Response[IO](status = Status.NotModified)
-              .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
-              .withEntity("Foo!"))
-        }
-        .orNotFound
-
-      val req = "GET /foo HTTP/1.1\r\n\r\n"
-
-      (runRequest(tw, Seq(req), routes).result).map { buf =>
-        val (status, hs, body) = ResponseParser.parseBuffer(buf)
-        hs.foreach { h =>
-          assert(`Content-Length`.parse(h.value).isLeft)
-        }
-        assert(body == "")
-        assert(status == Status.NotModified)
+    "Http1ServerStage: routes should Do not send an entity or entity-headers for a status that doesn't permit it"
+  ) { tw =>
+    val routes: HttpApp[IO] = HttpRoutes
+      .of[IO] { case _ =>
+        IO.pure(
+          Response[IO](status = Status.NotModified)
+            .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+            .withEntity("Foo!")
+        )
       }
+      .orNotFound
+
+    val req = "GET /foo HTTP/1.1\r\n\r\n"
+
+    runRequest(tw, Seq(req), routes).result.map { buf =>
+      val (status, hs, body) = ResponseParser.parseBuffer(buf)
+      hs.foreach { h =>
+        assert(`Content-Length`.parse(h.value).isLeft)
+      }
+      assertEquals(body, "")
+      assertEquals(status, Status.NotModified)
+    }
   }
 
   fixture.test("Http1ServerStage: routes should Add a date header") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 
     // The first request will get split into two chunks, leaving the last byte off
     val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-    (runRequest(tw, Seq(req1), routes).result).map { buff =>
+    runRequest(tw, Seq(req1), routes).result.map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
       assert(hdrs.exists(_.name == Header[Date].name))
@@ -278,14 +295,14 @@ class Http1ServerStageSpec extends Http4sSuite {
     val dateHeader = Date(HttpDate.Epoch)
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body).withHeaders(dateHeader))
+        IO.pure(Response(entity = req.entity).withHeaders(dateHeader))
       }
       .orNotFound
 
     // The first request will get split into two chunks, leaving the last byte off
     val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-    (runRequest(tw, Seq(req1), routes).result).map { buff =>
+    runRequest(tw, Seq(req1), routes).result.map { buff =>
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
 
@@ -295,161 +312,64 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   fixture.test(
-    "Http1ServerStage: routes should Handle routes that echos full request body for non-chunked") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val (r11, r12) = req1.splitAt(req1.length - 1)
-
-      (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
-        // Both responses must succeed
-        assertEquals(
-          parseAndDropDate(buff),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"))
-      }
-  }
-
-  fixture.test(
-    "Http1ServerStage: routes should Handle routes that consumes the full request body for non-chunked") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          req.as[String].map { s =>
-            Response().withEntity("Result: " + s)
-          }
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val (r11, r12) = req1.splitAt(req1.length - 1)
-
-      (runRequest(tw, Seq(r11, r12), routes).result).map { buff =>
-        // Both responses must succeed
-        assertEquals(
-          parseAndDropDate(buff),
-          (
-            Ok,
-            Set(
-              H.`Content-Length`.unsafeFromLong(8 + 4).toRaw1,
-              H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1
-            ),
-            "Result: done")
-        )
-      }
-  }
-
-  fixture.test(
-    "Http1ServerStage: routes should Maintain the connection if the body is ignored but was already read to completion by the Http1Stage") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case _ =>
-          IO.pure(Response().withEntity("foo"))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
-
-      (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
-        val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
-          H.`Content-Length`.unsafeFromLong(3).toRaw1
-        )
-        // Both responses must succeed
-        assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
-        assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
-      }
-  }
-
-  fixture.test(
-    "Http1ServerStage: routes should Drop the connection if the body is ignored and was not read to completion by the Http1Stage") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case _ =>
-          IO.pure(Response().withEntity("foo"))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val (r11, r12) = req1.splitAt(req1.length - 1)
-
-      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
-
-      (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
-        val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
-          H.`Content-Length`.unsafeFromLong(3).toRaw1
-        )
-        // Both responses must succeed
-        assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
-        assertEquals(buff.remaining(), 0)
-      }
-  }
-
-  fixture.test(
-    "Http1ServerStage: routes should Handle routes that runs the request body for non-chunked") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val (r11, r12) = req1.splitAt(req1.length - 1)
-      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
-
-      (runRequest(tw, Seq(r11, r12, req2), routes).result).map { buff =>
-        val hs = Set(
-          H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
-          H.`Content-Length`.unsafeFromLong(3).toRaw1
-        )
-        // Both responses must succeed
-        assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
-        assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
-      }
-  }
-
-  // Think of this as drunk HTTP pipelining
-  fixture.test("Http1ServerStage: routes should Not die when two requests come in back to back") {
-    tw =>
-      val routes = HttpRoutes
-        .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
-        }
-        .orNotFound
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
-
-      (runRequest(tw, Seq(req1 + req2), routes).result).map { buff =>
-        // Both responses must succeed
-        assertEquals(
-          dropDate(ResponseParser.parseBuffer(buff)),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done")
-        )
-        assertEquals(
-          dropDate(ResponseParser.parseBuffer(buff)),
-          (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"))
-      }
-  }
-
-  fixture.test(
-    "Http1ServerStage: routes should Handle using the request body as the response body") { tw =>
+    "Http1ServerStage: routes should Handle routes that echos full request body for non-chunked"
+  ) { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
+      }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val (r11, r12) = req1.splitAt(req1.length - 1)
+
+    runRequest(tw, Seq(r11, r12), routes).result.map { buff =>
+      // Both responses must succeed
+      assertEquals(
+        parseAndDropDate(buff),
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"),
+      )
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Handle routes that consumes the full request body for non-chunked"
+  ) { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        req.as[String].map { s =>
+          Response().withEntity("Result: " + s)
+        }
+      }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val (r11, r12) = req1.splitAt(req1.length - 1)
+
+    runRequest(tw, Seq(r11, r12), routes).result.map { buff =>
+      // Both responses must succeed
+      assertEquals(
+        parseAndDropDate(buff),
+        (
+          Ok,
+          Set(
+            H.`Content-Length`.unsafeFromLong(8 + 4).toRaw1,
+            H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+          ),
+          "Result: done",
+        ),
+      )
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Maintain the connection if the body is ignored but was already read to completion by the Http1Stage"
+  ) { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case _ =>
+        IO.pure(Response().withEntity("foo"))
       }
       .orNotFound
 
@@ -457,14 +377,117 @@ class Http1ServerStageSpec extends Http4sSuite {
     val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
     val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-    (runRequest(tw, Seq(req1, req2), routes).result).map { buff =>
+    runRequest(tw, Seq(req1, req2), routes).result.map { buff =>
+      val hs = Set(
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+        H.`Content-Length`.unsafeFromLong(3).toRaw1,
+      )
+      // Both responses must succeed
+      assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
+      assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Drop the connection if the body is ignored and was not read to completion by the Http1Stage"
+  ) { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case _ =>
+        IO.pure(Response().withEntity("foo"))
+      }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val (r11, r12) = req1.splitAt(req1.length - 1)
+
+    val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+    runRequest(tw, Seq(r11, r12, req2), routes).result.map { buff =>
+      val hs = Set(
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+        H.`Content-Length`.unsafeFromLong(3).toRaw1,
+      )
+      // Both responses must succeed
+      assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
+      assertEquals(buff.remaining(), 0)
+    }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Handle routes that runs the request body for non-chunked"
+  ) { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
+      }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val (r11, r12) = req1.splitAt(req1.length - 1)
+    val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+    runRequest(tw, Seq(r11, r12, req2), routes).result.map { buff =>
+      val hs = Set(
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`).toRaw1,
+        H.`Content-Length`.unsafeFromLong(3).toRaw1,
+      )
+      // Both responses must succeed
+      assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
+      assertEquals(dropDate(ResponseParser.parseBuffer(buff)), (Ok, hs, "foo"))
+    }
+  }
+
+  // Think of this as drunk HTTP pipelining
+  fixture.test("Http1ServerStage: routes should Not die when two requests come in back to back") {
+    tw =>
+      val routes = HttpRoutes
+        .of[IO] { case req =>
+          IO.pure(Response(entity = req.entity))
+        }
+        .orNotFound
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+      runRequest(tw, Seq(req1 + req2), routes).result.map { buff =>
+        // Both responses must succeed
+        assertEquals(
+          dropDate(ResponseParser.parseBuffer(buff)),
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"),
+        )
+        assertEquals(
+          dropDate(ResponseParser.parseBuffer(buff)),
+          (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"),
+        )
+      }
+  }
+
+  fixture.test(
+    "Http1ServerStage: routes should Handle using the request body as the response body"
+  ) { tw =>
+    val routes = HttpRoutes
+      .of[IO] { case req =>
+        IO.pure(Response(entity = req.entity))
+      }
+      .orNotFound
+
+    // The first request will get split into two chunks, leaving the last byte off
+    val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+    val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+    runRequest(tw, Seq(req1, req2), routes).result.map { buff =>
       // Both responses must succeed
       assertEquals(
         dropDate(ResponseParser.parseBuffer(buff)),
-        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"))
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(4).toRaw1), "done"),
+      )
       assertEquals(
         dropDate(ResponseParser.parseBuffer(buff)),
-        (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"))
+        (Ok, Set(H.`Content-Length`.unsafeFromLong(5).toRaw1), "total"),
+      )
     }
   }
 
@@ -502,12 +525,12 @@ class Http1ServerStageSpec extends Http4sSuite {
   }
 
   fixture.test(
-    "Http1ServerStage: routes should Fail if you use the trailers before they have resolved") {
-    tw =>
-      (runRequest(tw, Seq(req("bar")), routes2).result).map { buff =>
-        val results = dropDate(ResponseParser.parseBuffer(buff))
-        assertEquals(results._1, InternalServerError)
-      }
+    "Http1ServerStage: routes should Fail if you use the trailers before they have resolved"
+  ) { tw =>
+    runRequest(tw, Seq(req("bar")), routes2).result.map { buff =>
+      val results = dropDate(ResponseParser.parseBuffer(buff))
+      assertEquals(results._1, InternalServerError)
+    }
   }
 
   fixture.test("Http1ServerStage: routes should cancels on stage shutdown".flaky) { tw =>
@@ -532,7 +555,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   fixture.test("Http1ServerStage: routes should Disconnect if we read an EOF") { tw =>
     val head = runRequest(tw, Seq.empty, Kleisli.liftF(Ok("")))
     head.result.map { _ =>
-      assert(head.closeCauses == Seq(None))
+      assertEquals(head.closeCauses, Vector(None))
     }
   }
 
@@ -543,7 +566,8 @@ class Http1ServerStageSpec extends Http4sSuite {
       List(rawReq),
       HttpApp { req =>
         Response[IO](Status.NoContent).putHeaders(req.params("fieldName") -> "oops").pure[IO]
-      })
+      },
+    )
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
       assertEquals(headers.find(_.name === ci"Evil"), None)
@@ -559,7 +583,8 @@ class Http1ServerStageSpec extends Http4sSuite {
         Response[IO](Status.NoContent)
           .putHeaders("X-Oops" -> req.params("fieldValue"))
           .pure[IO]
-      })
+      },
+    )
     head.result.map { buff =>
       val (_, headers, _) = ResponseParser.parseBuffer(buff)
       assertEquals(headers.find(_.name === ci"Evil"), None)
@@ -584,7 +609,8 @@ class Http1ServerStageSpec extends Http4sSuite {
                 }.as(Response[IO]())
             case _ =>
               cancelableStarted.complete(()) *> IO.never.guarantee(
-                cancelableCanceled.complete(()).void)
+                cancelableCanceled.complete(()).void
+              )
           }
           head <- IO(runRequest(tw, reqUncancelable, app))
           _ <- uncancelableStarted.get

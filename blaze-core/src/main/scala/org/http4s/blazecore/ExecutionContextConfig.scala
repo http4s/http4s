@@ -16,8 +16,9 @@
 
 package org.http4s.blazecore
 
-import cats.syntax.all._
 import cats.effect.Async
+import cats.syntax.all._
+
 import scala.concurrent.ExecutionContext
 
 private[http4s] sealed trait ExecutionContextConfig extends Product with Serializable {

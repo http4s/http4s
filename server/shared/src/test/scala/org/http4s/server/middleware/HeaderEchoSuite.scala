@@ -17,8 +17,8 @@
 package org.http4s.server.middleware
 
 import cats._
-import cats.implicits._
 import cats.effect.IO
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
@@ -33,7 +33,7 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingSingleHeaderKey =
       Request[G](
         uri = uri"/request",
-        headers = Headers("someheaderkey" -> "someheadervalue")
+        headers = Headers("someheaderkey" -> "someheadervalue"),
       )
 
     (testee
@@ -41,7 +41,7 @@ class HeaderEchoSuite extends Http4sSuite {
       .map(_.headers)
       .map { responseHeaders =>
         responseHeaders.headers.exists(_.value === "someheadervalue") &&
-        responseHeaders.headers.toList.length === 3
+        responseHeaders.headers.length === 3
       }
   }
 
@@ -56,7 +56,8 @@ class HeaderEchoSuite extends Http4sSuite {
       Request[IO](
         uri = uri"/request",
         headers =
-          Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"))
+          Headers("someheaderkey" -> "someheadervalue", "anotherheaderkey" -> "anotherheadervalue"),
+      )
     val headersToEcho =
       List(ci"someheaderkey", ci"anotherheaderkey")
     val testee = HeaderEcho(headersToEcho.contains(_))(testService)
@@ -68,7 +69,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
         responseHeaders.headers.exists(_.value === "someheadervalue") &&
         responseHeaders.headers.exists(_.value === "anotherheadervalue") &&
-        responseHeaders.headers.toList.length === 4
+        responseHeaders.headers.length === 4
       }
       .assert
   }
@@ -77,7 +78,8 @@ class HeaderEchoSuite extends Http4sSuite {
     val requestMatchingNotPresentHeaderKey =
       Request[IO](
         uri = uri"/request",
-        headers = Headers("someunmatchedheader" -> "someunmatchedvalue"))
+        headers = Headers("someunmatchedheader" -> "someunmatchedvalue"),
+      )
 
     val testee = HeaderEcho(_ == ci"someheaderkey")(testService)
     testee
@@ -86,7 +88,7 @@ class HeaderEchoSuite extends Http4sSuite {
         val responseHeaders = r.headers
 
         !responseHeaders.headers.exists(_.value === "someunmatchedvalue") &&
-        responseHeaders.headers.toList.length === 2
+        responseHeaders.headers.length === 2
       }
       .assert
   }
@@ -95,7 +97,8 @@ class HeaderEchoSuite extends Http4sSuite {
     testSingleHeader(
       HeaderEcho
         .httpRoutes(_ == ci"someheaderkey")(testService)
-        .orNotFound).assert
+        .orNotFound
+    ).assert
   }
 
   test("be created via the httpApps constructor") {

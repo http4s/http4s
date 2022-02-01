@@ -16,7 +16,8 @@
 
 package org.http4s.testing
 
-import cats.effect.{IO, SyncIO}
+import cats.effect.IO
+import cats.effect.SyncIO
 import cats.effect.std.Dispatcher
 import munit.CatsEffectSuite
 

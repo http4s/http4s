@@ -1,8 +1,5 @@
----
-menu: main
-weight: 200
-title: HTTP Client
----
+
+# HTTP Client
 
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
@@ -12,7 +9,7 @@ A recap of the dependencies for this example, in case you skipped the [service] 
 ```scala
 scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = "{{< version "http4s.doc" >}}"
+val http4sVersion = "@{version.http4s.doc}"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -45,14 +42,15 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 Finish setting up our server:
 
 ```scala mdoc:nest
-import scala.concurrent.ExecutionContext.global
-
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global).bindHttp(8080, "localhost").withHttpApp(app).resource
+val server = BlazeServerBuilder[IO]
+  .bindHttp(8080, "localhost")
+  .withHttpApp(app)
+  .resource
 ```
 
 We'll start the server in the background.  The `IO.never` keeps it
@@ -71,11 +69,10 @@ A good default choice is the `BlazeClientBuilder`.  The
 ```scala mdoc
 import org.http4s.blaze.client._
 import org.http4s.client._
-import scala.concurrent.ExecutionContext.global
 ```
 
 ```scala mdoc:silent
-BlazeClientBuilder[IO](global).resource.use { client =>
+BlazeClientBuilder[IO].resource.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.
@@ -198,6 +195,79 @@ Like the server [middleware], the client middleware is a wrapper around a
 `Client` that provides a means of accessing or manipulating `Request`s
 and `Response`s being sent.
 
+Consider functions from `Int` to `String. We could create a wrapper over functions of this type,
+which would take an `Int => String` and return an `Int => String`.
+
+Such a wrapper could make the result inspect its input, do something to it,
+and call the original function with that input (or even another one).
+Then it could look at the response and also make some actions based on it.
+
+An example wrapper could look something like this:
+
+```scala mdoc
+def mid(f: Int => String): Int => String = in => {
+  // here, `in` is the input originally passed to the function
+  // we can decide to pass it to `f`, or modify it first. We'll change it for the example.
+  val resultOfF = f(in + 1)
+
+  // Now, `resultOfF` is the result of the function applied with the modified result.
+  // We can return it verbatim or _also_ modify it first! We could even ignore it.
+  // Here, we'll use both results - the one we got from the original call (f(in)) and the customized one (f(in + 1)).
+  s"${f(in)} is the original result, but $resultOfF's input was modified!"
+}
+```
+
+If we were to wrap a simple function, say, one returning the String representation of a number:
+
+```scala mdoc
+val f1: Int => String = _.toString
+
+// Here, we're applying our wrapper to `f1`. Notice that this is still a function.
+val f2: Int => String = mid(f1)
+
+f1(10)
+f2(10)
+```
+
+We would see how it's changing the result of the `f1` function by giving it another input.
+
+This wrapper could be considered a **middleware** over functions from `Int` to `String`.
+Now consider a simplified definition of `Client[F]` - it boils down to a single abstract method:
+
+```scala
+trait Client[F[_]] {
+  def run(request: Request[F]): Resource[F, Response[F]]
+}
+```
+
+Knowing this, we could say a `Client[F]` is equivalent to a function from `Request[F]` to `Resource[F, Response[F]]`. In fact, given a client, we could call `client.run _` to get that function.
+
+A client middleware follows the same idea as our original middleware did: it takes a `Client` (which is a function) and returns another `Client` (which is also a function).
+
+It can see the input `Request[F]` that we pass to the client when we call it, it can modify that request, pass it to the underlying client (or any other client, really!), and do all sorts of other things, including effects - all it has to do is return a `Resource[F, Response[F]]`.
+
+The real definition of `Client` is a little more complicated because there's several more abstract methods.
+If you want to implement a client using just a function (for example, to make a middleware), consider using `Client.apply`.
+
+A simple middleware, which would add a constant header to every request and response, could look like this:
+
+```scala mdoc
+import org.typelevel.ci.CIString
+
+def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Client[F] { req =>
+  underlying
+    .run(
+      req.withHeaders(Header.Raw(CIString("X-Test-Request"), "test"))
+    )
+    .map(
+      _.withHeaders(Header.Raw(CIString("X-Test-Response"), "test"))
+    )
+}
+```
+
+As the caller of the client you would get from this, you would see the extra header in the response.
+Similarly, every service called by the client would see an extra header in the requests.
+
 ### Included Middleware
 
 Http4s includes some middleware Out of the Box in the `org.http4s.client.middleware`
@@ -238,10 +308,11 @@ import com.codahale.metrics.SharedMetricRegistries
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+val meteredClient = 
+  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
-A `classifier` is just a function Request[F] => Option[String] that allows
+A `classifier` is just a function `Request[F] => Option[String]` that allows
 to add a subprefix to every metric based on the `Request`
 
 #### Prometheus Metrics Middleware
@@ -274,7 +345,7 @@ val meteredClient: Resource[IO, Client[IO]] =
 ```
 
 
-A `classifier` is just a function Request[F] => Option[String] that allows
+A `classifier` is just a function `Request[F] => Option[String]` that allows
 to add a label to every metric based on the `Request`
 
 ## Examples

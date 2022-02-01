@@ -16,6 +16,8 @@
 
 package org.http4s.websocket
 
+import cats.effect.Async
+import cats.syntax.all._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
@@ -23,8 +25,6 @@ import scodec.bits.ByteVector
 import java.nio.charset.StandardCharsets._
 import java.util.Base64
 import scala.util.Random
-import cats.effect.Async
-import cats.syntax.all._
 
 private[http4s] object WebSocketHandshake {
 
@@ -47,13 +47,17 @@ private[http4s] object WebSocketHandshake {
 
     /** Check if the server response is a websocket handshake response */
     def checkResponse[F[_]: Async](headers: Iterable[(String, String)]): F[Either[String, Unit]] =
-      if (!headers.exists { case (k, v) =>
+      if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-        })
+        }
+      )
         Async[F].pure(Left("Bad Connection header"))
-      else if (!headers.exists { case (k, v) =>
+      else if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-        })
+        }
+      )
         Async[F].pure(Left("Bad Upgrade header"))
       else
         headers
@@ -70,21 +74,28 @@ private[http4s] object WebSocketHandshake {
   }
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
-  def serverHandshake[F[_]: Async](headers: Iterable[(String, String)])
-      : F[Either[(Int, String), collection.Seq[(String, String)]]] =
+  def serverHandshake[F[_]: Async](
+      headers: Iterable[(String, String)]
+  ): F[Either[(Int, String), collection.Seq[(String, String)]]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") })
       Async[F].pure(Left((-1, "Missing Host Header")))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-      })
+      }
+    )
       Async[F].pure(Left((-1, "Bad Connection header")))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-      })
+      }
+    )
       Async[F].pure(Left((-1, "Bad Upgrade header")))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Sec-WebSocket-Version") && valueContains("13", v)
-      })
+      }
+    )
       Async[F].pure(Left((-1, "Bad Websocket Version header")))
     // we are past most of the 'just need them' headers
     else
@@ -97,14 +108,19 @@ private[http4s] object WebSocketHandshake {
             val respHeaders = collection.Seq(
               ("Upgrade", "websocket"),
               ("Connection", "Upgrade"),
-              ("Sec-WebSocket-Accept", acceptKey)
+              ("Sec-WebSocket-Accept", acceptKey),
             )
 
             Either.right[(Int, String), collection.Seq[(String, String)]](respHeaders)
           }
         }
-        .getOrElse(Async[F].pure(Left[(Int, String), collection.Seq[(String, String)]](
-          (-1, "Bad Sec-WebSocket-Key header"))))
+        .getOrElse(
+          Async[F].pure(
+            Left[(Int, String), collection.Seq[(String, String)]](
+              (-1, "Bad Sec-WebSocket-Key header")
+            )
+          )
+        )
 
   /** Check if the headers contain an 'Upgrade: websocket' header */
   def isWebSocketRequest(headers: Iterable[(String, String)]): Boolean =
@@ -128,7 +144,8 @@ private[http4s] object WebSocketHandshake {
         s.startsWith("\"") &&
         s.endsWith("\"") &&
         s.substring(1, s.length - 1).equalsIgnoreCase(key)
-      })
+      }
+    )
   }
 
   private val magicString =
@@ -137,6 +154,6 @@ private[http4s] object WebSocketHandshake {
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),
     ("Upgrade", "websocket"),
-    ("Sec-WebSocket-Version", "13")
+    ("Sec-WebSocket-Version", "13"),
   )
 }

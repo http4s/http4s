@@ -16,12 +16,14 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline.OrderTests
-import java.nio.charset.StandardCharsets
 import org.http4s.Status._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
+
+import java.nio.charset.StandardCharsets
 
 class StatusSpec extends Http4sSuite {
   checkAll("Status", OrderTests[Status].order)
@@ -81,13 +83,15 @@ class StatusSpec extends Http4sSuite {
   }
 
   test(
-    "Finding a status by code should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code should succeed if the code is in the valid range, but not a standard code"
+  ) {
     assert(fromInt(371).fold(_ => false, s => s.reason == ""))
     assert(fromInt(482).isRight)
   }
 
   test(
-    "Finding a status by code should yield a status with the standard reason for a standard code") {
+    "Finding a status by code should yield a status with the standard reason for a standard code"
+  ) {
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
 

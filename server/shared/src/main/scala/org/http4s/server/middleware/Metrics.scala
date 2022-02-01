@@ -22,7 +22,9 @@ import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.{Abnormal, Canceled, Error}
+import org.http4s.metrics.TerminationType.Abnormal
+import org.http4s.metrics.TerminationType.Canceled
+import org.http4s.metrics.TerminationType.Error
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -39,7 +41,7 @@ object Metrics {
   private[this] final case class MetricsRequestContext(
       method: Method,
       startTime: Long,
-      classifier: Option[String]
+      classifier: Option[String],
   )
 
   /** A server middleware capable of recording metrics
@@ -56,7 +58,7 @@ object Metrics {
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
-      }
+      },
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
@@ -77,7 +79,7 @@ object Metrics {
       ops: MetricsOps[F],
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
-      classifierF: Request[F] => F[Option[String]]
+      classifierF: Request[F] => F[Option[String]],
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
       (request: Request[F]) =>
@@ -87,7 +89,9 @@ object Metrics {
               .map(startTime =>
                 ContextRequest(
                   MetricsRequestContext(request.method, startTime.toNanos, classifier),
-                  request))
+                  request,
+                )
+              )
         }
     } { case (context, maybeStatus, outcome) =>
       // Decrease active requests _first_ in case any of the other effects
@@ -101,7 +105,8 @@ object Metrics {
             outcome match {
               case Outcome.Succeeded(_) =>
                 (maybeStatus <+> emptyResponseHandler).traverse_(status =>
-                  ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                  ops.recordTotalTime(context.method, status, totalTime, context.classifier)
+                )
               case Outcome.Errored(e) =>
                 maybeStatus.fold {
                   // If an error occurred, and the status is empty, this means
@@ -110,7 +115,8 @@ object Metrics {
                   ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
                     ops.recordAbnormalTermination(totalTime, Error(e), context.classifier) *>
                     errorResponseHandler(e).traverse_(status =>
-                      ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                      ops.recordTotalTime(context.method, status, totalTime, context.classifier)
+                    )
                 }(status =>
                   // If an error occurred, but the status is non-empty, this
                   // means the error occurred during the stream processing of
@@ -118,10 +124,12 @@ object Metrics {
                   // have been invoked in the normal manner so we do not need
                   // to invoke it here.
                   ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
-                    ops.recordTotalTime(context.method, status, totalTime, context.classifier))
+                    ops.recordTotalTime(context.method, status, totalTime, context.classifier)
+                )
               case Outcome.Canceled() =>
                 ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
-            })
+            }
+          )
     }(C)(
       Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
         routes
@@ -133,7 +141,11 @@ object Metrics {
                 ops.recordHeadersTime(
                   contextRequest.context.method,
                   headerTime,
-                  contextRequest.context.classifier)) *> C.pure(
-              ContextResponse(response.status, response)))))
+                  contextRequest.context.classifier,
+                )
+              ) *> C.pure(ContextResponse(response.status, response))
+          )
+      )
+    )
 
 }

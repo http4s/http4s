@@ -16,11 +16,13 @@
 
 package org.http4s.ember.server.internal
 
-import cats.syntax.all._
 import cats.effect.Concurrent
 import cats.effect.std.Semaphore
-import fs2.{INothing, Stream}
-import fs2.concurrent.{Signal, SignallingRef}
+import cats.syntax.all._
+import fs2.INothing
+import fs2.Stream
+import fs2.concurrent.Signal
+import fs2.concurrent.SignallingRef
 
 private[internal] object StreamForking {
 
@@ -38,7 +40,8 @@ private[internal] object StreamForking {
     * recovered here.
     */
   def forking[F[_], O](streams: Stream[F, Stream[F, O]], maxConcurrency: Int = Int.MaxValue)(
-      implicit F: Concurrent[F]): Stream[F, INothing] = {
+      implicit F: Concurrent[F]
+  ): Stream[F, INothing] = {
     val fstream = for {
       done <- SignallingRef[F, Option[Option[Throwable]]](None)
       available <- Semaphore[F](maxConcurrency.toLong)

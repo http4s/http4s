@@ -17,7 +17,9 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.IO
-import cats.effect.std.{Queue, Semaphore}
+import cats.effect.std.Queue
+import cats.effect.std.Semaphore
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.blaze.pipeline.HeadStage
@@ -25,7 +27,6 @@ import org.http4s.websocket.WebSocketFrame
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import cats.effect.unsafe.implicits.global
 
 /** A simple stage to help test websocket requests
   *
@@ -43,8 +44,8 @@ import cats.effect.unsafe.implicits.global
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
     outQueue: Queue[IO, WebSocketFrame],
-    writeSemaphore: Semaphore[IO])
-    extends HeadStage[WebSocketFrame] {
+    writeSemaphore: Semaphore[IO],
+) extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
     *

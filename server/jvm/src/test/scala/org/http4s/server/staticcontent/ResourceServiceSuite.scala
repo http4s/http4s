@@ -20,16 +20,15 @@ package staticcontent
 
 import cats.effect.IO
 import cats.syntax.all._
-import java.nio.file.Paths
 import fs2._
-import org.http4s.headers.{
-  `Accept-Encoding`,
-  `Content-Encoding`,
-  `Content-Type`,
-  `If-Modified-Since`
-}
+import org.http4s.headers.`Accept-Encoding`
+import org.http4s.headers.`Content-Encoding`
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.TranslateUri
 import org.http4s.syntax.all._
+
+import java.nio.file.Paths
 
 class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val config =
@@ -43,7 +42,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Respect UriTranslation") {
     val app = TranslateUri("/foo")(routes).orNotFound
 
-    {
+    testResource.flatMap { testResource =>
       val req = Request[IO](uri = uri"/foo/testresource.txt")
       Stream.eval(app(req)).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
         app(req).map(_.status).assertEquals(Status.Ok)
@@ -57,8 +56,10 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
     val req = Request[IO](uri = Uri.fromString("/testresource.txt").yolo)
     val rb = routes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
-      rb.map(_.status).assertEquals(Status.Ok)
+    testResource.flatMap { testResource =>
+      Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
+        rb.map(_.status).assertEquals(Status.Ok)
+    }
   }
 
   test("Decodes path segments") {
@@ -99,7 +100,8 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial base path prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial base path prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
@@ -111,7 +113,8 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test(
-    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match") {
+    "Return a 404 Not Found if the request tries to escape the context with a partial path-prefix match"
+  ) {
     val relativePath = "Dir/partial-prefix.txt"
     val file = Paths.get(defaultBase).resolve(relativePath).toFile
 
@@ -138,32 +141,41 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   test("Try to serve pre-gzipped content if asked to") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResourceGzipped) *>
-      rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
-        .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .assertEquals(ContentCoding.gzip.some)
+    testResourceGzipped.flatMap { testResourceGzipped =>
+      Stream
+        .eval(rb)
+        .flatMap(_.body.chunks)
+        .compile
+        .lastOrError
+        .assertEquals(testResourceGzipped) *>
+        rb.map(_.status).assertEquals(Status.Ok) *>
+        rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
+          .assertEquals(MediaType.text.plain.some) *>
+        rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
+          .assertEquals(ContentCoding.gzip.some)
+    }
   }
 
   test("Fallback to un-gzipped file if pre-gzipped version doesn't exist") {
     val req = Request[IO](
       uri = Uri.fromString("/testresource2.txt").yolo,
-      headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
     val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
 
-    Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
-      rb.map(_.status).assertEquals(Status.Ok) *>
-      rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
-        .assertEquals(MediaType.text.plain.some) *>
-      rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
-        .map(_ =!= ContentCoding.gzip.some)
-        .assert
+    testResource.flatMap { testResource =>
+      Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>
+        rb.map(_.status).assertEquals(Status.Ok) *>
+        rb.map(_.headers.get[`Content-Type`].map(_.mediaType))
+          .assertEquals(MediaType.text.plain.some) *>
+        rb.map(_.headers.get[`Content-Encoding`].map(_.contentCoding))
+          .map(_ =!= ContentCoding.gzip.some)
+          .assert
+    }
   }
 
   test("Generate non on missing content") {

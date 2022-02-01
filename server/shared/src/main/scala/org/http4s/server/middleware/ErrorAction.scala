@@ -17,15 +17,16 @@
 package org.http4s.server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
 import cats._
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 import org.http4s._
 
 object ErrorAction {
   def apply[F[_]: ApplicativeThrow, G[_], B](
       k: Kleisli[F, Request[G], B],
-      f: (Request[G], Throwable) => F[Unit]
+      f: (Request[G], Throwable) => F[Unit],
   ): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       k.run(req).onError { case e => f(req, e) }
@@ -34,7 +35,7 @@ object ErrorAction {
   def log[F[_]: ApplicativeThrow, G[_], B](
       http: Kleisli[F, Request[G], B],
       messageFailureLogAction: (Throwable, => String) => F[Unit],
-      serviceErrorLogAction: (Throwable, => String) => F[Unit]
+      serviceErrorLogAction: (Throwable, => String) => F[Unit],
   ): Kleisli[F, Request[G], B] =
     apply(
       http,
@@ -43,27 +44,28 @@ object ErrorAction {
           messageFailureLogAction(
             mf,
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}"""
+              .getOrElse("<unknown>")}""",
           )
         case (req, e) =>
           serviceErrorLogAction(
             e,
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}"""
+              .getOrElse("<unknown>")}""",
           )
-      }
+      },
     )
 
   object httpApp {
     def apply[F[_]: ApplicativeThrow](
         httpApp: HttpApp[F],
-        f: (Request[F], Throwable) => F[Unit]): HttpApp[F] =
+        f: (Request[F], Throwable) => F[Unit],
+    ): HttpApp[F] =
       ErrorAction(httpApp, f)
 
     def log[F[_]: ApplicativeThrow, G[_], B](
         httpApp: HttpApp[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
-        serviceErrorLogAction: (Throwable, => String) => F[Unit]
+        serviceErrorLogAction: (Throwable, => String) => F[Unit],
     ): HttpApp[F] =
       ErrorAction.log(httpApp, messageFailureLogAction, serviceErrorLogAction)
   }
@@ -71,18 +73,19 @@ object ErrorAction {
   object httpRoutes {
     def apply[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
-        f: (Request[F], Throwable) => F[Unit]): HttpRoutes[F] =
+        f: (Request[F], Throwable) => F[Unit],
+    ): HttpRoutes[F] =
       ErrorAction(httpRoutes, (t, msg) => OptionT.liftF(f(t, msg)))
 
     def log[F[_]: MonadThrow](
         httpRoutes: HttpRoutes[F],
         messageFailureLogAction: (Throwable, => String) => F[Unit],
-        serviceErrorLogAction: (Throwable, => String) => F[Unit]
+        serviceErrorLogAction: (Throwable, => String) => F[Unit],
     ): HttpRoutes[F] =
       ErrorAction.log(
         httpRoutes,
         (t, msg) => OptionT.liftF(messageFailureLogAction(t, msg)),
-        (t, msg) => OptionT.liftF(serviceErrorLogAction(t, msg))
+        (t, msg) => OptionT.liftF(serviceErrorLogAction(t, msg)),
       )
   }
 }

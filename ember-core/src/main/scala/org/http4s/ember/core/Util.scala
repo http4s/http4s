@@ -19,15 +19,17 @@ package ember.core
 
 import cats._
 import cats.data.NonEmptyList
-import cats.effect.kernel.{Clock, Temporal}
+import cats.effect.kernel.Clock
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
-import java.util.Locale
 import org.http4s.headers.Connection
 import org.typelevel.ci._
-import scala.concurrent.duration._
+
 import java.time.Instant
+import java.util.Locale
+import scala.concurrent.duration._
 
 private[ember] object Util {
 
@@ -59,7 +61,7 @@ private[ember] object Util {
       started: Long,
       timeout: FiniteDuration,
       shallTimeout: F[Boolean],
-      chunkSize: Int
+      chunkSize: Int,
   )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads
@@ -69,7 +71,8 @@ private[ember] object Util {
           .flatMap(now =>
             Stream.raiseError[F](
               EmberException.Timeout(Instant.ofEpochMilli(started), Instant.ofEpochMilli(now))
-            ))
+            )
+          )
       else
         for {
           start <- streamCurrentTimeMillis(C)
@@ -78,7 +81,7 @@ private[ember] object Util {
           out <- read.fold[Stream[F, Byte]](
             Stream.empty
           )(
-            Stream.chunk(_).covary[F] ++ go(remains - (end - start).millis)
+            Stream.chunk(_) ++ go(remains - (end - start).millis)
           )
         } yield out
     def go(remains: FiniteDuration): Stream[F, Byte] =
@@ -86,7 +89,7 @@ private[ember] object Util {
         .eval(shallTimeout)
         .ifM(
           whenMayTimeout(remains),
-          whenWontTimeout
+          whenWontTimeout,
         )
     go(timeout)
   }

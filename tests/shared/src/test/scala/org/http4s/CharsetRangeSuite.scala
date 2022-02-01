@@ -19,7 +19,8 @@ package org.http4s
 import cats.kernel.laws.discipline.EqTests
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 class CharsetRangeSuite extends Http4sSuite {
   test("* should match all charsets") {

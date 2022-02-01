@@ -19,7 +19,8 @@ package com.example.http4s.blaze.demo.server.service
 import cats.effect.Async
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
-import fs2.io.file.{Files, Path}
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.multipart.Part
 
 import java.io.File
@@ -33,7 +34,7 @@ class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
 
   def directories(path: String, depth: Int): Stream[F, String] = {
     def dir(f: File, d: Int): Stream[F, File] = {
-      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory).covary[F]
+      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory)
 
       if (d <= 0) Stream.empty
       else if (d == 1) dirs

@@ -17,8 +17,8 @@
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.Sync
-import org.http4s.{ApiVersion => _, _}
 import org.http4s.dsl.Http4sDsl
+import org.http4s.{ApiVersion => _, _}
 
 class HexNameHttpEndpoint[F[_]: Sync] extends Http4sDsl[F] {
   object NameQueryParamMatcher extends QueryParamDecoderMatcher[String]("name")

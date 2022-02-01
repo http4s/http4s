@@ -17,8 +17,8 @@
 package org.http4s.client.middleware
 
 import cats._
-import cats.syntax.all._
 import cats.effect.kernel._
+import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
 
@@ -57,7 +57,7 @@ object CookieJar {
 
   /** Middleware Constructor Using a Provided [[CookieJar]].
     */
-  def apply[F[_]: Async](
+  def apply[F[_]: Sync](
       alg: CookieJar[F]
   )(
       client: Client[F]
@@ -78,29 +78,29 @@ object CookieJar {
   /** Constructor which builds a non-exposed CookieJar
     * and applies it to the client.
     */
-  def impl[F[_]: Async](c: Client[F]): F[Client[F]] =
+  def impl[F[_]: Sync](c: Client[F]): F[Client[F]] =
     in[F, F](c)
 
   /** Like [[impl]] except it allows the creation of the middleware in a
     * different HKT than the client is in.
     */
-  def in[F[_]: Async, G[_]: Sync](c: Client[F]): G[Client[F]] =
+  def in[F[_]: Sync, G[_]: Sync](c: Client[F]): G[Client[F]] =
     jarIn[F, G].map(apply(_)(c))
 
   /** Jar Constructor
     */
-  def jarImpl[F[_]: Async]: F[CookieJar[F]] =
+  def jarImpl[F[_]: Sync]: F[CookieJar[F]] =
     jarIn[F, F]
 
   /** Like [[jarImpl]] except it allows the creation of the CookieJar in a
     * different HKT than the client is in.
     */
-  def jarIn[F[_]: Async, G[_]: Sync]: G[CookieJar[F]] =
+  def jarIn[F[_]: Sync, G[_]: Sync]: G[CookieJar[F]] =
     Ref.in[G, F, Map[CookieKey, CookieValue]](Map.empty).map { ref =>
       new CookieJarRefImpl[F](ref) {}
     }
 
-  private[CookieJar] class CookieJarRefImpl[F[_]: Async](
+  private[CookieJar] class CookieJarRefImpl[F[_]: Sync](
       ref: Ref[F, Map[CookieKey, CookieValue]]
   ) extends CookieJar[F] {
     override def evictExpired: F[Unit] =
@@ -131,20 +131,20 @@ object CookieJar {
   private[middleware] final case class CookieKey(
       name: String,
       domain: String,
-      path: Option[String]
+      path: Option[String],
   )
 
   private[middleware] final class CookieValue(
       val setAt: HttpDate,
       val expiresAt: HttpDate,
-      val cookie: ResponseCookie
+      val cookie: ResponseCookie,
   ) {
     override def equals(obj: Any): Boolean =
       obj match {
         case c: CookieValue =>
           setAt == c.setAt &&
-            expiresAt == c.expiresAt &&
-            cookie == c.cookie
+          expiresAt == c.expiresAt &&
+          cookie == c.cookie
         case _ => false
       }
   }
@@ -153,14 +153,14 @@ object CookieJar {
     def apply(
         setAt: HttpDate,
         expiresAt: HttpDate,
-        cookie: ResponseCookie
+        cookie: ResponseCookie,
     ): CookieValue = new CookieValue(setAt, expiresAt, cookie)
   }
 
   private[middleware] def expiresAt(
       now: HttpDate,
       c: ResponseCookie,
-      default: HttpDate
+      default: HttpDate,
   ): HttpDate =
     c.expires
       .orElse(
@@ -169,9 +169,10 @@ object CookieJar {
       .getOrElse(default)
 
   private[middleware] def extractFromResponseCookies[G[_]: Foldable](
-      m: Map[CookieKey, CookieValue])(
+      m: Map[CookieKey, CookieValue]
+  )(
       cookies: G[(ResponseCookie, Uri)],
-      httpDate: HttpDate
+      httpDate: HttpDate,
   ): Map[CookieKey, CookieValue] =
     cookies
       .foldRight(Eval.now(m)) { case ((rc, uri), eM) =>
@@ -198,11 +199,13 @@ object CookieJar {
 
   private[middleware] def cookieAppliesToRequest[N[_]](
       r: Request[N],
-      c: ResponseCookie): Boolean = {
+      c: ResponseCookie,
+  ): Boolean = {
     val domainApplies = c.domain.exists(s =>
       r.uri.host.forall { authority =>
         authority.renderString.contains(s)
-      })
+      }
+    )
     val pathApplies = c.path.forall(s => r.uri.path.renderString.contains(s))
 
     val secureSatisfied =
@@ -217,7 +220,7 @@ object CookieJar {
 
   private[middleware] def cookiesForRequest[N[_]](
       r: Request[N],
-      l: List[ResponseCookie]
+      l: List[ResponseCookie],
   ): List[RequestCookie] =
     l.foldLeft(List.empty[RequestCookie]) { case (list, cookie) =>
       if (cookieAppliesToRequest(r, cookie)) responseCookieToRequestCookie(cookie) :: list

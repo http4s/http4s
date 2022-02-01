@@ -18,19 +18,26 @@ package org.http4s
 package blaze
 package client
 
-import cats.syntax.all._
-import cats.effect.kernel.{Async, Resource}
+import cats.effect.kernel.Async
+import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
+import cats.syntax.all._
+import org.http4s.blaze.channel.ChannelOptions
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.BlazeBackendBuilder
+import org.http4s.blazecore.ExecutionContextConfig
+import org.http4s.blazecore.tickWheelResource
+import org.http4s.client.Client
+import org.http4s.client.RequestKey
+import org.http4s.client.defaults
+import org.http4s.headers.`User-Agent`
+import org.http4s.internal.BackendBuilder
+import org.http4s.internal.SSLContextOption
+import org.log4s.getLogger
+
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
-import org.http4s.blaze.channel.ChannelOptions
-import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.{BlazeBackendBuilder, ExecutionContextConfig, tickWheelResource}
-import org.http4s.client.{Client, ConnectionBuilder, RequestKey, defaults}
-import org.http4s.headers.`User-Agent`
-import org.http4s.internal.{BackendBuilder, SSLContextOption}
-import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -56,6 +63,10 @@ import scala.concurrent.duration._
   * @param asynchronousChannelGroup custom AsynchronousChannelGroup to use other than the system default
   * @param channelOptions custom socket options
   * @param customDnsResolver customDnsResolver to use other than the system default
+  * @param retries the number of times an idempotent request that fails with a `SocketException` will be retried.  This is a means to deal with connections that expired while in the pool.  Retries happen immediately.  The default is 2.  For a more sophisticated retry strategy, see the [[org.http4s.client.middleware.Retry]] middleware.
+  * @param maxIdleDuration maximum time a connection can be idle and still
+  * be borrowed.  Helps deal with connections that are closed while
+  * idling in the pool for an extended period.
   */
 final class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
@@ -78,13 +89,15 @@ final class BlazeClientBuilder[F[_]] private (
     val scheduler: Resource[F, TickWheelExecutor],
     val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
     val channelOptions: ChannelOptions,
-    val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]]
+    val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
+    val retries: Int,
+    val maxIdleDuration: Duration,
 )(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
-  final protected val logger = getLogger(this.getClass)
+  protected final val logger = getLogger(this.getClass)
 
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -107,7 +120,10 @@ final class BlazeClientBuilder[F[_]] private (
       scheduler: Resource[F, TickWheelExecutor] = scheduler,
       asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
       channelOptions: ChannelOptions = channelOptions,
-      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] = None
+      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]] =
+        customDnsResolver,
+      retries: Int = retries,
+      maxIdleDuration: Duration = maxIdleDuration,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -130,13 +146,16 @@ final class BlazeClientBuilder[F[_]] private (
       scheduler = scheduler,
       asynchronousChannelGroup = asynchronousChannelGroup,
       channelOptions = channelOptions,
-      customDnsResolver = customDnsResolver
+      customDnsResolver = customDnsResolver,
+      retries = retries,
+      maxIdleDuration = maxIdleDuration,
     )
 
   @deprecated(
     "Do not use - always returns cats.effect.unsafe.IORuntime.global.compute." +
       "There is no direct replacement - directly use Async[F].executionContext or your custom execution context",
-    "0.23.5")
+    "0.23.5",
+  )
   def executionContext: ExecutionContext = cats.effect.unsafe.IORuntime.global.compute
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -168,7 +187,8 @@ final class BlazeClientBuilder[F[_]] private (
     copy(maxWaitQueueLimit = maxWaitQueueLimit)
 
   def withMaxConnectionsPerRequestKey(
-      maxConnectionsPerRequestKey: RequestKey => Int): BlazeClientBuilder[F] =
+      maxConnectionsPerRequestKey: RequestKey => Int
+  ): BlazeClientBuilder[F] =
     copy(maxConnectionsPerRequestKey = maxConnectionsPerRequestKey)
 
   /** Use the provided `SSLContext` when making secure calls */
@@ -182,14 +202,22 @@ final class BlazeClientBuilder[F[_]] private (
   def withDefaultSslContext: BlazeClientBuilder[F] =
     withSslContext(SSLContext.getDefault())
 
+  /** Number of times to immediately retry idempotent requests that fail
+    * with a `SocketException`.
+    */
+  def withRetries(retries: Int = retries): BlazeClientBuilder[F] =
+    copy(retries = retries)
+
   /** Use some provided `SSLContext` when making secure calls, or disable secure calls with `None` */
   @deprecated(
     message =
       "Use withDefaultSslContext, withSslContext or withoutSslContext to set the SSLContext",
-    since = "0.22.0-M1")
+    since = "0.22.0-M1",
+  )
   def withSslContextOption(sslContext: Option[SSLContext]): BlazeClientBuilder[F] =
     copy(sslContext =
-      sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided.apply))
+      sslContext.fold[SSLContextOption](SSLContextOption.NoSSL)(SSLContextOption.Provided.apply)
+    )
 
   /** Disable secure calls */
   def withoutSslContext: BlazeClientBuilder[F] =
@@ -220,10 +248,12 @@ final class BlazeClientBuilder[F[_]] private (
     copy(scheduler = scheduler.pure[Resource[F, *]])
 
   def withAsynchronousChannelGroupOption(
-      asynchronousChannelGroup: Option[AsynchronousChannelGroup]): BlazeClientBuilder[F] =
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup]
+  ): BlazeClientBuilder[F] =
     copy(asynchronousChannelGroup = asynchronousChannelGroup)
   def withAsynchronousChannelGroup(
-      asynchronousChannelGroup: AsynchronousChannelGroup): BlazeClientBuilder[F] =
+      asynchronousChannelGroup: AsynchronousChannelGroup
+  ): BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(Some(asynchronousChannelGroup))
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
@@ -231,8 +261,9 @@ final class BlazeClientBuilder[F[_]] private (
   def withChannelOptions(channelOptions: ChannelOptions): BlazeClientBuilder[F] =
     copy(channelOptions = channelOptions)
 
-  def withCustomDnsResolver(customDnsResolver: RequestKey => Either[Throwable, InetSocketAddress])
-      : BlazeClientBuilder[F] =
+  def withCustomDnsResolver(
+      customDnsResolver: RequestKey => Either[Throwable, InetSocketAddress]
+  ): BlazeClientBuilder[F] =
     copy(customDnsResolver = Some(customDnsResolver))
 
   def resource: Resource[F, Client[F]] =
@@ -254,7 +285,8 @@ final class BlazeClientBuilder[F[_]] private (
         responseHeaderTimeout = responseHeaderTimeout,
         requestTimeout = requestTimeout,
         scheduler = scheduler,
-        ec = executionContext
+        ec = executionContext,
+        retries = retries,
       )
 
     } yield (client, manager.state)
@@ -270,14 +302,16 @@ final class BlazeClientBuilder[F[_]] private (
   private def verifyTimeoutAccuracy(
       tick: Duration,
       timeout: Duration,
-      timeoutName: String): F[Unit] =
+      timeoutName: String,
+  ): F[Unit] =
     F.delay {
       val warningThreshold = 0.1 // 10%
       val inaccuracy = tick / timeout
       if (inaccuracy > warningThreshold)
         logger.warn(
           s"With current configuration, $timeoutName ($timeout) may be up to ${inaccuracy * 100}% longer than configured. " +
-            s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick).")
+            s"If timeout accuracy is important, consider using a scheduler with a shorter tick (currently $tick)."
+        )
     }
 
   private def verifyTimeoutRelations(): F[Unit] =
@@ -288,37 +322,43 @@ final class BlazeClientBuilder[F[_]] private (
 
       if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= requestTimeout)
         logger.warn(
-          s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice")
+          s"responseHeaderTimeout ($responseHeaderTimeout) is >= requestTimeout ($requestTimeout). $advice"
+        )
 
       if (responseHeaderTimeout.isFinite && responseHeaderTimeout >= idleTimeout)
         logger.warn(
-          s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice")
+          s"responseHeaderTimeout ($responseHeaderTimeout) is >= idleTimeout ($idleTimeout). $advice"
+        )
 
       if (requestTimeout.isFinite && requestTimeout >= idleTimeout)
         logger.warn(s"requestTimeout ($requestTimeout) is >= idleTimeout ($idleTimeout). $advice")
     }
 
   private def connectionManager(scheduler: TickWheelExecutor, dispatcher: Dispatcher[F])(implicit
-      F: Async[F]): Resource[F, ConnectionManager.Stateful[F, BlazeConnection[F]]] = {
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
-      sslContextOption = sslContext,
-      bufferSize = bufferSize,
-      asynchronousChannelGroup = asynchronousChannelGroup,
-      executionContextConfig = executionContextConfig,
-      scheduler = scheduler,
-      checkEndpointIdentification = checkEndpointIdentification,
-      maxResponseLineSize = maxResponseLineSize,
-      maxHeaderLength = maxHeaderLength,
-      maxChunkSize = maxChunkSize,
-      chunkBufferMaxSize = chunkBufferMaxSize,
-      parserMode = parserMode,
-      userAgent = userAgent,
-      channelOptions = channelOptions,
-      connectTimeout = connectTimeout,
-      dispatcher = dispatcher,
-      idleTimeout = idleTimeout,
-      getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_))
-    ).makeClient
+      F: Async[F]
+  ): Resource[F, ConnectionManager.Stateful[F, BlazeConnection[F]]] = {
+    val http1: ConnectionBuilder[F, BlazeConnection[F]] =
+      (requestKey: RequestKey) =>
+        new Http1Support[F](
+          sslContextOption = sslContext,
+          bufferSize = bufferSize,
+          asynchronousChannelGroup = asynchronousChannelGroup,
+          executionContextConfig = executionContextConfig,
+          scheduler = scheduler,
+          checkEndpointIdentification = checkEndpointIdentification,
+          maxResponseLineSize = maxResponseLineSize,
+          maxHeaderLength = maxHeaderLength,
+          maxChunkSize = maxChunkSize,
+          chunkBufferMaxSize = chunkBufferMaxSize,
+          parserMode = parserMode,
+          userAgent = userAgent,
+          channelOptions = channelOptions,
+          connectTimeout = connectTimeout,
+          dispatcher = dispatcher,
+          idleTimeout = idleTimeout,
+          getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
+        ).makeClient(requestKey)
+
     Resource.make(
       executionContextConfig.getExecutionContext.flatMap(executionContext =>
         ConnectionManager.pool(
@@ -328,8 +368,11 @@ final class BlazeClientBuilder[F[_]] private (
           maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
           responseHeaderTimeout = responseHeaderTimeout,
           requestTimeout = requestTimeout,
-          executionContext = executionContext
-        )))(_.shutdown)
+          executionContext = executionContext,
+          maxIdleDuration = maxIdleDuration,
+        )
+      )
+    )(_.shutdown)
   }
 }
 
@@ -357,13 +400,16 @@ object BlazeClientBuilder {
       scheduler = tickWheelResource,
       asynchronousChannelGroup = None,
       channelOptions = ChannelOptions(Vector.empty),
-      customDnsResolver = None
+      customDnsResolver = None,
+      retries = 2,
+      maxIdleDuration = Duration.Inf,
     )
 
   @deprecated(
     "Most users should use the default execution context provided. " +
       "If you have a specific reason to use a custom one, use `.withExecutionContext`",
-    "0.23.5")
+    "0.23.5",
+  )
   def apply[F[_]: Async](executionContext: ExecutionContext): BlazeClientBuilder[F] =
     BlazeClientBuilder[F].withExecutionContext(executionContext)
 

@@ -18,13 +18,12 @@ package org.http4s
 package server
 package middleware
 
+import cats.Monad
 import cats.data.Kleisli
 import cats.effect._
-import cats.instances.option._
-import cats.syntax.functor._
 import cats.syntax.flatMap._
-import cats.syntax.alternative._
-import cats.{Monad, ~>}
+import cats.syntax.functor._
+import cats.~>
 import org.http4s.Http
 import org.typelevel.ci._
 import org.typelevel.vault.Key
@@ -35,12 +34,13 @@ object HttpMethodOverrider {
     */
   class HttpMethodOverriderConfig[F[_], G[_]](
       val overrideStrategy: OverrideStrategy[F, G],
-      val overridableMethods: Set[Method]) {
+      val overridableMethods: Set[Method],
+  ) {
     type Self = HttpMethodOverriderConfig[F, G]
 
     private def copy(
         overrideStrategy: OverrideStrategy[F, G] = overrideStrategy,
-        overridableMethods: Set[Method] = overridableMethods
+        overridableMethods: Set[Method] = overridableMethods,
     ): Self =
       new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
 
@@ -54,7 +54,8 @@ object HttpMethodOverrider {
   object HttpMethodOverriderConfig {
     def apply[F[_], G[_]](
         overrideStrategy: OverrideStrategy[F, G],
-        overridableMethods: Set[Method]): HttpMethodOverriderConfig[F, G] =
+        overridableMethods: Set[Method],
+    ): HttpMethodOverriderConfig[F, G] =
       new HttpMethodOverriderConfig[F, G](overrideStrategy, overridableMethods)
   }
 
@@ -65,13 +66,14 @@ object HttpMethodOverrider {
       extends OverrideStrategy[F, G]
   final case class FormOverrideStrategy[F[_], G[_]](
       fieldName: String,
-      naturalTransformation: G ~> F)
-      extends OverrideStrategy[F, G]
+      naturalTransformation: G ~> F,
+  ) extends OverrideStrategy[F, G]
 
   def defaultConfig[F[_], G[_]]: HttpMethodOverriderConfig[F, G] =
     HttpMethodOverriderConfig[F, G](
       HeaderOverrideStrategy(ci"X-HTTP-Method-Override"),
-      Set(Method.POST))
+      Set(Method.POST),
+    )
 
   val overriddenMethodAttrKey: Key[Method] = Key.newKey[SyncIO, Method].unsafeRunSync()
 
@@ -87,14 +89,14 @@ object HttpMethodOverrider {
     */
   def apply[F[_], G[_]](http: Http[F, G], config: HttpMethodOverriderConfig[F, G])(implicit
       F: Monad[F],
-      S: Concurrent[G]): Http[F, G] = {
+      S: Concurrent[G],
+  ): Http[F, G] = {
     val parseMethod = (m: String) => Method.fromString(m.toUpperCase)
-
-    val processRequestWithOriginalMethod = (req: Request[G]) => http(req)
 
     def processRequestWithMethod(
         req: Request[G],
-        parseResult: ParseResult[Method]): F[Response[G]] =
+        parseResult: ParseResult[Method],
+    ): F[Response[G]] =
       parseResult match {
         case Left(_) => F.pure(Response[G](Status.BadRequest))
         case Right(om) => http(updateRequestWithMethod(req, om)).map(updateVaryHeader)
@@ -133,22 +135,20 @@ object HttpMethodOverrider {
                 .entityDecoder[G]
                 .decode(req, strict = true)
                 .value
-                .map(_.toOption.map(_.values)))
+                .map(_.toOption.map(_.values))
+            )
           } yield formFields.flatMap(_.get(field).flatMap(_.uncons.map(_._1)))
       }
 
     def processRequest(req: Request[G]): F[Response[G]] =
       getUnsafeOverrideMethod(req).flatMap {
         case Some(m: String) => parseMethod.andThen(processRequestWithMethod(req, _)).apply(m)
-        case None => processRequestWithOriginalMethod(req)
+        case None => http(req)
       }
 
     Kleisli { (req: Request[G]) =>
-      config.overridableMethods
-        .contains(req.method)
-        .guard[Option]
-        .as(processRequest(req))
-        .getOrElse(processRequestWithOriginalMethod(req))
+      val isOverridden = config.overridableMethods.contains(req.method)
+      if (isOverridden) processRequest(req) else http(req)
     }
   }
 }

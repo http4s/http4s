@@ -22,6 +22,7 @@ import cats.effect.kernel.Async
 import cats.effect.kernel.Deferred
 import cats.effect.unsafe.IORuntime
 import cats.syntax.all._
+import fs2.Stream
 import fs2.io
 
 import scala.annotation.nowarn
@@ -31,7 +32,8 @@ import scala.scalajs.js.JSConverters._
 object ServerlessApp {
 
   def unsafeExportApps(apps: IO[Map[String, IO[HttpApp[IO]]]], exports: String*)(implicit
-      runtime: IORuntime): js.Dictionary[js.Function2[IncomingMessage, ServerResponse, Unit]] = {
+      runtime: IORuntime
+  ): js.Dictionary[js.Function2[IncomingMessage, ServerResponse, Unit]] = {
 
     val deferredHandlers =
       exports.map(_ -> Deferred.unsafe[IO, (IncomingMessage, ServerResponse) => IO[Unit]]).toMap
@@ -50,25 +52,28 @@ object ServerlessApp {
       .toJSDictionary: @nowarn("cat=deprecation")
   }
 
-  def unsafeExportApp(app: IO[HttpApp[IO]])(implicit
-      runtime: IORuntime): js.Function2[IncomingMessage, ServerResponse, Unit] = {
+  def unsafeExportApp(
+      app: IO[HttpApp[IO]]
+  )(implicit runtime: IORuntime): js.Function2[IncomingMessage, ServerResponse, Unit] = {
     val handler = Deferred.unsafe[IO, (IncomingMessage, ServerResponse) => IO[Unit]]
     app.map(apply[IO]).flatMap(handler.complete).unsafeRunAndForget()
     (req, res) => handler.get.flatMap(_(req, res)).unsafeRunAndForget()
   }
 
   def unsafeExportApp(app: HttpApp[IO])(implicit
-      runtime: IORuntime): js.Function2[IncomingMessage, ServerResponse, Unit] =
+      runtime: IORuntime
+  ): js.Function2[IncomingMessage, ServerResponse, Unit] =
     apply[IO](app).apply(_, _).unsafeRunAndForget()
 
-  def apply[F[_]](app: HttpApp[F])(implicit
-      F: Async[F]): (IncomingMessage, ServerResponse) => F[Unit] = { (req, res) =>
+  def apply[F[_]](
+      app: HttpApp[F]
+  )(implicit F: Async[F]): (IncomingMessage, ServerResponse) => F[Unit] = { (req, res) =>
     for {
       method <- F.fromEither(Method.fromString(req.method))
       uri <- F.fromEither(Uri.fromString(req.url))
       headers = Headers(req.headers.toList)
-      body = io.readReadable[F](F.pure(req))
-      request = Request(method, uri, headers = headers, body = body)
+      body = Stream.resource(io.suspendReadableAndRead()(req)).flatMap(_._2)
+      request = Request(method, uri, headers = headers, entity = Entity(body))
       response <- app.run(request)
       _ <- F.delay {
         val headers = response.headers.headers

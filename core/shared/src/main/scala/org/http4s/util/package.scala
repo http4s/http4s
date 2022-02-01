@@ -18,6 +18,8 @@ package org.http4s
 
 import cats.ApplicativeThrow
 import fs2._
+import org.typelevel.ci.CIString
+
 import java.nio.charset.StandardCharsets
 
 package object util {
@@ -30,16 +32,24 @@ package object util {
 
   /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
   private[http4s] def asciiDecodeC[F[_]](implicit
-      F: ApplicativeThrow[F]): Pipe[F, Chunk[Byte], String] = { in =>
+      F: ApplicativeThrow[F]
+  ): Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
         Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
       else if (asciiCheck(bytes(i)) == 0x80)
         Stream.raiseError[F](
-          new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+          new IllegalArgumentException("byte stream is not encodable as ascii bytes")
+        )
       else
         tailRecAsciiCheck(i + 1, bytes)
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
+
+  @deprecated("use org.typelevel.ci.CIString", "0.22")
+  type CaseInsensitiveString = CIString
+
+  @deprecated("use org.typelevel.ci.CIString", "0.22")
+  val CaseInsensitiveString = CIString
 }

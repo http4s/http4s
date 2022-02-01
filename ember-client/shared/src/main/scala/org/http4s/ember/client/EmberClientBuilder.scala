@@ -17,26 +17,26 @@
 package org.http4s.ember.client
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
-
-import scala.concurrent.duration._
-import org.http4s.ProductId
-import org.http4s.client._
-import org.typelevel.keypool._
-import org.typelevel.log4cats.Logger
+import cats.syntax.all._
+import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.Network
+import fs2.io.net.unixsocket._
+import org.http4s.ProductId
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.client._
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
+import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.headers.`User-Agent`
+import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
-import org.http4s.ember.client.internal.ClientHelpers
-import org.http4s.client.middleware.RetryPolicy
-import org.http4s.client.middleware.Retry
-import org.http4s.{Request, Response}
-import fs2.io.net.unixsocket._
+import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async] private (
     private val tlsContextOpt: Option[TLSContext[F]],
@@ -53,7 +53,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
     val retryPolicy: RetryPolicy[F],
-    private val unixSockets: Option[UnixSockets[F]]
+    private val unixSockets: Option[UnixSockets[F]],
 ) { self =>
 
   private def copy(
@@ -71,7 +71,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
-      unixSockets: Option[UnixSockets[F]] = self.unixSockets
+      unixSockets: Option[UnixSockets[F]] = self.unixSockets,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -88,7 +88,7 @@ final class EmberClientBuilder[F[_]: Async] private (
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
       retryPolicy = retryPolicy,
-      unixSockets = unixSockets
+      unixSockets = unixSockets,
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -132,7 +132,8 @@ final class EmberClientBuilder[F[_]: Async] private (
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F]))
+        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F])
+      )
       builder =
         KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]](
@@ -144,12 +145,14 @@ final class EmberClientBuilder[F[_]: Async] private (
                     tlsContextOptWithDefault,
                     checkEndpointIdentification,
                     sg,
-                    additionalSocketOptions
-                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
+                    additionalSocketOptions,
+                  )
+              ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
             (connection: EmberConnection[F]) =>
               logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
-                connection.cleanup
+                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
+              ) >>
+                connection.cleanup,
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -177,7 +180,7 @@ final class EmberClientBuilder[F[_]: Async] private (
                 maxResponseHeaderSize,
                 idleConnectionTime,
                 timeout,
-                userAgent
+                userAgent,
               )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
@@ -187,7 +190,8 @@ final class EmberClientBuilder[F[_]: Async] private (
                   response,
                   drain,
                   managed.value.nextBytes,
-                  managed.canBeReused)
+                  managed.canBeReused,
+                )
               case _ => Applicative[F].unit
             }
           }
@@ -195,14 +199,18 @@ final class EmberClientBuilder[F[_]: Async] private (
 
       def unixSocketClient(
           request: Request[F],
-          address: UnixSocketAddress): Resource[F, Response[F]] =
+          address: UnixSocketAddress,
+      ): Resource[F, Response[F]] =
         Resource
           .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
           .flatMap(unixSockets =>
             Resource
-              .make(EmberConnection(
-                ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)))(ec =>
-                ec.shutdown))
+              .make(
+                EmberConnection(
+                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
+                )
+              )(ec => ec.shutdown)
+          )
           .flatMap(connection =>
             Resource.eval(
               ClientHelpers
@@ -213,9 +221,11 @@ final class EmberClientBuilder[F[_]: Async] private (
                   maxResponseHeaderSize,
                   idleConnectionTime,
                   timeout,
-                  userAgent
+                  userAgent,
                 )
-                .map(_._1)))
+                .map(_._1)
+            )
+          )
       val client = Client[F] { request =>
         request.attributes
           .lookup(Request.Keys.UnixSocketAddress)
@@ -223,7 +233,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             unixSocketClient(request, address)
           }
       }
-      val stackClient = Retry(retryPolicy)(client)
+      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
       new EmberClient[F](stackClient, pool)
     }
 }
@@ -246,7 +256,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
       retryPolicy = Defaults.retryPolicy,
-      unixSockets = None
+      unixSockets = None,
     )
 
   private object Defaults {
@@ -264,7 +274,8 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOption]
     val userAgent = Some(
-      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
+    )
 
     def retryPolicy[F[_]]: RetryPolicy[F] = ClientHelpers.RetryLogic.retryUntilFresh
   }

@@ -16,9 +16,10 @@
 
 package org.http4s.websocket
 
+import scodec.bits.ByteVector
+
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.util.hashing.MurmurHash3
-import scodec.bits.ByteVector
 
 abstract class WebSocketFrame {
   def opcode: Int
@@ -31,8 +32,8 @@ abstract class WebSocketFrame {
     obj match {
       case wf: WebSocketFrame =>
         this.opcode == wf.opcode &&
-          this.last == wf.last &&
-          this.data == wf.data
+        this.last == wf.last &&
+        this.data == wf.data
       case _ => false
     }
 
@@ -112,8 +113,10 @@ object WebSocketFrame {
   }
 
   sealed abstract class InvalidCloseDataException extends RuntimeException
+  // scalafix:off Http4sGeneralLinters.leakingSealedHierarchy; bincompat until 1.0
   class InvalidCloseCodeException(val i: Int) extends InvalidCloseDataException
   class ReasonTooLongException(val s: String) extends InvalidCloseDataException
+  // scalafix:on
 
   private def toUnsignedShort(x: Int) = Array[Byte](((x >> 8) & 0xff).toByte, (x & 0xff).toByte)
 
