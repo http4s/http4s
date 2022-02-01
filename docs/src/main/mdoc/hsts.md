@@ -44,8 +44,8 @@ val service = HttpRoutes.of[IO] {
 val request = Request[IO](Method.GET, uri"/")
 
 // Do not call 'unsafeRunSync' in your code
-val response = service.orNotFound(request).unsafeRunSync()
-response.headers
+val responseOk = service.orNotFound(request).unsafeRunSync()
+responseOk.headers
 ```
 
 If we were to wrap this on the `HSTS` middleware.
@@ -54,12 +54,12 @@ If we were to wrap this on the `HSTS` middleware.
 import org.http4s.server.middleware._
 ```
 
-```scala mdoc:nest
+```scala mdoc
 val hstsService = HSTS(service)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync()
-response.headers
+val responseHSTS = hstsService.orNotFound(request).unsafeRunSync()
+responseHSTS.headers
 ```
 
 Now the response has the `Strict-Transport-Security` header which will mandate browsers
@@ -80,14 +80,14 @@ import org.http4s.headers._
 import scala.concurrent.duration._
 ```
 
-```scala mdoc:nest
+```scala mdoc
 val hstsHeader = `Strict-Transport-Security`
   .unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
-val hstsService = HSTS(service, hstsHeader)
+val hstsServiceCustom = HSTS(service, hstsHeader)
 
 // Do not call 'unsafeRunSync' in your code
-val response = hstsService.orNotFound(request).unsafeRunSync()
-response.headers
+val responseCustom = hstsServiceCustom.orNotFound(request).unsafeRunSync()
+responseCustom.headers
 ```
 
 ## References
