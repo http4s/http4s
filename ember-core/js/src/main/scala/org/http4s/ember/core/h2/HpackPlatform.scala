@@ -26,8 +26,8 @@ import scala.scalajs.js.JSConverters._
 private[h2] trait HpackPlatform {
 
   def create[F[_]](implicit F: Async[F]): F[Hpack[F]] = F.delay {
-    val compressor = new facade.Compressor(facade.HpackOptions(4096))
-    val decompressor = new facade.Decompressor(facade.HpackOptions(4096))
+    val compressor = facade.Compressor(facade.HpackOptions(4096))
+    val decompressor = facade.Decompressor(facade.HpackOptions(4096))
     new Hpack[F] {
       def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] = {
         val jsHeaders = headers
