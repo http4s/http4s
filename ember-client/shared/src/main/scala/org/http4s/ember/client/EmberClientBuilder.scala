@@ -31,6 +31,8 @@ import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.core.h2.H2Client
+import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
@@ -54,6 +56,10 @@ final class EmberClientBuilder[F[_]: Async] private (
     val checkEndpointIdentification: Boolean,
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
+    private val enableHttp2: Boolean,
+    private val pushPromiseSupport: Option[
+      (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+    ],
 ) { self =>
 
   private def copy(
@@ -72,6 +78,10 @@ final class EmberClientBuilder[F[_]: Async] private (
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
+      enableHttp2: Boolean = self.enableHttp2,
+      pushPromiseSupport: Option[
+        (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+      ] = self.pushPromiseSupport,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -89,6 +99,8 @@ final class EmberClientBuilder[F[_]: Async] private (
       checkEndpointIdentification = checkEndpointIdentification,
       retryPolicy = retryPolicy,
       unixSockets = unixSockets,
+      enableHttp2 = enableHttp2,
+      pushPromiseSupport = pushPromiseSupport,
     )
 
   def withTLSContext(tlsContext: TLSContext[F]) =
@@ -128,6 +140,30 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withUnixSockets(unixSockets: UnixSockets[F]) =
     copy(unixSockets = Some(unixSockets))
 
+  def withHttp2 = copy(enableHttp2 = true)
+  def withoutHttp2 = copy(enableHttp2 = false)
+
+  /** Push promises are implemented via responding with a PushPromise frame
+    * which is effectively a request headers frame for a request that wasn't
+    * sent by the client.
+    *
+    * The second param is the response once it is available that you can wait
+    * for OR you can cancel the Outcome to send a termination signal to
+    * ask the remote server to stop sending additional data from this data stream.
+    * If you want to handle these the outcome can just be outcome successful. But
+    * you can save significant data by canceling requests you don't want.
+    *
+    * Push promises are very useful to get all the data necessary to render a page in parallel
+    * to the actual data for that page leading to much faster render times, or sending
+    * additional cache enriching information.
+    */
+  def withPushPromiseSupport(
+      f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+  ) =
+    copy(pushPromiseSupport = f.some)
+  def withoutPushPromiseSupport =
+    copy(pushPromiseSupport = None)
+
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
@@ -160,6 +196,20 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
+      optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(
+        context =>
+          H2Client.impl[F](
+            pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+            context,
+            logger,
+            if (pushPromiseSupport.isDefined) default
+            else {
+              default.copy(enablePush =
+                org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false)
+              )
+            },
+          )
+      )
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
@@ -234,7 +284,12 @@ final class EmberClientBuilder[F[_]: Async] private (
           }
       }
       val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
-      new EmberClient[F](stackClient, pool)
+      val iClient = new EmberClient[F](stackClient, pool)
+
+      optH2.fold(iClient) { h2 =>
+        val h2Client = Client(h2(iClient.run))
+        new EmberClient(h2Client, pool)
+      }
     }
 }
 
@@ -257,6 +312,8 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       checkEndpointIdentification = true,
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
+      enableHttp2 = false,
+      pushPromiseSupport = None,
     )
 
   private object Defaults {

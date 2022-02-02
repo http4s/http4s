@@ -7,6 +7,45 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.9 (2022-01-29)
+
+This release is binary compatible with the 0.23.x series.  It merges forward the changes of v0.22.10.
+
+The signficant new feature is HTTP/2 support for Ember.  Turn it on with a `.withHttp2` on either the `EmberClientBuilder` or `EmberServerBuilder`.
+
+* http4s-ember-core
+    * Ember H2 support by @ChristopherDavenport in https://github.com/http4s/http4s/pull/5657
+
+* Behind the scenes
+    * Ignore slf4j-api by @rossabaker in https://github.com/http4s/http4s/pull/5949
+    * Remove janky thread pool from BlazeHttp1ClientSuite by @rossabaker in https://github.com/http4s/http4s/pull/5945
+    * Clean up Throwables in HTTP/2 by @rossabaker in https://github.com/http4s/http4s/pull/5955
+    * Fix HTTP/2 warnings and restore compiler settings by @rossabaker in https://github.com/http4s/http4s/pull/5954
+    * Get http4s upgrades for build from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5958
+    * Merge from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5957
+    * Update cats-effect, cats-effect-laws, ... to 3.3.5 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5967
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.8...v0.23.9
+
+# v0.22.10 (2022-01-28)
+
+This release is focused on the client.  The blaze-client is substantially refactored internally to improve resource safety.  A new internal websocket client is published for implementation across repos.  We expect to release this as a public API in the next release.
+
+* http4s-core
+    * Update slf4j-api to 1.7.35 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5947
+
+* http4s-blaze-client
+    * Resourcify blaze client by @RafalSumislawski in https://github.com/http4s/http4s/pull/5385
+    * Add withMaxIdleDuration setter to BlazeClientBuilder by @rossabaker in https://github.com/http4s/http4s/pull/5950
+
+* Behind the scenes
+    * Update http4s-circe, http4s-ember-client to 0.23.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5952
+    * Remove mdoc/laika sbt plugins by @armanbilge in https://github.com/http4s/http4s/pull/5963
+    * Create WebSocket client API by @armanbilge in https://github.com/http4s/http4s/pull/5520
+    * Privatize web socket client pending concrete implementation by @rossabaker in https://github.com/http4s/http4s/pull/5965
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.9...v0.22.10
+
 # v0.23.8 (2022-01-25)
 
 This is a maintenance release, binary compatible with the 0.23.x series.  It additionally includes a merge forward of the changes in v0.22.9.

@@ -20,13 +20,8 @@ package client
 
 import cats.effect.IO
 import org.http4s.client.ClientRouteTestBattery
-import org.http4s.internal.threads.newDaemonPoolExecutionContext
 
 class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
   def clientResource =
-    BlazeClientBuilder[IO]
-      .withExecutionContext(
-        newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true)
-      )
-      .resource
+    BlazeClientBuilder[IO].resource
 }
