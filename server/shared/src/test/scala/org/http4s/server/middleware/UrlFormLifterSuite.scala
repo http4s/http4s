@@ -27,7 +27,7 @@ import org.http4s.syntax.all._
 class UrlFormLifterSuite extends Http4sSuite {
   val urlForm = UrlForm("foo" -> "bar")
 
-  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> _ =>
+  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> Root / "path" =>
     r.uri.multiParams.get("foo") match {
       case Some(ps) =>
         Ok(ps.mkString(","))
@@ -37,13 +37,13 @@ class UrlFormLifterSuite extends Http4sSuite {
   }).orNotFound
 
   test("Add application/x-www-form-urlencoded bodies to the query params") {
-    val req = Request[IO](method = POST).withEntity(urlForm).pure[IO]
+    val req = Request[IO](method = POST, uri = uri"/path").withEntity(urlForm).pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(Ok)
   }
 
   test("Add application/x-www-form-urlencoded bodies after query params") {
     val req =
-      Request[IO](method = Method.POST, uri = uri"/foo?foo=biz")
+      Request[IO](method = Method.POST, uri = uri"/path?foo=biz")
         .withEntity(urlForm)
         .pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(Ok) *>
@@ -51,7 +51,16 @@ class UrlFormLifterSuite extends Http4sSuite {
   }
 
   test("Ignore Requests that don't have application/x-www-form-urlencoded bodies") {
-    val req = Request[IO](method = Method.POST).withEntity("foo").pure[IO]
+    val req = Request[IO](method = Method.POST, uri = uri"/path").withEntity("foo").pure[IO]
     req.flatMap(app.run).map(_.status).assertEquals(BadRequest)
+  }
+
+  test("Respect Uri locality context") {
+    val req = Request[IO](method = POST, uri = uri"/some/prefix/path").withEntity(urlForm)
+    Router[IO]("/some/prefix" -> app.mapK(OptionT.liftK[IO]))
+      .run(req)
+      .map(_.status)
+      .value
+      .assertEquals(Some(Ok))
   }
 }
