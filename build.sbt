@@ -534,7 +534,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jsSettings(
     jsVersionIntroduced("0.23.5"),
     mimaBinaryIssueFilters := {
-      if (tlIsScala3)
+      if (tlIsScala3.value)
         Seq(
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
             "org.http4s.ember.core.h2.facade.Compressor"
