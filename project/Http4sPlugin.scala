@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.8"
   val scala_212 = "2.12.15"
-  val scala_3 = "3.1.0"
+  val scala_3 = "3.1.1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.contains("CI")
@@ -175,7 +175,7 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
-    val catsEffect = "3.3.4"
+    val catsEffect = "3.3.5"
     val catsParse = "0.3.6"
     val circe = "0.15.0-M1"
     val crypto = "0.2.0"
@@ -212,7 +212,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
-    val slf4j = "1.7.33"
+    val slf4j = "1.7.35"
     val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"

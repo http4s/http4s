@@ -22,7 +22,8 @@ import cats.effect.Resource
 import org.http4s.blaze.pipeline.TailStage
 
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 
 private trait BlazeConnection[F[_]] extends TailStage[ByteBuffer] with Connection[F] {
-  def runRequest(req: Request[F]): F[Resource[F, Response[F]]]
+  def runRequest(req: Request[F], cancellation: F[TimeoutException]): F[Resource[F, Response[F]]]
 }

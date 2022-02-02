@@ -7,7 +7,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.6" // Also supports 2.12.x and 3.x
+scalaVersion := "2.13.8" // Also supports 2.12.x and 3.x
 
 val http4sVersion = "@{version.http4s.doc}"
 
@@ -16,8 +16,8 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 
 // Uncomment if you're using Scala 2.12.x
@@ -106,12 +106,12 @@ val tweetService = HttpRoutes.of[IO] {
 ### Running Your Service
 
 http4s supports multiple server backends.  In this example, we'll use
-[blaze], the native backend supported by http4s.
+[ember], the native backend supported by http4s.
 
-We start from a `BlazeServerBuilder`, and then mount the `helloWorldService` under
+We start from a `EmberServerBuilder`, and then mount the `helloWorldService` under
 the base path of `/` and the remainder of the services under the base
 path of `/api`. The services can be mounted in any order as the request will be
-matched against the longest base paths first. The `BlazeServerBuilder` is immutable
+matched against the longest base paths first. The `EmberServerBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
@@ -121,27 +121,30 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 
 ```scala mdoc:silent
 import cats.syntax.all._
-import org.http4s.blaze.server._
+import com.comcast.ip4s._
+import org.http4s.ember.server._
 import org.http4s.implicits._
 import org.http4s.server.Router
+import scala.concurrent.duration._
 ```
 
 ```scala mdoc
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val serverBuilder = BlazeServerBuilder[IO]
-  .bindHttp(8080, "localhost")
+val server = EmberServerBuilder
+  .default[IO]
+  .withHost(ipv4"0.0.0.0")
+  .withPort(port"8080")
   .withHttpApp(httpApp)
+  .build
 ```
 
-The `bindHttp` call isn't strictly necessary as the server will be set to run
-using defaults of port 8080 and the loopback address. The `withHttpApp` call
-associates the specified routes with this http server instance.
+The `withHttpApp` call associates the specified routes with this http server instance.
 
-We start a server resource in the background.  The server will run until we cancel the fiber:
+We start a server resource in the background.
 
 ```scala mdoc
-val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -155,16 +158,10 @@ $ curl http://localhost:8080/hello/Pete
 We can shut down the server by canceling its fiber.
 
 ```scala mdoc
-fiber.cancel.unsafeRunSync()
+shutdown.unsafeRunSync()
 ```
 
 ### Running Your Service as an `App`
-
-Every `ServerBuilder[F]` has a `.serve` method that returns a
-`Stream[F, ExitCode]`.  This stream runs forever without emitting
-any output.  When this process is run with `.unsafeRunSync` on the
-main thread, it blocks forever, keeping the JVM (and your server)
-alive until the JVM is killed.
 
 As a convenience, cats-effect provides an `cats.effect.IOApp` trait
 with an abstract `run` method that returns a `IO[ExitCode]`.  An
@@ -174,10 +171,11 @@ SIGTERM is received.
 
 ```scala mdoc:silent:reset
 import cats.effect._
+import com.comcast.ip4s._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 ```
 
 ```scala mdoc:silent
@@ -189,32 +187,18 @@ object Main extends IOApp {
   }.orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
-      .bindHttp(8080, "localhost")
+    EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"0.0.0.0")
+      .withPort(port"8080")
       .withHttpApp(helloWorldService)
-      .serve
-      .compile
-      .drain
-      .as(ExitCode.Success)
-}
-```
-
-You may also create the server within an `IOApp` using resource:
-
-```scala mdoc:silent
-object MainWithResource extends IOApp {
-
-  def run(args: List[String]): IO[ExitCode] =
-    BlazeServerBuilder[IO]
-      .bindHttp(8080, "localhost")
-      .withHttpApp(Main.helloWorldService)
-      .resource
+      .build
       .use(_ => IO.never)
       .as(ExitCode.Success)
 }
 ```
 
-[blaze]: https://github.com/http4s/blaze
+[ember]: https://github.com/http4s/http4s
 [mdoc]: https://scalameta.org/mdoc/
 [Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
 [cats-effect: The IO Monad for Scala]: https://typelevel.org/cats-effect/
