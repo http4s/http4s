@@ -101,18 +101,9 @@ To transform a value of type `A` into `Json`, circe uses an
 `io.circe.Encoder[A]`.  With circe's syntax, we can convert any value
 to JSON as long as an implicit `Encoder` is in scope:
 
-```scala mdoc:silent
-import io.circe.syntax._
-```
-
-```scala mdoc:fail
-Hello("Alice").asJson
-```
-
-Oops!  We haven't told Circe how we want to encode our case class.
-Let's provide an encoder:
-
 ```scala mdoc
+import io.circe.syntax._
+
 implicit val HelloEncoder: Encoder[Hello] =
   Encoder.instance { (hello: Hello) =>
     json"""{"hello": ${hello.name}}"""
