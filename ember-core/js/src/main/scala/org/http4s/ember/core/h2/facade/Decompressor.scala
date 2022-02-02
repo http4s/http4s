@@ -18,13 +18,16 @@ package org.http4s.ember.core.h2.facade
 
 import scala.annotation.nowarn
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSImport
 
 @js.native
-@JSImport("hpack.js", "decompressor")
 @nowarn
-private[h2] class Decompressor(options: HpackOptions) extends js.Object {
+private[h2] trait Decompressor extends js.Object {
   def write(raw: js.typedarray.Uint8Array): Unit = js.native
   def execute(): Unit = js.native
   def read(): Header = js.native
+}
+
+private[h2] object Decompressor {
+  def apply(options: HpackOptions): Decompressor =
+    hpackjs.decompressor.create(options).asInstanceOf[Decompressor]
 }

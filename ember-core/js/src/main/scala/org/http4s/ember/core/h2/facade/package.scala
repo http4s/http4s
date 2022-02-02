@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.core.h2.facade
+package org.http4s.ember.core.h2
 
-import scala.annotation.nowarn
 import scala.scalajs.js
 
-@js.native
-@nowarn
-private[h2] trait Compressor extends js.Object {
-  def write(headers: js.Array[Header]): Unit = js.native
-  def read(): js.typedarray.Uint8Array = js.native
-}
-
-private[h2] object Compressor {
-  def apply(options: HpackOptions): Compressor =
-    hpackjs.compressor.create(options).asInstanceOf[Compressor]
+package object facade {
+  private[facade] lazy val hpackjs = js.Dynamic.global.require("hpack.js")
 }
