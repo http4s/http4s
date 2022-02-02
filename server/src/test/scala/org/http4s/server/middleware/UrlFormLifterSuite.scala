@@ -18,7 +18,8 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
 import org.http4s.dsl.io._
