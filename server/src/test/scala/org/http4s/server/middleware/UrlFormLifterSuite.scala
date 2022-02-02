@@ -18,9 +18,9 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
-import cats.syntax.applicative._
+import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
@@ -62,5 +62,30 @@ class UrlFormLifterSuite extends Http4sSuite {
       .map(_.status)
       .value
       .assertEquals(Some(Ok))
+  }
+
+  test("Do not require auth for public routes") {
+    object Foo extends QueryParamDecoderMatcher[String]("foo")
+    val authMiddleware = AuthMiddleware[IO, String, String](
+      authUser = Kleisli(
+        _.params.get("user").fold("invalid user".asLeft[String])(_.asRight[String]).pure[IO]
+      ),
+      onFailure = Kleisli(_ => Response[IO]().withStatus(Forbidden).pure[OptionT[IO, *]]),
+    )
+    val app =
+      Router[IO]("/some/prefix" -> UrlFormLifter(OptionT.liftK[IO]) {
+        authMiddleware {
+          AuthedRoutes.of[String, IO] {
+            case POST -> Root / "path" :? Foo(foo) as auth => Ok(s"foo: $foo, auth: $auth")
+            case _ => BadRequest("No foo")
+          }
+        }
+      }) <+> Router[IO]("/health/check" -> HttpRoutes.of[IO] { case GET -> _ => Ok() })
+    val req = Request[IO](method = POST, uri = uri"/some/prefix/path?user=bob").withEntity(urlForm)
+
+    for {
+      _ <- app.run(req).map(_.status).value.assertEquals(Some(Ok))
+      _ <- app.run(Request[IO](uri = uri"/health/check")).map(_.status).value.assertEquals(Some(Ok))
+    } yield {}
   }
 }
