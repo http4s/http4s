@@ -32,7 +32,7 @@ import org.http4s.implicits._
 
 If you're in a REPL, we also need a runtime:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
@@ -208,7 +208,7 @@ import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
 import org.http4s.server.Router
 import org.http4s.server.middleware.Metrics
 ```
-```scala mdoc:nest
+```scala mdoc
 val meteredRouter: Resource[IO, HttpRoutes[IO]] =
   for {
     metricsSvc <- PrometheusExportService.build[IO]

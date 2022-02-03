@@ -22,7 +22,7 @@ import org.http4s.implicits._
 
 If you're in a REPL, we also need a runtime:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
@@ -88,52 +88,49 @@ check[Json](response, Status.Ok, Some(expectedJson))
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
 
-```scala mdoc:nest
+```scala mdoc
 val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
 
-val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
+val respFoundNone: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri"/user/not-used" )
 )
 
-check[Json](response, Status.NotFound, None)
+check[Json](respFoundNone, Status.NotFound, None)
 ```
 
 Finally, let's pass a `Request` which our service does not handle.  
 
-```scala mdoc:nest
+```scala mdoc
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = 
     IO.raiseError(new RuntimeException("Should not get called!"))
 } 
 
-val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
+val respNotFound: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri"/not-a-matching-path" )
 )
 
-check[String](response, Status.NotFound, Some("Not found"))
+check[String](respNotFound, Status.NotFound, Some("Not found"))
 ```
 
 ## Using client
 
 Having HttpApp you can build a client for testing purposes. Following the example above we could define our HttpApp like this:
 
-```scala mdoc:nest
+```scala mdoc
 val httpApp: HttpApp[IO] = service[IO](success).orNotFound
 ```
 
 From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
 
-```scala mdoc:nest
+```scala mdoc
 import org.http4s.client.Client
 
 val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
-val expectedJson = Json.obj(
-      "name" := "johndoe",
-      "age" := 42
-)
 val client: Client[IO] = Client.fromHttpApp(httpApp)
+
 val resp: IO[Json]     = client.expect[Json](request)
 assert(resp.unsafeRunSync() == expectedJson)
 ```
