@@ -29,12 +29,12 @@ import org.eclipse.jetty.client.api.{Response => JettyResponse}
 import org.eclipse.jetty.http.HttpFields
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.loggingAsyncCallback
 import org.http4s.jetty.client.ResponseListener.Item
 import org.log4s.getLogger
 
 import java.nio.ByteBuffer
+import scala.jdk.CollectionConverters._
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[Item]],

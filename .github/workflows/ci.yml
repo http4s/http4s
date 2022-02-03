@@ -28,17 +28,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.1, 2.12.15, 2.13.8]
+        scala: [3.1.1, 2.13.8]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM]
         exclude:
           - scala: 3.1.1
             java: temurin@11
           - scala: 3.1.1
-            java: temurin@17
-          - scala: 2.12.15
-            java: temurin@11
-          - scala: 2.12.15
             java: temurin@17
           - project: rootJS
             java: temurin@11
@@ -198,26 +194,6 @@ jobs:
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (2.12.15, rootJS)
-        uses: actions/download-artifact@v2
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.15-rootJS
-
-      - name: Inflate target directories (2.12.15, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.12.15, rootJVM)
-        uses: actions/download-artifact@v2
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.15-rootJVM
-
-      - name: Inflate target directories (2.12.15, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
       - name: Download target directories (2.13.8, rootJS)
         uses: actions/download-artifact@v2
         with:
@@ -263,7 +239,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | ssh-add -
           git config --global user.name "GitHub Actions CI"
           git config --global user.email "ghactions@invalid"
-          sbt ++2.12.15 website/laikaSite website/ghpagesPushSite
+          sbt ++2.13.8 website/laikaSite website/ghpagesPushSite
 
                 
 
@@ -272,7 +248,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.15]
+        scala: [2.13.8]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
     steps:
@@ -289,7 +265,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.15]
+        scala: [2.13.8]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
     steps:
@@ -306,7 +282,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.1, 2.12.15, 2.13.8]
+        scala: [3.1.1, 2.13.8]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:

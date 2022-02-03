@@ -29,7 +29,6 @@ import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.FilterDef
 import org.apache.tomcat.util.descriptor.web.FilterMap
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.SSLClientAuthMode
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -52,6 +51,7 @@ import javax.servlet.Filter
 import javax.servlet.http.HttpServlet
 import scala.collection.immutable
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 sealed class TomcatBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
