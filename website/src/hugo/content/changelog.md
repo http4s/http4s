@@ -8,6 +8,28 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.10 (2022-02-03)
+
+This is a maintenance release, binary compatible with 0.23.x.  It also includes merges of all the changes in 0.22.10.
+
+* http4s-ember-core
+    * Don't force npm onto ember.js users by @armanbilge in https://github.com/http4s/http4s/pull/5992
+
+* Documentation
+    * Use ember in docs by @valencik in https://github.com/http4s/http4s/pull/5970
+    * Update static content docs, fix deprecations by @valencik in https://github.com/http4s/http4s/pull/5973
+    * Tweak json.md to work on scala 2.13 by @valencik in https://github.com/http4s/http4s/pull/5984
+    * Mdoc warnings v23 by @valencik in https://github.com/http4s/http4s/pull/5979
+    * Remove most mdoc nest modifiers by @valencik in https://github.com/http4s/http4s/pull/5977
+
+* Behind the scenes
+    * Update scala3-library, ... to 3.1.1 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5985
+    * Merge 0.22 to 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5987
+    * Merge from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5995
+    * Improve the `WSClient` API by @armanbilge in https://github.com/http4s/http4s/pull/5974
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.9...v0.23.10
+
 # v0.22.11 (2022-02-02)
 
 This is a bugfix release, binary compatible with the 0.22.x series.
