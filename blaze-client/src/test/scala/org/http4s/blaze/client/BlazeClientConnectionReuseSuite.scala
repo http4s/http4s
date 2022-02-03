@@ -19,18 +19,20 @@ package client
 
 import cats.effect._
 import cats.implicits._
+import fs2.Chunk
 import fs2.Stream
 import org.http4s.Method._
 import org.http4s._
 import org.http4s.client.scaffold.TestServer
 
+import java.net.SocketException
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   override def munitTimeout: Duration = new FiniteDuration(50, TimeUnit.SECONDS)
 
-  test("BlazeClient should reuse the connection after a simple successful request".flaky) {
+  test("BlazeClient should reuse the connection after a simple successful request") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -41,9 +43,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  test(
-    "BlazeClient should reuse the connection after a successful request with large response".flaky
-  ) {
+  test("BlazeClient should reuse the connection after a successful request with large response") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -55,7 +55,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient.status should reuse the connection after receiving a response without an entity".flaky
+    "BlazeClient.status should reuse the connection after receiving a response without an entity"
   ) {
     builder().resource.use { client =>
       for {
@@ -89,7 +89,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
-  test("BlazeClient should reuse connections to different servers separately".flaky) {
+  test("BlazeClient should reuse connections to different servers separately") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -107,7 +107,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   // // Decoding failures // //
 
-  test("BlazeClient should reuse the connection after response decoding failed".flaky) {
+  test("BlazeClient should reuse the connection after response decoding failed") {
     // This will work regardless of whether we drain the entity or not,
     // because the response is small and it is read in full in first read operation
     val drainThenFail = EntityDecoder.error[IO, String](new Exception())
@@ -124,7 +124,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   }
 
   test(
-    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained".flaky
+    "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained"
   ) {
     val drainThenFail = EntityDecoder.error[IO, String](new Exception())
     builder().resource.use { client =>
@@ -161,7 +161,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
 
   // // Requests with an entity // //
 
-  test("BlazeClient should reuse the connection after a request with an entity".flaky) {
+  test("BlazeClient should reuse the connection after a request with an entity") {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -174,16 +174,28 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
     }
   }
 
+  // TODO investigate delay in sending first chunk (it waits for 2 complete 32kB chunks)
+
   test(
     "BlazeClient shouldn't wait for the request entity transfer to complete if the server closed the connection early. The closed connection shouldn't be reused.".flaky
   ) {
     builder().resource.use { client =>
       for {
         servers <- makeServers()
-        _ <- client.expect[String](
-          Request[IO](POST, servers(0).uri / "respond-and-close-immediately")
-            .withBodyStream(Stream(0.toByte).repeat)
-        )
+        // In a typical execution of this test the server receives the beginning of the requests, responds, and then sends FIN. The client processes the response, processes the FIN, and then stops sending the request entity. The server may then send an RST, but if the client already processed the response then it's not a problem.
+        // But sometimes the server receives the beginning of the request, responds, sends FIN and then sends RST. There's a race between delivering the response to the application and acting on the RST, that is closing the socket and delivering an EOF. That means that the request may fail with "SocketException: HTTP connection closed".
+        // I don't know how to prevent the second scenario. So instead I relaxed the requirement expressed in this test to accept both successes and SocketExceptions, and only require timely completion of the request, and disposal of the connection.
+        _ <- client
+          .expect[String](
+            Request[IO](POST, servers(0).uri / "respond-and-close-immediately")
+              .withBodyStream(
+                Stream
+                  .fixedDelay[IO](10.milliseconds)
+                  .mapChunks(_ => Chunk.array(Array.fill(10000)(0.toByte)))
+              )
+          )
+          .recover { case _: SocketException => "" }
+          .timeout(2.seconds)
         _ <- client.expect[String](Request[IO](GET, servers(0).uri / "simple"))
         _ <- servers(0).establishedConnections.assertEquals(2L)
       } yield ()
@@ -193,7 +205,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   // // Load tests // //
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)".fail.flaky
+    "BlazeClient should keep reusing connections even when under heavy load (single client scenario)"
   ) {
     builder().resource.use { client =>
       for {
@@ -203,13 +215,14 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
           .replicateA(200)
           .parReplicateA(20)
         // There's no guarantee we'll actually manage to use 20 connections in parallel. Sharing the client means sharing the lock inside PoolManager as a contention point.
+        // But if the connections are reused correctly, we shouldn't use more than 20.
         _ <- servers(0).establishedConnections.map(_ <= 20L).assert
       } yield ()
     }
   }
 
   test(
-    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)".fail.flaky
+    "BlazeClient should keep reusing connections even when under heavy load (multiple clients scenario)"
   ) {
     for {
       servers <- makeServers()

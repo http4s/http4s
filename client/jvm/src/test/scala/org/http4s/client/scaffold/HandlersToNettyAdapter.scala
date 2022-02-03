@@ -132,8 +132,15 @@ object HandlerHelpers {
     response.headers().setAll(headers)
     response.headers().set(CONTENT_LENGTH, response.content().readableBytes())
     response.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
-    if (closeConnection) ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
-    else ctx.writeAndFlush(response)
+    if (closeConnection) {
+      // disconnect sends FIN.
+      ctx.writeAndFlush(response).addListener { (f: ChannelFuture) =>
+        f.channel.disconnect()
+        ()
+      }
+    } else {
+      ctx.writeAndFlush(response)
+    }
   }
 
   def sendChunkedResponseHead(

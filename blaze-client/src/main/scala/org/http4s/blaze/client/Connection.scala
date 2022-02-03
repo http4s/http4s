@@ -26,7 +26,7 @@ private[client] trait Connection[F[_]] {
   def isClosed: Boolean
 
   /** Determine if the connection is in a state that it can be recycled for another request. */
-  def isRecyclable: Boolean
+  def isRecyclable: F[Boolean]
 
   /** Close down the connection, freeing resources and potentially aborting a [[Response]] */
   def shutdown(): Unit

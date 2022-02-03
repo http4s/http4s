@@ -22,27 +22,25 @@ import cats.effect.implicits._
 import cats.effect.kernel.Async
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Resource
+import cats.effect.kernel.Resource.ExitCase
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.Client
+import org.http4s.client.DefaultClient
 import org.http4s.client.RequestKey
-import org.log4s.getLogger
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
 
 import java.net.SocketException
 import java.nio.ByteBuffer
-import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 /** Blaze client implementation */
 object BlazeClient {
-  import Resource.ExitCase
-
-  private[this] val logger = getLogger
-
   private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       responseHeaderTimeout: Duration,
@@ -50,109 +48,110 @@ object BlazeClient {
       scheduler: TickWheelExecutor,
       ec: ExecutionContext,
       retries: Int,
-  )(implicit F: Async[F]): Client[F] =
-    Client[F] { req =>
-      Resource.suspend {
-        val key = RequestKey.fromRequest(req)
+      dispatcher: Dispatcher[F],
+  )(implicit F: Async[F]): Client[F] = {
+    val base = new BlazeClient[F, A](
+      manager,
+      responseHeaderTimeout,
+      requestTimeout,
+      scheduler,
+      ec,
+      dispatcher,
+    )
+    if (retries > 0)
+      Retry(retryPolicy(retries))(base)
+    else
+      base
+  }
 
-        // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
-        // but it should be noisy.
-        def invalidate(connection: A): F[Unit] =
-          manager
-            .invalidate(connection)
-            .handleError(e => logger.error(e)(s"Error invalidating connection for $key"))
-
-        def borrow: Resource[F, manager.NextConnection] =
-          Resource.makeCase(manager.borrow(key)) {
-            case (_, ExitCase.Succeeded) =>
-              F.unit
-            case (next, ExitCase.Errored(_) | ExitCase.Canceled) =>
-              invalidate(next.connection)
-          }
-
-        def loop(retriesRemaining: Int): F[Resource[F, Response[F]]] =
-          borrow
-            .use { next =>
-              val res: F[Resource[F, Response[F]]] = next.connection
-                .runRequest(req)
-                .adaptError { case EOF =>
-                  new SocketException(s"HTTP connection closed: ${key}")
-                }
-                .map { (response: Resource[F, Response[F]]) =>
-                  response.onFinalize(manager.release(next.connection))
-                }
-
-              responseHeaderTimeout match {
-                case responseHeaderTimeout: FiniteDuration =>
-                  Deferred[F, Unit].flatMap { gate =>
-                    val responseHeaderTimeoutF: F[TimeoutException] =
-                      F.delay {
-                        val stage =
-                          new ResponseHeaderTimeoutStage[ByteBuffer](
-                            responseHeaderTimeout,
-                            scheduler,
-                            ec,
-                          )
-                        next.connection.spliceBefore(stage)
-                        stage
-                      }.bracket(stage =>
-                        F.async[TimeoutException] { cb =>
-                          F.delay(stage.init(cb)) >> gate.complete(()).as(None)
-                        }
-                      )(stage => F.delay(stage.removeStage()))
-
-                    F.racePair(gate.get *> res, responseHeaderTimeoutF)
-                      .flatMap[Resource[F, Response[F]]] {
-                        case Left((outcome, fiber)) =>
-                          fiber.cancel >> outcome.embed(
-                            F.raiseError(new CancellationException("Response canceled"))
-                          )
-                        case Right((fiber, outcome)) =>
-                          fiber.cancel >> outcome.fold(
-                            F.raiseError(new TimeoutException("Response timeout also timed out")),
-                            F.raiseError,
-                            _.flatMap(F.raiseError),
-                          )
-                      }
-                  }
-                case _ => res
-              }
-            }
-            .recoverWith {
-              case _: SocketException if req.isIdempotent && retriesRemaining > 0 =>
-                loop(retriesRemaining - 1)
-            }
-
-        val res = loop(retries)
-        requestTimeout match {
-          case d: FiniteDuration =>
-            F.race(
-              res,
-              F.async[TimeoutException] { cb =>
-                F.delay {
-                  scheduler.schedule(
-                    new Runnable {
-                      def run() =
-                        cb(
-                          Right(
-                            new TimeoutException(
-                              s"Request to $key timed out after ${d.toMillis} ms"
-                            )
-                          )
-                        )
-                    },
-                    ec,
-                    d,
-                  )
-                }.map(c => Some(F.delay(c.cancel())))
-              },
-            ).flatMap[Resource[F, Response[F]]] {
-              case Left(r) => F.pure(r)
-              case Right(t) => F.raiseError(t)
-            }
-          case _ =>
-            res
-        }
-      }
+  private[this] val retryNow = Duration.Zero.some
+  private def retryPolicy[F[_]](retries: Int): RetryPolicy[F] = { (req, result, n) =>
+    result match {
+      case Left(_: SocketException) if n <= retries && req.isIdempotent => retryNow
+      case _ => None
     }
+  }
+}
+
+private class BlazeClient[F[_], A <: BlazeConnection[F]](
+    manager: ConnectionManager[F, A],
+    responseHeaderTimeout: Duration,
+    requestTimeout: Duration,
+    scheduler: TickWheelExecutor,
+    ec: ExecutionContext,
+    dispatcher: Dispatcher[F],
+)(implicit F: Async[F])
+    extends DefaultClient[F] {
+
+  override def run(req: Request[F]): Resource[F, Response[F]] = {
+    val key = RequestKey.fromRequest(req)
+    for {
+      requestTimeoutF <- scheduleRequestTimeout(key)
+      preparedConnection <- prepareConnection(key)
+      (conn, responseHeaderTimeoutF) = preparedConnection
+      timeout = responseHeaderTimeoutF.race(requestTimeoutF).map(_.merge)
+      responseResource <- Resource.eval(runRequest(conn, req, timeout))
+      response <- responseResource
+    } yield response
+  }
+
+  private def prepareConnection(key: RequestKey): Resource[F, (A, F[TimeoutException])] = for {
+    conn <- borrowConnection(key)
+    responseHeaderTimeoutF <- addResponseHeaderTimeout(conn)
+  } yield (conn, responseHeaderTimeoutF)
+
+  private def borrowConnection(key: RequestKey): Resource[F, A] =
+    Resource.makeCase(manager.borrow(key).map(_.connection)) {
+      case (conn, ExitCase.Canceled) =>
+        // Currently we can't just release in case of cancellation, because cancellation clears the Write state of Http1Connection, so it might result in isRecycle=true even if there's a half-written request.
+        manager.invalidate(conn)
+      case (conn, _) => manager.release(conn)
+    }
+
+  private def addResponseHeaderTimeout(conn: A): Resource[F, F[TimeoutException]] =
+    responseHeaderTimeout match {
+      case d: FiniteDuration =>
+        Resource.apply(
+          Deferred[F, Either[Throwable, TimeoutException]].flatMap(timeout =>
+            F.delay {
+              val stage = new ResponseHeaderTimeoutStage[ByteBuffer](d, scheduler, ec)
+              conn.spliceBefore(stage)
+              stage.init(e => dispatcher.unsafeRunSync(timeout.complete(e).void))
+              (timeout.get.rethrow, F.delay(stage.removeStage()))
+            }
+          )
+        )
+      case _ => resourceNeverTimeoutException
+    }
+
+  private def scheduleRequestTimeout(key: RequestKey): Resource[F, F[TimeoutException]] =
+    requestTimeout match {
+      case d: FiniteDuration =>
+        Resource.pure(F.async[TimeoutException] { cb =>
+          F.delay(
+            scheduler.schedule(
+              () =>
+                cb(
+                  Right(new TimeoutException(s"Request to $key timed out after ${d.toMillis} ms"))
+                ),
+              ec,
+              d,
+            )
+          ).map(c => Some(F.delay(c.cancel())))
+        })
+      case _ => resourceNeverTimeoutException
+    }
+
+  private def runRequest(
+      conn: A,
+      req: Request[F],
+      timeout: F[TimeoutException],
+  ): F[Resource[F, Response[F]]] =
+    conn
+      .runRequest(req, timeout)
+      .race(timeout.flatMap(F.raiseError[Resource[F, Response[F]]](_)))
+      .map(_.merge)
+
+  private val resourceNeverTimeoutException = Resource.pure[F, F[TimeoutException]](F.never)
+
 }

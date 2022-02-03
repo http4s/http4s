@@ -73,7 +73,7 @@ Putting it all together into a small app that will print the JSON objects foreve
 
 ```scala mdoc:reset:silent
 import org.http4s._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client.oauth1
 import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.implicits._
@@ -114,7 +114,7 @@ class TWStream[F[_]: Async] {
                  accessToken: String, accessSecret: String)
                 (req: Request[F]): Stream[F, Json] =
     for {
-      client <- BlazeClientBuilder[F].stream
+      client <- Stream.resource(EmberClientBuilder.default[F].build)
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
