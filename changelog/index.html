@@ -116,6 +116,77 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
+        <h1 id="v0-23-10-2022-02-03" class="section">v0.23.10 (2022-02-03)<a class="anchor-link right" href="#v0-23-10-2022-02-03"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This is a maintenance release, binary compatible with 0.23.x.  It also includes merges of all the changes in 0.22.10.</p>
+        <ul>
+          <li>
+            <p>http4s-ember-core</p>
+            <ul>
+              <li>Don&#39;t force npm onto ember.js users by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5992">https://github.com/http4s/http4s/pull/5992</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>Documentation</p>
+            <ul>
+              <li>Use ember in docs by @valencik in <a href="https://github.com/http4s/http4s/pull/5970">https://github.com/http4s/http4s/pull/5970</a></li>
+              <li>Update static content docs, fix deprecations by @valencik in <a href="https://github.com/http4s/http4s/pull/5973">https://github.com/http4s/http4s/pull/5973</a></li>
+              <li>Tweak json.md to work on scala 2.13 by @valencik in <a href="https://github.com/http4s/http4s/pull/5984">https://github.com/http4s/http4s/pull/5984</a></li>
+              <li>Mdoc warnings v23 by @valencik in <a href="https://github.com/http4s/http4s/pull/5979">https://github.com/http4s/http4s/pull/5979</a></li>
+              <li>Remove most mdoc nest modifiers by @valencik in <a href="https://github.com/http4s/http4s/pull/5977">https://github.com/http4s/http4s/pull/5977</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>Behind the scenes</p>
+            <ul>
+              <li>Update scala3-library, ... to 3.1.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5985">https://github.com/http4s/http4s/pull/5985</a></li>
+              <li>Merge 0.22 to 0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5987">https://github.com/http4s/http4s/pull/5987</a></li>
+              <li>Merge from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5995">https://github.com/http4s/http4s/pull/5995</a></li>
+              <li>Improve the <code>WSClient</code> API by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5974">https://github.com/http4s/http4s/pull/5974</a></li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.23.9...v0.23.10">https://github.com/http4s/http4s/compare/v0.23.9...v0.23.10</a></p>
+        
+        <h1 id="v0-22-11-2022-02-02" class="section">v0.22.11 (2022-02-02)<a class="anchor-link right" href="#v0-22-11-2022-02-02"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This is a bugfix release, binary compatible with the 0.22.x series.</p>
+        <ul>
+          <li>
+            <p>http4s-dsl</p>
+            <ul>
+              <li>Fix regression in routing dsl by @hamnis in <a href="https://github.com/http4s/http4s/pull/5991">https://github.com/http4s/http4s/pull/5991</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-server</p>
+            <ul>
+              <li>Respect URI locality in UrlFormLifter by @dfahritdinov in <a href="https://github.com/http4s/http4s/pull/5994">https://github.com/http4s/http4s/pull/5994</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-dropwizard-metrics</p>
+            <ul>
+              <li>Update metrics-core, metrics-json to 4.2.8 in series/0.22 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5993">https://github.com/http4s/http4s/pull/5993</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>Behind the scenes</p>
+            <ul>
+              <li>Update scalafmt-core to 3.4.0 in series/0.22 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5969">https://github.com/http4s/http4s/pull/5969</a></li>
+              <li>Update http4s-circe, http4s-ember-client to 0.23.9 in series/0.22 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5972">https://github.com/http4s/http4s/pull/5972</a></li>
+              <li>Update sbt-http4s-org to 0.11.1 in series/0.22 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5968">https://github.com/http4s/http4s/pull/5968</a></li>
+              <li>Update sbt to 1.6.2 in series/0.22 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5976">https://github.com/http4s/http4s/pull/5976</a></li>
+              <li>Improve <code>WSClient</code> API by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5975">https://github.com/http4s/http4s/pull/5975</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>New Contributors</p>
+            <ul>
+              <li>@dfahritdinov made their first contribution in <a href="https://github.com/http4s/http4s/pull/5994">https://github.com/http4s/http4s/pull/5994</a></li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.22.10...v0.22.11">https://github.com/http4s/http4s/compare/v0.22.10...v0.22.11</a></p>
+        
         <h1 id="v0-23-9-2022-01-29" class="section">v0.23.9 (2022-01-29)<a class="anchor-link right" href="#v0-23-9-2022-01-29"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with the 0.23.x series.  It merges forward the changes of v0.22.10.</p>
         <p>The signficant new feature is HTTP/2 support for Ember.  Turn it on with a <code>.withHttp2</code> on either the <code>EmberClientBuilder</code> or <code>EmberServerBuilder</code>.</p>
