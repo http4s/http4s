@@ -57,7 +57,7 @@ data over the wire again.
 
 For custom behaviour, `StaticFile.fromPath` can also be used directly in a route, to respond with a file:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import org.http4s._
 import org.http4s.dsl.io._
 import fs2.io.file.Path
@@ -74,20 +74,20 @@ val routes = HttpRoutes.of[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
-```scala mdoc:nest
-val routes = resourceServiceBuilder[IO]("/assets").toRoutes
+```scala mdoc
+val assetsRoutes = resourceServiceBuilder[IO]("/assets").toRoutes
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
 only files matching a list of extensions are served. Append to the `List` as needed.
 
-```scala mdoc:nest
+```scala mdoc
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
 val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 
-val routes = HttpRoutes.of[IO] {
+val fileRoutes = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if fileTypes.exists(path.endsWith) =>
     static(path, request)
 }

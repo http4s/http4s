@@ -7,6 +7,53 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.10 (2022-02-03)
+
+This is a maintenance release, binary compatible with 0.23.x.  It also includes merges of all the changes in 0.22.10.
+
+* http4s-ember-core
+    * Don't force npm onto ember.js users by @armanbilge in https://github.com/http4s/http4s/pull/5992
+
+* Documentation
+    * Use ember in docs by @valencik in https://github.com/http4s/http4s/pull/5970
+    * Update static content docs, fix deprecations by @valencik in https://github.com/http4s/http4s/pull/5973
+    * Tweak json.md to work on scala 2.13 by @valencik in https://github.com/http4s/http4s/pull/5984
+    * Mdoc warnings v23 by @valencik in https://github.com/http4s/http4s/pull/5979
+    * Remove most mdoc nest modifiers by @valencik in https://github.com/http4s/http4s/pull/5977
+
+* Behind the scenes
+    * Update scala3-library, ... to 3.1.1 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/5985
+    * Merge 0.22 to 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/5987
+    * Merge from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/5995
+    * Improve the `WSClient` API by @armanbilge in https://github.com/http4s/http4s/pull/5974
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.9...v0.23.10
+
+# v0.22.11 (2022-02-02)
+
+This is a bugfix release, binary compatible with the 0.22.x series.
+
+* http4s-dsl
+    * Fix regression in routing dsl by @hamnis in https://github.com/http4s/http4s/pull/5991
+
+* http4s-server
+    * Respect URI locality in UrlFormLifter by @dfahritdinov in https://github.com/http4s/http4s/pull/5994
+
+* http4s-dropwizard-metrics
+    * Update metrics-core, metrics-json to 4.2.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5993
+
+* Behind the scenes
+    * Update scalafmt-core to 3.4.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5969
+    * Update http4s-circe, http4s-ember-client to 0.23.9 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5972
+    * Update sbt-http4s-org to 0.11.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5968
+    * Update sbt to 1.6.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/5976
+    * Improve `WSClient` API by @armanbilge in https://github.com/http4s/http4s/pull/5975
+
+* New Contributors
+    * @dfahritdinov made their first contribution in https://github.com/http4s/http4s/pull/5994
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.10...v0.22.11
+
 # v0.23.9 (2022-01-29)
 
 This release is binary compatible with the 0.23.x series.  It merges forward the changes of v0.22.10.
