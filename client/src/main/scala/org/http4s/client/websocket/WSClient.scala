@@ -132,6 +132,12 @@ trait WSConnection[F[_]] { outer =>
 
 trait WSConnectionHighLevel[F[_]] { outer =>
 
+  /** Send a single websocket text frame. The sending side of this connection has to be open. */
+  def send(text: String): F[Unit] = send(WSFrame.Text(text))
+
+  /** Send a single websocket binary frame. The sending side of this connection has to be open. */
+  def send(bytes: ByteVector): F[Unit] = send(WSFrame.Binary(bytes))
+
   /** Send a single websocket frame. The sending side of this connection has to be open. */
   def send(wsf: WSDataFrame): F[Unit]
 
