@@ -28,7 +28,7 @@ addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.fu
 
 If you're in a REPL, we also need a runtime:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
