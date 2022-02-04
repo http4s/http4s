@@ -105,7 +105,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
       case req @ POST -> Root / "sum" =>
         // EntityDecoders allow turning the body into something useful
         req
-          .decode[UrlForm] { data =>
+          .decode { (data: UrlForm) =>
             data.values.get("sum").flatMap(_.uncons) match {
               case Some((s, _)) =>
                 val sum = s.split(' ').filter(_.nonEmpty).map(_.trim.toInt).sum
@@ -156,7 +156,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
 
       case req @ POST -> Root / "form-encoded" =>
         // EntityDecoders return an F[A] which is easy to sequence
-        req.decode[UrlForm] { m =>
+        req.decode { (m: UrlForm) =>
           val s = m.values.mkString("\n")
           Ok(s"Form Encoded Data\n$s")
         }
@@ -183,7 +183,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
         Ok("Hello World")
 
       case req @ POST -> Root / "multipart" =>
-        req.decode[Multipart[F]] { m =>
+        req.decode { (m: Multipart[F]) =>
           Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map(_.name).mkString("\n")}""")
         }
     }

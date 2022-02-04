@@ -304,7 +304,7 @@ class MessageSuite extends Http4sSuite {
   ) {
     val req =
       Request[IO](headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
-    val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
+    val resp = req.decodeWith(EntityDecoder.text[IO], strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }
 
@@ -312,7 +312,7 @@ class MessageSuite extends Http4sSuite {
     "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMissing"
   ) {
     val req = Request[IO]()
-    val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
+    val resp = req.decodeWith(EntityDecoder.text[IO], strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
   }
 
