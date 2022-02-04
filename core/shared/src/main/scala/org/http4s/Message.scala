@@ -218,21 +218,17 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Lifts this Message's body to the specified effect type.
     */
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+
+  def mapK[F2[x] >: F[x], G[_]](f: F2 ~> G): SelfF[G] =
+    self.change(
+      httpVersion = httpVersion,
+      headers = headers,
+      entity = entity.translate(f),
+      attributes = attributes,
+    )
 }
 
 object Message {
-  implicit final class InvariantOps[F[_], ThisF[f[_]] <: Message[f]](val self: ThisF[F]) {
-    import self._
-
-    def mapK[G[_]](f: F ~> G): SelfF[G] =
-      self.change(
-        httpVersion = httpVersion,
-        headers = headers,
-        entity = entity.translate(f),
-        attributes = attributes,
-      )
-  }
-
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
