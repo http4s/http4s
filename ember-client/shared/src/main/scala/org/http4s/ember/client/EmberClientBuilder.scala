@@ -123,10 +123,10 @@ final class EmberClientBuilder[F[_]: Async] private (
   /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
 
-  /** Sets the connection pool's maximum time a connection can be idle. */
+  /** Sets the connection pool's maximum time a connection can be idle.  The timeout starts when a connection is returned the the pool, and reset when it is borrowed. */
   def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
 
-  /** Sets the idle timeout on connections. */
+  /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
   def withIdleConnectionTime(idleConnectionTime: Duration) =
     copy(idleConnectionTime = idleConnectionTime)
 
@@ -147,21 +147,21 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOption]) =
     copy(additionalSocketOptions = additionalSocketOptions)
 
-  /** Sets the User-Agent string.
-    * Manually setting a `User-Agent` header takes priority over this setting.
+  /** Sets the default User-Agent string.
+    * A `User-Agent` header on a request takes priority over this setting.
     */
   def withUserAgent(userAgent: `User-Agent`) =
     copy(userAgent = userAgent.some)
 
-  /** Sets the User-Agent string to nothing, no User-Agent header would be sent.
-    * Manually setting a `User-Agent` header takes priority over this setting.
+  /** Clears the default User-Agent string, so no User-Agent header is sent.
+    * A `User-Agent` header on a request takes priority over this setting.
     */
   def withoutUserAgent =
     copy(userAgent = None)
 
   /** Sets whether or not to force endpoint authentication/verification on the `TLSContext`.
     * Enabled by default. When enabled the server's identity will be checked against the server's
-    * certificate during SSL/TLS handshaking. This is important to avoid man in the middle attacks
+    * certificate during SSL/TLS handshaking. This is important to avoid man-in-the-middle attacks
     * by confirming server identity against their certificate.
     */
   def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
@@ -181,10 +181,10 @@ final class EmberClientBuilder[F[_]: Async] private (
   def withUnixSockets(unixSockets: UnixSockets[F]) =
     copy(unixSockets = Some(unixSockets))
 
-  /** Enables HTTP2 support. Disabled by default. */
+  /** Enables HTTP/2 support. Disabled by default. */
   def withHttp2 = copy(enableHttp2 = true)
 
-  /** Disables HTTP2 support. Disabled by default. */
+  /** Disables HTTP/2 support. Disabled by default. */
   def withoutHttp2 = copy(enableHttp2 = false)
 
   /** Push promises are implemented via responding with a PushPromise frame
