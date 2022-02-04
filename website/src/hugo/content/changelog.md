@@ -7,6 +7,64 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M31 (2022-02-04)
+
+This is the latest milestone release in the 1.0 series.  It breaks binary compatibility and drops support for Scala 2.12.  Scala 2.12 is still supported in the 0.22.x and 0.23.x series.
+
+This merges forward all the changes from 0.22.9, 0.22.10, 0.22.11, 0.23.8, 0.23.9, and 0.23.10.
+
+* http4s-core
+    * Minimal slice from #4509 (Entity rethinking) by @bplommer in https://github.com/http4s/http4s/pull/5754
+    * Add Strict entity by @bplommer in https://github.com/http4s/http4s/pull/5807
+    * Drop Scala 2.12 from 1.0 by @armanbilge in https://github.com/http4s/http4s/pull/5337
+
+* http4s-client
+    * Simplify logger type signatures by @bplommer in https://github.com/http4s/http4s/pull/5805
+
+* http4s-server
+    * Simplify logger type signatures by @bplommer in https://github.com/http4s/http4s/pull/5805
+
+* http4s-scalatags
+    * Update scalatags to 0.11.1 by @scala-steward in https://github.com/http4s/http4s/pull/5903
+
+* http4s-prometheus-metrics
+    * Update simpleclient, simpleclient_common, ... to 0.14.1 by @scala-steward in https://github.com/http4s/http4s/pull/5817
+
+* Documentation
+    * Promote http4s.js a bit by @armanbilge in https://github.com/http4s/http4s/pull/5771
+    * Reword partial unification instructions in readme by @bplommer in https://github.com/http4s/http4s/pull/5894
+
+* Behind the scenes
+    * Merge 0.23 to main by @rossabaker in https://github.com/http4s/http4s/pull/5703
+    * Clean up `build.sbt` by @danicheg in https://github.com/http4s/http4s/pull/5711
+    * Update sbt to 1.5.6 by @scala-steward in https://github.com/http4s/http4s/pull/5710
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5719
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5734
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5759
+    * Convert Entity to an ADT with an empty case by @bplommer in https://github.com/http4s/http4s/pull/5760
+    * Merge branch `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5779
+    * Add Strict entity by @bplommer in https://github.com/http4s/http4s/pull/5804
+    * Revert "Add Strict entity" pending further review by @bplommer in https://github.com/http4s/http4s/pull/5806
+    * Set 2022 in the `README` by @danicheg in https://github.com/http4s/http4s/pull/5828
+    * Scala-steward exclusions in `main` by @bplommer in https://github.com/http4s/http4s/pull/5830
+    * Merge 0.23 into main by @armanbilge in https://github.com/http4s/http4s/pull/5832
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5839
+    * Added SurfsUp app by @manocha-aman in https://github.com/http4s/http4s/pull/5845
+    * Add scala-java-locales to steward ignores on main by @armanbilge in https://github.com/http4s/http4s/pull/5854
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5889
+    * Fix scala-steward.conf syntax by @rossabaker in https://github.com/http4s/http4s/pull/5902
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5925
+    * Add module labeling to mergify config by @armanbilge in https://github.com/http4s/http4s/pull/5941
+    * Merge 0.23 into main by @rossabaker in https://github.com/http4s/http4s/pull/5934
+    * Auto-label docs PRs with mergify by @armanbilge in https://github.com/http4s/http4s/pull/5980
+    * Merge 0.23 into main by @armanbilge in https://github.com/http4s/http4s/pull/5986
+    * Merge from 0.23.10 by @rossabaker in https://github.com/http4s/http4s/pull/6000
+
+* New Contributors
+    * @manocha-aman made their first contribution in https://github.com/http4s/http4s/pull/5845
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M30...v1.0.0-M31
+
 # v0.23.10 (2022-02-03)
 
 This is a maintenance release, binary compatible with 0.23.x.  It also includes merges of all the changes in 0.22.10.
