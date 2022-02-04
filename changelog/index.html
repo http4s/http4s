@@ -116,6 +116,87 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
+        <h1 id="v1-0-0-m31-2022-02-04" class="section">v1.0.0-M31 (2022-02-04)<a class="anchor-link right" href="#v1-0-0-m31-2022-02-04"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This is the latest milestone release in the 1.0 series.  It breaks binary compatibility and drops support for Scala 2.12.  Scala 2.12 is still supported in the 0.22.x and 0.23.x series.</p>
+        <p>This merges forward all the changes from 0.22.9, 0.22.10, 0.22.11, 0.23.8, 0.23.9, and 0.23.10.</p>
+        <ul>
+          <li>
+            <p>http4s-core</p>
+            <ul>
+              <li>Minimal slice from #4509 (Entity rethinking) by @bplommer in <a href="https://github.com/http4s/http4s/pull/5754">https://github.com/http4s/http4s/pull/5754</a></li>
+              <li>Add Strict entity by @bplommer in <a href="https://github.com/http4s/http4s/pull/5807">https://github.com/http4s/http4s/pull/5807</a></li>
+              <li>Drop Scala 2.12 from 1.0 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5337">https://github.com/http4s/http4s/pull/5337</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-client</p>
+            <ul>
+              <li>Simplify logger type signatures by @bplommer in <a href="https://github.com/http4s/http4s/pull/5805">https://github.com/http4s/http4s/pull/5805</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-server</p>
+            <ul>
+              <li>Simplify logger type signatures by @bplommer in <a href="https://github.com/http4s/http4s/pull/5805">https://github.com/http4s/http4s/pull/5805</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-scalatags</p>
+            <ul>
+              <li>Update scalatags to 0.11.1 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5903">https://github.com/http4s/http4s/pull/5903</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>http4s-prometheus-metrics</p>
+            <ul>
+              <li>Update simpleclient, simpleclient_common, ... to 0.14.1 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5817">https://github.com/http4s/http4s/pull/5817</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>Documentation</p>
+            <ul>
+              <li>Promote http4s.js a bit by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5771">https://github.com/http4s/http4s/pull/5771</a></li>
+              <li>Reword partial unification instructions in readme by @bplommer in <a href="https://github.com/http4s/http4s/pull/5894">https://github.com/http4s/http4s/pull/5894</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>Behind the scenes</p>
+            <ul>
+              <li>Merge 0.23 to main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5703">https://github.com/http4s/http4s/pull/5703</a></li>
+              <li>Clean up <code>build.sbt</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5711">https://github.com/http4s/http4s/pull/5711</a></li>
+              <li>Update sbt to 1.5.6 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/5710">https://github.com/http4s/http4s/pull/5710</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5719">https://github.com/http4s/http4s/pull/5719</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5734">https://github.com/http4s/http4s/pull/5734</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5759">https://github.com/http4s/http4s/pull/5759</a></li>
+              <li>Convert Entity to an ADT with an empty case by @bplommer in <a href="https://github.com/http4s/http4s/pull/5760">https://github.com/http4s/http4s/pull/5760</a></li>
+              <li>Merge branch <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5779">https://github.com/http4s/http4s/pull/5779</a></li>
+              <li>Add Strict entity by @bplommer in <a href="https://github.com/http4s/http4s/pull/5804">https://github.com/http4s/http4s/pull/5804</a></li>
+              <li>Revert &quot;Add Strict entity&quot; pending further review by @bplommer in <a href="https://github.com/http4s/http4s/pull/5806">https://github.com/http4s/http4s/pull/5806</a></li>
+              <li>Set 2022 in the <code>README</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5828">https://github.com/http4s/http4s/pull/5828</a></li>
+              <li>Scala-steward exclusions in <code>main</code> by @bplommer in <a href="https://github.com/http4s/http4s/pull/5830">https://github.com/http4s/http4s/pull/5830</a></li>
+              <li>Merge 0.23 into main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5832">https://github.com/http4s/http4s/pull/5832</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5839">https://github.com/http4s/http4s/pull/5839</a></li>
+              <li>Added SurfsUp app by @manocha-aman in <a href="https://github.com/http4s/http4s/pull/5845">https://github.com/http4s/http4s/pull/5845</a></li>
+              <li>Add scala-java-locales to steward ignores on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5854">https://github.com/http4s/http4s/pull/5854</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5889">https://github.com/http4s/http4s/pull/5889</a></li>
+              <li>Fix scala-steward.conf syntax by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5902">https://github.com/http4s/http4s/pull/5902</a></li>
+              <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/5925">https://github.com/http4s/http4s/pull/5925</a></li>
+              <li>Add module labeling to mergify config by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5941">https://github.com/http4s/http4s/pull/5941</a></li>
+              <li>Merge 0.23 into main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/5934">https://github.com/http4s/http4s/pull/5934</a></li>
+              <li>Auto-label docs PRs with mergify by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5980">https://github.com/http4s/http4s/pull/5980</a></li>
+              <li>Merge 0.23 into main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/5986">https://github.com/http4s/http4s/pull/5986</a></li>
+              <li>Merge from 0.23.10 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6000">https://github.com/http4s/http4s/pull/6000</a></li>
+            </ul>
+          </li>
+          <li>
+            <p>New Contributors</p>
+            <ul>
+              <li>@manocha-aman made their first contribution in <a href="https://github.com/http4s/http4s/pull/5845">https://github.com/http4s/http4s/pull/5845</a></li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M30...v1.0.0-M31">https://github.com/http4s/http4s/compare/v1.0.0-M30...v1.0.0-M31</a></p>
+        
         <h1 id="v0-23-10-2022-02-03" class="section">v0.23.10 (2022-02-03)<a class="anchor-link right" href="#v0-23-10-2022-02-03"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This is a maintenance release, binary compatible with 0.23.x.  It also includes merges of all the changes in 0.22.10.</p>
         <ul>
