@@ -138,7 +138,7 @@ final class EmberClientBuilder[F[_]: Async] private (
   /** Sets the max `chunkSize` in bytes to read from sockets at a time. */
   def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
 
-  /** Sets the max size in bytes the to read from sockets. */
+  /** Sets the max size in bytes to read while parsing response headers. */
   def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
