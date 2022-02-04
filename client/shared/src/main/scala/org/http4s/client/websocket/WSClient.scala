@@ -41,7 +41,7 @@ import scodec.bits.ByteVector
   * @param method
   *   The method of the intial HTTP request. Ignored by some clients.
   */
-private[http4s] sealed abstract class WSRequest {
+sealed abstract class WSRequest {
   def uri: Uri
   def headers: Headers
   def method: Method
@@ -51,7 +51,7 @@ private[http4s] sealed abstract class WSRequest {
   def withMethod(method: Method): WSRequest
 }
 
-private[http4s] object WSRequest {
+object WSRequest {
   def apply(uri: Uri): WSRequest = apply(uri, Headers.empty, Method.GET)
 
   def apply(uri: Uri, headers: Headers, method: Method): WSRequest =
@@ -86,13 +86,13 @@ private[http4s] object WSRequest {
     catsHashAndOrderForWSRequest.toOrdering
 }
 
-private[http4s] sealed trait WSFrame extends Product with Serializable
+sealed trait WSFrame extends Product with Serializable
 
-private[http4s] sealed trait WSControlFrame extends WSFrame
+sealed trait WSControlFrame extends WSFrame
 
-private[http4s] sealed trait WSDataFrame extends WSFrame
+sealed trait WSDataFrame extends WSFrame
 
-private[http4s] object WSFrame {
+object WSFrame {
   final case class Close(statusCode: Int, reason: String) extends WSControlFrame
   final case class Ping(data: ByteVector) extends WSControlFrame
   final case class Pong(data: ByteVector) extends WSControlFrame
@@ -100,7 +100,7 @@ private[http4s] object WSFrame {
   final case class Binary(data: ByteVector, last: Boolean = true) extends WSDataFrame
 }
 
-private[http4s] trait WSConnection[F[_]] { outer =>
+trait WSConnection[F[_]] { outer =>
 
   /** Send a single websocket frame. The sending side of this connection has to be open. */
   def send(wsf: WSFrame): F[Unit]
@@ -130,7 +130,7 @@ private[http4s] trait WSConnection[F[_]] { outer =>
   }
 }
 
-private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
+trait WSConnectionHighLevel[F[_]] { outer =>
 
   /** Send a single websocket frame. The sending side of this connection has to be open. */
   def send(wsf: WSDataFrame): F[Unit]
@@ -171,7 +171,7 @@ private[http4s] trait WSConnectionHighLevel[F[_]] { outer =>
 /** A websocket client capable of establishing [[WSClientHighLevel#connectHighLevel "high level" connections]].
   * @see [[WSClient]] for a client also capable of "low-level" connections
   */
-private[http4s] trait WSClientHighLevel[F[_]] { outer =>
+trait WSClientHighLevel[F[_]] { outer =>
 
   /** Establish a "high level" websocket connection. You only get to handle Text and Binary frames.
     * Pongs will be replied automatically. Received frames are grouped by the `last` attribute. The
@@ -188,7 +188,7 @@ private[http4s] trait WSClientHighLevel[F[_]] { outer =>
     }
 }
 
-private[http4s] trait WSClient[F[_]] extends WSClientHighLevel[F] { outer =>
+trait WSClient[F[_]] extends WSClientHighLevel[F] { outer =>
 
   /** Establish a websocket connection. It will be closed automatically if necessary. */
   def connect(request: WSRequest): Resource[F, WSConnection[F]]
@@ -205,7 +205,7 @@ private[http4s] trait WSClient[F[_]] extends WSClientHighLevel[F] { outer =>
     }
 }
 
-private[http4s] object WSClient {
+object WSClient {
   def apply[F[_]](
       respondToPings: Boolean
   )(f: WSRequest => Resource[F, WSConnection[F]])(implicit F: Concurrent[F]): WSClient[F] =
