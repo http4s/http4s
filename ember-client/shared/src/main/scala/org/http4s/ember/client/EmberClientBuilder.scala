@@ -123,7 +123,9 @@ final class EmberClientBuilder[F[_]: Async] private (
   /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
   def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
 
-  /** Sets the connection pool's maximum time a connection can be idle.  The timeout starts when a connection is returned the the pool, and reset when it is borrowed. */
+  /** Sets the connection pool's maximum time a connection can be idle.
+    * The timeout starts when a connection is returned the the pool, and reset when it is borrowed.
+    */
   def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
 
   /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
