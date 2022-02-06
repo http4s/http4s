@@ -132,7 +132,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
         .evalMap(q.offer)
         .compile
         .drain).start
-      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(()).void))
+      req0 = req.pipeBodyThrough(_.onFinalizeWeak(d.complete(()).void))
       response <- stage.runRequest(req0, IO.never)
       result <- response.use(_.as[String])
       _ <- IO(h.stageShutdown())

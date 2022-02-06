@@ -29,6 +29,7 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import fs2.Pipe
 import fs2.Pure
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -107,6 +108,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
     */
   def withBodyStream(body: EntityBody[F]): Self =
     change(body = body)
@@ -116,6 +120,14 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+
+  /** Applies the given pipe to the entity body (byte-stream) of this message.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
+    */
+  private[http4s] def pipeBodyThrough(pipe: Pipe[F, Byte, Byte]): Self =
+    withBodyStream(pipe(body))
 
   // General header methods
 
