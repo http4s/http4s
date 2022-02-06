@@ -562,6 +562,11 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jsSettings(
     jsVersionIntroduced("0.23.5"),
     mimaBinaryIssueFilters ++= {
+      Seq(
+        ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*")
+      )
+    },
+    mimaBinaryIssueFilters ++= {
       if (tlIsScala3.value)
         Seq(
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
@@ -570,7 +575,6 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
             "org.http4s.ember.core.h2.facade.Decompressor"
           ),
-          ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*"),
         )
       else
         Seq.empty
