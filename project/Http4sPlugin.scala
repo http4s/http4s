@@ -188,6 +188,7 @@ object Http4sPlugin extends AutoPlugin {
     val dropwizardMetrics = "4.2.8"
     val fs2 = "3.2.4"
     val ip4s = "3.1.2"
+    val hpack = "1.0.1-53-78a0800"
     val javaWebSocket = "1.5.2"
     val jawn = "1.3.2"
     val jawnFs2 = "2.2.0"
@@ -220,6 +221,7 @@ object Http4sPlugin extends AutoPlugin {
     val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
+    val twitterHpack = "1.0.2"
     val vault = "3.1.0"
   }
 
@@ -254,6 +256,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams = "co.fs2" %% "fs2-reactive-streams" % V.fs2
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)
   lazy val ip4sTestKit = Def.setting("com.comcast" %%% "ip4s-test-kit" % V.ip4s)
+  lazy val hpack = Def.setting("com.armanbilge" %%% "hpack" % V.hpack)
   lazy val javaxServletApi = "javax.servlet" % "javax.servlet-api" % V.servlet
   lazy val jawnFs2 = Def.setting("org.typelevel" %%% "jawn-fs2" % V.jawnFs2)
   lazy val javaWebSocket = "org.java-websocket" % "Java-WebSocket" % V.javaWebSocket
@@ -309,5 +312,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
   lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
+  lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
 }
