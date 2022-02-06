@@ -46,6 +46,7 @@ trait BlazeClientBase extends Http4sSuite {
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
+      retries: Int = 0,
   ) = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO]
@@ -56,6 +57,7 @@ trait BlazeClientBase extends Http4sSuite {
         .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
         .withChunkBufferMaxSize(chunkBufferMaxSize)
         .withScheduler(scheduler = tickWheel)
+        .withRetries(retries)
 
     sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }

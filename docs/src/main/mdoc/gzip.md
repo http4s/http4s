@@ -24,7 +24,7 @@ import org.http4s.implicits._
 
 If you're in a REPL, we also need a runtime:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
@@ -32,7 +32,7 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 Let's start by making a simple service that returns a (relatively) large string
 in its body. We'll use `as[String]` to examine the body.
 
-```scala mdoc:nest
+```scala mdoc
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("I repeat myself when I'm under stress. " * 3)
@@ -48,27 +48,27 @@ body.length
 
 Now we can wrap the service in the `GZip` middleware.
 
-```scala mdoc:nest
+```scala mdoc
 import org.http4s.server.middleware._
-val zipService = GZip(service)
+val serviceZip = GZip(service)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafeRunSync()
-val body = response.as[String].unsafeRunSync()
-body.length
+val respNormal = serviceZip.orNotFound(request).unsafeRunSync()
+val bodyNormal = respNormal.as[String].unsafeRunSync()
+bodyNormal.length
 ```
 
 So far, there was no change. That's because the caller needs to inform us that
 they will accept GZipped responses via an `Accept-Encoding` header. Acceptable
 values for the `Accept-Encoding` header are **"gzip"**, **"x-gzip"**, and **"*"**.
 
-```scala mdoc:nest
-val zipRequest = request.putHeaders("Accept-Encoding" -> "gzip")
+```scala mdoc
+val requestZip = request.putHeaders("Accept-Encoding" -> "gzip")
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafeRunSync()
-val body = response.as[String].unsafeRunSync()
-body.length
+val respZip = serviceZip.orNotFound(requestZip).unsafeRunSync()
+val bodyZip = respZip.as[String].unsafeRunSync()
+bodyZip.length
 ```
 
 Notice how the response no longer looks very String-like and it's shorter in

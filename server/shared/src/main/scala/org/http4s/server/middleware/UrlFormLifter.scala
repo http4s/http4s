@@ -45,6 +45,7 @@ object UrlFormLifter {
 
         val newRequest = req
           .withUri(req.uri.copy(query = newQuery))
+          .withAttributes(req.attributes)
           .withEmptyBody
         http(newRequest)
       }

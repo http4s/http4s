@@ -41,7 +41,7 @@ import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 
 If you're in a REPL, we also need a runtime:
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
@@ -74,7 +74,7 @@ and experiment directly in the REPL.
 ```scala mdoc
 val getRoot = Request[IO](Method.GET, uri"/")
 
-val io = service.orNotFound.run(getRoot)
+val serviceIO = service.orNotFound.run(getRoot)
 ```
 
 Where is our `Response[F]`?  It hasn't been created yet.  We wrapped it
@@ -89,7 +89,7 @@ run it.
 But here in the REPL, it's up to us to run it:
 
 ```scala mdoc
-val response = io.unsafeRunSync()
+val response = serviceIO.unsafeRunSync()
 ```
 
 Cool.
@@ -240,18 +240,18 @@ effectful, unless we wrap it in `IO`:
 `IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
 suspended future is shifted to the correct thread pool.
 
-```scala mdoc:nest
-val io = Ok(IO.fromFuture(IO(Future {
+```scala mdoc
+val ioFuture = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })))
-io.unsafeRunSync()
+ioFuture.unsafeRunSync()
 ```
 
 As good functional programmers who like to delay our side effects, we
 of course prefer to operate in `F`s:
 
-```scala mdoc:nest
+```scala mdoc
 val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
@@ -486,7 +486,7 @@ then parsing them as a `String` and `java.time.Year`.
 import java.time.Year
 ```
 
-```scala mdoc
+```scala mdoc:nest
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
@@ -506,7 +506,10 @@ val averageTemperatureService = HttpRoutes.of[IO] {
 To support a `QueryParamDecoderMatcher[Instant]`, consider `QueryParamCodec#instantQueryParamCodec`. That
 outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Instant]` and `QueryParamDecoder[Instant]`.
 
-```scala mdoc:silent:warn
+```scala mdoc:silent
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+
 implicit val isoInstantCodec: QueryParamCodec[Instant] =
   QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
@@ -531,7 +534,7 @@ object OptionalYearQueryParamMatcher
 def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
 
-val routes2 = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
     maybeYear match {
       case None =>

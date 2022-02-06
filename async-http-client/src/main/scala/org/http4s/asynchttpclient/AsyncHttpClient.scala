@@ -37,10 +37,11 @@ import org.asynchttpclient.request.body.generator.ReactiveStreamsBodyGenerator
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.client.Client
 import org.http4s.client.defaults
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
+
+import scala.jdk.CollectionConverters._
 
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()

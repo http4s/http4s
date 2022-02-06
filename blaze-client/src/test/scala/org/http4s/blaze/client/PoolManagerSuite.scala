@@ -36,17 +36,19 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
   val otherKey = RequestKey(Uri.Scheme.http, Uri.Authority(host = Uri.RegName("localhost")))
 
   class TestConnection extends Connection[IO] {
-    def isClosed = false
-    def isRecyclable = true
+    @volatile var isClosed = false
+    val isRecyclable = IO.pure(true)
     def requestKey = key
-    def shutdown() = ()
+    def shutdown() =
+      isClosed = true
   }
 
   private def mkPool(
       maxTotal: Int,
-      maxWaitQueueLimit: Int,
+      maxWaitQueueLimit: Int = 10,
       requestTimeout: Duration = Duration.Inf,
       builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection()),
+      maxIdleDuration: Duration = Duration.Inf,
   ) =
     ConnectionManager.pool(
       builder = builder,
@@ -56,6 +58,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       responseHeaderTimeout = Duration.Inf,
       requestTimeout = requestTimeout,
       executionContext = ExecutionContext.Implicits.global,
+      maxIdleDuration = maxIdleDuration,
     )
 
   test("A pool manager should wait up to maxWaitQueueLimit") {
@@ -208,5 +211,53 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       // The first connection attempt is canceled, so it should now be possible to acquire a new connection (but it's not because curAllocated==1==maxTotal)
       _ <- pool.borrow(key).timeout(200.millis)
     } yield ()
+  }
+
+  test("Should reissue recyclable connections with infinite maxIdleDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = Duration.Inf,
+      )
+      conn1 <- pool.borrow(key)
+      _ <- pool.release(conn1.connection)
+      conn2 <- pool.borrow(key)
+    } yield assertEquals(conn1.connection, conn2.connection)
+  }
+
+  test("Should not reissue recyclable connections before maxIdleDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = 365.days,
+      )
+      conn1 <- pool.borrow(key)
+      _ <- pool.release(conn1.connection)
+      conn2 <- pool.borrow(key)
+    } yield assertEquals(conn1.connection, conn2.connection)
+  }
+
+  test("Should not reissue recyclable connections beyond maxIdleDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = Duration.Zero,
+      )
+      conn1 <- pool.borrow(key)
+      _ <- pool.release(conn1.connection)
+      conn2 <- pool.borrow(key)
+    } yield assert(conn1.connection != conn2.connection)
+  }
+
+  test("Should close connections borrowed beyond maxIdleDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = Duration.Zero,
+      )
+      conn1 <- pool.borrow(key)
+      _ <- pool.release(conn1.connection)
+      _ <- pool.borrow(key)
+    } yield assert(conn1.connection.isClosed)
   }
 }

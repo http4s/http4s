@@ -24,7 +24,6 @@ import cats.Show
 import cats.parse.Parser0
 import cats.syntax.all._
 import org.http4s.Query._
-import org.http4s.internal.CollectionCompat
 import org.http4s.internal.UriCoding
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
@@ -145,7 +144,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    CollectionCompat.mapValues(multiParams)(_.headOption.getOrElse(""))
+    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
   /** Map[String, Seq[String]] representation of the [[Query]]
     *
@@ -159,7 +158,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-      CollectionCompat.mapValues(m.toMap)(_.toList)
+      m.toMap.view.mapValues(_.toList).toMap
     }
 
   override def equals(that: Any): Boolean =

@@ -66,7 +66,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Option[IdleTimeoutStage[ByteBuffer]] =
     idleTimeout match {
       case d: FiniteDuration =>
-        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, Http4sSuite.TestExecutionContext))
+        Some(new IdleTimeoutStage[ByteBuffer](d, tickWheel, munitExecutionContext))
       case _ => None
     }
 
@@ -81,6 +81,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout: Duration = Duration.Inf,
       requestTimeout: Duration = Duration.Inf,
       idleTimeout: Duration = Duration.Inf,
+      retries: Int = 0,
   ): Client[IO] = {
     val manager = ConnectionManager.basic[IO, Http1Connection[IO]]((_: RequestKey) =>
       IO {
@@ -98,7 +99,9 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       responseHeaderTimeout = responseHeaderTimeout,
       requestTimeout = requestTimeout,
       scheduler = tickWheel,
-      ec = Http4sSuite.TestExecutionContext,
+      ec = munitExecutionContext,
+      retries = retries,
+      dispatcher = dispatcher,
     )
   }
 
@@ -108,7 +111,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   ): Http1Connection[IO] =
     new Http1Connection[IO](
       requestKey = FooRequestKey,
-      executionContext = Http4sSuite.TestExecutionContext,
+      executionContext = munitExecutionContext,
       maxResponseLineSize = 4 * 1024,
       maxHeaderLength = 40 * 1024,
       maxChunkSize = Int.MaxValue,
@@ -120,14 +123,14 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
     )
 
   fixture.test("Idle timeout on slow response") { case (tickWheel, dispatcher) =>
-    val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
+    val h = new SlowTestHead(List(mkBuffer(resp)), 60.seconds, tickWheel)
     val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
   }
 
   fixture.test("Request timeout on slow response") { case (tickWheel, dispatcher) =>
-    val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
+    val h = new SlowTestHead(List(mkBuffer(resp)), 60.seconds, tickWheel)
     val c = mkClient(h, tickWheel, dispatcher)(requestTimeout = 1.second)
 
     c.fetchAs[String](FooRequest).intercept[TimeoutException]
@@ -144,7 +147,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       c.fetchAs[String](req).intercept[TimeoutException]
   }
 
-  fixture.test("Idle timeout on slow request body while receiving response body".fail) {
+  fixture.test("Idle timeout on slow request body while receiving response body") {
     case (tickWheel, dispatcher) =>
       // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request.
       // But with current implementation the cancellation of the request hangs (waits for the request body).
@@ -215,7 +218,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   // Regression test for: https://github.com/http4s/http4s/issues/2386
   // and https://github.com/http4s/http4s/issues/2338
-  tickWheelFixture.test("Eventually timeout on connect timeout") { tickWheel =>
+  fixture.test("Eventually timeout on connect timeout") { case (tickWheel, dispatcher) =>
     val manager = ConnectionManager.basic[IO, BlazeConnection[IO]] { _ =>
       // In a real use case this timeout is under OS's control (AsynchronousSocketChannel.connect)
       IO.sleep(1000.millis) *> IO.raiseError[BlazeConnection[IO]](new IOException())
@@ -226,13 +229,17 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       requestTimeout = 50.millis,
       scheduler = tickWheel,
       ec = munitExecutionContext,
+      retries = 0,
+      dispatcher = dispatcher,
     )
 
-    // if the unsafeRunTimed timeout is hit, it's a NoSuchElementException,
+    // if the .timeout(1500.millis) is hit, it's a TimeoutException,
     // if the requestTimeout is hit then it's a TimeoutException
     // if establishing connection fails first then it's an IOException
 
-    // The expected behaviour is that the requestTimeout will happen first, but fetchAs will additionally wait for the IO.sleep(1000.millis) to complete.
-    c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[TimeoutException]
+    // The expected behaviour is that the requestTimeout will happen first,
+    // but will not be considered as long as BlazeClient is busy trying to obtain the connection.
+    // Obtaining the connection will fail after 1000 millis and that error will be propagated.
+    c.fetchAs[String](FooRequest).timeout(1500.millis).intercept[IOException]
   }
 }

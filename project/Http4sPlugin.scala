@@ -7,9 +7,8 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
-import sbtghactions.GenerativeKeys._
-import sbtghactions.JavaSpec
-import sbtspiewak.NowarnCompatPlugin.autoImport.nowarnCompatAnnotationProvider
+import org.typelevel.sbt.gha.GenerativeKeys._
+import org.typelevel.sbt.gha.JavaSpec
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -23,8 +22,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.8"
-  val scala_212 = "2.12.15"
-  val scala_3 = "3.1.0"
+  val scala_3 = "3.1.1"
 
   override lazy val globalSettings = Seq(
     isCi := sys.env.contains("CI")
@@ -40,7 +38,6 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
-    nowarnCompatAnnotationProvider := None,
     doctestTestFramework := DoctestTestFramework.Munit,
   )
 
@@ -115,15 +112,15 @@ object Http4sPlugin extends AutoPlugin {
     )
 
   def sbtghactionsSettings: Seq[Setting[_]] = {
-    import sbtghactions.GenerativeKeys._
-    import sbtghactions._
+    import org.typelevel.sbt.gha.GenerativeKeys._
+    import org.typelevel.sbt.gha._
 
     def siteBuildJob(subproject: String, runMdoc: Boolean) = {
       val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
       WorkflowJob(
         id = subproject,
         name = s"Build $subproject",
-        scalas = List(scala_212),
+        scalas = List(scala_213),
         javas = List(JavaSpec.temurin("17")),
         steps = List(
           WorkflowStep.CheckoutFull,
@@ -143,7 +140,7 @@ object Http4sPlugin extends AutoPlugin {
        |echo "$$SSH_PRIVATE_KEY" | ssh-add -
        |git config --global user.name "GitHub Actions CI"
        |git config --global user.email "ghactions@invalid"
-       |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
+       |sbt ++$scala_213 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
        |
       """.stripMargin),
         name = Some(s"Publish $subproject"),
@@ -151,36 +148,16 @@ object Http4sPlugin extends AutoPlugin {
       )
     }
 
-    Http4sOrgPlugin.githubActionsSettings ++ Seq(
-      githubWorkflowBuild := Seq(
-        WorkflowStep
-          .Sbt(List("scalafmtCheckAll"), name = Some("Check formatting")),
-        WorkflowStep.Sbt(List("headerCheck", "test:headerCheck"), name = Some("Check headers")),
-        WorkflowStep.Sbt(List("test:compile"), name = Some("Compile")),
-        WorkflowStep.Sbt(List("mimaReportBinaryIssues"), name = Some("Check binary compatibility")),
-        WorkflowStep
-          .Sbt(List("unusedCompileDependenciesTest"), name = Some("Check unused dependencies")),
-        WorkflowStep.Sbt(List("test"), name = Some("Run tests")),
-        WorkflowStep.Sbt(List("doc"), name = Some("Build docs")),
-      ),
-      githubWorkflowTargetBranches :=
-        // "*" doesn't include slashes
-        List("*", "series/*"),
+    Seq(
       githubWorkflowPublishPreamble := {
         githubWorkflowPublishPreamble.value ++ Seq(
           WorkflowStep.Run(List("git status"))
         )
       },
-      githubWorkflowPublishTargetBranches := Seq(
-        RefPredicate.Equals(Ref.Branch("main")),
-        RefPredicate.StartsWith(Ref.Tag("v")),
-      ),
       githubWorkflowPublishPostamble := Seq(
         sitePublishStep("website", runMdoc = false)
         // sitePublishStep("docs", runMdoc = true)
       ),
-      // this results in nonexistent directories trying to be compressed
-      githubWorkflowArtifactUpload := false,
       githubWorkflowAddedJobs := Seq(
         siteBuildJob("website", runMdoc = false),
         siteBuildJob("docs", runMdoc = true),
@@ -197,13 +174,13 @@ object Http4sPlugin extends AutoPlugin {
     val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
-    val catsEffect = "3.3.4"
+    val catsEffect = "3.3.5"
     val catsParse = "0.3.6"
     val circe = "0.15.0-M1"
     val crypto = "0.2.0"
     val cryptobits = "1.3"
     val disciplineCore = "1.4.0"
-    val dropwizardMetrics = "4.2.7"
+    val dropwizardMetrics = "4.2.8"
     val fs2 = "3.2.4"
     val ip4s = "3.1.2"
     val javaWebSocket = "1.5.2"
@@ -214,7 +191,7 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "2.1.1"
+    val log4cats = "2.2.0"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
@@ -223,19 +200,19 @@ object Http4sPlugin extends AutoPlugin {
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
-    val prometheusClient = "0.14.1"
+    val prometheusClient = "0.15.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.3"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
-    val scalatags = "0.11.0"
+    val scalatags = "0.11.1"
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
-    val slf4j = "1.7.33"
-    val tomcat = "9.0.56"
+    val slf4j = "1.7.35"
+    val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "3.1.0"
