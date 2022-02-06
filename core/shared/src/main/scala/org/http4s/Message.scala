@@ -218,21 +218,17 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Lifts this Message's body to the specified effect type.
     */
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+
+  def mapK[F2[x] >: F[x], G[_]](f: F2 ~> G): SelfF[G] =
+    self.change(
+      httpVersion = httpVersion,
+      headers = headers,
+      entity = entity.translate(f),
+      attributes = attributes,
+    )
 }
 
 object Message {
-  implicit final class InvariantOps[F[_], ThisF[f[_]] <: Message[f]](val self: ThisF[F]) {
-    import self._
-
-    def mapK[G[_]](f: F ~> G): SelfF[G] =
-      self.change(
-        httpVersion = httpVersion,
-        headers = headers,
-        entity = entity.translate(f),
-        attributes = attributes,
-      )
-  }
-
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
@@ -454,6 +450,30 @@ final class Request[+F[_]] private (
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
+
+  def decode[F2[x] >: F[x], A](
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
+    decodeWith(decoder, strict = false)(f)
+
+  def decodeWith[F2[x] >: F[x], A](decoder: EntityDecoder[F2, A], strict: Boolean)(
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2]): F2[Response[F2]] =
+    decoder
+      .decode(this, strict = strict)
+      .fold(_.toHttpResponse(httpVersion).covary[F2].pure[F2], f)
+      .flatten
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
+    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+    */
+  def decodeStrict[F2[x] >: F[x], A](
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
+    decodeWith(decoder, strict = true)(f)
 }
 
 object Request {
@@ -462,33 +482,6 @@ object Request {
     *  A [[Request.Pure]] is always an instance of [[Request[F]]], regardless of `F`.
     */
   type Pure = Request[fs2.Pure]
-
-  implicit final class InvariantOps[F[_]](private val self: Request[F]) extends AnyVal {
-    import self._
-    def decode[A](
-        f: A => F[Response[F]]
-    )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
-      decodeWith(decoder, strict = false)(f)
-
-    def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(
-        f: A => F[Response[F]]
-    )(implicit F: Monad[F]): F[Response[F]] =
-      decoder
-        .decode(self, strict = strict)
-        .fold(_.toHttpResponse(httpVersion).covary[F].pure[F], f)
-        .flatten
-
-    /** Helper method for decoding [[Request]]s
-      *
-      * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-      * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
-      * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
-      */
-    def decodeStrict[A](
-        f: A => F[Response[F]]
-    )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
-      decodeWith(decoder, strict = true)(f)
-  }
 
   /** Representation of an incoming HTTP message
     *
