@@ -71,6 +71,9 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
       servletResponse.setStatus(response.status.code)
+      // Transfer-Encodings are the domain of the servlet container.
+      // We don't pass them along, but the bodyWriter may key on it to
+      // flush each chunk.
       for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
