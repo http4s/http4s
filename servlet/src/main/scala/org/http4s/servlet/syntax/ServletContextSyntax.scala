@@ -39,7 +39,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
     *
     * Assumes non-blocking servlet IO is available, and thus requires at least Servlet 3.1.
     */
-  @deprecated("Use mountRoutes instead")
+  @deprecated("Use mountRoutes instead", "0.23.10")
   def mountService[F[_]: Async](
       name: String,
       service: HttpRoutes[F],
