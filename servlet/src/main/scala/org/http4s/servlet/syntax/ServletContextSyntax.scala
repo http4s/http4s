@@ -26,6 +26,7 @@ import org.http4s.syntax.all._
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletRegistration
+import scala.concurrent.duration.Duration
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
@@ -43,18 +44,20 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
       service: HttpRoutes[F],
       mapping: String = "/*",
       dispatcher: Dispatcher[F],
+      asyncTimeout: Duration = defaults.ResponseTimeout
   ): ServletRegistration.Dynamic =
-    mountHttpApp(name, service.orNotFound, mapping, dispatcher)
+    mountHttpApp(name, service.orNotFound, mapping, dispatcher, asyncTimeout)
 
   def mountHttpApp[F[_]: Async](
       name: String,
       service: HttpApp[F],
       mapping: String = "/*",
       dispatcher: Dispatcher[F],
+      asyncTimeout: Duration = defaults.ResponseTimeout
   ): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
-      asyncTimeout = defaults.ResponseTimeout,
+      asyncTimeout = asyncTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       dispatcher,
