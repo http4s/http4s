@@ -19,6 +19,7 @@ package server
 package blaze
 
 import cats.effect.{CancelToken, Concurrent, ConcurrentEffect, IO, Sync, Timer}
+import cats.effect.syntax.all._
 import cats.syntax.all._
 
 import java.nio.ByteBuffer
@@ -196,10 +197,13 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = Sync[F]
+            val action = F
               .defer(raceTimeout(req))
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+              .continual {
+                case Right(resp) => F.delay(renderResponse(req, resp, cleanup))
+                case Left(t) => F.raiseError[Unit](t)
+              }
 
             val theCancelToken = Some(
               F.runCancelable(action) {
