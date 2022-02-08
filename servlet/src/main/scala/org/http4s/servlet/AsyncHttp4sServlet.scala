@@ -87,6 +87,14 @@ class AsyncHttp4sServlet[F[_]](
       F.race(timeout, response).flatMap(r => renderResponse(r.merge, servletResponse, bodyWriter))
     }
 
+  override protected def renderResponse(
+      response: Response[F],
+      servletResponse: HttpServletResponse,
+      bodyWriter: BodyWriter[F]
+  ): F[Unit] =
+    // The supertype hopes that we are a ConcurrentEffect.  We know we're one.
+    Http4sServlet.renderResponseContinually(response, servletResponse, bodyWriter)
+
   private def errorHandler(
       servletRequest: ServletRequest,
       servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {

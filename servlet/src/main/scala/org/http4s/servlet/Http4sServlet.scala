@@ -70,7 +70,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
     // Binary compatibility hack
     F match {
       case ce: ConcurrentEffect[F] =>
-        renderResponseContinually(response, servletResponse, bodyWriter)(ce)
+        Http4sServlet.renderResponseContinually(response, servletResponse, bodyWriter)(ce)
       case _ => renderResponseDiscontinually(response, servletResponse, bodyWriter)
     }
 
@@ -97,28 +97,6 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }
-
-  private def renderResponseContinually(
-      response: Response[F],
-      servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]
-  )(implicit F: ConcurrentEffect[F]): F[Unit] =
-    // Note: the servlet API gives us no undeprecated method to both set
-    // a body and a status reason.  We sacrifice the status reason.
-    F.continual(F.delay {
-      servletResponse.setStatus(response.status.code)
-      // Transfer-Encodings are the domain of the servlet container.
-      // We don't pass them along, but the bodyWriter may key on it to
-      // flush each chunk.
-      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
-        servletResponse.addHeader(header.name.toString, header.value)
-    }) {
-      case Right(()) => bodyWriter(response)
-      case Left(t) =>
-        response.body.drain.compile.drain.handleError { case t2 =>
-          logger.error(t2)("Error draining body")
-        } *> F.raiseError(t)
-    }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request[F]] =
     for {
@@ -169,4 +147,30 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
     } yield Header(name, value)
     Headers(headers.toList)
   }
+}
+
+object Http4sServlet {
+  private[this] val logger = getLogger
+
+  private[servlet] def renderResponseContinually[F[_]](
+      response: Response[F],
+      servletResponse: HttpServletResponse,
+      bodyWriter: BodyWriter[F]
+  )(implicit F: ConcurrentEffect[F]): F[Unit] =
+    // Note: the servlet API gives us no undeprecated method to both set
+    // a body and a status reason.  We sacrifice the status reason.
+    F.continual(F.delay {
+      servletResponse.setStatus(response.status.code)
+      // Transfer-Encodings are the domain of the servlet container.
+      // We don't pass them along, but the bodyWriter may key on it to
+      // flush each chunk.
+      for (header <- response.headers.toList if header.isNot(`Transfer-Encoding`))
+        servletResponse.addHeader(header.name.toString, header.value)
+    }) {
+      case Right(()) => bodyWriter(response)
+      case Left(t) =>
+        response.body.drain.compile.drain.handleError { case t2 =>
+          logger.error(t2)("Error draining body")
+        } *> F.raiseError(t)
+    }
 }
