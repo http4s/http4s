@@ -8,6 +8,25 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.21.32 (2022-02-09)
+
+This is an unplanned bugfix release for the 0.21.x series.  This series remains officially unmaintained except for urgent security patches.  It plugs a tiny leak on the server backends when a resource is canceled between acquisition and compiling its body.
+
+* http4s-servlet
+    * Flush the prelude in non-blocking Servlet IO by @rossabaker in https://github.com/http4s/http4s/pull/6027
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* http4s-blaze-server
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* http4s-ember-server
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* Behind the scenes
+    * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.31...v0.21.32
+
 # v0.21.31 (2021-10-11)
 
 This is a maintenance release.  The only changes are to increase forward source compatibility with 0.22.  It is binary compatible with the 0.21.x series.
