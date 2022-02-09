@@ -739,6 +739,7 @@ lazy val scalafixSettings: Seq[Setting[_]] = Seq(
 lazy val scalafixRules = project
   .in(file("scalafix/rules"))
   .settings(scalafixSettings)
+  .settings(sonatypeMigrationShims)
   .settings(
     moduleName := "http4s-scalafix",
     libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
@@ -833,6 +834,35 @@ lazy val commonSettings = Seq(
     specs2Scalacheck
   ).map(_ % Test),
   apiURL := Some(url(s"https://http4s.org/v${baseVersion.value}/api")),
+) ++ sonatypeMigrationShims
+
+lazy val sonatypeMigrationShims = Seq(
+  sonatypeCredentialHost := "s01.oss.sonatype.org",
+  sonatypeSnapshotResolver := {
+    MavenRepository(
+      s"${sonatypeCredentialHost.value.replace('.', '-')}-snapshots",
+      s"https://${sonatypeCredentialHost.value}/content/repositories/snapshots"
+    )
+  },
+  sonatypeStagingResolver := {
+    MavenRepository(
+      s"${sonatypeCredentialHost.value.replace('.', '-')}-staging",
+      s"https://${sonatypeCredentialHost.value}/service/local/staging/deploy/maven2"
+    )
+  },
+  sonatypeDefaultResolver := {
+    val profileM = sonatypeTargetRepositoryProfile.?.value
+    val repository = sonatypeRepository.value
+    val staged = profileM.map { stagingRepoProfile =>
+      "releases" at s"${repository}/${stagingRepoProfile.deployPath}"
+      s"${sonatypeCredentialHost.value.replace('.', '-')}-releases" at s"${repository}/${stagingRepoProfile.deployPath}"
+    }
+    staged.getOrElse(if (version.value.endsWith("-SNAPSHOT")) {
+      sonatypeSnapshotResolver.value
+    } else {
+      sonatypeStagingResolver.value
+    })
+  },
 )
 
 def initCommands(additionalImports: String*) =
