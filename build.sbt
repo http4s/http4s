@@ -839,31 +839,6 @@ lazy val commonSettings = Seq(
 
 lazy val sonatypeMigrationShims = Seq(
   sonatypeCredentialHost := "s01.oss.sonatype.org",
-  sonatypeSnapshotResolver := {
-    MavenRepository(
-      s"${sonatypeCredentialHost.value.replace('.', '-')}-snapshots",
-      s"https://${sonatypeCredentialHost.value}/content/repositories/snapshots"
-    )
-  },
-  sonatypeStagingResolver := {
-    MavenRepository(
-      s"${sonatypeCredentialHost.value.replace('.', '-')}-staging",
-      s"https://${sonatypeCredentialHost.value}/service/local/staging/deploy/maven2"
-    )
-  },
-  sonatypeDefaultResolver := {
-    val profileM = sonatypeTargetRepositoryProfile.?.value
-    val repository = sonatypeRepository.value
-    val staged = profileM.map { stagingRepoProfile =>
-      "releases" at s"${repository}/${stagingRepoProfile.deployPath}"
-      s"${sonatypeCredentialHost.value.replace('.', '-')}-releases" at s"${repository}/${stagingRepoProfile.deployPath}"
-    }
-    staged.getOrElse(if (version.value.endsWith("-SNAPSHOT")) {
-      sonatypeSnapshotResolver.value
-    } else {
-      sonatypeStagingResolver.value
-    })
-  },
 )
 
 def initCommands(additionalImports: String*) =
