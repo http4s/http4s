@@ -143,7 +143,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       if (i == 7 || i == 8) // Awful temporary hack
         fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
-            .split("\r\n\r\n")(0)}\n"
+              .split("\r\n\r\n")(0)}\n"
         ) { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
             .map(parseAndDropDate)
@@ -153,7 +153,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       else
         fixture.test(
           s"Http1ServerStage: Common responses should Run request $i Run request: --------\n${req
-            .split("\r\n\r\n")(0)}\n"
+              .split("\r\n\r\n")(0)}\n"
         ) { tw =>
           runRequest(tw, Seq(req), ServerTestRoutes()).result
             .map(parseAndDropDate)
