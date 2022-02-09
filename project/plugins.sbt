@@ -17,4 +17,4 @@ addSbtPlugin("com.typesafe.sbt"           %  "sbt-native-packager"       % "1.8.
 addSbtPlugin("io.spray"                   %  "sbt-revolver"              % "0.9.1")
 addSbtPlugin("pl.project13.scala"         %  "sbt-jmh"                   % "0.4.2")
 addSbtPlugin("org.scalameta"              %  "sbt-mdoc"                  % "2.2.21")
-addSbtPlugin("org.xerial.sbt"             %  "sbt-sonatype"              % "3.9.10")
+addSbtPlugin("org.xerial.sbt"             %  "sbt-sonatype"              % "3.9.11")
