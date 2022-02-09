@@ -63,6 +63,7 @@ lazy val modules: List[ProjectReference] = List(
 
 lazy val root = project.in(file("."))
   .enablePlugins(NoPublishPlugin)
+  .settings(sonatypeMigrationShims)
   .settings(
     // Root project
     name := "http4s",
