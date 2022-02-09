@@ -240,7 +240,7 @@ private[server] object ServerHelpers {
                 requestVault)
             }
 
-            result.attempt.flatMap {
+            result.continual {
               case Right((req, resp, drain)) =>
                 send(socket)(Some(req), resp, idleTimeout, onWriteFailure) >>
                   drain.map {
