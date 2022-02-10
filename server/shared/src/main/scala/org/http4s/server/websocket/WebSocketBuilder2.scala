@@ -98,6 +98,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
             webSocket,
             headers,
             onHandshakeFailure,
+            filterPingPongs,
           ),
         )
       )

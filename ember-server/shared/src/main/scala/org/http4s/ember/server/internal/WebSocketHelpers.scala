@@ -122,7 +122,7 @@ object WebSocketHelpers {
         case WebSocketCombinedPipe(receiveSend, onClose) =>
           incoming
             .through(decodeFrames(frameTranscoder))
-            .through(handleIncomingFrames(write, frameTranscoder, close))
+            .through(handleIncomingFrames(write, frameTranscoder, close, ctx.filterPings))
             .through(receiveSend)
             .through(encodeFrames(frameTranscoder))
             .through(write) -> onClose
@@ -146,7 +146,7 @@ object WebSocketHelpers {
 
           val reader = incoming
             .through(decodeFrames(frameTranscoder))
-            .through(handleIncomingFrames(write, frameTranscoder, close))
+            .through(handleIncomingFrames(write, frameTranscoder, close, ctx.filterPings))
             .through(receive)
 
           reader.concurrently(writer) -> onClose
@@ -164,13 +164,17 @@ object WebSocketHelpers {
       write: Pipe[F, Byte, Unit],
       frameTranscoder: FrameTranscoder,
       closeState: Ref[F, Close],
+      filterPings: Boolean,
   )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
       Stream(frame).through(encodeFrames(frameTranscoder)).through(write).compile.drain
 
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {
-        case WebSocketFrame.Ping(data) => writeFrame(WebSocketFrame.Pong(data)).as(None)
+        case WebSocketFrame.Ping(data) =>
+          val pong = writeFrame(WebSocketFrame.Pong(data))
+          if (filterPings) pong.as(None)
+          else pong.as(WebSocketFrame.Ping(data).some)
         case frame @ WebSocketFrame.Close(_) =>
           closeState.get.flatMap {
             case Open =>
@@ -196,7 +200,7 @@ object WebSocketHelpers {
         }
         Stream
           .iterable(chunks)
-          .flatMap(Stream.chunk(_))
+          .flatMap(Stream.chunk)
       }
 
   private def decodeFrames[F[_]](
