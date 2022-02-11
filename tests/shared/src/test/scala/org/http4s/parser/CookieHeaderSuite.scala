@@ -17,12 +17,15 @@
 package org.http4s
 package parser
 
-import cats.data.NonEmptyList
+import cats.data.{Ior, NonEmptyList}
 import cats.syntax.all._
 import org.http4s.headers.Cookie
 
 class CookieHeaderSuite extends munit.FunSuite {
-  def parse(value: String): Cookie = headers.Cookie.parse(value).valueOr(throw _)
+  def parse(value: String): Cookie =
+    Header[Cookie].parse(value).valueOr(throw _)
+  def parseWithWarnings(value: String): Ior[NonEmptyList[ParseFailure], Cookie] =
+    Header[Cookie].parseWithWarnings(value)
 
   val cookiestr = "key1=value1; key2=\"value2\""
   val cookiestrSemicolon: String = cookiestr + ";"
@@ -43,10 +46,17 @@ class CookieHeaderSuite extends munit.FunSuite {
     )
   }
 
-  test("Cookie parse should omit invalid cookies?") {
+  test("Cookie parseWithWarnings should parse valid headers and return errors for failures") {
+    val actual = parseWithWarnings("""key1=value1; key2={"aField":{}}""")
     assertEquals(
-      parse("""key1=value1; key2={"aField":{}}""").values,
-      NonEmptyList.one(RequestCookie("key1", "value1")),
+      actual.right.map(_.values),
+      NonEmptyList.one(RequestCookie("key1", "value1")).some,
+    )
+    assertEquals(
+      actual.left,
+      NonEmptyList
+        .one(ParseFailure("Invalid Cookie header", "Error(6,NonEmptyList(EndOfString(6,18)))"))
+        .some,
     )
   }
 }

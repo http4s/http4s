@@ -51,6 +51,14 @@ trait Header[A, T <: Header.Type] {
     * multiple values.
     */
   def parse(headerValue: String): Either[ParseFailure, A]
+
+  /** Parses the header from its String representation.
+    * Could be a comma separated String in case of a Header with
+    * multiple values.
+    * Returns failures alongside parsed values.
+    */
+  def parseWithWarnings(headerValue: String): Ior[NonEmptyList[ParseFailure], A] =
+    Ior.fromEither(parse(headerValue).toEitherNel)
 }
 
 object Header {
@@ -118,10 +126,24 @@ object Header {
       name_ : CIString,
       value_ : A => B,
       parse_ : String => Either[ParseFailure, A],
+  ): Header[A, T] =
+    createRendered(
+      name_,
+      value_,
+      parse_,
+      s => Ior.fromEither(parse_(s).toEitherNel),
+    )
+
+  def createRendered[A, T <: Header.Type, B: Renderer](
+      name_ : CIString,
+      value_ : A => B,
+      parse_ : String => Either[ParseFailure, A],
+      parseWithWarnings_ : String => Ior[NonEmptyList[ParseFailure], A],
   ): Header[A, T] = new Header[A, T] {
     def name = name_
     def value(a: A) = Renderer.renderString(value_(a))
     def parse(s: String) = parse_(s)
+    override def parseWithWarnings(s: String) = parseWithWarnings_(s)
   }
 
   /** Target for implicit conversions to Header.Raw from modelled
@@ -199,6 +221,11 @@ object Header {
     /** Selects this header from a list of [[Header.Raw]]
       */
     def from(headers: List[Header.Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]]
+
+    /** Selects this header from a list of [[Header.Raw]]
+      * Parses all valid values from every instance of this header.
+      */
+    def fromAllValid(headers: List[Header.Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]]
   }
   trait LowPrio {
     implicit def recurringHeadersNoMerge[A](implicit
@@ -221,6 +248,17 @@ object Header {
                 case None => a
               }
           }
+
+        override def fromAllValid(
+            headers: List[Raw]
+        ): Option[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]] =
+          headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], NonEmptyList[A]]]) {
+            (a, raw) =>
+              Select.fromRawAllValid(raw) match {
+                case Some(aa) => a |+| aa.map(NonEmptyList.one).some
+                case None => a
+              }
+          }
       }
   }
   object Select extends LowPrio {
@@ -228,6 +266,11 @@ object Header {
 
     def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[Ior[ParseFailure, A]] =
       (h.name == Header[A].name).guard[Option].map(_ => Header[A].parse(h.value).toIor)
+
+    def fromRawAllValid[A](h: Header.Raw)(implicit
+        ev: Header[A, _]
+    ): Option[Ior[NonEmptyList[ParseFailure], A]] =
+      (h.name == Header[A].name).guard[Option].map(_ => Header[A].parseWithWarnings(h.value))
 
     implicit def singleHeaders[A](implicit
         h: Header[A, Header.Single]
@@ -243,6 +286,9 @@ object Header {
 
         def from(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
           headers.collectFirst(Function.unlift(fromRaw(_).map(_.leftMap(NonEmptyList.one))))
+
+        def fromAllValid(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+          headers.collectFirst(Function.unlift(fromRawAllValid(_)))
       }
 
     implicit def recurringHeadersWithMerge[A: Semigroup](implicit
@@ -261,6 +307,14 @@ object Header {
           headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], F[A]]]) { (a, raw) =>
             fromRaw(raw) match {
               case Some(aa) => a |+| aa.leftMap(NonEmptyList.one).some
+              case None => a
+            }
+          }
+
+        def fromAllValid(headers: List[Raw]): Option[Ior[NonEmptyList[ParseFailure], F[A]]] =
+          headers.foldLeft(Option.empty[Ior[NonEmptyList[ParseFailure], F[A]]]) { (a, raw) =>
+            fromRawAllValid(raw) match {
+              case Some(aa) => a |+| aa.some
               case None => a
             }
           }

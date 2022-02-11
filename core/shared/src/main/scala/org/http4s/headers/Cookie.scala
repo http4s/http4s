@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.syntax.all._
-import cats.data.NonEmptyList
+import cats.data.{Ior, NonEmptyList}
 import cats.parse.Parser
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
@@ -28,20 +28,33 @@ object Cookie {
   def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
     apply(NonEmptyList(head, tail.toList))
 
-  def parse(s: String): ParseResult[Cookie] = {
+  private def parseCookie(s: String): ParseResult[Cookie] =
+    ParseResult.fromParser(parser, "Invalid Cookie header")(s)
+
+  def parseWithWarnings(s: String): Ior[NonEmptyList[ParseFailure], Cookie] = {
     val (errors, cookies) = s
       .split("; |;")
       .toList
       .filterNot(_.isEmpty)
-      .map(parser.parseAll)
+      .map(parseCookie)
       .partitionEither(identity)
 
-    val oneFailure = ParseFailure(
+    val oneFailure: ParseFailure = ParseFailure(
+      "Empty Cookie header",
+      s"No cookies to be parsed",
+    )
+    Ior
+      .fromOptions(NonEmptyList.fromList(errors), cookies.combineAllOption)
+      .getOrElse(Ior.left(NonEmptyList.one(oneFailure)))
+  }
+
+  def parse(s: String): Either[ParseFailure, Cookie] = {
+    def oneFailure(errors: NonEmptyList[ParseFailure]) = ParseFailure(
       "Invalid Cookie header",
-      s"No valid cookies could be parsed: ${errors.map(_.toString).mkString("[", ",", "]")}",
+      s"No valid cookies could be parsed: ${errors.map(_.toString).toList.mkString("[", ",", "]")}",
     )
 
-    cookies.combineAllOption.toRight(oneFailure)
+    parseWithWarnings(s).leftMap(oneFailure).fold(Left(_), Right(_), (l, _) => Left(l))
   }
 
   private[http4s] val parser: Parser[Cookie] = RequestCookie.parser.map(Cookie(_))
@@ -57,6 +70,7 @@ object Cookie {
             writer.addNel(h.values, sep = "; ")
         },
       parse,
+      parseWithWarnings,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =

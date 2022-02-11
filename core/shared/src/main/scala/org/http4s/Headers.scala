@@ -49,7 +49,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def getWithWarnings[A](implicit
       ev: Header.Select[A]
   ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
-    ev.from(headers)
+    ev.fromAllValid(headers)
 
   /** Attempt to get headers by key from this collection of headers.
     *
