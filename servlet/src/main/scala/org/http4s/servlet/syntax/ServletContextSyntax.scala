@@ -88,24 +88,6 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   }
 }
 
-object ServletContextOps {
-
-  @deprecated("Preserved for binary compatibility", "0.23.11")
-  def `mountHttpApp$extension`[F[_]: Async](
-      servlet: ServletContext,
-      name: String,
-      service: HttpApp[F],
-      mapping: String,
-      dispatcher: Dispatcher[F],
-  ): ServletRegistration.Dynamic =
-    (new ServletContextOps(servlet)).mountHttpApp(
-      name,
-      service,
-      mapping,
-      dispatcher,
-      defaults.ResponseTimeout,
-    )
-
-}
+object ServletContextOps extends ServletContextOpsCompanionCompat
 
 object servletContext extends ServletContextSyntax
