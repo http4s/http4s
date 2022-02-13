@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets
 
 class EntityLimiterSuite extends Http4sSuite {
   val routes = HttpRoutes.of[IO] {
-    case r if r.pathInfo == path"/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
+    case r if r.pathInfo == path"/echo" => r.decode(Response(Ok).withEntity(_: String).pure[IO])
   }
 
   val e = Entity(chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8))))
@@ -57,7 +57,7 @@ class EntityLimiterSuite extends Http4sSuite {
   test("Chain correctly with other HttpRoutes") {
     val routes2 = HttpRoutes.of[IO] {
       case r if r.pathInfo == path"/echo2" =>
-        r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
+        r.decode(Response(Ok).withEntity(_: String).pure[IO])
     }
 
     val st = EntityLimiter(routes, 3) <+> routes2
