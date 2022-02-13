@@ -39,7 +39,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
     *
     * Assumes non-blocking servlet IO is available, and thus requires at least Servlet 3.1.
     */
-  @deprecated("Use mountRoutes instead", "1.0.0-M32")
+  @deprecated("Use mountRoutes instead", "0.23.11")
   private[servlet] def mountService[F[_]: Async](
       name: String,
       service: HttpRoutes[F],
@@ -57,7 +57,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   ): ServletRegistration.Dynamic =
     mountHttpApp(name, service.orNotFound, mapping, dispatcher, asyncTimeout)
 
-  @deprecated("Use mountHttpApp with async timeout param instead", "1.0.0-M32")
+  @deprecated("Use mountHttpApp with async timeout param instead", "0.23.11")
   private[servlet] def mountHttpApp[F[_]: Async](
       name: String,
       service: HttpApp[F],
