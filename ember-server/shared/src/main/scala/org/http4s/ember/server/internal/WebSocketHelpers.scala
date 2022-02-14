@@ -41,6 +41,7 @@ import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -122,7 +123,7 @@ object WebSocketHelpers {
         case WebSocketCombinedPipe(receiveSend, onClose) =>
           incoming
             .through(decodeFrames(frameTranscoder))
-            .through(handleIncomingFrames(write, frameTranscoder, close, ctx.filterPings))
+            .through(handleIncomingFrames(write, frameTranscoder, close))
             .through(receiveSend)
             .through(encodeFrames(frameTranscoder))
             .through(write) -> onClose
@@ -146,7 +147,7 @@ object WebSocketHelpers {
 
           val reader = incoming
             .through(decodeFrames(frameTranscoder))
-            .through(handleIncomingFrames(write, frameTranscoder, close, ctx.filterPings))
+            .through(handleIncomingFrames(write, frameTranscoder, close))
             .through(receive)
 
           reader.concurrently(writer) -> onClose
@@ -164,7 +165,6 @@ object WebSocketHelpers {
       write: Pipe[F, Byte, Unit],
       frameTranscoder: FrameTranscoder,
       closeState: Ref[F, Close],
-      filterPings: Boolean,
   )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
       Stream(frame).through(encodeFrames(frameTranscoder)).through(write).compile.drain
@@ -172,9 +172,7 @@ object WebSocketHelpers {
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {
         case WebSocketFrame.Ping(data) =>
-          val pong = writeFrame(WebSocketFrame.Pong(data))
-          if (filterPings) pong.as(None)
-          else pong.as(WebSocketFrame.Ping(data).some)
+          writeFrame(WebSocketFrame.Pong(data)) *> F.pure(Ping(data).some)
         case frame @ WebSocketFrame.Close(_) =>
           closeState.get.flatMap {
             case Open =>
