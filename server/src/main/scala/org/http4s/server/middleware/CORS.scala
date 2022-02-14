@@ -396,7 +396,7 @@ sealed class CORSPolicy(
       def headers = allowHeaders match {
         case AllowHeaders.All | AllowHeaders.Static(_) => Nil
         case AllowHeaders.In(_) | AllowHeaders.Reflect =>
-          List(ci"Access-Control-Request-Headers")
+          List(Header[`Access-Control-Request-Headers`].name)
       }
       (origin ++ methods ++ headers) match {
         case Nil =>
@@ -413,9 +413,9 @@ sealed class CORSPolicy(
             case Method.OPTIONS =>
               req.headers.get[`Access-Control-Request-Method`] match {
                 case Some(acrm) =>
-                  val headers = req.headers.get(ci"Access-Control-Request-Headers") match {
+                  val headers = req.headers.get[`Access-Control-Request-Headers`] match {
                     case Some(acrHeaders) =>
-                      acrHeaders.map(_.value.split("\\s*,\\s*").map(CIString(_)).toSet).fold
+                      acrHeaders.values.toSet
                     case None =>
                       Set.empty[CIString]
                   }

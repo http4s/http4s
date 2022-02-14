@@ -272,6 +272,12 @@ lazy val laws = libraryProject("laws")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForKeepAlive_="
           ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlRequestHeaders"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlRequestHeaders_="
+          ),
         )
       else Seq.empty
     },

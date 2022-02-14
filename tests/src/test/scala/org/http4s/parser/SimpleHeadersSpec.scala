@@ -76,6 +76,24 @@ class SimpleHeadersSpec extends Http4sSuite {
     assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
   }
 
+  test("parse Access-Control-Request-Headers") {
+    val header = `Access-Control-Request-Headers`(
+      ci"Content-Length",
+      ci"Authorization",
+      ci"X-Custom-Header",
+      ci"*",
+    )
+    assertEquals(`Access-Control-Request-Headers`.parse(header.toRaw1.value), Right(header))
+
+    val invalidHeaderValue = "(non-token-name), non[&token]name"
+    assert(`Access-Control-Request-Headers`.parse(invalidHeaderValue).isLeft)
+
+    assertEquals(
+      `Access-Control-Request-Headers`.parse(""),
+      Right(`Access-Control-Request-Headers`.empty),
+    )
+  }
+
   test("parse Connection") {
     val header = Connection(ci"closed")
     assertEquals(Connection.parse(header.toRaw1.value), Right(header))
