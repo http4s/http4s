@@ -51,7 +51,7 @@ object ErrorHandling {
         http: Kleisli[F, A, Response[G]],
     ): Kleisli[F, A, Response[G]] =
       Kleisli { a: A =>
-        http.run(a).handleErrorWith(pf)
+        http.run(a).recoverWith(pf)
       }
   }
 
@@ -61,14 +61,14 @@ object ErrorHandling {
         http: Kleisli[F, Request[G], Response[G]]
     ): Kleisli[F, Request[G], Response[G]] =
       Kleisli { a: Request[G] =>
-        http.run(a).handleError(totalRecover(a.httpVersion))
+        http.run(a).recover(totalRecover(a.httpVersion))
       }
 
     def messageFailure[F[_]: MonadThrow, G[_], A](
         http: Kleisli[F, Request[G], Response[G]]
     ): Kleisli[F, Request[G], Response[G]] =
       Kleisli { a: Request[G] =>
-        http.run(a).handleError(messageFailureRecover(a.httpVersion))
+        http.run(a).recover(messageFailureRecover(a.httpVersion))
       }
 
     def messageFailureRecover[F[_], G[_]](
