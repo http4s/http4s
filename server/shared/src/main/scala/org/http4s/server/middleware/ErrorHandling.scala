@@ -21,6 +21,8 @@ import cats._
 import cats.data.Kleisli
 import cats.syntax.all._
 import org.http4s._
+import org.http4s.headers._
+import org.typelevel.ci._
 
 object ErrorHandling {
   def apply[F[_], G[_]](
@@ -42,4 +44,53 @@ object ErrorHandling {
 
   def httpApp[F[_]: MonadThrow](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
+
+  object Custom {
+    def handleErrorWith[F[_]: MonadThrow, G[_], A](
+        pf: PartialFunction[Throwable, F[Response[G]]],
+        http: Kleisli[F, A, Response[G]],
+    ): Kleisli[F, A, Response[G]] =
+      Kleisli { a: A =>
+        http.run(a).handleErrorWith(pf)
+      }
+  }
+
+  object Recover {
+
+    def total[F[_]: MonadThrow, G[_], A](
+        http: Kleisli[F, Request[G], Response[G]]
+    ): Kleisli[F, Request[G], Response[G]] =
+      Kleisli { a: Request[G] =>
+        http.run(a).handleError(totalRecover(a.httpVersion))
+      }
+
+    def messageFailure[F[_]: MonadThrow, G[_], A](
+        http: Kleisli[F, Request[G], Response[G]]
+    ): Kleisli[F, Request[G], Response[G]] =
+      Kleisli { a: Request[G] =>
+        http.run(a).handleError(messageFailureRecover(a.httpVersion))
+      }
+
+    def messageFailureRecover[F[_], G[_]](
+        httpVersion: HttpVersion
+    ): PartialFunction[Throwable, Response[G]] = { case m: MessageFailure =>
+      m.toHttpResponse[G](httpVersion)
+    }
+
+    def totalRecover[F[_], G[_]](
+        httpVersion: HttpVersion
+    ): PartialFunction[Throwable, Response[G]] = {
+      case m: MessageFailure => m.toHttpResponse[G](httpVersion)
+      case _ =>
+        Response(
+          Status.InternalServerError,
+          httpVersion,
+          Headers(
+            Connection(ci"close"),
+            `Content-Length`.zero,
+          ),
+        )
+    }
+
+  }
 }
