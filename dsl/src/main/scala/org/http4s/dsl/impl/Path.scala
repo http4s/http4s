@@ -71,6 +71,15 @@ object / {
           Some(Path(allButLast, absolute = path.absolute) -> last.decoded())
         case _ => None
       }
+
+  /** Path extractor:
+    * {{{
+    *   request match {
+    *     case Root / "test.json" => must handle methods here...
+    * }}}
+    */
+  def unapply[F[_]](req: Request[F]): Option[(Path, String)] =
+    unapply(req.pathInfo)
 }
 
 object -> {
