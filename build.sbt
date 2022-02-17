@@ -536,6 +536,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
+      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -550,13 +551,22 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
             .exclude[DirectMissingMethodProblem](
               "org.http4s.ember.core.Parser#MessageP.fromProduct"
             ),
+          ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.Hpack$"),
+          ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+            "org.http4s.ember.core.h2.HpackPlatform"
+          ),
         )
       else Seq.empty
     },
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5"),
-    mimaBinaryIssueFilters := {
+    mimaBinaryIssueFilters ++= {
+      Seq(
+        ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*")
+      )
+    },
+    mimaBinaryIssueFilters ++= {
       if (tlIsScala3.value)
         Seq(
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
@@ -571,14 +581,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     },
   )
   .jvmSettings(
-    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
+    libraryDependencies += twitterHpack
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
-    Compile / npmDependencies += "hpack.js" -> "2.1.6",
-    useYarn := true,
-    yarnExtraArgs += "--frozen-lockfile",
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+    libraryDependencies += hpack.value
   )
   .dependsOn(core, testing % "test->test")
 
@@ -634,13 +640,10 @@ lazy val emberServer = libraryCrossProject("ember-server")
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
     ),
-    useYarn := true,
-    yarnExtraArgs += "--frozen-lockfile",
     jsVersionIntroduced("0.23.7"),
   )
   .dependsOn(
@@ -674,13 +677,10 @@ lazy val emberClient = libraryCrossProject("ember-client")
       log4catsSlf4j
     )
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
     ),
-    useYarn := true,
-    yarnExtraArgs += "--frozen-lockfile",
     jsVersionIntroduced("0.23.5"),
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
@@ -1356,10 +1356,8 @@ def exampleProject(name: String) =
 def exampleJSProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
-    .enablePlugins(NoPublishPlugin, ScalaJSBundlerPlugin)
+    .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
     .settings(
-      useYarn := true,
-      yarnExtraArgs += "--frozen-lockfile",
       scalaJSUseMainModuleInitializer := true,
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
     )
