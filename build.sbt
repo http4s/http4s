@@ -5,8 +5,6 @@ import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
-Global / excludeLintKeys += laikaDescribe
-
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBaseVersion := "0.22"
@@ -915,7 +913,6 @@ lazy val docs = http4sProject("docs")
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
-    laikaDescribe := "<disabled>",
     laikaIncludeEPUB := true,
     laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
@@ -964,7 +961,6 @@ lazy val website = http4sProject("website")
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
-    laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(
       baseDirectory.value / "src" / "hugo" / "content",
       baseDirectory.value / "src" / "hugo" / "static",
