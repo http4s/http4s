@@ -18,7 +18,6 @@ package org.http4s.jetty.server
 
 import cats.effect._
 import cats.syntax.all._
-import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.Destroyable
 import org.eclipse.jetty.util.component.LifeCycle
 
@@ -58,7 +57,7 @@ private[jetty] object JettyLifeCycle {
   private[this] def stopLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
     F.async_[Unit] { cb =>
       lifeCycle.addLifeCycleListener(
-        new AbstractLifeCycleListener {
+        new LifeCycle.Listener {
           override def lifeCycleStopped(a: LifeCycle): Unit =
             cb(Right(()))
           override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =
@@ -98,7 +97,7 @@ private[jetty] object JettyLifeCycle {
   private[this] def startLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
     F.async_[Unit] { cb =>
       lifeCycle.addLifeCycleListener(
-        new AbstractLifeCycleListener {
+        new LifeCycle.Listener {
           override def lifeCycleStarted(a: LifeCycle): Unit =
             cb(Right(()))
           override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =

@@ -177,16 +177,17 @@ object Http4sPlugin extends AutoPlugin {
     val catsEffect = "3.3.5"
     val catsParse = "0.3.6"
     val circe = "0.15.0-M1"
-    val crypto = "0.2.0"
+    val crypto = "0.2.2"
     val cryptobits = "1.3"
     val disciplineCore = "1.4.0"
     val dropwizardMetrics = "4.2.8"
     val fs2 = "3.2.4"
     val ip4s = "3.1.2"
+    val hpack = "1.0.3"
     val javaWebSocket = "1.5.2"
     val jawn = "1.3.2"
     val jawnFs2 = "2.2.0"
-    val jetty = "9.4.44.v20210927"
+    val jetty = "9.4.45.v20220203"
     val jnrUnixSocket = "0.38.17"
     val keypool = "0.4.7"
     val literally = "1.0.2"
@@ -196,7 +197,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.73.Final"
+    val netty = "4.1.74.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
@@ -211,10 +212,11 @@ object Http4sPlugin extends AutoPlugin {
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
-    val slf4j = "1.7.35"
+    val slf4j = "1.7.36"
     val tomcat = "9.0.58"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
+    val twitterHpack = "1.0.2"
     val vault = "3.1.0"
   }
 
@@ -248,6 +250,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams = "co.fs2" %% "fs2-reactive-streams" % V.fs2
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)
   lazy val ip4sTestKit = Def.setting("com.comcast" %%% "ip4s-test-kit" % V.ip4s)
+  lazy val hpack = Def.setting("org.http4s" %%% "hpack" % V.hpack)
   lazy val javaxServletApi = "javax.servlet" % "javax.servlet-api" % V.servlet
   lazy val jawnFs2 = Def.setting("org.typelevel" %%% "jawn-fs2" % V.jawnFs2)
   lazy val javaWebSocket = "org.java-websocket" % "Java-WebSocket" % V.javaWebSocket
@@ -303,5 +306,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
   lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
+  lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
 }

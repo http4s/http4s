@@ -55,7 +55,7 @@ sealed abstract class RequestPrelude extends Product with Serializable {
 
   override final def toString: String =
     s"RequestPrelude(headers = ${headers
-      .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
+        .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
 }
 
 object RequestPrelude {
