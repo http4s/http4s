@@ -77,7 +77,7 @@ object ErrorHandling {
       m.toHttpResponse[G](httpVersion)
     }
 
-    def totalRecover[F[_], G[_]](
+    def totalRecover[G[_]](
         httpVersion: HttpVersion
     ): Throwable => Response[G] = {
       case m: MessageFailure => m.toHttpResponse[G](httpVersion)
