@@ -61,7 +61,7 @@ object ErrorHandling {
         http: Kleisli[F, Request[G], Response[G]]
     ): Kleisli[F, Request[G], Response[G]] =
       Kleisli { (a: Request[G]) =>
-        http.run(a).recover(totalRecover(a.httpVersion))
+        http.run(a).handleError(totalRecover(a.httpVersion))
       }
 
     def messageFailure[F[_]: MonadThrow, G[_], A](
@@ -79,7 +79,7 @@ object ErrorHandling {
 
     def totalRecover[F[_], G[_]](
         httpVersion: HttpVersion
-    ): PartialFunction[Throwable, Response[G]] = {
+    ): Throwable => Response[G] = {
       case m: MessageFailure => m.toHttpResponse[G](httpVersion)
       case _ =>
         Response(
