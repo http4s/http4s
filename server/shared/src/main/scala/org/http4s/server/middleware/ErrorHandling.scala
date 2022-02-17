@@ -46,7 +46,7 @@ object ErrorHandling {
     apply(httpApp)
 
   object Custom {
-    def handleErrorWith[F[_]: MonadThrow, G[_], A](
+    def recoverWith[F[_]: MonadThrow, G[_], A](
         http: Kleisli[F, A, Response[G]]
     )(pf: PartialFunction[Throwable, F[Response[G]]]): Kleisli[F, A, Response[G]] =
       Kleisli { (a: A) =>
