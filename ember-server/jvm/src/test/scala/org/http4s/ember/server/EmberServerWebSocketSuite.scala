@@ -27,7 +27,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
 import org.java_websocket.WebSocket
@@ -42,7 +42,7 @@ import java.nio.charset.StandardCharsets
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
-  def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](wsBuilder: WebSocketBuilder[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -133,7 +133,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        URI.create(s"ws://${server.address}/ws-echo"),
         dispatcher,
       )
       _ <- client.connect
@@ -144,7 +144,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("send and receive a message") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        URI.create(s"ws://${server.address}/ws-echo"),
         dispatcher,
       )
       _ <- client.connect
@@ -157,7 +157,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("respond to pings") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        URI.create(s"ws://${server.address}/ws-echo"),
         dispatcher,
       )
       _ <- client.connect
@@ -170,7 +170,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
+        URI.create(s"ws://${server.address}/ws-close"),
         dispatcher,
       )
       _ <- client.connect
