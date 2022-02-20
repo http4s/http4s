@@ -77,12 +77,8 @@ object Caching {
         case otherwise => otherwise.isSuccess
       }
 
-    def defaultMethodsToSetOn(m: Method): Boolean = methodsToSetOn.contains(m)
-
-    private lazy val methodsToSetOn: Set[Method] = Set(
-      Method.GET,
-      Method.HEAD,
-    )
+    def defaultMethodsToSetOn(m: Method): Boolean =
+      m == Method.GET || m == Method.HEAD
   }
 
   /** Sets headers for response to be publicly cached for the specified duration.
@@ -149,16 +145,16 @@ object Caching {
       methodToSetOn: Method => Boolean,
       statusToSetOn: Status => Boolean,
       http: Http[G, F],
-  ): Http[G, F] =
+  ): Http[G, F] = {
+    val cacher = cacheResponse[G](lifetime, isPublic)
     Kleisli { (req: Request[F]) =>
-      for {
-        resp <- http(req)
-        out <-
-          if (methodToSetOn(req.method) && statusToSetOn(resp.status))
-            cacheResponse[G](lifetime, isPublic)(resp)
-          else resp.pure[G]
-      } yield out
+      if (methodToSetOn(req.method)) {
+        http(req).flatMap { resp =>
+          if (statusToSetOn(resp.status)) cacher(resp) else resp.pure[G]
+        }
+      } else http(req)
     }
+  }
 
   // Here as an optimization so we don't recreate durations
   // in cacheResponse #TeamStatic
@@ -173,34 +169,27 @@ object Caching {
   def cacheResponse[G[_]](
       lifetime: Duration,
       isPublic: Either[CacheDirective.public.type, CacheDirective.`private`],
-  ): PartiallyAppliedCache[G] = {
-    val actualLifetime = lifetime match {
-      case finite: FiniteDuration => finite
-      case _ => tenYearDuration
-      // Http1 caches do not respect max-age headers, so to work globally it is recommended
-      // to explicitly set an Expire which requires some time interval to work
-    }
+  ): PartiallyAppliedCache[G] =
     new PartiallyAppliedCache[G] {
+      val actualLifetime = lifetime match {
+        case finite: FiniteDuration => finite
+        case _ => tenYearDuration
+        // Http1 caches do not respect max-age headers, so to work globally it is recommended
+        // to explicitly set an Expire which requires some time interval to work
+      }
+      val cacheControl = {
+        val cacheDirective = isPublic.fold(identity, identity)
+        val maxAge = CacheDirective.`max-age`(actualLifetime)
+        `Cache-Control`(NonEmptyList.of(cacheDirective, maxAge))
+      }
+
       override def apply[F[_]](resp: Response[F])(implicit G: Temporal[G]): G[Response[F]] =
         for {
           now <- HttpDate.current[G]
-          expires <-
-            HttpDate
-              .fromEpochSecond(now.epochSecond + actualLifetime.toSeconds)
-              .liftTo[G]
-        } yield resp.putHeaders(
-          `Cache-Control`(
-            NonEmptyList.of(
-              isPublic.fold[CacheDirective](identity, identity),
-              CacheDirective.`max-age`(actualLifetime),
-            )
-          ),
-          HDate(now),
-          Expires(expires),
-        )
-
+          eps = now.epochSecond + actualLifetime.toSeconds
+          expires <- HttpDate.fromEpochSecond(eps).liftTo[G]
+        } yield resp.putHeaders(cacheControl, HDate(now), Expires(expires))
     }
-  }
 
   trait PartiallyAppliedCache[G[_]] {
     def apply[F[_]](resp: Response[F])(implicit G: Temporal[G]): G[Response[F]]
