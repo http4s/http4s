@@ -3,8 +3,6 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
 
-Global / excludeLintKeys += laikaDescribe
-
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_213)
 ThisBuild / tlBaseVersion := "1.0"
@@ -279,14 +277,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     ),
   )
   .jvmSettings(
-    libraryDependencies += "com.twitter" % "hpack" % "1.0.2"
+    libraryDependencies += twitterHpack
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
-    Compile / npmDependencies += "hpack.js" -> "2.1.6",
-    useYarn := true,
-    yarnExtraArgs += "--frozen-lockfile",
-    Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+    libraryDependencies += hpack.value
   )
   .dependsOn(core, testing % "test->test")
 
@@ -303,21 +297,16 @@ lazy val emberServer = libraryCrossProject("ember-server")
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    ),
-    Test / npmDevDependencies += "ws" -> "8.2.2",
-    useYarn := true,
-    // yarnExtraArgs += "--frozen-lockfile",
+    )
   )
   .dependsOn(
     emberCore % "compile;test->test",
     server % "compile;test->test",
     emberClient % "test->compile",
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
 
 lazy val emberClient = libraryCrossProject("ember-client")
   .settings(
@@ -332,13 +321,10 @@ lazy val emberClient = libraryCrossProject("ember-client")
       log4catsSlf4j
     )
   )
-  .jsEnablePlugins(ScalaJSBundlerPlugin)
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    ),
-    useYarn := true,
-    yarnExtraArgs += "--frozen-lockfile",
+    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -606,7 +592,6 @@ lazy val docs = http4sProject("docs")
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
-    laikaDescribe := "<disabled>",
     laikaIncludeEPUB := true,
     laikaIncludePDF := false,
     Laika / sourceDirectories := Seq(mdocOut.value),
@@ -655,7 +640,6 @@ lazy val website = http4sProject("website")
       SiteConfig.homeURL.value,
       includeLandingPage = true,
     ),
-    laikaDescribe := "<disabled>",
     Laika / sourceDirectories := Seq(
       baseDirectory.value / "src" / "hugo" / "content",
       baseDirectory.value / "src" / "hugo" / "static",
@@ -860,10 +844,8 @@ def exampleProject(name: String) =
 def exampleJSProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
-    .enablePlugins(NoPublishPlugin, ScalaJSBundlerPlugin)
+    .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
     .settings(
-      useYarn := true,
-      yarnExtraArgs += "--frozen-lockfile",
       scalaJSUseMainModuleInitializer := true,
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
     )

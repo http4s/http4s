@@ -1,6 +1,5 @@
 package org.http4s.sbt
 
-import laika.ast.LengthUnit._
 import laika.ast.Path.Root
 import laika.ast._
 import laika.bundle.ExtensionBundle
@@ -203,15 +202,6 @@ object SiteConfig {
       .markupEditLinks(
         text = "Edit this page",
         baseURL = "https://github.com/http4s/http4s/edit/main/docs/src/main/mdoc",
-      )
-      .site
-      .layout(
-        contentWidth = px(860),
-        navigationWidth = px(275),
-        topBarHeight = px(35),
-        defaultBlockSpacing = px(10),
-        defaultLineHeight = 1.5,
-        anchorPlacement = laika.helium.config.AnchorPlacement.Right,
       )
       .site
       .themeColors(
