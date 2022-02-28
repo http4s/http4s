@@ -36,10 +36,8 @@ These are the policies for upholding our community’s standards of conduct. If
 you feel that a thread needs moderation, please contact anyone on the
 moderation team:
 
-@:todo(Remove the hack with the http: prefix in front of the email addresses when Laika 0.18.1 is out)
-
-- [Ross A. Baker](http:mailto:ross@rossabaker.com)
-- [Christopher Davenport](http:mailto:chris@christopherdavenport.tech)
+- [Ross A. Baker](mailto:ross@rossabaker.com)
+- [Christopher Davenport](mailto:chris@christopherdavenport.tech)
 
 - Remarks that violate the above code of conduct, including hateful, hurtful, oppressive, or exclusionary remarks, are not allowed. (Cursing is allowed, but never targeting another user, and never in a hateful manner.)
 - Moderators will warn users who make remarks inconsistent with the above code of conduct.

@@ -16,77 +16,8 @@
 
 package org.http4s.ember.core.h2
 
-import cats.data._
-import cats.effect._
-import cats.effect.std._
-import cats.syntax.all._
-import com.twitter.hpack.HeaderListener
-import scodec.bits._
-
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
-import scala.collection.mutable.ListBuffer
-
-trait HpackPlatform {
-  def create[F[_]: Async]: F[Hpack[F]] = for {
-    eLock <- Semaphore[F](1)
-    dLock <- Semaphore[F](1)
-    e <- Sync[F].delay(new com.twitter.hpack.Encoder(4096))
-    d <- Sync[F].delay(new com.twitter.hpack.Decoder(65536, 4096))
-  } yield new Impl(eLock, e, dLock, d)
-
-  private class Impl[F[_]: Async](
-      encodeLock: Semaphore[F],
-      tEncoder: com.twitter.hpack.Encoder,
-      decodeLock: Semaphore[F],
-      tDecoder: com.twitter.hpack.Decoder,
-  ) extends Hpack[F] {
-    def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
-      encodeLock.permit.use(_ => Hpack.encodeHeaders[F](tEncoder, headers.toList))
-    def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
-      decodeLock.permit.use(_ => Hpack.decodeHeaders[F](tDecoder, bv))
-
-  }
-
-  def decodeHeaders[F[_]: Sync](
-      tDecoder: com.twitter.hpack.Decoder,
-      bv: ByteVector,
-  ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
-    val buffer = new ListBuffer[(String, String)]
-    val is = new ByteArrayInputStream(bv.toArray)
-    val listener = new HeaderListener {
-      def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
-        buffer.+=(
-          new String(name, StandardCharsets.ISO_8859_1) -> new String(
-            value,
-            StandardCharsets.ISO_8859_1,
-          )
-        )
-        ()
-      }
-    }
-
-    tDecoder.decode(is, listener)
-    tDecoder.endHeaderBlock()
-
-    val decoded = buffer.toList
-    NonEmptyList.fromList(decoded).toRight(new NoSuchElementException("Header List Was Empty"))
-  }.rethrow
-
-  def encodeHeaders[F[_]: Sync](
-      tEncoder: com.twitter.hpack.Encoder,
-      headers: List[(String, String, Boolean)],
-  ): F[ByteVector] = Sync[F].delay {
-    val os = new ByteArrayOutputStream(1024)
-    headers.foreach { h =>
-      tEncoder.encodeHeader(
-        os,
-        h._1.getBytes(StandardCharsets.ISO_8859_1),
-        h._2.getBytes(StandardCharsets.ISO_8859_1),
-        h._3,
-      )
-    }
-    ByteVector.view(os.toByteArray())
-  }
+private[h2] class HpackPlatform {
+  type Encoder = com.twitter.hpack.Encoder
+  type Decoder = com.twitter.hpack.Decoder
+  type HeaderListener = com.twitter.hpack.HeaderListener
 }
