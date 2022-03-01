@@ -68,15 +68,26 @@ object DigestAuth {
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  ): AuthMiddleware[F, A] = {
-    val nonceKeeper =
-      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
-    challenged(challenge(realm, store, nonceKeeper))
-  }
+  ): AuthMiddleware[F, A] =
+    challenged(challenge(realm, store, nonceCleanupInterval, nonceStaleTime, nonceBits))
 
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
+  @annotation.nowarn("msg=Maintaining for ABI compatibility")
+  def challenge[F[_], A](
+      realm: String,
+      store: AuthenticationStore[F, A],
+      nonceCleanupInterval: Duration = 1.hour,
+      nonceStaleTime: Duration = 1.hour,
+      nonceBits: Int = 160,
+  )(implicit F: Async[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] = {
+    val nonceKeeper =
+      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
+    challenge[F, A](realm, store, nonceKeeper)
+  }
+
+  @deprecated("Maintaining for ABI compatibility", "0.23.10")
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
       implicit F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
