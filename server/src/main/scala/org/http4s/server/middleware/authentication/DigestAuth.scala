@@ -68,29 +68,41 @@ object DigestAuth {
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  ): AuthMiddleware[F, A] =
-    challenged(challenge(realm, store, nonceCleanupInterval, nonceStaleTime, nonceBits))
+  ): AuthMiddleware[F, A] = {
+    val nonceKeeper =
+      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
+    challenged(challenge(realm, store, nonceKeeper))
+  }
 
-  /** Side-effect of running the returned task: If req contains a valid
-    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
+  /** Similar to [[apply]], but exposing the underlying [[challenge]]
+    * [[cats.data.Kleisli]] instead of an entire [[AuthMiddleware]]
+    *
+    * @param realm The realm used for authentication purposes.
+    * @param store A partial function mapping (realm, user) to the
+    *              appropriate password.
+    * @param nonceCleanupInterval Interval (in milliseconds) at which stale
+    *                             nonces should be cleaned up.
+    * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
+    *                       is considered stale (i.e. not used for authentication
+    *                       purposes anymore).
+    * @param nonceBits The number of random bits a nonce should consist of.
     */
-  @annotation.nowarn("msg=Maintaining for ABI compatibility")
   def challenge[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  )(implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
-    Kleisli { req =>
-      F.delay(new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits))
-        .flatMap { nonceKeeper =>
-          challenge[F, A](realm, store, nonceKeeper).apply(req)
-        }
-    }
+  )(implicit F: Sync[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
+    F.delay(new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits))
+      .map { nonceKeeper =>
+        challenge[F, A](realm, store, nonceKeeper)
+      }
 
-  @deprecated("Maintaining for ABI compatibility", "0.22.12")
-  def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
+  /** Side-effect of running the returned task: If req contains a valid
+    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
+    */
+  private def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
       implicit F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
