@@ -102,8 +102,12 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private[authentication] def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]
+  private[authentication] def challenge[F[_], A](
+      realm: String,
+      store: AuthenticationStore[F, A],
+      nonceKeeper: NonceKeeper,
+  )(implicit
+      F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       def paramsToChallenge(params: Map[String, String]) =
