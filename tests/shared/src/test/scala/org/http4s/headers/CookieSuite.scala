@@ -43,4 +43,16 @@ class CookieSuite extends Http4sSuite {
       ),
     )
   }
+
+  test("tolerant google sign in cookie") {
+    assertEquals(
+      Cookie.parse("""g_state={"lo": 1}; k=v"""),
+      Right(
+        Cookie(
+          RequestCookie("g_state", """{"lo": 1}"""),
+          RequestCookie("k", "v")
+        )
+      ),
+    )
+  }
 }
