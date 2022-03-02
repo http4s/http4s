@@ -50,7 +50,7 @@ class CookieSuite extends Http4sSuite {
       Right(
         Cookie(
           RequestCookie("g_state", """{"lo": 1}"""),
-          RequestCookie("k", "v")
+          RequestCookie("k", "v"),
         )
       ),
     )
