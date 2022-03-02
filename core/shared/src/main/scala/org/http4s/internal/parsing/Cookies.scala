@@ -19,7 +19,6 @@ package org.http4s.internal.parsing
 import cats.parse.Parser
 import cats.parse.Parser.char
 import cats.parse.Parser.charIn
-//import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
   *
