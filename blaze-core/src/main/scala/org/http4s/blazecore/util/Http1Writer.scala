@@ -21,6 +21,7 @@ package util
 import cats.effect.kernel.Outcome
 import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
+import fs2.Chunk
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
@@ -29,17 +30,25 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
-  final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
+  final def write(headerWriter: StringWriter, entity: Entity[F]): F[Boolean] =
     fromFutureNoShift(F.delay(writeHeaders(headerWriter)))
       .guaranteeCase {
         case Outcome.Succeeded(_) =>
           F.unit
 
         case Outcome.Errored(_) | Outcome.Canceled() =>
-          body.drain.compile.drain.handleError { t2 =>
+          entity.body.drain.compile.drain.handleError { t2 =>
             Http1Writer.logger.error(t2)("Error draining body")
           }
-      } >> writeEntityBody(body)
+      } >> (entity match {
+      case Entity.Default(body, _) =>
+        writeEntityBody(body)
+      case Entity.Strict(chunk) =>
+        fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))) *>
+          fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+      case Entity.Empty =>
+        fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+    })
 
   /* Writes the header.  It is up to the writer whether to flush immediately or to
    * buffer the header with a subsequent chunk. */
