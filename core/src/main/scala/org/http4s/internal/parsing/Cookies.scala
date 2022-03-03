@@ -63,6 +63,6 @@ private[http4s] object Rfc6265
 private[http4s] object RelaxedCookies
     extends Cookies(
       cookieOctet = charIn(
-        Set(0x20.toChar to 0x7e.toChar: _*) - 0x3b.toChar
+        Set(0x20.toChar to 0xff.toChar: _*) - 0x3b.toChar
       )
     )
