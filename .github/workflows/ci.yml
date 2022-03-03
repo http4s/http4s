@@ -47,26 +47,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download Java (temurin@8)
+        id: download-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 8
+
       - name: Setup Java (temurin@8)
         if: matrix.java == 'temurin@8'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 8
+          jdkFile: ${{ steps.download-java-temurin-8.outputs.jdkFile }}
+
+      - name: Download Java (temurin@11)
+        id: download-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 11
 
       - name: Setup Java (temurin@11)
         if: matrix.java == 'temurin@11'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 11
+          jdkFile: ${{ steps.download-java-temurin-11.outputs.jdkFile }}
+
+      - name: Download Java (temurin@17)
+        id: download-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 17
+          jdkFile: ${{ steps.download-java-temurin-17.outputs.jdkFile }}
 
       - name: Cache sbt
         uses: actions/cache@v2
@@ -137,26 +164,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download Java (temurin@8)
+        id: download-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 8
+
       - name: Setup Java (temurin@8)
         if: matrix.java == 'temurin@8'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 8
+          jdkFile: ${{ steps.download-java-temurin-8.outputs.jdkFile }}
+
+      - name: Download Java (temurin@11)
+        id: download-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 11
 
       - name: Setup Java (temurin@11)
         if: matrix.java == 'temurin@11'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 11
+          jdkFile: ${{ steps.download-java-temurin-11.outputs.jdkFile }}
+
+      - name: Download Java (temurin@17)
+        id: download-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 17
+          jdkFile: ${{ steps.download-java-temurin-17.outputs.jdkFile }}
 
       - name: Cache sbt
         uses: actions/cache@v2
@@ -186,6 +240,26 @@ jobs:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.15
 
       - name: Inflate target directories (2.12.15)
+        run: |
+          tar xf targets.tar
+          rm targets.tar
+
+      - name: Download target directories (2.13.8)
+        uses: actions/download-artifact@v2
+        with:
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.8
+
+      - name: Inflate target directories (2.13.8)
+        run: |
+          tar xf targets.tar
+          rm targets.tar
+
+      - name: Download target directories (2.13.8)
+        uses: actions/download-artifact@v2
+        with:
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.8
+
+      - name: Inflate target directories (2.13.8)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -277,26 +351,53 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download Java (temurin@8)
+        id: download-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 8
+
       - name: Setup Java (temurin@8)
         if: matrix.java == 'temurin@8'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 8
+          jdkFile: ${{ steps.download-java-temurin-8.outputs.jdkFile }}
+
+      - name: Download Java (temurin@11)
+        id: download-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 11
 
       - name: Setup Java (temurin@11)
         if: matrix.java == 'temurin@11'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 11
+          jdkFile: ${{ steps.download-java-temurin-11.outputs.jdkFile }}
+
+      - name: Download Java (temurin@17)
+        id: download-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: typelevel/download-java@v1
+        with:
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
         uses: actions/setup-java@v2
         with:
-          distribution: temurin
+          distribution: jdkfile
           java-version: 17
+          jdkFile: ${{ steps.download-java-temurin-17.outputs.jdkFile }}
 
       - name: Cache sbt
         uses: actions/cache@v2
