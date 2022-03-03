@@ -206,7 +206,7 @@ private final class Http1Connection[F[_]](
           }
 
           val writeRequest: F[Boolean] = getChunkEncoder(req, mustClose, rr)
-            .write(rr, req.body)
+            .write(rr, req.entity)
             .onError {
               case EOF => F.delay(shutdownWithError(EOF))
               case t =>
