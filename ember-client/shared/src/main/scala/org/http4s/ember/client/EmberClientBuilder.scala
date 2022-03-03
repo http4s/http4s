@@ -273,7 +273,8 @@ final class EmberClientBuilder[F[_]: Async] private (
               )
             }
           )
-          responseResource <- Resource.makeCase(
+          responseResource <- Resource.makeCaseFull(
+            (poll: Poll[F]) => poll(
             ClientHelpers
               .request[F](
                 request,
@@ -284,6 +285,7 @@ final class EmberClientBuilder[F[_]: Async] private (
                 timeout,
                 userAgent,
               )
+            )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
               case Resource.ExitCase.Succeeded =>
@@ -335,7 +337,7 @@ final class EmberClientBuilder[F[_]: Async] private (
             unixSocketClient(request, address)
           }
       }
-      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
+      val stackClient = Retry.create(retryPolicy, logRetries = true)(client)
       val iClient = new EmberClient[F](stackClient, pool)
 
       optH2.fold(iClient) { h2 =>
