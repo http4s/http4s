@@ -871,24 +871,11 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core, circe, emberCore)
 
-lazy val docs = http4sProject("docs")
-  .enablePlugins(
-    GhpagesPlugin,
-    NoPublishPlugin,
-    ScalaUnidocPlugin,
-    MdocPlugin,
-    LaikaPlugin,
-  )
-  .settings(docsProjectSettings)
+lazy val unidocs = http4sProject("unidocs")
+  .enablePlugins(TypelevelUnidocPlugin)
   .settings(
-    libraryDependencies ++= Seq(
-      circeGeneric,
-      circeLiteral,
-      cryptobits,
-    ),
-    description := "Documentation for http4s",
-    startYear := Some(2013),
-    autoAPIMappings := true,
+    name := "http4s-docs",
+    description := "Unified API documentation for http4s",
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
@@ -903,36 +890,66 @@ lazy val docs = http4sProject("docs")
         scalafixInternalRules,
         scalafixInternalTests,
       ),
-    mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    tlFatalWarningsInCi := false,
-    laikaExtensions := SiteConfig.extensions,
-    laikaConfig := SiteConfig.config(versioned = true).value,
-    laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
-      SiteConfig.homeURL.value,
-      includeLandingPage = false,
-    ),
-    laikaIncludeEPUB := true,
-    laikaIncludePDF := false,
-    Laika / sourceDirectories := Seq(mdocOut.value),
-    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
-        yield (f, s"$docsPrefix/api/$d")
-    },
-    ghpagesCleanSite / includeFilter := {
-      new FileFilter {
-        val docsPrefix = extractDocsPrefix(version.value)
-        def accept(f: File) =
-          f.getCanonicalPath
-            .startsWith((ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
-      }
-    },
     apiMappings ++= {
       ScaladocApiMapping.mappings(
         (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
         scalaBinaryVersion.value,
+      )
+    },
+  )
+
+lazy val docs = http4sProject("site")
+  .enablePlugins(
+    Http4sOrgSitePlugin
+  )
+  .settings(
+    libraryDependencies ++= Seq(
+      circeGeneric,
+      circeLiteral,
+      cryptobits,
+    ),
+    description := "Documentation for http4s",
+    mdocIn := (Compile / sourceDirectory).value / "mdoc",
+    tlFatalWarningsInCi := false,
+    fork := true,
+    mdocVariables ++= tlSiteApiUrl.value.map("API_URL" -> _.toString).toMap,
+    tlSiteHeliumConfig ~= {
+      import laika.ast._
+      import laika.rewrite._
+
+      import laika.ast.Path.Root
+      import laika.ast._
+      import laika.bundle.ExtensionBundle
+      import laika.config.{ConfigBuilder, LaikaKeys}
+      import laika.helium.Helium
+      import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+      import laika.rewrite.link.LinkConfig
+      import laika.rewrite.nav.CoverImage
+      import laika.rewrite.{Version, Versions}
+
+      _.site.landingPage(
+        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
+        title = None,
+        subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
+        // latestReleases = Seq(
+        //   ReleaseInfo(
+        //     "Latest Stable Release",
+        //     variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
+        //   ),
+        //   ReleaseInfo(
+        //     "Latest Milestone Release",
+        //     variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
+        //   ),
+        // ),
+        license = Some("Apache 2.0"),
+        // documentationLinks = landingPage.projectLinks,
+        projectLinks = Nil, // TODO
+        // teasers = landingPage.teasers,
+      ).site.versions(
+        Versions(
+          currentVersion = Version("0.22.x", "0.22"),
+          olderVersions = Nil
+        )
       )
     },
   )
@@ -945,35 +962,6 @@ lazy val docs = http4sProject("docs")
     circe,
     dropwizardMetrics,
     prometheusMetrics,
-  )
-
-lazy val website = http4sProject("website")
-  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
-  .settings(docsProjectSettings)
-  .settings(
-    description := "Common area of http4s.org",
-    startYear := Some(2013),
-    laikaExtensions := SiteConfig.extensions,
-    laikaConfig := SiteConfig.config(versioned = false).value,
-    laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
-      SiteConfig.homeURL.value,
-      includeLandingPage = false,
-    ),
-    Laika / sourceDirectories := Seq(
-      baseDirectory.value / "src" / "hugo" / "content",
-      baseDirectory.value / "src" / "hugo" / "static",
-    ),
-    ghpagesNoJekyll := true,
-    ghpagesPrivateMappings := (laikaSite / mappings).value,
-    ghpagesCleanSite / excludeFilter :=
-      new FileFilter {
-        val v = ghpagesRepository.value.getCanonicalPath + "/v"
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(v) &&
-            f.getCanonicalPath.charAt(v.size).isDigit
-      },
   )
 
 lazy val examples = http4sProject("examples")

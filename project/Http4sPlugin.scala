@@ -150,11 +150,6 @@ object Http4sPlugin extends AutoPlugin {
       }
   }
 
-  def docsProjectSettings: Seq[Setting[_]] =
-    Seq(
-      git.remoteRepo := "git@github.com:http4s/http4s.git"
-    )
-
   def sbtghactionsSettings: Seq[Setting[_]] = {
     import org.typelevel.sbt.gha.GenerativeKeys._
     import org.typelevel.sbt.gha._
