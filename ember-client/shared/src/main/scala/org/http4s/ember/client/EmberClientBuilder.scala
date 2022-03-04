@@ -273,17 +273,19 @@ final class EmberClientBuilder[F[_]: Async] private (
               )
             }
           )
-          responseResource <- Resource.makeCase(
-            ClientHelpers
-              .request[F](
-                request,
-                managed.value,
-                chunkSize,
-                maxResponseHeaderSize,
-                idleConnectionTime,
-                timeout,
-                userAgent,
-              )
+          responseResource <- Resource.makeCaseFull((poll: Poll[F]) =>
+            poll(
+              ClientHelpers
+                .request[F](
+                  request,
+                  managed.value,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent,
+                )
+            )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
               case Resource.ExitCase.Succeeded =>
