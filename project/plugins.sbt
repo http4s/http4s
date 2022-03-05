@@ -8,7 +8,7 @@ resolvers +=
 
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.34")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc" % "0.5.0")
 addSbtPlugin("com.github.tkawachi" % "sbt-doctest" % "0.9.9")
 addSbtPlugin("org.http4s" % "sbt-http4s-org" % "0.13-e2c730c-SNAPSHOT")
