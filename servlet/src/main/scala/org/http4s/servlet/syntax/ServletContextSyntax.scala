@@ -26,6 +26,7 @@ import org.http4s.syntax.all._
 
 import javax.servlet.ServletContext
 import javax.servlet.ServletRegistration
+import scala.concurrent.duration.Duration
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
@@ -38,23 +39,43 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
     *
     * Assumes non-blocking servlet IO is available, and thus requires at least Servlet 3.1.
     */
+  @deprecated("Use mountRoutes instead", "0.23.11")
   def mountService[F[_]: Async](
       name: String,
       service: HttpRoutes[F],
       mapping: String = "/*",
       dispatcher: Dispatcher[F],
   ): ServletRegistration.Dynamic =
-    mountHttpApp(name, service.orNotFound, mapping, dispatcher)
+    mountHttpApp(name, service.orNotFound, mapping, dispatcher, defaults.ResponseTimeout)
+
+  def mountRoutes[F[_]: Async](
+      name: String,
+      service: HttpRoutes[F],
+      mapping: String = "/*",
+      dispatcher: Dispatcher[F],
+      asyncTimeout: Duration = defaults.ResponseTimeout,
+  ): ServletRegistration.Dynamic =
+    mountHttpApp(name, service.orNotFound, mapping, dispatcher, asyncTimeout)
+
+  @deprecated("Use mountHttpApp with async timeout param instead", "0.23.11")
+  private[servlet] def mountHttpApp[F[_]: Async](
+      name: String,
+      service: HttpApp[F],
+      mapping: String,
+      dispatcher: Dispatcher[F],
+  ): ServletRegistration.Dynamic =
+    mountHttpApp(name, service, mapping, dispatcher, defaults.ResponseTimeout)
 
   def mountHttpApp[F[_]: Async](
       name: String,
       service: HttpApp[F],
       mapping: String = "/*",
       dispatcher: Dispatcher[F],
+      asyncTimeout: Duration = defaults.ResponseTimeout,
   ): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,
-      asyncTimeout = defaults.ResponseTimeout,
+      asyncTimeout = asyncTimeout,
       servletIo = NonBlockingServletIo(DefaultChunkSize),
       serviceErrorHandler = DefaultServiceErrorHandler[F],
       dispatcher,
@@ -66,5 +87,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
     reg
   }
 }
+
+object ServletContextOps extends ServletContextOpsCompanionCompat
 
 object servletContext extends ServletContextSyntax
