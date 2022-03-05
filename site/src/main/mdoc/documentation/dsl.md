@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # The http4s DSL
 
 Recall from earlier that an `HttpRoutes[F]` is just a type alias for
@@ -174,7 +172,7 @@ val cookieResp = {
   for {
     resp <- Ok("Ok response.")
     now <- HttpDate.current[IO]
-  } yield resp.addCookie(ResponseCookie("foo", "bar", 
+  } yield resp.addCookie(ResponseCookie("foo", "bar",
       expires = Some(now), httpOnly = true, secure = true))
 }
 cookieResp.unsafeRunSync().headers
@@ -323,7 +321,7 @@ HttpRoutes.of[IO] {
 }
 ```
 
-Methods such as `GET` are typically found in `org.http4s.Method`, but are imported automatically as part of the DSL. 
+Methods such as `GET` are typically found in `org.http4s.Method`, but are imported automatically as part of the DSL.
 
 ### Path Info
 
@@ -437,7 +435,7 @@ dailyWeatherService.orNotFound(req).unsafeRunSync()
 import org.http4s.dsl.impl.MatrixVar
 ```
 
-In following example, we extract the `first` and `last` matrix path parameters. 
+In following example, we extract the `first` and `last` matrix path parameters.
 By default, matrix path parameters are extracted as `String`s.
 
 ```scala mdoc

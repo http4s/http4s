@@ -1,5 +1,4 @@
 {%
-laika.versioned = true
 laika.title: Integrations
 %}
 

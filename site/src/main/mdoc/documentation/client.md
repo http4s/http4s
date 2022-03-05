@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # HTTP Client
 
 How do we know the server is running?  Let's create a client with
@@ -10,7 +8,7 @@ A recap of the dependencies for this example, in case you skipped the [service] 
 ```scala
 scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@VERSION@"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -317,7 +315,7 @@ implicit val clock = Clock.create[IO]
 val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
-val meteredClient = 
+val meteredClient =
   Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 

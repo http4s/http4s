@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Middleware
 
 A middleware is a wrapper around a [service] that provides a means of manipulating
@@ -214,7 +212,7 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
       "/" -> metricsSvc.routes
     )
   } yield router
-  
+
 ```
 
 ### X-Request-ID Middleware

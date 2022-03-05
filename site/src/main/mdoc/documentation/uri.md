@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # URI Handling
 
 ## Literals

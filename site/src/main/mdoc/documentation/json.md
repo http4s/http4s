@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # JSON Handling
 
 ## Add the JSON support module(s)
@@ -13,14 +11,14 @@ The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@VERSION@"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  "io.circe" %% "circe-generic" % "@{version.circe}",
+  "io.circe" %% "circe-generic" % "@CIRCE_VERSION@",
   // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % "@{version.circe}"
+  "io.circe" %% "circe-literal" % "@CIRCE_VERSION@"
 )
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
@@ -145,7 +143,7 @@ import org.http4s.circe.CirceEntityEncoder._
 
 Thus there's no more need in calling `asJson` on result.
 However, it may introduce ambiguity errors when we also build
-some json by hand within the same scope. 
+some json by hand within the same scope.
 
 ## Receiving Raw JSON
 
@@ -192,8 +190,8 @@ However, be cautious when using this. Having this implicit
 in scope does mean that we would always try to decode HTTP entities
 from JSON (even if it is XML or plain text, for instance).
 
-For more convenience there is import combining both encoding 
-and decoding derivation: 
+For more convenience there is import combining both encoding
+and decoding derivation:
 
 ```scala mdoc:silent
 import org.http4s.circe.CirceEntityCodec._

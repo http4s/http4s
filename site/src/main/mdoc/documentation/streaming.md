@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Streaming
 
 ## Introduction
@@ -60,8 +58,8 @@ First, let's assume we want to use [Circe] for JSON support. Please see [json] f
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "@{version.http4s.doc}",
-  "io.circe" %% "circe-generic" % "@{version.circe}"
+  "org.http4s" %% "http4s-circe" % "@VERSION@",
+  "io.circe" %% "circe-generic" % "@CIRCE_VERSION"
 )
 ```
 
@@ -98,7 +96,7 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, 
+  def sign(consumerKey: String, consumerSecret: String,
              accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
     val consumer = oauth1.Consumer(consumerKey, consumerSecret)
@@ -110,7 +108,7 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def jsonStream(consumerKey: String, consumerSecret: String, 
+  def jsonStream(consumerKey: String, consumerSecret: String,
                      accessToken: String, accessSecret: String)
                     (req: Request[F]): Stream[F, Json] =
     for {
@@ -125,9 +123,9 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
   def stream(blocker: Blocker): Stream[F, Unit] = {
-    val req = Request[F](Method.GET, 
+    val req = Request[F](Method.GET,
                 uri"https://stream.twitter.com/1.1/statuses/sample.json")
-    val s   = jsonStream("<consumerKey>", "<consumerSecret>", 
+    val s   = jsonStream("<consumerKey>", "<consumerSecret>",
                 "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
   }

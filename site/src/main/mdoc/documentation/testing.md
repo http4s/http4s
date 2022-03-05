@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Testing
 
 This document implements a simple `org.http4s.HttpRoutes` and then
@@ -22,7 +20,7 @@ import org.http4s.implicits._
 ```
 
 ```scala mdoc
-case class User(name: String, age: Int) 
+case class User(name: String, age: Int)
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
 
 trait UserRepo[F[_]] {
@@ -44,24 +42,24 @@ For testing, let's define a `check` function:
 
 ```scala mdoc
 // Return true if match succeeds; otherwise false
-def check[A](actual:        IO[Response[IO]], 
-            expectedStatus: Status, 
+def check[A](actual:        IO[Response[IO]],
+            expectedStatus: Status,
             expectedBody:   Option[A])(
     implicit ev: EntityDecoder[IO, A]
 ): Boolean =  {
    val actualResp         = actual.unsafeRunSync()
-   val statusCheck        = actualResp.status == expectedStatus 
+   val statusCheck        = actualResp.status == expectedStatus
    val bodyCheck          = expectedBody.fold[Boolean](
        // Verify Response's body is empty.
        actualResp.body.compile.toVector.unsafeRunSync().isEmpty)(
        expected => actualResp.as[A].unsafeRunSync() == expected
    )
-   statusCheck && bodyCheck   
+   statusCheck && bodyCheck
 }
- 
+
 ```
 
-Let's define service by passing a `UserRepo` that returns `Ok(user)`. 
+Let's define service by passing a `UserRepo` that returns `Ok(user)`.
 
 ```scala mdoc
 val success: UserRepo[IO] = new UserRepo[IO] {
@@ -85,7 +83,7 @@ Next, let's define a service with a `userRepo` that returns `None` to any input.
 ```scala mdoc:nest
 val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
-} 
+}
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri"/user/not-used" )
@@ -94,13 +92,13 @@ val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
 check[Json](response, Status.NotFound, None)
 ```
 
-Finally, let's pass a `Request` which our service does not handle.  
+Finally, let's pass a `Request` which our service does not handle.
 
 ```scala mdoc:nest
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
-  def find(id: String): IO[Option[User]] = 
+  def find(id: String): IO[Option[User]] =
     IO.raiseError(new RuntimeException("Should not get called!"))
-} 
+}
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri"/not-a-matching-path" )
@@ -111,7 +109,7 @@ check[String](response, Status.NotFound, Some("Not found"))
 
 ## Conclusion
 
-The above documentation demonstrated how to define an `HttpService[F]`, pass `Request`'s, and then 
+The above documentation demonstrated how to define an `HttpService[F]`, pass `Request`'s, and then
 test the expected `Response`.
 
 To add unit tests in your chosen Scala Testing Framework, please follow the above examples.

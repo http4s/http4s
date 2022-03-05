@@ -1,8 +1,6 @@
-{% laika.versioned = true %}
-
 # Quick Start
 
-**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`  
+**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`
 is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
 This feature is enabled by default starting in Scala 2.13.
 
@@ -32,7 +30,7 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 : the version of SBT for your generated project.
 
 `scala_version`
-: the version of Scala for your generated project. 
+: the version of Scala for your generated project.
 
 `http4s_version`
 : defaults to the latest stable release of http4s.  See
@@ -59,11 +57,11 @@ $ find src/main -name '*.scala'
 ./src/main/scala/com/example/quickstart/Main.scala
 ./src/main/scala/com/example/quickstart/QuickstartServer.scala
 ```
-`Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run` 
+`Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run`
 which calls the `stream` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
 Starting blaze, http4s' native server backend.
 
-`QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes` 
+`QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes`
 that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh
@@ -75,7 +73,7 @@ download.  This is a good time to grab a beverage.  When you come
 back, you should see a line similar to this:
 
 ```
-[ioapp-compute-0] INFO  o.h.b.c.n.NIO1SocketServerGroup - Service bound to address /0:0:0:0:0:0:0:0:8080 
+[ioapp-compute-0] INFO  o.h.b.c.n.NIO1SocketServerGroup - Service bound to address /0:0:0:0:0:0:0:0:8080
 ```
 
 This indicates that blaze is running our service on port 8080. Let's try out the

@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # CSRF
 
 Http4s provides [Middleware], named `CSRF`, to prevent Cross-site request forgery attacks. This middleware
@@ -30,7 +28,7 @@ Let's start by making a simple service.
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok()
-} 
+}
 
 val request = Request[IO](Method.GET, uri"/")
 
@@ -66,10 +64,10 @@ val resp = csrf.validate()(service.orNotFound)(dummyRequest).unsafeRunSync()
 ```
 Notice how the response has the CSRF cookies added. How easy was
 that? And, as described in [Middleware], services and middleware can be
-composed such that only some of your endpoints are CSRF enabled. By default, 
+composed such that only some of your endpoints are CSRF enabled. By default,
 safe methods will update the CSRF token, while unsafe methods will validate them.
 
-Without getting too deep into it, safe methods are OPTIONS, GET, and HEAD. While unsafe methods are 
+Without getting too deep into it, safe methods are OPTIONS, GET, and HEAD. While unsafe methods are
 POST, PUT, PATCH, DELETE, and TRACE. To put it simply, state changing methods are unsafe. For more information,
 check out this cheat sheet on [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#double-submit-cookie).
 
@@ -84,7 +82,7 @@ val dummyPostRequest: Request[IO] =
       "Origin" -> "http://localhost",
       "X-Csrf-Token" -> cookie.content
     ).addCookie(RequestCookie(cookie.name,cookie.content))
-val validateResp = 
+val validateResp =
   csrf.validate()(service.orNotFound)(dummyPostRequest).unsafeRunSync()
 ```
 

@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Error Handling
 
 A `MessageFailure` indicates an error handling an HTTP message.  These

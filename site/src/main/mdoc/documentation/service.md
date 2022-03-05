@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Service
 
 This tutorial will walk you through creating your first http4s service
@@ -10,7 +8,7 @@ Create a new directory, with the following build.sbt in the root:
 ```scala
 scalaVersion := "2.13.6" // Also supports 2.12.x and 3.x
 
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@VERSION@"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")

@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Static Files
 
 Http4s can serve static files, subject to a configuration policy. There are three

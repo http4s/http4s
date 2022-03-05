@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Authentication
 
 ## Built in
@@ -106,7 +104,7 @@ val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenc
 
 * Reorder the routes so that authed routes compose last
 ```scala mdoc:silent:nest
-val service: HttpRoutes[IO] = 
+val service: HttpRoutes[IO] =
   middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
@@ -129,7 +127,7 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```scala mdoc:silent:nest
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedRoutes[String, IO] = 
+val onFailure: AuthedRoutes[String, IO] =
   Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
 val middleware = AuthMiddleware(authUser, onFailure)
@@ -149,7 +147,7 @@ We'll use a small library for the signing/validation of the cookies, which
 basically contains the code used by the Play framework for this specific task.
 
 ```scala
-libraryDependencies += "org.reactormonk" %% "cryptobits" % "@{version.cryptobits}"
+libraryDependencies += "org.reactormonk" %% "cryptobits" % "@CRYPTOBITS_VERSION@"
 ```
 
 First, we'll need to set the cookie. For the crypto instance, we'll need to

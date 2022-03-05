@@ -1,7 +1,7 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
+import org.http4s.sbt.ScaladocApiMapping
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -874,7 +874,7 @@ lazy val bench = http4sProject("bench")
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
   .settings(
-    name := "http4s-docs",
+    moduleName := "http4s-docs",
     description := "Unified API documentation for http4s",
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
@@ -899,9 +899,7 @@ lazy val unidocs = http4sProject("unidocs")
   )
 
 lazy val docs = http4sProject("site")
-  .enablePlugins(
-    Http4sOrgSitePlugin
-  )
+  .enablePlugins(Http4sSitePlugin)
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
@@ -912,46 +910,6 @@ lazy val docs = http4sProject("site")
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     tlFatalWarningsInCi := false,
     fork := true,
-    mdocVariables ++= tlSiteApiUrl.value.map("API_URL" -> _.toString).toMap,
-    tlSiteHeliumConfig ~= {
-      import laika.ast._
-      import laika.rewrite._
-
-      import laika.ast.Path.Root
-      import laika.ast._
-      import laika.bundle.ExtensionBundle
-      import laika.config.{ConfigBuilder, LaikaKeys}
-      import laika.helium.Helium
-      import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
-      import laika.rewrite.link.LinkConfig
-      import laika.rewrite.nav.CoverImage
-      import laika.rewrite.{Version, Versions}
-
-      _.site.landingPage(
-        logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light-2.svg")),
-        title = None,
-        subtitle = Some("Typeful, functional, streaming HTTP for Scala"),
-        // latestReleases = Seq(
-        //   ReleaseInfo(
-        //     "Latest Stable Release",
-        //     variables(s"version.http4s.latest.${versions.all(1).displayValue}"),
-        //   ),
-        //   ReleaseInfo(
-        //     "Latest Milestone Release",
-        //     variables(s"version.http4s.latest.${versions.all.head.displayValue}"),
-        //   ),
-        // ),
-        license = Some("Apache 2.0"),
-        // documentationLinks = landingPage.projectLinks,
-        projectLinks = Nil, // TODO
-        // teasers = landingPage.teasers,
-      ).site.versions(
-        Versions(
-          currentVersion = Version("0.22.x", "0.22"),
-          olderVersions = Nil
-        )
-      )
-    },
   )
   .dependsOn(
     client,

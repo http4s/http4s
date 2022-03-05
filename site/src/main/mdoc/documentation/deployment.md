@@ -1,10 +1,8 @@
-{% laika.versioned = true %}
-
 # Deployment
 
 ## Overview
 
-You've built and tested your service. How can we deploy it into production? One approach is to create an assembled JAR containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via [GraalVM](https://www.graalvm.org/). We will give each of these as examples below. 
+You've built and tested your service. How can we deploy it into production? One approach is to create an assembled JAR containing the service with all its dependencies. We can then execute it via `java -jar`. Another approach would be to create a native image binary via [GraalVM](https://www.graalvm.org/). We will give each of these as examples below.
 
 
 ### Assembled JAR
@@ -28,7 +26,7 @@ sbt assembly
 
 should build our "fat" assembly jar. We should see the path of the assembly from the sbt log. For example `target/scala-2.13/project-assembly-0.0.1-SNAPSHOT.jar`
 
-Finally we can execute the jar with 
+Finally we can execute the jar with
 
 ```sh
 java -jar /path.to/project-assembly-0.0.1-SNAPSHOT.jar
@@ -39,15 +37,15 @@ At this point you should see your http4s server start up. Regarding the artifact
 
 ### Graal Native Image
 
-We provide an outline for building a static native image below. Furthermore the [http4s giter8 template](https://github.com/http4s/http4s.g8) can be used to build a native image in conjunction with this guide. 
+We provide an outline for building a static native image below. Furthermore the [http4s giter8 template](https://github.com/http4s/http4s.g8) can be used to build a native image in conjunction with this guide.
 
 Why would we create such an image? Some advantages might be faster startup times or less memory usage than the JVM.
 
 #### Install GraalVM and Native Image plugin
 
-The first step is to install the core GraalVM and `native-image` plugin. The core GraalVM release might be thought of as a replacement for the JVM. The `native-image` plugin is required to create the binary. The [community edition builds](https://github.com/graalvm/graalvm-ce-builds/releases) are free. 
+The first step is to install the core GraalVM and `native-image` plugin. The core GraalVM release might be thought of as a replacement for the JVM. The `native-image` plugin is required to create the binary. The [community edition builds](https://github.com/graalvm/graalvm-ce-builds/releases) are free.
 
-After installing the core GraalVM you should be able to use it as a JDK. For example you might set `JAVA_HOME` to point to your Graal version. Otherwise, your build platform might allow you to select the Java library to build against Graal. 
+After installing the core GraalVM you should be able to use it as a JDK. For example you might set `JAVA_HOME` to point to your Graal version. Otherwise, your build platform might allow you to select the Java library to build against Graal.
 
 ```sh
 export JAVA_HOME=/path/to/graalVM
@@ -57,7 +55,7 @@ then
 
 ```sh
 java --version
-``` 
+```
 
 should return something like
 
@@ -98,7 +96,7 @@ native-image --static -H:+ReportExceptionStackTraces -H:UseMuslC="/path.to/muslC
 
 A breakout for the command parameters (image generation options) :
 
-`-H:UseMuslC` to fix DNS and related segfaults and build a true static image that doesn't depend on linked libraries. 
+`-H:UseMuslC` to fix DNS and related segfaults and build a true static image that doesn't depend on linked libraries.
 
 `--initialize-at-build-time` again is related to building the static image. Again we lose performance if we instead do this at runtime.
 
@@ -119,9 +117,9 @@ Finally we should be able to execute our output `projectBinaryImage`
 
 At this point we may want to package the binary in a docker container, integrate the image generation to a greater build process, create init scripts via systemd, etc.
 
-#### Why static? 
+#### Why static?
 
-As an alternative to executing via the JVM, GraalVM's native-image allows us to execute as a native binary. For example, in Linux environments this might be known as an `ELF` format. There are a number of ways to generate a native image, be it dynamic or static. 
+As an alternative to executing via the JVM, GraalVM's native-image allows us to execute as a native binary. For example, in Linux environments this might be known as an `ELF` format. There are a number of ways to generate a native image, be it dynamic or static.
 
 A dynamic image is less portable because it depends on shared libary files on each Linux host. Then similar to creating an assembly JAR containing all our Java dependencies, when we build a static native image, we build
 a more portable assembly including all the dependencies to run our binary across multiple platforms. For example we could expect a static ELF-64 binary to work across multiple linux distributions of different versions for the same architecture.

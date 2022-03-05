@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Entity Handling
 
 ## Why Entity*

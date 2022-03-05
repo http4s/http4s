@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # Upgrading
 
 
@@ -26,7 +24,7 @@ For further information about the changes since 0.21, check the [changelog](http
 
 ## Http4s 0.21 -> 0.22 Migration Guide
 
-General Changes:  
+General Changes:
 
 Header names are now `CIStrings` which can be created by importing `org.typelevel.ci._` and using the `ci` string interpolator.
 

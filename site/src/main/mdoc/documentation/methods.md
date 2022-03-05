@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # HTTP Methods
 
 For a REST API, your service will want to support different verbs/methods.

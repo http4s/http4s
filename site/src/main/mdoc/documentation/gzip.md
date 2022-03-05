@@ -1,5 +1,3 @@
-{% laika.versioned = true %}
-
 # GZip Compression
 
 Http4s provides [Middleware], named `GZip`, for allowing for the compression of the `Response`
@@ -72,7 +70,7 @@ of **"gzip"**.
 As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are GZip enabled.
 
-**NOTE:** In this documentation, we are calling `unsafeRunSync` to extract values out 
+**NOTE:** In this documentation, we are calling `unsafeRunSync` to extract values out
 of a service or middleware code. You can work with values while keeping them inside the
 `F` using `map`, `flatMap` and/or `for`. Remember, your service returns an
 `F[Response]`.
