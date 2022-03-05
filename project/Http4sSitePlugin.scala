@@ -99,7 +99,7 @@ object Http4sSitePlugin extends AutoPlugin {
     )
 
     private def version(version: String, label: String): Version =
-      Version(version, "v" + version, "/documentation/quickstart.html", Some(label))
+      Version(version, "v" + version, "/guide/quickstart.html", Some(label))
 
     val v1_0: Version = version("1.0", "Dev")
     val v0_23: Version = version("0.23", "Stable")

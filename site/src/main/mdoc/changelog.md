@@ -1,7 +1,3 @@
-{%
-  laika.template = "templates/no-page-nav.template.html"
-%}
-
 # Changelog
 
 
