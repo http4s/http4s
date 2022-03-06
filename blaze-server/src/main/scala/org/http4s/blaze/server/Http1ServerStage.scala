@@ -195,7 +195,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   // Only called while holding the monitor of `parser`
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val (body, cleanup) = collectBodyFromParser(
+    val (body, cleanup) = collectEntityFromParser(
       buffer,
       () => Either.left(InvalidBodyException("Received premature EOF.")),
     )

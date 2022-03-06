@@ -351,14 +351,14 @@ private final class Http1Connection[F[_]](
     val status: Status = parser.getStatus()
     val httpVersion: HttpVersion = parser.getHttpVersion()
 
-    val (attributes, body): (Vault, EntityBody[F]) = if (doesntHaveBody) {
+    val (attributes, entity): (Vault, Entity[F]) = if (doesntHaveBody) {
       // responses to HEAD requests do not have a body
       cleanUpAfterReceivingResponse(closeOnFinish, headers)
-      (Vault.empty, EmptyBody)
+      (Vault.empty, Entity.Empty)
     } else {
       // We are to the point of parsing the body and then cleaning up
-      val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
-        collectBodyFromParser(buffer, onEofWhileReadingBody _)
+      val (rawEntity, _): (Entity[F], () => Future[ByteBuffer]) =
+        collectEntityFromParser(buffer, onEofWhileReadingBody _)
 
       // to collect the trailers we need a cleanup helper and an effect in the attribute map
       val (trailerCleanup, attributes): (() => Unit, Vault) =
@@ -385,9 +385,9 @@ private final class Http1Connection[F[_]](
       if (parser.contentComplete()) {
         trailerCleanup()
         cleanUpAfterReceivingResponse(closeOnFinish, headers)
-        attributes -> rawBody
+        attributes -> rawEntity
       } else
-        attributes -> rawBody.onFinalizeCaseWeak {
+        attributes -> Entity(rawEntity.body.onFinalizeCaseWeak {
           case ExitCase.Succeeded =>
             F.delay { trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers); }
               .evalOn(executionContext)
@@ -396,7 +396,7 @@ private final class Http1Connection[F[_]](
               trailerCleanup(); cleanUpAfterReceivingResponse(closeOnFinish, headers);
               stageShutdown()
             }.evalOn(executionContext)
-        }
+        })
     }
 
     cb(
@@ -405,7 +405,12 @@ private final class Http1Connection[F[_]](
           status = status,
           httpVersion = httpVersion,
           headers = headers,
-          entity = Entity(body.interruptWhen(idleTimeoutS)),
+          entity = entity match {
+            case Entity.Default(body, length) =>
+              Entity[F](body.interruptWhen(idleTimeoutS), length)
+            case _ =>
+              entity
+          },
           attributes = attributes,
         )
       )
