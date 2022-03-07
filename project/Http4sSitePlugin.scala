@@ -138,10 +138,10 @@ object Http4sSitePlugin extends AutoPlugin {
 
     def html(to: Path) =
       s"""|<!DOCTYPE html>
-        |<meta charset="utf-8">
-        |<meta http-equiv="refresh" content="0; URL=$to">
-        |<link rel="canonical" href="$to">
-        |""".stripMargin
+          |<meta charset="utf-8">
+          |<meta http-equiv="refresh" content="0; URL=$to">
+          |<link rel="canonical" href="$to">
+          |""".stripMargin
 
     val redirects = {
       val unversioned =
