@@ -189,8 +189,8 @@ object Http4sSitePlugin extends AutoPlugin {
           "upgrading",
           "uri",
         ).map { page =>
-          Root / v / page -> Root / v / "guide" / s"$page.html"
-        } ++ List(Root / v -> Root / v / "guide" / s"quickstart.html")
+          Root / v / page / "index.html" -> Root / v / "guide" / s"$page.html"
+        } ++ List(Root / v / "index.html" -> Root / v / "guide" / s"quickstart.html")
       }
 
       versioned ++ unversioned
