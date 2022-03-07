@@ -133,7 +133,10 @@ object Http4sSitePlugin extends AutoPlugin {
     def theme = new ThemeProvider {
       def build[F[_]: Sync]: Resource[F, Theme[F]] =
         ThemeBuilder[F]("Http4s Redirects")
-          .addInputs( // add redirect htmls to the virtual file tree
+          .addInputs(
+            // add redirect htmls to the virtual file tree
+            // for simplicity, we treat these as unversioned pages
+            // such that they are completely managed by the primary branch
             redirects.foldLeft(InputTree[F]) { case (tree, (from, to)) =>
               tree.addString(html(to), from / "index.html")
             }
@@ -162,8 +165,8 @@ object Http4sSitePlugin extends AutoPlugin {
           Root / page -> Root / s"$page.html"
         }
 
-      val v = versions.current.pathSegment
-      val versioned =
+      import versions._
+      val versioned = List(v0_22, v0_23, v1_0).map(_.pathSegment).flatMap { v =>
         List(
           "auth",
           "client",
@@ -188,6 +191,7 @@ object Http4sSitePlugin extends AutoPlugin {
         ).map { page =>
           Root / v / page -> Root / v / "guide" / s"$page.html"
         } ++ List(Root / v -> Root / v / "guide" / s"quickstart.html")
+      }
 
       versioned ++ unversioned
     }
