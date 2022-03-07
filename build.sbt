@@ -10,6 +10,9 @@ ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBaseVersion := "0.22"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
+ThisBuild / tlCiReleaseBranches := Seq("series/0.22")
+ThisBuild / tlSitePublishBranch := Some("series/0.22")
+
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)

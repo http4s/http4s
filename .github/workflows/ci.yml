@@ -134,15 +134,15 @@ jobs:
         run: sbt '++${{ matrix.scala }}' unusedCompileDependenciesTest
 
       - name: Make target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.22')
         run: mkdir -p examples/ember/target blaze-client/target server/target examples/target scalafix-internal/input/target blaze-server/target scalafix-internal/tests/target scalatags/target target examples/docker/target twirl/target unidocs/target site/target laws/target tests/target tomcat-server/target prometheus-metrics/target scalafix-internal/output/target servlet/target examples/tomcat/target examples/jetty/target testing/target ember-server/target okhttp-client/target examples/blaze/target scalafix-internal/rules/target client/target blaze-core/target circe/target examples/war/target jetty-client/target ember-client/target boopickle/target play-json/target async-http-client/target core/target scala-xml/target dsl/target dropwizard-metrics/target jetty-server/target ember-core/target jawn/target bench/target project/target
 
       - name: Compress target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.22')
         run: tar cf targets.tar examples/ember/target blaze-client/target server/target examples/target scalafix-internal/input/target blaze-server/target scalafix-internal/tests/target scalatags/target target examples/docker/target twirl/target unidocs/target site/target laws/target tests/target tomcat-server/target prometheus-metrics/target scalafix-internal/output/target servlet/target examples/tomcat/target examples/jetty/target testing/target ember-server/target okhttp-client/target examples/blaze/target scalafix-internal/rules/target client/target blaze-core/target circe/target examples/war/target jetty-client/target ember-client/target boopickle/target play-json/target async-http-client/target core/target scala-xml/target dsl/target dropwizard-metrics/target jetty-server/target ember-core/target jawn/target bench/target project/target
 
       - name: Upload target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.22')
         uses: actions/upload-artifact@v2
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}
@@ -151,7 +151,7 @@ jobs:
   publish:
     name: Publish Artifacts
     needs: [build]
-    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+    if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.22')
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -446,7 +446,7 @@ jobs:
         run: sbt '++${{ matrix.scala }}' site/tlSite
 
       - name: Publish site
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/series/0.22'
         uses: peaceiris/actions-gh-pages@v3.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
