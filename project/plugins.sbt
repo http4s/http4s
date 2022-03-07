@@ -4,7 +4,7 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.10"
 classpathTypes += "maven-plugin"
 
 resolvers +=
-  "Sonatype S01 OSS Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots"
+  "Sonatype S01 OSS Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots")
 
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.34")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.4")
