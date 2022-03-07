@@ -138,7 +138,7 @@ object Http4sSitePlugin extends AutoPlugin {
             // for simplicity, we treat these as unversioned pages
             // such that they are completely managed by the primary branch
             redirects.foldLeft(InputTree[F]) { case (tree, (from, to)) =>
-              tree.addString(html(to), from / "index.html")
+              tree.addString(html(to), from)
             }
           )
           .build
@@ -162,7 +162,7 @@ object Http4sSitePlugin extends AutoPlugin {
           "getting-help",
           "versions",
         ).map { page =>
-          Root / page -> Root / s"$page.html"
+          Root / page / "index.html" -> Root / s"$page.html"
         }
 
       import versions._
