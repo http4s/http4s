@@ -113,7 +113,7 @@ object Http4sSitePlugin extends AutoPlugin {
     private def version(version: String, label: String): Version =
       Version(version, "v" + version, "/guide/quickstart.html", Some(label))
 
-    val v1_0: Version = version("1.0", "Dev")
+    val v1_0: Version = version("1", "Dev")
     val v0_23: Version = version("0.23", "Stable")
     val v0_22: Version = version("0.22", "Stable")
     val v0_21: Version = Version("0.21", "v0.21", "/index.html", Some("EOL"))
@@ -166,31 +166,32 @@ object Http4sSitePlugin extends AutoPlugin {
         }
 
       import versions._
-      val versioned = List(v0_22, v0_23, v1_0).map(_.pathSegment).flatMap { v =>
-        List(
-          "auth",
-          "client",
-          "cors",
-          "csrf",
-          "deployment",
-          "dsl",
-          "entity",
-          "error-handling",
-          "gzip",
-          "hsts",
-          "integrations",
-          "json",
-          "methods",
-          "middleware",
-          "service",
-          "static",
-          "streaming",
-          "testing",
-          "upgrading",
-          "uri",
-        ).map { page =>
-          Root / v / page / "index.html" -> Root / v / "guide" / s"$page.html"
-        } ++ List(Root / v / "index.html" -> Root / v / "guide" / s"quickstart.html")
+      val versioned = List("v0.22" -> "v0.22", "v0.23" -> "v0.23", "v1.0" -> "v1").flatMap {
+        case (fromV, toV) =>
+          List(
+            "auth",
+            "client",
+            "cors",
+            "csrf",
+            "deployment",
+            "dsl",
+            "entity",
+            "error-handling",
+            "gzip",
+            "hsts",
+            "integrations",
+            "json",
+            "methods",
+            "middleware",
+            "service",
+            "static",
+            "streaming",
+            "testing",
+            "upgrading",
+            "uri",
+          ).map { page =>
+            Root / fromV / page / "index.html" -> Root / toV / "guide" / s"$page.html"
+          } ++ List(Root / fromV / "index.html" -> Root / toV / "guide" / s"quickstart.html")
       }
 
       versioned ++ unversioned
