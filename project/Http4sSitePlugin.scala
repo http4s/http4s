@@ -46,7 +46,7 @@ object Http4sSitePlugin extends AutoPlugin {
     },
     tlSiteHeliumConfig := {
       val latest = Http4sPlugin.latestPerMinorVersion(baseDirectory.value)
-      // helpful to render unversioned pages when previewing locally
+      // helpful to render landing page when previewing locally
       if (version.value.startsWith("1.") || !isCi.value)
         landingPage.configure(
           tlSiteHeliumConfig.value,
