@@ -135,7 +135,7 @@ object Http4sSitePlugin extends AutoPlugin {
         ThemeBuilder[F]("Http4s Redirects")
           .addInputs( // add redirect htmls to the virtual file tree
             redirects.foldLeft(InputTree[F]) { case (tree, (from, to)) =>
-              tree.addString(html(to), from)
+              tree.addString(html(to), from / "index.html")
             }
           )
           .build
@@ -159,7 +159,7 @@ object Http4sSitePlugin extends AutoPlugin {
           "getting-help",
           "versions",
         ).map { page =>
-          Root / page / "index.html" -> Root / s"$page.html"
+          Root / page -> Root / s"$page.html"
         }
 
       val v = versions.current.pathSegment
@@ -186,8 +186,8 @@ object Http4sSitePlugin extends AutoPlugin {
           "upgrading",
           "uri",
         ).map { page =>
-          Root / v / page / "index.html" -> Root / v / "guide" / s"$page.html"
-        } ++ List(Root / v / "index.html" -> Root / v / "guide" / s"quickstart.html")
+          Root / v / page -> Root / v / "guide" / s"$page.html"
+        } ++ List(Root / v -> Root / v / "guide" / s"quickstart.html")
 
       versioned ++ unversioned
     }
