@@ -20,7 +20,10 @@ import laika.rewrite.nav.CoverImage
 import laika.rewrite.{Version, Versions}
 import laika.sbt.LaikaPlugin.autoImport._
 import mdoc.MdocPlugin.autoImport._
+import org.typelevel.sbt.gha.GitHubActionsPlugin.autoImport
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport._
+
+import Http4sPlugin.autoImport._
 
 object Http4sSitePlugin extends AutoPlugin {
 
@@ -38,12 +41,13 @@ object Http4sSitePlugin extends AutoPlugin {
         s"VERSION_${major}_${minor}" -> v.toString
       }
     },
-    tlSiteHeliumConfig ~= {
-      _.site.versions(versions.config)
+    tlSiteHeliumConfig := {
+      tlSiteHeliumConfig.value.site.versions(versions.config(isCi.value))
     },
     tlSiteHeliumConfig := {
       val latest = Http4sPlugin.latestPerMinorVersion(baseDirectory.value)
-      if (true || version.value.startsWith("1."))
+      // helpful to render unversioned pages when previewing locally
+      if (version.value.startsWith("1.") || !isCi.value)
         landingPage.configure(
           tlSiteHeliumConfig.value,
           latest((0, 23)).toString,
@@ -98,11 +102,12 @@ object Http4sSitePlugin extends AutoPlugin {
   }
 
   object versions {
-    def config: Versions = Versions(
+    def config(isCi: Boolean): Versions = Versions(
       currentVersion = current,
       olderVersions = all.dropWhile(_ != current).drop(1),
       newerVersions = all.takeWhile(_ != current),
-      renderUnversioned = true || current == v1_0,
+      // helpful to render unversioned pages when previewing locally
+      renderUnversioned = current == v1_0 || !isCi,
     )
 
     private def version(version: String, label: String): Version =

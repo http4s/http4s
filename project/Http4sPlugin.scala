@@ -10,6 +10,7 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import sbt.Keys._
 import sbt._
 import org.typelevel.sbt.gha.GenerativeKeys._
+import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
 
 object Http4sPlugin extends AutoPlugin {
@@ -28,7 +29,7 @@ object Http4sPlugin extends AutoPlugin {
   val scala_3 = "3.0.2"
 
   override lazy val globalSettings = Seq(
-    isCi := sys.env.contains("CI")
+    isCi := githubIsWorkflowBuild.value
   )
 
   override lazy val buildSettings = Seq(
