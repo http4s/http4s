@@ -2,6 +2,7 @@ package org.http4s.sbt
 
 import sbt._, Keys._
 
+import cats.effect._
 import laika.ast._
 import laika.rewrite._
 import laika.ast.Path.Root
@@ -10,9 +11,14 @@ import laika.bundle.ExtensionBundle
 import laika.config.{ConfigBuilder, LaikaKeys}
 import laika.helium.Helium
 import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+import laika.io.model.InputTree
+import laika.theme.ThemeProvider
+import laika.theme.ThemeBuilder
+import laika.theme.Theme
 import laika.rewrite.link.LinkConfig
 import laika.rewrite.nav.CoverImage
 import laika.rewrite.{Version, Versions}
+import laika.sbt.LaikaPlugin.autoImport._
 import mdoc.MdocPlugin.autoImport._
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport._
 
@@ -45,6 +51,7 @@ object Http4sSitePlugin extends AutoPlugin {
         )
       else tlSiteHeliumConfig.value
     },
+    laikaTheme := laikaTheme.value.extend(redirects.theme),
   )
 
   object landingPage {
@@ -114,6 +121,71 @@ object Http4sSitePlugin extends AutoPlugin {
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
     val current: Version = v0_22
+  }
+
+  object redirects {
+
+    def theme = new ThemeProvider {
+      def build[F[_]: Sync]: Resource[F, Theme[F]] =
+        ThemeBuilder[F]("Http4s Redirects")
+          .addInputs( // add redirect htmls to the virtual file tree
+            redirects.foldLeft(InputTree[F]) { case (tree, (from, to)) =>
+              tree.addString(html(to), from / "index.html")
+            }
+          )
+          .build
+    }
+
+    def html(to: Path) =
+      s"""|<!DOCTYPE html>
+        |<meta charset="utf-8">
+        |<meta http-equiv="refresh" content="0; URL=$to">
+        |<link rel="canonical" href="$to">
+        |""".stripMargin
+
+    val redirects = {
+      val unversioned =
+        List(
+          "adopters",
+          "changelog",
+          "code-of-conduct",
+          "contributing",
+          "further-reading",
+          "getting-help",
+          "versions",
+        ).map { page =>
+          Root / page -> Root / s"$page.html"
+        }
+
+      val v = versions.current.pathSegment
+      val versioned =
+        List(
+          "auth",
+          "client",
+          "cors",
+          "csrf",
+          "deployment",
+          "dsl",
+          "entity",
+          "error-handling",
+          "gzip",
+          "hsts",
+          "integrations",
+          "json",
+          "methods",
+          "middleware",
+          "service",
+          "static",
+          "streaming",
+          "testing",
+          "upgrading",
+          "uri",
+        ).map { page =>
+          Root / v / page -> Root / v / "guide" / s"$page.html"
+        } ++ List(Root / v -> Root / v / "guide" / s"quickstart.html")
+
+      versioned ++ unversioned
+    }
   }
 
 }
