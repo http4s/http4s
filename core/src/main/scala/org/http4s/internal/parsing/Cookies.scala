@@ -16,9 +16,10 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
 import cats.parse.Parser.char
 import cats.parse.Parser.charIn
+import cats.parse.Parser0
 
 /** Common rules defined in RFC6265
   *
