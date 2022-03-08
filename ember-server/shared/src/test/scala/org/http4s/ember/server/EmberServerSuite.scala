@@ -54,9 +54,9 @@ class EmberServerSuite extends Http4sSuite {
       .withHttpApp(service[IO])
       .build
 
-  val client = ResourceFixture(EmberClientBuilder.default[IO].build)
+  private val client = ResourceFixture(EmberClientBuilder.default[IO].build)
 
-  def server(receiveBufferSize: Int = 256 * 1024) = ResourceFixture(
+  private def server(receiveBufferSize: Int = 256 * 1024) = ResourceFixture(
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service[IO])
@@ -65,7 +65,7 @@ class EmberServerSuite extends Http4sSuite {
       .build
   )
 
-  def fixture(receiveBufferSize: Int = 256 * 1024) =
+  private def fixture(receiveBufferSize: Int = 256 * 1024) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
 
   fixture().test("server responds to requests") { case (server, client) =>

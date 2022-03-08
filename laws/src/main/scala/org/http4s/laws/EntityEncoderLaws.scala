@@ -49,7 +49,7 @@ object EntityEncoderLaws {
       entityEncoderFA: EntityEncoder[F, A],
   ): EntityEncoderLaws[F, A] =
     new EntityEncoderLaws[F, A] {
-      val F = F0
-      val encoder = entityEncoderFA
+      val F: Concurrent[F] = F0
+      val encoder: EntityEncoder[F, A] = entityEncoderFA
     }
 }

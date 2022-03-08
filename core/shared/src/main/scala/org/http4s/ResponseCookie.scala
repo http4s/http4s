@@ -28,9 +28,9 @@ package org.http4s
 
 import cats.parse.Parser
 import cats.parse.Rfc5234
+import org.http4s.internal.parsing.RelaxedCookies
 import org.http4s.internal.parsing.Rfc1034
 import org.http4s.internal.parsing.Rfc2616
-import org.http4s.internal.parsing.Rfc6265
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
@@ -104,7 +104,7 @@ object ResponseCookie {
     import Parser.{char, charIn, failWith, ignoreCase, pure}
     import Rfc2616.Rfc1123Date
     import Rfc5234.digit
-    import Rfc6265.{cookieName, cookieValue}
+    import RelaxedCookies.{cookieName, cookieValue}
 
     /* cookie-pair       = cookie-name "=" cookie-value */
     val cookiePair = (cookieName <* char('=')) ~ cookieValue

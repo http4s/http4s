@@ -61,13 +61,13 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     } yield new String(head.getBytes(), StandardCharsets.ISO_8859_1)
   }
 
-  val message = "Hello world!"
-  val messageBuffer = Chunk.array(message.getBytes(StandardCharsets.ISO_8859_1))
+  private val message = "Hello world!"
+  private val messageBuffer = Chunk.array(message.getBytes(StandardCharsets.ISO_8859_1))
 
   final def runNonChunkedTests(
       name: String,
       builder: Dispatcher[IO] => TailStage[ByteBuffer] => Http1Writer[IO],
-  ) = {
+  ): Unit = {
     dispatcher.test(s"$name Write a single emit") { implicit dispatcher =>
       writeEntityBody(chunk(messageBuffer))(builder(dispatcher))
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message)

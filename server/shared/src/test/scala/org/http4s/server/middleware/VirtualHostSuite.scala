@@ -28,19 +28,19 @@ import org.http4s.headers.Host
 import org.http4s.syntax.all._
 
 class VirtualHostSuite extends Http4sSuite {
-  val default = HttpRoutes.of[IO] { case _ =>
+  private val default = HttpRoutes.of[IO] { case _ =>
     Response[IO](Ok).withEntity("default").pure[IO]
   }
 
-  val routesA = HttpRoutes.of[IO] { case _ =>
+  private val routesA = HttpRoutes.of[IO] { case _ =>
     Response[IO](Ok).withEntity("routesA").pure[IO]
   }
 
-  val routesB = HttpRoutes.of[IO] { case _ =>
+  private val routesB = HttpRoutes.of[IO] { case _ =>
     Response[IO](Ok).withEntity("routesB").pure[IO]
   }
 
-  val vhostExact = VirtualHost(
+  private val vhostExact = VirtualHost(
     VirtualHost.exact(default, "default", None),
     VirtualHost.exact(routesA, "routesA", None),
     VirtualHost.exact(routesB, "routesB", Some(80)),
@@ -82,7 +82,7 @@ class VirtualHostSuite extends Http4sSuite {
     vhostExact(req).map(_.status).assertEquals(NotFound)
   }
 
-  val vhostWildcard = VirtualHost(
+  private val vhostWildcard = VirtualHost(
     VirtualHost.wildcard(routesA, "routesa", None),
     VirtualHost.wildcard(routesB, "*.service", Some(80)),
     VirtualHost.wildcard(default, "*.foo-service", Some(80)),

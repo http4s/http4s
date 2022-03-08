@@ -39,14 +39,14 @@ object EmberServerH2Example extends IOApp {
       val dsl = new Http4sDsl[F] {}; import dsl._
       HttpRoutes
         .of[F] {
-          case req @ _ -> Root / "foo" =>
+          case _ -> Root / "foo" =>
             // println(req)
             Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
           case req @ _ -> Root / "trailers" =>
             println(s"Got $req at trailers endpoint")
             req.headers
               .get[org.http4s.headers.Trailer]
-              .fold(Applicative[F].unit)(t =>
+              .fold(Applicative[F].unit)(_ =>
                 req.body.compile.drain >> req.trailerHeaders
                   .flatMap(h => Console[F].println(s"Incomming Trailers: $h"))
               ) >>
@@ -68,7 +68,7 @@ object EmberServerH2Example extends IOApp {
         .orNotFound
     }
 
-    def testALPN[F[_]: Async: Parallel: Console] = for {
+    def testALPN[F[_]: Async: Console] = for {
       sslContext <- Resource.eval(
         ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
       )

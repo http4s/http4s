@@ -295,10 +295,10 @@ class DropwizardClientMetricsSuite extends Http4sSuite {
   }
 
   implicit val clock: Clock[IO] = FakeClock[IO]
-  val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test11")
-  val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
+  private val registry: MetricRegistry = SharedMetricRegistries.getOrCreate("test11")
+  private val meteredClient = Metrics(Dropwizard[IO](registry, "client"))(client)
 
-  val clientRunResource = meteredClient
+  private val clientRunResource = meteredClient
     .run(Request[IO](uri = uri"/ok"))
 
   ResourceFixture(clientRunResource).test(

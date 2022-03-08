@@ -495,7 +495,7 @@ object BlazeServerBuilder {
       clientAuth: SSLClientAuthMode,
   )(implicit F: Sync[F])
       extends SslConfig[F] {
-    def makeContext =
+    def makeContext: F[Option[SSLContext]] =
       F.delay {
         val ksStream = new FileInputStream(keyStore.path)
         val ks = KeyStore.getInstance("JKS")
@@ -526,51 +526,51 @@ object BlazeServerBuilder {
         context.init(kmf.getKeyManagers, tmf.orNull, null)
         context.some
       }
-    def configureEngine(engine: SSLEngine) =
+    def configureEngine(engine: SSLEngine): Unit =
       configureEngineFromSslClientAuthMode(engine, clientAuth)
-    def isSecure = true
+    def isSecure: Boolean = true
   }
 
   private class ContextOnly[F[_]](sslContext: SSLContext)(implicit F: Applicative[F])
       extends SslConfig[F] {
-    def makeContext = F.pure(sslContext.some)
-    def configureEngine(engine: SSLEngine) = {
+    def makeContext: F[Option[SSLContext]] = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine): Unit = {
       val _ = engine
       ()
     }
-    def isSecure = true
+    def isSecure: Boolean = true
   }
 
   private class ContextWithParameters[F[_]](sslContext: SSLContext, sslParameters: SSLParameters)(
       implicit F: Applicative[F]
   ) extends SslConfig[F] {
-    def makeContext = F.pure(sslContext.some)
-    def configureEngine(engine: SSLEngine) = engine.setSSLParameters(sslParameters)
-    def isSecure = true
+    def makeContext: F[Option[SSLContext]] = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine): Unit = engine.setSSLParameters(sslParameters)
+    def isSecure: Boolean = true
   }
 
   private class ContextWithClientAuth[F[_]](sslContext: SSLContext, clientAuth: SSLClientAuthMode)(
       implicit F: Applicative[F]
   ) extends SslConfig[F] {
-    def makeContext = F.pure(sslContext.some)
-    def configureEngine(engine: SSLEngine) =
+    def makeContext: F[Option[SSLContext]] = F.pure(sslContext.some)
+    def configureEngine(engine: SSLEngine): Unit =
       configureEngineFromSslClientAuthMode(engine, clientAuth)
-    def isSecure = true
+    def isSecure: Boolean = true
   }
 
   private class NoSsl[F[_]]()(implicit F: Applicative[F]) extends SslConfig[F] {
-    def makeContext = F.pure(None)
-    def configureEngine(engine: SSLEngine) = {
+    def makeContext: F[Option[SSLContext]] = F.pure(None)
+    def configureEngine(engine: SSLEngine): Unit = {
       val _ = engine
       ()
     }
-    def isSecure = false
+    def isSecure: Boolean = false
   }
 
   private def configureEngineFromSslClientAuthMode(
       engine: SSLEngine,
       clientAuthMode: SSLClientAuthMode,
-  ) =
+  ): Unit =
     clientAuthMode match {
       case SSLClientAuthMode.Required => engine.setNeedClientAuth(true)
       case SSLClientAuthMode.Requested => engine.setWantClientAuth(true)

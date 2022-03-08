@@ -23,7 +23,7 @@ import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSuite extends munit.FunSuite {
-  def hparse(value: String) = Authorization.parse(value)
+  private def hparse(value: String) = Authorization.parse(value)
 
   test("Authorization header should Parse a valid OAuth2 header") {
     val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/".toSeq).mkString
