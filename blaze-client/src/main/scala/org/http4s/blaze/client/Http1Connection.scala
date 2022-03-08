@@ -408,7 +408,7 @@ private final class Http1Connection[F[_]](
           entity = entity match {
             case Entity.Default(body, length) =>
               Entity[F](body.interruptWhen(idleTimeoutS), length)
-            case _ =>
+            case Entity.Strict(_) | Entity.Empty =>
               entity
           },
           attributes = attributes,
