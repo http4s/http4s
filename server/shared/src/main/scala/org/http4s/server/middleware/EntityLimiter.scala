@@ -32,9 +32,7 @@ object EntityLimiter {
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B], limit: Long = DefaultMaxEntitySize)(
       implicit G: ApplicativeThrow[G]
   ): Kleisli[F, Request[G], B] =
-    Kleisli { req =>
-      http(req.withBodyStream(req.body.through(takeLimited(limit))))
-    }
+    http.local(_.pipeBodyThrough(takeLimited(limit)))
 
   def httpRoutes[F[_]: ApplicativeThrow](
       httpRoutes: HttpRoutes[F],
