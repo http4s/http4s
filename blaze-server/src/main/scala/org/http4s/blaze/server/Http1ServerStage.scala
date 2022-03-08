@@ -175,13 +175,14 @@ private[blaze] class Http1ServerStage[F[_]](
     logRequest(buff)
     parser.synchronized {
       if (!isClosed)
-        try if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
-          requestLoop()
-        else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
-          requestLoop()
-        else
-          // we have enough to start the request
-          runRequest(buff)
+        try
+          if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
+            requestLoop()
+          else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
+            requestLoop()
+          else
+            // we have enough to start the request
+            runRequest(buff)
         catch {
           case t: BadMessage =>
             badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
@@ -266,7 +267,7 @@ private[blaze] class Http1ServerStage[F[_]](
       ) // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
-    val bodyEncoder: Http1Writer[F] = {
+    val bodyEncoder: Http1Writer[F] =
       if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
@@ -304,7 +305,6 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish,
           false,
         )
-    }
 
     unsafeRunAsync(bodyEncoder.write(rr, resp.body).recover { case EOF => true }) {
       case Right(requireClose) =>

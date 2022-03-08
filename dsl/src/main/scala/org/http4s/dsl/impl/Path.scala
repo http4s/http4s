@@ -58,7 +58,7 @@ object ~ {
 
 object / {
   def unapply(path: Path): Option[(Path, String)] =
-    if (path.endsWithSlash)
+    if (path != Root && path.endsWithSlash)
       Some(path.dropEndsWithSlash -> "")
     else
       path.segments match {

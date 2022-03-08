@@ -32,8 +32,8 @@ abstract class WebSocketFrame {
     obj match {
       case wf: WebSocketFrame =>
         this.opcode == wf.opcode &&
-          this.last == wf.last &&
-          this.data == wf.data
+        this.last == wf.last &&
+        this.data == wf.data
       case _ => false
     }
 

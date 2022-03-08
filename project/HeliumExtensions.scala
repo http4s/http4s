@@ -77,8 +77,6 @@ object HeliumExtensions {
 
     def renderTarget(fmt: HTMLFormatter, target: Target): String =
       fmt.pathTranslator.translate(adjustForPrettyURL(target)) match {
-        case ext: ExternalTarget if ext.url.startsWith("http:mailto:") =>
-          ext.url.stripPrefix("http:") // remove this when 0.18.1 is out
         case ext: ExternalTarget => ext.url
         case int: InternalTarget =>
           int.relativeTo(fmt.path).relativePath.toString.replace("index.html", "")

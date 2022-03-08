@@ -16,11 +16,9 @@
 
 package org.http4s.internal.parsing
 
-import cats.parse.Parser
+import cats.parse.{Parser, Parser0}
 import cats.parse.Parser.char
 import cats.parse.Parser.charIn
-import cats.parse.Parser0
-import cats.parse.Rfc5234.dquote
 
 /** Common rules defined in RFC6265
   *
@@ -33,9 +31,8 @@ private[http4s] abstract class Cookies(cookieOctet: Parser[Char]) {
   /* cookie-name       = token */
   def cookieName: Parser[String] = token
 
-  /* cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE ) */
-  val cookieValue: Parser0[String] =
-    (dquote *> cookieOctet.rep0 <* dquote).orElse(cookieOctet.rep0).string
+  /* cookie-value      = *cookie-octet */
+  val cookieValue: Parser0[String] = cookieOctet.rep0.string
 
   /* cookie-pair       = cookie-name "=" cookie-value */
   val cookiePair: Parser[(String, String)] = (cookieName <* char('=')) ~ cookieValue
@@ -59,15 +56,13 @@ private[http4s] object Rfc6265
       )
     )
 
-/* This is a relaxed implementation, in response to user feedback. */
+/* This is a relaxed implementation based on spec implemented by Chromium
+ * US-ASCII characters excluding CTLs and semicolon
+ *  See https://groups.google.com/a/chromium.org/g/chromium-discuss/c/T3oHExJMr0M
+ * */
 private[http4s] object RelaxedCookies
     extends Cookies(
-      // Compared to Rfc6265, also tolerates spaces
       cookieOctet = charIn(
-        Set(0x20.toChar, 0x21.toChar) ++
-          Set(0x23.toChar to 0x2b.toChar: _*) ++
-          Set(0x2d.toChar to 0x3a.toChar: _*) ++
-          Set(0x3c.toChar to 0x5b.toChar: _*) ++
-          Set(0x5d.toChar to 0x7e.toChar: _*)
+        Set(0x20.toChar to 0xff.toChar: _*) - 0x3b.toChar
       )
     )

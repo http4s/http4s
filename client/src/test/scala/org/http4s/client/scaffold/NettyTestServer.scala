@@ -106,7 +106,7 @@ object NettyTestServer {
       F: Async[F]
   ): Resource[F, Channel] =
     Resource.make[F, Channel](
-      F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
+      F.delay(bootstrap.bind(InetAddress.getLoopbackAddress(), port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
   private def toSocketAddress(

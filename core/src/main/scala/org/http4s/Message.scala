@@ -214,7 +214,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   // Attribute methods
 
   /** Generates a new message object with the specified key/value pair appended
-    * to the [[#attributes]].
+    * to the [[attributes]].
     *
     * @param key [[org.typelevel.vault.Key]] with which to associate the value
     * @param value value associated with the key
@@ -225,7 +225,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(attributes = attributes.insert(key, value))
 
   /** Returns a new message object without the specified key in the
-    * [[#attributes]].
+    * [[attributes]].
     *
     * @param key [[org.typelevel.vault.Key]] to remove
     * @return a new message object without the key
@@ -439,6 +439,12 @@ final class Request[F[_]] private (
 
   def serverSoftware: ServerSoftware =
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+
+  /** A request is idempotent if its method is idempotent or it contains
+    * an `Idempotency-Key` header.
+    */
+  def isIdempotent: Boolean =
+    method.isIdempotent || headers.contains[`Idempotency-Key`]
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(
       f: A => F[Response[F]]

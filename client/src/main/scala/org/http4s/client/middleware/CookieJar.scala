@@ -144,8 +144,8 @@ object CookieJar {
       obj match {
         case c: CookieValue =>
           setAt == c.setAt &&
-            expiresAt == c.expiresAt &&
-            cookie == c.cookie
+          expiresAt == c.expiresAt &&
+          cookie == c.cookie
         case _ => false
       }
   }

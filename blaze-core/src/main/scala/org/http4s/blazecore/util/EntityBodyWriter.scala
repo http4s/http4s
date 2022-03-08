@@ -78,4 +78,5 @@ private[http4s] trait EntityBodyWriter[F[_]] {
         .flatMap(_ => Stream.raiseError[F](e))
     writeStream.handleErrorWith(errorStream)
   }
+
 }

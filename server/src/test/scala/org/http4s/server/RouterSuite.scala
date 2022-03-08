@@ -123,4 +123,19 @@ class RouterSuite extends Http4sSuite {
       .map(_ == Option.empty[Response[IO]])
       .assert
   }
+
+  test("Order of variable path should not matter") {
+    val router = Router[IO]("/foo" -> HttpRoutes.of {
+      case GET -> Root / variable =>
+        val _ = variable
+        BadRequest("nope")
+      case GET -> Root =>
+        Ok("foo")
+    })
+
+    router
+      .orNotFound(Request[IO](uri = uri"/foo"))
+      .map(_.status == Status.Ok)
+      .assert
+  }
 }

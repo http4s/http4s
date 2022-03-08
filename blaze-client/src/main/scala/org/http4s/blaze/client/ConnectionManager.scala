@@ -21,8 +21,6 @@ package client
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
-import org.http4s.client.Connection
-import org.http4s.client.ConnectionBuilder
 import org.http4s.client.RequestKey
 
 import scala.concurrent.ExecutionContext
@@ -88,6 +86,7 @@ private object ConnectionManager {
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
       executionContext: ExecutionContext,
+      maxIdleDuration: Duration,
   ): F[ConnectionManager.Stateful[F, A]] =
     Semaphore.uncancelable(1).map { semaphore =>
       new PoolManager[F, A](
@@ -99,6 +98,28 @@ private object ConnectionManager {
         requestTimeout,
         semaphore,
         executionContext,
+        maxIdleDuration,
       )
     }
+
+  @deprecated("Preserved for binary compatibility", "0.22.9")
+  def pool[F[_]: Concurrent, A <: Connection[F]](
+      builder: ConnectionBuilder[F, A],
+      maxTotal: Int,
+      maxWaitQueueLimit: Int,
+      maxConnectionsPerRequestKey: RequestKey => Int,
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
+      executionContext: ExecutionContext,
+  ): F[ConnectionManager.Stateful[F, A]] =
+    pool(
+      builder,
+      maxTotal,
+      maxWaitQueueLimit,
+      maxConnectionsPerRequestKey,
+      responseHeaderTimeout,
+      requestTimeout,
+      executionContext,
+      Duration.Inf,
+    )
 }
