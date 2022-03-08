@@ -673,7 +673,8 @@ lazy val blazeClient = libraryProject("blaze-client")
           ),
           ProblemFilters
             .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeClient.makeClient"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.bits.DefaultUserAgent"),
+          ProblemFilters
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.bits.DefaultUserAgent"),
         )
       else Seq.empty
     },
