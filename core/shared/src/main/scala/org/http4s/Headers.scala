@@ -49,7 +49,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def getWithWarnings[A](implicit
       ev: Header.Select[A]
   ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
-    ev.from(headers)
+    ev.fromAllValid(headers)
 
   /** Returns true if there is at least one header by the specified name. */
   def contains[A](implicit ev: Header[A, _]): Boolean =

@@ -17,9 +17,9 @@
 package org.http4s
 package headers
 
-import cats.data.NonEmptyList
+import cats.syntax.all._
+import cats.data.{Ior, NonEmptyList}
 import cats.parse.Parser
-import org.http4s.Header
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -28,22 +28,36 @@ object Cookie {
   def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
     apply(NonEmptyList(head, tail.toList))
 
-  def parse(s: String): ParseResult[Cookie] =
+  private def parseCookie(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
-  private[http4s] val parser: Parser[Cookie] = {
-    import Parser.{char, string}
+  def parseWithWarnings(s: String): Ior[NonEmptyList[ParseFailure], Cookie] = {
+    val (errors, cookies) = s
+      .split("; |;")
+      .toList
+      .filterNot(_.isEmpty)
+      .map(parseCookie)
+      .partitionEither(identity)
 
-    /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
-    val cookieString = (RequestCookie.parser ~ (string("; ") *> RequestCookie.parser).rep0).map {
-      case (head, tail) =>
-        Cookie(NonEmptyList(head, tail))
-    }
-
-    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
-     * here. */
-    cookieString <* char(';').?
+    val oneFailure: ParseFailure = ParseFailure(
+      "Empty Cookie header",
+      s"No cookies to be parsed",
+    )
+    Ior
+      .fromOptions(NonEmptyList.fromList(errors), cookies.combineAllOption)
+      .getOrElse(Ior.left(NonEmptyList.one(oneFailure)))
   }
+
+  def parse(s: String): Either[ParseFailure, Cookie] = {
+    def oneFailure(errors: NonEmptyList[ParseFailure]) = ParseFailure(
+      "Invalid Cookie header",
+      s"No valid cookies could be parsed: ${errors.map(_.toString).toList.mkString("[", ",", "]")}",
+    )
+
+    parseWithWarnings(s).leftMap(oneFailure).fold(Left(_), Right(_), (l, _) => Left(l))
+  }
+
+  private[http4s] val parser: Parser[Cookie] = RequestCookie.parser.map(Cookie(_))
 
   val name: CIString = ci"Cookie"
 
@@ -56,6 +70,7 @@ object Cookie {
             writer.addNel(h.values, sep = "; ")
         },
       parse,
+      parseWithWarnings,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Cookie] =
