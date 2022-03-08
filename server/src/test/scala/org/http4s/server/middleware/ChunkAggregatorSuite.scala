@@ -43,7 +43,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
     transferCodingGen.map(_.toList)
   )
 
-  def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
+  private def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
       .map(_.removeHeader[`Content-Length`])
 

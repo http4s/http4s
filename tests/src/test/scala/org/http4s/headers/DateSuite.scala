@@ -26,7 +26,7 @@ import java.time.ZonedDateTime
 class DateSuite extends HeaderLaws {
   checkAll("Date", headerLaws[Date])
 
-  val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
+  private val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
 
   test("render should format GMT date according to RFC 1123") {
     assertEquals(

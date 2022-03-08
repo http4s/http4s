@@ -217,7 +217,7 @@ object Uri extends UriPlatform {
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
   final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
-    override def equals(o: Any) =
+    override def equals(o: Any): Boolean =
       o match {
         case that: Scheme => this.value.equalsIgnoreCase(that.value)
         case _ => false

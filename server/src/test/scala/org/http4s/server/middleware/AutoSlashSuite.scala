@@ -26,9 +26,9 @@ import org.http4s.server.Router
 import org.http4s.syntax.all._
 
 class AutoSlashSuite extends Http4sSuite {
-  val route = MockRoute.route()
+  private val route = MockRoute.route()
 
-  val pingRoutes = {
+  private val pingRoutes = {
     import org.http4s.dsl.io._
     HttpRoutes.of[IO] { case GET -> Root / "ping" =>
       Ok()

@@ -145,7 +145,8 @@ class PrometheusClientMetricsSuite extends Http4sSuite {
     }
   }
 
-  val classifier = (_: Request[IO]) => Some("classifier")
+  private val classifier = (_: Request[IO]) => Some("classifier")
+
   meteredClient(classifier).test("use the provided request classifier") { case (registry, client) =>
     client.expect[String]("/ok").attempt.map { resp =>
       assertEquals(resp, Right("200 OK"))

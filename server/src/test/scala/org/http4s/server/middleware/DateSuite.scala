@@ -30,10 +30,10 @@ class DateSuite extends Http4sSuite {
   }
 
   // Hack for https://github.com/typelevel/cats-effect/pull/682
-  val testService = Date(service)(Sync[OptionT[IO, *]], Clock.deriveOptionT[IO])
-  val testApp = Date(service.orNotFound)
+  private val testService = Date(service)(Sync[OptionT[IO, *]], Clock.deriveOptionT[IO])
+  private val testApp = Date(service.orNotFound)
 
-  val req = Request[IO]()
+  private val req = Request[IO]()
 
   test("Date should always be very shortly before the current time httpRoutes") {
     (for {

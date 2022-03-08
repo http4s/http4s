@@ -93,9 +93,9 @@ object Header {
       value_ : A => String,
       parse_ : String => Either[ParseFailure, A],
   ): Header[A, T] = new Header[A, T] {
-    def name = name_
-    def value(a: A) = value_(a)
-    def parse(s: String) = parse_(s)
+    def name: CIString = name_
+    def value(a: A): String = value_(a)
+    def parse(s: String): Either[ParseFailure, A] = parse_(s)
   }
 
   def createRendered[A, T <: Header.Type, B: Renderer](
@@ -103,9 +103,9 @@ object Header {
       value_ : A => B,
       parse_ : String => Either[ParseFailure, A],
   ): Header[A, T] = new Header[A, T] {
-    def name = name_
-    def value(a: A) = Renderer.renderString(value_(a))
-    def parse(s: String) = parse_(s)
+    def name: CIString = name_
+    def value(a: A): String = Renderer.renderString(value_(a))
+    def parse(s: String): Either[ParseFailure, A] = parse_(s)
   }
 
   /** Target for implicit conversions to Header.Raw from modelled
@@ -119,7 +119,7 @@ object Header {
     * - A `Header.Raw`
     * - A `Foldable` (`List`, `Option`, etc) of the above.
     *
-    * @see [[org.http4s.Headers$.apply]]
+    * @see [[org.http4s.Headers.apply]]
     */
   sealed trait ToRaw {
     def values: List[Header.Raw]
@@ -129,7 +129,7 @@ object Header {
 
     implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw
     with Primitive {
-      val values = h.values
+      val values: List[Raw] = h.values
     }
 
     implicit def rawToRaw(h: Header.Raw): Header.ToRaw with Primitive =
@@ -144,7 +144,7 @@ object Header {
 
     implicit def headersToRaw(h: Headers): Header.ToRaw =
       new Header.ToRaw {
-        val values = h.headers
+        val values: List[Raw] = h.headers
       }
 
     implicit def modelledHeadersToRaw[H](
@@ -157,14 +157,14 @@ object Header {
     implicit def foldablesToRaw[F[_]: Foldable, H](
         h: F[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
     }
 
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
     }
   }
 

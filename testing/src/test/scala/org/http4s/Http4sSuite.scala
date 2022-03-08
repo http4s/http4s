@@ -35,26 +35,27 @@ import scala.concurrent.ExecutionContext
 trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
   // The default munit EC causes an IllegalArgumentException in
   // BatchExecutor on Scala 2.12.
-  override val munitExecutionContext =
+  override val munitExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-munit", min = 1, timeout = true))
 
   private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
 
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
 
-  def registerSuiteFixture[A](fixture: Fixture[A]) = {
+  def registerSuiteFixture[A](fixture: Fixture[A]): Fixture[A] = {
     suiteFixtures += fixture
     fixture
   }
 
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource)
-  )
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]): Fixture[A] =
+    registerSuiteFixture(
+      ResourceSuiteLocalFixture(name, resource)
+    )
 
   val testBlocker: Blocker = Http4sSuite.TestBlocker
 
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.contains("CI")
+  override def munitFlakyOK: Boolean = sys.env.contains("CI")
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))

@@ -128,7 +128,7 @@ class ScalaXmlSuite extends Http4sSuite {
     }
   }
 
-  def encodingTest(bytes: Chunk[Byte], contentType: String, name: String) = {
+  private def encodingTest(bytes: Chunk[Byte], contentType: String, name: String) = {
     val body = Stream.chunk(bytes)
     val msg = Request[IO](Method.POST, headers = Headers(Header.Raw(ci"Content-Type", contentType)))
       .withBodyStream(body)
