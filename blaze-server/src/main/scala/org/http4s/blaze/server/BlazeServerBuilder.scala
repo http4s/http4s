@@ -209,6 +209,18 @@ class BlazeServerBuilder[F[_]] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+
+  /** Configures the compute thread pool used to process requests
+    *
+    * This defaults to `cats.effect.Async[F].executionContext`. In
+    * almost all cases, it is desirable to use the default.
+    *
+    * The Blaze server has a single-threaded event loop receiver used
+    * for picking up tcp connections which is completely separate to
+    * this pool. Following picking up a tcp connection, Blaze shifts
+    * to this compute pool to process requests. Request processing
+    * logic is specified by the `HttpApp`.
+    */
   def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 

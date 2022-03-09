@@ -298,6 +298,11 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withBufferSize(bufferSize: Int): BlazeClientBuilder[F] =
     copy(bufferSize = bufferSize)
 
+  /** Configures the compute thread pool used to run async computations.
+    *
+    * This defaults to `cats.effect.Async[F].executionContext`. In
+    * almost all cases, it is desirable to use the default.
+    */
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
     copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 
