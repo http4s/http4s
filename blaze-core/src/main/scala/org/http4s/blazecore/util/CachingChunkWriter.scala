@@ -57,7 +57,7 @@ private[http4s] class CachingChunkWriter[F[_]](
     }
 
   private def toChunkAndClear: Chunk[Byte] = {
-    val chunk = if (bodyBuffer.isEmpty) {
+    val chunk = if (size == 0) {
       Chunk.empty
     } else if (bodyBuffer.size == 1) {
       bodyBuffer.head
@@ -70,7 +70,7 @@ private[http4s] class CachingChunkWriter[F[_]](
   }
 
   override protected def exceptionFlush(): Future[Unit] =
-    if (bodyBuffer.nonEmpty) {
+    if (size > 0) {
       val c = toChunkAndClear
       pipe.channelWrite(encodeChunk(c, Nil))
     } else {
