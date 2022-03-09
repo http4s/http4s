@@ -209,7 +209,6 @@ class BlazeServerBuilder[F[_]] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-
   /** Configures the compute thread pool used to process requests
     *
     * This defaults to `cats.effect.Async[F].executionContext`. In
