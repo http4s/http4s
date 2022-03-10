@@ -107,12 +107,16 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def withPort(port: Port): EmberServerBuilder[F] = copy(port = port)
   def withHttpApp(httpApp: HttpApp[F]): EmberServerBuilder[F] = copy(httpApp = _ => httpApp)
-  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): EmberServerBuilder[F] = copy(httpApp = f)
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): EmberServerBuilder[F] =
+    copy(httpApp = f)
 
   def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
     copy(sgOpt = sg.pure[Option])
 
-  def withTLS(tlsContext: TLSContext[F], tlsParameters: TLSParameters = TLSParameters.Default): EmberServerBuilder[F] =
+  def withTLS(
+      tlsContext: TLSContext[F],
+      tlsParameters: TLSParameters = TLSParameters.Default,
+  ): EmberServerBuilder[F] =
     copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
   def withoutTLS: EmberServerBuilder[F] =
     copy(tlsInfoOpt = None)
@@ -134,13 +138,19 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(onWriteFailure = onWriteFailure)
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections", "0.22.3")
-  def withMaxConcurrency(maxConcurrency: Int): EmberServerBuilder[F] = copy(maxConnections = maxConcurrency)
+  def withMaxConcurrency(maxConcurrency: Int): EmberServerBuilder[F] =
+    copy(maxConnections = maxConcurrency)
 
-  def withMaxConnections(maxConnections: Int): EmberServerBuilder[F] = copy(maxConnections = maxConnections)
+  def withMaxConnections(maxConnections: Int): EmberServerBuilder[F] =
+    copy(maxConnections = maxConnections)
 
-  def withReceiveBufferSize(receiveBufferSize: Int): EmberServerBuilder[F] = copy(receiveBufferSize = receiveBufferSize)
-  def withMaxHeaderSize(maxHeaderSize: Int): EmberServerBuilder[F] = copy(maxHeaderSize = maxHeaderSize)
-  def withRequestHeaderReceiveTimeout(requestHeaderReceiveTimeout: Duration): EmberServerBuilder[F] =
+  def withReceiveBufferSize(receiveBufferSize: Int): EmberServerBuilder[F] =
+    copy(receiveBufferSize = receiveBufferSize)
+  def withMaxHeaderSize(maxHeaderSize: Int): EmberServerBuilder[F] =
+    copy(maxHeaderSize = maxHeaderSize)
+  def withRequestHeaderReceiveTimeout(
+      requestHeaderReceiveTimeout: Duration
+  ): EmberServerBuilder[F] =
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
