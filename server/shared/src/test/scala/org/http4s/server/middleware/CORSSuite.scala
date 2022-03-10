@@ -29,58 +29,58 @@ import org.typelevel.ci._
 import scala.concurrent.duration._
 
 class CORSSuite extends Http4sSuite {
-  val routes = HttpRoutes.of[IO] {
+  private val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo === path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo === path"/vary" =>
       Response[IO](Ok).putHeaders(Header.Raw(ci"Vary", "X-Old-Vary")).pure[IO]
   }
-  val app = routes.orNotFound
+  private val app = routes.orNotFound
 
-  val exampleOrigin = Origin.Host(Uri.Scheme.https, Uri.RegName("example.com"), None)
+  private val exampleOrigin = Origin.Host(Uri.Scheme.https, Uri.RegName("example.com"), None)
 
-  def nonCorsReq = Request[IO](uri = uri"/foo")
-  def nonPreflightReq = nonCorsReq.putHeaders(exampleOrigin: Origin)
-  def preflightReq = nonPreflightReq
+  private def nonCorsReq = Request[IO](uri = uri"/foo")
+  private def nonPreflightReq = nonCorsReq.putHeaders(exampleOrigin: Origin)
+  private def preflightReq = nonPreflightReq
     .withMethod(Method.OPTIONS)
     .putHeaders(
       `Access-Control-Request-Method`(Method.POST),
       Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite"),
     )
 
-  def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
+  private def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Allow-Origin").map(_.head.value),
       origin.map(_.toString),
     )
 
-  def assertAllowCredentials[F[_]](resp: Response[F], b: Boolean) =
+  private def assertAllowCredentials[F[_]](resp: Response[F], b: Boolean) =
     assertEquals(resp.headers.get[`Access-Control-Allow-Credentials`].isDefined, b)
 
-  def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
+  private def assertExposeHeaders[F[_]](resp: Response[F], names: Option[CIString]) =
     assertEquals(
       resp.headers.get[`Access-Control-Expose-Headers`].map(h => CIString(h.value)),
       names,
     )
 
-  def assertAllowMethods[F[_]](resp: Response[F], methods: Option[String]) =
+  private def assertAllowMethods[F[_]](resp: Response[F], methods: Option[String]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Allow-Methods").map(_.map(_.value).toList.mkString(", ")),
       methods,
     )
 
-  def assertAllowHeaders[F[_]](resp: Response[F], headers: Option[CIString]) =
+  private def assertAllowHeaders[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(
       resp.headers.get[`Access-Control-Allow-Headers`].map(h => CIString(h.value)),
       headers,
     )
 
-  def assertMaxAge[F[_]](resp: Response[F], deltaSeconds: Option[Long]) =
+  private def assertMaxAge[F[_]](resp: Response[F], deltaSeconds: Option[Long]) =
     assertEquals(
       resp.headers.get(ci"Access-Control-Max-Age").map(_.head.value),
       deltaSeconds.map(_.toString),
     )
 
-  def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
+  private def assertVary[F[_]](resp: Response[F], headers: Option[CIString]) =
     assertEquals(
       resp.headers.get(ci"Vary").map(hs => CIString(hs.map(_.value).toList.mkString(", "))),
       headers,
@@ -770,13 +770,13 @@ class CORSSuite extends Http4sSuite {
 
 @deprecated("This suite tests a deprecated feature", "0.21.27")
 class CORSDeprecatedSuite extends Http4sSuite {
-  val routes = HttpRoutes.of[IO] {
+  private val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo === path"/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo === path"/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
 
-  val cors1 = CORS(routes)
-  val cors2 = CORS(
+  private val cors1 = CORS(routes)
+  private val cors2 = CORS(
     routes,
     CORSConfig.default
       .withAnyOrigin(false)
@@ -787,12 +787,12 @@ class CORSDeprecatedSuite extends Http4sSuite {
       .withExposedHeaders(Some(Set("x-header"))),
   )
 
-  def headerCheck(h: Header.Raw): Boolean = h.name == ci"Access-Control-Max-Age"
+  private def headerCheck(h: Header.Raw): Boolean = h.name == ci"Access-Control-Max-Age"
 
   final def matchHeader(hs: Headers, name: CIString, expected: String): Boolean =
     hs.get(name).fold(false)(_.exists(_.value === expected))
 
-  def buildRequest(path: String, method: Method = GET) =
+  private def buildRequest(path: String, method: Method = GET) =
     Request[IO](uri = Uri(path = Uri.Path.unsafeFromString(path)), method = method)
       .withHeaders("Origin" -> "http://allowed.com", "Access-Control-Request-Method" -> "GET")
 

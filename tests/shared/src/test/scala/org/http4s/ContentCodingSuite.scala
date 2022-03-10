@@ -104,7 +104,7 @@ class ContentCodingSuite extends Http4sSuite {
 }
 
 class ContentCodingSuiteFixedSeed extends Http4sSuite {
-  override protected def scalaCheckTestParameters = Test.Parameters.default
+  override protected def scalaCheckTestParameters: Test.Parameters = Test.Parameters.default
     .withMinSuccessfulTests(1)
     .withInitialSeed(Seed.fromBase64("2kpw5tJ8tADijqPv2GG3pUWPhjzpJUnaypQufFSWHBB=").toOption)
 

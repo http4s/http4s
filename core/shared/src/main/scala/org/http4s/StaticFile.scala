@@ -239,7 +239,7 @@ object StaticFile {
       etagCalc: ETag,
       lastModified: Option[HttpDate],
   ): Option[Response[F]] = {
-    implicit val conjunction = new Semigroup[Boolean] {
+    implicit val conjunction: Semigroup[Boolean] = new Semigroup[Boolean] {
       def combine(x: Boolean, y: Boolean): Boolean = x && y
     }
 

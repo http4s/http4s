@@ -64,7 +64,7 @@ object util {
   final case class Timer(value: String)
 
   object FakeClock {
-    def apply[F[_]: Sync] =
+    def apply[F[_]: Sync]: Clock[F] =
       new Clock[F] {
         private var count = 0L
 

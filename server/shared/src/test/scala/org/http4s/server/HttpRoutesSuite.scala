@@ -22,7 +22,7 @@ import cats.syntax.all._
 import org.http4s.syntax.all._
 
 class HttpRoutesSuite extends Http4sSuite {
-  val routes1 = HttpRoutes.of[IO] {
+  private val routes1 = HttpRoutes.of[IO] {
     case req if req.pathInfo == path"/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]
 
@@ -33,7 +33,7 @@ class HttpRoutesSuite extends Http4sSuite {
       Response[IO](Status.NotFound).withEntity("notfound").pure[IO]
   }
 
-  val routes2 = HttpRoutes.of[IO] {
+  private val routes2 = HttpRoutes.of[IO] {
     case req if req.pathInfo == path"/routes2" =>
       Response[IO](Status.Ok).withEntity("routes2").pure[IO]
 
@@ -41,7 +41,7 @@ class HttpRoutesSuite extends Http4sSuite {
       Response[IO](Status.Ok).withEntity("routes2conflict").pure[IO]
   }
 
-  val aggregate1 = routes1 <+> routes2
+  private val aggregate1 = routes1 <+> routes2
 
   test("Return a valid Response from the first service of an aggregate") {
     aggregate1

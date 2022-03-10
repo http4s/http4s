@@ -20,7 +20,7 @@ package headers
 import cats.syntax.all._
 
 class SetCookieHeaderSpec extends Http4sSuite {
-  def parse(value: String): `Set-Cookie` = `Set-Cookie`.parse(value).valueOr(throw _)
+  private def parse(value: String): `Set-Cookie` = `Set-Cookie`.parse(value).valueOr(throw _)
 
   test("Set-Cookie parser should parse a set cookie") {
     val cookiestr =

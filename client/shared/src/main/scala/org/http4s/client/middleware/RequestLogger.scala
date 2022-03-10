@@ -76,30 +76,23 @@ object RequestLogger {
   )(implicit F: Async[F]): Client[F] =
     Client { req =>
       if (!logBody)
-        Resource.eval(logMessage(req)) *> client
-          .run(req)
+        Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
           Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-            val newBody = Stream
-              .eval(vec.get)
-              .flatMap(v => Stream.emits(v))
-              .flatMap(c => Stream.chunk(c))
+            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-            val changedRequest = req.withBodyStream(
-              req.body
-                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                .onFinalizeWeak(
-                  logMessage(req.withBodyStream(newBody)).attempt
-                    .flatMap {
-                      case Left(t) => F.delay(logger.error(t)("Error logging request body"))
-                      case Right(()) => F.unit
-                    }
-                )
-            )
+            val logAtEnd: F[Unit] =
+              logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                F.delay(logger.error(t)("Error logging request body"))
+              }
 
-            client.run(changedRequest)
+            // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+            val logPipe: Pipe[F, Byte, Byte] =
+              _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                .onFinalizeWeak(logAtEnd)
+
+            client.run(req.pipeBodyThrough(logPipe))
           }
         }
     }

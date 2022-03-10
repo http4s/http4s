@@ -28,7 +28,7 @@ import org.typelevel.ci._
 import scala.concurrent.duration._
 
 class AuthenticationSuite extends Http4sSuite {
-  def nukeService(launchTheNukes: => Unit) =
+  private def nukeService(launchTheNukes: => Unit) =
     AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
       for {
         _ <- IO(launchTheNukes)
@@ -36,28 +36,28 @@ class AuthenticationSuite extends Http4sSuite {
       } yield r
     }
 
-  val realm = "Test Realm"
-  val username = "Test User"
-  val password = "Test Password"
+  private val realm = "Test Realm"
+  private val username = "Test User"
+  private val password = "Test Password"
 
-  def authStore(u: String): IO[Option[(String, String)]] =
+  private def authStore(u: String): IO[Option[(String, String)]] =
     IO.pure {
       if (u === username) Some(u -> password)
       else None
     }
 
-  def validatePassword(creds: BasicCredentials): IO[Option[String]] =
+  private def validatePassword(creds: BasicCredentials): IO[Option[String]] =
     IO.pure {
       if (creds.username == username && creds.password == password) Some(creds.username)
       else None
     }
 
-  val service = AuthedRoutes.of[String, IO] {
+  private val service = AuthedRoutes.of[String, IO] {
     case GET -> Root as user => Ok(user)
     case req as _ => Response.notFoundFor(req)
   }
 
-  val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
+  private val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
 
   test("Failure to authenticate should not run unauthorized routes") {
     val req = Request[IO](uri = uri"/launch-the-nukes")
@@ -239,10 +239,10 @@ class AuthenticationSuite extends Http4sSuite {
             challenge <- doDigestAuth1(digestAuthService.orNotFound)
             _ <- IO {
               assert(
-                (challenge match {
+                challenge match {
                   case Challenge("Digest", `realm`, _) => true
                   case _ => false
-                }),
+                },
                 challenge,
               )
             }

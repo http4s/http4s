@@ -42,7 +42,7 @@ private[http4s] class CachingChunkWriter[F[_]](
   import ChunkWriter._
 
   private[this] var pendingHeaders: StringWriter = _
-  private[this] var bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
+  private[this] val bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
   private[this] var size: Int = 0
 
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
@@ -50,29 +50,36 @@ private[http4s] class CachingChunkWriter[F[_]](
     FutureUnit
   }
 
-  private def addChunk(chunk: Chunk[Byte]): Unit = {
-    bodyBuffer += chunk
-    size += chunk.size
-  }
+  private def addChunk(chunk: Chunk[Byte]): Unit =
+    if (chunk.nonEmpty) {
+      bodyBuffer += chunk
+      size += chunk.size
+    }
 
-  private def clear(): Unit = {
+  private def toChunkAndClear: Chunk[Byte] = {
+    val chunk = if (size == 0) {
+      Chunk.empty
+    } else if (bodyBuffer.size == 1) {
+      bodyBuffer.head
+    } else {
+      Chunk.concat(bodyBuffer)
+    }
     bodyBuffer.clear()
     size = 0
+    chunk
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concat(bodyBuffer)
-
-  override protected def exceptionFlush(): Future[Unit] = {
-    val c = toChunk
-    bodyBuffer.clear()
-    if (c.nonEmpty) pipe.channelWrite(encodeChunk(c, Nil))
-    else FutureUnit
-  }
+  override protected def exceptionFlush(): Future[Unit] =
+    if (size > 0) {
+      val c = toChunkAndClear
+      pipe.channelWrite(encodeChunk(c, Nil))
+    } else {
+      FutureUnit
+    }
 
   def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     addChunk(chunk)
-    val c = toChunk
-    bodyBuffer.clear()
+    val c = toChunkAndClear
     doWriteEnd(c)
   }
 
@@ -110,8 +117,7 @@ private[http4s] class CachingChunkWriter[F[_]](
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     addChunk(chunk)
     if (size >= bufferMaxSize || flush) { // time to flush
-      val c = toChunk
-      clear()
+      val c = toChunkAndClear
       pipe.channelWrite(encodeChunk(c, Nil))
     } else FutureUnit // Pretend to be done.
   }

@@ -1105,7 +1105,7 @@ class UriSpec extends Http4sSuite {
 
     test("Uri relative resolution should correctly remove ./.. sequences") {
       implicit class checkDotSequences(path: Uri.Path) {
-        def removingDotsShould_==(expected: Uri.Path) =
+        def removingDotsShould_==(expected: Uri.Path): Unit =
           assertEquals(removeDotSegments(path), expected)
       }
 
@@ -1115,7 +1115,7 @@ class UriSpec extends Http4sSuite {
     }
 
     implicit class check(relative: String) {
-      def shouldResolveTo(expected: String) =
+      def shouldResolveTo(expected: String): Unit =
         assertEquals(base.resolve(getUri(relative)), getUri(expected))
     }
 

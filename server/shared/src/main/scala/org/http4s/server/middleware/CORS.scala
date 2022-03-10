@@ -722,15 +722,15 @@ object CORSPolicy {
   private val logger = getLogger
 
   private object CommonHeaders {
-    val someAllowOriginWildcard =
+    val someAllowOriginWildcard: Option[Header.Raw] =
       Header.Raw(ci"Access-Control-Allow-Origin", "*").some
-    val someAllowCredentials =
+    val someAllowCredentials: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Credentials`].name, "true").some
-    val someExposeHeadersWildcard =
+    val someExposeHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Expose-Headers`].name, "*").some
-    val someAllowMethodsWildcard =
+    val someAllowMethodsWildcard: Option[Header.Raw] =
       Header.Raw(ci"Access-Control-Allow-Methods", "*").some
-    val someAllowHeadersWildcard =
+    val someAllowHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Headers`].name, "*").some
   }
 

@@ -65,13 +65,13 @@ object GZip {
           _.through(Compression[F].gunzip(bufferSize)).flatMap(_.content)
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(decompressWith(gunzip)))
+          .pipeBodyThrough(decompressWith(gunzip))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         val deflate: Pipe[F, Byte, Byte] = Compression[F].deflate(DeflateParams(bufferSize))
         response
           .filterHeaders(nonCompressionHeader)
-          .withBodyStream(response.body.through(decompressWith(deflate)))
+          .pipeBodyThrough(decompressWith(deflate))
 
       case _ =>
         response

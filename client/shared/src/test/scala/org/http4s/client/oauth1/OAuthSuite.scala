@@ -30,16 +30,16 @@ class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // https://datatracker.ietf.org/doc/html/rfc5849
 
-  val Right(uri) = Uri.fromString("http://photos.example.net/photos")
-  val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
-  val token = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
+  private val Right(uri) = Uri.fromString("http://photos.example.net/photos")
+  private val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
+  private val token = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
 
-  val userParams = List(
+  private val userParams = List(
     "file" -> "vacation.jpg",
     "size" -> "original",
   )
 
-  val allParams = List(
+  private val allParams = List(
     "oauth_consumer_key" -> "dpf43f3p2l4k3l03",
     "oauth_token" -> "nnch734d00sl2jdk",
     "oauth_signature_method" -> `HMAC-SHA1`,
@@ -48,21 +48,7 @@ class OAuthSuite extends Http4sSuite {
     "oauth_version" -> "1.0",
   ) ++ userParams
 
-  val params2 = List(
-    "b5" -> Some("=%3D"),
-    "a3" -> Some("a"),
-    "c@" -> None,
-    "a2" -> Some("r b"),
-    "oauth_consumer_key" -> Some("9djdj82h48djs9d2"),
-    "oauth_token" -> Some("kkk9d7dh3k39sjv7"),
-    "oauth_signature_method" -> Some(`HMAC-SHA1`),
-    "oauth_timestamp" -> Some("137131201"),
-    "oauth_nonce" -> Some("7d8f3e4a"),
-    "c2" -> None,
-    "a3" -> Some("2 q"),
-  )
-
-  val specBaseString =
+  private val specBaseString =
     "GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation.jpg%26oauth_consumer_key%" +
       "3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%" +
       "3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal"

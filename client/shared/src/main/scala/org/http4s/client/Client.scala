@@ -204,32 +204,32 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] =
-    Client { (req: Request[F]) =>
-      Resource.suspend {
-        Ref[F].of(false).map { disposed =>
-          def go(stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
-            stream.pull.uncons.flatMap {
-              case Some((chunk, stream)) =>
-                Pull.eval(disposed.get).flatMap {
-                  case true =>
-                    Pull.raiseError[F](new IOException("response was disposed"))
-                  case false =>
-                    Pull.output(chunk) >> go(stream)
-                }
-              case None =>
-                Pull.done
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
+    def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
+      def go(stream: Stream[F, A]): Pull[F, A, Unit] =
+        stream.pull.uncons.flatMap {
+          case Some((chunk, stream)) =>
+            Pull.eval(disposed.get).flatMap {
+              case true => Pull.raiseError[F](new IOException("response was disposed"))
+              case false => Pull.output(chunk) >> go(stream)
             }
-          val req0 =
-            addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
 
-          Resource
-            .eval(app(req0))
-            .onFinalize(disposed.set(true))
-            .map(resp => resp.copy(entity = Entity(go(resp.body).stream)))
+          case None => Pull.done
         }
-      }
+      go(source).stream
     }
+
+    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
+      Ref[F].of(false).map { disposed =>
+        val req0 = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        Resource
+          .eval(app(req0))
+          .onFinalize(disposed.set(true))
+          .map(_.pipeBodyThrough(until(disposed)))
+      }
+
+    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+  }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.

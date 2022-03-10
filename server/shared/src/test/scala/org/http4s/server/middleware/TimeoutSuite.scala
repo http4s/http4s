@@ -30,7 +30,7 @@ class TimeoutSuite extends Http4sSuite {
   // To distinguish from the inherited cats-effect-testing Timeout
   import org.http4s.server.middleware.{Timeout => TimeoutMiddleware}
 
-  val routes = HttpRoutes.of[IO] {
+  private val routes = HttpRoutes.of[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
 
@@ -38,10 +38,10 @@ class TimeoutSuite extends Http4sSuite {
       IO.never[Response[IO]]
   }
 
-  val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
+  private val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
 
-  val fastReq = Request[IO](GET, uri"/fast")
-  val neverReq = Request[IO](GET, uri"/never")
+  private val fastReq = Request[IO](GET, uri"/fast")
+  private val neverReq = Request[IO](GET, uri"/never")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
     IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))
