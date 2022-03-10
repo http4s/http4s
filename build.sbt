@@ -690,6 +690,18 @@ lazy val blazeCore = libraryProject("blaze-core")
     libraryDependencies ++= Seq(
       blazeHttp
     ),
+    mimaBinaryIssueFilters := {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
@@ -726,12 +738,6 @@ lazy val blazeServer = libraryProject("blaze-server")
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
