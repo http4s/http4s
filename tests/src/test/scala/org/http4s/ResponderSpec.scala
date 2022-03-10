@@ -22,7 +22,7 @@ import org.http4s.headers._
 import org.typelevel.ci._
 
 class ResponderSpec extends Http4sSuite {
-  val resp = Response[IO](Status.Ok)
+  private val resp = Response[IO](Status.Ok)
 
   test("Responder should Change status") {
     val resp = Response[IO](Status.Ok)

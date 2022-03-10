@@ -25,6 +25,7 @@ import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
+import org.log4s.Logger
 import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -39,7 +40,7 @@ import javax.servlet.http.HttpSession
 abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])(implicit
     F: Effect[F]
 ) extends HttpServlet {
-  protected val logger = getLogger
+  protected val logger: Logger = getLogger
 
   // micro-optimization: unwrap the service and call its .run directly
   protected val serviceFn: Request[F] => F[Response[F]] = service.run
@@ -81,7 +82,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { case t2 =>
+          response.body.drain.compile.drain.handleError { t2 =>
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }

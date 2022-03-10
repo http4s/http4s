@@ -81,7 +81,7 @@ object Status {
   )
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
-      override lazy val sanitizedReason =
+      override lazy val sanitizedReason: String =
         if (reason.forall(ReasonPhrasePredicate))
           reason
         else
@@ -94,7 +94,7 @@ object Status {
 
   private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
-      override val sanitizedReason = reason
+      override val sanitizedReason: String = reason
     }
 
   sealed trait ResponseClass {

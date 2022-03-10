@@ -42,7 +42,7 @@ class WebjarServiceSuite extends Http4sSuite with StaticContentShared {
       .withPreferGzipped(preferGzipped)
       .toRoutes
 
-  val defaultBase =
+  private val defaultBase =
     org.http4s.server.test.BuildInfo.test_resourceDirectory.toPath
       .resolve("META-INF/resources/webjars")
       .toString

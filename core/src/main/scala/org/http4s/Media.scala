@@ -75,7 +75,7 @@ trait Media[F[_]] {
 object Media {
   def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
     new Media[F] {
-      def body = b
+      def body: EntityBody[F] = b
 
       def headers: Headers = h
 

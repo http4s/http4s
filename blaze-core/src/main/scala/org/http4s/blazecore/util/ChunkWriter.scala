@@ -31,20 +31,20 @@ import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.concurrent._
 
 private[util] object ChunkWriter {
-  val CRLFBytes = "\r\n".getBytes(ISO_8859_1)
+  val CRLFBytes: Array[Byte] = "\r\n".getBytes(ISO_8859_1)
   private[this] val CRLFBuffer = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
-  def CRLF = CRLFBuffer.duplicate()
+  def CRLF: ByteBuffer = CRLFBuffer.duplicate()
 
   private[this] val chunkEndBuffer =
     ByteBuffer.wrap("0\r\n\r\n".getBytes(ISO_8859_1)).asReadOnlyBuffer()
-  def ChunkEndBuffer = chunkEndBuffer.duplicate()
+  def ChunkEndBuffer: ByteBuffer = chunkEndBuffer.duplicate()
 
   val TransferEncodingChunkedString = "Transfer-Encoding: chunked\r\n\r\n"
   private[this] val TransferEncodingChunkedBytes =
     "Transfer-Encoding: chunked\r\n\r\n".getBytes(ISO_8859_1)
   private[this] val transferEncodingChunkedBuffer =
     ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
-  def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
+  def TransferEncodingChunked: ByteBuffer = transferEncodingChunkedBuffer.duplicate()
 
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit
       F: Effect[F],

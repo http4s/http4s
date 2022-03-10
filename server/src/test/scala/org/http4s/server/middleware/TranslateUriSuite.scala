@@ -25,7 +25,7 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class TranslateUriSuite extends Http4sSuite {
-  val routes = HttpRoutes.of[IO] {
+  private val routes = HttpRoutes.of[IO] {
     case _ -> Root / "foo" =>
       Ok("foo")
     case r @ _ -> Root / "checkattr" =>
@@ -33,8 +33,8 @@ class TranslateUriSuite extends Http4sSuite {
       Ok(s)
   }
 
-  val trans1 = TranslateUri("/http4s")(routes).orNotFound
-  val trans2 = TranslateUri("http4s")(routes).orNotFound
+  private val trans1 = TranslateUri("/http4s")(routes).orNotFound
+  private val trans2 = TranslateUri("http4s")(routes).orNotFound
 
   test("match a matching request") {
     val req = Request[IO](uri = uri"/http4s/foo")

@@ -88,41 +88,46 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
       retryPolicy = retryPolicy,
     )
 
-  def withTLSContext(tlsContext: TLSContext) =
+  def withTLSContext(tlsContext: TLSContext): EmberClientBuilder[F] =
     copy(tlsContextOpt = tlsContext.some)
-  def withoutTLSContext = copy(tlsContextOpt = None)
+  def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
-  def withBlocker(blocker: Blocker) =
+  def withBlocker(blocker: Blocker): EmberClientBuilder[F] =
     copy(blockerOpt = blocker.some)
 
-  def withSocketGroup(sg: SocketGroup) = copy(sgOpt = sg.some)
+  def withSocketGroup(sg: SocketGroup): EmberClientBuilder[F] = copy(sgOpt = sg.some)
 
-  def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
-  def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
-  def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
-  def withIdleConnectionTime(idleConnectionTime: Duration) =
+  def withMaxTotal(maxTotal: Int): EmberClientBuilder[F] = copy(maxTotal = maxTotal)
+  def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
+    copy(maxPerKey = maxPerKey)
+  def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] =
+    copy(idleTimeInPool = idleTimeInPool)
+  def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
     copy(idleConnectionTime = idleConnectionTime)
 
-  def withLogger(logger: Logger[F]) = copy(logger = logger)
-  def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
-  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
+  def withLogger(logger: Logger[F]): EmberClientBuilder[F] = copy(logger = logger)
+  def withChunkSize(chunkSize: Int): EmberClientBuilder[F] = copy(chunkSize = chunkSize)
+  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int): EmberClientBuilder[F] =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
-  def withTimeout(timeout: Duration) = copy(timeout = timeout)
-  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOptionMapping[_]]) =
+  def withTimeout(timeout: Duration): EmberClientBuilder[F] = copy(timeout = timeout)
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOptionMapping[_]]
+  ): EmberClientBuilder[F] =
     copy(additionalSocketOptions = additionalSocketOptions)
 
-  def withUserAgent(userAgent: `User-Agent`) =
+  def withUserAgent(userAgent: `User-Agent`): EmberClientBuilder[F] =
     copy(userAgent = userAgent.some)
-  def withoutUserAgent =
+  def withoutUserAgent: EmberClientBuilder[F] =
     copy(userAgent = None)
 
-  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
+  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): EmberClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
-  def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
+  def withoutCheckEndpointAuthentication: EmberClientBuilder[F] =
+    copy(checkEndpointIdentification = false)
 
-  def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
+  def withRetryPolicy(retryPolicy: RetryPolicy[F]): EmberClientBuilder[F] =
     copy(retryPolicy = retryPolicy)
 
   def build: Resource[F, Client[F]] =
@@ -147,12 +152,11 @@ final class EmberClientBuilder[F[_]: Concurrent: Timer: ContextShift] private (
                     additionalSocketOptions,
                   )
               ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            { case connection =>
+            connection =>
               logger.trace(
                 s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
               ) >>
-                connection.cleanup
-            },
+                connection.cleanup,
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -227,15 +231,15 @@ object EmberClientBuilder {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
-    val idleConnectionTime = org.http4s.client.defaults.RequestTimeout
+    val idleConnectionTime: FiniteDuration = org.http4s.client.defaults.RequestTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings
-    val maxPerKey = { (_: RequestKey) =>
+    val maxPerKey: RequestKey => Int = { (_: RequestKey) =>
       100
     }
-    val maxTotal = 100
-    val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
+    val maxTotal: Int = 100
+    val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
     val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
     val userAgent = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))

@@ -36,7 +36,7 @@ object DestinationAttribute {
     */
   def getDestination[F[_]](): Request[F] => Option[String] = _.attributes.lookup(Destination)
 
-  val Destination = Key.newKey[IO, String].unsafeRunSync()
+  val Destination: Key[String] = Key.newKey[IO, String].unsafeRunSync()
 
-  val EmptyDestination = ""
+  val EmptyDestination: String = ""
 }

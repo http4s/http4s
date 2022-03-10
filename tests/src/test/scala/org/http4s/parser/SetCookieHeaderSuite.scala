@@ -21,7 +21,7 @@ import cats.syntax.all._
 import org.http4s.headers.`Set-Cookie`
 
 class SetCookieHeaderSuite extends munit.FunSuite {
-  def parse(value: String) = `Set-Cookie`.parse(value).valueOr(throw _)
+  private def parse(value: String) = `Set-Cookie`.parse(value).valueOr(throw _)
 
   test("Set-Cookie parser should parse a set cookie") {
     val cookiestr =

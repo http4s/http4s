@@ -23,12 +23,12 @@ class ProxyAuthenticateHeaderSuite
     extends munit.FunSuite
     with HeaderParserHelper[`Proxy-Authenticate`] {
 
-  val params = Map("a" -> "b", "c" -> "d")
-  val c = Challenge("Basic", "foo")
+  private val params = Map("a" -> "b", "c" -> "d")
+  private val c = Challenge("Basic", "foo")
 
-  val str = "Basic realm=\"foo\""
+  private val str = "Basic realm=\"foo\""
 
-  val wparams = c.copy(params = params)
+  private val wparams = c.copy(params = params)
 
   test("Proxy-Authenticate Header parser shouldRender challenge correctly") {
     assertEquals(c.renderString, str)

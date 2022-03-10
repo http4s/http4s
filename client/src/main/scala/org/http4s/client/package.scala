@@ -18,11 +18,12 @@ package org.http4s
 
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.DurationLong
+import scala.concurrent.duration.FiniteDuration
 
 package object client extends ClientTypes {
   object defaults {
-    val ConnectTimeout = 10.seconds
-    val RequestTimeout = 45.seconds
+    val ConnectTimeout: FiniteDuration = 10.seconds
+    val RequestTimeout: FiniteDuration = 45.seconds
   }
 }
 
