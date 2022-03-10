@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets
 class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val testContext: TestContext = TestContext()
 
-  val CirceInstancesWithCustomErrors = CirceInstances.builder
+  private val CirceInstancesWithCustomErrors = CirceInstances.builder
     .withEmptyBodyMessage(MalformedMessageBodyFailure("Custom Invalid JSON: empty body"))
     .withJawnParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON jawn"))
     .withCirceParseExceptionMessage(_ => MalformedMessageBodyFailure("Custom Invalid JSON circe"))
@@ -64,7 +64,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   )
 
   sealed case class Foo(bar: Int)
-  val foo = Foo(42)
+  private val foo = Foo(42)
   // Beware of possible conflicting shapeless versions if using the circe-generic module
   // to derive these.
   implicit val FooDecoder: Decoder[Foo] =
@@ -78,7 +78,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   implicit val barEncoder: Encoder[Bar] =
     Encoder.forProduct2("a", "b")(bar => (bar.a, bar.b))
 
-  val json = Json.obj("test" -> Json.fromString("CirceSupport"))
+  private val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
   test("json encoder should have json content type") {
     val maybeHeaderT: Option[`Content-Type`] = jsonEncoder[IO].headers.get[`Content-Type`]
@@ -126,7 +126,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           |}""".stripMargin)
   }
 
-  val jsons = Stream(
+  private val jsons = Stream(
     Json.obj("test1" -> Json.fromString("CirceSupport")),
     Json.obj("test2" -> Json.fromString("CirceSupport")),
   ).lift[IO]
@@ -163,7 +163,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     writeToString[Stream[IO, Json]](Stream.empty).assertEquals("[]")
   }
 
-  val foos = Stream(
+  private val foos = Stream(
     Foo(42),
     Foo(350),
   ).lift[IO]

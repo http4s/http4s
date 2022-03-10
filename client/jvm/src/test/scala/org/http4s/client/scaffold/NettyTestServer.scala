@@ -46,7 +46,7 @@ trait TestServer[F[_]] {
   def establishedConnections: F[Long]
   def resetEstablishedConnections: F[Unit]
   def secure: Boolean
-  def uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
+  def uri: Uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
 }
 
 class NettyTestServer[F[_]](

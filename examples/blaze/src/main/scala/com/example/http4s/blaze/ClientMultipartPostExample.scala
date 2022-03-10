@@ -31,7 +31,7 @@ import org.http4s.syntax.literals._
 import java.net.URL
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
-  val bottle: URL = getClass.getResource("/beerbottle.png")
+  private val bottle: URL = getClass.getResource("/beerbottle.png")
 
   def go(client: Client[IO]): IO[String] = {
     // n.b. This service does not appear to gracefully handle chunked requests.

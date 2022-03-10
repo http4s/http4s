@@ -288,7 +288,7 @@ object TomcatBuilder {
       trustStore: Option[StoreInfo],
       clientAuth: SSLClientAuthMode,
   ) extends SslConfig {
-    def configureConnector(conn: Connector) = {
+    def configureConnector(conn: Connector): Unit = {
       conn.setSecure(true)
       conn.setScheme("https")
       conn.setProperty("SSLEnabled", "true")
@@ -315,7 +315,7 @@ object TomcatBuilder {
   }
 
   private object NoSsl extends SslConfig {
-    def configureConnector(conn: Connector) = {
+    def configureConnector(conn: Connector): Unit = {
       val _ = conn
       ()
     }

@@ -22,7 +22,7 @@ import cats.effect.IO
 import org.http4s.blaze.channel.ChannelOptions
 
 class BlazeClientBuilderSuite extends Http4sSuite {
-  def builder = BlazeClientBuilder[IO]
+  private def builder = BlazeClientBuilder[IO]
 
   test("default to empty") {
     assertEquals(builder.channelOptions, ChannelOptions(Vector.empty))

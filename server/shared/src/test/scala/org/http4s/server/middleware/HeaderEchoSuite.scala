@@ -25,11 +25,11 @@ import org.http4s.syntax.all._
 import org.typelevel.ci._
 
 class HeaderEchoSuite extends Http4sSuite {
-  val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
+  private val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
     Ok("request response")
   }
 
-  def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
+  private def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
     val requestMatchingSingleHeaderKey =
       Request[G](
         uri = uri"/request",

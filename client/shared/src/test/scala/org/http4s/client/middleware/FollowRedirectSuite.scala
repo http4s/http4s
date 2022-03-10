@@ -33,7 +33,7 @@ import scala.concurrent.duration._
 class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val loopCounter = new AtomicInteger(0)
 
-  val app = HttpRoutes
+  private val app = HttpRoutes
     .of[IO] {
       case GET -> Root / "loop" / i =>
         val iteration = i.toInt
@@ -63,8 +63,8 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
     }
     .orNotFound
 
-  val defaultClient = Client.fromHttpApp(app)
-  val client = FollowRedirect(3)(defaultClient)
+  private val defaultClient = Client.fromHttpApp(app)
+  private val client = FollowRedirect(3)(defaultClient)
 
   private case class RedirectResponse(
       method: String,

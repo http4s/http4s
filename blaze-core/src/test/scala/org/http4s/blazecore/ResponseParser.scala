@@ -24,16 +24,16 @@ import org.typelevel.ci.CIString
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import scala.annotation.nowarn
 import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {
-  val headers = new ListBuffer[(String, String)]
+  private val headers = new ListBuffer[(String, String)]
 
-  var code: Int = -1
-  var reason = ""
-  var scheme = ""
-  var majorversion = -1
-  var minorversion = -1
+  private var code: Int = -1
+  @nowarn private var reason = ""
+  @nowarn private var majorversion = -1
+  @nowarn private var minorversion = -1
 
   /** Will not mutate the ByteBuffers in the Seq */
   def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header.Raw], String) = {

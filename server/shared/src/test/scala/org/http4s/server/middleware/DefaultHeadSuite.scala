@@ -27,7 +27,7 @@ import org.http4s.syntax.all._
 import org.typelevel.ci._
 
 class DefaultHeadSuite extends Http4sSuite {
-  val httpRoutes = HttpRoutes.of[IO] {
+  private val httpRoutes = HttpRoutes.of[IO] {
     case GET -> Root / "hello" =>
       Ok("hello")
 
@@ -37,7 +37,8 @@ class DefaultHeadSuite extends Http4sSuite {
     case HEAD -> Root / "special" =>
       Ok().map(_.putHeaders("X-Handled-By" -> "HEAD"))
   }
-  val app = DefaultHead(httpRoutes).orNotFound
+
+  private val app = DefaultHead(httpRoutes).orNotFound
 
   test("honor HEAD routes") {
     val req = Request[IO](Method.HEAD, uri = uri"/special")
