@@ -111,7 +111,7 @@ object Http4sSitePlugin extends AutoPlugin {
     )
 
     private def version(version: String, label: String): Version =
-      Version(version, "v" + version, "/guide/quickstart.html", Some(label))
+      Version(version, "v" + version, "/docs/quickstart.html", Some(label))
 
     val v1_0: Version = version("1", "Dev")
     val v0_23: Version = version("0.23", "Stable")
@@ -190,8 +190,8 @@ object Http4sSitePlugin extends AutoPlugin {
             "upgrading",
             "uri",
           ).map { page =>
-            Root / fromV / page / "index.html" -> Root / toV / "guide" / s"$page.html"
-          } ++ List(Root / fromV / "index.html" -> Root / toV / "guide" / s"quickstart.html")
+            Root / fromV / page / "index.html" -> Root / toV / "docs" / s"$page.html"
+          } ++ List(Root / fromV / "index.html" -> Root / toV / "docs" / s"quickstart.html")
       }
 
       versioned ++ unversioned
