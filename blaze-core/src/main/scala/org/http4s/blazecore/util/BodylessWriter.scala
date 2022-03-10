@@ -30,11 +30,9 @@ import scala.concurrent._
 /** Discards the body, killing it so as to clean up resources
   *
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
-  * @param ec an ExecutionContext which will be used to complete operations
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
-    protected val F: Async[F],
-    protected val ec: ExecutionContext,
+    protected val F: Async[F]
 ) extends Http1Writer[F] {
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
