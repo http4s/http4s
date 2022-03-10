@@ -134,7 +134,7 @@ private[blaze] class Http1ServerStage[F[_]](
     requestLoop()
   }
 
-  private def initIdleTimeout() =
+  private def initIdleTimeout(): Unit =
     idleTimeout match {
       case f: FiniteDuration =>
         val cb: Callback[TimeoutException] = {

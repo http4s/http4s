@@ -26,16 +26,17 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 class UrlFormLifterSuite extends Http4sSuite {
-  val urlForm = UrlForm("foo" -> "bar")
+  private val urlForm = UrlForm("foo" -> "bar")
 
-  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> Root / "path" =>
-    r.uri.multiParams.get("foo") match {
-      case Some(ps) =>
-        Ok(ps.mkString(","))
-      case None =>
-        BadRequest("No Foo")
-    }
-  }).orNotFound
+  private val app =
+    UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] { case r @ POST -> Root / "path" =>
+      r.uri.multiParams.get("foo") match {
+        case Some(ps) =>
+          Ok(ps.mkString(","))
+        case None =>
+          BadRequest("No Foo")
+      }
+    }).orNotFound
 
   test("Add application/x-www-form-urlencoded bodies to the query params") {
     val req = Request[IO](method = POST, uri = uri"/path").withEntity(urlForm).pure[IO]

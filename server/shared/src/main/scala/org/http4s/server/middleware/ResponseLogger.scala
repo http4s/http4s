@@ -29,6 +29,7 @@ import cats.effect.syntax.all._
 import cats.syntax.all._
 import cats.~>
 import fs2.Chunk
+import fs2.Pipe
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -75,38 +76,28 @@ object ResponseLogger {
       case Right(_) => true
     }
 
+    def logResponse(response: Response[F]): F[Response[F]] =
+      if (!logBody)
+        logMessage(response)
+          .as(response)
+      else
+        F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
+          val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+          // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+          val logPipe: Pipe[F, Byte, Byte] =
+            _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+              .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
+
+          response.pipeBodyThrough(logPipe)
+        }
+
     Kleisli[G, A, Response[F]] { req =>
       http(req)
-        .flatMap { response =>
-          val out =
-            if (!logBody)
-              logMessage(response)
-                .as(response)
-            else
-              F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
-                val newBody = Stream
-                  .eval(vec.get)
-                  .flatMap(v => Stream.emits(v))
-                  .flatMap(c => Stream.chunk(c))
-
-                response.copy(
-                  entity = Entity(
-                    response.body
-                      // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                      .onFinalizeWeak {
-                        logMessage(response.withBodyStream(newBody))
-                      }
-                  )
-                )
-              }
-          fk(out)
-        }
+        .flatMap((response: Response[F]) => fk(logResponse(response)))
         .guaranteeCase {
           case Outcome.Errored(t) => fk(log(s"service raised an error: ${t.getClass}"))
           case Outcome.Canceled() => fk(log(s"service canceled response for request"))
           case Outcome.Succeeded(_) => G.unit
-
         }
     }
   }

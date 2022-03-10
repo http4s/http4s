@@ -77,10 +77,10 @@ object HttpDate {
     * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1 RFC 7231, Section 7.1.1, Origination Date]]
     * @see [[https://datatracker.ietf.org/doc/html/rfc5322#section-3.3 RFC 5322, Section 3.3, Date and Time Specification]]
     */
-  val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
+  val MinValue: HttpDate = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
 
   /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
-  val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
+  val MaxValue: HttpDate = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
   /** Constructs an `HttpDate` from the current time. Starting on January 1,n
     * 10000, this will throw an exception. The author intends to leave this

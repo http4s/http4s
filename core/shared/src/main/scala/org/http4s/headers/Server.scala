@@ -19,10 +19,11 @@ package headers
 
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
+import org.typelevel.ci.CIString
 
 object Server extends HeaderCompanion[Server]("Server") {
 
-  override val name = super.name
+  override val name: CIString = super.name
 
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)

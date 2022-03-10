@@ -74,26 +74,21 @@ object GZip {
       level: DeflateParams.Level,
       resp: Response[F],
   ): Response[F] = {
-
+    val compressPipe =
+      Compression[F].gzip(
+        fileName = None,
+        modificationTime = None,
+        comment = None,
+        DeflateParams(
+          bufferSize = bufferSize,
+          level = level,
+          header = ZLibParams.Header.GZIP,
+        ),
+      )
     logger.trace("GZip middleware encoding content")
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .copy(entity =
-        Entity(
-          resp.body.through(
-            Compression[F].gzip(
-              fileName = None,
-              modificationTime = None,
-              comment = None,
-              DeflateParams(
-                bufferSize = bufferSize,
-                level = level,
-                header = ZLibParams.Header.GZIP,
-              ),
-            )
-          )
-        )
-      )
+      .pipeBodyThrough(compressPipe)
   }
 }

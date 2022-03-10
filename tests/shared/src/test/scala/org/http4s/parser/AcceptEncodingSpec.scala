@@ -24,12 +24,12 @@ class AcceptEncodingSpec extends Http4sSuite {
   def parse(value: String): ParseResult[`Accept-Encoding`] =
     `Accept-Encoding`.parse(value)
 
-  val gzip = `Accept-Encoding`(ContentCoding.gzip)
-  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.5"))
-  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.55"))
-  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.555"))
+  private val gzip = `Accept-Encoding`(ContentCoding.gzip)
+  private val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.5"))
+  private val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.55"))
+  private val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.555"))
 
-  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"1.0"))
+  private val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"1.0"))
 
   test("Accept-Encoding parser should parse all encodings") {
     ContentCoding.standard.foreach { case (_, coding) =>

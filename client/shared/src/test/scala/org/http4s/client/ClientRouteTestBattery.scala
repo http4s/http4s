@@ -34,11 +34,11 @@ import java.util.Locale
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
-  val timeout = 20.seconds
+  val timeout: FiniteDuration = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
 
-  val testHandler = HttpRoutes.of[IO] {
+  val testHandler: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case req @ (Method.GET -> Root / "request-splitting") =>
       if (req.headers.get(ci"Evil").isDefined)
         InternalServerError()

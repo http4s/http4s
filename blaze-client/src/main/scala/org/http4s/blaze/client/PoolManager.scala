@@ -417,10 +417,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   def state: BlazeClientState[F] =
     new BlazeClientState[F] {
-      def isClosed = F.delay(self.isClosed)
-      def allocated = F.delay(self.allocated.toMap)
-      def idleQueueDepth = F.delay(self.idleQueues.toMap.view.mapValues(_.size).toMap)
-      def waitQueueDepth = F.delay(self.waitQueue.size)
+      def isClosed: F[Boolean] = F.delay(self.isClosed)
+      def allocated: F[Map[RequestKey, Int]] = F.delay(self.allocated.toMap)
+      def idleQueueDepth: F[Map[RequestKey, Int]] = F.delay(self.idleQueues.toMap.view.mapValues(_.size).toMap)
+      def waitQueueDepth: F[Int] = F.delay(self.waitQueue.size)
     }
 }
 

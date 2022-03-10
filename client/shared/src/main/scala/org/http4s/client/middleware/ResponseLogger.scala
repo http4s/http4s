@@ -26,7 +26,9 @@ import org.http4s.internal.{Logger => InternalLogger}
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-/** Simple middleware for logging responses as they are processed
+/** Client middlewares that logs the HTTP responses it receives as soon as they are received locally.
+  *
+  * The "logging" is represented as an effectful action `String => F[Unit]`
   */
 object ResponseLogger {
   private[this] val logger = getLogger
@@ -73,36 +75,29 @@ object ResponseLogger {
 
   private def impl[F[_]](client: Client[F], logBody: Boolean)(
       logMessage: Response[F] => F[Unit]
-  )(implicit F: Async[F]): Client[F] =
-    Client { req =>
-      client.run(req).flatMap { response =>
-        if (!logBody)
-          Resource.eval(logMessage(response) *> F.delay(response))
-        else
-          Resource.suspend {
-            Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-              Resource.make(
-                F.pure(
-                  response.copy(entity =
-                    Entity(
-                      response.body
-                        // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                        .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                    )
-                  )
-                )
-              ) { _ =>
-                val newBody = Stream
-                  .eval(vec.get)
-                  .flatMap(v => Stream.emits(v))
-                  .flatMap(c => Stream.chunk(c))
-                logMessage(response.withBodyStream(newBody))
-                  .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
-              }
+  )(implicit F: Async[F]): Client[F] = {
+    def logResponse(response: Response[F]): Resource[F, Response[F]] =
+      if (!logBody)
+        Resource.eval(logMessage(response) *> F.delay(response))
+      else
+        Resource.suspend {
+          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+            val dumpChunksToVec: Pipe[F, Byte, Nothing] =
+              _.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))
+
+            Resource.make(
+              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended before Finalization
+              F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
+            ) { _ =>
+              val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
+              logMessage(response.withBodyStream(newBody))
+                .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
             }
           }
-      }
-    }
+        }
+
+    Client(req => client.run(req).flatMap(logResponse))
+  }
 
   def defaultResponseColor[F[_]](response: Response[F]): String =
     response.status.responseClass match {

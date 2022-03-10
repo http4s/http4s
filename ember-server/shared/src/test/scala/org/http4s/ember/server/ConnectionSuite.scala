@@ -67,7 +67,7 @@ class ConnectionSuite extends Http4sSuite {
       .build
 
   sealed case class TestClient(client: Socket[IO]) {
-    val clientChunkSize = 32 * 1024
+    private val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
     def response: IO[Response[IO]] =
@@ -87,7 +87,7 @@ class ConnectionSuite extends Http4sSuite {
       socket <- Network[IO].client(host)
     } yield new TestClient(socket)
 
-  def fixture(
+  private def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
       headerTimeout: FiniteDuration = 60.seconds,
   ) = ResourceFixture(

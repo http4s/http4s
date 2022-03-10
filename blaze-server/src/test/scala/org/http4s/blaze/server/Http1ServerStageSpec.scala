@@ -45,7 +45,7 @@ import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
 
-  val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
+  private val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
     IO.delay(twe.shutdown())
   })
 
@@ -113,7 +113,7 @@ class Http1ServerStageSpec extends Http4sSuite {
 
   val req = "GET /foo HTTP/1.1\r\nheader: value\r\n\r\n"
 
-  val routes = HttpRoutes
+  private val routes = HttpRoutes
     .of[IO] { case _ =>
       Ok("foo!")
     }
@@ -161,7 +161,7 @@ class Http1ServerStageSpec extends Http4sSuite {
         }
   }
 
-  val exceptionService = HttpRoutes
+  private val exceptionService = HttpRoutes
     .of[IO] {
       case GET -> Root / "sync" => sys.error("Synchronous error!")
       case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
@@ -172,7 +172,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
     .orNotFound
 
-  def runError(tw: TickWheelExecutor, path: String) =
+  private def runError(tw: TickWheelExecutor, path: String) =
     runRequest(tw, List(path), exceptionService).result
       .map(parseAndDropDate)
       .map { case (s, h, r) =>
@@ -491,14 +491,14 @@ class Http1ServerStageSpec extends Http4sSuite {
     }
   }
 
-  def req(path: String) =
+  private def req(path: String) =
     s"POST /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
       "3\r\n" +
       "foo\r\n" +
       "0\r\n" +
       "Foo:Bar\r\n\r\n"
 
-  val routes2 = HttpRoutes
+  private val routes2 = HttpRoutes
     .of[IO] {
       case req if req.pathInfo === path"/foo" =>
         for {

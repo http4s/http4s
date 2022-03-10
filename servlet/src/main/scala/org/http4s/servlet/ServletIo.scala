@@ -33,7 +33,7 @@ import scala.annotation.tailrec
 /** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
 sealed abstract class ServletIo[F[_]: Async] {
-  protected[servlet] val F = Async[F]
+  protected[servlet] val F: Async[F] = Async[F]
 
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
@@ -96,7 +96,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
 
       val state = new AtomicReference[State](Init)
 
-      def read(cb: Callback[Option[Chunk[Byte]]]) = {
+      def read(cb: Callback[Option[Chunk[Byte]]]): Unit = {
         val buf = new Array[Byte](chunkSize)
         val len = in.read(buf)
 

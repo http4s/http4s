@@ -45,20 +45,20 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
 
   override def munitTimeout: Duration = 5.seconds
 
-  def tickWheelFixture = ResourceFixture(
+  private def tickWheelFixture = ResourceFixture(
     Resource.make(IO(new TickWheelExecutor(tick = 50.millis)))(tickWheel =>
       IO(tickWheel.shutdown())
     )
   )
 
-  def fixture = (tickWheelFixture, dispatcher).mapN(FunFixture.map2(_, _))
+  private def fixture = (tickWheelFixture, dispatcher).mapN(FunFixture.map2(_, _))
 
-  val www_foo_com = uri"http://www.foo.com"
-  val FooRequest = Request[IO](uri = www_foo_com)
-  val FooRequestKey = RequestKey.fromRequest(FooRequest)
-  val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+  private val www_foo_com = uri"http://www.foo.com"
+  private val FooRequest = Request[IO](uri = www_foo_com)
+  private val FooRequestKey = RequestKey.fromRequest(FooRequest)
+  private val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  val chunkBufferMaxSize = 1024 * 1024
+  private val chunkBufferMaxSize = 1024 * 1024
 
   private def makeIdleTimeoutStage(
       idleTimeout: Duration,

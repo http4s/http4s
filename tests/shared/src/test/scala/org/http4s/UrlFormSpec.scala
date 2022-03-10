@@ -23,6 +23,7 @@ import cats.kernel.laws.discipline.MonoidTests
 import cats.syntax.all.{catsSyntaxEq => _, _}
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop
+import org.scalacheck.Test
 import org.scalacheck.effect.PropF
 
 class UrlFormSpec extends Http4sSuite {
@@ -36,7 +37,7 @@ class UrlFormSpec extends Http4sSuite {
 //    Gen.oneOf(Charset.`UTF-8`, Charset.`UTF-16`, Charset.`UTF-16LE`)
 //  )
 
-  override def scalaCheckTestParameters =
+  override def scalaCheckTestParameters: Test.Parameters =
     super.scalaCheckTestParameters.withMaxSize(20)
 
   {

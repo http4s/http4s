@@ -25,10 +25,10 @@ import org.http4s.syntax.header._
 import org.typelevel.ci._
 
 class HeadersSpec extends Http4sSuite {
-  val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(ci"raw-header", "Raw value")
+  private val clength = `Content-Length`.unsafeFromLong(10)
+  private val raw = Header.Raw(ci"raw-header", "Raw value")
 
-  val base = Headers(clength, raw)
+  private val base = Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
     assertEquals(base.get[`Content-Type`], None)

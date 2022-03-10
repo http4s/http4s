@@ -196,7 +196,8 @@ class PrometheusServerMetricsSuite extends Http4sSuite {
     }
   }
 
-  val classifierFunc = (_: Request[IO]) => Some("classifier")
+  private val classifierFunc = (_: Request[IO]) => Some("classifier")
+
   meteredRoutes(classifierFunc).test("use the provided request classifier") {
     case (registry, routes) =>
       val req = Request[IO](uri = uri"/ok")

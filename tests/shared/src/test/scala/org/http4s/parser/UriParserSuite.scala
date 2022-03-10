@@ -27,7 +27,7 @@ import scala.collection.immutable
 
 class UriParserSuite extends Http4sSuite {
   {
-    def check(items: Seq[(String, Uri)]) =
+    def check(items: Seq[(String, Uri)]): Unit =
       items.foreach { case (str, uri) =>
         assertEquals(Uri.requestTarget(str), Right(uri))
       }
@@ -175,7 +175,7 @@ class UriParserSuite extends Http4sSuite {
   }
 
   {
-    def check(items: Seq[(String, Uri)]) =
+    def check(items: Seq[(String, Uri)]): Unit =
       items.foreach { case (str, uri) =>
         assertEquals(Uri.fromString(str), Right(uri))
       }

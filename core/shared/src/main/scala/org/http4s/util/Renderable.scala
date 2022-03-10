@@ -140,7 +140,7 @@ object Renderable {
 }
 
 object Writer {
-  val HeaderValueDQuote = BitSet("\\\"".map(_.toInt): _*)
+  val HeaderValueDQuote: BitSet = BitSet("\\\"".map(_.toInt): _*)
 }
 
 /** Efficiently accumulate [[Renderable]] representations */
