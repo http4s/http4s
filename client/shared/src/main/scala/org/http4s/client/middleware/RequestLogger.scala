@@ -98,9 +98,11 @@ object RequestLogger {
               }
 
             case Entity.Strict(_) | Entity.Empty =>
-              logMessage(req).handleErrorWith { t =>
-                F.delay(logger.error(t)("Error logging request body"))
-              }.as(client.run(req))
+              logMessage(req)
+                .handleErrorWith { t =>
+                  F.delay(logger.error(t)("Error logging request body"))
+                }
+                .as(client.run(req))
           }
 
         }
