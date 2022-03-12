@@ -125,10 +125,10 @@ object SiteConfig {
       "version.cryptobits" -> cryptobits.revision,
     ) ++ latestInSeries
   }
-  
-  lazy val mdocVariables: Initialize[Map[String, String]] = setting { 
-    laikaVariables.value.map {
-      case (key, value) => (key.replace('.','_'), value)
+
+  lazy val mdocVariables: Initialize[Map[String, String]] = setting {
+    laikaVariables.value.map { case (key, value) =>
+      (key.replace('.', '_'), value)
     }
   }
 
@@ -144,8 +144,9 @@ object SiteConfig {
   )
 
   def config(versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
-    val config = laikaVariables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
-      builder.withValue(key, value)
+    val config = laikaVariables.value.foldLeft(ConfigBuilder.empty) {
+      case (builder, (key, value)) =>
+        builder.withValue(key, value)
     }
 
     LaikaConfig(
