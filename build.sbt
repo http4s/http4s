@@ -906,12 +906,13 @@ lazy val docs = http4sProject("docs")
         scalafixInternalTests,
       ),
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
+    mdocVariables := SiteConfig.mdocVariables.value,
     tlFatalWarningsInCi := false,
     laikaExtensions := SiteConfig.extensions,
     laikaConfig := SiteConfig.config(versioned = true).value,
     laikaTheme := SiteConfig.theme(
       currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
+      SiteConfig.laikaVariables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),
@@ -959,7 +960,7 @@ lazy val website = http4sProject("website")
     laikaConfig := SiteConfig.config(versioned = false).value,
     laikaTheme := SiteConfig.theme(
       currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
+      SiteConfig.laikaVariables.value,
       SiteConfig.homeURL.value,
       includeLandingPage = false,
     ),

@@ -9,7 +9,7 @@ A recap of the dependencies for this example, in case you skipped the [service] 
 ```scala
 scalaVersion := "2.13.4" // Also supports 2.11.x and 2.12.x
 
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@version_http4s_doc@"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")

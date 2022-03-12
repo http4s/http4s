@@ -110,7 +110,7 @@ object SiteConfig {
   }
 
   // This kind of variable generator used to live in Http4sPlugin, but it's not used by anything other than Laika.
-  lazy val variables: Initialize[Map[String, String]] = setting {
+  lazy val laikaVariables: Initialize[Map[String, String]] = setting {
     val (major, minor) =
       version.value match { // cannot use the existing http4sApiVersion as it is somehow defined as a task, not a setting
         case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
@@ -125,6 +125,12 @@ object SiteConfig {
       "version.cryptobits" -> cryptobits.revision,
     ) ++ latestInSeries
   }
+  
+  lazy val mdocVariables: Initialize[Map[String, String]] = setting { 
+    laikaVariables.value.map {
+      case (key, value) => (key.replace('.','_'), value)
+    }
+  }
 
   val homeURL: Initialize[String] = setting {
     if (isCi.value) "https://http4s.org"
@@ -138,7 +144,7 @@ object SiteConfig {
   )
 
   def config(versioned: Boolean): sbt.Def.Initialize[LaikaConfig] = sbt.Def.setting {
-    val config = variables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
+    val config = laikaVariables.value.foldLeft(ConfigBuilder.empty) { case (builder, (key, value)) =>
       builder.withValue(key, value)
     }
 

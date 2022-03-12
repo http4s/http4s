@@ -6,7 +6,6 @@ import laika.bundle.ExtensionBundle
 import laika.factory.Format
 import laika.format.HTML
 import laika.io.model.InputTree
-import laika.parse.code.CodeCategory
 import laika.render.HTMLFormatter
 import laika.theme.Theme.TreeProcessor
 import laika.theme.{Theme, ThemeBuilder, ThemeProvider, TreeProcessorBuilder}
@@ -90,36 +89,6 @@ object HeliumExtensions {
     }
   }
 
-  /** Implements variable substitutions for string literals in code blocks.
-    *  Laika supports variable substitutions out of the box for regular markup, but not yet for use inside code blocks.
-    *
-    *  The syntax to be used inside code blocks is slightly different than the one for regular markup substitions,
-    *  as its syntax (`${foo.bar}`) would conflict with many languages, including Scala. Instead, for code blocks,
-    *  it has to written as `@{foo.bar}`.
-    *
-    *  The extension matches on AST nodes representing string literals, which means that it only works
-    *  when Laika's internal syntax highlighters are active (by adding the `SyntaxHighlighting` extension to the build).
-    */
-  object CodeVariables {
-
-    private val LaikaCodeSubstitution = "(.*)@\\{(.*)}(.*)".r
-
-    def rewriteRules(variables: Map[String, String]): RewriteRules = RewriteRules.forSpans {
-      case CodeSpan(content, cats, opts) if cats.contains(CodeCategory.StringLiteral) =>
-        content match {
-          case LaikaCodeSubstitution(pre, varName, post) =>
-            val newNode = variables
-              .get(varName)
-              .fold[Span](
-                InvalidSpan(s"Unknown variable: '$varName'", laika.parse.GeneratedSource)
-              )(value => CodeSpan(pre + value + post, cats, opts))
-            Replace(newNode)
-          case _ => Retain
-        }
-    }
-
-  }
-
   /** Applies the two feature extensions implemented by this class to a default Helium configuration instance.
     *
     * @param helium the Helium configuration as set up by other parts of this build
@@ -138,7 +107,6 @@ object HeliumExtensions {
       val extensionTheme = ThemeBuilder[F]("Extensions for http4s")
         .processTree(PrettyURLs.treeProcessor, HTML)
         .addRenderOverrides(HTML.Overrides(PrettyURLs.renderOverride))
-        .addRewriteRules(CodeVariables.rewriteRules(variables))
         .addInputs(InputTree[F].addProvidedPaths(versionLinks))
         .build
       for {

@@ -9,7 +9,7 @@ Create a new directory, with the following build.sbt in the root:
 ```scala
 scalaVersion := "2.13.6" // Also supports 2.12.x and 3.x
 
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@version_http4s_doc@"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")

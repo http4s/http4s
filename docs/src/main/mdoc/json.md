@@ -12,14 +12,14 @@ The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
-val http4sVersion = "@{version.http4s.doc}"
+val http4sVersion = "@version_http4s_doc@"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  "io.circe" %% "circe-generic" % "@{version.circe}",
+  "io.circe" %% "circe-generic" % "@version_circe@",
   // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % "@{version.circe}"
+  "io.circe" %% "circe-literal" % "@version_circe@"
 )
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
