@@ -136,43 +136,55 @@ sealed abstract class OkHttpBuilder[F[_]] private (
   private def toOkHttpRequest(req: Request[F], dispatcher: Dispatcher[F])(implicit
       F: Async[F]
   ): OKRequest = {
-    val body = req match {
+    val (body, updateHeaders) = req match {
+      // If it's a GET or HEAD, okhttp wants us to pass null as body.
+      // Also make sure there's no content-length header.
+      case _ if req.method == Method.GET || req.method == Method.HEAD =>
+        (null, (_: Headers).transform(_.filterNot(_.name === headers.`Content-Length`.name)))
       case _ if req.isChunked || req.contentLength.isDefined =>
-        new RequestBody {
-          override def contentType(): OKMediaType =
-            req.contentType.map(c => OKMediaType.parse(c.toString())).orNull
+        (
+          new RequestBody {
+            override def contentType(): OKMediaType =
+              req.contentType.map(c => OKMediaType.parse(c.toString())).orNull
 
-          // OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
-          override def contentLength(): Long = req.contentLength.getOrElse(-1L)
+            // OKHttp will override the content-length header set below and always use "transfer-encoding: chunked" unless this method is overriden
+            override def contentLength(): Long = req.contentLength.getOrElse(-1L)
 
-          override def writeTo(sink: BufferedSink): Unit = {
-            // This has to be synchronous with this method, or else
-            // chunks get silently dropped.
-            val f = req.body.chunks
-              .map(_.toArray)
-              .evalMap { (b: Array[Byte]) =>
-                F.delay {
-                  sink.write(b); ()
+            override def writeTo(sink: BufferedSink): Unit = {
+              // This has to be synchronous with this method, or else
+              // chunks get silently dropped.
+              val f = req.body.chunks
+                .map(_.toArray)
+                .evalMap { (b: Array[Byte]) =>
+                  F.delay {
+                    sink.write(b); ()
+                  }
                 }
-              }
-              .compile
-              .drain
-            dispatcher.unsafeRunSync(f)
-            ()
-          }
-        }
-      // if it's a GET or HEAD, okhttp wants us to pass null
-      case _ if req.method == Method.GET || req.method == Method.HEAD => null
+                .compile
+                .drain
+              dispatcher.unsafeRunSync(f)
+              ()
+            }
+          },
+          identity[Headers](_),
+        )
       // for anything else we can pass a body which produces no output
       case _ =>
-        new RequestBody {
-          override def contentType(): OKMediaType = null
-          override def writeTo(sink: BufferedSink): Unit = ()
-        }
+        (
+          new RequestBody {
+            override def contentType(): OKMediaType = null
+            override def writeTo(sink: BufferedSink): Unit = ()
+          },
+          identity[Headers](_),
+        )
     }
 
     new OKRequest.Builder()
-      .headers(OKHeaders.of(req.headers.headers.map(h => (h.name.toString, h.value)).toMap.asJava))
+      .headers(
+        OKHeaders.of(
+          updateHeaders(req.headers).headers.map(h => (h.name.toString, h.value)).toMap.asJava
+        )
+      )
       .method(req.method.toString(), body)
       .url(req.uri.toString())
       .build()
