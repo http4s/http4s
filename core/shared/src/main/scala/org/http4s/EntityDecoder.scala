@@ -220,8 +220,20 @@ object EntityDecoder {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
-    DecodeResult.success(m.body.compile.to(ByteVector))
+  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] = {
+    val byteVectorF = m.entity match {
+      case Entity.Default(body, _) =>
+        body.compile.to(ByteVector)
+
+      case Entity.Strict(c) =>
+        Applicative[F].pure(c.to(ByteVector))
+
+      case Entity.Empty =>
+        Applicative[F].pure(ByteVector.empty)
+    }
+
+    DecodeResult.success(byteVectorF)
+  }
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
