@@ -381,6 +381,12 @@ object EntityDecoder {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+      msg.entity match {
+        case Entity.Default(body, _) =>
+          DecodeResult.success(body.drain.compile.drain)
+
+        case Entity.Strict(_) | Entity.Empty =>
+          DecodeResult.success(Applicative[F].unit)
+      }
     }
 }
