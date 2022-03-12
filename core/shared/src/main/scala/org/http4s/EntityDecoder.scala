@@ -247,7 +247,14 @@ object EntityDecoder {
   def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(m.body.compile.drain *> F.raiseError(t))
+        m.entity match {
+          case Entity.Default(body, _) =>
+            DecodeResult(body.compile.drain *> F.raiseError(t))
+
+          case Entity.Strict(_) | Entity.Empty =>
+            DecodeResult(F.raiseError(t))
+        }
+
       override def consumes: Set[MediaRange] = Set.empty
     }
 
