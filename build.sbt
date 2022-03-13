@@ -690,6 +690,18 @@ lazy val blazeCore = libraryProject("blaze-core")
     libraryDependencies ++= Seq(
       blazeHttp
     ),
+    mimaBinaryIssueFilters := {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
+        )
+      else Seq.empty
+    },
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
