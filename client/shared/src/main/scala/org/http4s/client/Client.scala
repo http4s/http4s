@@ -78,14 +78,30 @@ trait Client[F[_]] {
     */
   def stream(req: Request[F]): Stream[F, Response[F]]
 
+  /** Submits a request.
+   *  For response codes -
+   *  Informational (1xx):
+   *  Successful    (2xx): decodes the response body using d, indicates failure with [[DecodeFailure]] or returns the decoded body
+   *  Redirection   (3xx): same behaviour as above, N.B. does not perform additional requests to follow redirect
+   *  Client error  (4xx):
+   *  Server error  (5xx): applies onError to the response and indicates failure with the [[Throwable]]
+   *
+   *  The underlying HTTP connection is closed at the completion of the decoding.
+   */
   def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): F[A]
 
-  /** Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
-    * completion of the decoding.
-    */
+  /** Submits a request.
+   *  For response codes -
+   *  Informational (1xx):
+   *  Successful    (2xx): decodes the response body using d, indicates failure with [[DecodeFailure]] or returns the decoded body
+   *  Redirection   (3xx): same behaviour as above, N.B. does not perform additional requests to follow redirect
+   *  Client error  (4xx):
+   *  Server error  (5xx): indicates failure by applying a [[UnexpectedStatus]] to the response
+   *
+   *  The underlying HTTP connection is closed at the completion of the decoding.
+   */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
@@ -117,6 +133,19 @@ trait Client[F[_]] {
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): F[Option[A]]
+
+  /** Submits a request.
+   *  For response codes -
+   *  Informational (1xx):
+   *  Successful    (2xx): decodes the response body using d, indicates failure with [[DecodeFailure]] or returns the decoded body lifted into [[scala.Some]]
+   *  Redirection   (3xx): same behaviour as above, N.B. does not perform additional requests to follow redirect
+   *  404 Not Found      :
+   *  410 Gone           : returns [[scala.None]]
+   *  Client error  (4xx):
+   *  Server error  (5xx): indicates failure by applying a [[UnexpectedStatus]] to the response
+   *
+   *  The underlying HTTP connection is closed at the completion of the decoding.
+   */
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
