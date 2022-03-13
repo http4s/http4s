@@ -24,7 +24,7 @@ import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 
-package object util {
+package object util extends XCompat {
 
   /** Used as a terminator for streams built from repeatEval */
   private[http4s] val End = Right(None)

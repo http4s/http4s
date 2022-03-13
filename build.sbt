@@ -699,6 +699,25 @@ lazy val blazeCore = libraryProject("blaze-core")
             .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
           ProblemFilters
             .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.CachingChunkWriter.ec"),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.blazecore.util.CachingStaticWriter.this"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.blazecore.util.CachingStaticWriter.ec"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.blazecore.util.FlushingChunkWriter.ec"
+          ),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.this"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.ec"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.this"),
+          ProblemFilters
+            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.ec"),
         )
       else Seq.empty
     },
