@@ -18,6 +18,6 @@ package org.http4s.blazecore.util
 
 import scala.concurrent.ExecutionContext
 
-private[util] trait XCompat {
+private[util] trait ParasiticExecutionContextCompat {
   final def parasitic: ExecutionContext = ExecutionContext.parasitic
 }
