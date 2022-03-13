@@ -129,6 +129,22 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }
   }
 
+  GetRoutes.getPaths.get(GetRoutes.SimplePath).foreach { expected =>
+    val path = GetRoutes.SimplePath
+
+    test(s"$name Execute GET withEntity $path") {
+      serverClient().flatMap { case (server, client) =>
+        val address = server().addresses.head
+        val req =
+          Request[IO](uri = Uri.fromString(s"http://$address$path").yolo).withEntity("entity")
+        client()
+          .run(req)
+          .use(resp => expected.flatMap(checkResponse(resp, _)))
+          .assert
+      }
+    }
+  }
+
   test("Mitigates request splitting attack in URI path") {
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
