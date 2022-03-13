@@ -89,9 +89,15 @@ abstract class Http4sServlet[F[_]](
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { t2 =>
-            logger.error(t2)("Error draining body")
-          } *> F.raiseError(t)
+          response.entity match {
+            case Entity.Default(body, _) =>
+              body.drain.compile.drain.handleError { t2 =>
+                logger.error(t2)("Error draining body")
+              } *> F.raiseError(t)
+
+            case Entity.Strict(_) | Entity.Empty =>
+              F.raiseError(t)
+          }
       }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request[F]] =
