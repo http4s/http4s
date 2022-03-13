@@ -91,7 +91,7 @@ abstract class Http4sServlet[F[_]](
         case Left(t) =>
           response.entity match {
             case Entity.Default(body, _) =>
-              body.drain.compile.drain.handleError { t2 =>
+              body.compile.drain.handleError { t2 =>
                 logger.error(t2)("Error draining body")
               } *> F.raiseError(t)
 
