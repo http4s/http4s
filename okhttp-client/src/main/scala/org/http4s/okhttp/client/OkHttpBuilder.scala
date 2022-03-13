@@ -79,7 +79,9 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
   private def run(dispatcher: Dispatcher[F])(req: Request[F]) =
     Resource.suspend(F.async_[Resource[F, Response[F]]] { cb =>
-      okHttpClient.newCall(toOkHttpRequest(req, dispatcher)).enqueue(handler(cb, dispatcher))
+      okHttpClient
+        .newCall(toOkHttpRequest(req.normalize, dispatcher))
+        .enqueue(handler(cb, dispatcher))
     })
 
   private def handler(cb: Result[F] => Unit, dispatcher: Dispatcher[F])(implicit

@@ -48,7 +48,7 @@ object JettyClient {
           Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
             F.bracket(StreamRequestContentProvider()) { dcp =>
               (for {
-                jReq <- F.catchNonFatal(toJettyRequest(client, req, dcp))
+                jReq <- F.catchNonFatal(toJettyRequest(client, req.normalize, dcp))
                 rl <- ResponseListener(cb)
                 _ <- F.delay(jReq.send(rl))
                 _ <- dcp.write(req)
