@@ -21,6 +21,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutor
 
+@deprecated("Unused.  Will be removed in 1.0", "0.23.11")
 private[http4s] object Trampoline extends ExecutionContextExecutor {
   private val local = new ThreadLocal[ThreadLocalTrampoline]
 
