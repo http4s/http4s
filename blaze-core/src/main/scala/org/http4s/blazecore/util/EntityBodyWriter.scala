@@ -29,9 +29,6 @@ private[http4s] trait EntityBodyWriter[F[_]] {
 
   protected val wroteHeader: Promise[Unit] = Promise[Unit]()
 
-  /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
-  implicit protected def ec: ExecutionContext
-
   /** Write a Chunk to the wire.
     *
     * @param chunk BodyChunk to write to wire

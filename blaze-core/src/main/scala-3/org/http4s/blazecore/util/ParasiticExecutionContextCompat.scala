@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.http4s
-package blazecore
-package util
+package org.http4s.blazecore.util
 
-import cats.effect._
-import fs2._
-import org.http4s.blaze.pipeline.Command.EOF
+import scala.concurrent.ExecutionContext
 
-import scala.concurrent.Future
-
-class FailingWriter(implicit protected val F: Async[IO]) extends EntityBodyWriter[IO] {
-  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
-    Future.failed(EOF)
-
-  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
-    Future.failed(EOF)
+private[util] trait ParasiticExecutionContextCompat {
+  final def parasitic: ExecutionContext = ExecutionContext.parasitic
 }
