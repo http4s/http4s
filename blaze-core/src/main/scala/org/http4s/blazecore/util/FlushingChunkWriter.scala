@@ -26,6 +26,7 @@ import org.http4s.util.StringWriter
 
 import java.nio.ByteBuffer
 import scala.concurrent._
+import scala.concurrent.ExecutionContext.parasitic
 
 private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
     implicit

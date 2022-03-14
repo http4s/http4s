@@ -25,6 +25,7 @@ import org.http4s.util.StringWriter
 
 import java.nio.ByteBuffer
 import scala.collection.mutable.Buffer
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent.Future
 
 private[http4s] class CachingStaticWriter[F[_]](

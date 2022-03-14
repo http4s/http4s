@@ -28,6 +28,7 @@ import org.http4s.blaze.http.http2.StreamFrame
 import org.http4s.blaze.pipeline.TailStage
 
 import scala.concurrent._
+import scala.concurrent.ExecutionContext.parasitic
 
 private[http4s] class Http2Writer[F[_]](
     tail: TailStage[StreamFrame],
