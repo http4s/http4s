@@ -1,4 +1,7 @@
 changelog:
+  exclude:
+    labels:
+      - series/0.21
   categories:
 
     - title: http4s-core
