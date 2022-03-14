@@ -29,7 +29,7 @@ import org.http4s.multipart.Multipart
 import org.http4s.multipart.Part
 import org.typelevel.ci._
 
-import java.util.Arrays
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Locale
 import scala.concurrent.duration._
 
@@ -235,7 +235,10 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
-      _ <- IO(body).map(Arrays.equals(_, expBody)).assert
+      _ <- IO(body.toList).assertEquals(
+        expBody.toList,
+        s"Unexpected body: actual '${new String(body, UTF_8)}' expected '${new String(expBody.toArray, UTF_8)}'",
+      )
       headers = rec.headers.headers.map(normalizeHeaderValue)
       expectedHeaders = expected.headers.headers.map(normalizeHeaderValue)
       _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)
