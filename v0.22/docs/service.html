@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
+    <title>Service</title>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Bjørn Madsen"/>
+    
+      <meta name="author" content="André Rouel"/>
+    
+      <meta name="author" content="Brad Fritz"/>
+    
+      <meta name="author" content="Bryce L. Anderson"/>
+    
+      <meta name="author" content="Ivan Porto Carrero"/>
+    
+      <meta name="author" content="Carlos Encarnacion"/>
+    
+      <meta name="author" content="Christopher Davenport"/>
+    
+      <meta name="author" content="Carlos Quiroz"/>
+    
+      <meta name="author" content="Heikki Vesalainen"/>
+    
+      <meta name="author" content="Paulo Siqueira"/>
+    
+      <meta name="author" content="Jean-Rémi Desjardins"/>
+    
+      <meta name="author" content="Jose Cardona"/>
+    
+      <meta name="author" content="Julien Truffaut"/>
+    
+      <meta name="author" content="Rodolfo Hansen"/>
+    
+      <meta name="author" content="Simon Hafner"/>
+    
+      <meta name="author" content="Arya Irani"/>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Sheng Chen"/>
+    
+      <meta name="author" content="Fabio Labella"/>
+    
+    
+      <meta name="description" content="Documentation for http4s"/>
+    
+    
+      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
+    
+      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
+    <script src="../../helium/laika-helium.js"></script>
+    <script src="../../helium/laika-versions.js"></script>
+    <script>initVersions("../../", "/docs/service.html", "v0.22");</script>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
+
+  <body>
+
+    <header id="top-bar">
+
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+            
+            Version 0.22
+            
+          </a>
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
+        
+      </div>
+  
+      <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+      
+      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.22.11/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a></span>
+      
+    </header>
+
+    <nav id="sidebar">
+
+      <div class="row">
+        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.22.11/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="level1"><a href="../../versions.html">Versions</a></li>
+        <li class="level1"><a href="../../changelog.html">Changelog</a></li>
+        <li class="level1"><a href="../../getting-help.html">Getting Help</a></li>
+        <li class="level1"><a href="../../contributing.html">Contributing</a></li>
+        <li class="level1"><a href="../../adopters.html">Adopters</a></li>
+        <li class="level1"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+        <li class="level1"><a href="../../further-reading.html">Further Reading</a></li>
+        <li class="level1 nav-header">User Guide</li>
+        <li class="level2"><a href="quickstart.html">Quick Start</a></li>
+        <li class="level2"><a href="integrations.html">Integrations</a></li>
+        <li class="level2"><a href="upgrading.html">Upgrading</a></li>
+        <li class="level2 active"><a href="#">Service</a></li>
+        <li class="level2"><a href="dsl.html">The http4s DSL</a></li>
+        <li class="level2"><a href="middleware.html">Middleware</a></li>
+        <li class="level2"><a href="auth.html">Authentication</a></li>
+        <li class="level2"><a href="cors.html">CORS</a></li>
+        <li class="level2"><a href="csrf.html">CSRF</a></li>
+        <li class="level2"><a href="gzip.html">GZip Compression</a></li>
+        <li class="level2"><a href="hsts.html">HSTS</a></li>
+        <li class="level2"><a href="static.html">Static Files</a></li>
+        <li class="level2"><a href="client.html">HTTP Client</a></li>
+        <li class="level2"><a href="entity.html">Entity Handling</a></li>
+        <li class="level2"><a href="streaming.html">Streaming</a></li>
+        <li class="level2"><a href="json.html">JSON Handling</a></li>
+        <li class="level2"><a href="testing.html">Testing</a></li>
+        <li class="level2"><a href="uri.html">URI Handling</a></li>
+        <li class="level2"><a href="deployment.html">Deployment</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+      </ul>
+      
+      <ul class="nav-list">
+        <li class="level1 nav-header">Related Projects</li>
+        
+          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        
+          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+        
+          <li class="level2"><a href="https://github.com/typelevel/feral">feral</a></li>
+        
+      </ul>
+
+    </nav>
+
+    <div id="container">
+
+      <nav id="page-nav">
+        <p class="header"><a href="#">Service</a></p>
+        
+        <ul class="nav-list">
+          <li class="level1"><a href="#your-first-service">Your First Service</a></li>
+          <li class="level2"><a href="#defining-your-service">Defining Your Service</a></li>
+          <li class="level2"><a href="#returning-content-in-the-response">Returning Content in the Response</a></li>
+          <li class="level2"><a href="#running-your-service">Running Your Service</a></li>
+          <li class="level1"><a href="#cleaning-up">Cleaning Up</a></li>
+          <li class="level2"><a href="#running-your-service-as-an-app">Running Your Service as an <code>App</code></a></li>
+        </ul>
+        
+        <p class="footer"></p>
+      </nav>
+
+      <main class="content">
+
+        <h1 id="service" class="title">Service</h1>
+        <p>This tutorial will walk you through creating your first http4s service
+        and calling it with http4s&#39; client.</p>
+        <p>Create a new directory, with the following build.sbt in the root:</p>
+        <pre><code class="nohighlight"><span class="identifier">scalaVersion</span><span> := </span><span class="string-literal">&quot;2.13.6&quot;</span><span> </span><span class="comment">// Also supports 2.12.x and 3.x
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.22.11&quot;</span><span>
+
+</span><span class="comment">// Only necessary for SNAPSHOT releases
+</span><span class="identifier">resolvers</span><span> += </span><span class="type-name">Resolver</span><span>.</span><span class="identifier">sonatypeRepo</span><span>(</span><span class="string-literal">&quot;snapshots&quot;</span><span>)
+
+</span><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-blaze-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-blaze-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+)
+
+</span><span class="comment">// Uncomment if you&#39;re using Scala 2.12.x
+// scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</span></code></pre>
+        <p>This tutorial is compiled as part of the build using <a href="https://scalameta.org/mdoc/">mdoc</a>.  Each page
+        is its own REPL session.  If you copy and paste code samples starting
+        from the top, you should be able to follow along in a REPL.</p>
+        <pre><code>$ sbt console</code></pre>
+        
+        <h2 id="your-first-service" class="section">Your First Service<a class="anchor-link right" href="#your-first-service"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>An <code>HttpRoutes[F]</code> is a simple alias for
+        <code>Kleisli[OptionT[F, *], Request, Response]</code>.  If that&#39;s meaningful to you,
+        great.  If not, don&#39;t panic: <code>Kleisli</code> is just a convenient wrapper
+        around a <code>Request =&gt; F[Response]</code>, and <code>F</code> is an effectful
+        operation.  We&#39;ll teach you what you need to know as we go, or if you
+        prefer you can read these introductions first:</p>
+        <ul>
+          <li><a href="https://typelevel.org/cats-effect/">cats-effect: The IO Monad for Scala</a></li>
+          <li><a href="https://typelevel.org/cats/datatypes/kleisli.html">Cats Kleisli Datatype</a></li>
+        </ul>
+        
+        <h3 id="defining-your-service" class="section">Defining Your Service<a class="anchor-link right" href="#defining-your-service"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Wherever you are in your studies, let&#39;s create our first
+        <code>HttpRoutes</code>.  Start by pasting these imports into your SBT console:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">ExecutionContext</span><span>.</span><span class="type-name">Implicits</span><span>.</span><span class="identifier">global</span></code></pre>
+        <p>You also will need a <code>ContextShift</code> and a <code>Timer</code>.  These come for
+        free if you are in an <code>IOApp</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">cs</span><span>: </span><span class="type-name">ContextShift</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">contextShift</span><span>(</span><span class="identifier">global</span><span>)
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">timer</span><span>: </span><span class="type-name">Timer</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">timer</span><span>(</span><span class="identifier">global</span><span>)</span></code></pre>
+        <p>Using the <a href="dsl.html">http4s-dsl</a>, we can construct an <code>HttpRoutes</code> by pattern
+        matching the request.  Let&#39;s build a service that matches requests to
+        <code>GET /hello/:name</code>, where <code>:name</code> is a path parameter for the person to
+        greet.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">helloWorldService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="identifier">name</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
+}
+</span><span class="comment">// helloWorldService: HttpRoutes[IO] = Kleisli(
+//   run = org.http4s.HttpRoutes$$$Lambda$21744/1765320714@12a03086
+// )</span></code></pre>
+        
+        <h3 id="returning-content-in-the-response" class="section">Returning Content in the Response<a class="anchor-link right" href="#returning-content-in-the-response"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>In order to return content of type <code>T</code> in the response an <code>EntityEncoder[T]</code>
+        must be used. We can define the <code>EntityEncoder[T]</code> implictly so that it
+        doesn&#39;t need to be explicitly included when serving the response.</p>
+        <p>In the example below, we&#39;re defining a <code>tweetEncoder</code> and then
+        explicitly using it to encode the response contents of a <code>Tweet</code>, which can
+        be seen as <code>Ok(getTweet(tweetId))(tweetEncoder)</code>.</p>
+        <p>We&#39;ve defined <code>tweetsEncoder</code> as being implicit so that we don&#39;t need to explicitly
+        reference it when serving the response, which can be seen as
+        <code>getPopularTweets().flatMap(Ok(_))</code>.</p>
+        <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Tweet</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">Int</span><span>, </span><span class="identifier">message</span><span>: </span><span class="type-name">String</span><span>)
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">def</span><span> </span><span class="declaration-name">tweetEncoder</span><span>: </span><span class="type-name">EntityEncoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Tweet</span><span>] = ???
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">def</span><span> </span><span class="declaration-name">tweetsEncoder</span><span>: </span><span class="type-name">EntityEncoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Seq</span><span>[</span><span class="type-name">Tweet</span><span>]] = ???
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getTweet</span><span>(</span><span class="identifier">tweetId</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Tweet</span><span>] = ???
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">getPopularTweets</span><span>(): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Seq</span><span>[</span><span class="type-name">Tweet</span><span>]] = ???
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">tweetService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;tweets&quot;</span><span> / </span><span class="string-literal">&quot;popular&quot;</span><span> =&gt;
+    </span><span class="identifier">getPopularTweets</span><span>().</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;tweets&quot;</span><span> / </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">tweetId</span><span>) =&gt;
+    </span><span class="identifier">getTweet</span><span>(</span><span class="identifier">tweetId</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
+}
+</span><span class="comment">// tweetService: HttpRoutes[IO] = Kleisli(
+//   run = org.http4s.HttpRoutes$$$Lambda$21744/1765320714@1719175f
+// )</span></code></pre>
+        
+        <h3 id="running-your-service" class="section">Running Your Service<a class="anchor-link right" href="#running-your-service"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>http4s supports multiple server backends.  In this example, we&#39;ll use
+        <a href="https://github.com/http4s/blaze">blaze</a>, the native backend supported by http4s.</p>
+        <p>We start from a <code>BlazeServerBuilder</code>, and then mount the <code>helloWorldService</code> under
+        the base path of <code>/</code> and the remainder of the services under the base
+        path of <code>/api</code>. The services can be mounted in any order as the request will be
+        matched against the longest base paths first. The <code>BlazeServerBuilder</code> is immutable
+        with chained methods, each returning a new builder.</p>
+        <p>Multiple <code>HttpRoutes</code> can be combined with the <code>combineK</code> method (or its alias
+        <code>&lt;+&gt;</code>) by importing <code>cats.implicits._</code> and <code>org.http4s.implicits._</code>. Please ensure partial unification is enabled in your <code>build.sbt</code>.</p>
+        <p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">blaze</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">Router</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">services</span><span> = </span><span class="identifier">tweetService</span><span> &lt;+&gt; </span><span class="identifier">helloWorldService</span><span>
+</span><span class="comment">// services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
+//   run = cats.data.KleisliSemigroupK$$Lambda$21745/662543448@6498e560
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">httpApp</span><span> = </span><span class="type-name">Router</span><span>(</span><span class="string-literal">&quot;/&quot;</span><span> -&gt; </span><span class="identifier">helloWorldService</span><span>, </span><span class="string-literal">&quot;/api&quot;</span><span> -&gt; </span><span class="identifier">services</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="comment">// httpApp: cats.data.Kleisli[IO[A], Request[IO[A]], Response[IO[A]]] = Kleisli(
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$21991/798969273@1155f734
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">serverBuilder</span><span> = </span><span class="type-name">BlazeServerBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">global</span><span>)
+  .</span><span class="identifier">bindHttp</span><span>(</span><span class="number-literal">8080</span><span>, </span><span class="string-literal">&quot;localhost&quot;</span><span>)
+  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">httpApp</span><span>)
+</span><span class="comment">// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@2e2c198</span></code></pre>
+        <p>The <code>bindHttp</code> call isn&#39;t strictly necessary as the server will be set to run
+        using defaults of port 8080 and the loopback address. The <code>withHttpApp</code> call
+        associates the specified routes with this http server instance.</p>
+        <p>We start a server resource in the background.  The server will run until we cancel the fiber:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">fiber</span><span> = </span><span class="identifier">serverBuilder</span><span>.</span><span class="identifier">resource</span><span>.</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">never</span><span>).</span><span class="identifier">start</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// fiber: Fiber[IO, Nothing] = Tuple(
+//   join = Bind(
+//     source = Async(
+//       k = cats.effect.internals.IOAsync$$$Lambda$21737/28790505@5d9e8d74,
+//       trampolineAfter = false,
+//       trace = StackTrace(
+//         stackTrace = List(
+//           cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
+//           cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),
+//           cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),
+//           cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),
+//           cats.effect.IO$.async(IO.scala:1284),
+//           cats.effect.internals.IOFromFuture$.apply(IOFromFuture.scala:37),
+//           cats.effect.internals.IOStart$.fiber(IOStart.scala:48),
+//           cats.effect.internals.IOStart$.$anonfun$apply$1(IOStart.scala:42),
+//           cats.effect.internals.IOStart$.$anonfun$apply$1$adapted(IOStart.scala:29),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:464),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:165),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1(IORunLoop.scala:338),
+//           cats.effect.internals.IORunLoop$.$anonfun$suspendAsync$1$adapted(IORunLoop.scala:337),
+//           cats.effect.internals.IORunLoop$RestartCallback.start(IORunLoop.scala:464),
+//           cats.effect.internals.IORunLoop$.cats$effect$internals$IORunLoop$$loop(IORunLoop.scala:165),
+//           cats.effect.internals.IORunLoop$.start(IORunLoop.scala:38),
+//           cats.effect.IO.unsafeRunAsync(IO.scala:274),
+//           cats.effect.internals.IOPlatform$.unsafeResync(IOPlatform.scala:39),
+//           cats.effect.IO.unsafeRunTimed(IO.scala:342),
+//           cats.effect.IO.unsafeRunSync(IO.scala:256),
+//           repl.MdocSession$App.&lt;init&gt;(client.md:59),
+//           repl.MdocSession$.app(client.md:3),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$2(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:59),
+//           scala.Console$.withErr(Console.scala:193),
+//           mdoc.internal.document.DocumentBuilder$$doc$.$anonfun$build$1(DocumentBuilder.scala:89),
+//           scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.scala:18),
+//           scala.util.DynamicVariable.withValue(DynamicVariable.scala:59),
+//           scala.Console$.withOut(Console.scala:164),
+//           mdoc.internal.document.DocumentBuilder$$doc$.build(DocumentBuilder.sca...</span></code></pre>
+        <p>Use curl, or your favorite HTTP client, to see your service in action:</p>
+        <pre class="keep-together pdf epub"><code class="sh">$ curl http://localhost:8080/hello/Pete</code></pre>
+        
+        <h2 id="cleaning-up" class="section">Cleaning Up<a class="anchor-link right" href="#cleaning-up"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>We can shut down the server by canceling its fiber.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">fiber</span><span>.</span><span class="identifier">cancel</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span></code></pre>
+        
+        <h3 id="running-your-service-as-an-app" class="section">Running Your Service as an <code>App</code><a class="anchor-link right" href="#running-your-service-as-an-app"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Every <code>ServerBuilder[F]</code> has a <code>.serve</code> method that returns a
+        <code>Stream[F, ExitCode]</code>.  This stream runs forever without emitting
+        any output.  When this process is run with <code>.unsafeRunSync</code> on the
+        main thread, it blocks forever, keeping the JVM (and your server)
+        alive until the JVM is killed.</p>
+        <p>As a convenience, cats-effect provides an <code>cats.effect.IOApp</code> trait
+        with an abstract <code>run</code> method that returns a <code>IO[ExitCode]</code>.  An
+        <code>IOApp</code> runs the process and adds a JVM shutdown hook to interrupt
+        the infinite process and gracefully shut down your server when a
+        SIGTERM is received.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">HttpRoutes</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">blaze</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">ExecutionContext</span><span>.</span><span class="identifier">global</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">Main</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">IOApp</span><span> {
+
+  </span><span class="keyword">val</span><span> </span><span class="identifier">helloWorldService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="identifier">name</span><span> =&gt;
+      </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
+  }.</span><span class="identifier">orNotFound</span><span>
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">run</span><span>(</span><span class="identifier">args</span><span>: </span><span class="type-name">List</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">ExitCode</span><span>] =
+    </span><span class="type-name">BlazeServerBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">global</span><span>)
+      .</span><span class="identifier">bindHttp</span><span>(</span><span class="number-literal">8080</span><span>, </span><span class="string-literal">&quot;localhost&quot;</span><span>)
+      .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">helloWorldService</span><span>)
+      .</span><span class="identifier">serve</span><span>
+      .</span><span class="identifier">compile</span><span>
+      .</span><span class="identifier">drain</span><span>
+      .</span><span class="identifier">as</span><span>(</span><span class="type-name">ExitCode</span><span>.</span><span class="type-name">Success</span><span>)
+}</span></code></pre>
+        <p>You may also create the server within an <code>IOApp</code> using resource:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">ExecutionContext</span><span>.</span><span class="identifier">global</span><span>
+
+</span><span class="keyword">object</span><span> </span><span class="type-name">MainWithResource</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">IOApp</span><span> {
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">run</span><span>(</span><span class="identifier">args</span><span>: </span><span class="type-name">List</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">ExitCode</span><span>] =
+    </span><span class="type-name">BlazeServerBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">global</span><span>)
+      .</span><span class="identifier">bindHttp</span><span>(</span><span class="number-literal">8080</span><span>, </span><span class="string-literal">&quot;localhost&quot;</span><span>)
+      .</span><span class="identifier">withHttpApp</span><span>(</span><span class="type-name">Main</span><span>.</span><span class="identifier">helloWorldService</span><span>)
+      .</span><span class="identifier">resource</span><span>
+      .</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">never</span><span>)
+      .</span><span class="identifier">as</span><span>(</span><span class="type-name">ExitCode</span><span>.</span><span class="type-name">Success</span><span>)
+}</span></code></pre>
+
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+        </footer>
+
+      </main>
+
+    </div>
+
+  </body>
+</html>
