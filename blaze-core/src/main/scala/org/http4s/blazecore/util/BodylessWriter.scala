@@ -18,6 +18,7 @@ package org.http4s
 package blazecore
 package util
 
+import cats.Applicative
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -41,11 +42,17 @@ private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: B
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
-    * @param p an entity body that will be killed
+    * @param entity an [[Entity]] which body will be killed
     * @return the F which, when run, will send the headers and kill the entity body
     */
-  override def writeEntityBody(p: EntityBody[F]): F[Boolean] =
-    p.drain.compile.drain.map(_ => close)
+  override def writeEntityBody(entity: Entity[F]): F[Boolean] =
+    entity match {
+      case Entity.Default(body, _) =>
+        body.drain.compile.drain.map(_ => close)
+
+      case Entity.Strict(_) | Entity.Empty =>
+        Applicative[F].pure(close)
+    }
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
     Future.successful(close)

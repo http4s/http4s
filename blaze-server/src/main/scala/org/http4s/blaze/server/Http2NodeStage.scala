@@ -274,7 +274,7 @@ private class Http2NodeStage[F[_]](
       }
     }
 
-    new Http2Writer(this, hs, executionContext).writeEntityBody(resp.body).attempt.map {
+    new Http2Writer(this, hs, executionContext).writeEntityBody(resp.entity).attempt.map {
       case Right(_) => closePipeline(None)
       case Left(Cmd.EOF) => stageShutdown()
       case Left(t) => closePipeline(Some(t))

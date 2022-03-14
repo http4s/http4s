@@ -51,18 +51,25 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Unit] = FutureUnit
 
-  /** Creates an effect that writes the contents of the EntityBody to the output.
-    * The writeBodyEnd triggers if there are no exceptions, and the result will
-    * be the result of the writeEnd call.
+  /** Creates an effect that writes the contents of the [[Entity]] to the output.
     *
-    * @param p EntityBody to write out
+    * @param entity an [[Entity]] which body to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeEntityBody(p: EntityBody[F]): F[Boolean] = {
-    val writeBody: F[Unit] = writePipe(p).compile.drain
-    val writeBodyEnd: F[Boolean] = fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
-    writeBody *> writeBodyEnd
-  }
+  def writeEntityBody(entity: Entity[F]): F[Boolean] =
+    entity match {
+      case Entity.Default(body, _) =>
+        val writeBody: F[Unit] = writePipe(body).compile.drain
+        val writeBodyEnd: F[Boolean] = fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+        writeBody *> writeBodyEnd
+
+      case Entity.Strict(chunk) =>
+        fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))) *>
+          fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+
+      case Entity.Empty =>
+        fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+    }
 
   /** Writes each of the body chunks, if the write fails it returns
     * the failed future which throws an error.
