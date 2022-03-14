@@ -77,6 +77,7 @@ lazy val modules: List[CompositeProject] = List(
   twirl,
   scalatags,
   bench,
+  unidocs,
   examples,
   examplesBlaze,
   examplesDocker,
@@ -1109,6 +1110,7 @@ lazy val unidocs = http4sProject("unidocs")
           scalafixInternalOutput,
           scalafixInternalRules,
           scalafixInternalTests,
+          docs,
         ) ++ root.js.aggregate): _*
       ),
     apiMappings ++= {
