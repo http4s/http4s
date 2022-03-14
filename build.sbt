@@ -77,6 +77,7 @@ lazy val modules: List[ProjectReference] = List(
   twirl,
   scalatags,
   bench,
+  unidocs,
   examples,
   examplesBlaze,
   examplesDocker,
