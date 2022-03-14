@@ -23,6 +23,7 @@ import cats.effect.Concurrent
 import cats.effect.ConcurrentEffect
 import cats.effect.IO
 import cats.effect.Sync
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
@@ -217,10 +218,13 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = Sync[F]
+            val action = F
               .defer(raceTimeout(req))
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+              .continual {
+                case Right(resp) => F.delay(renderResponse(req, resp, cleanup))
+                case Left(t) => F.raiseError[Unit](t)
+              }
 
             val theCancelToken = Some(
               F.runCancelable(action) {
