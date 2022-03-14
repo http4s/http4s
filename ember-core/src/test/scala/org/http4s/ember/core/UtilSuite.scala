@@ -22,11 +22,11 @@ import org.typelevel.ci._
 
 class UtilSuite extends FunSuite {
 
-  val http10 = HttpVersion.`HTTP/1.0`
-  val http11 = HttpVersion.`HTTP/1.1`
+  private val http10 = HttpVersion.`HTTP/1.0`
+  private val http11 = HttpVersion.`HTTP/1.1`
 
-  val close = Header.Raw(ci"connection", "close")
-  val keepAlive = Header.Raw(ci"connection", "keep-alive")
+  private val close = Header.Raw(ci"connection", "close")
+  private val keepAlive = Header.Raw(ci"connection", "keep-alive")
 
   test("isKeepAlive: http/1.0, connection=close") {
     assertEquals(Util.isKeepAlive(http10, Headers(close)), false)

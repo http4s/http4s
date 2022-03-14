@@ -23,13 +23,13 @@ import org.http4s.headers.Origin
 import org.http4s.syntax.all._
 
 class OriginHeaderSuite extends munit.FunSuite {
-  val host1 = Origin.Host(Uri.Scheme.http, Uri.RegName("www.foo.com"), Some(12345))
-  val host2 = Origin.Host(Uri.Scheme.https, Uri.Ipv4Address(ipv4"127.0.0.1"), None)
-  val host3 = Origin.Host(Uri.Scheme.https, Uri.RegName("1bar.foo.com"), None)
+  private val host1 = Origin.Host(Uri.Scheme.http, Uri.RegName("www.foo.com"), Some(12345))
+  private val host2 = Origin.Host(Uri.Scheme.https, Uri.Ipv4Address(ipv4"127.0.0.1"), None)
+  private val host3 = Origin.Host(Uri.Scheme.https, Uri.RegName("1bar.foo.com"), None)
 
-  val hostString1 = "http://www.foo.com:12345"
-  val hostString2 = "https://127.0.0.1"
-  val hostString3 = "https://1bar.foo.com"
+  private val hostString1 = "http://www.foo.com:12345"
+  private val hostString2 = "https://127.0.0.1"
+  private val hostString3 = "https://1bar.foo.com"
 
   test("Origin value method should Render a host with a port number") {
     val origin: Origin = Origin.HostList(NonEmptyList.of(host1))

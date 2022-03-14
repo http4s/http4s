@@ -100,13 +100,13 @@ class EmberServerMtlsSuite extends Http4sSuite {
       TLSContext.fromSSLContext(noAuthClientContext, testBlocker).pure[IO]
     )
 
-  def fixture(tlsParams: TLSParameters, clientTlsContext: Resource[IO, TLSContext]) =
+  private def fixture(tlsParams: TLSParameters, clientTlsContext: Resource[IO, TLSContext]) =
     (server(tlsParams), client(clientTlsContext)).mapN(FunFixture.map2(_, _))
 
-  def client(tlsContextResource: Resource[IO, TLSContext]) =
+  private def client(tlsContextResource: Resource[IO, TLSContext]) =
     ResourceFixture(clientResource(tlsContextResource))
 
-  def clientResource(tlsContextResource: Resource[IO, TLSContext]) =
+  private def clientResource(tlsContextResource: Resource[IO, TLSContext]) =
     for {
       tlsContext <- tlsContextResource
       emberClient <- EmberClientBuilder
@@ -116,10 +116,10 @@ class EmberServerMtlsSuite extends Http4sSuite {
         .build
     } yield emberClient
 
-  def server(tlsParams: TLSParameters) =
+  private def server(tlsParams: TLSParameters) =
     ResourceFixture(serverResource(tlsParams))
 
-  def serverResource(tlsParams: TLSParameters) =
+  private def serverResource(tlsParams: TLSParameters) =
     for {
       tlsContext <- authTlsClientContext
       emberServer <- EmberServerBuilder

@@ -22,7 +22,7 @@ class TlsSuite extends Http4sSuite {
 
   /* List of cipher suites obtained from: https://www.iana.org/assignments/tls-parameters/tls-parameters.txt.
    */
-  val cipherSuiteMap = Map[String, Int](
+  private val cipherSuiteMap = Map[String, Int](
     "TLS_NULL_WITH_NULL_NULL" -> 0,
     "TLS_RSA_WITH_NULL_MD5" -> 0,
     "TLS_RSA_WITH_NULL_SHA" -> 0,

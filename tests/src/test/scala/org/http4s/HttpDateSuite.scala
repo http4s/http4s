@@ -43,7 +43,7 @@ class HttpDateSuite extends Http4sSuite {
     } yield assert(diff == 0 || diff == 1, "diff was " + diff)
   }
 
-  val rfc7231Example = HttpDate.unsafeFromZonedDateTime(
+  private val rfc7231Example = HttpDate.unsafeFromZonedDateTime(
     ZonedDateTime.of(1994, Month.NOVEMBER.getValue, 6, 8, 49, 37, 0, ZoneOffset.UTC)
   )
 

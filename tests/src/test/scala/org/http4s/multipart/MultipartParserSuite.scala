@@ -26,13 +26,14 @@ import org.http4s.util._
 import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.tailrec
 
 class MultipartParserSuite extends Http4sSuite {
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
+  private val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
-  def ruinDelims(str: String) =
+  private def ruinDelims(str: String) =
     augmentString(str).flatMap {
       case '\n' => "\r\n"
       case c => c.toString
@@ -41,6 +42,7 @@ class MultipartParserSuite extends Http4sSuite {
   def jumble(str: String): Stream[IO, Byte] = {
     val rand = new scala.util.Random()
 
+    @tailrec
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
       if (s.length <= 1)
         acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))

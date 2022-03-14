@@ -28,7 +28,7 @@ private[http4s] trait BlazeBackendBuilder[B] {
 
   def channelOptions: ChannelOptions
 
-  def channelOption[A](socketOption: SocketOption[A]) =
+  def channelOption[A](socketOption: SocketOption[A]): Option[A] =
     channelOptions.options.collectFirst {
       case OptionValue(key, value) if key == socketOption =>
         value.asInstanceOf[A]

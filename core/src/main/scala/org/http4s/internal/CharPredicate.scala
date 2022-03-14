@@ -101,18 +101,18 @@ sealed abstract class CharPredicate extends (Char => Boolean) {
 object CharPredicate {
   val Empty: CharPredicate = MaskBased(0L, 0L)
   val All: CharPredicate = from(_ => true)
-  val LowerAlpha = CharPredicate('a' to 'z')
-  val UpperAlpha = CharPredicate('A' to 'Z')
-  val Alpha = LowerAlpha ++ UpperAlpha
-  val Digit = CharPredicate('0' to '9')
-  val Digit19 = CharPredicate('1' to '9')
-  val AlphaNum = Alpha ++ Digit
-  val LowerHexLetter = CharPredicate('a' to 'f')
-  val UpperHexLetter = CharPredicate('A' to 'F')
-  val HexLetter = LowerHexLetter ++ UpperHexLetter
-  val HexDigit = Digit ++ HexLetter
-  val Visible = CharPredicate('\u0021' to '\u007e')
-  val Printable = Visible ++ ' '
+  val LowerAlpha: CharPredicate = CharPredicate('a' to 'z')
+  val UpperAlpha: CharPredicate = CharPredicate('A' to 'Z')
+  val Alpha: CharPredicate = LowerAlpha ++ UpperAlpha
+  val Digit: CharPredicate = CharPredicate('0' to '9')
+  val Digit19: CharPredicate = CharPredicate('1' to '9')
+  val AlphaNum: CharPredicate = Alpha ++ Digit
+  val LowerHexLetter: CharPredicate = CharPredicate('a' to 'f')
+  val UpperHexLetter: CharPredicate = CharPredicate('A' to 'F')
+  val HexLetter: CharPredicate = LowerHexLetter ++ UpperHexLetter
+  val HexDigit: CharPredicate = Digit ++ HexLetter
+  val Visible: CharPredicate = CharPredicate('\u0021' to '\u007e')
+  val Printable: CharPredicate = Visible ++ ' '
 
   def from(predicate: Char => Boolean): CharPredicate =
     predicate match {
@@ -194,7 +194,7 @@ object CharPredicate {
         }
       else this
 
-    def intersect(that: CharPredicate) =
+    def intersect(that: CharPredicate): CharPredicate =
       that match {
         case Empty => Empty
         case _ if this == Empty => Empty
@@ -307,7 +307,7 @@ object CharPredicate {
 
   final case class General private[CharPredicate] (predicate: Char => Boolean)
       extends CharPredicate {
-    def apply(c: Char) = predicate(c)
+    def apply(c: Char): Boolean = predicate(c)
 
     def ++(that: CharPredicate): CharPredicate =
       that match {
@@ -335,7 +335,7 @@ object CharPredicate {
         from(c => predicate(c) && !abp(c))
       } else this
 
-    def intersect(that: CharPredicate) =
+    def intersect(that: CharPredicate): CharPredicate =
       that match {
         case Empty => Empty
         case General(_) => from(c => predicate(c) && that(c))

@@ -36,7 +36,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
   def matches(encoding: ContentCoding): Boolean =
     this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)
 
-  override def equals(o: Any) =
+  override def equals(o: Any): Boolean =
     o match {
       case that: ContentCoding =>
         this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
@@ -80,8 +80,8 @@ object ContentCoding {
   val zstd = new ContentCoding("zstd")
 
   // Legacy encodings defined by RFC2616 3.5.
-  val `x-compress` = compress
-  val `x-gzip` = gzip
+  val `x-compress`: ContentCoding = compress
+  val `x-gzip`: ContentCoding = gzip
 
   val standard: Map[String, ContentCoding] =
     List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)

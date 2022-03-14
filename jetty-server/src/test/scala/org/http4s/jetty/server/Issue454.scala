@@ -38,7 +38,7 @@ object Issue454 {
   // repeating the request. Also if you decrease the data size (to
   // say 32mb, the bug does not manifest so often, but the stack
   // trace is a bit different.
-  val insanelyHugeData = Array.ofDim[Byte](1024 * 1024 * 128)
+  private val insanelyHugeData = Array.ofDim[Byte](1024 * 1024 * 128)
 
   {
     var i = 0

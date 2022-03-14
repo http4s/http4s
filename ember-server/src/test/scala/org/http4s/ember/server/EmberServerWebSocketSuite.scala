@@ -67,7 +67,7 @@ class EmberServerWebSocketSuite extends Http4sSuite {
       .withHttpApp(service[IO])
       .build
 
-  def fixture = ResourceFixture(serverResource)
+  private def fixture = ResourceFixture(serverResource)
 
   sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],

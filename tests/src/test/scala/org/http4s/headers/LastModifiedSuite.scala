@@ -22,7 +22,7 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class LastModifiedSuite extends Http4sSuite {
-  val rfc7232Example = HttpDate.unsafeFromZonedDateTime(
+  private val rfc7232Example = HttpDate.unsafeFromZonedDateTime(
     ZonedDateTime.of(1994, Month.NOVEMBER.getValue, 15, 12, 45, 26, 0, ZoneOffset.UTC)
   )
 

@@ -27,30 +27,30 @@ import org.http4s.syntax.all._
 import scala.util.Try
 
 class ContextRouterSuite extends Http4sSuite {
-  val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  private val numbers = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
     Ok("one")
   }
-  val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
+  private val numbers2 = ContextRoutes.of[Unit, IO] { case GET -> Root / "1" as _ =>
     Ok("two")
   }
 
-  val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" as _ =>
+  private val letters = ContextRoutes.of[Unit, IO] { case GET -> Root / "/b" as _ =>
     Ok("bee")
   }
-  val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" as _ =>
+  private val shadow = ContextRoutes.of[Unit, IO] { case GET -> Root / "shadowed" as _ =>
     Ok("visible")
   }
-  val root = ContextRoutes.of[Unit, IO] {
+  private val root = ContextRoutes.of[Unit, IO] {
     case GET -> Root / "about" as _ =>
       Ok("about")
     case GET -> Root / "shadow" / "shadowed" as _ =>
       Ok("invisible")
   }
 
-  val numElem =
+  private val numElem =
     ContextRouter.Segment[Unit]((_, s) => OptionT.fromOption[IO](Try(s.decoded().toInt).toOption))
-  val element = ContextRouter.Segment[Unit]((_, s) => OptionT.pure[IO](s.decoded()))
-  val routable = ContextRouter.of(
+  private val element = ContextRouter.Segment[Unit]((_, s) => OptionT.pure[IO](s.decoded()))
+  private val routable = ContextRouter.of(
     "/" -> ContextRoutes.of[Unit, IO] { case GET -> Root as _ => Ok("static") },
     "/2" -> ContextRouter.of[IO, Unit](
       element -> ContextRoutes.of { case GET -> Root as x => Ok(x) }
@@ -61,7 +61,7 @@ class ContextRouterSuite extends Http4sSuite {
     },
   )
 
-  val notFound = ContextRoutes.of[Unit, IO] { case _ as _ =>
+  private val notFound = ContextRoutes.of[Unit, IO] { case _ as _ =>
     NotFound("Custom NotFound")
   }
 
@@ -72,7 +72,7 @@ class ContextRouterSuite extends Http4sSuite {
       else routes(r)
     )
 
-  val service = ContextRouter[IO, Unit](
+  private val service = ContextRouter[IO, Unit](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,
