@@ -4,6 +4,75 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.22.12 (2022-03-14)
+
+This is a maintenance release, binary compatible with the 0.22.x series.  It also includes all the bugfixes from 0.21.32.
+
+* http4s-core
+    * More tolerant cookie parsing by @kailuowang in https://github.com/http4s/http4s/pull/6082
+
+* http4s-tomcat
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.59 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6075
+
+* http4s-jetty-server
+    * Upgrade to jetty-9.4.45.v20220203 on series/0.22 by @rossabaker in https://github.com/http4s/http4s/pull/6023
+
+* http4s-async-http-client
+    * Update netty-buffer, netty-codec-http to 4.1.75.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6102
+    * Deprecate async-http-client by @rossabaker in https://github.com/http4s/http4s/pull/6114
+
+* Documentation
+    * docs: remove workarounds for issues in Laika 0.18.0 by @jenshalm in https://github.com/http4s/http4s/pull/6021
+    * Docs: ember supports websockets by @Daenyth in https://github.com/http4s/http4s/pull/6097
+
+* Behind the scenes
+    * Update http4s-circe, http4s-ember-client to 0.23.10 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6002
+    * Add convenience methods to `WSConnectionHighLevel` by @armanbilge in https://github.com/http4s/http4s/pull/6001
+    * Update scalafmt-core to 3.4.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6006
+    * Update scalafmt-core to 3.4.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6010
+    * Ignore Jetty HTTP/2 updates by @rossabaker in https://github.com/http4s/http4s/pull/6022
+    * Update netty-buffer, netty-codec-http to 4.1.74.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6025
+    * Update sbt-http4s-org to 0.12.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6024
+    * Update slf4j-api to 1.7.36 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6030
+    * Build tweaks in case there's another 0.21 by @rossabaker in https://github.com/http4s/http4s/pull/6034
+    * Update scalafmt-core to 3.4.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6038
+    * Update sbt-native-packager to 1.9.8 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6043
+    * Update sbt-http4s-org to 0.12.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6052
+    * Update sbt-native-packager to 1.9.9 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6070
+    * Update sbt-http4s-org to 0.12.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6081
+    * Update sbt-buildinfo to 0.11.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6062
+    * Update logback-classic to 1.2.11 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6088
+    * Type annotations for public API things by @danicheg in https://github.com/http4s/http4s/pull/5822
+    * Update metrics-core, metrics-json to 4.2.9 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6099
+    * Update sbt-http4s-org to 0.13.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6103
+    * Merge 0.21 -> 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/6121
+    * Exclude series/0.21 from release notes by @rossabaker in https://github.com/http4s/http4s/pull/6122
+    * Simplify website configuration by @armanbilge in https://github.com/http4s/http4s/pull/6087
+
+* New Contributors
+    * @Daenyth made their first contribution in https://github.com/http4s/http4s/pull/6097
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.11...v0.22.12
+
+# v0.21.32 (2022-02-09)
+
+This is an unplanned bugfix release for the 0.21.x series.  This series remains officially unmaintained except for urgent security patches.  It plugs a tiny leak on the server backends when a resource is canceled between acquisition and compiling its body.
+
+* http4s-servlet
+    * Flush the prelude in non-blocking Servlet IO by @rossabaker in https://github.com/http4s/http4s/pull/6027
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* http4s-blaze-server
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* http4s-ember-server
+    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
+
+* Behind the scenes
+    * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.31...v0.21.32
+
 # v0.22.11 (2022-02-02)
 
 This is a bugfix release, binary compatible with the 0.22.x series.
@@ -383,25 +452,6 @@ This is a routine maintenance release.  It is binary compatible with the v0.22.x
 * fs2-2.5.10
 * netty-4.1.69.Final
 * scalacheck-effect-1.0.3
-
-# v0.21.32 (2022-02-09)
-
-This is an unplanned bugfix release for the 0.21.x series.  This series remains officially unmaintained except for urgent security patches.  It plugs a tiny leak on the server backends when a resource is canceled between acquisition and compiling its body.
-
-* http4s-servlet
-    * Flush the prelude in non-blocking Servlet IO by @rossabaker in https://github.com/http4s/http4s/pull/6027
-    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
-
-* http4s-blaze-server
-    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
-
-* http4s-ember-server
-    * Render continually between response prelude and body by @rossabaker in https://github.com/http4s/http4s/pull/6028
-
-* Behind the scenes
-    * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
-
-**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.31...v0.21.32
 
 # v0.21.31 (2021-10-11)
 
