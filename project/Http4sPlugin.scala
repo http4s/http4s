@@ -10,12 +10,13 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import sbt.Keys._
 import sbt._
 import org.typelevel.sbt.gha.GenerativeKeys._
+import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val isCi = settingKey[Boolean]("true if this build is running on CI")
-    val http4sApiVersion = taskKey[(Int, Int)]("API version of http4s")
+    val http4sApiVersion = settingKey[(Int, Int)]("API version of http4s")
   }
   import autoImport._
 
@@ -28,16 +29,19 @@ object Http4sPlugin extends AutoPlugin {
   val scala_3 = "3.0.2"
 
   override lazy val globalSettings = Seq(
-    isCi := sys.env.contains("CI")
+    isCi := githubIsWorkflowBuild.value
   )
 
   override lazy val buildSettings = Seq(
     // Many steps only run on one build. We distinguish the primary build from
     // secondary builds by the Travis build number.
-    http4sApiVersion := version.map { case VersionNumber(Seq(major, minor, _*), _, _) =>
-      (major.toInt, minor.toInt)
-    }.value
-  ) ++ sbtghactionsSettings
+    http4sApiVersion := {
+      version.value match {
+        case VersionNumber(Seq(major, minor, _*), _, _) =>
+          (major.toInt, minor.toInt)
+      }
+    }
+  )
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter ||
@@ -95,27 +99,6 @@ object Http4sPlugin extends AutoPlugin {
   def extractDocsPrefix(version: String) =
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
-  /** @return the version we want to document, for example in mdoc,
-    * given the version being built.
-    *
-    * For snapshots after a stable release, return the previous stable
-    * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
-    * milestone.  Otherwise, just return the current version.
-    */
-  def docExampleVersion(currentVersion: String) = {
-    val MilestoneVersionExtractor = """(0).(16|17).(0)a?-SNAPSHOT""".r
-    val latestMilestone = "M1"
-    val VersionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
-    currentVersion match {
-      case MilestoneVersionExtractor(major, minor, patch) =>
-        s"${major.toInt}.${minor.toInt}.${patch.toInt}-$latestMilestone"
-      case VersionExtractor(major, minor, patch) if patch.toInt > 0 =>
-        s"${major.toInt}.${minor.toInt}.${patch.toInt - 1}"
-      case _ =>
-        currentVersion
-    }
-  }
-
   def latestPerMinorVersion(file: File): Map[(Long, Long), VersionNumber] = {
     def majorMinor(v: VersionNumber) = v match {
       case VersionNumber(Seq(major, minor, _), _, _) =>
@@ -148,65 +131,6 @@ object Http4sPlugin extends AutoPlugin {
           case None => m
         }
       }
-  }
-
-  def docsProjectSettings: Seq[Setting[_]] =
-    Seq(
-      git.remoteRepo := "git@github.com:http4s/http4s.git"
-    )
-
-  def sbtghactionsSettings: Seq[Setting[_]] = {
-    import org.typelevel.sbt.gha.GenerativeKeys._
-    import org.typelevel.sbt.gha._
-
-    def siteBuildJob(subproject: String, runMdoc: Boolean) = {
-      val mdoc = if (runMdoc) Some(s"$subproject/mdoc") else None
-      WorkflowJob(
-        id = subproject,
-        name = s"Build $subproject",
-        scalas = List(scala_212),
-        javas = List(JavaSpec.temurin("17")),
-        steps = List(
-          WorkflowStep.CheckoutFull,
-          WorkflowStep.Sbt(
-            mdoc.toList ++ List(s"$subproject/laikaSite"),
-            name = Some(s"Build $subproject"),
-          ),
-        ),
-      )
-    }
-
-    def sitePublishStep(subproject: String, runMdoc: Boolean) = {
-      val mdoc = if (runMdoc) s"$subproject/mdoc " else ""
-      WorkflowStep.Run(
-        List(s"""
-          |eval "$$(ssh-agent -s)"
-          |echo "$$SSH_PRIVATE_KEY" | ssh-add -
-          |git config --global user.name "GitHub Actions CI"
-          |git config --global user.email "ghactions@invalid"
-          |sbt ++$scala_212 $mdoc$subproject/laikaSite $subproject/ghpagesPushSite
-          |
-      """.stripMargin),
-        name = Some(s"Publish $subproject"),
-        env = Map("SSH_PRIVATE_KEY" -> "${{ secrets.SSH_PRIVATE_KEY }}"),
-      )
-    }
-
-    Seq(
-      githubWorkflowPublishPreamble := {
-        githubWorkflowPublishPreamble.value ++ Seq(
-          WorkflowStep.Run(List("git status"))
-        )
-      },
-      githubWorkflowPublishPostamble := Seq(
-        sitePublishStep("website", runMdoc = false)
-        // sitePublishStep("docs", runMdoc = true)
-      ),
-      githubWorkflowAddedJobs := Seq(
-        siteBuildJob("website", runMdoc = false),
-        siteBuildJob("docs", runMdoc = true),
-      ),
-    )
   }
 
   object V { // Dependency versions
