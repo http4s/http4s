@@ -895,6 +895,7 @@ lazy val unidocs = http4sProject("unidocs")
         scalafixInternalOutput,
         scalafixInternalRules,
         scalafixInternalTests,
+        docs,
       ),
     apiMappings ++= {
       ScaladocApiMapping.mappings(
