@@ -246,20 +246,19 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
     }
 
     val chunkHandler =
-      Async.shift(Trampoline) *>
-        F.async[Chunk[Byte] => Unit] { cb =>
-          val blocked = Blocked(cb)
-          state.getAndSet(blocked) match {
-            case Ready if out.isReady =>
-              if (state.compareAndSet(blocked, Ready))
-                cb(writeChunk)
-            case e @ Errored(t) =>
-              if (state.compareAndSet(blocked, e))
-                cb(Left(t))
-            case _ =>
-              ()
-          }
+      F.async_[Chunk[Byte] => Unit] { cb =>
+        val blocked = Blocked(cb)
+        state.getAndSet(blocked) match {
+          case Ready if out.isReady =>
+            if (state.compareAndSet(blocked, Ready))
+              cb(writeChunk)
+          case e @ Errored(t) =>
+            if (state.compareAndSet(blocked, e))
+              cb(Left(t))
+          case _ =>
+            ()
         }
+      }
 
     def flushPrelude =
       if (autoFlush)
@@ -272,22 +271,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         autoFlush = true
       flushPrelude *>
         response.body.chunks
-          .evalMap { chunk =>
-            // Shift execution to a different EC
-            F.async_[Chunk[Byte] => Unit] { cb =>
-              val blocked = Blocked(cb)
-              state.getAndSet(blocked) match {
-                case Ready if out.isReady =>
-                  if (state.compareAndSet(blocked, Ready))
-                    cb(writeChunk)
-                case e @ Errored(t) =>
-                  if (state.compareAndSet(blocked, e))
-                    cb(Left(t))
-                case _ =>
-                  ()
-              }
-            }.map(_(chunk))
-          }
+          .evalMap(chunk => chunkHandler.map(_(chunk)))
           .append(awaitLastWrite)
           .compile
           .drain
