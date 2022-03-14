@@ -240,7 +240,7 @@ private[server] object ServerHelpers {
             )
           }
 
-          result.attempt.flatMap {
+          result.continual {
             case Right((req, resp, drain)) =>
               // TODO: Should we pay this cost for every HTTP request?
               // Intercept the response for various upgrade paths
