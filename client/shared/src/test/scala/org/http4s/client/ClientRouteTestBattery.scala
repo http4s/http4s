@@ -144,19 +144,19 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       }
     }
 
-    test(s"$name Execute GET withEntity then withHeaders $path") {
-      serverClient().flatMap { case (server, client) =>
-        val address = server().addresses.head
-        val req =
-          Request[IO](uri = Uri.fromString(s"http://$address$path").yolo)
-            .withEntity("entity")
-            .withHeaders(headers.`Content-Type`(MediaType.text.plain))
-        client()
-          .run(req)
-          .use(resp => expected.flatMap(checkResponse(resp, _)))
-          .assert
-      }
-    }
+    // test(s"$name Execute GET withEntity then withHeaders $path") {
+    //   serverClient().flatMap { case (server, client) =>
+    //     val address = server().addresses.head
+    //     val req =
+    //       Request[IO](uri = Uri.fromString(s"http://$address$path").yolo)
+    //         .withEntity("entity")
+    //         .withHeaders(headers.`Content-Type`(MediaType.text.plain))
+    //     client()
+    //       .run(req)
+    //       .use(resp => expected.flatMap(checkResponse(resp, _)))
+    //       .assert
+    //   }
+    // }
 
     test(s"$name Execute GET withHeaders then withEntity $path") {
       serverClient().flatMap { case (server, client) =>
