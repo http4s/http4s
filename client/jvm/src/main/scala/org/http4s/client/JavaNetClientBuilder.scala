@@ -109,8 +109,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] =
-    Client { (request: Request[F]) =>
-      val req = request.normalize
+    Client { (req: Request[F]) =>
       def respond(conn: HttpURLConnection): F[Response[F]] =
         for {
           _ <- configureSsl(conn)

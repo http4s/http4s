@@ -53,8 +53,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
 
   def attributes: Vault
 
-  def normalize: Self
-
   protected def change(
       httpVersion: HttpVersion = httpVersion,
       entity: Entity[F] = entity,
@@ -299,12 +297,6 @@ final class Request[F[_]] private (
       entity = entity.translate(f),
       attributes = attributes,
     )
-
-  def normalize: Request[F] =
-    if (method === Method.GET || method === Method.HEAD) {
-      change(entity = Entity.empty).removeHeader[`Content-Length`]
-    } else
-      this
 
   def withMethod(method: Method): Request[F] =
     copy(method = method)
@@ -589,8 +581,6 @@ final class Response[F[_]] private (
     with Product
     with Serializable {
   type SelfF[F0[_]] = Response[F0]
-
-  def normalize: Response[F] = this
 
   def mapK[G[_]](f: F ~> G): Response[G] =
     Response[G](

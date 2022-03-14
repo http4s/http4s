@@ -335,8 +335,7 @@ final class EmberClientBuilder[F[_]: Async] private (
                 .map(_._1)
             )
           )
-      val client = Client[F] { req =>
-        val request = req.normalize
+      val client = Client[F] { request =>
         request.attributes
           .lookup(Request.Keys.UnixSocketAddress)
           .fold(webClient(request)) { (address: UnixSocketAddress) =>

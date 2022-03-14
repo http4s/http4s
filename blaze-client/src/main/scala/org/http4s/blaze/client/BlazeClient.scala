@@ -83,8 +83,7 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
 )(implicit F: Async[F])
     extends DefaultClient[F] {
 
-  override def run(request: Request[F]): Resource[F, Response[F]] = {
-    val req = request.normalize
+  override def run(req: Request[F]): Resource[F, Response[F]] = {
     val key = RequestKey.fromRequest(req)
     for {
       requestTimeoutF <- scheduleRequestTimeout(key)
