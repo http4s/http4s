@@ -48,7 +48,7 @@ private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: B
   override def writeEntityBody(entity: Entity[F]): F[Boolean] =
     entity match {
       case Entity.Default(body, _) =>
-        body.drain.compile.drain.map(_ => close)
+        body.compile.drain.as(close)
 
       case Entity.Strict(_) | Entity.Empty =>
         Applicative[F].pure(close)
