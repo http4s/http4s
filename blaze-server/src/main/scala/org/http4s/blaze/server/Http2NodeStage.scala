@@ -20,8 +20,8 @@ package server
 
 import cats.effect.ConcurrentEffect
 import cats.effect.IO
-import cats.effect.Sync
 import cats.effect.Timer
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
@@ -233,18 +233,21 @@ private class Http2NodeStage[F[_]](
       val hs = Headers(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2`, hs, body, attributes())
       executionContext.execute(new Runnable {
-        def run(): Unit = {
-          val action = Sync[F]
-            .defer(raceTimeout(req))
+        def run(): Unit =
+          F.defer(raceTimeout(req))
             .recoverWith(serviceErrorHandler(req))
-            .flatMap(renderResponse)
-
-          F.runAsync(action) {
-            case Right(()) => IO.unit
-            case Left(t) =>
-              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(closePipeline(None))
-          }
-        }.unsafeRunSync()
+            .continual {
+              case Right(resp) => renderResponse(resp)
+              case Left(t) => F.raiseError[Unit](t)
+            }
+            .runAsync {
+              case Right(()) => IO.unit
+              case Left(t) =>
+                IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                  closePipeline(None)
+                )
+            }
+            .unsafeRunSync()
       })
     }
   }
