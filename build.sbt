@@ -916,6 +916,7 @@ lazy val docs = http4sProject("site")
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     tlFatalWarningsInCi := false,
     fork := false,
+    tlSiteApiUrl := Some(url("https://http4s.org/v0.22/api/")),
   )
   .dependsOn(
     client,
