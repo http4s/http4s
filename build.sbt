@@ -77,6 +77,7 @@ lazy val modules: List[ProjectReference] = List(
   twirl,
   scalatags,
   bench,
+  unidocs,
   examples,
   examplesBlaze,
   examplesDocker,
@@ -894,6 +895,7 @@ lazy val unidocs = http4sProject("unidocs")
         scalafixInternalOutput,
         scalafixInternalRules,
         scalafixInternalTests,
+        docs,
       ),
     apiMappings ++= {
       ScaladocApiMapping.mappings(
@@ -915,6 +917,7 @@ lazy val docs = http4sProject("site")
     mdocIn := (Compile / sourceDirectory).value / "mdoc",
     tlFatalWarningsInCi := false,
     fork := false,
+    tlSiteApiUrl := Some(url("https://http4s.org/v0.22/api/")),
   )
   .dependsOn(
     client,
