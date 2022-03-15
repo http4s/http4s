@@ -160,6 +160,11 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
+      // a specialised list of methods, for searching. Puts CRUD ones go on top because we
+      // assume those are the most commonly used ones.
+      private[this] val frequentMethods: List[Method] =
+        Method.GET :: Method.POST :: Method.PUT :: Method.DELETE :: Method.all
+
       // Method SP URI SP HttpVersion CRLF - REST
       def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
           F: MonadThrow[F]
@@ -174,17 +179,29 @@ private[ember] object Parser {
         var httpVersion: HttpVersion = null
         val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
+        def matchesString(start: Int, end: Int, expected: String): Boolean =
+          (end - start == expected.length) && {
+            var ix = 0
+            var isSame = true
+            while (start + ix < end && isSame) {
+              isSame = message(start + ix).toChar == expected.charAt(ix)
+              ix += 1
+            }
+            isSame
+          }
+
         var start = 0
         while (!complete && idx <= upperBound) {
           val value = message(idx)
           (state: @switch) match {
             case 0 =>
               if (value == space) {
-                Method.fromString(new String(message, start, idx - start)) match {
-                  case Left(e) =>
-                    throwable = e
+                frequentMethods.find(m => matchesString(start, idx, m.name)) match {
+                  case None =>
+                    val str = new String(message, start, idx - start)
+                    throwable = ParseFailure("Invalid Method", str)
                     complete = true
-                  case Right(m) =>
+                  case Some(m) =>
                     method = m
                 }
                 start = idx + 1
