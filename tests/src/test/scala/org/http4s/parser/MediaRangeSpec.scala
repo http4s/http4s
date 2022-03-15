@@ -32,7 +32,7 @@ class MediaRangeSpec extends Http4sSuite {
       List("aif", "aiff", "aifc"),
     )
 
-  def ext = Map("foo" -> "bar")
+  def ext: Map[String,String] = Map("foo" -> "bar")
 
   test("MediaRanges should Perform equality correctly") {
     assertEquals(`text/*`, `text/*`)

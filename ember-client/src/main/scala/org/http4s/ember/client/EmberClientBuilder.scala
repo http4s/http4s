@@ -240,8 +240,8 @@ object EmberClientBuilder {
     }
     val maxTotal: Int = 100
     val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
-    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
-    val userAgent = Some(
+    val additionalSocketOptions: List[SocketOptionMapping[_]] = Nil
+    val userAgent: Some[`User-Agent`] = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
     )
 

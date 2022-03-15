@@ -154,7 +154,7 @@ class MessageSuite extends Http4sSuite {
     assertEquals(updatedReq.pathInfo, path"/quux")
   }
 
-  val cookieList = List(
+  val cookieList: List[RequestCookie] = List(
     RequestCookie("test1", "value1"),
     RequestCookie("test2", "value2"),
     RequestCookie("test3", "value3"),

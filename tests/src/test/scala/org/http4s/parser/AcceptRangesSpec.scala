@@ -24,7 +24,7 @@ import org.http4s.syntax.header._
 class AcceptRangesSpec extends Http4sSuite {
   def parse(value: String): ParseResult[`Accept-Ranges`] = `Accept-Ranges`.parse(value)
 
-  val ranges = List(
+  private val ranges = List(
     `Accept-Ranges`.bytes,
     `Accept-Ranges`.none,
     `Accept-Ranges`(RangeUnit("foo")),
