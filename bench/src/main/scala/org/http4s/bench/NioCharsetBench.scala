@@ -46,13 +46,13 @@ class NioCharsetBench {
   private val scalaCache: mutable.Map[String, NioCharset] =
     mutable.Map(javaCache.asScala.toSeq: _*)
 
-  def javaCached(name: String): Either[UnsupportedCharsetException,NioCharset] =
+  def javaCached(name: String): Either[UnsupportedCharsetException, NioCharset] =
     javaCache.get(name.toLowerCase(Locale.ROOT)) match {
       case null => Left(new UnsupportedCharsetException(name))
       case cs => Right(cs)
     }
 
-  def scalaCached(name: String): Either[UnsupportedCharsetException,NioCharset] =
+  def scalaCached(name: String): Either[UnsupportedCharsetException, NioCharset] =
     scalaCache.get(name.toLowerCase(Locale.ROOT)) match {
       case None => Left(new UnsupportedCharsetException(name))
       case Some(cs) => Right(cs)

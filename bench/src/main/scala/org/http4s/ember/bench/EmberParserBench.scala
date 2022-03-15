@@ -64,7 +64,8 @@ object EmberParserBench {
     var resp: Response[IO] = _
     var reqBytes: Array[Byte] = _
     var respBytes: Array[Byte] = _
-    val read: IO[Option[Chunk[Byte]]] = IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
+    val read: IO[Option[Chunk[Byte]]] =
+      IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
 
     @Setup(Level.Trial)
     def setup(): Unit = {
