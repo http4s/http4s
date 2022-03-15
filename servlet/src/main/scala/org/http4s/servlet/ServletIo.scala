@@ -57,7 +57,7 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
     val flush = response.isChunked
     response.body.chunks
       .evalTap { chunk =>
-        Async[F].delay {
+        Async[F].blocking {
           // Avoids copying for specialized chunks
           val byteChunk = chunk.toArraySlice
           out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
