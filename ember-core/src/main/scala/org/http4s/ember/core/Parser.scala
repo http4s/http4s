@@ -446,7 +446,7 @@ private[ember] object Parser {
 
     def parseUnknownBody[F[_]: Concurrent](
         buffer: Array[Byte],
-        read: Read[F],
+        read: Read[F]
     ): F[(EntityBody[F], Drain[F])] =
       Ref[F].of(false).map { consumed =>
         lazy val readAll: Pull[F, Byte, Unit] =
@@ -460,7 +460,7 @@ private[ember] object Parser {
             .eval(consumed.get)
             .ifM(
               ifTrue = Stream.raiseError(BodyAlreadyConsumedError()),
-              ifFalse = Stream.chunk(Chunk.array(buffer)) ++ readAll.stream,
+              ifFalse = Stream.chunk(Chunk.array(buffer)) ++ readAll.stream
             )
 
         val drain: Drain[F] = (None: Option[Array[Byte]]).pure[F]
