@@ -183,12 +183,7 @@ trait Client[F[_]] {
   private[client] def translateImpl[G[_]: MonadCancelThrow](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
-    Client((req: Request[G]) =>
-      run(
-        req.mapK(gK)
-      ).mapK(fk)
-        .map(_.mapK(fk))
-    )
+    new DefaultTranslatedClient[F, G](this, fk, gK)
 }
 
 object Client {
