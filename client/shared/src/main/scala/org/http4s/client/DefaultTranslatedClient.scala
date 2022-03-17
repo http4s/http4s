@@ -12,13 +12,12 @@ import org.http4s.headers.Accept
 import org.http4s.headers.MediaRangeAndQValue
 
 private[http4s] class DefaultTranslatedClient[F[_], G[_]](
-  client: Client[F],
-  fk: F ~> G,
-  gk: G ~> F
-)
-  (implicit F: MonadCancelThrow[F], G: MonadCancelThrow[G])
+    client: Client[F],
+    fk: F ~> G,
+    gk: G ~> F,
+)(implicit F: MonadCancelThrow[F], G: MonadCancelThrow[G])
     extends Client[G] {
-  final def run(req: Request[G]): Resource[G, Response[G]] = 
+  final def run(req: Request[G]): Resource[G, Response[G]] =
     client.run(req.mapK(gk)).mapK(fk).map(_.mapK(fk))
 
   /** Submits a request, and provides a callback to process the response.
@@ -72,10 +71,10 @@ private[http4s] class DefaultTranslatedClient[F[_], G[_]](
     Stream.resource(run(req))
 
   def streaming[A](req: Request[G])(f: Response[G] => Stream[G, A]): Stream[G, A] =
-    Stream.resource(client.run(req.mapK(gk))).translate(fk).flatMap(
-      resp => 
-        f(resp.mapK(fk)).translate(gk).translate(fk)
-    )
+    Stream
+      .resource(client.run(req.mapK(gk)))
+      .translate(fk)
+      .flatMap(resp => f(resp.mapK(fk)).translate(gk).translate(fk))
 
   def streaming[A](req: G[Request[G]])(f: Response[G] => Stream[G, A]): Stream[G, A] =
     Stream.eval(req).flatMap(streaming(_)(f))
