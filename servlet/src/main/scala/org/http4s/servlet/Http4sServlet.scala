@@ -87,22 +87,18 @@ abstract class Http4sServlet[F[_]](
     // This F.attempt.flatMap can be interrupted, which prevents the body from
     // running, which prevents the response from finalizing.  Woe betide you if
     // your effect isn't Concurrent.
-    F.uncancelable { poll =>
-      poll(F.delay {
-        servletResponse.setStatus(response.status.code)
-        // Transfer-Encodings are the domain of the servlet container.
-        // We don't pass them along, but the bodyWriter may key on it to
-        // flush each chunk.
-        for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
-          servletResponse.addHeader(header.name.toString, header.value)
-      }).attempt.flatMap {
+    F.delay {
+      servletResponse.setStatus(response.status.code)
+      for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
+        servletResponse.addHeader(header.name.toString, header.value)
+    }.attempt
+      .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
           response.body.drain.compile.drain.handleError { t2 =>
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }
-    }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request[F]] =
     for {
