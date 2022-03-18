@@ -4,6 +4,60 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.11 (2022-03-18)
+
+This is a maintenance release, binary compatible with the 0.23.x series.  It also includes the changes in 0.22.12.
+
+* http4s-server
+    * Add Additional ErrorHandling Options by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6047
+
+* http4s-client
+    * Make `WSClient` and friends public by @armanbilge in https://github.com/http4s/http4s/pull/6005
+    * Add OptionT Based Versions Of expectOption* by @isomarcte in https://github.com/http4s/http4s/pull/6135
+
+* http4s-ember-core
+    * Replace npm hpack.js with pure Scala.js hpack by @armanbilge in https://github.com/http4s/http4s/pull/6009
+
+* http4s-ember-client
+    * Add scaladocs for EmberClientBuilder by @valencik in https://github.com/http4s/http4s/pull/5999
+    * Fix ember client cancellation bug by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6085
+
+* http4s-blaze-core
+    * Optimize CachingChunkWriter for Chunk.empty case by @wjoel in https://github.com/http4s/http4s/pull/6092
+    * Add micro-opts for `CachingChunkWriter` by @danicheg in https://github.com/http4s/http4s/pull/6096
+    * Further reduce ExecutionContexts in blaze by @rossabaker in https://github.com/http4s/http4s/pull/6118
+
+* http4s-servlet
+    * Adds the async timeout as a method param by @yuferpegom in https://github.com/http4s/http4s/pull/6037
+    * Use blocking EC in the `BlockingServletIo` by @danicheg in https://github.com/http4s/http4s/pull/6133
+
+* Behind the scenes
+    * Merge Jetty forward from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/6020
+    * Merge 0.22 into 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6004
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6031
+    * Build tweaks in case there's another 0.21 by @rossabaker in https://github.com/http4s/http4s/pull/6034
+    * Update sbt-scalajs, scalajs-compiler, ... to 1.9.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6045
+    * Update http4s-crypto to 0.2.2 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6053
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6054
+    * Update fs2-core, fs2-io, ... to 3.2.5 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6065
+    * Update cats-effect, cats-effect-laws, ... to 3.3.6 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6073
+    * Caching Middleware - Small Rewrites by @diesalbla in https://github.com/http4s/http4s/pull/6066
+    * Ignore `sbt-buildinfo` updates by @danicheg in https://github.com/http4s/http4s/pull/6084
+    * Update Scala Steward config by @danicheg in https://github.com/http4s/http4s/pull/6089
+    * Message: add pipeBodyThrough method by @diesalbla in https://github.com/http4s/http4s/pull/6011
+    * Update cats-effect, cats-effect-laws, ... to 3.3.7 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6093
+    * Merge 0.22 -> 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/6094
+    * Remove unused ExecutionContexts in blaze-core by @rossabaker in https://github.com/http4s/http4s/pull/6100
+    * Deprecate internal Trampoline by @rossabaker in https://github.com/http4s/http4s/pull/6119
+    * Backport mergify config to 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6126
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6125
+
+* New Contributors
+    * @yuferpegom made their first contribution in https://github.com/http4s/http4s/pull/6037
+    * @Daenyth made their first contribution in https://github.com/http4s/http4s/pull/6097
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.10...v0.23.11
+
 # v0.22.12 (2022-03-14)
 
 This is a maintenance release, binary compatible with the 0.22.x series.  It also includes all the bugfixes from 0.21.32.
