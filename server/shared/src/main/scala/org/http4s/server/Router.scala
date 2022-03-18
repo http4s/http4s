@@ -19,9 +19,45 @@ package server
 
 import cats._
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 
 object Router {
+
+  object Segment {
+    implicit def instances[F[_]: Functor]: Functor[Segment[F, *]] =
+      new Functor[Segment[F, *]] {
+        override def map[A, B](fa: Segment[F, A])(f: A => B): Segment[F, B] =
+          Segment(fa.run(_).map(f))
+      }
+  }
+
+  final case class Segment[F[_], A](run: Uri.Path.Segment => OptionT[F, A]) {
+    def apply(routes: ContextRoutes[A, F])(implicit F: Monad[F]): HttpRoutes[F] =
+      Kleisli { req =>
+        for {
+          head <- OptionT.fromOption[F](req.pathInfo.segments.headOption)
+          a <- run(head)
+          caret = req.attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+          response <- routes(
+            ContextRequest(a, req.withAttribute(Request.Keys.PathInfoCaret, caret + 1))
+          )
+        } yield response
+      }
+
+    def ->(routes: ContextRoutes[A, F]): Routable[F] =
+      Routable.Dynamic(this, routes)
+  }
+
+  object Routable {
+    final case class Static[F[_]](tupled: (String, HttpRoutes[F])) extends Routable[F]
+    final case class Dynamic[F[_], A](segment: Segment[F, A], routes: ContextRoutes[A, F])
+        extends Routable[F]
+
+    implicit def tuple[F[_]](tupled: (String, HttpRoutes[F])): Routable[F] =
+      Static(tupled)
+  }
+  sealed trait Routable[F[_]]
 
   /** Defines an [[HttpRoutes]] based on list of mappings.
     * @see define
@@ -50,6 +86,19 @@ object Router {
           )(req)
         }
     }
+
+  def of[F[_]: Monad](mappings: Routable[F]*): HttpRoutes[F] =
+    dynamic(mappings: _*)(HttpRoutes.empty[F])
+
+  def dynamic[F[_]: Monad](
+      mappings: Routable[F]*
+  )(default: HttpRoutes[F]): HttpRoutes[F] = {
+    val (statics, dynamic) = mappings.toList.partitionEither {
+      case Routable.Static(tupled) => Left(tupled)
+      case Routable.Dynamic(segment, route) => Right(segment(route))
+    }
+    dynamic.foldLeft(define(statics: _*)(default))(_ <+> _)
+  }
 
   private[server] def translate[F[_]](prefix: Uri.Path)(req: Request[F]): Request[F] = {
     val newCaret = req.pathInfo.findSplit(prefix)

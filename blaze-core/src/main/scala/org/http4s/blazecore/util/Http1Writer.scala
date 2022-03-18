@@ -36,7 +36,7 @@ private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
           F.unit
 
         case Outcome.Errored(_) | Outcome.Canceled() =>
-          body.drain.compile.drain.handleError { t2 =>
+          body.compile.drain.handleError { t2 =>
             Http1Writer.logger.error(t2)("Error draining body")
           }
       } >> writeEntityBody(body)
