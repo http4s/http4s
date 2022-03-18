@@ -367,7 +367,9 @@ lazy val server = libraryCrossProject("server")
         .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
       ProblemFilters
         .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.server.middleware.CSRF.SHA1ByteLen"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.server.middleware.CSRF.SHA1ByteLen"
+      ),
     ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
