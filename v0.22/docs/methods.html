@@ -202,9 +202,9 @@
 </span><span class="keyword">def</span><span> </span><span class="declaration-name">deleteTweet</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] = ???
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">tweetWithIdEncoder</span><span> = </span><span class="identifier">jsonEncoderOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">TweetWithId</span><span>]
-</span><span class="comment">// tweetWithIdEncoder: EntityEncoder[IO, TweetWithId] = org.http4s.EntityEncoder$$anon$1@cc4620a
+</span><span class="comment">// tweetWithIdEncoder: EntityEncoder[IO, TweetWithId] = org.http4s.EntityEncoder$$anon$1@78b6ac79
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">tweetDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Tweet</span><span>]
-</span><span class="comment">// tweetDecoder: EntityDecoder[IO, Tweet] = org.http4s.EntityDecoder$$anon$2@37a9d47a
+</span><span class="comment">// tweetDecoder: EntityDecoder[IO, Tweet] = org.http4s.EntityDecoder$$anon$2@3b619a22
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">tweetService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;tweets&quot;</span><span> / </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">tweetId</span><span>) =&gt;
@@ -224,7 +224,7 @@
       .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>())
 }
 </span><span class="comment">// tweetService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21690/2100468014@46550dcb
+//   run = org.http4s.HttpRoutes$$$Lambda$21647/1432035914@4efbc39
 // )</span></code></pre>
         <p>There&#39;s also <a href="https://http4s.org/v0.22/api//org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
         implementation of the <code>HEAD</code> route.</p>
