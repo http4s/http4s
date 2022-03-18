@@ -103,7 +103,7 @@ abstract class Http4sServlet[F[_]](service: HttpApp[F], servletIo: ServletIo[F])
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { t2 =>
+          response.body.compile.drain.handleError { t2 =>
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }
@@ -210,7 +210,7 @@ object Http4sServlet {
     }) {
       case Right(()) => bodyWriter(response)
       case Left(t) =>
-        response.body.drain.compile.drain.handleError { case t2 =>
+        response.body.compile.drain.handleError { t2 =>
           logger.error(t2)("Error draining body")
         } *> F.raiseError(t)
     }
