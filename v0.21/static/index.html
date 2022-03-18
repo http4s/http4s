@@ -32,7 +32,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -190,7 +192,7 @@ deliver them from there. For example, for all resources in the classpath under <
 
 <pre><code class="language-scala">val routes = resourceService[IO](ResourceService.Config(&quot;/assets&quot;, blocker))
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.ResourceService$$$Lambda$9636/1274858838@6daec64d
+//   org.http4s.server.staticcontent.ResourceService$$$Lambda$9613/1622261291@c285d62
 // )
 </code></pre>
 
@@ -205,7 +207,7 @@ val routes = HttpRoutes.of[IO] {
     static(path, blocker, request)
 }
 // routes: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8256/345570324@2dd97322
+//   org.http4s.HttpRoutes$$$Lambda$8265/1868696275@6042153a
 // )
 </code></pre>
 
@@ -236,7 +238,7 @@ val webjars: HttpRoutes[IO] = webjarService(
   )
 )
 // webjars: HttpRoutes[IO] = Kleisli(
-//   org.http4s.server.staticcontent.WebjarService$$$Lambda$9637/2097272192@11a1215f
+//   org.http4s.server.staticcontent.WebjarService$$$Lambda$9614/759898705@505b357a
 // )
 </code></pre>
 

@@ -32,7 +32,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -123,7 +125,7 @@ import org.http4s.implicits._
     Ok()
 }
 // service: HttpRoutes[IO] = Kleisli(
-//   org.http4s.HttpRoutes$$$Lambda$8256/345570324@2cd1d646
+//   org.http4s.HttpRoutes$$$Lambda$8265/1868696275@4351abb
 // )
 
 val request = Request[IO](Method.GET, uri&quot;/&quot;)
@@ -133,7 +135,7 @@ val request = Request[IO](Method.GET, uri&quot;/&quot;)
 //   HttpVersion(1, 1),
 //   Headers(),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4c46163c
+//   io.chrisdavenport.vault.Vault@68351c32
 // )
 
 service.orNotFound(request).unsafeRunSync()
@@ -142,7 +144,7 @@ service.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@408fdee5
+//   io.chrisdavenport.vault.Vault@7d921033
 // )
 </code></pre>
 
@@ -153,7 +155,7 @@ service.orNotFound(request).unsafeRunSync()
 
 <pre><code class="language-scala">val corsService = CORS.policy.withAllowOriginAll(service)
 // corsService: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORSPolicy$$Lambda$9014/1187962216@f7892c0
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$8998/713668082@dcdae66
 // )
 
 corsService.orNotFound(request).unsafeRunSync()
@@ -162,7 +164,7 @@ corsService.orNotFound(request).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@2d39168f
+//   io.chrisdavenport.vault.Vault@21019da6
 // )
 </code></pre>
 
@@ -178,7 +180,7 @@ val corsRequest = request.putHeaders(originHeader)
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://somewhere.com),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4c46163c
+//   io.chrisdavenport.vault.Vault@68351c32
 // )
 
 corsService.orNotFound(corsRequest).unsafeRunSync()
@@ -187,7 +189,7 @@ corsService.orNotFound(corsRequest).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@513212e2
+//   io.chrisdavenport.vault.Vault@6195d138
 // )
 </code></pre>
 
@@ -211,7 +213,7 @@ have a variety of origins and methods.</p>
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://google.com),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@6ff486d7
+//   io.chrisdavenport.vault.Vault@c6b56b1
 // )
 val yahooPut = Request[IO](Method.PUT, uri&quot;/&quot;, headers = Headers.of(Header(&quot;Origin&quot;, &quot;https://yahoo.com&quot;)))
 // yahooPut: Request[IO] = (
@@ -220,7 +222,7 @@ val yahooPut = Request[IO](Method.PUT, uri&quot;/&quot;, headers = Headers.of(He
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://yahoo.com),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@24d1f77b
+//   io.chrisdavenport.vault.Vault@6c3577c4
 // )
 val duckPost = Request[IO](Method.POST, uri&quot;/&quot;, headers = Headers.of(Header(&quot;Origin&quot;, &quot;https://duckduckgo.com&quot;)))
 // duckPost: Request[IO] = (
@@ -229,7 +231,7 @@ val duckPost = Request[IO](Method.POST, uri&quot;/&quot;, headers = Headers.of(H
 //   HttpVersion(1, 1),
 //   Headers(Origin: https://duckduckgo.com),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@41b90000
+//   io.chrisdavenport.vault.Vault@41742b49
 // )
 </code></pre>
 
@@ -246,7 +248,7 @@ and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it
   .withMaxAge(1.day)
   .apply(service)
 // corsMethodSvc: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORSPolicy$$Lambda$9014/1187962216@5dafd7
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$8998/713668082@e272e4e
 // )
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
@@ -255,7 +257,7 @@ corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4b545335
+//   io.chrisdavenport.vault.Vault@58af2fe5
 // )
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
 // res4: Response[IO] = Response(
@@ -263,7 +265,7 @@ corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@60150f0b
+//   io.chrisdavenport.vault.Vault@1f63f863
 // )
 corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
 // res5: Response[IO] = Response(
@@ -271,7 +273,7 @@ corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@6925aa09
+//   io.chrisdavenport.vault.Vault@7fadb6a5
 // )
 </code></pre>
 
@@ -291,7 +293,7 @@ val corsOriginSvc = CORS.policy
   .withMaxAge(1.day)
   .apply(service)
 // corsOriginSvc: Http[cats.data.OptionT[IO, A], IO] = Kleisli(
-//   org.http4s.server.middleware.CORSPolicy$$Lambda$9014/1187962216@4eb93ed
+//   org.http4s.server.middleware.CORSPolicy$$Lambda$8998/713668082@48cfa240
 // )
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
@@ -300,7 +302,7 @@ corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Vary: Origin),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@6d4fb5be
+//   io.chrisdavenport.vault.Vault@693e6cbb
 // )
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
 // res7: Response[IO] = Response(
@@ -308,7 +310,7 @@ corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@256a924b
+//   io.chrisdavenport.vault.Vault@699e311f
 // )
 corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
 // res8: Response[IO] = Response(
@@ -316,7 +318,7 @@ corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@615b110d
+//   io.chrisdavenport.vault.Vault@7b14aa17
 // )
 </code></pre>
 

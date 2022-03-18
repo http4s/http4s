@@ -32,7 +32,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -145,7 +147,7 @@ case class Video(body: String) extends Resp
 //       HttpVersion(1, 1),
 //       Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
 //       Stream(..),
-//       io.chrisdavenport.vault.Vault@798094e8
+//       io.chrisdavenport.vault.Vault@3382b9d0
 //     )
 //   ),
 //   &lt;function1&gt;,
@@ -176,15 +178,15 @@ val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =&gt
     m.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
   }
 }
-// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@25baf541
+// audioDec: EntityDecoder[IO, Audio] = org.http4s.EntityDecoder$$anon$7@2326c424
 val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =&gt;
   EitherT {
     m.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
   }
 }
-// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@68952b90
+// videoDec: EntityDecoder[IO, Video] = org.http4s.EntityDecoder$$anon$7@b906692
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@250de5
+// bothDec: EntityDecoder[IO, Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@38ba0a1b
 println(response.flatMap(_.as[Resp]).unsafeRunSync())
 // Audio()
 </code></pre>

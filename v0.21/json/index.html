@@ -32,7 +32,9 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
   <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
-  <a class="dropdown-item" href="/v0.21/">v0.21 (stable)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
   <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
@@ -96,7 +98,7 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.21.30&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.21.32&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
@@ -177,7 +179,7 @@ val greeting = hello(&quot;world&quot;)
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4abb1746
+//   io.chrisdavenport.vault.Vault@3ec23ae4
 // )
 </code></pre>
 
@@ -194,7 +196,7 @@ useful on client requests:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 16),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@6b6ef7ce
+//   io.chrisdavenport.vault.Vault@6d636c30
 // )
 </code></pre>
 
@@ -230,7 +232,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { (hello: Hello) =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@4748ec84
+// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@2a15f153
 
 Hello(&quot;Alice&quot;).asJson
 // res4: Json = JObject(object[hello -&gt; &quot;Alice&quot;])
@@ -256,7 +258,7 @@ and responses for our case classes:</p>
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 17),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@4ea2c213
+//   io.chrisdavenport.vault.Vault@5afb5f6a
 // )
 POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;).unsafeRunSync()
 // res7: Request[IO] = (
@@ -265,7 +267,7 @@ POST(User(&quot;Bob&quot;).asJson, uri&quot;/hello&quot;).unsafeRunSync()
 //   HttpVersion(1, 1),
 //   Headers(Content-Type: application/json, Content-Length: 14),
 //   Stream(..),
-//   io.chrisdavenport.vault.Vault@22ca348e
+//   io.chrisdavenport.vault.Vault@6633b553
 // )
 </code></pre>
 
@@ -307,7 +309,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@420acfd3
+// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@5381e928
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync()
 // res11: User = User(&quot;Alice&quot;)
 
