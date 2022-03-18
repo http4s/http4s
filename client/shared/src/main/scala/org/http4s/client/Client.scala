@@ -17,7 +17,7 @@
 package org.http4s
 package client
 
-import cats.data.Kleisli
+import cats.data._
 import cats.effect.Ref
 import cats.effect._
 import cats.syntax.all._
@@ -117,6 +117,7 @@ trait Client[F[_]] {
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): F[Option[A]]
+
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
@@ -179,6 +180,16 @@ trait Client[F[_]] {
   def translate[G[_]: MonadCancelThrow](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
+
+  /** As [[#expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
+  final def expectOptionOrT[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]
+  ): OptionT[F, A] =
+    OptionT(expectOptionOr(req)(onError)(d))
+
+  /** As [[#expectOption]], but defined in terms of [[cats.data.OptionT]]. */
+  final def expectOptionT[A](req: Request[F])(implicit d: EntityDecoder[F, A]): OptionT[F, A] =
+    OptionT(expectOption[A](req)(d))
 
   private[client] def translateImpl[G[_]: MonadCancelThrow](
       fk: F ~> G
