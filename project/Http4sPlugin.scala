@@ -303,7 +303,6 @@ object Http4sPlugin extends AutoPlugin {
       ),
       githubWorkflowPublishPostamble := Seq(
         setupHugoStep,
-        sitePublishStep("website"),
         sitePublishStep("docs")
       ),
       // this results in nonexistant directories trying to be compressed
