@@ -3,6 +3,103 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M32 (2022-03-18)
+
+This is a milestone release.  It is binary incompatible with previous releases.  It includes the changes through v0.23.11.
+
+http4s-async-http-client is deprecated, and planned to be removed in the next milestone.  Please plan accordingly.
+
+* http4s-core
+    * Optimize `EntityDecoder.{collectBinary|collectByteVector|error|void}` by @danicheg in https://github.com/http4s/http4s/pull/6112
+
+* http4s-server
+    * Optimize `ResponseLogger` and `RequestLogger` by @danicheg in https://github.com/http4s/http4s/pull/6110
+
+* http4s-blaze-core
+    * Optimize Http1Writer for cases when the entity is Empty or Strict by @wjoel in https://github.com/http4s/http4s/pull/6080
+    * Avoid draining body on error/cancel for Entity.Strict and Empty by @wjoel in https://github.com/http4s/http4s/pull/6091
+    * Collect entity from parser, support Entity.Strict and Empty by @wjoel in https://github.com/http4s/http4s/pull/6090
+
+* http4s-blaze-client
+    * Remove deprecated `BlazeClientBuilder` by @danicheg in https://github.com/http4s/http4s/pull/6109
+
+* http4s-servlet
+    * Remove redundant draining of response body in `Http4sServlet`  by @danicheg in https://github.com/http4s/http4s/pull/6116
+
+* http4s-prometheus
+    * Update simpleclient, simpleclient_common, ... to 0.15.0 by @scala-steward in https://github.com/http4s/http4s/pull/6007
+
+* Documentation
+    * Fresh up the version page by @danicheg in https://github.com/http4s/http4s/pull/6008
+
+* Behind the scenes
+    * Scala.js updates come from 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6046
+    * Update sbt-buildinfo to 0.11.0 by @scala-steward in https://github.com/http4s/http4s/pull/6061
+    * Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6056
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6101
+    * Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6141
+
+* New Contributors
+    * @wjoel made their first contribution in https://github.com/http4s/http4s/pull/6080
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.11...v1.0.0-M32
+
+# v0.23.11 (2022-03-18)
+
+This is a maintenance release, binary compatible with the 0.23.x series.  It also includes the changes in 0.22.12.
+
+* http4s-core
+    * Update sbt-scalajs, scalajs-compiler, ... to 1.9.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6045
+    * Update http4s-crypto to 0.2.2 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6053
+    * Update fs2-core, fs2-io, ... to 3.2.5 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6065
+    * Update cats-effect, cats-effect-laws, ... to 3.3.7 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6093
+
+* http4s-server
+    * Add Additional ErrorHandling Options by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6047
+
+* http4s-client
+    * Make `WSClient` and friends public by @armanbilge in https://github.com/http4s/http4s/pull/6005
+    * Add OptionT Based Versions Of expectOption* by @isomarcte in https://github.com/http4s/http4s/pull/6135
+
+* http4s-ember-core
+    * Replace npm hpack.js with pure Scala.js hpack by @armanbilge in https://github.com/http4s/http4s/pull/6009
+
+* http4s-ember-client
+    * Add scaladocs for EmberClientBuilder by @valencik in https://github.com/http4s/http4s/pull/5999
+    * Fix ember client cancellation bug by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6085
+
+* http4s-blaze-core
+    * Optimize CachingChunkWriter for Chunk.empty case by @wjoel in https://github.com/http4s/http4s/pull/6092
+    * Add micro-opts for `CachingChunkWriter` by @danicheg in https://github.com/http4s/http4s/pull/6096
+    * Further reduce ExecutionContexts in blaze by @rossabaker in https://github.com/http4s/http4s/pull/6118
+
+* http4s-servlet
+    * Adds the async timeout as a method param by @yuferpegom in https://github.com/http4s/http4s/pull/6037
+    * Use blocking EC in the `BlockingServletIo` by @danicheg in https://github.com/http4s/http4s/pull/6133
+
+* Behind the scenes
+    * Merge Jetty forward from 0.22 by @rossabaker in https://github.com/http4s/http4s/pull/6020
+    * Merge 0.22 into 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6004
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6031
+    * Build tweaks in case there's another 0.21 by @rossabaker in https://github.com/http4s/http4s/pull/6034
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6054
+    * Update cats-effect, cats-effect-laws, ... to 3.3.6 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6073
+    * Caching Middleware - Small Rewrites by @diesalbla in https://github.com/http4s/http4s/pull/6066
+    * Ignore `sbt-buildinfo` updates by @danicheg in https://github.com/http4s/http4s/pull/6084
+    * Update Scala Steward config by @danicheg in https://github.com/http4s/http4s/pull/6089
+    * Message: add pipeBodyThrough method by @diesalbla in https://github.com/http4s/http4s/pull/6011
+    * Merge 0.22 -> 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/6094
+    * Remove unused ExecutionContexts in blaze-core by @rossabaker in https://github.com/http4s/http4s/pull/6100
+    * Deprecate internal Trampoline by @rossabaker in https://github.com/http4s/http4s/pull/6119
+    * Backport mergify config to 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6126
+    * Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6125
+    * Fix the unidoc artifact by @armanbilge in https://github.com/http4s/http4s/pull/6142
+
+* New Contributors
+    * @yuferpegom made their first contribution in https://github.com/http4s/http4s/pull/6037
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.10...v0.23.11
+
 # v0.22.12 (2022-03-14)
 
 This is a maintenance release, binary compatible with the 0.22.x series.  It also includes all the bugfixes from 0.21.32.
