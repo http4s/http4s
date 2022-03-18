@@ -8,8 +8,8 @@ ThisBuild / crossScalaVersions := Seq(scala_3, scala_213)
 ThisBuild / tlBaseVersion := "1.0"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
-ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
-ThisBuild / tlSitePublishBranch := Some("series/0.23")
+ThisBuild / tlCiReleaseBranches := Seq("main")
+ThisBuild / tlSitePublishBranch := Some("main")
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
