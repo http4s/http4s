@@ -16,10 +16,8 @@
 
 package org.http4s.blazecore.util
 
-import org.http4s.blaze.util.Execution
-
 import scala.concurrent.ExecutionContext
 
 private[util] trait ParasiticExecutionContextCompat {
-  final def parasitic: ExecutionContext = Execution.trampoline
+  final def parasitic: ExecutionContext = ExecutionContext.parasitic
 }
