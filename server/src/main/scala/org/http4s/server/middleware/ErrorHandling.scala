@@ -17,17 +17,18 @@
 package org.http4s.server
 package middleware
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import cats._
 import cats.syntax.all._
 import org.http4s._
 
 object ErrorHandling {
-  def apply[F[_], G[_]](k: Kleisli[F, Request[G], Response[G]])(implicit
-      F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
+  def apply[F[_], G[_]](
+    k: Kleisli[F, Request[G], Response[G]],
+    errorHandler: Request[G] => PartialFunction[Throwable, F[Response[G]]]
+  )(implicit F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
-      val pf: PartialFunction[Throwable, F[Response[G]]] =
-        inDefaultServiceErrorHandler[F, G](F)(req)
+      val pf = errorHandler(req)
       k.run(req).handleErrorWith { e =>
         pf.lift(e) match {
           case Some(resp) => resp
@@ -35,6 +36,28 @@ object ErrorHandling {
         }
       }
     }
+
+  def httpRoutes[F[_]: MonadThrow](
+    httpRoutes: HttpRoutes[F],
+    errorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]
+  ): HttpRoutes[F] =
+    apply(
+      httpRoutes,
+      req => {
+        case e => OptionT(errorHandler(req).lift(e).sequence)
+      }
+    )
+
+  def httpApp[F[_]: MonadThrow](
+    httpApp: HttpApp[F],
+    errorHandler: Request[F] => PartialFunction[Throwable, F[Response[F]]]
+  ): HttpApp[F] =
+    apply(httpApp, errorHandler)
+
+  def apply[F[_], G[_]](
+    k: Kleisli[F, Request[G], Response[G]]
+  )(implicit F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
+    apply(k, inDefaultServiceErrorHandler[F, G](F))
 
   def httpRoutes[F[_]: MonadThrow](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
