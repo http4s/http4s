@@ -476,12 +476,8 @@ object CSRF {
   def proxyOriginCheck[F[_]](r: Request[F], host: Host, xff: `X-Forwarded-For`): Boolean =
     r.headers.get[Host].contains(host) || r.headers.get[`X-Forwarded-For`].contains(xff)
 
-  // /
-
   private val SigningAlgorithm = HmacAlgorithm.SHA1
   val SigningAlgo: String = "HmacSHA1"
-  @deprecated("Unused. Will be removed", "0.20.10")
-  val SHA1ByteLen: Int = 20
   val CSRFTokenLength: Int = 32
 
   /** An instance of SecureRandom to generate
