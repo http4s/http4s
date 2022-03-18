@@ -25,7 +25,7 @@ import org.asynchttpclient.{Response => _}
 
 import scala.jdk.CollectionConverters._
 
-@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
+@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.23.11")
 class AsyncHttpClientStats[F[_]](private val underlying: ClientStats)(implicit F: Sync[F]) {
 
   def getTotalConnectionCount: F[Long] = F.delay(underlying.getTotalConnectionCount)
