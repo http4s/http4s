@@ -1,7 +1,7 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.{ScaladocApiMapping, SiteConfig}
+import org.http4s.sbt.ScaladocApiMapping
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -9,6 +9,9 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBaseVersion := "0.23"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
+
+ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
+ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
@@ -74,6 +77,7 @@ lazy val modules: List[CompositeProject] = List(
   twirl,
   scalatags,
   bench,
+  unidocs,
   examples,
   examplesBlaze,
   examplesDocker,
@@ -1090,26 +1094,11 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
-lazy val docs = http4sProject("docs")
-  .enablePlugins(
-    GhpagesPlugin,
-    NoPublishPlugin,
-    ScalaUnidocPlugin,
-    MdocPlugin,
-    LaikaPlugin,
-  )
-  .settings(docsProjectSettings)
+lazy val unidocs = http4sProject("unidocs")
+  .enablePlugins(TypelevelUnidocPlugin)
   .settings(
-    run / fork := true,
-    libraryDependencies ++= Seq(
-      circeGeneric,
-      circeLiteral,
-      cryptobits,
-      logbackClassic % Runtime,
-    ),
-    description := "Documentation for http4s",
-    startYear := Some(2013),
-    autoAPIMappings := true,
+    moduleName := "http4s-docs",
+    description := "Unified API documentation for http4s",
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         (List[ProjectReference](
@@ -1120,44 +1109,36 @@ lazy val docs = http4sProject("docs")
           examplesJetty,
           examplesTomcat,
           examplesWar,
+          examplesEmber,
+          exampleEmberServerH2,
+          exampleEmberClientH2,
           scalafixInternalInput,
           scalafixInternalOutput,
           scalafixInternalRules,
           scalafixInternalTests,
+          docs,
         ) ++ root.js.aggregate): _*
       ),
-    mdocIn := (Compile / sourceDirectory).value / "mdoc",
-    tlFatalWarningsInCi := false,
-    laikaExtensions := SiteConfig.extensions,
-    laikaConfig := SiteConfig.config(versioned = true).value,
-    laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
-      SiteConfig.homeURL.value,
-      includeLandingPage = false,
-    ),
-    laikaIncludeEPUB := true,
-    laikaIncludePDF := false,
-    Laika / sourceDirectories := Seq(mdocOut.value),
-    ghpagesPrivateMappings := (laikaSite / mappings).value ++ {
-      val docsPrefix = extractDocsPrefix(version.value)
-      for ((f, d) <- (ScalaUnidoc / packageDoc / mappings).value)
-        yield (f, s"$docsPrefix/api/$d")
-    },
-    ghpagesCleanSite / includeFilter := {
-      new FileFilter {
-        val docsPrefix = extractDocsPrefix(version.value)
-        def accept(f: File): Boolean = f.getCanonicalPath.startsWith(
-          (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath
-        )
-      }
-    },
     apiMappings ++= {
       ScaladocApiMapping.mappings(
         (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
         scalaBinaryVersion.value,
       )
     },
+  )
+
+lazy val docs = http4sProject("site")
+  .enablePlugins(Http4sSitePlugin)
+  .settings(
+    libraryDependencies ++= Seq(
+      circeGeneric,
+      circeLiteral,
+      cryptobits,
+    ),
+    description := "Documentation for http4s",
+    mdocIn := (Compile / sourceDirectory).value / "mdoc",
+    tlFatalWarningsInCi := false,
+    fork := false,
   )
   .dependsOn(
     client.jvm,
@@ -1168,35 +1149,6 @@ lazy val docs = http4sProject("docs")
     circe.jvm,
     dropwizardMetrics,
     prometheusMetrics,
-  )
-
-lazy val website = http4sProject("website")
-  .enablePlugins(GhpagesPlugin, LaikaPlugin, NoPublishPlugin)
-  .settings(docsProjectSettings)
-  .settings(
-    description := "Common area of http4s.org",
-    startYear := Some(2013),
-    laikaExtensions := SiteConfig.extensions,
-    laikaConfig := SiteConfig.config(versioned = false).value,
-    laikaTheme := SiteConfig.theme(
-      currentVersion = SiteConfig.versions.current,
-      SiteConfig.variables.value,
-      SiteConfig.homeURL.value,
-      includeLandingPage = false,
-    ),
-    Laika / sourceDirectories := Seq(
-      baseDirectory.value / "src" / "hugo" / "content",
-      baseDirectory.value / "src" / "hugo" / "static",
-    ),
-    ghpagesNoJekyll := true,
-    ghpagesPrivateMappings := (laikaSite / mappings).value,
-    ghpagesCleanSite / excludeFilter :=
-      new FileFilter {
-        val v = ghpagesRepository.value.getCanonicalPath + "/v"
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(v) &&
-            f.getCanonicalPath.charAt(v.size).isDigit
-      },
   )
 
 lazy val examples = http4sProject("examples")
