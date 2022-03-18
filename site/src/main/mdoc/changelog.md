@@ -5,7 +5,7 @@ ordered chronologically, so each release contains all changes described below it
 
 # v1.0.0-M32 (2022-03-18)
 
-This is a milestone release.  It is binary incompatible with previous releases.  It incluedes the changes through v0.23.11.
+This is a milestone release.  It is binary incompatible with previous releases.  It includes the changes through v0.23.11.
 
 http4s-async-http-client is deprecated, and planned to be removed in the next milestone.  Please plan accordingly.
 
