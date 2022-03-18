@@ -283,7 +283,13 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F]
-    ): F[(Response[F], Drain[F])] =
+    ): F[(Response[F], Drain[F])] = {
+      // per https://httpwg.org/specs/rfc7230.html#rfc.section.3.3.3
+      def expectNoBody(status: Status): Boolean =
+        status == Status.NoContent ||
+          status == Status.NotModified ||
+          status.responseClass == Status.Informational
+
       for {
         message <- MessageP.parseMessage(buffer, read, maxHeaderSize)
         prelude <- RespPrelude.parsePrelude(message.bytes)
@@ -305,13 +311,19 @@ private[ember] object Parser {
                     .decode(message.rest, read, maxHeaderSize, maxHeaderSize, trailers, rest)) ->
                   rest.get
             }
+          } else if (expectNoBody(prelude.status)) {
+            (baseResp -> (Some(message.rest): Option[Array[Byte]]).pure[F]).pure[F]
           } else {
-            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), message.rest, read).map {
-              case (bodyStream, drain) =>
+            headerP.contentLength
+              .fold(Body.parseUnknownBody(message.rest, read))(
+                Body.parseFixedBody(_, message.rest, read)
+              )
+              .map { case (bodyStream, drain) =>
                 baseResp.withBodyStream(bodyStream) -> drain
-            }
+              }
           }
       } yield resp
+    }
 
     object RespPrelude {
 
@@ -430,6 +442,31 @@ private[ember] object Parser {
         }
       } else {
         (EmptyBody.covary[F], (Some(buffer): Option[Array[Byte]]).pure[F]).pure[F]
+      }
+
+    def parseUnknownBody[F[_]: Concurrent](
+        buffer: Array[Byte],
+        read: Read[F]
+    ): F[(EntityBody[F], Drain[F])] =
+      Ref[F].of(false).map { consumed =>
+        lazy val readAll: Pull[F, Byte, Unit] =
+          Pull.eval(read).flatMap {
+            case Some(c) => Pull.output(c) >> readAll
+            case None => Pull.eval(consumed.set(true)).void
+          }
+
+        val body =
+          Pull
+            .eval(consumed.get)
+            .flatMap {
+              case true => Pull.raiseError(BodyAlreadyConsumedError())
+              case false => Pull.output(Chunk.array(buffer)) >> readAll
+            }
+            .stream
+
+        val drain: Drain[F] = (None: Option[Array[Byte]]).pure[F]
+
+        (body, drain)
       }
 
     final case class BodyAlreadyConsumedError()
