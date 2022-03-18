@@ -25,6 +25,10 @@ import org.http4s.headers.Host
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
+import cats._
+import cats.arrow.FunctionK
+import scodec.bits.ByteVector
+import org.http4s.multipart.Multipart
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
@@ -104,5 +108,41 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
           .flatMap(_.get)
       }
       .assertEquals(Outcome.canceled[IO, Throwable, String])
+  }
+
+  test("translate should be able to catch UnexpectedStatus errors in resource use"){
+    case object MyThrowable extends Throwable
+    val app = HttpApp[IO]{
+      (_: Request[IO]) => Response(Status.InternalServerError).pure[IO]
+    }
+    val client = Client.fromHttpApp(app)
+    val handleError = new (IO ~> IO){
+      def apply[A](fa: IO[A]): IO[A] = fa.adaptError{
+        case _: UnexpectedStatus => MyThrowable
+      }
+    }
+    client.translateImpl[IO](handleError)(FunctionK.id[IO])(MonadCancel[IO], MonadCancel[IO])
+      .expect[String](Request[IO]())
+      .attempt
+      .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
+  }
+
+  test("translate should be able to catch DecodeFailure errors in resource use"){
+    case object MyThrowable extends Throwable
+    val app = HttpApp[IO]{
+      (_: Request[IO]) => Response[IO](Status.Ok)
+        .withEntity(ByteVector("foo".getBytes))
+        .pure[IO]
+    }
+    val client = Client.fromHttpApp(app)
+    val handleError = new (IO ~> IO){
+      def apply[A](fa: IO[A]): IO[A] = fa.adaptError{
+        case _: DecodeFailure => MyThrowable
+      }
+    }
+    client.translateImpl[IO](handleError)(FunctionK.id[IO])(MonadCancel[IO], MonadCancel[IO])
+      .expect[Multipart[IO]](Request[IO]())
+      .attempt
+      .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
   }
 }
