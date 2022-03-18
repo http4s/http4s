@@ -234,7 +234,7 @@ trait Client[F[_]] {
       def uncancelable[A](body: Poll[G] => G[A]): G[A] =
         fk(F.uncancelable { pollF =>
           gk(body(new Poll[G] {
-            def apply[A](ga: G[A]): G[A] = fk(pollF(gk(ga)))
+            def apply[B](gb: G[B]): G[B] = fk(pollF(gk(gb)))
           }))
         })
     }
