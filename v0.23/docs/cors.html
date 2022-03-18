@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
+    <title>CORS</title>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Bjørn Madsen"/>
+    
+      <meta name="author" content="André Rouel"/>
+    
+      <meta name="author" content="Brad Fritz"/>
+    
+      <meta name="author" content="Bryce L. Anderson"/>
+    
+      <meta name="author" content="Ivan Porto Carrero"/>
+    
+      <meta name="author" content="Carlos Encarnacion"/>
+    
+      <meta name="author" content="Christopher Davenport"/>
+    
+      <meta name="author" content="Carlos Quiroz"/>
+    
+      <meta name="author" content="Heikki Vesalainen"/>
+    
+      <meta name="author" content="Paulo Siqueira"/>
+    
+      <meta name="author" content="Jean-Rémi Desjardins"/>
+    
+      <meta name="author" content="Jose Cardona"/>
+    
+      <meta name="author" content="Julien Truffaut"/>
+    
+      <meta name="author" content="Rodolfo Hansen"/>
+    
+      <meta name="author" content="Simon Hafner"/>
+    
+      <meta name="author" content="Arya Irani"/>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Sheng Chen"/>
+    
+      <meta name="author" content="Fabio Labella"/>
+    
+    
+      <meta name="description" content="Documentation for http4s"/>
+    
+    
+      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
+    
+      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
+    <script src="../../helium/laika-helium.js"></script>
+    <script src="../../helium/laika-versions.js"></script>
+    <script>initVersions("../../", "/docs/cors.html", "v0.23");</script>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
+
+  <body>
+
+    <header id="top-bar">
+
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+            
+            Version 0.23
+            
+          </a>
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
+        
+      </div>
+  
+      <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+      
+      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a></span>
+      
+    </header>
+
+    <nav id="sidebar">
+
+      <div class="row">
+        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="level1"><a href="../../versions.html">Versions</a></li>
+        <li class="level1"><a href="../../changelog.html">Changelog</a></li>
+        <li class="level1"><a href="../../getting-help.html">Getting Help</a></li>
+        <li class="level1"><a href="../../contributing.html">Contributing</a></li>
+        <li class="level1"><a href="../../adopters.html">Adopters</a></li>
+        <li class="level1"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+        <li class="level1"><a href="../../further-reading.html">Further Reading</a></li>
+        <li class="level1 nav-header">User Guide</li>
+        <li class="level2"><a href="quickstart.html">Quick Start</a></li>
+        <li class="level2"><a href="integrations.html">Integrations</a></li>
+        <li class="level2"><a href="upgrading.html">Upgrading</a></li>
+        <li class="level2"><a href="service.html">Service</a></li>
+        <li class="level2"><a href="dsl.html">The http4s DSL</a></li>
+        <li class="level2"><a href="middleware.html">Middleware</a></li>
+        <li class="level2"><a href="auth.html">Authentication</a></li>
+        <li class="level2 active"><a href="#">CORS</a></li>
+        <li class="level2"><a href="csrf.html">CSRF</a></li>
+        <li class="level2"><a href="gzip.html">GZip Compression</a></li>
+        <li class="level2"><a href="hsts.html">HSTS</a></li>
+        <li class="level2"><a href="static.html">Static Files</a></li>
+        <li class="level2"><a href="client.html">HTTP Client</a></li>
+        <li class="level2"><a href="entity.html">Entity Handling</a></li>
+        <li class="level2"><a href="streaming.html">Streaming</a></li>
+        <li class="level2"><a href="json.html">JSON Handling</a></li>
+        <li class="level2"><a href="testing.html">Testing</a></li>
+        <li class="level2"><a href="uri.html">URI Handling</a></li>
+        <li class="level2"><a href="deployment.html">Deployment</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+      </ul>
+      
+      <ul class="nav-list">
+        <li class="level1 nav-header">Related Projects</li>
+        
+          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        
+          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+        
+          <li class="level2"><a href="https://github.com/typelevel/feral">feral</a></li>
+        
+      </ul>
+
+    </nav>
+
+    <div id="container">
+
+      <nav id="page-nav">
+        <p class="header"><a href="#">CORS</a></p>
+        
+        <ul class="nav-list">
+          <li class="level1"><a href="#usage">Usage</a></li>
+          <li class="level1"><a href="#configuration">Configuration</a></li>
+        </ul>
+        
+        <p class="footer"></p>
+      </nav>
+
+      <main class="content">
+
+        <h1 id="cors" class="title">CORS</h1>
+        <p>For security reasons, modern web browsers enforce a <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy">same origin policy</a>,
+        restricting the ability of sites from a given <a href="https://developer.mozilla.org/en-US/docs/Glossary/Origin">origin</a>
+        to access resources at a different origin. Http4s provides <a href="middleware.html">Middleware</a>, named <code>CORS</code>, for adding the appropriate headers
+        to responses to allow limited exceptions to this via <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">cross origin resource sharing</a>.</p>
+        <div class="callout warning">
+          <i class="icofont-laika">&#xf026;</i>
+          <p>This guide assumes you are already familiar with CORS and its attendant security risks.
+          By enabling CORS you are bypassing an important protection against malicious third-party
+          websites - before doing so for any potentially sensitive resource, make sure you understand
+          what you are doing and why.</p>
+        </div>
+        
+        <h2 id="usage" class="section">Usage<a class="anchor-link right" href="#usage"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>Examples in this document have the following dependencies.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+)</span></code></pre>
+        <p>And we need some imports.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span></code></pre>
+        <p>If you&#39;re in a REPL, we also need a runtime:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
+        <p>Let&#39;s start by making a simple service.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>()
+}
+</span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
+//   run = org.http4s.HttpRoutes$$$Lambda$22030/1421322707@5770b8cf
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
+</span><span class="comment">// request: Request[IO] = (
+//    = GET,
+//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@36193c38
+// )
+</span><span>
+</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res0: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@11f09912
+// )</span></code></pre>
+        <p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">corsService</span><span> = </span><span class="type-name">CORS</span><span>.</span><span class="identifier">policy</span><span>.</span><span class="identifier">withAllowOriginAll</span><span>(</span><span class="identifier">service</span><span>)
+</span><span class="comment">// corsService: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$23388/1284500442@9933756
+// )
+</span><span>
+</span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res1: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@5bf7406b
+// )</span></code></pre>
+        <p>So far, there was no change. That&#39;s because an <code>Origin</code> header is required
+        in the requests and it must include a scheme. This, of course, is the responsibility of the caller.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">corsRequest</span><span> = </span><span class="identifier">request</span><span>.</span><span class="identifier">putHeaders</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://somewhere.com&quot;</span><span>)
+</span><span class="comment">// corsRequest: request.Self = (
+//    = GET,
+//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Origin: https://somewhere.com),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@36193c38
+// )
+</span><span>
+</span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">corsRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res2: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@24f05fd1
+// )</span></code></pre>
+        <p>Notice how the response has the CORS headers added. How easy was
+        that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
+        composed such that only some of your endpoints are CORS enabled.</p>
+        
+        <h2 id="configuration" class="section">Configuration<a class="anchor-link right" href="#configuration"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>The example above showed one basic configuration for CORS, which adds the
+        headers to any successful response, regardless of origin or HTTP method. There
+        are configuration options to modify that.</p>
+        <p>First, we&#39;ll create some requests to use in our example. We want these requests
+        have a variety of origins and methods.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">googleGet</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
+  </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://google.com&quot;</span><span>))
+</span><span class="comment">// googleGet: Request[IO] = (
+//    = GET,
+//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Origin: https://google.com),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@31dd6a54
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">yahooPut</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">PUT</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
+  </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://yahoo.com&quot;</span><span>))
+</span><span class="comment">// yahooPut: Request[IO] = (
+//    = PUT,
+//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Origin: https://yahoo.com),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@2164c2be
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">duckPost</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
+  </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://duckduckgo.com&quot;</span><span>))
+</span><span class="comment">// duckPost: Request[IO] = (
+//    = POST,
+//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Origin: https://duckduckgo.com),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@40f13ae1
+// )</span></code></pre>
+        <p>Now, we&#39;ll create a configuration that limits the allowed methods to <code>GET</code>
+        and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it out on our requests.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">corsMethodSvc</span><span> = </span><span class="type-name">CORS</span><span>.</span><span class="identifier">policy</span><span>
+  .</span><span class="identifier">withAllowOriginAll</span><span>
+  .</span><span class="identifier">withAllowMethodsIn</span><span>(</span><span class="type-name">Set</span><span>(</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>))
+  .</span><span class="identifier">withAllowCredentials</span><span>(</span><span class="boolean-literal">false</span><span>)
+  .</span><span class="identifier">withMaxAge</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">day</span><span>)
+  .</span><span class="identifier">apply</span><span>(</span><span class="identifier">service</span><span>)
+</span><span class="comment">// corsMethodSvc: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$23388/1284500442@6659fbf9
+// )
+</span><span>
+</span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">googleGet</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res3: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@3c0cb2ac
+// )
+</span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res4: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@3bfae6a1
+// )
+</span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res5: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@7295f50d
+// )</span></code></pre>
+        <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
+        Next, we&#39;ll create a configuration that limits the origins to &quot;yahoo.com&quot; and
+        &quot;duckduckgo.com&quot;. <code>withAllowOriginHost</code> accepts an <code>Origin.Host =&gt; Boolean</code>.
+        If you&#39;re simply enumerating allowed hosts, a <code>Set</code> is convenient:</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="type-name">Origin</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">corsOriginSvc</span><span> = </span><span class="type-name">CORS</span><span>.</span><span class="identifier">policy</span><span>
+  .</span><span class="identifier">withAllowOriginHost</span><span>(</span><span class="type-name">Set</span><span>(
+    </span><span class="type-name">Origin</span><span>.</span><span class="type-name">Host</span><span>(</span><span class="type-name">Uri</span><span>.</span><span class="type-name">Scheme</span><span>.</span><span class="identifier">https</span><span>, </span><span class="type-name">Uri</span><span>.</span><span class="type-name">RegName</span><span>(</span><span class="string-literal">&quot;yahoo.com&quot;</span><span>), </span><span class="type-name">None</span><span>),
+    </span><span class="type-name">Origin</span><span>.</span><span class="type-name">Host</span><span>(</span><span class="type-name">Uri</span><span>.</span><span class="type-name">Scheme</span><span>.</span><span class="identifier">https</span><span>, </span><span class="type-name">Uri</span><span>.</span><span class="type-name">RegName</span><span>(</span><span class="string-literal">&quot;duckduckgo.com&quot;</span><span>), </span><span class="type-name">None</span><span>)
+  ))
+  .</span><span class="identifier">withAllowCredentials</span><span>(</span><span class="boolean-literal">false</span><span>)
+  .</span><span class="identifier">withMaxAge</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">day</span><span>)
+  .</span><span class="identifier">apply</span><span>(</span><span class="identifier">service</span><span>)
+</span><span class="comment">// corsOriginSvc: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$23388/1284500442@5bba4e95
+// )
+</span><span>
+</span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">googleGet</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res6: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Vary: Origin),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@2fa1e9c
+// )
+</span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res7: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@6ed93f8c
+// )
+</span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res8: Response[IO[A]] = (
+//    = Status(code = 200),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@333982c7
+// )</span></code></pre>
+        <p>Again, the results are as expected. You can, of course, create a configuration that
+        combines limits on HTTP method, origin, and headers.</p>
+        <p>As described in <a href="middleware.html">Middleware</a>, services and middleware can be composed such
+        that only some of your endpoints are CORS enabled.</p>
+
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+        </footer>
+
+      </main>
+
+    </div>
+
+  </body>
+</html>
