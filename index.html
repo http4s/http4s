@@ -1,183 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
-  <title>http4s</title>
-  
-  <meta name="author" content="Ross A. Baker"/>
-  
-  <meta name="author" content="Bjørn Madsen"/>
-  
-  <meta name="author" content="André Rouel"/>
-  
-  <meta name="author" content="Brad Fritz"/>
-  
-  <meta name="author" content="Bryce L. Anderson"/>
-  
-  <meta name="author" content="Ivan Porto Carrero"/>
-  
-  <meta name="author" content="Carlos Encarnacion"/>
-  
-  <meta name="author" content="Christopher Davenport"/>
-  
-  <meta name="author" content="Carlos Quiroz"/>
-  
-  <meta name="author" content="Heikki Vesalainen"/>
-  
-  <meta name="author" content="Paulo Siqueira"/>
-  
-  <meta name="author" content="Jean-Rémi Desjardins"/>
-  
-  <meta name="author" content="Jose Cardona"/>
-  
-  <meta name="author" content="Julien Truffaut"/>
-  
-  <meta name="author" content="Rodolfo Hansen"/>
-  
-  <meta name="author" content="Simon Hafner"/>
-  
-  <meta name="author" content="Arya Irani"/>
-  
-  <meta name="author" content="Ross A. Baker"/>
-  
-  <meta name="author" content="Sheng Chen"/>
-  
-  <meta name="author" content="Fabio Labella"/>
-  
-  
-  <meta name="description" content="Documentation for http4s"/>
-  
-  
-  <link rel="icon"  type="image/svg+xml" href="images/http4s-favicon.svg"/>
-  
-  <link rel="icon" sizes="32x32" type="image/png" href="images/http4s-favicon.png"/>
-  
-  
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <script src="helium/laika-helium.js"></script>
-    <script src="helium/laika-versions.js"></script>
+  <title>http4s | http4s</title>
 
-  <!-- custom start - manually link CSS to work around landing page issue in Laika 0.18.0 + init version menu -->
-  <link rel="stylesheet" type="text/css" href="helium/icofont.min.css" />
-  <link rel="stylesheet" type="text/css" href="helium/laika-helium.css" />
-  <link rel="stylesheet" type="text/css" href="helium/landing.page.css" />
-  <link rel="stylesheet" type="text/css" href="styles/landing.page.css" />
-  <script>initVersions("", "", " ");</script>
-  <!-- custom end -->
-
-  <script> /* for avoiding page load transitions */ </script>
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="https://http4s.org/css/style.css" >
 </head>
 
-<body>
+  <body>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
+      <a class="navbar-brand" href="/">
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
 
-<div id="header">
-  <div id="header-left">
-     <img src="images/http4s-logo-text-light.svg"> 
-    
-     <h2>Typeful, functional, streaming HTTP for Scala</h2> 
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
 
-    <!-- custom start - add version menu and icon link row -->
-    <div id="left-row">
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
 
-      <div id="version-menu-container" class="drop-down-box">
-        <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
-          Getting Started
-        </a>
-        <nav id="version-menu">
-          <ul id="version-list" class="nav-list">
+    <div class="container">
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          <a href="https://github.com/http4s/http4s/edit/main/website/src/hugo/content/index.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          
+          <div class="jumbotron mt-3">
+  <div class="container">
+    <p class="display-4">
+      Typeful, functional, streaming HTTP for Scala.
+    </p>
+    <button class="btn btn-primary btn-lg dropdown-toggle" type="button" id="doc-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Get started with http4s
+    </button>
+     <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.23/">v0.23 (stable)</a>
+  <a class="dropdown-item" href="/v0.22/">v0.22 (stable)</a>
+  <a class="dropdown-item" href="/v0.21/">v0.21 (EOL)</a>
+  <a class="dropdown-item" href="/v0.20/">v0.20 (EOL)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (EOL)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+</div>
+
+
+  </div>
+</div>
+
+<div class="container">
+  <div class="card-deck">
+    <div class="card p-3">
+      <h3 class="card-title">Typeful</h3>
+
+      <p class="card-text">
+        http4s servers and clients share an immutable model of
+        requests and responses. Standard headers are modeled as
+        semantic types, and entity codecs are done by typeclass.
+      </p>
+    </div>
+    <div class="card p-3">
+      <h3 class="card-title">Functional</h3>
+
+      <p>
+        The pure functional side of Scala is favored to promote
+        composability and easy reasoning about your code.  I/O is
+        managed through <a href="https://github.com/typelevel/cats-effect">cats-effect</a>.
+      </p>
+    </div>
+    <div class="card p-3">
+      <h3 class="card-title">Streaming</h3>
+
+      <p class="card-text">
+        http4s is built on <a href="https://github.com/functional-streams-for-scala/fs2">FS2</a>, 
+        a streaming library that provides for processing and emitting
+        large payloads in constant space and implementing websockets.
+      </p>
+    </div>
+  </div>
+</div>
+
+        </div>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/versions/">Versions</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/changelog/">Changelog</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/getting-help/">Getting help</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/contributing/">Contributing</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/adopters/">Adopters</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/code-of-conduct/">Code of conduct</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/further-reading/">Further reading</a>
+            </li>
+            
           </ul>
-        </nav>
+        </div>
       </div>
-      <div class="link-box">
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
 
-        <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-                   <g class="svg-shape">
-                     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
-                   </g>
-                 </svg></span></a>
-        <a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a>
-        <a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a>
-
-      </div>
     </div>
-    <!-- custom end -->
 
-  </div>
-  <div id="header-right">
-    
-    <p>Latest Stable Release</p>
-    <p class="large">0.23.11</p>
-    
-    <p>Latest Milestone Release</p>
-    <p class="large">1.0.0-M32</p>
-    
-    
-    <p>License</p>
-    <p class="large">Apache 2.0</p>
-    
-    
-    <div id="docs">
-      <p>Project Info</p>
-      <ul>
-        
-        <li><a class="text-link" href="versions.html">Versions</a></li>
-        
-        <li><a class="text-link" href="changelog.html">Changelog</a></li>
-        
-        <li><a class="text-link" href="getting-help.html">Getting Help</a></li>
-        
-        <li><a class="text-link" href="contributing.html">Contributing</a></li>
-        
-        <li><a class="text-link" href="adopters.html">Adopters</a></li>
-        
-        <li><a class="text-link" href="code-of-conduct.html">Code of Conduct</a></li>
-        
-        <li><a class="text-link" href="further-reading.html">Further Reading</a></li>
-        
-      </ul>
-    </div>
-    
-    
-  </div>
-</div>
-
-
-<div class="teasers">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<script src="https://http4s.org/js/highlight.pack.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
   
-  <div class="teaser">
-    <h2>Typeful</h2>
-    <p>http4s servers and clients share an immutable model of requests and responses. Standard headers are modeled as semantic types, and entity codecs are done by typeclass.</p>
-  </div>
-  
-  <div class="teaser">
-    <h2>Functional</h2>
-    <p>The pure functional side of Scala is favored to promote composability and easy reasoning about your code. I/O is managed through cats-effect.</p>
-  </div>
-  
-</div>
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
 
-<div class="teasers">
-  
-  <div class="teaser">
-    <h2>Streaming</h2>
-    <p>http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.</p>
-  </div>
-  
-  <div class="teaser">
-    <h2>Cross-platform</h2>
-    <p>http4s cross-builds for Scala.js, enabling you to share code across browsers, Node.js apps, serverless functions, and JVM servers.</p>
-  </div>
-  
-</div>
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
 
-
-
-</body>
+  </body>
 </html>
+
+
