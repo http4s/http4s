@@ -12,10 +12,12 @@
   Users will be advised to upgrade in the official support channels.
   Patches may be released with a working pull request accompanied by a tale of woe.
 
+## Which version is right for me?
+
 * _I'll upgrade to Scala 3 before Cats-Effect 3:_ @VERSION_0_22@
 * _I'm ready for Cats-Effect 3:_ @VERSION_0_23@
 * _I'm new here, pick one:_ @VERSION_0_23@
-* _I'm using Scala.js serverless or in the [browser](https://http4s.github.io/http4s-dom):_ @VERSION_0_23@
+* _I'm using Scala.js [serverless](https://github.com/typelevel/feral) or in the [browser](https://http4s.github.io/http4s-dom):_ @VERSION_0_23@
 * _I live on the bleeding edge:_ @VERSION_1_0@
 
 
