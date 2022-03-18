@@ -456,12 +456,13 @@ private[ember] object Parser {
           }
 
         val body =
-          Stream
+          Pull
             .eval(consumed.get)
-            .ifM(
-              ifTrue = Stream.raiseError(BodyAlreadyConsumedError()),
-              ifFalse = Stream.chunk(Chunk.array(buffer)) ++ readAll.stream
-            )
+            .flatMap {
+              case true => Pull.raiseError(BodyAlreadyConsumedError())
+              case false => Pull.output(Chunk.array(buffer)) >> readAll
+            }
+            .stream
 
         val drain: Drain[F] = (None: Option[Array[Byte]]).pure[F]
 
