@@ -30,6 +30,7 @@ import org.http4s.headers._
 
 import java.math.BigInteger
 import java.util.Date
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -62,6 +63,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
+  @nowarn
   def apply[F[_]: Sync, A](
       realm: String,
       store: AuthenticationStore[F, A],
@@ -87,6 +89,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
+  @nowarn
   def challenge[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
@@ -102,7 +105,11 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private[authentication] def challenge[F[_], A](
+  @deprecated(
+    "Calling challenge is side-effecting, please use the F[_]-suspended variant",
+    "0.22.11",
+  )
+  def challenge[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
