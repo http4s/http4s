@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 1800 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g id="Canvas" transform="matrix(0.710125,0,0,0.710125,-2216.47,-1217.86)">
+<svg width="100%" height="100%" viewBox="0 0 1740 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="Canvas" transform="matrix(0.710125,0,0,0.710125,-2276.47,-1217.86)">
         <g id="http4s-logo">
             <g transform="matrix(1,0,0,1,5032,1715.75)">
                 <g id="Top">
@@ -34,7 +34,7 @@
                 </g>
             </g>
         </g>
-        <g transform="matrix(1.4082,0,0,1.4082,2997.65,2090.16)" style="fill:#a7d4de;fill-rule:nonzero;">
+        <g transform="matrix(1.28374,0,0,1.28374,3088.77,2088.85)" style="fill:#a7d4de;fill-rule:nonzero;">
             <g transform="matrix(1,0,0,1,5,0)">
                 <path d="M87.159,-262.881L136.459,-262.881L136.459,-135.281C148.059,-143.015 162.559,-146.881 179.959,-146.881L195.039,-146.881C226.359,-146.881 249.656,-139.535 264.929,-124.841C280.203,-110.148 287.839,-86.561 287.839,-54.081L287.839,143.119L238.539,143.119L238.539,-65.681C238.539,-77.281 235.156,-86.465 228.389,-93.231C221.623,-99.998 212.439,-103.381 200.839,-103.381L174.159,-103.381C161.786,-103.381 152.409,-100.191 146.029,-93.811C139.649,-87.431 136.459,-80.568 136.459,-73.221L136.459,143.119L87.159,143.119L87.159,-262.881Z" style="fill-rule:nonzero;"/>
             </g>

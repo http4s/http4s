@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
+    <title>HTTP Client</title>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Bjørn Madsen"/>
+    
+      <meta name="author" content="André Rouel"/>
+    
+      <meta name="author" content="Brad Fritz"/>
+    
+      <meta name="author" content="Bryce L. Anderson"/>
+    
+      <meta name="author" content="Ivan Porto Carrero"/>
+    
+      <meta name="author" content="Carlos Encarnacion"/>
+    
+      <meta name="author" content="Christopher Davenport"/>
+    
+      <meta name="author" content="Carlos Quiroz"/>
+    
+      <meta name="author" content="Heikki Vesalainen"/>
+    
+      <meta name="author" content="Paulo Siqueira"/>
+    
+      <meta name="author" content="Jean-Rémi Desjardins"/>
+    
+      <meta name="author" content="Jose Cardona"/>
+    
+      <meta name="author" content="Julien Truffaut"/>
+    
+      <meta name="author" content="Rodolfo Hansen"/>
+    
+      <meta name="author" content="Simon Hafner"/>
+    
+      <meta name="author" content="Arya Irani"/>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Sheng Chen"/>
+    
+      <meta name="author" content="Fabio Labella"/>
+    
+    
+      <meta name="description" content="Documentation for http4s"/>
+    
+    
+      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
+    
+      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
+    <script src="../../helium/laika-helium.js"></script>
+    <script src="../../helium/laika-versions.js"></script>
+    <script>initVersions("../../", "/docs/client.html", "v1");</script>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
+
+  <body>
+
+    <header id="top-bar">
+
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+            
+            Version 1
+            
+          </a>
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
+        
+      </div>
+  
+      <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+      
+      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a></span>
+      
+    </header>
+
+    <nav id="sidebar">
+
+      <div class="row">
+        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a><a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a>
+      </div>
+      
+      <ul class="nav-list">
+        <li class="level1"><a href="../../versions.html">Versions</a></li>
+        <li class="level1"><a href="../../changelog.html">Changelog</a></li>
+        <li class="level1"><a href="../../getting-help.html">Getting Help</a></li>
+        <li class="level1"><a href="../../contributing.html">Contributing</a></li>
+        <li class="level1"><a href="../../adopters.html">Adopters</a></li>
+        <li class="level1"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+        <li class="level1"><a href="../../further-reading.html">Further Reading</a></li>
+        <li class="level1 nav-header">User Guide</li>
+        <li class="level2"><a href="quickstart.html">Quick Start</a></li>
+        <li class="level2"><a href="integrations.html">Integrations</a></li>
+        <li class="level2"><a href="upgrading.html">Upgrading</a></li>
+        <li class="level2"><a href="service.html">Service</a></li>
+        <li class="level2"><a href="dsl.html">The http4s DSL</a></li>
+        <li class="level2"><a href="middleware.html">Middleware</a></li>
+        <li class="level2"><a href="auth.html">Authentication</a></li>
+        <li class="level2"><a href="cors.html">CORS</a></li>
+        <li class="level2"><a href="csrf.html">CSRF</a></li>
+        <li class="level2"><a href="gzip.html">GZip Compression</a></li>
+        <li class="level2"><a href="hsts.html">HSTS</a></li>
+        <li class="level2"><a href="static.html">Static Files</a></li>
+        <li class="level2 active"><a href="#">HTTP Client</a></li>
+        <li class="level2"><a href="entity.html">Entity Handling</a></li>
+        <li class="level2"><a href="streaming.html">Streaming</a></li>
+        <li class="level2"><a href="json.html">JSON Handling</a></li>
+        <li class="level2"><a href="testing.html">Testing</a></li>
+        <li class="level2"><a href="uri.html">URI Handling</a></li>
+        <li class="level2"><a href="deployment.html">Deployment</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+      </ul>
+      
+      <ul class="nav-list">
+        <li class="level1 nav-header">Related Projects</li>
+        
+          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        
+          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/rho">rho</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+        
+          <li class="level2"><a href="https://github.com/typelevel/feral">feral</a></li>
+        
+      </ul>
+
+    </nav>
+
+    <div id="container">
+
+      <nav id="page-nav">
+        <p class="header"><a href="#">HTTP Client</a></p>
+        
+        <ul class="nav-list">
+          <li class="level1"><a href="#creating-the-client">Creating the client</a></li>
+          <li class="level1"><a href="#describing-a-call">Describing a call</a></li>
+          <li class="level1"><a href="#making-the-call">Making the call</a></li>
+          <li class="level1"><a href="#constructing-a-uri">Constructing a URI</a></li>
+          <li class="level1"><a href="#middleware">Middleware</a></li>
+          <li class="level2"><a href="#included-middleware">Included Middleware</a></li>
+          <li class="level2"><a href="#metrics-middleware">Metrics Middleware</a></li>
+          <li class="level1"><a href="#examples">Examples</a></li>
+          <li class="level2"><a href="#send-a-get-request-treating-the-response-as-a-string">Send a GET request, treating the response as a string</a></li>
+          <li class="level2"><a href="#post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</a></li>
+          <li class="level1"><a href="#calls-to-a-json-api">Calls to a JSON API</a></li>
+          <li class="level1"><a href="#body-decoding-encoding">Body decoding / encoding</a></li>
+        </ul>
+        
+        <p class="footer"></p>
+      </nav>
+
+      <main class="content">
+
+        <h1 id="http-client" class="title">HTTP Client</h1>
+        <p>How do we know the server is running?  Let&#39;s create a client with
+        http4s to try our service.</p>
+        <p>A recap of the dependencies for this example, in case you skipped the <a href="service.html">service</a> example. Ensure you have the following dependencies in your build.sbt:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">scalaVersion</span><span> := </span><span class="string-literal">&quot;2.13.8&quot;</span><span> </span><span class="comment">// Also supports 2.11.x and 2.12.x
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.23.10&quot;</span><span>
+
+</span><span class="comment">// Only necessary for SNAPSHOT releases
+</span><span class="identifier">resolvers</span><span> += </span><span class="type-name">Resolver</span><span>.</span><span class="identifier">sonatypeRepo</span><span>(</span><span class="string-literal">&quot;snapshots&quot;</span><span>)
+
+</span><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+)</span></code></pre>
+        <p>Then we create the <a href="service.html">service</a> again so <a href="https://scalameta.org/mdoc/">mdoc</a> picks it up:
+        &gt;</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">comcast</span><span>.</span><span class="identifier">ip4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Logger</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span></code></pre>
+        <p>The following is provided by an <code>IOApp</code>, but necessary if following
+        along in a REPL:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
+        <p>Finish setting up our server:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">app</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> / </span><span class="identifier">name</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
+}.</span><span class="identifier">orNotFound</span><span>
+</span><span class="comment">// app: cats.data.Kleisli[IO[A], Request[IO], Response[IO[A]]] = Kleisli(
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$22239/204505674@4bf39c2d
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">finalHttpApp</span><span> = </span><span class="type-name">Logger</span><span>.</span><span class="identifier">httpApp</span><span>(</span><span class="boolean-literal">true</span><span>, </span><span class="boolean-literal">true</span><span>)(</span><span class="identifier">app</span><span>)
+</span><span class="comment">// finalHttpApp: HttpApp[IO[A]] = Kleisli(
+//   run = org.http4s.server.middleware.ResponseLogger$$$Lambda$22249/1880880799@504899ab
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">server</span><span> = </span><span class="type-name">EmberServerBuilder</span><span>
+  .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
+  .</span><span class="identifier">withHost</span><span>(</span><span class="identifier">ipv4</span><span class="string-literal">&quot;0.0.0.0&quot;</span><span>)
+  .</span><span class="identifier">withPort</span><span>(</span><span class="string-literal">port&quot;8080&quot;</span><span>)
+  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">finalHttpApp</span><span>)
+  .</span><span class="identifier">build</span><span>
+</span><span class="comment">// server: Resource[IO, org.http4s.server.Server] = Bind(
+//   source = Pure(a = fs2.io.net.NetworkCompanionPlatform$$anon$1@3857119d),
+//   fs = org.http4s.ember.server.EmberServerBuilder$$Lambda$22368/523907841@5806f6ba
+// )</span></code></pre>
+        <p>We&#39;ll start the server in the background.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
+</span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
+//   body = cats.effect.IO$$Lambda$22683/448724356@1d429f4,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        
+        <h3 id="creating-the-client" class="section">Creating the client<a class="anchor-link right" href="#creating-the-client"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>A good default choice is the <code>EmberClientBuilder</code>.  The
+        <code>EmberClientBuilder</code> maintains a connection pool and speaks HTTP 1.x.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">_</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">EmberClientBuilder</span><span>.</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">build</span><span>.</span><span class="identifier">use</span><span> { </span><span class="identifier">client</span><span> =&gt;
+  </span><span class="comment">// use `client` here and return an `IO`.
+</span><span>  </span><span class="comment">// the client will be acquired and shut down
+</span><span>  </span><span class="comment">// automatically each time the `IO` is run.
+</span><span>  </span><span class="type-name">IO</span><span>.</span><span class="identifier">unit</span><span>
+}</span></code></pre>
+        <p>For the remainder of this tutorial, we&#39;ll use an alternate client backend
+        built on the standard <code>java.net</code> library client.  Unlike the ember
+        client, it does not need to be shut down.  Like the ember-client, and
+        any other http4s backend, it presents the exact same <code>Client</code>
+        interface!</p>
+        <p>It uses blocking IO and is less suited for production, but it is
+        highly useful in a REPL:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">util</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">blockingPool</span><span> = </span><span class="type-name">Executors</span><span>.</span><span class="identifier">newFixedThreadPool</span><span>(</span><span class="number-literal">5</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">httpClient</span><span>: </span><span class="type-name">Client</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">JavaNetClientBuilder</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">create</span></code></pre>
+        
+        <h3 id="describing-a-call" class="section">Describing a call<a class="anchor-link right" href="#describing-a-call"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>To execute a GET request, we can call <code>expect</code> with the type we expect
+        and the URI we want:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">helloJames</span><span> = </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">&quot;http://localhost:8080/hello/James&quot;</span><span>)
+</span><span class="comment">// helloJames: IO[String] = FlatMap(
+//   ioe = Delay(
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22724/1657617064@446ac1e5,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = cats.effect.kernel.Resource$$Lambda$22704/385398014@4742a925,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        <p>Note that we don&#39;t have any output yet.  We have a <code>IO[String]</code>, to
+        represent the asynchronous nature of a client request.</p>
+        <p>Furthermore, we haven&#39;t even executed the request yet.  A significant
+        difference between a <code>IO</code> and a <code>scala.concurrent.Future</code> is that a
+        <code>Future</code> starts running immediately on its implicit execution context,
+        whereas a <code>IO</code> runs when it&#39;s told.  Executing a request is an
+        example of a side effect.  In functional programming, we prefer to
+        build a description of the program we&#39;re going to run, and defer its
+        side effects to the end.</p>
+        <p>Let&#39;s describe how we&#39;re going to greet a collection of people in
+        parallel:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">cats</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">Uri</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">hello</span><span>(</span><span class="identifier">name</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">String</span><span>] = {
+  </span><span class="keyword">val</span><span> </span><span class="identifier">target</span><span> = </span><span class="string-literal">uri&quot;http://localhost:8080/hello/&quot;</span><span> / </span><span class="identifier">name</span><span>
+  </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">target</span><span>)
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">people</span><span> = </span><span class="type-name">Vector</span><span>(</span><span class="string-literal">&quot;Michael&quot;</span><span>, </span><span class="string-literal">&quot;Jessica&quot;</span><span>, </span><span class="string-literal">&quot;Ashley&quot;</span><span>, </span><span class="string-literal">&quot;Christopher&quot;</span><span>)
+</span><span class="comment">// people: Vector[String] = Vector(
+//   &quot;Michael&quot;,
+//   &quot;Jessica&quot;,
+//   &quot;Ashley&quot;,
+//   &quot;Christopher&quot;
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">greetingList</span><span> = </span><span class="identifier">people</span><span>.</span><span class="identifier">parTraverse</span><span>(</span><span class="identifier">hello</span><span>)
+</span><span class="comment">// greetingList: IO[Vector[String]] = Map(
+//   ioe = Map(
+//     ioe = Uncancelable(
+//       body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22733/391062622@653af18c,
+//       event = cats.effect.tracing.TracingEvent$StackTrace
+//     ),
+//     f = cats.data.Chain$$$Lambda$22734/1821005487@5b9e5b81,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = cats.instances.VectorInstances$$anon$1$$Lambda$22735/685546056@32f51e94,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        <p>Observe how simply we could combine a single <code>F[String]</code> returned
+        by <code>hello</code> into a scatter-gather to return a <code>F[List[String]]</code>.</p>
+        
+        <h2 id="making-the-call" class="section">Making the call<a class="anchor-link right" href="#making-the-call"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>It is best to run your <code>F</code> &quot;at the end of the world.&quot;  The &quot;end of
+        the world&quot; varies by context:</p>
+        <ul>
+          <li>In a command line app, it&#39;s your main method.</li>
+          <li>In an <code>HttpApp[F]</code>, an <code>F[Response[F]]</code> is returned to be run by the
+          server.</li>
+          <li>Here in the REPL, the last line is the end of the world.  Here we go:</li>
+        </ul>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">greetingsStringEffect</span><span> = </span><span class="identifier">greetingList</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">mkString</span><span>(</span><span class="string-literal">&quot;</span><span class="escape-sequence">\n</span><span class="string-literal">&quot;</span><span>))
+</span><span class="comment">// greetingsStringEffect: IO[String] = Map(
+//   ioe = Map(
+//     ioe = Map(
+//       ioe = Uncancelable(
+//         body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22733/391062622@653af18c,
+//         event = cats.effect.tracing.TracingEvent$StackTrace
+//       ),
+//       f = cats.data.Chain$$$Lambda$22734/1821005487@5b9e5b81,
+//       event = cats.effect.tracing.TracingEvent$StackTrace
+//     ),
+//     f = cats.instances.VectorInstances$$anon$1$$Lambda$22735/685546056@32f51e94,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = &lt;function1&gt;,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )
+</span><span class="identifier">greetingsStringEffect</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res1: String = &quot;&quot;&quot;Hello, Michael.
+// Hello, Jessica.
+// Hello, Ashley.
+// Hello, Christopher.&quot;&quot;&quot;</span></code></pre>
+        
+        <h2 id="constructing-a-uri" class="section">Constructing a URI<a class="anchor-link right" href="#constructing-a-uri"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>Before you can make a call, you&#39;ll need a <code>Uri</code> to represent the endpoint you
+        want to access.</p>
+        <p>There are a number of ways to construct a <code>Uri</code>.</p>
+        <p>If you have a literal string, you can use <code>uri&quot;...&quot;</code>:</p>
+        <pre><code class="nohighlight"><span class="string-literal">uri&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;</span><span>
+</span><span class="comment">// res2: Uri = Uri(
+//   scheme = Some(value = Scheme(https)),
+//   authority = Some(
+//     value = Authority(
+//       userInfo = None,
+//       host = RegName(host = my-awesome-service.com),
+//       port = None
+//     )
+//   ),
+//   path = /foo/bar,
+//   query = wow=yeah,
+//   fragment = None
+// )</span></code></pre>
+        <p>This only works with literal strings because it uses a macro to validate the URI
+        format at compile-time.</p>
+        <p>Otherwise, you&#39;ll need to use <code>Uri.fromString(...)</code> and handle the case where
+        validation fails:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">validUri</span><span> = </span><span class="string-literal">&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;</span><span>
+</span><span class="comment">// validUri: String = &quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;
+</span><span class="keyword">val</span><span> </span><span class="identifier">invalidUri</span><span> = </span><span class="string-literal">&quot;yeah whatever&quot;</span><span>
+</span><span class="comment">// invalidUri: String = &quot;yeah whatever&quot;
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">uri</span><span>: </span><span class="type-name">Either</span><span>[</span><span class="type-name">ParseFailure</span><span>, </span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">validUri</span><span>)
+</span><span class="comment">// uri: Either[ParseFailure, Uri] = Right(
+//   value = Uri(
+//     scheme = Some(value = Scheme(https)),
+//     authority = Some(
+//       value = Authority(
+//         userInfo = None,
+//         host = RegName(host = my-awesome-service.com),
+//         port = None
+//       )
+//     ),
+//     path = /foo/bar,
+//     query = wow=yeah,
+//     fragment = None
+//   )
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">parseFailure</span><span>: </span><span class="type-name">Either</span><span>[</span><span class="type-name">ParseFailure</span><span>, </span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">invalidUri</span><span>)
+</span><span class="comment">// parseFailure: Either[ParseFailure, Uri] = Left(
+//   value = ParseFailure(
+//     sanitized = &quot;Invalid URI&quot;,
+//     details = &quot;Error(4,NonEmptyList(EndOfString(4,13)))&quot;
+//   )
+// )</span></code></pre>
+        <p>You can also build up a URI incrementally, e.g.:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">baseUri</span><span>: </span><span class="type-name">Uri</span><span> = </span><span class="string-literal">uri&quot;http://foo.com&quot;</span><span>
+</span><span class="comment">// baseUri: Uri = Uri(
+//   scheme = Some(value = Scheme(http)),
+//   authority = Some(
+//     value = Authority(
+//       userInfo = None,
+//       host = RegName(host = foo.com),
+//       port = None
+//     )
+//   ),
+//   path = ,
+//   query = ,
+//   fragment = None
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">withPath</span><span>: </span><span class="type-name">Uri</span><span> = </span><span class="identifier">baseUri</span><span>.</span><span class="identifier">withPath</span><span>(</span><span class="string-literal">path&quot;/bar/baz&quot;</span><span>)
+</span><span class="comment">// withPath: Uri = Uri(
+//   scheme = Some(value = Scheme(http)),
+//   authority = Some(
+//     value = Authority(
+//       userInfo = None,
+//       host = RegName(host = foo.com),
+//       port = None
+//     )
+//   ),
+//   path = /bar/baz,
+//   query = ,
+//   fragment = None
+// )
+</span><span class="keyword">val</span><span> </span><span class="identifier">withQuery</span><span>: </span><span class="type-name">Uri</span><span> = </span><span class="identifier">withPath</span><span>.</span><span class="identifier">withQueryParam</span><span>(</span><span class="string-literal">&quot;hello&quot;</span><span>, </span><span class="string-literal">&quot;world&quot;</span><span>)
+</span><span class="comment">// withQuery: Uri = Uri(
+//   scheme = Some(value = Scheme(http)),
+//   authority = Some(
+//     value = Authority(
+//       userInfo = None,
+//       host = RegName(host = foo.com),
+//       port = None
+//     )
+//   ),
+//   path = /bar/baz,
+//   query = hello=world,
+//   fragment = None
+// )</span></code></pre>
+        
+        <h2 id="middleware" class="section">Middleware<a class="anchor-link right" href="#middleware"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>Like the server <a href="middleware.html">middleware</a>, the client middleware is a wrapper around a
+        <code>Client</code> that provides a means of accessing or manipulating <code>Request</code>s
+        and <code>Response</code>s being sent.</p>
+        <p>Consider functions from <code>Int</code> to <code>String. We could create a wrapper over functions of this type,
+which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; String`.</p>
+        <p>Such a wrapper could make the result inspect its input, do something to it,
+        and call the original function with that input (or even another one).
+        Then it could look at the response and also make some actions based on it.</p>
+        <p>An example wrapper could look something like this:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">mid</span><span>(</span><span class="identifier">f</span><span>: </span><span class="type-name">Int</span><span> =&gt; </span><span class="type-name">String</span><span>): </span><span class="type-name">Int</span><span> =&gt; </span><span class="type-name">String</span><span> = </span><span class="identifier">in</span><span> =&gt; {
+  </span><span class="comment">// here, `in` is the input originally passed to the function
+</span><span>  </span><span class="comment">// we can decide to pass it to `f`, or modify it first. We&#39;ll change it for the example.
+</span><span>  </span><span class="keyword">val</span><span> </span><span class="identifier">resultOfF</span><span> = </span><span class="identifier">f</span><span>(</span><span class="identifier">in</span><span> + </span><span class="number-literal">1</span><span>)
+
+  </span><span class="comment">// Now, `resultOfF` is the result of the function applied with the modified result.
+</span><span>  </span><span class="comment">// We can return it verbatim or _also_ modify it first! We could even ignore it.
+</span><span>  </span><span class="comment">// Here, we&#39;ll use both results - the one we got from the original call (f(in)) and the customized one (f(in + 1)).
+</span><span>  </span><span class="string-literal">s&quot;</span><span class="substitution">${f(in)}</span><span class="string-literal"> is the original result, but </span><span class="substitution">$resultOfF</span><span class="string-literal">&#39;s input was modified!&quot;</span><span>
+}</span></code></pre>
+        <p>If we were to wrap a simple function, say, one returning the String representation of a number:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">f1</span><span>: </span><span class="type-name">Int</span><span> =&gt; </span><span class="type-name">String</span><span> = </span><span class="identifier">_</span><span>.</span><span class="identifier">toString</span><span>
+</span><span class="comment">// f1: Int =&gt; String = &lt;function1&gt;
+</span><span>
+</span><span class="comment">// Here, we&#39;re applying our wrapper to `f1`. Notice that this is still a function.
+</span><span class="keyword">val</span><span> </span><span class="identifier">f2</span><span>: </span><span class="type-name">Int</span><span> =&gt; </span><span class="type-name">String</span><span> = </span><span class="identifier">mid</span><span>(</span><span class="identifier">f1</span><span>)
+</span><span class="comment">// f2: Int =&gt; String = &lt;function1&gt;
+</span><span>
+</span><span class="identifier">f1</span><span>(</span><span class="number-literal">10</span><span>)
+</span><span class="comment">// res3: String = &quot;10&quot;
+</span><span class="identifier">f2</span><span>(</span><span class="number-literal">10</span><span>)
+</span><span class="comment">// res4: String = &quot;10 is the original result, but 11&#39;s input was modified!&quot;</span></code></pre>
+        <p>We would see how it&#39;s changing the result of the <code>f1</code> function by giving it another input.</p>
+        <p>This wrapper could be considered a <strong>middleware</strong> over functions from <code>Int</code> to <code>String</code>.
+        Now consider a simplified definition of <code>Client[F]</code> - it boils down to a single abstract method:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Client</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]] {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">run</span><span>(</span><span class="identifier">request</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">F</span><span>]): </span><span class="type-name">Resource</span><span>[</span><span class="type-name">F</span><span>, </span><span class="type-name">Response</span><span>[</span><span class="type-name">F</span><span>]]
+}</span></code></pre>
+        <p>Knowing this, we could say a <code>Client[F]</code> is equivalent to a function from <code>Request[F]</code> to <code>Resource[F, Response[F]]</code>. In fact, given a client, we could call <code>client.run _</code> to get that function.</p>
+        <p>A client middleware follows the same idea as our original middleware did: it takes a <code>Client</code> (which is a function) and returns another <code>Client</code> (which is also a function).</p>
+        <p>It can see the input <code>Request[F]</code> that we pass to the client when we call it, it can modify that request, pass it to the underlying client (or any other client, really!), and do all sorts of other things, including effects - all it has to do is return a <code>Resource[F, Response[F]]</code>.</p>
+        <p>The real definition of <code>Client</code> is a little more complicated because there&#39;s several more abstract methods.
+        If you want to implement a client using just a function (for example, to make a middleware), consider using <code>Client.apply</code>.</p>
+        <p>A simple middleware, which would add a constant header to every request and response, could look like this:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">ci</span><span>.</span><span class="type-name">CIString</span><span>
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">addTestHeader</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]: </span><span class="type-name">MonadCancelThrow</span><span>](</span><span class="identifier">underlying</span><span>: </span><span class="type-name">Client</span><span>[</span><span class="type-name">F</span><span>]): </span><span class="type-name">Client</span><span>[</span><span class="type-name">F</span><span>] = </span><span class="type-name">Client</span><span>[</span><span class="type-name">F</span><span>] { </span><span class="identifier">req</span><span> =&gt;
+  </span><span class="identifier">underlying</span><span>
+    .</span><span class="identifier">run</span><span>(
+      </span><span class="identifier">req</span><span>.</span><span class="identifier">withHeaders</span><span>(</span><span class="type-name">Header</span><span>.</span><span class="type-name">Raw</span><span>(</span><span class="type-name">CIString</span><span>(</span><span class="string-literal">&quot;X-Test-Request&quot;</span><span>), </span><span class="string-literal">&quot;test&quot;</span><span>))
+    )
+    .</span><span class="identifier">map</span><span>(
+      </span><span class="identifier">_</span><span>.</span><span class="identifier">withHeaders</span><span>(</span><span class="type-name">Header</span><span>.</span><span class="type-name">Raw</span><span>(</span><span class="type-name">CIString</span><span>(</span><span class="string-literal">&quot;X-Test-Response&quot;</span><span>), </span><span class="string-literal">&quot;test&quot;</span><span>))
+    )
+}</span></code></pre>
+        <p>As the caller of the client you would get from this, you would see the extra header in the response.
+        Similarly, every service called by the client would see an extra header in the requests.</p>
+        
+        <h3 id="included-middleware" class="section">Included Middleware<a class="anchor-link right" href="#included-middleware"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Http4s includes some middleware Out of the Box in the <code>org.http4s.client.middleware</code>
+        package. These include:</p>
+        <ul>
+          <li>Following of redirect responses (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/FollowRedirect$">Follow Redirect</a>)</li>
+          <li>Retrying of requests (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/Retry$">Retry</a>)</li>
+          <li>Metrics gathering (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/Metrics$">Metrics</a>)</li>
+          <li>Logging of requests (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/RequestLogger$">Request Logger</a>)</li>
+          <li>Logging of responses (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/ResponseLogger$">Response Logger</a>)</li>
+          <li>Logging of requests and responses (<a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.10//org/http4s/client/middleware/Logger$">Logger</a>)</li>
+        </ul>
+        
+        <h3 id="metrics-middleware" class="section">Metrics Middleware<a class="anchor-link right" href="#metrics-middleware"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Apart from the middleware mentioned in the previous section. There is, as well,
+        Out of the Box middleware for Dropwizard and Prometheus metrics</p>
+        
+        <h4 id="dropwizard-metrics-middleware" class="section">Dropwizard Metrics Middleware<a class="anchor-link right" href="#dropwizard-metrics-middleware"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>To make use of this metrics middleware the following dependencies are needed:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dropwizard-metrics&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+)</span></code></pre>
+        <p>We can create a middleware that registers metrics prefixed with a
+        provided prefix like this.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Metrics</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="identifier">dropwizard</span><span>.</span><span class="type-name">Dropwizard</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">codahale</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="type-name">SharedMetricRegistries</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">registry</span><span> = </span><span class="type-name">SharedMetricRegistries</span><span>.</span><span class="identifier">getOrCreate</span><span>(</span><span class="string-literal">&quot;default&quot;</span><span>)
+</span><span class="comment">// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@6d15ddfa
+</span><span class="keyword">val</span><span> </span><span class="identifier">requestMethodClassifier</span><span> = (</span><span class="identifier">r</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt; </span><span class="type-name">Some</span><span>(</span><span class="identifier">r</span><span>.</span><span class="identifier">method</span><span>.</span><span class="identifier">toString</span><span>.</span><span class="identifier">toLowerCase</span><span>)
+</span><span class="comment">// requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">meteredClient</span><span> =
+  </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Dropwizard</span><span>(</span><span class="identifier">registry</span><span>, </span><span class="string-literal">&quot;prefix&quot;</span><span>), </span><span class="identifier">requestMethodClassifier</span><span>)(</span><span class="identifier">httpClient</span><span>)
+</span><span class="comment">// meteredClient: Client[IO] = org.http4s.client.Client$$anon$1@3b1f2245</span></code></pre>
+        <p>A <code>classifier</code> is just a function <code>Request[F] =&gt; Option[String]</code> that allows
+        to add a subprefix to every metric based on the <code>Request</code></p>
+        
+        <h4 id="prometheus-metrics-middleware" class="section">Prometheus Metrics Middleware<a class="anchor-link right" href="#prometheus-metrics-middleware"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <p>To make use of this metrics middleware the following dependencies are needed:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-prometheus-metrics&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+)</span></code></pre>
+        <p>We can create a middleware that registers metrics prefixed with a
+        provided prefix like this.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.{</span><span class="type-name">Resource</span><span>, </span><span class="type-name">IO</span><span>}
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Metrics</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="identifier">prometheus</span><span>.</span><span class="type-name">Prometheus</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">classifier</span><span> = (</span><span class="identifier">r</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt; </span><span class="type-name">Some</span><span>(</span><span class="identifier">r</span><span>.</span><span class="identifier">method</span><span>.</span><span class="identifier">toString</span><span>.</span><span class="identifier">toLowerCase</span><span>)
+</span><span class="comment">// classifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">prefixedClient</span><span>: </span><span class="type-name">Resource</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Client</span><span>[</span><span class="type-name">IO</span><span>]] =
+  </span><span class="keyword">for</span><span> {
+    </span><span class="identifier">registry</span><span> &lt;- </span><span class="type-name">Prometheus</span><span>.</span><span class="identifier">collectorRegistry</span><span>[</span><span class="type-name">IO</span><span>]
+    </span><span class="identifier">metrics</span><span> &lt;- </span><span class="type-name">Prometheus</span><span>.</span><span class="identifier">metricsOps</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">registry</span><span>, </span><span class="string-literal">&quot;prefix&quot;</span><span>)
+  } </span><span class="keyword">yield</span><span> </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">metrics</span><span>, </span><span class="identifier">classifier</span><span>)(</span><span class="identifier">httpClient</span><span>)
+</span><span class="comment">// prefixedClient: Resource[IO, Client[IO]] = Bind(
+//   source = Allocate(
+//     resource = cats.effect.kernel.Resource$$$Lambda$22421/349923720@1c9a436e
+//   ),
+//   fs = &lt;function1&gt;
+// )</span></code></pre>
+        <p>A <code>classifier</code> is just a function <code>Request[F] =&gt; Option[String]</code> that allows
+        to add a label to every metric based on the <code>Request</code></p>
+        
+        <h2 id="examples" class="section">Examples<a class="anchor-link right" href="#examples"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="send-a-get-request-treating-the-response-as-a-string" class="section">Send a GET request, treating the response as a string<a class="anchor-link right" href="#send-a-get-request-treating-the-response-as-a-string"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">uri&quot;https://google.com/&quot;</span><span>)
+</span><span class="comment">// res5: IO[String] = FlatMap(
+//   ioe = Delay(
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22724/1657617064@7c889fb6,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = cats.effect.kernel.Resource$$Lambda$22704/385398014@3f3177d0,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        <p>If you need to do something more complicated like setting request headers, you
+        can build up a request object and pass that to <code>expect</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">MediaType</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">GET</span><span>(
+  </span><span class="string-literal">uri&quot;https://my-lovely-api.com/&quot;</span><span>,
+  </span><span class="type-name">Authorization</span><span>(</span><span class="type-name">Credentials</span><span>.</span><span class="type-name">Token</span><span>(</span><span class="type-name">AuthScheme</span><span>.</span><span class="type-name">Bearer</span><span>, </span><span class="string-literal">&quot;open sesame&quot;</span><span>)),
+  </span><span class="type-name">Accept</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">application</span><span>.</span><span class="identifier">json</span><span>)
+)
+</span><span class="comment">// request: Request[IO] = (
+//    = GET,
+//    = Uri(
+//     scheme = Some(value = Scheme(https)),
+//     authority = Some(
+//       value = Authority(
+//         userInfo = None,
+//         host = RegName(host = my-lovely-api.com),
+//         port = None
+//       )
+//     ),
+//     path = /,
+//     query = ,
+//     fragment = None
+//   ),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Authorization: Bearer open sesame, Accept: application/json),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@63cab63f
+// )
+</span><span>
+</span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">request</span><span>)
+</span><span class="comment">// res6: IO[String] = FlatMap(
+//   ioe = Delay(
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22724/1657617064@320724c6,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = cats.effect.kernel.Resource$$Lambda$22704/385398014@19615c1f,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        
+        <h3 id="post-a-form-decoding-the-json-response-to-a-case-class" class="section">Post a form, decoding the JSON response to a case class<a class="anchor-link right" href="#post-a-form-decoding-the-json-response-to-a-case-class"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">generic</span><span>.</span><span class="identifier">auto</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">AuthResponse</span><span>(</span><span class="identifier">access_token</span><span>: </span><span class="type-name">String</span><span>)
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">authResponseEntityDecoder</span><span>: </span><span class="type-name">EntityDecoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>] =
+  </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>]
+</span><span class="comment">// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@5e8d6fca
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">POST</span><span>(
+  </span><span class="type-name">UrlForm</span><span>(
+    </span><span class="string-literal">&quot;grant_type&quot;</span><span> -&gt; </span><span class="string-literal">&quot;client_credentials&quot;</span><span>,
+    </span><span class="string-literal">&quot;client_id&quot;</span><span> -&gt; </span><span class="string-literal">&quot;my-awesome-client&quot;</span><span>,
+    </span><span class="string-literal">&quot;client_secret&quot;</span><span> -&gt; </span><span class="string-literal">&quot;s3cr3t&quot;</span><span>
+  ),
+  </span><span class="string-literal">uri&quot;https://my-lovely-api.com/oauth2/token&quot;</span><span>
+)
+</span><span class="comment">// postRequest: Request[IO] = (
+//    = POST,
+//    = Uri(
+//     scheme = Some(value = Scheme(https)),
+//     authority = Some(
+//       value = Authority(
+//         userInfo = None,
+//         host = RegName(host = my-lovely-api.com),
+//         port = None
+//       )
+//     ),
+//     path = /oauth2/token,
+//     query = ,
+//     fragment = None
+//   ),
+//    = HttpVersion(major = 1, minor = 1),
+//    = Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
+//    = Stream(..),
+//    = org.typelevel.vault.Vault@6840516a
+// )
+</span><span>
+</span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">AuthResponse</span><span>](</span><span class="identifier">postRequest</span><span>)
+</span><span class="comment">// res7: IO[AuthResponse] = FlatMap(
+//   ioe = Delay(
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22724/1657617064@636a79b0,
+//     event = cats.effect.tracing.TracingEvent$StackTrace
+//   ),
+//   f = cats.effect.kernel.Resource$$Lambda$22704/385398014@70784066,
+//   event = cats.effect.tracing.TracingEvent$StackTrace
+// )</span></code></pre>
+        
+        <h2 id="calls-to-a-json-api" class="section">Calls to a JSON API<a class="anchor-link right" href="#calls-to-a-json-api"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>Take a look at <a href="json.html">json</a>.</p>
+        
+        <h2 id="body-decoding-encoding" class="section">Body decoding / encoding<a class="anchor-link right" href="#body-decoding-encoding"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>The reusable way to decode/encode a request is to write a custom <code>EntityDecoder</code>
+        and <code>EntityEncoder</code>. For that topic, take a look at <a href="entity.html">entity</a>.</p>
+        <p>If you prefer a more fine-grained approach, some of the methods take a <code>Response[F]
+=&gt; F[A]</code> argument, such as <code>run</code> or <code>get</code>, which lets you add a function which includes the
+        decoding functionality, but ignores the media type.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">req</span><span>).</span><span class="identifier">use</span><span> {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">Status</span><span>.</span><span class="type-name">Successful</span><span>(</span><span class="identifier">r</span><span>) =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">attemptAs</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">leftMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">message</span><span>).</span><span class="identifier">value</span><span>
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>]
+    .</span><span class="identifier">map</span><span>(</span><span class="identifier">b</span><span> =&gt; </span><span class="type-name">Left</span><span>(</span><span class="string-literal">s&quot;Request </span><span class="substitution">$req</span><span class="string-literal"> failed with status </span><span class="substitution">${r.status.code}</span><span class="string-literal"> and body </span><span class="substitution">$b</span><span class="string-literal">&quot;</span><span>))
+}</span></code></pre>
+        <p>However, your function has to consume the body before the returned <code>F</code> exits.
+        Don&#39;t do this:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// will come back to haunt you
+</span><span class="identifier">client</span><span>.</span><span class="identifier">get</span><span>[</span><span class="type-name">EntityBody</span><span>](</span><span class="string-literal">&quot;some-url&quot;</span><span>)(</span><span class="identifier">response</span><span> =&gt; </span><span class="identifier">response</span><span>.</span><span class="identifier">body</span><span>)</span></code></pre>
+        <p>Passing it to a <code>EntityDecoder</code> is safe.</p>
+        <pre><code>client.get[T](&quot;some-url&quot;)(response =&gt; jsonOf(response.body))</code></pre>
+
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+        </footer>
+
+      </main>
+
+    </div>
+
+  </body>
+</html>
