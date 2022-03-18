@@ -1,6 +1,5 @@
 # Changelog
 
-
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
@@ -128,6 +127,64 @@ This is an unplanned bugfix release for the 0.21.x series.  This series remains 
     * Merge series/0.20 to series/0.21 by @rossabaker in https://github.com/http4s/http4s/pull/5818
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.31...v0.21.32
+
+# v1.0.0-M31 (2022-02-04)
+
+This is the latest milestone release in the 1.0 series.  It breaks binary compatibility and drops support for Scala 2.12.  Scala 2.12 is still supported in the 0.22.x and 0.23.x series.
+
+This merges forward all the changes from 0.22.9, 0.22.10, 0.22.11, 0.23.8, 0.23.9, and 0.23.10.
+
+* http4s-core
+    * Minimal slice from #4509 (Entity rethinking) by @bplommer in https://github.com/http4s/http4s/pull/5754
+    * Add Strict entity by @bplommer in https://github.com/http4s/http4s/pull/5807
+    * Drop Scala 2.12 from 1.0 by @armanbilge in https://github.com/http4s/http4s/pull/5337
+
+* http4s-client
+    * Simplify logger type signatures by @bplommer in https://github.com/http4s/http4s/pull/5805
+
+* http4s-server
+    * Simplify logger type signatures by @bplommer in https://github.com/http4s/http4s/pull/5805
+
+* http4s-scalatags
+    * Update scalatags to 0.11.1 by @scala-steward in https://github.com/http4s/http4s/pull/5903
+
+* http4s-prometheus-metrics
+    * Update simpleclient, simpleclient_common, ... to 0.14.1 by @scala-steward in https://github.com/http4s/http4s/pull/5817
+
+* Documentation
+    * Promote http4s.js a bit by @armanbilge in https://github.com/http4s/http4s/pull/5771
+    * Reword partial unification instructions in readme by @bplommer in https://github.com/http4s/http4s/pull/5894
+
+* Behind the scenes
+    * Merge 0.23 to main by @rossabaker in https://github.com/http4s/http4s/pull/5703
+    * Clean up `build.sbt` by @danicheg in https://github.com/http4s/http4s/pull/5711
+    * Update sbt to 1.5.6 by @scala-steward in https://github.com/http4s/http4s/pull/5710
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5719
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5734
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5759
+    * Convert Entity to an ADT with an empty case by @bplommer in https://github.com/http4s/http4s/pull/5760
+    * Merge branch `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5779
+    * Add Strict entity by @bplommer in https://github.com/http4s/http4s/pull/5804
+    * Revert "Add Strict entity" pending further review by @bplommer in https://github.com/http4s/http4s/pull/5806
+    * Set 2022 in the `README` by @danicheg in https://github.com/http4s/http4s/pull/5828
+    * Scala-steward exclusions in `main` by @bplommer in https://github.com/http4s/http4s/pull/5830
+    * Merge 0.23 into main by @armanbilge in https://github.com/http4s/http4s/pull/5832
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5839
+    * Added SurfsUp app by @manocha-aman in https://github.com/http4s/http4s/pull/5845
+    * Add scala-java-locales to steward ignores on main by @armanbilge in https://github.com/http4s/http4s/pull/5854
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5889
+    * Fix scala-steward.conf syntax by @rossabaker in https://github.com/http4s/http4s/pull/5902
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5925
+    * Add module labeling to mergify config by @armanbilge in https://github.com/http4s/http4s/pull/5941
+    * Merge 0.23 into main by @rossabaker in https://github.com/http4s/http4s/pull/5934
+    * Auto-label docs PRs with mergify by @armanbilge in https://github.com/http4s/http4s/pull/5980
+    * Merge 0.23 into main by @armanbilge in https://github.com/http4s/http4s/pull/5986
+    * Merge from 0.23.10 by @rossabaker in https://github.com/http4s/http4s/pull/6000
+
+* New Contributors
+    * @manocha-aman made their first contribution in https://github.com/http4s/http4s/pull/5845
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M30...v1.0.0-M31
 
 # v0.23.10 (2022-02-03)
 
@@ -405,6 +462,46 @@ This release is binary compatible with 0.22.x series.  The jawn upgrade mitigate
     * @mcarolan made their first contribution in https://github.com/http4s/http4s/pull/5613
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.8...v0.22.9
+
+# v1.0.0-M30 (2021-12-08)
+
+This is the latest milestone of the 1.0 series.  It is not binary compatible with any previous version.
+
+This milestone is the first to include Scala 3 support for http4s-scalatags.
+
+* http4s-core
+    * Make EntityEncoder covariant in its effect type by @bplommer in https://github.com/http4s/http4s/pull/5229
+    * Use case object for access-control-allow-credentials by @bplommer in https://github.com/http4s/http4s/pull/5482
+
+* http4s-scalatags
+	* Update scalatags to 0.11.0 by @scala-steward in https://github.com/http4s/http4s/pull/5644
+	* Publish http4s-scalatags for Scala 3 by @rossabaker in https://github.com/http4s/http4s/pull/5648
+
+* Documentation
+	* Clarify support levels by @rossabaker in https://github.com/http4s/http4s/pull/5445
+	* Migrate Website to Laika by @jenshalm in https://github.com/http4s/http4s/pull/5313
+	* Update website with SJS on 0.23, http4s-dom project by @armanbilge in https://github.com/http4s/http4s/pull/5453
+	* Fix website logo by @armanbilge in https://github.com/http4s/http4s/pull/5459
+	* Update all the urls to new http4s-dom site by @armanbilge in https://github.com/http4s/http4s/pull/5507
+	* Fix markdown in readme by @bplommer in https://github.com/http4s/http4s/pull/5523
+	* updated getting-help.md to point to discord by @barshirtcliff in https://github.com/http4s/http4s/pull/5513
+	* EPUB download of the docs by @danicheg in https://github.com/http4s/http4s/pull/5640
+	* website: add favicon by @jenshalm in https://github.com/http4s/http4s/pull/5656
+
+* Behind the scenes
+	* Non-trivial merge to main by @rossabaker in https://github.com/http4s/http4s/pull/5446
+	* Fix ci on main by @armanbilge in https://github.com/http4s/http4s/pull/5514
+	* Drop hugo from the Nix shell by @rossabaker in https://github.com/http4s/http4s/pull/5455
+	* Non-trivial merge to main by @rossabaker in https://github.com/http4s/http4s/pull/5530
+	* Merge branch `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/5664
+	* Unpin `scalatags` in the Steward config by @danicheg in https://github.com/http4s/http4s/pull/5668
+	* Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/5673
+
+* New Contributors
+	* @jenshalm made their first contribution in https://github.com/http4s/http4s/pull/5313
+	* @barshirtcliff made their first contribution in https://github.com/http4s/http4s/pull/5513
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M29...v1.0.0-M30
 
 # v0.23.7 (2021-12-07)
 

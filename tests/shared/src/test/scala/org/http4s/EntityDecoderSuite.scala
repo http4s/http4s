@@ -456,7 +456,7 @@ class EntityDecoderSuite extends Http4sSuite {
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
     val body = chunk(Chunk.array(d1)) ++ chunk(Chunk.array(d2))
-    val msg = Request[IO](body = body)
+    val msg = Request[IO](entity = Entity(body))
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
   }
@@ -483,7 +483,7 @@ class EntityDecoderSuite extends Http4sSuite {
   // we want to return a specific kind of error when there is a MessageFailure
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
-    EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
+    EntityEncoder.simple[ErrorJson](`Content-Type`(MediaType.application.json))(json =>
       Chunk.array(json.value.getBytes())
     )
 

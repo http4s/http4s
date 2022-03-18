@@ -22,6 +22,7 @@ package authentication
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
+import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all._
 import org.http4s.crypto.Hash
@@ -62,7 +63,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def apply[F[_]: Sync, A](
+  def apply[F[_]: Async, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
@@ -78,7 +79,7 @@ object DigestAuth {
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]
+      implicit F: Async[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       def paramsToChallenge(params: Map[String, String]) =

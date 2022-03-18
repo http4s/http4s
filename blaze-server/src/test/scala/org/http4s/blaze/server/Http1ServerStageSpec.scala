@@ -41,7 +41,6 @@ import org.typelevel.vault._
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
@@ -278,7 +277,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   fixture.test("Http1ServerStage: routes should Add a date header") { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 
@@ -296,7 +295,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     val dateHeader = Date(HttpDate.Epoch)
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body).withHeaders(dateHeader))
+        IO.pure(Response(entity = req.entity).withHeaders(dateHeader))
       }
       .orNotFound
 
@@ -317,7 +316,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   ) { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 
@@ -445,7 +444,7 @@ class Http1ServerStageSpec extends Http4sSuite {
     tw =>
       val routes = HttpRoutes
         .of[IO] { case req =>
-          IO.pure(Response(body = req.body))
+          IO.pure(Response(entity = req.entity))
         }
         .orNotFound
 
@@ -471,7 +470,7 @@ class Http1ServerStageSpec extends Http4sSuite {
   ) { tw =>
     val routes = HttpRoutes
       .of[IO] { case req =>
-        IO.pure(Response(body = req.body))
+        IO.pure(Response(entity = req.entity))
       }
       .orNotFound
 
@@ -557,22 +556,6 @@ class Http1ServerStageSpec extends Http4sSuite {
     val head = runRequest(tw, Seq.empty, Kleisli.liftF(Ok("")))
     head.result.map { _ =>
       assertEquals(head.closeCauses, Vector(None))
-    }
-  }
-
-  fixture.test("Prevent response splitting attacks on status reason phrase") { tw =>
-    val rawReq = "GET /?reason=%0D%0AEvil:true%0D%0A HTTP/1.0\r\n\r\n"
-    @nowarn("cat=deprecation")
-    val head = runRequest(
-      tw,
-      List(rawReq),
-      HttpApp { req =>
-        Response[IO](Status.NoContent.withReason(req.params("reason"))).pure[IO]
-      },
-    )
-    head.result.map { buff =>
-      val (_, headers, _) = ResponseParser.parseBuffer(buff)
-      assertEquals(headers.find(_.name === ci"Evil"), None)
     }
   }
 

@@ -55,8 +55,8 @@ trait BooPickleInstances {
 
   /** Create an `EntityEncoder` for `A` given a `Pickler[A]`
     */
-  def booEncoderOf[F[_], A: Pickler]: EntityEncoder[F, A] =
-    chunkEncoder[F]
+  def booEncoderOf[A: Pickler]: EntityEncoder.Pure[A] =
+    chunkEncoder
       .contramap[A] { v =>
         Chunk.ByteBuffer(Pickle.intoBytes(v))
       }

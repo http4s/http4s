@@ -99,7 +99,8 @@ val serviceRouter = {
 ```scala mdoc:silent
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
-val serviceSF: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
+val serviceSF: HttpRoutes[IO] =
+  middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
 * Reorder the routes so that authed routes compose last

@@ -23,7 +23,6 @@ import cats.effect.Concurrent
 import cats.syntax.all._
 import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
-import org.http4s.internal.CollectionCompat
 import org.http4s.parser._
 
 import scala.io.Codec
@@ -101,9 +100,8 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, UrlForm] =
-    EntityEncoder
-      .stringEncoder[F]
+  implicit def entityEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[UrlForm] =
+    EntityEncoder.stringEncoder
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
@@ -136,7 +134,7 @@ object UrlForm {
   )(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(CollectionCompat.mapValues(q.multiParams)(Chain.fromSeq)))
+      .map(q => UrlForm(q.multiParams.view.mapValues(Chain.fromSeq).toMap))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }

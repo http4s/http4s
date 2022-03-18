@@ -68,7 +68,7 @@ import scala.concurrent.duration._
   * be borrowed.  Helps deal with connections that are closed while
   * idling in the pool for an extended period.
   */
-sealed abstract class BlazeClientBuilder[F[_]] private (
+final class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
     val idleTimeout: Duration,
     val requestTimeout: Duration,
@@ -98,56 +98,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   type Self = BlazeClientBuilder[F]
 
   protected final val logger = getLogger(this.getClass)
-
-  @deprecated("Preserved for binary compatibility", "0.23.8")
-  private[BlazeClientBuilder] def this(
-      responseHeaderTimeout: Duration,
-      idleTimeout: Duration,
-      requestTimeout: Duration,
-      connectTimeout: Duration,
-      userAgent: Option[`User-Agent`],
-      maxTotalConnections: Int,
-      maxWaitQueueLimit: Int,
-      maxConnectionsPerRequestKey: RequestKey => Int,
-      sslContext: SSLContextOption,
-      checkEndpointIdentification: Boolean,
-      maxResponseLineSize: Int,
-      maxHeaderLength: Int,
-      maxChunkSize: Int,
-      chunkBufferMaxSize: Int,
-      parserMode: ParserMode,
-      bufferSize: Int,
-      executionContextConfig: ExecutionContextConfig,
-      scheduler: Resource[F, TickWheelExecutor],
-      asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-      channelOptions: ChannelOptions,
-      customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
-      F: Async[F],
-  ) = this(
-    responseHeaderTimeout = responseHeaderTimeout,
-    idleTimeout = idleTimeout,
-    requestTimeout = requestTimeout,
-    connectTimeout = connectTimeout,
-    userAgent = userAgent,
-    maxTotalConnections = maxTotalConnections,
-    maxWaitQueueLimit = maxWaitQueueLimit,
-    maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-    sslContext = sslContext,
-    checkEndpointIdentification = checkEndpointIdentification,
-    maxResponseLineSize = maxResponseLineSize,
-    maxHeaderLength = maxHeaderLength,
-    maxChunkSize = maxChunkSize,
-    chunkBufferMaxSize = chunkBufferMaxSize,
-    parserMode = parserMode,
-    bufferSize = bufferSize,
-    executionContextConfig = executionContextConfig,
-    scheduler = scheduler,
-    asynchronousChannelGroup = asynchronousChannelGroup,
-    channelOptions = channelOptions,
-    customDnsResolver = customDnsResolver,
-    retries = 0,
-    maxIdleDuration = Duration.Inf,
-  )(F)
 
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -199,7 +149,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       customDnsResolver = customDnsResolver,
       retries = retries,
       maxIdleDuration = maxIdleDuration,
-    ) {}
+    )
 
   @deprecated(
     "Do not use - always returns cats.effect.unsafe.IORuntime.global.compute." +
@@ -461,7 +411,7 @@ object BlazeClientBuilder {
       customDnsResolver = None,
       retries = 2,
       maxIdleDuration = Duration.Inf,
-    ) {}
+    )
 
   @deprecated(
     "Most users should use the default execution context provided. " +

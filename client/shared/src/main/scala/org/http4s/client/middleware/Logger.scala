@@ -49,13 +49,13 @@ object Logger {
       )
     )
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
-      .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
+      .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
 
   def colored[F[_]: Async](
       logHeaders: Boolean,

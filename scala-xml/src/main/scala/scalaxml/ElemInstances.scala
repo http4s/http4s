@@ -33,9 +33,8 @@ import scala.xml.XML
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
 
-  implicit def xmlEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, Elem] =
-    EntityEncoder
-      .stringEncoder[F]
+  implicit def xmlEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Elem] =
+    EntityEncoder.stringEncoder
       .contramap[Elem] { node =>
         val sw = new StringWriter
         XML.write(sw, node, charset.nioCharset.name, true, null)

@@ -37,12 +37,16 @@ import org.asynchttpclient.request.body.generator.ReactiveStreamsBodyGenerator
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.client.Client
 import org.http4s.client.defaults
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
 
-@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
+import scala.jdk.CollectionConverters._
+
+@deprecated(
+  "Upstream is unmaintained. This backend will be removed in the next milestone. If anyone wants to adopt it, please contact the http4s team.",
+  "1.0.0-M32",
+)
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
@@ -141,7 +145,7 @@ object AsyncHttpClient {
               .flatMap(part => chunk(Chunk.array(part.getBodyPartBytes)))
               .mergeHaltBoth(Stream.eval(deferredThrowable.get.flatMap(F.raiseError[Byte])))
 
-          responseWithBody = response.copy(body = body)
+          responseWithBody = response.copy(entity = Entity(body))
 
           _ <-
             invokeCallbackF[F](cb(Right(responseWithBody -> (dispose >> bodyDisposal.get.flatten))))

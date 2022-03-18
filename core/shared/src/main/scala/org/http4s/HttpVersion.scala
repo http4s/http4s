@@ -25,6 +25,8 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.util._
 
+import scala.annotation.nowarn
+
 /** HTTP's version number consists of two decimal digits separated by
   * a "." (period or decimal point). The first digit ("major version")
   * indicates the messaging syntax, whereas the second digit ("minor
@@ -41,7 +43,7 @@ import org.http4s.util._
   * HTTP Semantics, Protocol Versioning]]
   */
 // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
-final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
+final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
   // scalafix:on
@@ -66,7 +68,8 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
     (this.major, this.minor).compare((that.major, that.minor))
 
   @deprecated("Does not range check parameters. Will be removed from public API in 1.0.", "0.22.6")
-  def copy(major: Int = major, minor: Int = minor): HttpVersion =
+  @nowarn("msg=never used")
+  private def copy(major: Int = major, minor: Int = minor): HttpVersion =
     new HttpVersion(major, minor)
 }
 

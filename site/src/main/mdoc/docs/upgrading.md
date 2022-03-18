@@ -36,8 +36,7 @@ Header names are now `CIStrings` which can be created by importing `org.typeleve
 | `baseUri +?? ("p", w)`           | `baseUri +?? ("p" -> w)`          |
 | `"x-ms".ci`                      | `ci"x-ms"`                        |
 | `import org.http4s.server.blaze` | `import org.http4s.blaze.server`  |
-
-
+| `baseUri.+?("k", List(v, v1))`   | `baseUri.++?("k" -> List(v, v1))` |
 
 ## Help Us Help You!
 

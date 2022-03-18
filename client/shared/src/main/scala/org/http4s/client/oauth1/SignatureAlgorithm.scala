@@ -17,7 +17,7 @@
 package org.http4s.client.oauth1
 
 import cats.MonadThrow
-import cats.effect.SyncIO
+import cats.effect.kernel.Async
 import cats.syntax.all._
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
@@ -25,8 +25,6 @@ import org.http4s.crypto.Hmac
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKeySpec
 import scodec.bits.ByteVector
-
-import scala.annotation.nowarn
 
 object SignatureAlgorithm {
 
@@ -76,12 +74,7 @@ trait SignatureAlgorithm {
     * @param secretKey The secret key
     * @return The base64-encoded output
     */
-  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
-    MonadThrow[F].catchNonFatal(generate(input, secretKey): @nowarn("cat=deprecation"))
-
-  @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
-  def generate(input: String, secretKey: String): String =
-    generate[SyncIO](input, secretKey).unsafeRunSync()
+  def generate[F[_]: Async](input: String, secretKey: String): F[String]
 
   private[oauth1] def generateHMAC[F[_]: MonadThrow: Hmac](
       input: String,
@@ -103,7 +96,7 @@ trait SignatureAlgorithm {
   */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generate[F[_]: Async](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
 }
 
@@ -113,7 +106,7 @@ object HmacSha1 extends SignatureAlgorithm {
   */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generate[F[_]: Async](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
 }
 
@@ -124,6 +117,6 @@ object HmacSha256 extends SignatureAlgorithm {
   */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generate[F[_]: Async](input: String, secretKey: String): F[String] =
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
 }

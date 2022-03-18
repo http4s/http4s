@@ -16,7 +16,6 @@
 
 package org.http4s.ember.server.internal
 
-import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Concurrent
@@ -254,7 +253,7 @@ object WebSocketHelpers {
 
   private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
 
-  private def serverHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] = for {
+  private def serverHandshake[F[_]](value: String)(implicit F: Async[F]): F[ByteVector] = for {
     value <- ByteVector.encodeAscii(value).liftTo[F]
     digest <- Hash[F].digest(HashAlgorithm.SHA1, value ++ magic)
   } yield digest

@@ -126,7 +126,8 @@ class CSRFSuite extends Http4sSuite {
       req = csrf.embedInRequestCookie(dummyRequest, t)
       newToken <- csrf.refreshedToken[IO](req).valueOrF(IO.raiseError)
       // Checks whether it was properly signed
-    } yield assert(csrf.extractRaw(unlift(newToken)).isRight)
+      isProperlySigned <- csrf.extractRaw[IO](unlift(newToken)).map(_.isRight)
+    } yield assert(isProperlySigned)
   }
 
   test("extract a valid token from header or form field when form enabled") {
@@ -176,7 +177,7 @@ class CSRFSuite extends Http4sSuite {
     for {
       csrf <- csrfIO
       oldToken <- csrf.generateToken[IO]
-      oldRaw <- IO.fromEither(csrf.extractRaw(unlift(oldToken)))
+      oldRaw <- csrf.extractRaw[IO](unlift(oldToken)).flatMap(IO.fromEither)
       response <-
         csrf.validate()(dummyRoutes)(csrf.embedInRequestCookie(passThroughRequest, oldToken))
       newCookie =
@@ -184,7 +185,7 @@ class CSRFSuite extends Http4sSuite {
           .find(_.name == cookieName)
           .getOrElse(ResponseCookie("invalid", "Invalid2"))
       newToken = newCookie.content
-      newRaw <- IO.fromEither(csrf.extractRaw(newCookie.content))
+      newRaw <- csrf.extractRaw[IO](newCookie.content).flatMap(IO.fromEither)
     } yield {
       assertEquals(response.status, Status.Ok)
       assertNotEquals(oldToken.toString, newToken)
@@ -295,14 +296,14 @@ class CSRFSuite extends Http4sSuite {
     for {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
-      raw1 <- IO.fromEither(csrf.extractRaw(unlift(token)))
+      raw1 <- csrf.extractRaw[IO](unlift(token)).flatMap(IO.fromEither)
       res <- csrf.validate()(dummyRoutes)(
         dummyRequest
           .putHeaders(headerName.toString -> unlift(token))
           .addCookie(cookieName, unlift(token))
       )
       rawContent = res.cookies.find(_.name == cookieName).map(_.content).getOrElse("")
-      raw2 <- IO.fromEither(csrf.extractRaw(rawContent))
+      raw2 <- csrf.extractRaw[IO](rawContent).flatMap(IO.fromEither)
     } yield {
       assertNotEquals(rawContent, token.toString)
       assertEquals(raw1, raw2)
@@ -354,7 +355,7 @@ class CSRFSuite extends Http4sSuite {
         csrfCatchFailure <- csrfCatchFailureIO
         csrf <- csrfIO
         oldToken <- csrfCatchFailure.generateToken[IO]
-        oldRaw <- IO.fromEither(csrfCatchFailure.extractRaw(unlift(oldToken)))
+        oldRaw <- csrfCatchFailure.extractRaw[IO](unlift(oldToken)).flatMap(IO.fromEither)
         response <- csrfCatchFailure.validate()(dummyRoutes)(
           csrf.embedInRequestCookie(passThroughRequest, oldToken)
         )
@@ -363,7 +364,7 @@ class CSRFSuite extends Http4sSuite {
             .find(_.name == cookieName)
             .getOrElse(ResponseCookie("invalid", "Invalid2"))
         newToken = newCookie.content
-        newRaw <- IO.fromEither(csrfCatchFailure.extractRaw(newToken))
+        newRaw <- csrfCatchFailure.extractRaw[IO](newToken).flatMap(IO.fromEither)
       } yield {
         assertEquals(response.status, Status.Ok)
         assertNotEquals(oldToken.toString, newToken)

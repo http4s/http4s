@@ -31,9 +31,8 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
-import org.http4s.server.Ip4sServer
 import org.http4s.server.Server
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.vault.Key
 
@@ -42,7 +41,7 @@ import scala.concurrent.duration._
 final class EmberServerBuilder[F[_]: Async] private (
     val host: Option[Host],
     val port: Port,
-    private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
+    private val httpApp: WebSocketBuilder[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
     private val errorHandler: Throwable => F[Response[F]],
@@ -65,7 +64,7 @@ final class EmberServerBuilder[F[_]: Async] private (
   private def copy(
       host: Option[Host] = self.host,
       port: Port = self.port,
-      httpApp: WebSocketBuilder2[F] => HttpApp[F] = self.httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
@@ -108,7 +107,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 
   def withPort(port: Port): EmberServerBuilder[F] = copy(port = port)
   def withHttpApp(httpApp: HttpApp[F]): EmberServerBuilder[F] = copy(httpApp = _ => httpApp)
-  def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]): EmberServerBuilder[F] =
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): EmberServerBuilder[F] =
     copy(httpApp = f)
 
   def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
@@ -129,17 +128,13 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(shutdownTimeout = shutdownTimeout)
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
-  def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
+  def withOnError(onError: Throwable => Response[F]) =
     withErrorHandler { case e => onError(e).pure[F] }
 
-  def withErrorHandler(
-      errorHandler: PartialFunction[Throwable, F[Response[F]]]
-  ): EmberServerBuilder[F] =
+  def withErrorHandler(errorHandler: PartialFunction[Throwable, F[Response[F]]]) =
     copy(errorHandler = errorHandler)
 
-  def withOnWriteFailure(
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]
-  ): EmberServerBuilder[F] =
+  def withOnWriteFailure(onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit]) =
     copy(onWriteFailure = onWriteFailure)
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections", "0.22.3")
@@ -159,8 +154,8 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
-  def withHttp2 = copy(enableHttp2 = true)
-  def withoutHttp2 = copy(enableHttp2 = false)
+  def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
+  def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
@@ -168,9 +163,9 @@ final class EmberServerBuilder[F[_]: Async] private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
-  ) =
+  ): EmberServerBuilder[F] =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
-  def withoutUnixSocketConfig =
+  def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
 
   def build: Resource[F, Server] =
@@ -187,7 +182,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp(WebSocketBuilder2(wsKey)),
+              httpApp(WebSocketBuilder(wsKey)),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -212,7 +207,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp(WebSocketBuilder2(wsKey)),
+            httpApp(WebSocketBuilder(wsKey)),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -234,8 +229,8 @@ final class EmberServerBuilder[F[_]: Async] private (
       _ <- Resource.onFinalize(shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
       _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
-    } yield new Ip4sServer {
-      def ip4sAddress: SocketAddress[IpAddress] = bindAddress
+    } yield new Server {
+      def address: SocketAddress[IpAddress] = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
     }
 }

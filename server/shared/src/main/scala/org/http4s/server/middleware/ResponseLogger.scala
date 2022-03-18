@@ -68,7 +68,7 @@ object ResponseLogger {
           Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText[F, Response[F]](resp)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText(resp)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {
@@ -80,16 +80,23 @@ object ResponseLogger {
       if (!logBody)
         logMessage(response)
           .as(response)
-      else
-        F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
-          val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-          // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-          val logPipe: Pipe[F, Byte, Byte] =
-            _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-              .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
+      else {
+        response.entity match {
+          case Entity.Default(_, _) =>
+            F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
+              val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+              val logPipe: Pipe[F, Byte, Byte] =
+                _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
+                  .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
 
-          response.pipeBodyThrough(logPipe)
+              response.pipeBodyThrough(logPipe)
+            }
+
+          case Entity.Strict(_) | Entity.Empty =>
+            logMessage(response).as(response)
         }
+      }
 
     Kleisli[G, A, Response[F]] { req =>
       http(req)

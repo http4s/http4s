@@ -3,10 +3,7 @@ package org.http4s.sbt
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.plugin.MimaKeys._
-import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
-import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilter
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
@@ -26,7 +23,6 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.8"
-  val scala_212 = "2.12.15"
   val scala_3 = "3.1.1"
 
   override lazy val globalSettings = Seq(
@@ -104,8 +100,7 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.7.0"
     val catsEffect = "3.3.7"
     val catsParse = "0.3.6"
-    val circe = "0.14.1"
-    val circe15 = "0.15.0-M1"
+    val circe = "0.15.0-M1"
     val crypto = "0.2.2"
     val cryptobits = "1.3"
     val disciplineCore = "1.4.0"
@@ -130,14 +125,14 @@ object Http4sPlugin extends AutoPlugin {
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
-    val prometheusClient = "0.11.0"
+    val prometheusClient = "0.15.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.3"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
-    val scalatags = "0.10.0"
+    val scalatags = "0.11.1"
     val scalaXml = "2.0.1"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
@@ -166,7 +161,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore = Def.setting("io.circe" %%% "circe-core" % V.circe)
   lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
   lazy val circeJawn = Def.setting("io.circe" %%% "circe-jawn" % V.circe)
-  lazy val circeJawn15 = Def.setting("io.circe" %%% "circe-jawn" % V.circe15)
   lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
   lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
   lazy val circeTesting = Def.setting("io.circe" %%% "circe-testing" % V.circe)

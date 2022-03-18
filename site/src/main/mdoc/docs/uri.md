@@ -1,5 +1,6 @@
 # URI Handling
 
+
 ## Literals
 
 http4s is a bit more strict with handling URIs than e.g. the [play http client].
@@ -54,7 +55,7 @@ own, use [`Uri.fromString`].
 
 For example one for [knobs]:
 
-```
+```scala
 implicit val configuredUri = Configured[String]
   .flatMap(s => Configured(_ => Uri.fromString(s).toOption))
 ```

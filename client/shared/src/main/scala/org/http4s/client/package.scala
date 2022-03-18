@@ -30,9 +30,6 @@ package object client extends ClientTypes {
 trait ClientTypes {
   import org.http4s.client._
 
-  @deprecated("Is a Blaze detail.  Will be removed from public API.", "0.23.8")
-  type ConnectionBuilder[F[_], A <: Connection[F]] = RequestKey => F[A]
-
   type Middleware[F[_]] = Client[F] => Client[F]
 }
 

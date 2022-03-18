@@ -44,7 +44,6 @@ import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import scala.annotation.nowarn
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
@@ -173,22 +172,13 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   val genStandardStatus: Gen[Status] =
     oneOf(Status.registered)
 
-  @deprecated(
-    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6",
-  )
-  val genCustomStatus: Gen[Status] = for {
-    code <- genValidStatusCode
-    reason <- genCustomStatusReason
-  } yield Status.fromInt(code).yolo.withReason(reason)
-
-  @nowarn("cat=deprecation")
   implicit val http4sTestingArbitraryForStatus: Arbitrary[Status] = Arbitrary(
-    frequency(
-      4 -> genStandardStatus,
-      1 -> genCustomStatus,
+    oneOf(
+      genValidStatusCode.map(Status.fromInt(_).yolo),
+      genStandardStatus,
     )
   )
+
   implicit val http4sTestingCogenForStatus: Cogen[Status] =
     Cogen[Int].contramap(_.code)
 
@@ -537,7 +527,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingArbitraryForAceesContrlolAllowedCredentials
       : Arbitrary[headers.`Access-Control-Allow-Credentials`] =
     Arbitrary {
-      Gen.const(`Access-Control-Allow-Credentials`())
+      Gen.const(`Access-Control-Allow-Credentials`)
     }
 
   implicit val http4sTestingArbitraryForAcceptHeader: Arbitrary[headers.Accept] =
@@ -551,16 +541,16 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       : Arbitrary[headers.`Access-Control-Allow-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Allow-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Allow-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForAccessControlExposeHeaders
       : Arbitrary[headers.`Access-Control-Expose-Headers`] =
     Arbitrary {
       for {
-        values <- nonEmptyListOf(genToken.map(CIString(_)))
-      } yield headers.`Access-Control-Expose-Headers`(NonEmptyList.of(values.head, values.tail: _*))
+        values <- listOf(genToken.map(CIString(_)))
+      } yield headers.`Access-Control-Expose-Headers`(values)
     }
 
   implicit val http4sTestingArbitraryForRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
@@ -983,7 +973,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, body)
+      } yield try Request(method, uri, httpVersion, headers, Entity(body))
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -1009,7 +999,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, body)
+      } yield Response(status, httpVersion, headers, Entity(body))
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =

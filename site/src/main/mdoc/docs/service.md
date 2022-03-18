@@ -72,6 +72,7 @@ val helloWorldService = HttpRoutes.of[IO] {
 ```
 
 ### Returning Content in the Response
+
 In order to return content of type `T` in the response an `EntityEncoder[T]`
 must be used. We can define the `EntityEncoder[T]` implictly so that it
 doesn't need to be explicitly included when serving the response.

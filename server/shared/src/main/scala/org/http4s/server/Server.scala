@@ -24,7 +24,6 @@ abstract class Server {
   private[server] val logger = getLogger
 
   def address: ip4s.SocketAddress[ip4s.IpAddress]
-  final def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] = address
 
   def baseUri: Uri =
     Uri(

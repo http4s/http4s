@@ -31,7 +31,7 @@ object MockRoute {
         Response[IO](Ok).withEntity("pong").pure[IO]
 
       case req if req.method === Method.POST && req.uri.path === path"/echo" =>
-        IO.pure(Response[IO](body = req.body))
+        IO.pure(Response[IO](entity = req.entity))
 
       case req if req.uri.path === path"/withslash" =>
         IO.pure(Response(Ok))

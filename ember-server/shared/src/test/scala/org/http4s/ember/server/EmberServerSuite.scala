@@ -70,12 +70,12 @@ class EmberServerSuite extends Http4sSuite {
 
   fixture().test("server responds to requests") { case (server, client) =>
     client
-      .get(url(server.addressIp4s))(_.status.pure[IO])
+      .get(url(server.address))(_.status.pure[IO])
       .assertEquals(Status.Ok)
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
-    serverResource.use(server => IO.pure(server.addressIp4s)).flatMap { address =>
+    serverResource.use(server => IO.pure(server.address)).flatMap { address =>
       client
         .get(url(address))(_.status.pure[IO])
         .intercept[ConnectException]
@@ -85,7 +85,7 @@ class EmberServerSuite extends Http4sSuite {
   server().test("server startup fails if address is already in use") { server =>
     EmberServerBuilder
       .default[IO]
-      .withPort(server.addressIp4s.port)
+      .withPort(server.address.port)
       .build
       .use(_ => IO.unit)
       .intercept[BindException]
@@ -103,7 +103,7 @@ class EmberServerSuite extends Http4sSuite {
       val expected = "hello" * 256
 
       val uri = Uri
-        .fromString(url(server.addressIp4s, "/echo"))
+        .fromString(url(server.address, "/echo"))
         .toOption
         .get
       val request = POST(body, uri)

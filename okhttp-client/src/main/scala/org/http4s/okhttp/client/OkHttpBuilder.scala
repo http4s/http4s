@@ -33,10 +33,10 @@ import okhttp3.{Response => OKResponse}
 import okio.BufferedSink
 import org.http4s.client.Client
 import org.http4s.internal.BackendBuilder
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
 
 import java.io.IOException
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
 import OkHttpBuilder._
@@ -112,7 +112,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
                     status = s,
                     headers = getHeaders(response),
                     httpVersion = protocol,
-                    body = body,
+                    entity = Entity(body),
                   ),
                   dispose,
                 )

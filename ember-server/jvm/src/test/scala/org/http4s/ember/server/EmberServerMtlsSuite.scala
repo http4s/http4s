@@ -143,7 +143,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
     import org.http4s.client.dsl.io._
 
     val uri = Uri
-      .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+      .fromString(s"https://${server.address}/dummy")
       .toOption
       .get
     val request = GET(uri)
@@ -157,7 +157,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
     noAuthTlsClientContext,
   ).test("Server should fail for invalid client auth") { case (server, client) =>
     client
-      .statusFromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+      .statusFromString(s"https://${server.address}/dummy")
       .intercept[IOException]
   }
 
@@ -170,7 +170,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
       import org.http4s.client.dsl.io._
 
       val uri = Uri
-        .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/dummy")
+        .fromString(s"https://${server.address}/dummy")
         .toOption
         .get
       val request = GET(uri)
@@ -188,7 +188,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
       import org.http4s.client.dsl.io._
 
       val uri = Uri
-        .fromString(s"https://${server.address.getHostName}:${server.address.getPort}/noauth")
+        .fromString(s"https://${server.address}/noauth")
         .toOption
         .get
       val request = GET(uri)

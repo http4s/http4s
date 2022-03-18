@@ -26,7 +26,7 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 
 import scala.concurrent.duration._
@@ -51,7 +51,7 @@ object EmberServerSimpleExample extends IOApp {
       IO.never.as(ExitCode.Success)
   )
 
-  def service[F[_]: Async](wsb: WebSocketBuilder2[F]): HttpApp[F] = {
+  def service[F[_]: Async](wsb: WebSocketBuilder[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 

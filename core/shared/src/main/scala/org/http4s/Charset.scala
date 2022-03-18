@@ -27,13 +27,13 @@
 package org.http4s
 
 import cats._
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._
 
 import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => NioCharset}
 import java.util.HashMap
 import java.util.Locale
+import scala.jdk.CollectionConverters._
 
 // scalafix:off Http4sGeneralLinters; bincompat until 1.0
 final case class Charset private (nioCharset: NioCharset) extends Renderable {

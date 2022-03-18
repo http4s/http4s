@@ -23,30 +23,27 @@ import org.http4s.MediaType
 import org.http4s.headers.`Content-Type`
 
 trait TwirlInstances {
-  implicit def htmlContentEncoder[F[_]](implicit
-      charset: Charset = `UTF-8`
-  ): EntityEncoder[F, Html] =
+  implicit def htmlContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Html] =
     contentEncoder(MediaType.text.html)
 
   /** Note: Twirl uses a media type of `text/javascript`.  This is obsolete, so we instead return
     * `application/javascript`.
     */
-  implicit def jsContentEncoder[F[_]](implicit
+  implicit def jsContentEncoder(implicit
       charset: Charset = `UTF-8`
-  ): EntityEncoder[F, JavaScript] =
+  ): EntityEncoder.Pure[JavaScript] =
     contentEncoder(MediaType.application.javascript)
 
-  implicit def xmlContentEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, Xml] =
+  implicit def xmlContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Xml] =
     contentEncoder(MediaType.application.xml)
 
-  implicit def txtContentEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, Txt] =
+  implicit def txtContentEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[Txt] =
     contentEncoder(MediaType.text.plain)
 
-  private def contentEncoder[F[_], C <: Content](
+  private def contentEncoder[C <: Content](
       mediaType: MediaType
-  )(implicit charset: Charset): EntityEncoder[F, C] =
-    EntityEncoder
-      .stringEncoder[F]
+  )(implicit charset: Charset): EntityEncoder.Pure[C] =
+    EntityEncoder.stringEncoder
       .contramap[C](content => content.body)
       .withContentType(`Content-Type`(mediaType, charset))
 }

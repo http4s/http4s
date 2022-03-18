@@ -31,11 +31,8 @@ import org.http4s.syntax.literals._
 class ResponseGeneratorSuite extends Http4sSuite {
   test("Add the EntityEncoder headers along with a content-length header") {
     val body = "foo"
-    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).map(_.headers)
-    EntityEncoder
-      .stringEncoder[IO]
-      .headers
-      .headers
+    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder).map(_.headers)
+    EntityEncoder.stringEncoder.headers.headers
       .traverse { h =>
         resultheaders.map(_.headers.exists(_ == h)).assert
       } *>
@@ -51,9 +48,9 @@ class ResponseGeneratorSuite extends Http4sSuite {
   test("Not duplicate headers when not provided") {
     val w =
       EntityEncoder.encodeBy[IO, String](
-        EntityEncoder.stringEncoder[IO].headers.put(Accept(MediaRange.`audio/*`))
+        EntityEncoder.stringEncoder.headers.put(Accept(MediaRange.`audio/*`))
       )(
-        EntityEncoder.stringEncoder[IO].toEntity(_)
+        EntityEncoder.stringEncoder.toEntity(_)
       )
 
     Ok("foo")(Monad[IO], w)
@@ -63,9 +60,9 @@ class ResponseGeneratorSuite extends Http4sSuite {
 
   test("Explicitly added headers have priority") {
     val w: EntityEncoder[IO, String] = EntityEncoder.encodeBy[IO, String](
-      EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.text.html))
+      EntityEncoder.stringEncoder.headers.put(`Content-Type`(MediaType.text.html))
     )(
-      EntityEncoder.stringEncoder[IO].toEntity(_)
+      EntityEncoder.stringEncoder.toEntity(_)
     )
 
     val resp: IO[Response[IO]] =

@@ -29,12 +29,12 @@ import org.eclipse.jetty.client.api.{Response => JettyResponse}
 import org.eclipse.jetty.http.HttpFields
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
 import org.eclipse.jetty.util.{Callback => JettyCallback}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.loggingAsyncCallback
 import org.http4s.jetty.client.ResponseListener.Item
 import org.log4s.getLogger
 
 import java.nio.ByteBuffer
+import scala.jdk.CollectionConverters._
 
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[Item]],
@@ -56,14 +56,14 @@ private[jetty] final case class ResponseListener[F[_]](
             status = s,
             httpVersion = getHttpVersion(response.getVersion),
             headers = getHeaders(response.getHeaders),
-            body = Stream.fromQueueNoneTerminated(queue).repeatPull {
+            entity = Entity(Stream.fromQueueNoneTerminated(queue).repeatPull {
               _.uncons1.flatMap {
                 case None => Pull.pure(None)
                 case Some((Item.Done, _)) => Pull.pure(None)
                 case Some((Item.Buf(b), tl)) => Pull.output(Chunk.byteBuffer(b)).as(Some(tl))
                 case Some((Item.Raise(t), _)) => Pull.raiseError[F](t)
               }
-            },
+            }),
           )
         )
       }
@@ -129,10 +129,8 @@ private[jetty] object ResponseListener {
   sealed trait Item
   object Item {
     case object Done extends Item
-    // scalafix:off Http4sGeneralLinters; bincompat until 1.0
-    case class Raise(t: Throwable) extends Item
-    case class Buf(b: ByteBuffer) extends Item
-    // scalafix:on
+    final case class Raise(t: Throwable) extends Item
+    final case class Buf(b: ByteBuffer) extends Item
   }
 
   private val logger = getLogger

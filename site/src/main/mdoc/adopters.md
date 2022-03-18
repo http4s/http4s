@@ -1,6 +1,7 @@
 
 # Adopters
 
+
 ## Industrial
 
 [Banno Group inside of Jack Henry & Associates](https://banno.com)
@@ -32,6 +33,9 @@
 
 [Netflix](https://www.netflix.com)
 : Uses http4s for internal tools.
+
+[NetworkedAssets](https://www.networkedassets.com)
+: Builds APIs and API clients with http4s.
 
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
@@ -132,6 +136,9 @@
 
 [Smart Backpacker App](https://github.com/SmartBackpacker/core)
 : Backend of the traveler's app using the Typelevel stack
+
+[SurfsUp Alerts](https://github.com/manocha-aman/wind-alerts)
+: Backend of [app](https://play.google.com/store/apps/details?id=com.passiondigital.surfsup.android) for surfers .
 
 [todo-backend-typelevel](https://github.com/aeons/todo-backend-typelevel)
 : todo-backend implementation using the Typelevel stack

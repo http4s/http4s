@@ -29,7 +29,7 @@ import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
-class LoggerSuite extends Http4sSuite {
+class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs2.io, for Scala.js?
   private val testApp = HttpApp[IO] {
     case GET -> Root / "request" =>
       Ok("request response")

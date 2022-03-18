@@ -45,7 +45,7 @@ object ConcurrentRequests {
     * @note This is the same as [[route]], but allows for the inner and outer
     *       effect types to differ.
     */
-  def route2[F[_]: Sync, G[_]: Async]( // TODO (ce3-ra): Sync + MonadCancel
+  def route2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
       onDecrement: Long => G[Unit],
   ): F[ContextMiddleware[G, Long]] =
@@ -66,14 +66,14 @@ object ConcurrentRequests {
     * @note `onIncrement` should never be < 1 and `onDecrement` should never
     *       be value < 0.
     */
-  def route[F[_]: Async](
+  def route[F[_]: Sync](
       onIncrement: Long => F[Unit],
       onDecrement: Long => F[Unit],
   ): F[ContextMiddleware[F, Long]] =
     route2[F, F](onIncrement, onDecrement)
 
   /** As [[route]], but runs the same effect on increment and decrement of the concurrent request count. */
-  def onChangeRoute[F[_]: Async](onChange: Long => F[Unit]): F[ContextMiddleware[F, Long]] =
+  def onChangeRoute[F[_]: Sync](onChange: Long => F[Unit]): F[ContextMiddleware[F, Long]] =
     route[F](onChange, onChange)
 
   /** Run a side effect each time the concurrent request count increments and
@@ -88,7 +88,7 @@ object ConcurrentRequests {
     * @note This is the same as [[app]], but allows for the inner and outer
     *       effect types to differ.
     */
-  def app2[F[_]: Sync, G[_]: Async](
+  def app2[F[_]: Sync, G[_]: Sync](
       onIncrement: Long => G[Unit],
       onDecrement: Long => G[Unit],
   ): F[Kleisli[G, ContextRequest[G, Long], Response[G]] => Kleisli[G, Request[G], Response[G]]] =
@@ -109,14 +109,14 @@ object ConcurrentRequests {
     * @note `onIncrement` should never be < 1 and `onDecrement` should never
     *       be value < 0.
     */
-  def app[F[_]: Async](
+  def app[F[_]: Sync](
       onIncrement: Long => F[Unit],
       onDecrement: Long => F[Unit],
   ): F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app2[F, F](onIncrement, onDecrement)
 
   /** As [[app]], but runs the same effect on increment and decrement of the concurrent request count. */
-  def onChangeApp[F[_]: Async](
+  def onChangeApp[F[_]: Sync](
       onChange: Long => F[Unit]
   ): F[Kleisli[F, ContextRequest[F, Long], Response[F]] => Kleisli[F, Request[F], Response[F]]] =
     app[F](onChange, onChange)

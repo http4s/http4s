@@ -20,6 +20,8 @@ package server
 
 import cats.effect._
 import cats.effect.std.Dispatcher
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.SocketAddress
 import org.apache.catalina.Context
 import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat
@@ -27,7 +29,6 @@ import org.apache.catalina.util.ServerInfo
 import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.FilterDef
 import org.apache.tomcat.util.descriptor.web.FilterMap
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.server.SSLClientAuthMode
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -50,6 +51,7 @@ import javax.servlet.Filter
 import javax.servlet.http.HttpServlet
 import scala.collection.immutable
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 sealed class TomcatBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
@@ -233,10 +235,10 @@ sealed class TomcatBuilder[F[_]] private (
         tomcat.start()
 
         val server = new Server {
-          lazy val address: InetSocketAddress = {
+          lazy val address: SocketAddress[IpAddress] = {
             val host = socketAddress.getHostString
             val port = tomcat.getConnector.getLocalPort
-            new InetSocketAddress(host, port)
+            SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
           }
 
           lazy val isSecure: Boolean = sslConfig.isSecure
@@ -264,7 +266,7 @@ sealed class TomcatBuilder[F[_]] private (
 object TomcatBuilder {
   def apply[F[_]: Async]: TomcatBuilder[F] =
     new TomcatBuilder[F](
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       externalExecutor = None,
       idleTimeout = defaults.IdleTimeout,
       asyncTimeout = defaults.ResponseTimeout,

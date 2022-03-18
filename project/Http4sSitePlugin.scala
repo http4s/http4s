@@ -87,6 +87,10 @@ object Http4sSitePlugin extends AutoPlugin {
         "Streaming",
         "http4s is built on FS2, a streaming library that provides for processing and emitting large payloads in constant space and implementing websockets.",
       ),
+      Teaser(
+        "Cross-platform",
+        "http4s cross-builds for Scala.js, enabling you to share code across browsers, Node.js apps, serverless functions, and JVM servers.",
+      ),
     )
 
     val projectLinks: Seq[TextLink] = Seq(
@@ -125,7 +129,7 @@ object Http4sSitePlugin extends AutoPlugin {
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
-    val current: Version = v0_23
+    val current: Version = v1_0
   }
 
   object redirects {

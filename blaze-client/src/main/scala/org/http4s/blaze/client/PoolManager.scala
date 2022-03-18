@@ -23,7 +23,6 @@ import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import org.http4s.client.RequestKey
-import org.http4s.internal.CollectionCompat
 import org.log4s.getLogger
 
 import java.time.Instant
@@ -51,29 +50,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxIdleDuration: Duration,
 )(implicit F: Async[F])
     extends ConnectionManager.Stateful[F, A] { self =>
-
-  @deprecated("Preserved for binary compatibility", "0.23.8")
-  private[PoolManager] def this(
-      builder: ConnectionBuilder[F, A],
-      maxTotal: Int,
-      maxWaitQueueLimit: Int,
-      maxConnectionsPerRequestKey: RequestKey => Int,
-      responseHeaderTimeout: Duration,
-      requestTimeout: Duration,
-      semaphore: Semaphore[F],
-      executionContext: ExecutionContext,
-      F: Async[F],
-  ) = this(
-    builder,
-    maxTotal,
-    maxWaitQueueLimit,
-    maxConnectionsPerRequestKey,
-    responseHeaderTimeout,
-    requestTimeout,
-    semaphore,
-    executionContext,
-    Duration.Inf,
-  )(F)
 
   private sealed case class PooledConnection(conn: A, borrowDeadline: Option[Deadline])
 
@@ -444,7 +420,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       def isClosed: F[Boolean] = F.delay(self.isClosed)
       def allocated: F[Map[RequestKey, Int]] = F.delay(self.allocated.toMap)
       def idleQueueDepth: F[Map[RequestKey, Int]] =
-        F.delay(CollectionCompat.mapValues(self.idleQueues.toMap)(_.size))
+        F.delay(self.idleQueues.toMap.view.mapValues(_.size).toMap)
       def waitQueueDepth: F[Int] = F.delay(self.waitQueue.size)
     }
 }

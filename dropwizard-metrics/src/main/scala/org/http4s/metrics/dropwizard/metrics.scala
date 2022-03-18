@@ -33,10 +33,10 @@ package object dropwizard {
   }
 
   /** Encodes a metric registry in JSON format */
-  def metricRegistryEncoder[F[_]](
+  def metricRegistryEncoder(
       mapper: ObjectMapper = defaultMapper
-  ): EntityEncoder[F, MetricRegistry] =
-    EntityEncoder[F, String].contramap { metricRegistry =>
+  ): EntityEncoder.Pure[MetricRegistry] =
+    EntityEncoder.Pure[String].contramap { metricRegistry =>
       val writer = mapper.writerWithDefaultPrettyPrinter()
       writer.writeValueAsString(metricRegistry)
     }
@@ -46,8 +46,8 @@ package object dropwizard {
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper,
   ): F[Response[F]] = {
-    implicit val encoder: EntityEncoder[F, MetricRegistry] = metricRegistryEncoder[F](mapper)
-    Response[F](Status.Ok).withEntity[MetricRegistry](registry).pure[F]
+    implicit val encoder: EntityEncoder.Pure[MetricRegistry] = metricRegistryEncoder(mapper)
+    Response[F](Status.Ok).withEntity(registry).pure[F]
   }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */

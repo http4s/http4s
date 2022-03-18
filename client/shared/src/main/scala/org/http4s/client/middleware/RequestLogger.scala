@@ -40,7 +40,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { request =>
-      Logger.logMessage[F, Request[F]](request)(
+      Logger.logMessage(request)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -54,7 +54,7 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { request =>
-      InternalLogger.logMessageWithBodyText[F, Request[F]](request)(
+      InternalLogger.logMessageWithBodyText(request)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -79,21 +79,32 @@ object RequestLogger {
         Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
-          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+          req.entity match {
+            case Entity.Default(_, _) =>
+              Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+                val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-            val logAtEnd: F[Unit] =
-              logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                F.delay(logger.error(t)("Error logging request body"))
+                val logAtEnd: F[Unit] =
+                  logMessage(req.withBodyStream(newBody)).handleErrorWith { t =>
+                    F.delay(logger.error(t)("Error logging request body"))
+                  }
+
+                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                val logPipe: Pipe[F, Byte, Byte] =
+                  _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                    .onFinalizeWeak(logAtEnd)
+
+                client.run(req.pipeBodyThrough(logPipe))
               }
 
-            // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-            val logPipe: Pipe[F, Byte, Byte] =
-              _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                .onFinalizeWeak(logAtEnd)
-
-            client.run(req.pipeBodyThrough(logPipe))
+            case Entity.Strict(_) | Entity.Empty =>
+              logMessage(req)
+                .handleErrorWith { t =>
+                  F.delay(logger.error(t)("Error logging request body"))
+                }
+                .as(client.run(req))
           }
+
         }
     }
 
@@ -116,10 +127,10 @@ object RequestLogger {
         s"${request.httpVersion} $methodColor${request.method}$RESET$color $BOLD${request.uri}$RESET$color"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Request[F]](request)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(request)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Request[F]](request)(logBody) match {
+        InternalLogger.defaultLogBody(request)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

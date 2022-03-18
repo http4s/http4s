@@ -50,7 +50,7 @@ object PushSupport {
         .getOrElse(Vector(PushLocation(newUrl, cascade)))
 
       response.copy(
-        body = response.body,
+        entity = response.entity,
         attributes = response.attributes.insert(PushSupport.pushLocationKey, newPushResouces),
       )
     }

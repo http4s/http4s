@@ -24,7 +24,9 @@ import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 
 trait Media[F[_]] {
-  def body: EntityBody[F]
+
+  def entity: Entity[F]
+  final def body: EntityBody[F] = entity.body
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 
@@ -69,9 +71,9 @@ trait Media[F[_]] {
 }
 
 object Media {
-  def apply[F[_]](b: EntityBody[F], h: Headers): Media[F] =
+  def apply[F[_]](e: Entity[F], h: Headers): Media[F] =
     new Media[F] {
-      def body: EntityBody[F] = b
+      def entity: Entity[F] = e
 
       def headers: Headers = h
 

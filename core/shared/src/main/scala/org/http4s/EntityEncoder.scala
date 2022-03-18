@@ -33,13 +33,12 @@ import scodec.bits.ByteVector
 
 import java.io._
 import java.nio.CharBuffer
-import java.nio.file.Path
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found."
 )
-trait EntityEncoder[F[_], A] { self =>
+trait EntityEncoder[+F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
   def toEntity(a: A): Entity[F]
@@ -75,6 +74,11 @@ trait EntityEncoder[F[_], A] { self =>
 }
 
 object EntityEncoder {
+  type Pure[A] = EntityEncoder[fs2.Pure, A]
+  object Pure {
+    def apply[A](implicit ev: EntityEncoder.Pure[A]): EntityEncoder.Pure[A] = ev
+  }
+
   private val DefaultChunkSize = 4096
 
   /** summon an implicit [[EntityEncoder]] */
@@ -97,24 +101,18 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
-    encodeBy(hs: _*) { a =>
-      val c = toChunk(a)
-      Entity[F](Stream.chunk(c), Some(c.size.toLong))
-    }
+  def simple[A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder.Pure[A] =
+    encodeBy(hs: _*)(a => Entity.strict(toChunk(a)))
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[F[_], A](implicit
-      charset: Charset = `UTF-8`,
-      show: Show[A],
-  ): EntityEncoder[F, A] = {
+  def showEncoder[A](implicit charset: Charset = `UTF-8`, show: Show[A]): EntityEncoder.Pure[A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[F, A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
+    simple[A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
 
-  def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
-    new EntityEncoder[F, A] {
-      def toEntity(a: A): Entity[F] = Entity.empty
+  def emptyEncoder[A]: EntityEncoder.Pure[A] =
+    new EntityEncoder[fs2.Pure, A] {
+      def toEntity(a: A): Entity[fs2.Pure] = Entity.empty
       def headers: Headers = Headers.empty
     }
 
@@ -138,29 +136,27 @@ object EntityEncoder {
         }
     }
 
-  implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
-    emptyEncoder[F, Unit]
+  implicit val unitEncoder: EntityEncoder.Pure[Unit] =
+    emptyEncoder[Unit]
 
-  implicit def stringEncoder[F[_]](implicit
-      charset: Charset = `UTF-8`
-  ): EntityEncoder[F, String] = {
+  implicit def stringEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charArrayEncoder[F[_]](implicit
+  implicit def charArrayEncoder(implicit
       charset: Charset = `UTF-8`
-  ): EntityEncoder[F, Array[Char]] =
-    stringEncoder[F].contramap(new String(_))
+  ): EntityEncoder.Pure[Array[Char]] =
+    stringEncoder.contramap(new String(_))
 
-  implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
+  implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
     simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
-  implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
-    chunkEncoder[F].contramap(Chunk.array[Byte])
+  implicit val byteArrayEncoder: EntityEncoder.Pure[Array[Byte]] =
+    chunkEncoder.contramap(Chunk.array[Byte])
 
   implicit def byteVectorEncoder[F[_]]: EntityEncoder[F, ByteVector] =
-    chunkEncoder[F].contramap(Chunk.byteVector)
+    chunkEncoder.contramap(Chunk.byteVector)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know
@@ -170,16 +166,6 @@ object EntityEncoder {
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
       Entity(body, None)
     }
-
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def fileEncoder[F[_]: Files]: EntityEncoder[F, File] =
-    pathEncoder.contramap(f => fs2.io.file.Path.fromNioPath(f.toPath()))
-
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  @deprecated("Use pathEncoder with fs2.io.file.Path", "0.23.5")
-  implicit def filePathEncoder[F[_]: Files]: EntityEncoder[F, Path] =
-    pathEncoder.contramap(p => fs2.io.file.Path.fromNioPath(p))
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def pathEncoder[F[_]: Files]: EntityEncoder[F, fs2.io.file.Path] =

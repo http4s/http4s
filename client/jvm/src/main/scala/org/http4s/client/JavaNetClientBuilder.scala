@@ -25,7 +25,6 @@ import fs2.Stream
 import fs2.io.readInputStream
 import fs2.io.writeOutputStream
 import org.http4s.internal.BackendBuilder
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.typelevel.ci.CIString
 
 import java.io.IOException
@@ -37,6 +36,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLSocketFactory
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters._
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -152,7 +152,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .toList
         )
       )
-    } yield Response(status = status, headers = headers, body = readBody(conn))
+    } yield Response(status = status, headers = headers, entity = Entity(readBody(conn)))
 
   private def timeoutMillis(d: Duration): Int =
     d match {

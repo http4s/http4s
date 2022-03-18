@@ -88,7 +88,7 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   ): F[Response[G]] = {
     val h = w.headers |+| Headers(headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -108,7 +108,7 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   ): F[Response[G]] = {
     val h = w.headers |+| Headers(location, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -132,7 +132,7 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
   ): F[Response[G]] = {
     val h = w.headers |+| Headers(authenticate, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -152,7 +152,7 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   ): F[Response[G]] = {
     val h = w.headers |+| Headers(allow, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -176,6 +176,6 @@ trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGe
   ): F[Response[G]] = {
     val h = w.headers |+| Headers(authenticate, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }

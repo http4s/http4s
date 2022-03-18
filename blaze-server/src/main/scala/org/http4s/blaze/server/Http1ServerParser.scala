@@ -46,7 +46,7 @@ private[http4s] final class Http1ServerParser[F[_]](
   def doParseContent(buff: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buff))
 
   def collectMessage(
-      body: EntityBody[F],
+      entity: Entity[F],
       attrs: Vault,
   ): Either[(ParseFailure, HttpVersion), Request[F]] = {
     val h = Headers(headers.result())
@@ -73,7 +73,7 @@ private[http4s] final class Http1ServerParser[F[_]](
       .fromString(this.method)
       .flatMap { method =>
         Uri.requestTarget(this.uri).map { uri =>
-          Request(method, uri, protocol, h, body, attrsWithTrailers)
+          Request(method, uri, protocol, h, entity, attrsWithTrailers)
         }
       }
       .leftMap(_ -> protocol)

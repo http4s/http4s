@@ -31,7 +31,6 @@ import org.http4s.multipart.Multipart
 import org.http4s.multipart.MultipartDecoder
 import scodec.bits.ByteVector
 
-import java.io.File
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]
@@ -205,12 +204,36 @@ object EntityDecoder {
     }
 
   /** Helper method which simply gathers the body into a single Chunk */
-  def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.to(Chunk).map(_.flatten))
+  def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] = {
+    val chunkF = m.entity match {
+      case Entity.Default(body, _) =>
+        body.chunks.compile.to(Chunk).map(_.flatten)
+
+      case Entity.Strict(c) =>
+        Applicative[F].pure(c)
+
+      case Entity.Empty =>
+        Applicative[F].pure(Chunk.empty[Byte])
+    }
+
+    DecodeResult.success(chunkF)
+  }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] =
-    DecodeResult.success(m.body.compile.to(ByteVector))
+  private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] = {
+    val byteVectorF = m.entity match {
+      case Entity.Default(body, _) =>
+        body.compile.to(ByteVector)
+
+      case Entity.Strict(c) =>
+        Applicative[F].pure(c.to(ByteVector))
+
+      case Entity.Empty =>
+        Applicative[F].pure(ByteVector.empty)
+    }
+
+    DecodeResult.success(byteVectorF)
+  }
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
@@ -224,7 +247,14 @@ object EntityDecoder {
   def error[F[_], T](t: Throwable)(implicit F: Concurrent[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(m.body.compile.drain *> F.raiseError(t))
+        m.entity match {
+          case Entity.Default(body, _) =>
+            DecodeResult(body.compile.drain *> F.raiseError(t))
+
+          case Entity.Strict(_) | Entity.Empty =>
+            DecodeResult(F.raiseError(t))
+        }
+
       override def consumes: Set[MediaRange] = Set.empty
     }
 
@@ -251,13 +281,6 @@ object EntityDecoder {
     text.map(_.toArray)
 
   // File operations
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
-  def binFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    binFile(Path.fromNioPath(file.toPath())).map(_ => file)
-
-  @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
-  def textFile[F[_]: Files: Concurrent](file: File): EntityDecoder[F, File] =
-    textFile(Path.fromNioPath(file.toPath())).map(_ => file)
 
   def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
@@ -358,6 +381,12 @@ object EntityDecoder {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+      msg.entity match {
+        case Entity.Default(body, _) =>
+          DecodeResult.success(body.drain.compile.drain)
+
+        case Entity.Strict(_) | Entity.Empty =>
+          DecodeResult.success(Applicative[F].unit)
+      }
     }
 }

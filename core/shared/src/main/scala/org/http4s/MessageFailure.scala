@@ -61,7 +61,7 @@ final case class ParseFailure(sanitized: String, details: String)
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(sanitized)(EntityEncoder.stringEncoder[F])
+      .withEntity(sanitized)
 }
 
 object ParseFailure {
@@ -111,7 +111,7 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.BadRequest, httpVersion)
-      .withEntity(s"The request body was malformed.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was malformed.")
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
@@ -122,7 +122,7 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.UnprocessableEntity, httpVersion)
-      .withEntity(s"The request body was invalid.")(EntityEncoder.stringEncoder[F])
+      .withEntity(s"The request body was invalid.")
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
@@ -137,7 +137,7 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
     Response(Status.UnsupportedMediaType, httpVersion)
-      .withEntity(responseMsg)(EntityEncoder.stringEncoder[F])
+      .withEntity(responseMsg)
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no

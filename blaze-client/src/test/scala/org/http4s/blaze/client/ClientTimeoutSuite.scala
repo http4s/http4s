@@ -140,7 +140,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
     case (tickWheel, dispatcher) =>
       // Sending request body hangs so the idle timeout will kick-in after 1s and interrupt the request
       val body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
-      val req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      val req = Request(method = Method.POST, uri = www_foo_com, entity = Entity(body))
       val h = new SlowTestHead(Seq(mkBuffer(resp)), 3.seconds, tickWheel)
       val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 
@@ -154,7 +154,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
       (for {
         _ <- IO.unit
         body = Stream.emit[IO, Byte](1.toByte) ++ Stream.never[IO]
-        req = Request(method = Method.POST, uri = www_foo_com, body = body)
+        req = Request(method = Method.POST, uri = www_foo_com, entity = Entity(body))
         q <- Queue.unbounded[IO, Option[ByteBuffer]]
         h = new QueueTestHead(q)
         (f, b) = resp.splitAt(resp.length - 1)
@@ -175,7 +175,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
         .fixedRate[IO](500.millis)
         .take(3)
         .mapChunks(_ => Chunk.array(Array.fill(chunkBufferMaxSize + 1)(1.toByte)))
-      val req = Request(method = Method.POST, uri = www_foo_com, body = body)
+      val req = Request(method = Method.POST, uri = www_foo_com, entity = Entity(body))
       val h = new SlowTestHead(Seq(mkBuffer(resp)), 2000.millis, tickWheel)
       val c = mkClient(h, tickWheel, dispatcher)(idleTimeout = 1.second)
 

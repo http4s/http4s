@@ -21,6 +21,7 @@ package middleware
 import cats.Applicative
 import cats.data.EitherT
 import cats.data.Kleisli
+import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
@@ -31,6 +32,7 @@ import org.http4s.crypto.Hmac
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.SecretKey
+import org.http4s.crypto.SecretKeySpec
 import org.http4s.crypto.SecureEq
 import org.http4s.crypto.unsafe.SecureRandom
 import org.http4s.headers.Host
@@ -88,7 +90,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     key: SecretKey[HmacAlgorithm],
     headerCheck: Request[G] => Boolean,
     csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G],
-)(implicit F: Sync[F]) { self =>
+)(implicit F: Async[F]) { self =>
   import CSRF._
 
   private val csrfChecker: CSRFCheck[F, G] = csrfCheck(self)
@@ -97,7 +99,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * Signing and generating a token is potentially a unsafe operation
     * if constructed with a bad key.
     */
-  def signToken[M[_]](rawToken: String)(implicit F: Sync[M]): M[CSRFToken] =
+  def signToken[M[_]](rawToken: String)(implicit F: Async[M]): M[CSRFToken] =
     for {
       joined <- F.delay(rawToken + "-" + clock.millis())
       data <- F.fromEither(ByteVector.encodeUtf8(joined))
@@ -105,7 +107,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     } yield lift(joined + "-" + encodeHexString(out.toArray))
 
   /** Generate a new token */
-  def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
+  def generateToken[M[_]](implicit F: Async[M]): M[CSRFToken] =
     signToken[M](CSRF.genTokenString)
 
   /** Create a Response cookie from a signed CSRF token
@@ -136,11 +138,10 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def refreshedToken[M[_]](
       r: Request[G]
-  )(implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
+  )(implicit F: Async[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
-        EitherT(F.pure(extractRaw(c.content)))
-          .semiflatMap(signToken[M])
+        EitherT(extractRaw(c.content)).semiflatMap(signToken[M])
       case None =>
         EitherT(F.pure(Left(CSRFCheckFailed)))
     }
@@ -152,11 +153,10 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def refreshOrCreate[M[_]](
       r: Request[G]
-  )(implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
+  )(implicit F: Async[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
-        EitherT(F.pure(extractRaw(c.content)))
-          .semiflatMap(signToken[M])
+        EitherT(extractRaw(c.content)).semiflatMap(signToken[M])
       case None =>
         EitherT.liftF(generateToken[M])
     }
@@ -164,35 +164,36 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** Decode our CSRF token, check the signature
     * and extract the original token string to sign
     */
-  def extractRaw(rawToken: String): Either[CSRFCheckFailed, String] =
+  def extractRaw[M[_]: Async](rawToken: String): M[Either[CSRFCheckFailed, String]] =
     rawToken.split("-") match {
       case Array(raw, nonce, signed) =>
-        val out = Hmac[SyncIO]
+        Hmac[M]
           .digest(key, ByteVector.view((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8)))
-          .unsafeRunSync()
-        decodeHexString(signed) match {
-          case Some(decoded) =>
-            if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
-              Right(raw)
-            else
-              Left(CSRFCheckFailed)
-          case None =>
-            Left(CSRFCheckFailed)
-        }
+          .map { out =>
+            decodeHexString(signed) match {
+              case Some(decoded) =>
+                if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
+                  Right(raw)
+                else
+                  Left(CSRFCheckFailed)
+              case None =>
+                Left(CSRFCheckFailed)
+            }
+          }
       case _ =>
-        Left(CSRFCheckFailed)
+        Left(CSRFCheckFailed).pure[M].widen
     }
 
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
     * and a token is present, validate and regenerate it for BREACH to be impractical
     */
   private[middleware] def validate(r: Request[G], response: F[Response[G]])(implicit
-      F: Sync[F]
+      F: Async[F]
   ): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
         (for {
-          raw <- F.fromEither(extractRaw(c.content))
+          raw <- extractRaw(c.content).flatMap(F.fromEither)
           res <- response
           newToken <- signToken[F](raw)
         } yield res.addCookie(createResponseCookie(newToken)))
@@ -211,15 +212,15 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * (i.e websocket or query param)
     */
   def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String)(implicit
-      F: Sync[F]
+      F: Async[F]
   ): F[Response[G]] =
     if (!headerCheck(r))
       F.pure(onFailure)
     else
       (for {
         c1 <- CSRF.cookieFromHeadersF[F, G](r, cookieSettings.cookieName)
-        raw1 <- F.fromEither(extractRaw(c1.content))
-        raw2 <- F.fromEither(extractRaw(rawToken))
+        raw1 <- extractRaw(c1.content).flatMap(F.fromEither)
+        raw2 <- extractRaw(rawToken).flatMap(F.fromEither)
         response <-
           if (CSRF.isEqual(raw1, raw2)) respAction
           else F.raiseError[Response[G]](CSRFCheckFailed)
@@ -261,13 +262,13 @@ final class CSRF[F[_], G[_]] private[middleware] (
     r.addCookie(createRequestCookie(token))
 
   /** Embed a token into a response */
-  def embedNewInResponseCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
+  def embedNewInResponseCookie[M[_]: Async](res: Response[G]): M[Response[G]] =
     generateToken[M].map(embedInResponseCookie(res, _))
 }
 
 object CSRF {
-  def apply[F[_]: Sync, G[_]: Applicative](
-      key: javax.crypto.SecretKey,
+  def apply[F[_]: Async, G[_]: Applicative](
+      key: ByteVector,
       headerCheck: Request[G] => Boolean,
   ): CSRFBuilder[F, G] =
     new CSRFBuilder[F, G](
@@ -281,13 +282,13 @@ object CSRF {
       clock = Clock.systemUTC(),
       onFailure = Response[G](Status.Forbidden),
       createIfNotFound = true,
-      key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync(),
+      key = SecretKeySpec(key, HmacAlgorithm.SHA1),
       headerCheck = headerCheck,
       csrfCheck = checkCSRFDefault,
     )
 
-  def withDefaultOriginCheck[F[_]: Sync, G[_]: Applicative](
-      key: javax.crypto.SecretKey,
+  def withDefaultOriginCheck[F[_]: Async, G[_]: Applicative](
+      key: ByteVector,
       host: String,
       scheme: Scheme,
       port: Option[Int],
@@ -297,8 +298,8 @@ object CSRF {
       headerCheck = defaultOriginCheck(_, host, scheme, port),
     )
 
-  def withDefaultOriginCheckFormAware[F[_]: Sync, G[_]: Concurrent](fieldName: String, nt: G ~> F)(
-      key: javax.crypto.SecretKey,
+  def withDefaultOriginCheckFormAware[F[_]: Async, G[_]: Concurrent](fieldName: String, nt: G ~> F)(
+      key: ByteVector,
       host: String,
       scheme: Scheme,
       port: Option[Int],
@@ -306,12 +307,12 @@ object CSRF {
     withDefaultOriginCheck(key, host, scheme, port)(Sync[F], Applicative[G])
       .withCSRFCheck(checkCSRFinHeaderAndForm(fieldName, nt))
 
-  def withGeneratedKey[F[_]: Sync, G[_]: Applicative](
+  def withGeneratedKey[F[_]: Async, G[_]: Applicative](
       headerCheck: Request[G] => Boolean
   ): F[CSRFBuilder[F, G]] =
     generateSigningKey().map(k => apply(k, headerCheck))
 
-  def withKeyBytes[F[_]: Sync, G[_]: Applicative](
+  def withKeyBytes[F[_]: Async, G[_]: Applicative](
       keyBytes: Array[Byte],
       headerCheck: Request[G] => Boolean,
   ): F[CSRFBuilder[F, G]] =
@@ -328,7 +329,7 @@ object CSRF {
       key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
-  )(implicit F: Sync[F], G: Applicative[G]) {
+  )(implicit F: Async[F], G: Applicative[G]) {
     private def copy(
         headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
@@ -356,8 +357,8 @@ object CSRF {
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
-    def withKey(key: javax.crypto.SecretKey): CSRFBuilder[F, G] =
-      copy(key = Hmac[SyncIO].importJavaKey(key).unsafeRunSync())
+    def withKey(key: ByteVector): CSRFBuilder[F, G] =
+      copy(key = SecretKeySpec(key, HmacAlgorithm.SHA1))
     def withHeaderCheck(headerCheck: Request[G] => Boolean): CSRFBuilder[F, G] =
       copy(headerCheck = headerCheck)
     def withCSRFCheck(csrfCheck: CSRF[F, G] => CSRFCheck[F, G]): CSRFBuilder[F, G] =
@@ -404,12 +405,12 @@ object CSRF {
 
   type CSRFCheck[F[_], G[_]] = (Request[G], F[Response[G]]) => F[Response[G]]
 
-  def checkCSRFDefault[F[_], G[_]](implicit F: Sync[F]): CSRF[F, G] => CSRFCheck[F, G] =
+  def checkCSRFDefault[F[_], G[_]](implicit F: Async[F]): CSRF[F, G] => CSRFCheck[F, G] =
     csrf =>
       (r, http) => csrf.getHeaderToken(r).fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
 
   def checkCSRFinHeaderAndForm[F[_], G[_]: Concurrent](fieldName: String, nt: G ~> F)(implicit
-      F: Sync[F]
+      F: Async[F]
   ): CSRF[F, G] => CSRFCheck[F, G] = { csrf => (r, http) =>
     def getFormToken: F[Option[String]] = {
       def extractToken: G[Option[String]] =
@@ -533,8 +534,8 @@ object CSRF {
   }
 
   /** Generate a signing Key for the CSRF token */
-  def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
-    HmacKeyGen[F].generateKey(SigningAlgorithm).map(_.toJava)
+  def generateSigningKey[F[_]]()(implicit F: Async[F]): F[ByteVector] =
+    HmacKeyGen[F].generateKey(SigningAlgorithm).map { case SecretKeySpec(key, _) => key }
 
   /** Build a new HMACSHA1 Key for our CSRF Middleware
     * from key bytes. This operation is unsafe, in that
@@ -546,6 +547,8 @@ object CSRF {
     * Use for loading a key from a config file, after having generated
     * one safely
     */
-  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
-    Hmac[F].importKey(ByteVector.view(array), SigningAlgorithm).map(_.toJava)
+  def buildSigningKey[F[_]](array: Array[Byte])(implicit F: Async[F]): F[ByteVector] =
+    Hmac[F].importKey(ByteVector.view(array), SigningAlgorithm).map { case SecretKeySpec(key, _) =>
+      key
+    }
 }

@@ -17,7 +17,6 @@
 package org.http4s
 
 import cats.ApplicativeThrow
-import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
 import cats.Semigroup
@@ -124,7 +123,7 @@ object StaticFile {
                 Some(
                   Response(
                     headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
+                    entity = Entity(readInputStream[F](F.pure(inputStream), DefaultBufferSize)),
                   )
                 )
               },
@@ -137,15 +136,6 @@ object StaticFile {
     })
   }
 
-  @deprecated("Use calculateETag", "0.23.5")
-  def calcETag[F[_]: Files: Functor]: File => F[String] =
-    f =>
-      Files[F]
-        .isRegularFile(Path.fromNioPath(f.toPath()))
-        .map(isFile =>
-          if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else ""
-        )
-
   def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
     f =>
       Files[F]
@@ -156,31 +146,11 @@ object StaticFile {
           else ""
         )
 
-  @deprecated("Use fromPath", "0.23.5")
-  def fromFile[F[_]: Files: MonadThrow](
-      f: File,
-      req: Option[Request[F]] = None,
-  ): OptionT[F, Response[F]] =
-    fromPath(Path.fromNioPath(f.toPath()), DefaultBufferSize, req, calculateETag[F])
-
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
-
-  @deprecated("Use fromPath", "0.23.5")
-  def fromFile[F[_]: Files: MonadThrow](
-      f: File,
-      req: Option[Request[F]],
-      etagCalculator: File => F[String],
-  ): OptionT[F, Response[F]] =
-    fromPath(
-      Path.fromNioPath(f.toPath()),
-      DefaultBufferSize,
-      req,
-      etagCalculator.compose(_.toNioPath.toFile()),
-    )
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
@@ -188,22 +158,6 @@ object StaticFile {
       etagCalculator: Path => F[String],
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
-
-  @deprecated("Use fromPath", "0.23.5")
-  def fromFile[F[_]: Files: MonadThrow](
-      f: File,
-      buffsize: Int,
-      req: Option[Request[F]],
-      etagCalculator: File => F[String],
-  ): OptionT[F, Response[F]] =
-    fromPath(
-      Path.fromNioPath(f.toPath()),
-      0,
-      f.length(),
-      buffsize,
-      req,
-      etagCalculator.compose(_.toNioPath.toFile()),
-    )
 
   def fromPath[F[_]: Files: MonadThrow](
       f: Path,
@@ -219,26 +173,6 @@ object StaticFile {
       .recoverWith { case _: fs2.io.file.NoSuchFileException =>
         OptionT.none
       }
-
-  @deprecated("Use fromPath", "0.23.5")
-  def fromFile[F[_]: Files](
-      f: File,
-      start: Long,
-      end: Long,
-      buffsize: Int,
-      req: Option[Request[F]],
-      etagCalculator: File => F[String],
-  )(implicit
-      F: MonadError[F, Throwable]
-  ): OptionT[F, Response[F]] =
-    fromPath(
-      Path.fromNioPath(f.toPath()),
-      start,
-      end,
-      buffsize,
-      req,
-      etagCalculator.compose(_.toNioPath.toFile()),
-    )
 
   def fromPath[F[_]: Files](
       f: Path,
@@ -277,7 +211,7 @@ object StaticFile {
 
                   val r = Response(
                     headers = hs,
-                    body = body,
+                    entity = Entity(body),
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 
@@ -346,7 +280,4 @@ object StaticFile {
 
   private[http4s] val staticPathKey = Key.newKey[SyncIO, Path].unsafeRunSync()
 
-  @deprecated("Use staticPathKey", since = "0.23.5")
-  private[http4s] lazy val staticFileKey: Key[File] =
-    staticPathKey.imap(_.toNioPath.toFile)(f => Path.fromNioPath(f.toPath))
 }

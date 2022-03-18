@@ -1,5 +1,6 @@
 # HTTP Methods
 
+
 For a REST API, your service will want to support different verbs/methods.
 Http4s has a list of all the [methods] you're familiar with, and a few more.
 
@@ -20,7 +21,7 @@ def addTweet(tweet: Tweet): IO[TweetWithId] = ???
 def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
 def deleteTweet(id: Int): IO[Unit] = ???
 
-implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
+implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
 implicit val tweetDecoder = jsonOf[IO, Tweet]
 
 val tweetService = HttpRoutes.of[IO] {

@@ -195,7 +195,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   // Only called while holding the monitor of `parser`
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val (body, cleanup) = collectBodyFromParser(
+    val (body, cleanup) = collectEntityFromParser(
       buffer,
       () => Either.left(InvalidBodyException("Received premature EOF.")),
     )
@@ -296,7 +296,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
     // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
     val fa = bodyEncoder
-      .write(rr, resp.body)
+      .write(rr, resp.entity)
       .recover { case EOF => true }
       .attempt
       .flatMap {

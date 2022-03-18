@@ -35,7 +35,7 @@ object ExampleApp {
       .serve
 }
 
-class ExampleRoutes[F[_]: Sync] extends Http4sDsl[F] {
+final case class ExampleRoutes[F[_]: Sync]() extends Http4sDsl[F] {
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] { case GET -> Root / "ping" =>
       Ok("ping")

@@ -47,33 +47,39 @@ class SimpleHeadersSpec extends Http4sSuite {
   test("parse Access-Control-Allow-Headers") {
 
     val header = `Access-Control-Allow-Headers`(
-      NonEmptyList.of(
-        ci"Accept",
-        ci"Expires",
-        ci"X-Custom-Header",
-        ci"*",
-      )
+      ci"Accept",
+      ci"Expires",
+      ci"X-Custom-Header",
+      ci"*",
     )
 
     assertEquals(`Access-Control-Allow-Headers`.parse(header.toRaw1.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Allow-Headers`.parse(invalidHeaderValue).isLeft)
+
+    assertEquals(
+      `Access-Control-Allow-Headers`.parse(""),
+      Right(`Access-Control-Allow-Headers`.empty),
+    )
   }
 
   test("parse Access-Control-Expose-Headers") {
     val header = `Access-Control-Expose-Headers`(
-      NonEmptyList.of(
-        ci"Content-Length",
-        ci"Authorization",
-        ci"X-Custom-Header",
-        ci"*",
-      )
+      ci"Content-Length",
+      ci"Authorization",
+      ci"X-Custom-Header",
+      ci"*",
     )
     assertEquals(`Access-Control-Expose-Headers`.parse(header.toRaw1.value), Right(header))
 
     val invalidHeaderValue = "(non-token-name), non[&token]name"
     assert(`Access-Control-Expose-Headers`.parse(invalidHeaderValue).isLeft)
+
+    assertEquals(
+      `Access-Control-Expose-Headers`.parse(""),
+      Right(`Access-Control-Expose-Headers`.empty),
+    )
   }
 
   test("parse Connection") {

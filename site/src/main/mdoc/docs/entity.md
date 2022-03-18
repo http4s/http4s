@@ -1,5 +1,6 @@
 # Entity Handling
 
+
 ## Why Entity*
 
 Http4s handles HTTP requests and responses in a streaming fashion. Your service

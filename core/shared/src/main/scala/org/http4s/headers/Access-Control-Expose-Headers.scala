@@ -17,20 +17,21 @@
 package org.http4s
 package headers
 
-import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 object `Access-Control-Expose-Headers` {
+  def apply(values: CIString*): `Access-Control-Expose-Headers` =
+    apply(values.toList)
 
-  def apply(head: CIString, tail: CIString*): `Access-Control-Expose-Headers` =
-    apply(NonEmptyList(head, tail.toList))
+  val empty: `Access-Control-Expose-Headers` = `Access-Control-Expose-Headers`(Nil)
 
   def parse(s: String): ParseResult[`Access-Control-Expose-Headers`] =
     ParseResult.fromParser(parser, "Invalid Access-Control-Allow-Headers header")(s)
 
+  // https://fetch.spec.whatwg.org/#http-new-header-syntax (as of commit 613aad98fb19bf44fc95c4e9a332706d68795da8)
   private[http4s] val parser =
-    Rfc7230.headerRep1(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+    Rfc7230.headerRep(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
 
   implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
     Header.createRendered(
@@ -39,8 +40,8 @@ object `Access-Control-Expose-Headers` {
       parse,
     )
 
-  implicit val headerSemigroupInstance: cats.Semigroup[`Access-Control-Expose-Headers`] =
-    (a, b) => `Access-Control-Expose-Headers`(a.values.concatNel(b.values))
+  implicit val headerMonoidInstance: cats.Monoid[`Access-Control-Expose-Headers`] =
+    cats.Monoid.instance(empty, (a, b) => `Access-Control-Expose-Headers`(a.values ++ b.values))
 }
 
-final case class `Access-Control-Expose-Headers`(values: NonEmptyList[CIString])
+final case class `Access-Control-Expose-Headers`(values: List[CIString])

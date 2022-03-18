@@ -137,21 +137,21 @@ trait CirceInstances extends JawnInstances {
         )
     }
 
-  implicit def jsonEncoder[F[_]]: EntityEncoder[F, Json] =
-    jsonEncoderWithPrinter(defaultPrinter)
+  implicit def jsonEncoder: EntityEncoder.Pure[Json] = jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter[F[_]](printer: Printer): EntityEncoder[F, Json] =
-    EntityEncoder[F, Chunk[Byte]]
+  def jsonEncoderWithPrinter(printer: Printer): EntityEncoder.Pure[Json] =
+    EntityEncoder
+      .Pure[Chunk[Byte]]
       .contramap[Json](CirceInstances.fromJsonToChunk(printer))
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_], A: Encoder]: EntityEncoder[F, A] =
+  def jsonEncoderOf[A: Encoder]: EntityEncoder.Pure[A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_], A](printer: Printer)(implicit
+  def jsonEncoderWithPrinterOf[A](printer: Printer)(implicit
       encoder: Encoder[A]
-  ): EntityEncoder[F, A] =
-    jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
+  ): EntityEncoder.Pure[A] =
+    jsonEncoderWithPrinter(printer).contramap[A](encoder.apply)
 
   implicit def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)

@@ -85,7 +85,7 @@ class ConnectionSuite extends Http4sSuite {
   def clientResource(host: ip4s.SocketAddress[ip4s.Host]): Resource[IO, TestClient] =
     for {
       socket <- Network[IO].client(host)
-    } yield TestClient(socket)
+    } yield new TestClient(socket)
 
   private def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
@@ -93,7 +93,7 @@ class ConnectionSuite extends Http4sSuite {
   ) = ResourceFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
-      client <- clientResource(server.addressIp4s)
+      client <- clientResource(server.address)
     } yield client
   )
 

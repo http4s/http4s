@@ -22,9 +22,13 @@ import cats.effect.Sync
 import org.asynchttpclient.ClientStats
 import org.asynchttpclient.HostStats
 import org.asynchttpclient.{Response => _}
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 
-@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
+import scala.jdk.CollectionConverters._
+
+@deprecated(
+  "Upstream is unmaintained. This backend will be removed in the next milestone. If anyone wants to adopt it, please contact the http4s team.",
+  "1.0.0-M32",
+)
 class AsyncHttpClientStats[F[_]](private val underlying: ClientStats)(implicit F: Sync[F]) {
 
   def getTotalConnectionCount: F[Long] = F.delay(underlying.getTotalConnectionCount)

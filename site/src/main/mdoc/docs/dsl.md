@@ -101,7 +101,7 @@ but it will be a tedious affair until we learn a more succinct way of
 generating `F[Response]`s.
 
 
-### Status codes
+### Status Codes
 
 http4s-dsl provides a shortcut to create an `F[Response]` by
 applying a status code:
@@ -470,6 +470,7 @@ greetingWithIdService
 ```
 
 ### Handling Query Parameters
+
 A query parameter needs to have a `QueryParamDecoderMatcher` provided to
 extract it. In order for the `QueryParamDecoderMatcher` to work there needs to
 be an implicit `QueryParamDecoder[T]` in scope. `QueryParamDecoder`s for simple

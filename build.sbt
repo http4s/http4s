@@ -3,15 +3,13 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
 import org.http4s.sbt.ScaladocApiMapping
 
-import scala.xml.transform.{RewriteRule, RuleTransformer}
-
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
-ThisBuild / tlBaseVersion := "0.23"
+ThisBuild / crossScalaVersions := Seq(scala_3, scala_213)
+ThisBuild / tlBaseVersion := "1.0"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
-ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
-ThisBuild / tlSitePublishBranch := Some("series/0.23")
+ThisBuild / tlCiReleaseBranches := Seq("main")
+ThisBuild / tlSitePublishBranch := Some("main")
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
@@ -139,69 +137,6 @@ lazy val core = libraryCrossProject("core")
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
-    mimaBinaryIssueFilters ++= Seq(
-      // These will only cause problems when called via Java interop
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.apply"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
-
-      // private constructors so effectively final already
-      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
-      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
-      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
-      ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          // private[syntax]
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem](
-              "org.http4s.syntax.LiteralsSyntax.validateUriScheme"
-            ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem](
-              "org.http4s.syntax.LiteralsSyntax.validateMediatype"
-            ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
-          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
-          ProblemFilters
-            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
-          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
-          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
-          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
-          ProblemFilters
-            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.headers.Upgrade.parser"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.StaticFile.<clinit>"),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.websocket.WebSocket.imapK"
-          ),
-        )
-      else Seq.empty
-    },
   )
   .jvmSettings(
     libraryDependencies ++= {
@@ -216,8 +151,7 @@ lazy val core = libraryCrossProject("core")
     libraryDependencies ++= Seq(
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
-    ),
-    jsVersionIntroduced("0.23.5"),
+    )
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -239,70 +173,8 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       organization = "org.typelevel",
       name = "scalacheck-effect-munit",
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this"
-      ) // private
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          // private[discipline]
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genObsText"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genObsText_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genVcharExceptDquote"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genVcharExceptDquote_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genEntityTag"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genEntityTag_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForIfRangeLastModified"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForIfRangeLastModified_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryTrailer"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryTrailer_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForKeepAlive"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForKeepAlive_="
-          ),
-        )
-      else Seq.empty
-    },
   )
   .dependsOn(core)
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
 
 lazy val testing = libraryCrossProject("testing", CrossType.Full)
   .enablePlugins(NoPublishPlugin)
@@ -338,36 +210,6 @@ lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.server.middleware.CSRF.this"
-      ), // private[middleware]
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.server.middleware.CSRF#CSRFBuilder.this"
-      ), // private[middleware]
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.server.middleware.authentication.DigestUtil.computeResponse"
-      ), // private[authentication]
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.server.middleware.GZip$TrailerGen"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.server.middleware.GZip$TrailerGen$"
-      ), // private
-      // the following are private[middleware]
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$In"),
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowHeaders$Static"),
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowMethods$In"),
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$AllowOrigin$Match"),
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
-      ProblemFilters
-        .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
-    ),
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
@@ -376,9 +218,6 @@ lazy val server = libraryCrossProject("server")
       BuildInfoKey.map(Test / resourceDirectory) { case (k, v) => k -> v.toString }
     ),
     buildInfoPackage := "org.http4s.server.test",
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.7")
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
@@ -404,75 +243,12 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters
-        .exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.oauth1.package.makeSHASig"
-      ), // private[oauth1]
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.oauth1.*.generateHMAC"
-      ), // private[oauth1]
-      // begin wsclient: initially private[http4s]
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.closeFrame"
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.closeFrame"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.subprocotol"
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.subprotocol"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.sendClose"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1$"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1"
-      ),
-      // end wsclient
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq( // private[oauth1]
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.WaitQueueTimeoutException.getStackTraceDepth"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
-          ),
-        )
-      else Seq.empty
-    },
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
       nettyBuffer % Test,
       nettyCodecHttp % Test,
     )
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5"),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder$"),
-    ),
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
@@ -503,84 +279,6 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       log4catsCore.value,
       log4catsTesting.value % Test,
     ),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.apply"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.copy"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.parseHeaders"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.apply"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.parseMessage"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#MessageP.unapply"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.core.Parser#Request#ReqPrelude.parsePrelude"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"
-      ),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$EndOfStreamError$"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          // private[ember]
-          ProblemFilters
-            .exclude[MissingFieldProblem](
-              "org.http4s.ember.core.Parser#MessageP.MessageTooLongError"
-            ),
-          ProblemFilters
-            .exclude[MissingFieldProblem]("org.http4s.ember.core.Parser#MessageP.EndOfStreamError"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem](
-              "org.http4s.ember.core.Parser#MessageP.fromProduct"
-            ),
-          ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.Hpack$"),
-          ProblemFilters.exclude[IncompatibleTemplateDefProblem](
-            "org.http4s.ember.core.h2.HpackPlatform"
-          ),
-        )
-      else Seq.empty
-    },
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5"),
-    mimaBinaryIssueFilters ++= {
-      Seq(
-        ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*")
-      )
-    },
-    mimaBinaryIssueFilters ++= {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[IncompatibleTemplateDefProblem](
-            "org.http4s.ember.core.h2.facade.Compressor"
-          ),
-          ProblemFilters.exclude[IncompatibleTemplateDefProblem](
-            "org.http4s.ember.core.h2.facade.Decompressor"
-          ),
-        )
-      else
-        Seq.empty
-    },
   )
   .jvmSettings(
     libraryDependencies += twitterHpack
@@ -594,45 +292,6 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
     description := "ember implementation for http4s servers",
     startYear := Some(2019),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.server.internal.ServerHelpers.isKeepAlive"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.server.EmberServerBuilder#Defaults.maxConcurrency"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.ember.server.internal.ServerHelpers.runApp"
-      ),
-      ProblemFilters.exclude[Problem]("org.http4s.ember.server.EmberServerBuilder.this"),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.server.internal.ServerHelpers.runApp"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.ember.server.internal.ServerHelpers.runConnection"
-      ),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.server"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.upgradeSocket"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.serverInternal"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.unixSocketServer"
-          ),
-        )
-      else
-        Seq.empty
-    },
     Test / parallelExecution := false,
   )
   .jvmSettings(
@@ -645,8 +304,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    ),
-    jsVersionIntroduced("0.23.7"),
+    )
   )
   .dependsOn(
     emberCore % "compile;test->test",
@@ -661,18 +319,6 @@ lazy val emberClient = libraryCrossProject("ember-client")
     libraryDependencies ++= Seq(
       keypool.value
     ),
-    mimaBinaryIssueFilters := Seq(
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.client.internal.ClientHelpers#RetryLogic.isEmptyStreamError"
-          )
-        )
-      else Seq.empty
-    },
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -682,8 +328,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
   .jsSettings(
     libraryDependencies ++= Seq(
       log4catsNoop.value
-    ),
-    jsVersionIntroduced("0.23.5"),
+    )
   )
   .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
 
@@ -694,37 +339,6 @@ lazy val blazeCore = libraryProject("blaze-core")
     libraryDependencies ++= Seq(
       blazeHttp
     ),
-    mimaBinaryIssueFilters := {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.CachingChunkWriter.ec"),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.this"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.ec"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.FlushingChunkWriter.ec"
-          ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.ec"),
-        )
-      else Seq.empty
-    },
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
@@ -732,55 +346,6 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
-    mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.WebSocketDecoder.this"
-      ), // private
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"
-      ), // private
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.webSocketKey"
-          ),
-        )
-      else Seq.empty,
-    },
   )
   .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 
@@ -788,93 +353,6 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
     startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      // private constructor
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
-      // These are all private to blaze-client and fallout from from
-      // the deprecation of org.http4s.client.Connection
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.release"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.BlazeConnection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.connection"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy$default$1"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.this"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.apply"
-      ),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.Http1Connection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.release"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
-      // inside private trait/clas/object
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.runRequest"
-      ),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.resetWrite"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Read$"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$ReadWrite$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Write$"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.Http1Connection.isRecyclable"
-      ),
-      ProblemFilters
-        .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
-          ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeClient.makeClient"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.bits.DefaultUserAgent"),
-        )
-      else Seq.empty
-    },
   )
   .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
 
@@ -906,7 +384,7 @@ lazy val jettyClient = libraryProject("jetty-client")
   .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val nodeServerless = libraryProject("node-serverless")
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .enablePlugins(ScalaJSPlugin)
   .settings(
     description := "Node.js serverless wrapper for http4s apps",
     startYear := Some(2021),
@@ -968,9 +446,6 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
   )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
   .dependsOn(core, testing % "test->test")
 
 lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
@@ -981,9 +456,6 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
       jawnFs2.value,
       jawnParser.value,
     ),
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
   )
   .dependsOn(core, testing % "test->test")
 
@@ -996,9 +468,6 @@ lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
     ),
     tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
   .dependsOn(core, testing % "test->test")
 
 lazy val circe = libraryCrossProject("circe", CrossType.Pure)
@@ -1007,14 +476,10 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeJawn.value,
       circeTesting.value % Test,
     ),
   )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
-  .jvmSettings(libraryDependencies += circeJawn.value)
-  .jsSettings(libraryDependencies += circeJawn15.value)
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val playJson = libraryProject("play-json")
@@ -1068,14 +533,8 @@ lazy val scalatags = http4sProject("scalatags")
     description := "Scalatags template support for http4s",
     startYear := Some(2018),
     libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        scalatagsApi.cross(CrossVersion.for3Use2_13)
-      else
-        scalatagsApi
+      scalatagsApi
     ),
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
@@ -1352,10 +811,6 @@ lazy val commonSettings = Seq(
     scalacheck.value,
   ).map(_ % Test),
   apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
-)
-
-def jsVersionIntroduced(v: String) = Seq(
-  tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> v).toMap
 )
 
 lazy val skipUnusedDependenciesTestOnScala3 = Seq(

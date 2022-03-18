@@ -22,6 +22,7 @@ import cats.effect._
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
+import com.comcast.ip4s
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
@@ -315,10 +316,10 @@ sealed class JettyBuilder[F[_]] private (
         )
         .map((jetty: JServer) =>
           new Server {
-            lazy val address: InetSocketAddress = {
+            lazy val address: ip4s.SocketAddress[ip4s.IpAddress] = {
               val host = socketAddress.getHostString
               val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-              new InetSocketAddress(host, port)
+              ip4s.SocketAddress.fromInetSocketAddress(new InetSocketAddress(host, port))
             }
 
             lazy val isSecure: Boolean = sslConfig.isSecure
@@ -343,7 +344,7 @@ sealed class JettyBuilder[F[_]] private (
 object JettyBuilder {
   def apply[F[_]: Async] =
     new JettyBuilder[F](
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       threadPool = LazyThreadPool.newLazyThreadPool,
       threadPoolResourceOption = Some(
         JettyThreadPools.default[F]

@@ -30,7 +30,6 @@ import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.net.InetAddress
-import java.net.InetSocketAddress
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
@@ -55,30 +54,12 @@ package object server {
           .getHostAddress
       else "0:0:0:0:0:0:0:1"
 
-    @deprecated(
-      message =
-        "Please use IPv4Host or IPv6Host. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
-      since = "0.21.23",
-    )
-    def Host = InetAddress.getLoopbackAddress.getHostAddress
     val HttpPort = 8080
 
-    def IPv4SocketAddress: InetSocketAddress =
-      InetSocketAddress.createUnresolved(IPv4Host, HttpPort)
-    def IPv6SocketAddress: InetSocketAddress =
-      InetSocketAddress.createUnresolved(IPv6Host, HttpPort)
-
-    val IPv4SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv4Address] =
+    val IPv4SocketAddress: ip4s.SocketAddress[ip4s.Ipv4Address] =
       ip4s.SocketAddress(ip4s.Ipv4Address.fromString(IPv4Host).get, ip4s.Port.fromInt(HttpPort).get)
-    val IPv6SocketAddressIp4s: ip4s.SocketAddress[ip4s.Ipv6Address] =
+    val IPv6SocketAddress: ip4s.SocketAddress[ip4s.Ipv6Address] =
       ip4s.SocketAddress(ip4s.Ipv6Address.fromString(IPv6Host).get, ip4s.Port.fromInt(HttpPort).get)
-
-    @deprecated(
-      message =
-        "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
-      since = "0.21.23",
-    )
-    def SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout

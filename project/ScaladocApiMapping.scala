@@ -6,6 +6,8 @@ import sbt._
 import sbt.Keys._
 import sbtunidoc.BaseUnidocPlugin.autoImport._
 import sbt.librarymanagement._
+import sbt._
+import Http4sPlugin.V
 
 /** Provides API File -> URL mappings for dependencies which don't expose an
   * `apiURL` in their POM or if they do, they are doing so incorrectly and
@@ -56,7 +58,12 @@ object ScaladocApiMapping {
 
   private def playJsonMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
     if (file.toString.matches(""".+/play-json_[^/]+\.jar$""")) {
-      Some(file -> javadocIOAPIUrl(Some(scalaBinaryVersion), Http4sPlugin.playJson))
+      Some(
+        file -> javadocIOAPIUrl(
+          Some(scalaBinaryVersion),
+          "com.typesafe.play" %% "play-json" % V.playJson,
+        )
+      )
     } else {
       None
     }

@@ -142,9 +142,9 @@ class EntityEncoderSpec extends Http4sSuite {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.array("A".getBytes))
+        EntityEncoder.simple[ModelA]()(_ => Chunk.array("A".getBytes))
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.array("B".getBytes))
+        EntityEncoder.simple[ModelB]()(_ => Chunk.array("B".getBytes))
 
       assertEquals(EntityEncoder[IO, ModelA], w1)
       assertEquals(EntityEncoder[IO, ModelB], w2)

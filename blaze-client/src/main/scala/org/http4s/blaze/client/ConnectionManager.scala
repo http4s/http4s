@@ -101,25 +101,4 @@ private object ConnectionManager {
         maxIdleDuration,
       )
     }
-
-  @deprecated("Preserved for binary compatibility", "0.23.8")
-  def pool[F[_]: Async, A <: Connection[F]](
-      builder: ConnectionBuilder[F, A],
-      maxTotal: Int,
-      maxWaitQueueLimit: Int,
-      maxConnectionsPerRequestKey: RequestKey => Int,
-      responseHeaderTimeout: Duration,
-      requestTimeout: Duration,
-      executionContext: ExecutionContext,
-  ): F[ConnectionManager.Stateful[F, A]] =
-    pool(
-      builder,
-      maxTotal,
-      maxWaitQueueLimit,
-      maxConnectionsPerRequestKey,
-      responseHeaderTimeout,
-      requestTimeout,
-      executionContext,
-      Duration.Inf,
-    )
 }

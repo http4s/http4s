@@ -224,6 +224,7 @@ object Client {
               case true => Pull.raiseError[F](new IOException("response was disposed"))
               case false => Pull.output(chunk) >> go(stream)
             }
+
           case None => Pull.done
         }
       go(source).stream

@@ -51,7 +51,7 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
   implicit val fruitPickler: Pickler[Fruit] =
     compositePickler[Fruit].addConcreteType[Banana].addConcreteType[Kiwi].addConcreteType[Carambola]
 
-  implicit val encoder: EntityEncoder[IO, Fruit] = booEncoderOf[IO, Fruit]
+  implicit val encoder: EntityEncoder[IO, Fruit] = booEncoderOf[Fruit]
   implicit val decoder: EntityDecoder[IO, Fruit] = booOf[IO, Fruit]
 
   implicit val fruitArbitrary: Arbitrary[Fruit] = Arbitrary {
@@ -72,7 +72,7 @@ class BoopickleSuite extends Http4sSuite with Http4sLawSuite {
 
   test("have octect-stream content type") {
     assertEquals(
-      booEncoderOf[IO, Fruit].headers.get[`Content-Type`],
+      booEncoderOf[Fruit].headers.get[`Content-Type`],
       Some(`Content-Type`(MediaType.application.`octet-stream`)),
     )
   }

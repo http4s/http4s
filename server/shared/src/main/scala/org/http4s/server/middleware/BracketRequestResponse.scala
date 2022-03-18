@@ -16,10 +16,8 @@
 
 package org.http4s.server.middleware
 
-import cats.Applicative
 import cats.data._
 import cats.effect._
-import cats.effect.kernel.Resource.ExitCase
 import cats.effect.syntax.all._
 import cats.implicits._
 import org.http4s._
@@ -127,7 +125,8 @@ object BracketRequestResponse {
                 None: Option[Response[F]]))(contextResponse =>
                 F.pure(Some(contextResponse.response.pipeBodyThrough(
                   _.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), ec.toOutcome))))))
+                    release(contextRequest.context, Some(contextResponse.context), ec.toOutcome)))))
+              )
               .guaranteeCase {
                   case Outcome.Succeeded(_) =>
                     F.unit
@@ -252,14 +251,4 @@ object BracketRequestResponse {
         resource.allocated
       )(_._2)(F)(contextApp0)
   }
-
-  @deprecated("Use ExitCase.toOutcome instead", "0.23.8")
-  def exitCaseToOutcome[F[_]](
-      ec: ExitCase
-  )(implicit F: Applicative[F]): Outcome[F, Throwable, Unit] =
-    ec match {
-      case ExitCase.Succeeded => Outcome.succeeded(F.unit)
-      case ExitCase.Errored(e) => Outcome.errored(e)
-      case ExitCase.Canceled => Outcome.canceled
-    }
 }

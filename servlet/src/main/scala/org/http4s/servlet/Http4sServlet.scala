@@ -23,12 +23,11 @@ import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import org.http4s._
-import org.http4s.internal.CollectionCompat.CollectionConverters._
+import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
 import org.log4s.Logger
 import org.log4s.getLogger
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.security.cert.X509Certificate
@@ -37,6 +36,7 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import javax.servlet.http.HttpSession
+import scala.jdk.CollectionConverters._
 
 abstract class Http4sServlet[F[_]](
     service: HttpApp[F],
@@ -89,15 +89,21 @@ abstract class Http4sServlet[F[_]](
     // your effect isn't Concurrent.
     F.delay {
       servletResponse.setStatus(response.status.code)
-      for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
+      for (header <- response.headers.headers if header.name != `Transfer-Encoding`.name)
         servletResponse.addHeader(header.name.toString, header.value)
     }.attempt
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { t2 =>
-            logger.error(t2)("Error draining body")
-          } *> F.raiseError(t)
+          response.entity match {
+            case Entity.Default(body, _) =>
+              body.compile.drain.handleError { t2 =>
+                logger.error(t2)("Error draining body")
+              } *> F.raiseError(t)
+
+            case Entity.Strict(_) | Entity.Empty =>
+              F.raiseError(t)
+          }
       }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request[F]] =
@@ -151,7 +157,7 @@ abstract class Http4sServlet[F[_]](
       uri = uri,
       httpVersion = version,
       headers = toHeaders(req),
-      body = servletIo.reader(req),
+      entity = Entity(servletIo.reader(req)),
       attributes = attributes,
     )
 

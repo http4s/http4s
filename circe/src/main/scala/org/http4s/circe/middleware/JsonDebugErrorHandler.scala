@@ -39,8 +39,8 @@ object JsonDebugErrorHandler {
     Kleisli { req =>
       import cats.syntax.applicative._
       import cats.syntax.applicativeError._
-      implicit def entEnc[M[_], N[_]]: EntityEncoder[M, JsonErrorHandlerResponse[N]] =
-        JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
+      implicit def entEnc[M[_]]: EntityEncoder.Pure[JsonErrorHandlerResponse[M]] =
+        JsonErrorHandlerResponse.entEnc[M](redactWhen)
 
       service
         .run(req)
@@ -78,9 +78,9 @@ object JsonDebugErrorHandler {
       caught: Throwable,
   )
   private object JsonErrorHandlerResponse {
-    def entEnc[F[_], G[_]](
+    def entEnc[F[_]](
         redactWhen: CIString => Boolean
-    ): EntityEncoder[F, JsonErrorHandlerResponse[G]] =
+    ): EntityEncoder.Pure[JsonErrorHandlerResponse[F]] =
       jsonEncoderOf(
         encoder(redactWhen)
       )
@@ -151,12 +151,7 @@ object JsonDebugErrorHandler {
           .map(_.toList.map(encodeThrowable(_)))
           .asJson,
         "class_name" -> Option(a.getClass())
-          .flatMap(c =>
-            if (Platform.isJvm)
-              Option(c.getCanonicalName())
-            else
-              Option(c.getName())
-          )
+          .flatMap(c => Option(c.getName()))
           .asJson,
       )
       .dropNullValues

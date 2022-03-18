@@ -18,7 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
 import org.http4s.Http4sSuite
@@ -38,10 +37,9 @@ class CORSSuite extends Http4sSuite {
   private val app = routes.orNotFound
 
   private val exampleOrigin = Origin.Host(Uri.Scheme.https, Uri.RegName("example.com"), None)
-  private val exampleOriginHeader = Origin.HostList(NonEmptyList.of(exampleOrigin))
 
   private def nonCorsReq = Request[IO](uri = uri"/foo")
-  private def nonPreflightReq = nonCorsReq.putHeaders(exampleOriginHeader: Origin)
+  private def nonPreflightReq = nonCorsReq.putHeaders(exampleOrigin: Origin)
   private def preflightReq = nonPreflightReq
     .withMethod(Method.OPTIONS)
     .putHeaders(
@@ -124,16 +122,15 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withAllowOriginHeader, non-preflight request with matching origin") {
-    CORS.policy.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(nonPreflightReq).map {
-      resp =>
-        assertAllowOrigin(resp, Some("https://example.com"))
-        assertVary(resp, ci"Origin".some)
+    CORS.policy.withAllowOriginHeader(Set(exampleOrigin))(app).run(nonPreflightReq).map { resp =>
+      assertAllowOrigin(resp, Some("https://example.com"))
+      assertVary(resp, ci"Origin".some)
     }
   }
 
   test("withAllowOriginHeader, OPTIONS request without Access-Control-Request-Method") {
     CORS.policy
-      .withAllowOriginHeader(Set(exampleOriginHeader))(app)
+      .withAllowOriginHeader(Set(exampleOrigin))(app)
       .run(nonCorsReq.withMethod(Method.OPTIONS))
       .map { resp =>
         assertAllowOrigin(resp, None)
@@ -145,7 +142,7 @@ class CORSSuite extends Http4sSuite {
   }
 
   test("withAllowOriginHeader, preflight request with matching origin") {
-    CORS.policy.withAllowOriginHeader(Set(exampleOriginHeader))(app).run(preflightReq).map { resp =>
+    CORS.policy.withAllowOriginHeader(Set(exampleOrigin))(app).run(preflightReq).map { resp =>
       assertAllowOrigin(resp, Some("https://example.com"))
       assertVary(
         resp,
@@ -216,7 +213,7 @@ class CORSSuite extends Http4sSuite {
 
   test("withCredentials(true), specific origin, non-preflight request with matching origin") {
     CORS.policy
-      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowOriginHeader(Set(exampleOrigin))
       .withAllowCredentials(true)
       .apply(app)
       .run(nonPreflightReq)
@@ -227,7 +224,7 @@ class CORSSuite extends Http4sSuite {
 
   test("withCredentials(true), specific origin, preflight request with matching origin") {
     CORS.policy
-      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowOriginHeader(Set(exampleOrigin))
       .withAllowCredentials(true)
       .apply(app)
       .run(preflightReq)
@@ -238,7 +235,7 @@ class CORSSuite extends Http4sSuite {
 
   test("withCredentials(false), specific origin, non-preflight request with matching origin") {
     CORS.policy
-      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowOriginHeader(Set(exampleOrigin))
       .withAllowCredentials(false)
       .apply(app)
       .run(nonPreflightReq)
@@ -249,7 +246,7 @@ class CORSSuite extends Http4sSuite {
 
   test("withCredentials(false), specific origin, preflight request with matching origin") {
     CORS.policy
-      .withAllowOriginHeader(Set(exampleOriginHeader))
+      .withAllowOriginHeader(Set(exampleOrigin))
       .withAllowCredentials(false)
       .apply(app)
       .run(preflightReq)
@@ -878,11 +875,11 @@ class CORSDeprecatedSuite extends Http4sSuite {
   }
 
   test("Respond with 403 when origin is not valid") {
-    val req = buildRequest("/bar").withHeaders("Origin" -> "http://blah.com/")
+    val req = buildRequest("/bar").withHeaders("Origin" -> "http://blah.com")
     cors2
       .orNotFound(req)
-      .map(resp => resp.status.code == 403)
-      .assert
+      .map(_.status)
+      .assertEquals(Status.Forbidden)
   }
 
   test("Fall through") {

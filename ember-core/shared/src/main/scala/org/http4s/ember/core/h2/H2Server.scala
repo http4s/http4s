@@ -121,7 +121,7 @@ private[ember] object H2Server {
                 req.uri,
                 HttpVersion.`HTTP/2`,
                 req.headers,
-                Stream.chunk(Chunk.byteVector(bv)),
+                Entity.Strict(Chunk.byteVector(bv)),
                 req.attributes,
               )
               cats.data.OptionT.some(

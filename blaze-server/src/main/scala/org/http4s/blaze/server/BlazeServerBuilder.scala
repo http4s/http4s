@@ -44,7 +44,7 @@ import org.http4s.internal.tls.deduceKeyLength
 import org.http4s.internal.tls.getCertChain
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server._
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketContext
 import org.http4s.{BuildInfo => Http4sBuildInfo}
 import org.log4s.getLogger
@@ -100,7 +100,7 @@ class BlazeServerBuilder[F[_]] private (
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     chunkBufferMaxSize: Int,
-    httpApp: WebSocketBuilder2[F] => HttpApp[F],
+    httpApp: WebSocketBuilder[F] => HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String],
     maxConnections: Int,
@@ -126,7 +126,7 @@ class BlazeServerBuilder[F[_]] private (
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
       chunkBufferMaxSize: Int = chunkBufferMaxSize,
-      httpApp: WebSocketBuilder2[F] => HttpApp[F] = httpApp,
+      httpApp: WebSocketBuilder[F] => HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner,
       maxConnections: Int = maxConnections,
@@ -233,7 +233,7 @@ class BlazeServerBuilder[F[_]] private (
   def withHttpApp(httpApp: HttpApp[F]): Self =
     copy(httpApp = _ => httpApp)
 
-  def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]): Self =
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): Self =
     copy(httpApp = f)
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
@@ -307,7 +307,7 @@ class BlazeServerBuilder[F[_]] private (
         webSocketKey: Key[WebSocketContext[F]],
     ) =
       Http1ServerStage(
-        httpApp(WebSocketBuilder2(webSocketKey)),
+        httpApp(WebSocketBuilder(webSocketKey)),
         requestAttributes(secure = secure, engine),
         executionContext,
         webSocketKey,
@@ -329,7 +329,7 @@ class BlazeServerBuilder[F[_]] private (
     ): ALPNServerSelector =
       ProtocolSelector(
         engine,
-        httpApp(WebSocketBuilder2(webSocketKey)),
+        httpApp(WebSocketBuilder(webSocketKey)),
         maxRequestLineLen,
         maxHeadersLen,
         chunkBufferMaxSize,
@@ -420,8 +420,8 @@ class BlazeServerBuilder[F[_]] private (
       factory <- mkFactory
       serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
       server = new Server {
-        val address: InetSocketAddress =
-          serverChannel.socketAddress
+        val address: SocketAddress[IpAddress] =
+          SocketAddress.fromInetSocketAddress(serverChannel.socketAddress)
 
         val isSecure = sslConfig.isSecure
 
@@ -455,7 +455,7 @@ object BlazeServerBuilder {
 
   def apply[F[_]](implicit F: Async[F]): BlazeServerBuilder[F] =
     new BlazeServerBuilder(
-      socketAddress = defaults.IPv4SocketAddress,
+      socketAddress = defaults.IPv4SocketAddress.toInetSocketAddress,
       executionContextConfig = ExecutionContextConfig.DefaultContext,
       responseHeaderTimeout = defaults.ResponseTimeout,
       idleTimeout = defaults.IdleTimeout,

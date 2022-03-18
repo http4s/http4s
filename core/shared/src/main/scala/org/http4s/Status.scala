@@ -19,7 +19,6 @@ package org.http4s
 import cats.Order
 import cats.Show
 import org.http4s.Status.ResponseClass
-import org.http4s.internal.CharPredicate
 import org.http4s.util.Renderable
 
 /** Representation of the HTTP response code and reason
@@ -31,11 +30,11 @@ import org.http4s.util.Renderable
   * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
   * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
-sealed abstract case class Status private (code: Int)(
-    val reason: String,
-    val isEntityAllowed: Boolean,
-) extends Ordered[Status]
-    with Renderable {
+sealed abstract case class Status private (code: Int) extends Ordered[Status] with Renderable {
+
+  def reason: String
+
+  def isEntityAllowed: Boolean
 
   val responseClass: ResponseClass =
     if (code < 200) Status.Informational
@@ -48,19 +47,8 @@ sealed abstract case class Status private (code: Int)(
 
   def isSuccess: Boolean = responseClass.isSuccess
 
-  @deprecated(
-    "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6",
-  )
-  def withReason(reason: String): Status = Status(code, reason, isEntityAllowed)
-
-  /** A sanitized [[reason]] phrase. Blank if reason is invalid per
-    * RFC7230, otherwise equivalent to reason.
-    */
-  def sanitizedReason: String = ""
-
   override def render(writer: org.http4s.util.Writer): writer.type =
-    writer << code << ' ' << sanitizedReason
+    writer << code << ' ' << reason
 
   /** Helpers for for matching against a [[Response]] */
   def unapply[F[_]](msg: Response[F]): Option[Response[F]] =
@@ -70,32 +58,18 @@ sealed abstract case class Status private (code: Int)(
 object Status {
   import Registry._
 
-  private val ReasonPhrasePredicate =
-    CharPredicate("\t ") ++ CharPredicate(0x21.toChar to 0x7e.toChar) ++ CharPredicate(
-      0x80.toChar to Char.MaxValue
-    )
-
-  @deprecated(
-    "Use fromInt(Int). This does not validate the code. Furthermore, custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends. For simplicity, we'll now assume that entities are allowed on all custom status codes.",
-    "0.22.6",
-  )
-  def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
-    new Status(code)(reason, isEntityAllowed) {
-      override lazy val sanitizedReason: String =
-        if (this.reason.forall(ReasonPhrasePredicate))
-          this.reason
-        else
-          ""
-    }
-
   @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
   def apply(code: Int): Status =
-    apply(code, "", true)
+    trust(code, "", true)
 
-  private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
-    new Status(code)(reason, isEntityAllowed) {
-      override def sanitizedReason: String = this.reason
+  private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status = {
+    val reason0 = reason
+    val isEntityAllowed0 = isEntityAllowed
+    new Status(code) {
+      def reason = reason0
+      def isEntityAllowed = isEntityAllowed0
     }
+  }
 
   sealed trait ResponseClass {
     def isSuccess: Boolean
@@ -122,18 +96,6 @@ object Status {
       lookup(code) match {
         case right: Right[_, _] => right
         case _ => ParseResult.success(trust(code, ""))
-      }
-    }
-
-  @deprecated(
-    "Use fromInt. Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6",
-  )
-  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
-    withRangeCheck(code) {
-      lookup(code, reason) match {
-        case right: Right[_, _] => right
-        case _ => ParseResult.success(Status(code, reason))
       }
     }
 

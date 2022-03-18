@@ -73,7 +73,7 @@ object ServerlessApp {
       uri <- F.fromEither(Uri.fromString(req.url))
       headers = Headers(req.headers.toList)
       body = Stream.resource(io.suspendReadableAndRead()(req)).flatMap(_._2)
-      request = Request(method, uri, headers = headers, body = body)
+      request = Request(method, uri, headers = headers, entity = Entity(body))
       response <- app.run(request)
       _ <- F.delay {
         val headers = response.headers.headers

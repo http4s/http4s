@@ -1,8 +1,10 @@
+
 # Streaming
 
 Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
 is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both http4s' service support and its client support.
+
 
 ## Streaming responses from your service
 
@@ -78,7 +80,7 @@ import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
 import fs2.io.stdout
-import fs2.text.{lines, utf8}
+import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
 
@@ -89,8 +91,8 @@ class TWStream[F[_]: Async] {
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String,
-             accessToken: String, accessSecret: String)
+  def sign(consumerKey: String, consumerSecret: String, 
+           accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
     val consumer = Consumer(consumerKey, consumerSecret)
     val token    = Token(accessToken, accessSecret)
@@ -101,7 +103,7 @@ class TWStream[F[_]: Async] {
       realm = None,
       timestampGenerator = Timestamp.now,
       nonceGenerator = Nonce.now,
-      )
+    )
   }
 
   /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
@@ -109,8 +111,8 @@ class TWStream[F[_]: Async] {
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
   def jsonStream(consumerKey: String, consumerSecret: String, 
-                   accessToken: String, accessSecret: String)
-                  (req: Request[F]): Stream[F, Json] =
+                 accessToken: String, accessSecret: String)
+                (req: Request[F]): Stream[F, Json] =
     for {
       client <- Stream.resource(EmberClientBuilder.default[F].build)
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
@@ -127,7 +129,7 @@ class TWStream[F[_]: Async] {
                 uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>",
                 "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).through(lines).through(utf8.encode).through(stdout)
+    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout)
   }
 
   /** Compile our stream down to an effect to make it runnable */

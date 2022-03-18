@@ -75,4 +75,6 @@ package object headers {
 
   @deprecated("Deprecated in favor of ProductId", "0.22.0-M1")
   type AgentProduct = ProductId
+
+  type `Access-Control-Allow-Credentials` = `Access-Control-Allow-Credentials`.type
 }
