@@ -3,6 +3,47 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M32 (2022-03-18)
+
+This is a milestone release.  It is binary incompatible with previous releases.  It incluedes the changes through v0.23.11.
+
+http4s-async-http-client is deprecated, and planned to be removed in the next milestone.  Please plan accordingly.
+
+* http4s-core
+    * Optimize `EntityDecoder.{collectBinary|collectByteVector|error|void}` by @danicheg in https://github.com/http4s/http4s/pull/6112
+
+* http4s-server
+    * Optimize `ResponseLogger` and `RequestLogger` by @danicheg in https://github.com/http4s/http4s/pull/6110
+
+* http4s-blaze-core
+    * Optimize Http1Writer for cases when the entity is Empty or Strict by @wjoel in https://github.com/http4s/http4s/pull/6080
+    * Avoid draining body on error/cancel for Entity.Strict and Empty by @wjoel in https://github.com/http4s/http4s/pull/6091
+    * Collect entity from parser, support Entity.Strict and Empty by @wjoel in https://github.com/http4s/http4s/pull/6090
+
+* http4s-blaze-client
+    * Remove deprecated `BlazeClientBuilder` by @danicheg in https://github.com/http4s/http4s/pull/6109
+
+* http4s-servlet
+    * Remove redundant draining of response body in `Http4sServlet`  by @danicheg in https://github.com/http4s/http4s/pull/6116
+
+* http4s-prometheus
+    * Update simpleclient, simpleclient_common, ... to 0.15.0 by @scala-steward in https://github.com/http4s/http4s/pull/6007
+
+* Documentation
+    * Fresh up the version page by @danicheg in https://github.com/http4s/http4s/pull/6008
+
+* Behind the scenes
+    * Scala.js updates come from 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6046
+    * Update sbt-buildinfo to 0.11.0 by @scala-steward in https://github.com/http4s/http4s/pull/6061
+    * Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6056
+    * Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6101
+    * Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6141
+
+* New Contributors
+    * @wjoel made their first contribution in https://github.com/http4s/http4s/pull/6080
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.11...v1.0.0-M32
+
 # v0.23.11 (2022-03-18)
 
 This is a maintenance release, binary compatible with the 0.23.x series.  It also includes the changes in 0.22.12.
