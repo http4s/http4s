@@ -43,6 +43,7 @@ import org.reactivestreams.Publisher
 
 import scala.jdk.CollectionConverters._
 
+@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
