@@ -42,6 +42,7 @@ import org.http4s.internal.bug
 import org.http4s.internal.threads._
 import org.reactivestreams.Publisher
 
+@deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
 object AsyncHttpClient {
   val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)

@@ -81,6 +81,12 @@ abstract class Http4sServlet[F[_]](
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F],
   ): F[Unit] =
+    // Note: the servlet API gives us no undeprecated method to both set
+    // a body and a status reason.  We sacrifice the status reason.
+    //
+    // This F.attempt.flatMap can be interrupted, which prevents the body from
+    // running, which prevents the response from finalizing.  Woe betide you if
+    // your effect isn't Concurrent.
     F.delay {
       servletResponse.setStatus(response.status.code)
       for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
