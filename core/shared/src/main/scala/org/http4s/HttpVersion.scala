@@ -25,8 +25,6 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.util._
 
-import scala.annotation.nowarn
-
 /** HTTP's version number consists of two decimal digits separated by
   * a "." (period or decimal point). The first digit ("major version")
   * indicates the messaging syntax, whereas the second digit ("minor
@@ -66,11 +64,6 @@ final case class HttpVersion private (major: Int, minor: Int)
     */
   override def compare(that: HttpVersion): Int =
     (this.major, this.minor).compare((that.major, that.minor))
-
-  @deprecated("Does not range check parameters. Will be removed from public API in 1.0.", "0.22.6")
-  @nowarn("msg=never used")
-  private def copy(major: Int = major, minor: Int = minor): HttpVersion =
-    new HttpVersion(major, minor)
 }
 
 object HttpVersion {
