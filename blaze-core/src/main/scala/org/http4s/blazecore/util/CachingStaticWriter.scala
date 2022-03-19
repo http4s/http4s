@@ -25,13 +25,12 @@ import org.http4s.util.StringWriter
 
 import java.nio.ByteBuffer
 import scala.collection.mutable.Buffer
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 private[http4s] class CachingStaticWriter[F[_]](
     out: TailStage[ByteBuffer],
     bufferSize: Int = 8 * 1024,
-)(implicit protected val F: Async[F], protected val ec: ExecutionContext)
+)(implicit protected val F: Async[F])
     extends Http1Writer[F] {
   @volatile
   private var _forceClose = false
@@ -71,7 +70,7 @@ private[http4s] class CachingStaticWriter[F[_]](
       clear()
       writer << "Content-Length: " << c.size << "\r\nConnection: keep-alive\r\n\r\n"
 
-      new InnerWriter().writeEnd(c).map(_ || _forceClose)
+      new InnerWriter().writeEnd(c).map(_ || _forceClose)(parasitic)
     }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
