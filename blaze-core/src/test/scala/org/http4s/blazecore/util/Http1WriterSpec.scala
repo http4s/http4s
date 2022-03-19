@@ -256,7 +256,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     val p = s.through(Compression[IO].deflate(DeflateParams.DEFAULT))
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(s.through(Compression[IO].deflate(DeflateParams.DEFAULT))),
+      DumpingWriter.dump(Entity(s.through(Compression[IO].deflate(DeflateParams.DEFAULT)))),
     )
       .mapN(_ sameElements _)
       .assert
@@ -273,14 +273,15 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
   test("FlushingChunkWriter should write a resource") {
     val p = resource
-    (p.compile.toVector.map(_.toArray), DumpingWriter.dump(p)).mapN(_ sameElements _).assert
+    (p.compile.toVector.map(_.toArray), DumpingWriter.dump(Entity(p))).mapN(_ sameElements _).assert
   }
 
   test("FlushingChunkWriter should write a deflated resource") {
     val p = resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))
+
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))),
+      DumpingWriter.dump(Entity(resource.through(Compression[IO].deflate(DeflateParams.DEFAULT)))),
     )
       .mapN(_ sameElements _)
       .assert

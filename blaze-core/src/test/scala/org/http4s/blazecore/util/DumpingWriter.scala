@@ -26,9 +26,9 @@ import scala.collection.mutable.Buffer
 import scala.concurrent.Future
 
 object DumpingWriter {
-  def dump(p: EntityBody[IO]): IO[Array[Byte]] = {
+  def dump(entity: Entity[IO]): IO[Array[Byte]] = {
     val w = new DumpingWriter()
-    for (_ <- w.writeEntityBody(Entity(p))) yield (w.toArray)
+    w.writeEntityBody(entity).map(_ => w.toArray)
   }
 }
 
