@@ -27,6 +27,7 @@ import org.http4s.blaze.http.http2.Priority
 import org.http4s.blaze.http.http2.StreamFrame
 import org.http4s.blaze.pipeline.TailStage
 
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](

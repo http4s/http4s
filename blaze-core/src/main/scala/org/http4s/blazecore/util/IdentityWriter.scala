@@ -25,6 +25,7 @@ import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
 import java.nio.ByteBuffer
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent.Future
 
 private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(implicit
