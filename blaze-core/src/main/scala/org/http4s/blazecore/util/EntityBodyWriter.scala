@@ -61,8 +61,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
         writeBody *> writeBodyEnd
 
       case Entity.Strict(chunk) =>
-        fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))) *>
-          fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
+        fromFutureNoShift(F.delay(writeEnd(chunk)))
 
       case Entity.Empty =>
         fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
