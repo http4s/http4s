@@ -212,7 +212,7 @@ trait Client[F[_]] {
     )
   }
 
-  private def liftMonadCancel[G[_]](
+  private[this] def liftMonadCancel[G[_]](
       F: MonadCancelThrow[F]
   )(fk: F ~> G)(gk: G ~> F): MonadCancelThrow[G] =
     new MonadCancelThrow[G] {
