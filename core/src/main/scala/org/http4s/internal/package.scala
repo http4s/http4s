@@ -26,6 +26,7 @@ import cats.effect.ConcurrentEffect
 import cats.effect.ContextShift
 import cats.effect.Effect
 import cats.effect.IO
+import cats.effect.Sync
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2.Chunk
@@ -44,6 +45,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -346,4 +348,12 @@ package object internal {
       }
     }
   }
+
+  private[http4s] def javaMajorVersion[F[_]](implicit F: Sync[F]): F[Option[Int]] =
+    F.delay(sys.props.get("java.version")).map {
+      case Some(v) =>
+        Try(v.split("\\.").head.toInt).toOption
+      case None =>
+        None
+    }
 }
