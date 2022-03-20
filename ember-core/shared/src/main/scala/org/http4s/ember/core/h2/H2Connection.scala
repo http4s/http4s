@@ -23,6 +23,7 @@ import fs2._
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
 import org.typelevel.log4cats.Logger
+import scala.annotation.tailrec
 import scodec.bits._
 
 private[h2] class H2Connection[F[_]](
@@ -140,14 +141,21 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
+  private[this] def mapRefForEach(f: H2Stream[F] => F[Unit]): F[Unit] = {
+    @tailrec
+    def go(iter: Iterator[H2Stream[F]], acc: F[Unit]): F[Unit] =
+      if (iter.hasNext) go(iter, acc *> f(iter.next())) else acc
+
+    mapRef.get.flatMap(m => go(m.valuesIterator, F.unit))
+  }
+
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
       .evalMapChunk {
         case g: H2Frame.GoAway =>
-          mapRef.get.flatMap { m =>
-            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-          } >> state.update(s => s.copy(closed = true)).as(g).widen[H2Frame]
+          mapRefForEach(_.receiveGoAway(g)) >>
+            state.update(s => s.copy(closed = true)).as(g).widen[H2Frame]
         case otherwise => otherwise.pure[F]
       }
       .chunks
@@ -421,11 +429,7 @@ private[h2] class H2Connection[F[_]](
           }
           (settings, difference, oldWriteBlock) = t
           _ <- oldWriteBlock.complete(Either.right(()))
-          _ <- mapRef.get.flatMap { map =>
-            map.toList.traverse { case (_, stream) =>
-              stream.modifyWriteWindow(difference)
-            }
-          }
+          _ <- mapRefForEach(_.modifyWriteWindow(difference))
           _ <- outgoing.offer(Chunk.singleton(H2Frame.Settings.Ack))
           _ <- settingsAck.complete(Either.right(settings)).void
 
@@ -435,9 +439,8 @@ private[h2] class H2Connection[F[_]](
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
-        mapRef.get.flatMap { m =>
-          m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-        } >> outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        mapRefForEach(_.receiveGoAway(g)) >>
+          outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
       case (H2Frame.Ping(0, false, bv), _) =>
