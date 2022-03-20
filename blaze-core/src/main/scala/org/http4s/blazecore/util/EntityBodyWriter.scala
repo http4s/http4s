@@ -27,8 +27,6 @@ import scala.concurrent._
 private[http4s] trait EntityBodyWriter[F[_]] {
   implicit protected def F: Async[F]
 
-  protected val wroteHeader: Promise[Unit] = Promise[Unit]()
-
   /** Write a Chunk to the wire.
     *
     * @param chunk BodyChunk to write to wire
