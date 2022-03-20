@@ -189,7 +189,7 @@ trait Client[F[_]] {
 
   /** Translates the effect type of this client from F to G
     */
-  @deprecated("use public method without MonadCancelThrow[G] constraint instead", since = "0.23.11")
+  @deprecated("use public method without MonadCancelThrow[G] constraint instead", since = "0.23.12")
   private[client] def translate[G[_]: MonadCancelThrow](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
