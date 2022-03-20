@@ -5,11 +5,15 @@ import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.syntax.all._
 
+import java.math.{BigInteger => JBigInteger}
 import java.security.SecureRandom
 import java.util.{Random => JRandom}
 
 /** A partial backport of Cats-Effect 3's `Random`. */
 private[http4s] trait Random[F[_]] {
+
+  /** Generates a random BigInt between 0 and (2^bits-1) inclusive. */
+  def nextBigInt(bits: Int): F[BigInt]
 
   /** Generates `n` random bytes into a new array */
   def nextBytes(n: Int): F[Array[Byte]]
@@ -28,6 +32,9 @@ object Random {
     */
   def javaUtilRandomNonBlocking[F[_]](random: JRandom)(implicit F: Sync[F]): Random[F] =
     new Random[F] {
+      def nextBigInt(bits: Int): F[BigInt] =
+        F.delay(BigInt(new JBigInteger(bits, random)))
+
       def nextBytes(n: Int): F[Array[Byte]] =
         F.delay {
           val arr = new Array[Byte](n)
@@ -46,6 +53,9 @@ object Random {
       blocker: Blocker
   )(random: JRandom)(implicit F: Sync[F], cs: ContextShift[F]): Random[F] =
     new Random[F] {
+      def nextBigInt(bits: Int): F[BigInt] =
+        blocker.blockOn(F.delay(BigInt(new JBigInteger(bits, random))))
+
       def nextBytes(n: Int): F[Array[Byte]] =
         F.delay(new Array[Byte](n)).flatMap { arr =>
           blocker.blockOn(
