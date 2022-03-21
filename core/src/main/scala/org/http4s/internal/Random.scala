@@ -19,6 +19,7 @@ package org.http4s.internal
 import cats.effect.Blocker
 import cats.effect.ContextShift
 import cats.effect.Sync
+import cats.effect.concurrent.Ref
 import cats.syntax.all._
 
 import java.math.{BigInteger => JBigInteger}
@@ -67,21 +68,43 @@ private[http4s] object Random {
     * non-blocking.  If a non-blocking instance can't be guaranteed,
     * falls back to a blocking implementation.
     */
-  def javaSecuritySecureRandom[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]) =
+  def javaSecuritySecureRandom[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]) = {
+    // This is a known, non-blocking, threadsafe algorithm
+    def happyRandom = F.delay(SecureRandom.getInstance("NativePRNGNonBlocking"))
+
+    // If we can't sniff out a more optimal solution, we can always
+    // fall back to a pool of blocking instances
+    def fallbackPool =
+      F.delay(Runtime.getRuntime.availableProcessors())
+        .flatMap(pool(_)(F.delay(new SecureRandom()).map(javaUtilRandomBlocking(blocker))))
+
     javaMajorVersion.flatMap {
       case Some(major) if major > 8 =>
-        // nextBytes runs in a mutex until Java 9
-        F.delay(SecureRandom.getInstance("NativePRNGNonBlocking"))
-          .redeemWith(
-            // We can't guarantee this doesn't block.
-            _ => F.delay(new SecureRandom).map(javaUtilRandomBlocking[F](blocker)),
-            // This algorithm blocks neither in seeding nor next bytes
-            rnd => F.pure(javaUtilRandomNonBlocking[F](rnd)),
-          )
+        happyRandom.redeemWith(
+          // We can't guarantee that our SecureRandom is both
+          // non-blocking and threadsafe.
+          _ => fallbackPool,
+          // We are thread safe and non-blocking.  This is the
+          // happy path, and happily, the common path.
+          rnd => F.pure(javaUtilRandomNonBlocking(rnd)),
+        )
+
       case Some(_) | None =>
-        // We can't guarantee that nextBytes isn't stuck in a mutex.
-        // We could do better on Java 8 by checking for a non-blocking
-        // one and an instance pool, but, meh.
-        F.delay(new SecureRandom).map(javaUtilRandomBlocking[F](blocker))
+        // We can't guarantee we're not stuck in a mutex.
+        fallbackPool
+    }
+  }
+
+  def pool[F[_]](n: Int)(random: F[Random[F]])(implicit F: Sync[F]): F[Random[F]] =
+    for {
+      ref <- Ref[F].of(0)
+      array <- Vector.fill(n)(random).sequence
+    } yield {
+      val incrGet = ref.modify(i => (if (i < (n - 1)) i + 1 else 0, i))
+      val selectRandom = F.map(incrGet)(array(_))
+      new Random[F] {
+        def nextBigInt(bits: Int): F[BigInt] =
+          F.flatMap(selectRandom)(_.nextBigInt(bits))
+      }
     }
 }

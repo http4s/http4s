@@ -64,4 +64,15 @@ class RandomSuite extends Http4sSuite {
       }
     }
   }
+
+  test("pool.nextBigInt") {
+    Random.pool[IO](8)(IO(Random.javaUtilRandomNonBlocking(new JRandom()))).map { random =>
+      forAllF(Gen.chooseNum(0, 62)) { (n: Int) =>
+        random
+          .nextBigInt(n)
+          .map(i => (i >= BigInt(0)) && (i < BigInt((1L << n))))
+          .assert
+      }
+    }
+  }
 }
