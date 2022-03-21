@@ -41,16 +41,16 @@ class AuthenticationSuite extends Http4sSuite {
   private val password = "Test Password"
   private val ha1 = "ef8937c627875dd03ca694994558f74e" // md5(${username}:${realm}:${password})
 
-  private val plainTextAuthStore: DigestAuth.AuthenticationStore[IO, String] =
-    DigestAuth.PlainTextAuthenticationStore[IO, String]((u: String) =>
+  private val plainTextAuthStore: DigestAuth.AuthStore[IO, String] =
+    DigestAuth.PlainTextAuthStore[IO, String]((u: String) =>
       IO.pure {
         if (u === username) Some(u -> password)
         else None
       }
     )
 
-  private val md5HashedAuthStore: DigestAuth.AuthenticationStore[IO, String] =
-    DigestAuth.Md5HashedAuthenticationStore[IO, String]((u: String) =>
+  private val md5HashedAuthStore: DigestAuth.AuthStore[IO, String] =
+    DigestAuth.Md5HashedAuthStore[IO, String]((u: String) =>
       IO.pure {
         if (u === username) Some(u -> ha1)
         else None

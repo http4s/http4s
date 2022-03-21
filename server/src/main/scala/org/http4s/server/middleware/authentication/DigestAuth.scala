@@ -35,34 +35,40 @@ import scala.concurrent.duration._
   */
 object DigestAuth {
 
-  sealed trait AuthenticationStore[F[_], A]
+  @deprecated(
+    "AuthenticationStore is going away, in favor of explicit subclasses of AuthStore. PlainTextAuthStore maintains the previous, insecure behaviour, whereas Md5HashedAuthStore is the new advised implementation going forward.",
+    "0.22.13",
+  )
+  type AuthenticationStore[F[_], A] = String => F[Option[(A, String)]]
+
+  sealed trait AuthStore[F[_], A]
 
   /** A function mapping username to a user object and password, or
     * None if no user exists.
     *
     * Requires that the server can recover the password in clear text,
-    * which is _strongly_ discouraged. Please use Md5HashedAuthenticationStore
+    * which is _strongly_ discouraged. Please use Md5HashedAuthStore
     * if you can.
     */
-  object PlainTextAuthenticationStore {
-    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthenticationStore[F, A] =
-      new PlainTextAuthenticationStore(func)
+  object PlainTextAuthStore {
+    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthStore[F, A] =
+      new PlainTextAuthStore(func)
   }
-  final class PlainTextAuthenticationStore[F[_], A](val func: String => F[Option[(A, String)]])
-      extends AuthenticationStore[F, A]
+  final class PlainTextAuthStore[F[_], A](val func: String => F[Option[(A, String)]])
+      extends AuthStore[F, A]
 
   /** A function mapping username to a user object and precomputed md5
     * hash of the username, realm, and password, or None if no user exists.
     *
-    * More secure than PlainTextAuthenticationStore due to only needing to
+    * More secure than PlainTextAuthStore due to only needing to
     * store the digested hash instead of the password in plain text.
     */
-  object Md5HashedAuthenticationStore {
-    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthenticationStore[F, A] =
-      new Md5HashedAuthenticationStore(func)
+  object Md5HashedAuthStore {
+    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthStore[F, A] =
+      new Md5HashedAuthStore(func)
   }
-  final class Md5HashedAuthenticationStore[F[_], A](val func: String => F[Option[(A, String)]])
-      extends AuthenticationStore[F, A]
+  final class Md5HashedAuthStore[F[_], A](val func: String => F[Option[(A, String)]])
+      extends AuthStore[F, A]
 
   private trait AuthReply[+A]
   private final case class OK[A](authInfo: A) extends AuthReply[A]
@@ -99,7 +105,7 @@ object DigestAuth {
     */
   def applyF[F[_]: Concurrent: Timer, A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: AuthStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -123,7 +129,7 @@ object DigestAuth {
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     challengeInterop[F, A](
       realm,
-      PlainTextAuthenticationStore(store),
+      PlainTextAuthStore(store),
       F.delay(nonceKeeper.newNonce()),
       (data, nc) => F.delay(nonceKeeper.receiveNonce(data, nc)),
     )
@@ -146,7 +152,7 @@ object DigestAuth {
     */
   def challenge[F[_]: Timer, A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: AuthStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -158,7 +164,7 @@ object DigestAuth {
 
   private[this] def challengeInterop[F[_], A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: AuthStore[F, A],
       newNonce: F[String],
       receiveNonce: (String, Int) => F[NonceKeeper.Reply],
   )(implicit
@@ -178,7 +184,7 @@ object DigestAuth {
 
   private def checkAuth[F[_]: Hash, A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: AuthStore[F, A],
       receiveNonce: (String, Int) => F[NonceKeeper.Reply],
       req: Request[F],
   )(implicit F: Monad[F]): F[AuthReply[A]] =
@@ -205,7 +211,7 @@ object DigestAuth {
 
   private def checkAuthParams[F[_]: Hash, A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: AuthStore[F, A],
       receiveNonce: (String, Int) => F[NonceKeeper.Reply],
       req: Request[F],
       paramsNel: NonEmptyList[(String, String)],
@@ -227,7 +233,7 @@ object DigestAuth {
           case NonceKeeper.BadNCReply => F.pure(BadNC)
           case NonceKeeper.OKReply =>
             (store match {
-              case authStore: PlainTextAuthenticationStore[F, A] =>
+              case authStore: PlainTextAuthStore[F, A] =>
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, password)) =>
@@ -248,7 +254,7 @@ object DigestAuth {
                         else WrongResponse
                       }
                 }
-              case authStore: Md5HashedAuthenticationStore[F, A] =>
+              case authStore: Md5HashedAuthStore[F, A] =>
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, ha1Hash)) =>
