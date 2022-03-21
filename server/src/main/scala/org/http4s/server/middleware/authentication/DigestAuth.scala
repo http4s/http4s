@@ -24,6 +24,7 @@ import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Sync
+import cats.effect.Timer
 import cats.syntax.all._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.unsafe.SecureRandom
@@ -31,7 +32,6 @@ import org.http4s.headers._
 
 import java.math.BigInteger
 import java.util.Date
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -54,19 +54,6 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.11")
-  def apply[F[_]: Sync, A](
-      realm: String,
-      store: AuthenticationStore[F, A],
-      nonceCleanupInterval: Duration = 1.hour,
-      nonceStaleTime: Duration = 1.hour,
-      nonceBits: Int = 160,
-  ): AuthMiddleware[F, A] = {
-    val nonceKeeper =
-      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
-    challenged(challenge(realm, store, nonceKeeper))
-  }
-
   /** @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
@@ -77,7 +64,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def applyF[F[_]: Concurrent, A](
+  def apply[F[_]: Concurrent: Timer, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
@@ -97,6 +84,9 @@ object DigestAuth {
   /** Similar to [[apply]], but exposing the underlying [[challenge]]
     * [[cats.data.Kleisli]] instead of an entire [[AuthMiddleware]]
     *
+    * Side-effect of running the returned task: If req contains a valid
+    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
+    *
     * @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
@@ -107,44 +97,32 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  @nowarn
-  def challenge[F[_], A](
+  def challenge[F[_]: Timer, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
   )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    F.delay(new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits))
+    NonceKeeper[F](nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
       .map { nonceKeeper =>
-        challenge[F, A](realm, store, nonceKeeper)
-      }
+        Kleisli { req =>
+          def paramsToChallenge(params: Map[String, String]) =
+            Either.left(Challenge("Digest", realm, params))
 
-  /** Side-effect of running the returned task: If req contains a valid
-    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
-    */
-  @deprecated(
-    "Calling challenge is side-effecting, please use the F[_]-suspended variant",
-    "0.22.11",
-  )
-  def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]
-  ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
-    Kleisli { req =>
-      def paramsToChallenge(params: Map[String, String]) =
-        Either.left(Challenge("Digest", realm, params))
-
-      checkAuth(realm, store, nonceKeeper, req).flatMap {
-        case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
-        case StaleNonce => getChallengeParams(nonceKeeper, staleNonce = true).map(paramsToChallenge)
-        case _ => getChallengeParams(nonceKeeper, staleNonce = false).map(paramsToChallenge)
+          checkAuth(realm, store, nonceKeeper, req).flatMap {
+            case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
+            case StaleNonce =>
+              getChallengeParams(nonceKeeper, staleNonce = true).map(paramsToChallenge)
+            case _ => getChallengeParams(nonceKeeper, staleNonce = false).map(paramsToChallenge)
+          }
+        }
       }
-    }
 
   private def checkAuth[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeper,
+      nonceKeeper: NonceKeeper[F],
       req: Request[F],
   )(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
@@ -156,22 +134,23 @@ object DigestAuth {
         F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper, staleNonce: Boolean)(implicit
+  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper[F], staleNonce: Boolean)(implicit
       F: Sync[F]
   ): F[Map[String, String]] =
-    F.delay {
-      val nonce = nonceKeeper.newNonce()
-      val m = Map("qop" -> "auth", "nonce" -> nonce)
-      if (staleNonce)
-        m + ("stale" -> "TRUE")
-      else
-        m
-    }
+    nonceKeeper
+      .newNonce()
+      .map { nonce =>
+        val m = Map("qop" -> "auth", "nonce" -> nonce)
+        if (staleNonce)
+          m + ("stale" -> "TRUE")
+        else
+          m
+      }
 
   private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeper,
+      nonceKeeper: NonceKeeper[F],
       req: Request[F],
       paramsNel: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
@@ -187,7 +166,7 @@ object DigestAuth {
 
     val nonce = params("nonce")
     val nc = params("nc")
-    nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)) match {
+    nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
       case NonceKeeper.StaleReply => F.pure(StaleNonce)
       case NonceKeeper.BadNCReply => F.pure(BadNC)
       case NonceKeeper.OKReply =>

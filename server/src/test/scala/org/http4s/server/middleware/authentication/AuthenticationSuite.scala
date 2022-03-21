@@ -134,7 +134,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("DigestAuthentication should respond to a request without authentication with 401") {
       val req = Request[IO](uri = uri"/")
       for {
-        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthMiddleware <- DigestAuth(realm, authStore)
         authedService = digestAuthMiddleware(service)
         res <- authedService.orNotFound(req)
       } yield {
@@ -206,7 +206,7 @@ class AuthenticationSuite extends Http4sSuite {
 
     test("DigestAuthentication should respond to a request with correct credentials") {
       for {
-        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthMiddleware <- DigestAuth(realm, authStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
@@ -232,8 +232,7 @@ class AuthenticationSuite extends Http4sSuite {
       "DigestAuthentication should respond to many concurrent requests while cleaning up nonces"
     ) {
       val n = 100
-      DigestAuth
-        .applyF(realm, authStore, 2.millis, 2.millis)
+      DigestAuth(realm, authStore, 2.millis, 2.millis)
         .flatMap { digestAuthMiddleware =>
           val digestAuthService = digestAuthMiddleware(service)
           val results = (1 to n)
@@ -265,7 +264,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("DigestAuthentication should avoid many concurrent replay attacks") {
       val n = 100
       val results = for {
-        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthMiddleware <- DigestAuth(realm, authStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         results <- (1 to n)
@@ -292,7 +291,7 @@ class AuthenticationSuite extends Http4sSuite {
       val nonce = "abcdef"
 
       for {
-        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthMiddleware <- DigestAuth(realm, authStore)
         digestAuthService = digestAuthMiddleware(service)
         response <- DigestUtil
           .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
