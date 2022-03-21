@@ -87,7 +87,7 @@ object DigestAuth {
     challenge[F, A](realm, store, nonceKeeper)
   }
 
-  @deprecated("Maintaining for ABI compatibility", "0.23.10")
+  @deprecated("Maintaining for ABI compatibility", "0.22.12")
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
       implicit F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
