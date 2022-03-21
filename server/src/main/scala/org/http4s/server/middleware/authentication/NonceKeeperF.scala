@@ -61,7 +61,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
   /** Removes nonces that are older than staleTimeout
     * Note: this _MUST_ be executed with the singleton permit from the semaphore
     */
-  private def checkStale(): F[Unit] =
+  private def unsafeCheckStale(): F[Unit] =
     for {
       d <- clock.realTime(MILLISECONDS)
       lastCleanupTime <- lastCleanup.get
@@ -90,7 +90,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
   def newNonce(): F[String] =
     semaphore.withPermit {
       for {
-        _ <- checkStale()
+        _ <- unsafeCheckStale()
         n <- NonceF.gen[F](bits).iterateUntil(n => nonces.get(n.data) == null)
       } yield {
         nonces.put(n.data, n)
@@ -108,7 +108,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
   def receiveNonce(data: String, nc: Int): F[NonceKeeper.Reply] =
     semaphore.withPermit {
       for {
-        _ <- checkStale()
+        _ <- unsafeCheckStale()
         res <- nonces.get(data) match {
           case null => F.pure(NonceKeeper.StaleReply)
           case n: NonceF[F] =>
