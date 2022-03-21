@@ -21,7 +21,6 @@ package util
 import cats.effect.kernel.Outcome
 import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
-import fs2.Chunk
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
@@ -44,15 +43,7 @@ private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
               }
             case Entity.Strict(_) | Entity.Empty => F.unit
           }
-      } >> (entity match {
-      case Entity.Default(body, _) =>
-        writeEntityBody(body)
-      case Entity.Strict(chunk) =>
-        fromFutureNoShift(F.delay(writeBodyChunk(chunk, flush = false))) *>
-          fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
-      case Entity.Empty =>
-        fromFutureNoShift(F.delay(writeEnd(Chunk.empty)))
-    })
+      } >> writeEntityBody(entity)
 
   /* Writes the header.  It is up to the writer whether to flush immediately or to
    * buffer the header with a subsequent chunk. */
