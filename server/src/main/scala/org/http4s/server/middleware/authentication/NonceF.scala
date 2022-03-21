@@ -16,15 +16,17 @@
 
 package org.http4s.server.middleware.authentication
 
+import cats.effect.Clock
 import cats.effect.Sync
+import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import org.http4s.crypto.unsafe.SecureRandom
 
 import java.math.BigInteger
-import java.util.Date
+import java.time.Instant
 
-private[authentication] class NonceF[F[_]](val created: Date, val nc: Ref[F, Int], val data: String)
+private[authentication] class NonceF[F[_]](val created: Instant, val nc: Ref[F, Int], val data: String)
 
 private[authentication] object NonceF {
   val random = new SecureRandom()
@@ -32,8 +34,9 @@ private[authentication] object NonceF {
   private def getRandomData[F[_]](bits: Int)(implicit F: Sync[F]): F[String] =
     F.delay(new BigInteger(bits, random).toString(16))
 
-  def gen[F[_]: Sync](bits: Int): F[NonceF[F]] =
-    Ref[F]
-      .of(0)
-      .flatMap(nc => getRandomData[F](bits).map(data => new NonceF(new Date(), nc, data)))
+  def gen[F[_]: Sync: Timer](bits: Int): F[NonceF[F]] = for {
+    nc <- Ref[F].of(0)
+    data <- getRandomData[F](bits)
+    created <- Clock[F].instantNow
+  } yield new NonceF(created, nc, data)
 }

@@ -75,7 +75,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
               // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
               F.tailRecM[ju.Iterator[NonceF[F]], Unit](nonces.values().iterator()) {
-                case it if it.hasNext && staleTimeout > d - it.next().created.getTime =>
+                case it if it.hasNext && staleTimeout > d - it.next().created.toEpochMilli =>
                   F.delay(Left {
                     it.remove()
                     it
