@@ -26,7 +26,11 @@ import org.http4s.crypto.unsafe.SecureRandom
 import java.math.BigInteger
 import scala.concurrent.duration.MILLISECONDS
 
-private[authentication] class NonceF[F[_]](val createdMillis: Long, val nc: Ref[F, Int], val data: String)
+private[authentication] class NonceF[F[_]](
+    val createdMillis: Long,
+    val nc: Ref[F, Int],
+    val data: String,
+)
 
 private[authentication] object NonceF {
   val random = new SecureRandom()

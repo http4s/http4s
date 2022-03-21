@@ -164,7 +164,7 @@ object DigestAuth {
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
   )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    NonceKeeperF[F](nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
+    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
       .map { nonceKeeper =>
         challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
       }

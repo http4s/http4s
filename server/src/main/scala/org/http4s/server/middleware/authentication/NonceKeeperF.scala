@@ -25,12 +25,13 @@ import cats.syntax.all._
 
 import java.util.LinkedHashMap
 import java.{util => ju}
+import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
 private[authentication] object NonceKeeperF {
   def apply[F[_]: Timer](
-      staleTimeout: Long,
-      nonceCleanupInterval: Long,
+      staleTimeout: Duration,
+      nonceCleanupInterval: Duration,
       bits: Int,
   )(implicit F: Concurrent[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
@@ -38,7 +39,14 @@ private[authentication] object NonceKeeperF {
     currentMillis <- Clock[F].monotonic(MILLISECONDS)
     lastCleanupMillis <- Ref[F].of(currentMillis)
     nonces = new LinkedHashMap[String, NonceF[F]]
-  } yield new NonceKeeperF(staleTimeout, nonceCleanupInterval, bits, semaphore, lastCleanupMillis, nonces)
+  } yield new NonceKeeperF(
+    staleTimeout,
+    nonceCleanupInterval,
+    bits,
+    semaphore,
+    lastCleanupMillis,
+    nonces,
+  )
 }
 
 /** A thread-safe class used to manage a database of nonces.
@@ -49,8 +57,8 @@ private[authentication] object NonceKeeperF {
   * @param bits The number of random bits a nonce should consist of.
   */
 private[authentication] class NonceKeeperF[F[_]: Timer](
-    staleTimeout: Long,
-    nonceCleanupInterval: Long,
+    staleTimeout: Duration,
+    nonceCleanupInterval: Duration,
     bits: Int,
     semaphore: Semaphore[F],
     lastCleanupMillis: Ref[F, Long],
@@ -68,14 +76,15 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
       nowMillis <- clock.monotonic(MILLISECONDS)
       lastCleanupTime <- lastCleanupMillis.get
       result <-
-        if (nowMillis - lastCleanupTime > nonceCleanupInterval) {
+        if (nowMillis - lastCleanupTime > nonceCleanupInterval.toMillis) {
           lastCleanupMillis
             .set(nowMillis)
             .flatMap { _ =>
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
               // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
               F.tailRecM[ju.Iterator[NonceF[F]], Unit](nonces.values().iterator()) {
-                case it if it.hasNext && staleTimeout > nowMillis - it.next().createdMillis =>
+                case it
+                    if it.hasNext && staleTimeout.toMillis > nowMillis - it.next().createdMillis =>
                   F.delay(Left {
                     it.remove()
                     it
