@@ -104,7 +104,7 @@ object DigestAuth {
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
   )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    NonceKeeper[F](nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
+    NonceKeeperF[F](nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
       .map { nonceKeeper =>
         Kleisli { req =>
           def paramsToChallenge(params: Map[String, String]) =
@@ -122,7 +122,7 @@ object DigestAuth {
   private def checkAuth[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeper[F],
+      nonceKeeper: NonceKeeperF[F],
       req: Request[F],
   )(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
@@ -134,7 +134,7 @@ object DigestAuth {
         F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeper[F], staleNonce: Boolean)(implicit
+  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeperF[F], staleNonce: Boolean)(implicit
       F: Sync[F]
   ): F[Map[String, String]] =
     nonceKeeper
@@ -150,7 +150,7 @@ object DigestAuth {
   private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeper[F],
+      nonceKeeper: NonceKeeperF[F],
       req: Request[F],
       paramsNel: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
