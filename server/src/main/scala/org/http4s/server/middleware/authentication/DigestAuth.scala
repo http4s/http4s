@@ -66,7 +66,7 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.11")
+  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.13")
   def apply[F[_]: Sync, A](
       realm: String,
       store: String => F[Option[(A, String)]],
