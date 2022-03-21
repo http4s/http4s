@@ -102,7 +102,7 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private def challenge[F[_], A](
+  private[authentication] def challenge[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceKeeper: NonceKeeper,
