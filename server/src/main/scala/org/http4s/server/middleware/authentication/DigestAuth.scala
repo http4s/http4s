@@ -66,6 +66,13 @@ object DigestAuth {
   object Md5HashedAuthStore {
     def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthStore[F, A] =
       new Md5HashedAuthStore(func)
+
+    def precomputeHash[F[_]: Monad: Hash](
+        username: String,
+        realm: String,
+        password: String,
+    ): F[String] =
+      DigestUtil.computeHa1(username, realm, password)
   }
   final class Md5HashedAuthStore[F[_], A](val func: String => F[Option[(A, String)]])
       extends AuthStore[F, A]

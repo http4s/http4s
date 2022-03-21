@@ -55,6 +55,18 @@ private[authentication] object DigestUtil {
     result <- md5(respstr)
   } yield result
 
+  /** Computes the ha1 component of the Digest Authentication scheme
+    * @param username
+    * @param realm
+    * @param password
+    * @return The hash of the supplied fields when concatenated together
+    */
+  def computeHa1[F[_]: Monad: Hash](username: String, realm: String, password: String): F[String] =
+    for {
+      ha1str <- (username + ":" + realm + ":" + password).pure[F]
+      ha1 <- md5(ha1str)
+    } yield ha1
+
   /** Computes the response value used in Digest Authentication.
     * @param method
     * @param username
@@ -78,8 +90,7 @@ private[authentication] object DigestUtil {
       cnonce: String,
       qop: String,
   ): F[String] = for {
-    ha1str <- (username + ":" + realm + ":" + password).pure[F]
-    ha1 <- md5(ha1str)
+    ha1 <- computeHa1(username, realm, password)
     result <- computeHashedResponse(method, ha1, uri, nonce, nc, cnonce, qop)
   } yield result
 }

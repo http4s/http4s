@@ -359,5 +359,11 @@ class AuthenticationSuite extends Http4sSuite {
           .assertEquals(expected)
       } yield result
     }
+
+    test("DigestAuthentication can calculate the expected ha1 using the helper function") {
+      for {
+        newHa1 <- DigestAuth.Md5HashedAuthStore.precomputeHash[IO](username, realm, password)
+      } yield assertEquals(newHa1, ha1)
+    }
   }
 }
