@@ -244,7 +244,7 @@
 //        = HttpVersion(major = 1, minor = 1),
 //        = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
 //        = Stream(..),
-//        = org.typelevel.vault.Vault@2a4f10d7
+//        = org.typelevel.vault.Vault@d8698da
 //     )
 //   ),
 //   f = &lt;function1&gt;,
@@ -275,15 +275,15 @@
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Audio</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// audioDec: EntityDecoder[IO[A], Audio] = org.http4s.EntityDecoder$$anon$7@465425c9
+</span><span class="comment">// audioDec: EntityDecoder[IO[A], Audio] = org.http4s.EntityDecoder$$anon$7@41d0653d
 </span><span class="keyword">val</span><span> </span><span class="identifier">videoDec</span><span> = </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">decodeBy</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">video</span><span>.</span><span class="identifier">ogg</span><span>) { (</span><span class="identifier">m</span><span>: </span><span class="type-name">Media</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
   </span><span class="type-name">EitherT</span><span> {
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Video</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// videoDec: EntityDecoder[IO[A], Video] = org.http4s.EntityDecoder$$anon$7@47ca2af7
+</span><span class="comment">// videoDec: EntityDecoder[IO[A], Video] = org.http4s.EntityDecoder$$anon$7@14c6f360
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">bothDec</span><span> = </span><span class="identifier">audioDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>] </span><span class="identifier">orElse</span><span> </span><span class="identifier">videoDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>]
-</span><span class="comment">// bothDec: EntityDecoder[IO[A], Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@b28edb9
+</span><span class="comment">// bothDec: EntityDecoder[IO[A], Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@1e303d36
 </span><span class="identifier">println</span><span>(</span><span class="identifier">response</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Resp</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>())
 </span><span class="comment">// Audio()</span></code></pre>
         
