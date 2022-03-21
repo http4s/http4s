@@ -28,7 +28,6 @@ import org.http4s.ember.core.Parser
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.typelevel.ci._
 
 import java.net.InetSocketAddress
 import scala.concurrent.duration._

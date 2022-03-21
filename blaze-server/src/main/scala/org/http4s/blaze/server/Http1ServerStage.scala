@@ -44,7 +44,6 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.nio.ByteBuffer

@@ -25,7 +25,6 @@ import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebSocketHandshake
-import org.typelevel.ci._
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
