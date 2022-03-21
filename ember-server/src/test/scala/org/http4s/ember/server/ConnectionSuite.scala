@@ -28,7 +28,6 @@ import org.http4s.ember.core.Parser
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.typelevel.ci._
 
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
@@ -46,7 +45,7 @@ class ConnectionSuite extends Http4sSuite {
         case GET -> Root / "keep-alive" =>
           Ok("keep-alive") // keep-alive enabled by default
         case GET -> Root / "close" =>
-          Ok("close").map(_.withHeaders(Connection(ci"close")))
+          Ok("close").map(_.withHeaders(Connection.close))
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
         case POST -> Root / "unread" =>
