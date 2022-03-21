@@ -43,13 +43,13 @@ private[authentication] object DigestUtil {
   def computeHashedResponse[F[_]: Monad: Hash](
       method: String,
       ha1: String,
-      uri: String,
+      uri: Uri,
       nonce: String,
       nc: String,
       cnonce: String,
       qop: String,
   ): F[String] = for {
-    ha2str <- (method + ":" + uri).pure[F]
+    ha2str <- (method + ":" + uri.toString()).pure[F]
     ha2 <- md5(ha2str)
     respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
     result <- md5(respstr)
@@ -84,7 +84,7 @@ private[authentication] object DigestUtil {
       username: String,
       realm: String,
       password: String,
-      uri: String,
+      uri: Uri,
       nonce: String,
       nc: String,
       cnonce: String,

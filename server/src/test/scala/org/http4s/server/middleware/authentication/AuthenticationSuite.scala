@@ -184,7 +184,7 @@ class AuthenticationSuite extends Http4sSuite {
     ): IO[(Response[IO], Response[IO])] = {
       // Second request with credentials
       val method = "GET"
-      val uri = "/"
+      val uri = uri"/"
       val qop = "auth"
       val nc = "00000001"
       val cnonce = "abcdef"
@@ -197,7 +197,7 @@ class AuthenticationSuite extends Http4sSuite {
             "username" -> username,
             "realm" -> realm,
             "nonce" -> nonce,
-            "uri" -> uri,
+            "uri" -> uri.toString(),
             "qop" -> qop,
             "nc" -> nc,
             "cnonce" -> cnonce,
@@ -322,7 +322,7 @@ class AuthenticationSuite extends Http4sSuite {
 
     test("DigestAuthentication should respond to invalid requests with 401") {
       val method = "GET"
-      val uri = "/"
+      val uri = uri"/"
       val qop = "auth"
       val nc = "00000001"
       val cnonce = "abcdef"
@@ -337,7 +337,7 @@ class AuthenticationSuite extends Http4sSuite {
           "username" -> username,
           "realm" -> realm,
           "nonce" -> nonce,
-          "uri" -> uri,
+          "uri" -> uri.toString(),
           "qop" -> qop,
           "nc" -> nc,
           "cnonce" -> cnonce,

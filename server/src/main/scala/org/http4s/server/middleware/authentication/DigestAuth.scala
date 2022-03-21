@@ -233,7 +233,6 @@ object DigestAuth {
       F.pure(BadParameters)
     } else {
       val method = req.method.toString
-      val uri = req.uri.toString
 
       if (!params.get("realm").contains(realm)) {
         F.pure(BadParameters)
@@ -255,7 +254,7 @@ object DigestAuth {
                         params("username"),
                         realm,
                         password,
-                        uri,
+                        req.uri,
                         nonce,
                         nc,
                         params("cnonce"),
@@ -274,7 +273,7 @@ object DigestAuth {
                       .computeHashedResponse(
                         method,
                         ha1Hash,
-                        uri,
+                        req.uri,
                         nonce,
                         nc,
                         params("cnonce"),
