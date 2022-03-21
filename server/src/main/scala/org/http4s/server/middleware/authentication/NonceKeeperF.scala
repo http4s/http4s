@@ -35,10 +35,10 @@ private[authentication] object NonceKeeperF {
   )(implicit F: Concurrent[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
     semaphore <- Semaphore[F](1)
-    currentTime <- Clock[F].realTime(MILLISECONDS)
-    lastCleanup <- Ref[F].of(currentTime)
+    currentMillis <- Clock[F].monotonic(MILLISECONDS)
+    lastCleanupMillis <- Ref[F].of(currentMillis)
     nonces = new LinkedHashMap[String, NonceF[F]]
-  } yield new NonceKeeperF(staleTimeout, nonceCleanupInterval, bits, semaphore, lastCleanup, nonces)
+  } yield new NonceKeeperF(staleTimeout, nonceCleanupInterval, bits, semaphore, lastCleanupMillis, nonces)
 }
 
 /** A thread-safe class used to manage a database of nonces.
@@ -53,7 +53,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     nonceCleanupInterval: Long,
     bits: Int,
     semaphore: Semaphore[F],
-    lastCleanup: Ref[F, Long],
+    lastCleanupMillis: Ref[F, Long],
     nonces: LinkedHashMap[String, NonceF[F]],
 )(implicit F: Concurrent[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
@@ -65,17 +65,17 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     */
   private def unsafeCheckStale(): F[Unit] =
     for {
-      d <- clock.realTime(MILLISECONDS)
-      lastCleanupTime <- lastCleanup.get
+      nowMillis <- clock.monotonic(MILLISECONDS)
+      lastCleanupTime <- lastCleanupMillis.get
       result <-
-        if (d - lastCleanupTime > nonceCleanupInterval) {
-          lastCleanup
-            .set(d)
+        if (nowMillis - lastCleanupTime > nonceCleanupInterval) {
+          lastCleanupMillis
+            .set(nowMillis)
             .flatMap { _ =>
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
               // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
               F.tailRecM[ju.Iterator[NonceF[F]], Unit](nonces.values().iterator()) {
-                case it if it.hasNext && staleTimeout > d - it.next().created.toEpochMilli =>
+                case it if it.hasNext && staleTimeout > nowMillis - it.next().createdMillis =>
                   F.delay(Left {
                     it.remove()
                     it

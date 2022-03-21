@@ -24,9 +24,9 @@ import cats.syntax.all._
 import org.http4s.crypto.unsafe.SecureRandom
 
 import java.math.BigInteger
-import java.time.Instant
+import scala.concurrent.duration.MILLISECONDS
 
-private[authentication] class NonceF[F[_]](val created: Instant, val nc: Ref[F, Int], val data: String)
+private[authentication] class NonceF[F[_]](val createdMillis: Long, val nc: Ref[F, Int], val data: String)
 
 private[authentication] object NonceF {
   val random = new SecureRandom()
@@ -37,6 +37,6 @@ private[authentication] object NonceF {
   def gen[F[_]: Sync: Timer](bits: Int): F[NonceF[F]] = for {
     nc <- Ref[F].of(0)
     data <- getRandomData[F](bits)
-    created <- Clock[F].instantNow
-  } yield new NonceF(created, nc, data)
+    createdMillis <- Clock[F].monotonic(MILLISECONDS)
+  } yield new NonceF(createdMillis, nc, data)
 }
