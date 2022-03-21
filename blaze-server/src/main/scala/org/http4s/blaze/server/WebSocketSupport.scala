@@ -59,7 +59,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection(ci"close"),
+                      Connection.close,
                       "Sec-WebSocket-Version" -> "13",
                     )
                   )

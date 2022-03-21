@@ -57,7 +57,7 @@ object ErrorReporting {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(ci"close"),
+              Connection.close,
               `Content-Length`.zero,
             ),
           )

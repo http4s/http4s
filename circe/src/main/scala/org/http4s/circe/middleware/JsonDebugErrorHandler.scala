@@ -64,9 +64,7 @@ object JsonDebugErrorHandler {
             Response[G](
               Status.InternalServerError,
               req.httpVersion,
-              Headers(
-                Connection(ci"close")
-              ),
+              Headers(Connection.close),
             )
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]
