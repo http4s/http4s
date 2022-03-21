@@ -457,6 +457,9 @@ lazy val client = libraryCrossProject("client")
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.client.Client.translateImpl"
+          ),
         )
       else Seq.empty
     },
