@@ -33,6 +33,7 @@ private[authentication] object NonceKeeperF {
       nonceCleanupInterval: Long,
       bits: Int,
   )(implicit F: Concurrent[F]): F[NonceKeeperF[F]] = for {
+    // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
     semaphore <- Semaphore[F](1)
     currentTime <- Clock[F].realTime(MILLISECONDS)
     lastCleanup <- Ref[F].of(currentTime)
