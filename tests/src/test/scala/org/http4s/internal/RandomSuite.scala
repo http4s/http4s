@@ -38,8 +38,8 @@ class RandomSuite extends Http4sSuite {
     }
   }
 
-  test("javaSecurityRandom.nextBigInt") {
-    Random.javaSecurityRandom[IO](testBlocker).map { random =>
+  test("javaSecuritySecureRandom.nextBigInt") {
+    Random.javaSecuritySecureRandom[IO](testBlocker).map { random =>
       forAllF(Gen.chooseNum(0, 62)) { (n: Int) =>
         random
           .nextBigInt(n)

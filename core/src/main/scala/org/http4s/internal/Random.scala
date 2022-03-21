@@ -51,7 +51,7 @@ private[http4s] object Random {
     * non-blocking.  If a non-blocking instance can't be guaranteed,
     * falls back to a blocking implementation.
     */
-  def javaSecurityRandom[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]) =
+  def javaSecuritySecureRandom[F[_]](blocker: Blocker)(implicit F: Sync[F], cs: ContextShift[F]) =
     javaMajorVersion.flatMap {
       case Some(major) if major > 8 =>
         // nextBytes runs in a mutex until Java 9
