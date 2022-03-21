@@ -19,7 +19,7 @@ private[http4s] trait Random[F[_]] {
   def nextBytes(n: Int): F[Array[Byte]]
 }
 
-object Random {
+private[http4s] object Random {
 
   /** Create a non-blocking Random instance.  This is more efficient
     * than [[javaSecurityRandom]], but requires a more thoughtful
