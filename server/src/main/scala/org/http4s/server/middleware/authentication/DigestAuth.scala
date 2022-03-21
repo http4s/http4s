@@ -51,6 +51,19 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
+  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.11")
+  def apply[F[_]: Sync, A](
+      realm: String,
+      store: AuthenticationStore[F, A],
+      nonceCleanupInterval: Duration = 1.hour,
+      nonceStaleTime: Duration = 1.hour,
+      nonceBits: Int = 160,
+  ): AuthMiddleware[F, A] = {
+    val nonceKeeper =
+      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
+    challenged(challenge(realm, store, nonceKeeper))
+  }
+
   /** @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
@@ -61,7 +74,7 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def apply[F[_]: Concurrent: Timer, A](
+  def applyF[F[_]: Concurrent: Timer, A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
@@ -77,6 +90,16 @@ object DigestAuth {
     ).map { runChallenge =>
       challenged(runChallenge)
     }
+
+  def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
+      implicit F: Sync[F]
+  ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+    challengeInterop[F, A](
+      realm,
+      store,
+      F.delay(nonceKeeper.newNonce()),
+      (data, nc) => F.delay(nonceKeeper.receiveNonce(data, nc)),
+    )
 
   /** Similar to [[apply]], but exposing the underlying [[challenge]]
     * [[cats.data.Kleisli]] instead of an entire [[AuthMiddleware]]
@@ -103,39 +126,48 @@ object DigestAuth {
   )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
     NonceKeeperF[F](nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
       .map { nonceKeeper =>
-        Kleisli { req =>
-          def paramsToChallenge(params: Map[String, String]) =
-            Either.left(Challenge("Digest", realm, params))
-
-          checkAuth(realm, store, nonceKeeper, req).flatMap {
-            case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
-            case StaleNonce =>
-              getChallengeParams(nonceKeeper, staleNonce = true).map(paramsToChallenge)
-            case _ => getChallengeParams(nonceKeeper, staleNonce = false).map(paramsToChallenge)
-          }
-        }
+        challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
       }
+
+  private[this] def challengeInterop[F[_], A](
+      realm: String,
+      store: AuthenticationStore[F, A],
+      newNonce: F[String],
+      receiveNonce: (String, Int) => F[NonceKeeper.Reply],
+  )(implicit
+      F: Sync[F]
+  ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+    Kleisli { req =>
+      def paramsToChallenge(params: Map[String, String]) =
+        Either.left(Challenge("Digest", realm, params))
+
+      checkAuth(realm, store, receiveNonce, req).flatMap {
+        case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
+        case StaleNonce =>
+          getChallengeParams(newNonce, staleNonce = true).map(paramsToChallenge)
+        case _ => getChallengeParams(newNonce, staleNonce = false).map(paramsToChallenge)
+      }
+    }
 
   private def checkAuth[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeperF[F],
+      receiveNonce: (String, Int) => F[NonceKeeper.Reply],
       req: Request[F],
   )(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
-        checkAuthParams(realm, store, nonceKeeper, req, params)
+        checkAuthParams(realm, store, receiveNonce, req, params)
       case Some(_) =>
         F.pure(NoCredentials)
       case None =>
         F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](nonceKeeper: NonceKeeperF[F], staleNonce: Boolean)(implicit
+  private def getChallengeParams[F[_]](newNonce: F[String], staleNonce: Boolean)(implicit
       F: Sync[F]
   ): F[Map[String, String]] =
-    nonceKeeper
-      .newNonce()
+    newNonce
       .map { nonce =>
         val m = Map("qop" -> "auth", "nonce" -> nonce)
         if (staleNonce)
@@ -147,7 +179,7 @@ object DigestAuth {
   private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeperF[F],
+      receiveNonce: (String, Int) => F[NonceKeeper.Reply],
       req: Request[F],
       paramsNel: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
@@ -163,7 +195,7 @@ object DigestAuth {
       } else {
         val nonce = params("nonce")
         val nc = params("nc")
-        nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
+        receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
           case NonceKeeper.StaleReply => F.pure(StaleNonce)
           case NonceKeeper.BadNCReply => F.pure(BadNC)
           case NonceKeeper.OKReply =>
