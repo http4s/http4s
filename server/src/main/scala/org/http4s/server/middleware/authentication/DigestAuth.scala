@@ -35,11 +35,26 @@ import scala.concurrent.duration._
   */
 object DigestAuth {
 
+  sealed trait AuthenticationStore[F[_], A]
+
   /** A function mapping username to a user object and password, or
-    * None if no user exists.  Requires that the server can recover
-    * the password in clear text, which is _strongly_ discouraged.
+    * None if no user exists.
+    *
+    * Requires that the server can recover the password in clear text,
+    * which is _strongly_ discouraged. Please use Md5HashedAuthenticationStore
+    * if you can.
     */
-  type AuthenticationStore[F[_], A] = String => F[Option[(A, String)]]
+  final case class PlainTextAuthenticationStore[F[_], A](func: String => F[Option[(A, String)]])
+      extends AuthenticationStore[F, A]
+
+  /** A function mapping username to a user object and precomputed md5
+    * hash of the username, realm, and password, or None if no user exists.
+    *
+    * More secure than PlainTextAuthenticationStore due to only needing to
+    * store the digested hash instead of the password in plain text.
+    */
+  final case class Md5HashedAuthenticationStore[F[_], A](func: String => F[Option[(A, String)]])
+      extends AuthenticationStore[F, A]
 
   private trait AuthReply[+A]
   private final case class OK[A](authInfo: A) extends AuthReply[A]
@@ -54,7 +69,7 @@ object DigestAuth {
   @deprecated("Calling apply is side-effecting, please use applyF", "0.22.11")
   def apply[F[_]: Sync, A](
       realm: String,
-      store: AuthenticationStore[F, A],
+      store: String => F[Option[(A, String)]],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -91,12 +106,16 @@ object DigestAuth {
       challenged(runChallenge)
     }
 
-  def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]
+  def challenge[F[_], A](
+      realm: String,
+      store: String => F[Option[(A, String)]],
+      nonceKeeper: NonceKeeper,
+  )(implicit
+      F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     challengeInterop[F, A](
       realm,
-      store,
+      PlainTextAuthenticationStore(store),
       F.delay(nonceKeeper.newNonce()),
       (data, nc) => F.delay(nonceKeeper.receiveNonce(data, nc)),
     )
@@ -199,26 +218,48 @@ object DigestAuth {
           case NonceKeeper.StaleReply => F.pure(StaleNonce)
           case NonceKeeper.BadNCReply => F.pure(BadNC)
           case NonceKeeper.OKReply =>
-            store(params("username")).flatMap {
-              case None => F.pure(UserUnknown)
-              case Some((authInfo, password)) =>
-                DigestUtil
-                  .computeResponse(
-                    method,
-                    params("username"),
-                    realm,
-                    password,
-                    uri,
-                    nonce,
-                    nc,
-                    params("cnonce"),
-                    params("qop"),
-                  )
-                  .map { resp =>
-                    if (resp == params("response")) OK(authInfo)
-                    else WrongResponse
-                  }
-            }
+            (store match {
+              case PlainTextAuthenticationStore(func) =>
+                func(params("username")).flatMap {
+                  case None => F.pure(UserUnknown)
+                  case Some((authInfo, password)) =>
+                    DigestUtil
+                      .computeResponse(
+                        method,
+                        params("username"),
+                        realm,
+                        password,
+                        uri,
+                        nonce,
+                        nc,
+                        params("cnonce"),
+                        params("qop"),
+                      )
+                      .map { resp =>
+                        if (resp == params("response")) OK(authInfo)
+                        else WrongResponse
+                      }
+                }
+              case Md5HashedAuthenticationStore(func) =>
+                func(params("username")).flatMap {
+                  case None => F.pure(UserUnknown)
+                  case Some((authInfo, ha1Hash)) =>
+                    DigestUtil
+                      .computeHashedResponse(
+                        method,
+                        ha1Hash,
+                        uri,
+                        nonce,
+                        nc,
+                        params("cnonce"),
+                        params("qop"),
+                      )
+                      .map { resp =>
+                        if (resp == params("response")) OK(authInfo)
+                        else WrongResponse
+                      }
+                }
+            })
         }
       }
     }

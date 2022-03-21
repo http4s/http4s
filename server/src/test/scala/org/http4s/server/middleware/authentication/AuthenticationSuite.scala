@@ -40,11 +40,13 @@ class AuthenticationSuite extends Http4sSuite {
   private val username = "Test User"
   private val password = "Test Password"
 
-  private def authStore(u: String): IO[Option[(String, String)]] =
-    IO.pure {
-      if (u === username) Some(u -> password)
-      else None
-    }
+  private val authStore: DigestAuth.AuthenticationStore[IO, String] =
+    DigestAuth.PlainTextAuthenticationStore[IO, String]((u: String) =>
+      IO.pure {
+        if (u === username) Some(u -> password)
+        else None
+      }
+    )
 
   private def validatePassword(creds: BasicCredentials): IO[Option[String]] =
     IO.pure {

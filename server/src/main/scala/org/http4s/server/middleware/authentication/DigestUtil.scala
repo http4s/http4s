@@ -32,6 +32,31 @@ private[authentication] object DigestUtil {
 
   /** Computes the response value used in Digest Authentication.
     * @param method
+    * @param ha1
+    * @param uri
+    * @param nonce
+    * @param nc
+    * @param cnonce
+    * @param qop
+    * @return
+    */
+  def computeHashedResponse[F[_]: Monad: Hash](
+      method: String,
+      ha1: String,
+      uri: String,
+      nonce: String,
+      nc: String,
+      cnonce: String,
+      qop: String,
+  ): F[String] = for {
+    ha2str <- (method + ":" + uri).pure[F]
+    ha2 <- md5(ha2str)
+    respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
+    result <- md5(respstr)
+  } yield result
+
+  /** Computes the response value used in Digest Authentication.
+    * @param method
     * @param username
     * @param realm
     * @param password
@@ -55,9 +80,6 @@ private[authentication] object DigestUtil {
   ): F[String] = for {
     ha1str <- (username + ":" + realm + ":" + password).pure[F]
     ha1 <- md5(ha1str)
-    ha2str = method + ":" + uri
-    ha2 <- md5(ha2str)
-    respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
-    result <- md5(respstr)
+    result <- computeHashedResponse(method, ha1, uri, nonce, nc, cnonce, qop)
   } yield result
 }
