@@ -44,7 +44,11 @@ object DigestAuth {
     * which is _strongly_ discouraged. Please use Md5HashedAuthenticationStore
     * if you can.
     */
-  final case class PlainTextAuthenticationStore[F[_], A](func: String => F[Option[(A, String)]])
+  object PlainTextAuthenticationStore {
+    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthenticationStore[F, A] =
+      new PlainTextAuthenticationStore(func)
+  }
+  final class PlainTextAuthenticationStore[F[_], A](val func: String => F[Option[(A, String)]])
       extends AuthenticationStore[F, A]
 
   /** A function mapping username to a user object and precomputed md5
@@ -53,7 +57,11 @@ object DigestAuth {
     * More secure than PlainTextAuthenticationStore due to only needing to
     * store the digested hash instead of the password in plain text.
     */
-  final case class Md5HashedAuthenticationStore[F[_], A](func: String => F[Option[(A, String)]])
+  object Md5HashedAuthenticationStore {
+    def apply[F[_], A](func: String => F[Option[(A, String)]]): AuthenticationStore[F, A] =
+      new Md5HashedAuthenticationStore(func)
+  }
+  final class Md5HashedAuthenticationStore[F[_], A](val func: String => F[Option[(A, String)]])
       extends AuthenticationStore[F, A]
 
   private trait AuthReply[+A]
@@ -219,8 +227,8 @@ object DigestAuth {
           case NonceKeeper.BadNCReply => F.pure(BadNC)
           case NonceKeeper.OKReply =>
             (store match {
-              case PlainTextAuthenticationStore(func) =>
-                func(params("username")).flatMap {
+              case authStore: PlainTextAuthenticationStore[F, A] =>
+                authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, password)) =>
                     DigestUtil
@@ -240,8 +248,8 @@ object DigestAuth {
                         else WrongResponse
                       }
                 }
-              case Md5HashedAuthenticationStore(func) =>
-                func(params("username")).flatMap {
+              case authStore: Md5HashedAuthenticationStore[F, A] =>
+                authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, ha1Hash)) =>
                     DigestUtil
