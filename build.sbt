@@ -509,6 +509,8 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
+        .exclude[IncompatibleResultTypeProblem]("org.http4s.ember.core.h2.H2Connection.readLoop"),
+      ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Encoder.reqToBytes"),
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.core.Parser#HeaderP.apply"),
