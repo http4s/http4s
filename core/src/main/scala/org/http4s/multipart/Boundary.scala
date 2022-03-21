@@ -29,7 +29,7 @@ final case class Boundary(value: String) extends AnyVal {
 }
 
 object Boundary {
-  private val BoundaryLength = 40
+  private val BoundaryLength = 41
   val CRLF = "\r\n"
 
   private val DIGIT = ('0' to '9').toList
@@ -45,11 +45,9 @@ object Boundary {
   private def nextChar = CHARS(rand.nextInt(nchars - 1))
   private def stream: CollectionCompat.LazyList[Char] =
     CollectionCompat.LazyList.continually(nextChar)
-  // Don't use filterNot it works for 2.11.4 and nothing else, it will hang.
-  private def endChar: Char = stream.find(_ != ' ').getOrElse('X')
   private def value(l: Int): String = stream.take(l).mkString
 
-  def create: Boundary = Boundary(value(BoundaryLength) + endChar)
+  def create: Boundary = Boundary(value(BoundaryLength))
 
   implicit val boundaryEq: Eq[Boundary] = Eq.by(_.value)
 }
