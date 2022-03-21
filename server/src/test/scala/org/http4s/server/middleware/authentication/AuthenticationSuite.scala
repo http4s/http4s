@@ -131,12 +131,13 @@ class AuthenticationSuite extends Http4sSuite {
       .fold(e => sys.error(s"Couldn't parse: '$value', error: ${e.details}'"), identity)
 
   { // DigestAuthentication
-    val digestAuthMiddleware = DigestAuth(realm, authStore)
-
     test("DigestAuthentication should respond to a request without authentication with 401") {
-      val authedService = digestAuthMiddleware(service)
       val req = Request[IO](uri = uri"/")
-      authedService.orNotFound(req).map { res =>
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        authedService = digestAuthMiddleware(service)
+        res <- authedService.orNotFound(req)
+      } yield {
         assertEquals(res.status, Unauthorized)
         val opt = res.headers.get[`WWW-Authenticate`].map(_.value)
         assert(clue(opt).isDefined)
@@ -204,9 +205,9 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("DigestAuthentication should respond to a request with correct credentials") {
-      val digestAuthService = digestAuthMiddleware(service)
-
       for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
           assert(
@@ -231,37 +232,41 @@ class AuthenticationSuite extends Http4sSuite {
       "DigestAuthentication should respond to many concurrent requests while cleaning up nonces"
     ) {
       val n = 100
-      val digestAuthMiddleware = DigestAuth(realm, authStore, 2.millis, 2.millis)
-      val digestAuthService = digestAuthMiddleware(service)
-      val results = (1 to n)
-        .map(_ =>
-          for {
-            challenge <- doDigestAuth1(digestAuthService.orNotFound)
-            _ <- IO {
-              assert(
-                challenge match {
-                  case Challenge("Digest", `realm`, _) => true
-                  case _ => false
-                },
-                challenge,
-              )
-            }
-            res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
-              .map(_._1)
-          } yield
-          // We don't check whether res.status is Ok since it may not
-          // be due to the low nonce stale timer.  Instead, we check
-          // that it's found.
-          assertNotEquals(res.status, NotFound)
-        )
-        .toList
-      results.parSequence
+      DigestAuth
+        .applyF(realm, authStore, 2.millis, 2.millis)
+        .flatMap { digestAuthMiddleware =>
+          val digestAuthService = digestAuthMiddleware(service)
+          val results = (1 to n)
+            .map(_ =>
+              for {
+                challenge <- doDigestAuth1(digestAuthService.orNotFound)
+                _ <- IO {
+                  assert(
+                    challenge match {
+                      case Challenge("Digest", `realm`, _) => true
+                      case _ => false
+                    },
+                    challenge,
+                  )
+                }
+                res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
+                  .map(_._1)
+              } yield
+              // We don't check whether res.status is Ok since it may not
+              // be due to the low nonce stale timer.  Instead, we check
+              // that it's found.
+              assertNotEquals(res.status, NotFound)
+            )
+            .toList
+          results.parSequence
+        }
     }
 
     test("DigestAuthentication should avoid many concurrent replay attacks") {
       val n = 100
-      val digestAuthService = digestAuthMiddleware(service)
       val results = for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         results <- (1 to n)
           .map(_ =>
@@ -279,7 +284,6 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("DigestAuthentication should respond to invalid requests with 401") {
-      val digestAuthService = digestAuthMiddleware(service)
       val method = "GET"
       val uri = "/"
       val qop = "auth"
@@ -287,24 +291,27 @@ class AuthenticationSuite extends Http4sSuite {
       val cnonce = "abcdef"
       val nonce = "abcdef"
 
-      DigestUtil
-        .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
-        .flatMap { response =>
-          val params = NonEmptyList.of(
-            "username" -> username,
-            "realm" -> realm,
-            "nonce" -> nonce,
-            "uri" -> uri,
-            "qop" -> qop,
-            "nc" -> nc,
-            "cnonce" -> cnonce,
-            "response" -> response,
-            "method" -> method,
-          )
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, authStore)
+        digestAuthService = digestAuthMiddleware(service)
+        response <- DigestUtil
+          .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        params = NonEmptyList.of(
+          "username" -> username,
+          "realm" -> realm,
+          "nonce" -> nonce,
+          "uri" -> uri,
+          "qop" -> qop,
+          "nc" -> nc,
+          "cnonce" -> cnonce,
+          "response" -> response,
+          "method" -> method,
+        )
 
-          val expected = List.fill(params.size + 1)(Unauthorized)
+        expected = List.fill(params.size + 1)(Unauthorized)
 
-          val result = (0 to params.size).map { i =>
+        result <- (0 to params.size).toList
+          .parTraverse { i =>
             val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
             val header = Authorization(
               Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*)
@@ -312,9 +319,8 @@ class AuthenticationSuite extends Http4sSuite {
             val req = Request[IO](uri = uri"/", headers = Headers(header))
             digestAuthService.orNotFound(req).map(_.status)
           }
-
-          result.toList.parSequence.assertEquals(expected)
-        }
+          .assertEquals(expected)
+      } yield result
     }
   }
 }
