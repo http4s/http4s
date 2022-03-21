@@ -22,8 +22,9 @@ import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
+
 import java.util.LinkedHashMap
-import scala.annotation.tailrec
+import java.{util => ju}
 import scala.concurrent.duration.MILLISECONDS
 
 private[authentication] object NonceKeeperF {
@@ -68,17 +69,17 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
         if (d - lastCleanupTime > nonceCleanupInterval) {
           lastCleanup
             .set(d)
-            .map { _ =>
+            .flatMap { _ =>
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
               // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
-              val it = nonces.values().iterator()
-              @tailrec
-              def dropStale(): Unit =
-                if (it.hasNext && staleTimeout > d - it.next().created.getTime) {
-                  it.remove()
-                  dropStale()
-                }
-              dropStale()
+              F.tailRecM[ju.Iterator[NonceF[F]], Unit](nonces.values().iterator()) {
+                case it if it.hasNext && staleTimeout > d - it.next().created.getTime =>
+                  F.delay(Left {
+                    it.remove()
+                    it
+                  })
+                case _ => F.delay(Right(()))
+              }
             }
         } else F.pure(())
     } yield result
