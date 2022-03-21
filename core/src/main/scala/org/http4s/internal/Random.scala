@@ -72,6 +72,13 @@ private[http4s] object Random {
     // This is a known, non-blocking, threadsafe algorithm
     def happyRandom = F.delay(SecureRandom.getInstance("NativePRNGNonBlocking"))
 
+    def fallback = F.delay(new SecureRandom())
+
+    def isThreadsafe(rnd: SecureRandom) =
+      rnd.getProvider
+        .getProperty("SecureRandom." + rnd.getAlgorithm + " ThreadSafe", "false")
+        .toBoolean
+
     // If we can't sniff out a more optimal solution, we can always
     // fall back to a pool of blocking instances
     def fallbackPool =
@@ -81,9 +88,18 @@ private[http4s] object Random {
     javaMajorVersion.flatMap {
       case Some(major) if major > 8 =>
         happyRandom.redeemWith(
-          // We can't guarantee that our SecureRandom is both
-          // non-blocking and threadsafe.
-          _ => fallbackPool,
+          _ =>
+            fallback.flatMap {
+              case rnd if isThreadsafe(rnd) =>
+                // We avoided the mutex, but not the blocking.  Use a
+                // shared instance from the blocking pool.
+                F.pure(javaUtilRandomBlocking(blocker)(rnd))
+              case _ =>
+                // We can't prove the instance is threadsafe, so we need
+                // to pessimistically fall back to a pool.  This should
+                // be exceedingly uncommon.
+                fallbackPool
+            },
           // We are thread safe and non-blocking.  This is the
           // happy path, and happily, the common path.
           rnd => F.pure(javaUtilRandomNonBlocking(rnd)),
