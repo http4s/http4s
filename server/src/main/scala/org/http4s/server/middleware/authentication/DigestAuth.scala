@@ -81,11 +81,13 @@ object DigestAuth {
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  )(implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] = {
-    val nonceKeeper =
-      new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
-    challenge[F, A](realm, store, nonceKeeper)
-  }
+  )(implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+    Kleisli { req =>
+      F.delay(new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits))
+        .flatMap { nonceKeeper =>
+          challenge[F, A](realm, store, nonceKeeper).apply(req)
+        }
+    }
 
   @deprecated("Maintaining for ABI compatibility", "0.22.12")
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
