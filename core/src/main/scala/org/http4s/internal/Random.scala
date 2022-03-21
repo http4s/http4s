@@ -14,9 +14,6 @@ private[http4s] trait Random[F[_]] {
 
   /** Generates a random BigInt between 0 and (2^bits-1) inclusive. */
   def nextBigInt(bits: Int): F[BigInt]
-
-  /** Generates `n` random bytes into a new array */
-  def nextBytes(n: Int): F[Array[Byte]]
 }
 
 private[http4s] object Random {
@@ -34,13 +31,6 @@ private[http4s] object Random {
     new Random[F] {
       def nextBigInt(bits: Int): F[BigInt] =
         F.delay(BigInt(new JBigInteger(bits, random)))
-
-      def nextBytes(n: Int): F[Array[Byte]] =
-        F.delay {
-          val arr = new Array[Byte](n)
-          random.nextBytes(arr)
-          arr
-        }
     }
 
   /** Creates a blocking Random instance.  All calls to nextBytes are
@@ -55,16 +45,6 @@ private[http4s] object Random {
     new Random[F] {
       def nextBigInt(bits: Int): F[BigInt] =
         blocker.blockOn(F.delay(BigInt(new JBigInteger(bits, random))))
-
-      def nextBytes(n: Int): F[Array[Byte]] =
-        F.delay(new Array[Byte](n)).flatMap { arr =>
-          blocker.blockOn(
-            F.delay {
-              random.nextBytes(arr)
-              arr
-            }
-          )
-        }
     }
 
   /** Creates a Random instance.  On most platforms, it will be
