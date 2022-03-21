@@ -36,7 +36,8 @@ private[authentication] object NonceKeeperF {
     semaphore <- Semaphore[F](1)
     currentTime <- Clock[F].realTime(MILLISECONDS)
     lastCleanup <- Ref[F].of(currentTime)
-  } yield new NonceKeeperF(staleTimeout, nonceCleanupInterval, bits, semaphore, lastCleanup)
+    nonces = new LinkedHashMap[String, NonceF[F]]
+  } yield new NonceKeeperF(staleTimeout, nonceCleanupInterval, bits, semaphore, lastCleanup, nonces)
 }
 
 /** A thread-safe class used to manage a database of nonces.
@@ -52,9 +53,9 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     bits: Int,
     semaphore: Semaphore[F],
     lastCleanup: Ref[F, Long],
+    nonces: LinkedHashMap[String, NonceF[F]],
 )(implicit F: Concurrent[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
-  private val nonces = new LinkedHashMap[String, NonceF[F]]
 
   val clock = Clock[F]
 
