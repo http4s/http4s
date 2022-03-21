@@ -22,6 +22,7 @@ package authentication
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
+import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.syntax.all._
 import org.http4s.crypto.Hash
@@ -30,6 +31,7 @@ import org.http4s.headers._
 
 import java.math.BigInteger
 import java.util.Date
+import scala.annotation.nowarn
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -52,16 +54,7 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  /** @param realm The realm used for authentication purposes.
-    * @param store A partial function mapping (realm, user) to the
-    *              appropriate password.
-    * @param nonceCleanupInterval Interval (in milliseconds) at which stale
-    *                             nonces should be cleaned up.
-    * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
-    *                       is considered stale (i.e. not used for authentication
-    *                       purposes anymore).
-    * @param nonceBits The number of random bits a nonce should consist of.
-    */
+  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.11")
   def apply[F[_]: Sync, A](
       realm: String,
       store: AuthenticationStore[F, A],
@@ -73,6 +66,33 @@ object DigestAuth {
       new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
     challenged(challenge(realm, store, nonceKeeper))
   }
+
+  /** @param realm The realm used for authentication purposes.
+    * @param store A partial function mapping (realm, user) to the
+    *              appropriate password.
+    * @param nonceCleanupInterval Interval (in milliseconds) at which stale
+    *                             nonces should be cleaned up.
+    * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
+    *                       is considered stale (i.e. not used for authentication
+    *                       purposes anymore).
+    * @param nonceBits The number of random bits a nonce should consist of.
+    */
+  def applyF[F[_]: Concurrent, A](
+      realm: String,
+      store: AuthenticationStore[F, A],
+      nonceCleanupInterval: Duration = 1.hour,
+      nonceStaleTime: Duration = 1.hour,
+      nonceBits: Int = 160,
+  ): F[AuthMiddleware[F, A]] =
+    challenge[F, A](
+      realm = realm,
+      store = store,
+      nonceCleanupInterval = nonceCleanupInterval,
+      nonceStaleTime = nonceStaleTime,
+      nonceBits = nonceBits,
+    ).map { runChallenge =>
+      challenged(runChallenge)
+    }
 
   /** Similar to [[apply]], but exposing the underlying [[challenge]]
     * [[cats.data.Kleisli]] instead of an entire [[AuthMiddleware]]
@@ -87,13 +107,14 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
+  @nowarn
   def challenge[F[_], A](
       realm: String,
       store: AuthenticationStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  )(implicit F: Sync[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
+  )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
     F.delay(new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits))
       .map { nonceKeeper =>
         challenge[F, A](realm, store, nonceKeeper)
@@ -102,12 +123,12 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private[authentication] def challenge[F[_], A](
-      realm: String,
-      store: AuthenticationStore[F, A],
-      nonceKeeper: NonceKeeper,
-  )(implicit
-      F: Sync[F]
+  @deprecated(
+    "Calling challenge is side-effecting, please use the F[_]-suspended variant",
+    "0.22.11",
+  )
+  def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
+      implicit F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
       def paramsToChallenge(params: Map[String, String]) =
