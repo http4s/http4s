@@ -23,6 +23,7 @@ import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
+import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.effect.Timer
 import cats.syntax.all._
@@ -110,13 +111,13 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def applyF[F[_]: Concurrent: Timer, A](
+  def applyF[F[_], A](
       realm: String,
       store: AuthStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  ): F[AuthMiddleware[F, A]] =
+  )(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]): F[AuthMiddleware[F, A]] =
     challenge[F, A](
       realm = realm,
       store = store,
@@ -157,13 +158,17 @@ object DigestAuth {
     *                       purposes anymore).
     * @param nonceBits The number of random bits a nonce should consist of.
     */
-  def challenge[F[_]: Timer, A](
+  def challenge[F[_], A](
       realm: String,
       store: AuthStore[F, A],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
-  )(implicit F: Concurrent[F]): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
+  )(implicit
+      F: Concurrent[F],
+      t: Timer[F],
+      cs: ContextShift[F],
+  ): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
     NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
       .map { nonceKeeper =>
         challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)

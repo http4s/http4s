@@ -16,7 +16,9 @@
 
 package org.http4s.server.middleware.authentication
 
+import cats.effect.Blocker
 import cats.effect.Clock
+import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.effect.Timer
 import cats.effect.concurrent.Ref
@@ -24,6 +26,7 @@ import cats.syntax.all._
 import org.http4s.crypto.unsafe.SecureRandom
 
 import java.math.BigInteger
+import scala.annotation.nowarn
 import scala.concurrent.duration.MILLISECONDS
 
 private[authentication] class NonceF[F[_]](
@@ -38,7 +41,12 @@ private[authentication] object NonceF {
   private def getRandomData[F[_]](bits: Int)(implicit F: Sync[F]): F[String] =
     F.delay(new BigInteger(bits, random).toString(16))
 
-  def gen[F[_]: Sync: Timer](bits: Int): F[NonceF[F]] = for {
+  @nowarn("msg=parameter value")
+  def gen[F[_]](blocker: Blocker, bits: Int)(implicit
+      F: Sync[F],
+      t: Timer[F],
+      cs: ContextShift[F],
+  ): F[NonceF[F]] = for {
     nc <- Ref[F].of(0)
     data <- getRandomData[F](bits)
     createdMillis <- Clock[F].monotonic(MILLISECONDS)

@@ -16,8 +16,10 @@
 
 package org.http4s.server.middleware.authentication
 
+import cats.effect.Blocker
 import cats.effect.Clock
 import cats.effect.Concurrent
+import cats.effect.ContextShift
 import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.effect.concurrent.Semaphore
@@ -29,11 +31,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
 private[authentication] object NonceKeeperF {
-  def apply[F[_]: Timer](
+  def apply[F[_]](
       staleTimeout: Duration,
       nonceCleanupInterval: Duration,
       bits: Int,
-  )(implicit F: Concurrent[F]): F[NonceKeeperF[F]] = for {
+  )(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
     semaphore <- Semaphore[F](1)
     currentMillis <- Clock[F].monotonic(MILLISECONDS)
@@ -56,14 +58,14 @@ private[authentication] object NonceKeeperF {
   *                     purposes anymore).
   * @param bits The number of random bits a nonce should consist of.
   */
-private[authentication] class NonceKeeperF[F[_]: Timer](
+private[authentication] class NonceKeeperF[F[_]](
     staleTimeout: Duration,
     nonceCleanupInterval: Duration,
     bits: Int,
     semaphore: Semaphore[F],
     lastCleanupMillis: Ref[F, Long],
     nonces: LinkedHashMap[String, NonceF[F]],
-)(implicit F: Concurrent[F]) {
+)(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
 
   val clock = Clock[F]
@@ -100,13 +102,16 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     */
   def newNonce(): F[String] =
     semaphore.withPermit {
-      for {
-        _ <- unsafeCheckStale()
-        n <- NonceF.gen[F](bits).iterateUntil(n => nonces.get(n.data) == null)
-      } yield {
-        nonces.put(n.data, n)
-        n.data
-      }
+      Blocker[F]
+        .use { blocker =>
+          for {
+            _ <- unsafeCheckStale()
+            n <- NonceF.gen[F](blocker, bits).iterateUntil(n => nonces.get(n.data) == null)
+          } yield {
+            nonces.put(n.data, n)
+            n.data
+          }
+        }
     }
 
   /** Checks if the nonce {@link data} is known and the {@link nc} value is
