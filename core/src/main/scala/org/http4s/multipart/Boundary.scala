@@ -34,10 +34,10 @@ object Boundary {
 
   private val DIGIT = ('0' to '9').toList
   private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
-  // ' ' and '?' are also allowed by spec, but mean we need to quote
-  // the boundary in the media type, which causes some implementations
-  // pain.
-  private val OTHER = """'()+_,-./:=""".toSeq
+  // Many more chars are allowed (see bchars definition in
+  // https://www.rfc-editor.org/rfc/rfc2046), but these are known to
+  // be robust in implementation.
+  private val OTHER = "-_".toList
   private val CHARS = DIGIT ++ ALPHA ++ OTHER
   private val nchars = CHARS.length
   private val rand = new Random()
