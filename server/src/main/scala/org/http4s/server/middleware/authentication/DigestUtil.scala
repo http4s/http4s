@@ -30,6 +30,24 @@ private[authentication] object DigestUtil {
   private def md5[F[_]: Monad: Hash](str: String): F[String] =
     Hash[F].digest(HashAlgorithm.MD5, ByteVector.view(str.getBytes())).map(_.toHex)
 
+  def computeHashedResponse[F[_]: Monad: Hash](
+      method: String,
+      ha1: String,
+      uri: Uri,
+      nonce: String,
+      nc: String,
+      cnonce: String,
+      qop: String,
+  ): F[String] = computeHashedResponse[F](
+    method,
+    ha1,
+    uri.toString(),
+    nonce,
+    nc,
+    cnonce,
+    qop,
+  )
+
   /** Computes the response value used in Digest Authentication.
     * @param method
     * @param ha1
@@ -43,13 +61,13 @@ private[authentication] object DigestUtil {
   def computeHashedResponse[F[_]: Monad: Hash](
       method: String,
       ha1: String,
-      uri: Uri,
+      uri: String,
       nonce: String,
       nc: String,
       cnonce: String,
       qop: String,
   ): F[String] = for {
-    ha2str <- (method + ":" + uri.toString()).pure[F]
+    ha2str <- (method + ":" + uri).pure[F]
     ha2 <- md5(ha2str)
     respstr = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2
     result <- md5(respstr)
@@ -66,6 +84,28 @@ private[authentication] object DigestUtil {
       ha1str <- (username + ":" + realm + ":" + password).pure[F]
       ha1 <- md5(ha1str)
     } yield ha1
+
+  def computeResponse[F[_]: Monad: Hash](
+      method: String,
+      username: String,
+      realm: String,
+      password: String,
+      uri: Uri,
+      nonce: String,
+      nc: String,
+      cnonce: String,
+      qop: String,
+  ): F[String] = computeResponse[F](
+    method,
+    username,
+    realm,
+    password,
+    uri.toString(),
+    nonce,
+    nc,
+    cnonce,
+    qop,
+  )
 
   /** Computes the response value used in Digest Authentication.
     * @param method
@@ -84,7 +124,7 @@ private[authentication] object DigestUtil {
       username: String,
       realm: String,
       password: String,
-      uri: Uri,
+      uri: String,
       nonce: String,
       nc: String,
       cnonce: String,
