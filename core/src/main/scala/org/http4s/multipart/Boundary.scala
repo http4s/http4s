@@ -32,17 +32,23 @@ object Boundary {
   private val BoundaryLength = 41
   val CRLF = "\r\n"
 
-  private val DIGIT = ('0' to '9').toList
-  private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
-  // Many more chars are allowed (see bchars definition in
-  // https://www.rfc-editor.org/rfc/rfc2046), but these are known to
-  // be robust in implementation.
-  private val OTHER = "-_".toList
-  private val CHARS = DIGIT ++ ALPHA ++ OTHER
-  private val nchars = CHARS.length
+  private val alphabet = {
+    val arr = Array.newBuilder[Char]
+    arr ++= ('0' to '9')
+    arr ++= ('a' to 'z')
+    arr ++= ('A' to 'Z')
+    // Many more chars are allowed (see bchars definition in
+    // https://www.rfc-editor.org/rfc/rfc2046), but these are known to
+    // be robust in implementation.  Specifically, they don't trigger
+    // quotation in the Content-Type parameter.
+    arr += '-'
+    arr += '_'
+    arr.result()
+  }
+  private val nchars = alphabet.length
   private val rand = new Random()
 
-  private def nextChar = CHARS(rand.nextInt(nchars - 1))
+  private def nextChar = alphabet(rand.nextInt(nchars - 1))
   private def stream: CollectionCompat.LazyList[Char] =
     CollectionCompat.LazyList.continually(nextChar)
   private def value(l: Int): String = stream.take(l).mkString
