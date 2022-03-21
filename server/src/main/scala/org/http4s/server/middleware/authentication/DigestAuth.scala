@@ -27,11 +27,8 @@ import cats.effect.Sync
 import cats.effect.Timer
 import cats.syntax.all._
 import org.http4s.crypto.Hash
-import org.http4s.crypto.unsafe.SecureRandom
 import org.http4s.headers._
 
-import java.math.BigInteger
-import java.util.Date
 import scala.concurrent.duration._
 
 /** Provides Digest Authentication from RFC 2617.
@@ -194,14 +191,4 @@ object DigestAuth {
       }
     }
   }
-}
-
-private[authentication] class Nonce(val created: Date, var nc: Int, val data: String)
-
-private[authentication] object Nonce {
-  val random = new SecureRandom()
-
-  private def getRandomData(bits: Int): String = new BigInteger(bits, random).toString(16)
-
-  def gen(bits: Int): Nonce = new Nonce(new Date(), 0, getRandomData(bits))
 }
