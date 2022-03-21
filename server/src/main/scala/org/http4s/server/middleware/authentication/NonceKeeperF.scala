@@ -54,12 +54,12 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     lastCleanup: Ref[F, Long],
 )(implicit F: Concurrent[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
-  private val nonces = new LinkedHashMap[String, Nonce]
+  private val nonces = new LinkedHashMap[String, NonceF[F]]
 
   val clock = Clock[F]
 
   /** Removes nonces that are older than staleTimeout
-    * Note: this _MUST_ be executed inside a block synchronized on `nonces`
+    * Note: this _MUST_ be executed with the singleton permit from the semaphore
     */
   private def checkStale(): F[Unit] =
     for {
@@ -71,7 +71,7 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
             .set(d)
             .map { _ =>
               // Because we are using an LinkedHashMap, the keys will be returned in the order they were
-              // inserted. Therefor, once we reach a non-stale value, the remaining values are also not stale.
+              // inserted. Therefore, once we reach a non-stale value, the remaining values are also not stale.
               val it = nonces.values().iterator()
               @tailrec
               def dropStale(): Unit =
@@ -87,19 +87,16 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
   /** Get a fresh nonce in form of a {@link String}.
     * @return A fresh nonce.
     */
-  def newNonce(): F[String] = {
-    var n: Nonce = null
+  def newNonce(): F[String] =
     semaphore.withPermit {
       for {
         _ <- checkStale()
+        n <- NonceF.gen[F](bits).iterateUntil(n => nonces.get(n.data) == null)
       } yield {
-        n = Nonce.gen(bits)
-        while (nonces.get(n.data) != null) n = Nonce.gen(bits)
         nonces.put(n.data, n)
         n.data
       }
     }
-  }
 
   /** Checks if the nonce {@link data} is known and the {@link nc} value is
     * correct. If this is so, the nc value associated with the nonce is increased
@@ -112,14 +109,16 @@ private[authentication] class NonceKeeperF[F[_]: Timer](
     semaphore.withPermit {
       for {
         _ <- checkStale()
-      } yield nonces.get(data) match {
-        case null => NonceKeeper.StaleReply
-        case n: Nonce =>
-          if (nc > n.nc) {
-            n.nc = n.nc + 1
-            NonceKeeper.OKReply
-          } else
-            NonceKeeper.BadNCReply
-      }
+        res <- nonces.get(data) match {
+          case null => F.pure(NonceKeeper.StaleReply)
+          case n: NonceF[F] =>
+            n.nc.modify { lastNc =>
+              if (nc > lastNc) {
+                (lastNc + 1, NonceKeeper.OKReply)
+              } else
+                (lastNc, NonceKeeper.BadNCReply)
+            }
+        }
+      } yield res
     }
 }
