@@ -29,8 +29,8 @@ private[authentication] class NonceF[F[_]](val created: Date, val nc: Ref[F, Int
 private[authentication] object NonceF {
   val random = new SecureRandom()
 
-  private def getRandomData(bits: Int): String = new BigInteger(bits, random).toString(16)
+  private def getRandomData[F[_]](bits: Int)(implicit F: Sync[F]): F[String] = F.delay(new BigInteger(bits, random).toString(16))
 
   def gen[F[_]: Sync](bits: Int): F[NonceF[F]] =
-    Ref[F].of(0).map(nc => new NonceF(new Date(), nc, getRandomData(bits)))
+    Ref[F].of(0).flatMap(nc => getRandomData[F](bits).map { data => new NonceF(new Date(), nc, data) })
 }
