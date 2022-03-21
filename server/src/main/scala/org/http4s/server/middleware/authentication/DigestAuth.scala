@@ -155,41 +155,43 @@ object DigestAuth {
       paramsNel: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
     val params = paramsNel.toList.toMap
-    if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet))
-      return F.pure(BadParameters)
+    if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet)) {
+      F.pure(BadParameters)
+    } else {
+      val method = req.method.toString
+      val uri = req.uri.toString
 
-    val method = req.method.toString
-    val uri = req.uri.toString
-
-    if (params.get("realm") != Some(realm))
-      return F.pure(BadParameters)
-
-    val nonce = params("nonce")
-    val nc = params("nc")
-    nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
-      case NonceKeeper.StaleReply => F.pure(StaleNonce)
-      case NonceKeeper.BadNCReply => F.pure(BadNC)
-      case NonceKeeper.OKReply =>
-        store(params("username")).flatMap {
-          case None => F.pure(UserUnknown)
-          case Some((authInfo, password)) =>
-            DigestUtil
-              .computeResponse(
-                method,
-                params("username"),
-                realm,
-                password,
-                uri,
-                nonce,
-                nc,
-                params("cnonce"),
-                params("qop"),
-              )
-              .map { resp =>
-                if (resp == params("response")) OK(authInfo)
-                else WrongResponse
-              }
+      if (!params.get("realm").contains(realm)) {
+        F.pure(BadParameters)
+      } else {
+        val nonce = params("nonce")
+        val nc = params("nc")
+        nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
+          case NonceKeeper.StaleReply => F.pure(StaleNonce)
+          case NonceKeeper.BadNCReply => F.pure(BadNC)
+          case NonceKeeper.OKReply =>
+            store(params("username")).flatMap {
+              case None => F.pure(UserUnknown)
+              case Some((authInfo, password)) =>
+                DigestUtil
+                  .computeResponse(
+                    method,
+                    params("username"),
+                    realm,
+                    password,
+                    uri,
+                    nonce,
+                    nc,
+                    params("cnonce"),
+                    params("qop"),
+                  )
+                  .map { resp =>
+                    if (resp == params("response")) OK(authInfo)
+                    else WrongResponse
+                  }
+            }
         }
+      }
     }
   }
 }

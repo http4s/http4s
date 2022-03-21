@@ -22,7 +22,6 @@ import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
-
 import java.util.LinkedHashMap
 import scala.annotation.tailrec
 import scala.concurrent.duration.MILLISECONDS
