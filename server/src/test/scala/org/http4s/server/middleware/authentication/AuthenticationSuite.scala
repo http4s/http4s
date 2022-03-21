@@ -39,11 +39,20 @@ class AuthenticationSuite extends Http4sSuite {
   private val realm = "Test Realm"
   private val username = "Test User"
   private val password = "Test Password"
+  private val ha1 = "ef8937c627875dd03ca694994558f74e" // md5(${username}:${realm}:${password})
 
   private val plainTextAuthStore: DigestAuth.AuthenticationStore[IO, String] =
     DigestAuth.PlainTextAuthenticationStore[IO, String]((u: String) =>
       IO.pure {
         if (u === username) Some(u -> password)
+        else None
+      }
+    )
+
+  private val md5HashedAuthStore: DigestAuth.AuthenticationStore[IO, String] =
+    DigestAuth.Md5HashedAuthenticationStore[IO, String]((u: String) =>
+      IO.pure {
+        if (u === username) Some(u -> ha1)
         else None
       }
     )
@@ -209,6 +218,32 @@ class AuthenticationSuite extends Http4sSuite {
     test("DigestAuthentication should respond to a request with correct credentials") {
       for {
         digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        _ <- IO {
+          assert(
+            challenge match {
+              case Challenge("Digest", `realm`, _) => true
+              case _ => false
+            },
+            challenge,
+          )
+        }
+        results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+        (res2, res3) = results
+      } yield {
+        assertEquals(res2.status, Ok)
+
+        // Digest prevents replay
+        assertEquals(res3.status, Unauthorized)
+      }
+    }
+
+    test(
+      "DigestAuthentication should respond to a request with correct credentials when using secure hash"
+    ) {
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, md5HashedAuthStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
