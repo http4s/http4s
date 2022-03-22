@@ -17,6 +17,7 @@
 package org.http4s.multipart
 
 import cats.Eq
+import cats.effect.Sync
 import fs2.Chunk
 import org.http4s.internal.CollectionCompat
 
@@ -46,14 +47,26 @@ object Boundary {
     arr.result()
   }
   private val nchars = alphabet.length
-  private val rand = new Random()
+  private val defaultRandom = new Random()
 
-  private def nextChar = alphabet(rand.nextInt(nchars - 1))
-  private def stream: CollectionCompat.LazyList[Char] =
-    CollectionCompat.LazyList.continually(nextChar)
-  private def value(l: Int): String = stream.take(l).mkString
+  private def nextChar(random: Random) = alphabet(random.nextInt(nchars - 1))
+  private def stream(random: Random): CollectionCompat.LazyList[Char] =
+    CollectionCompat.LazyList.continually(nextChar(random))
+  private def value(random: Random, l: Int): String =
+    stream(random).take(l).mkString
 
-  def create: Boundary = Boundary(value(BoundaryLength))
+  @deprecated("Impure. Use fromScalaRandom", "0.22.14")
+  def create: Boundary = unsafeCreate()
+
+  /** Create a new MIME boundary. */
+  def fromScalaRandom[F[_]](random: Random)(implicit F: Sync[F]): F[Boundary] =
+    F.delay(unsafeCreateFromScalaRandom(random))
+
+  private[multipart] def unsafeCreate(): Boundary =
+    unsafeCreateFromScalaRandom(defaultRandom)
+
+  private def unsafeCreateFromScalaRandom(random: Random): Boundary =
+    Boundary(value(random, BoundaryLength))
 
   implicit val boundaryEq: Eq[Boundary] = Eq.by(_.value)
 }
