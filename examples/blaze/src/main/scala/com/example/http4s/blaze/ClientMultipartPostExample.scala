@@ -37,7 +37,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
 
   private val bottle: URL = getClass.getResource("/beerbottle.png")
 
-  def go(client: Client[IO]): IO[String] = {
+  def go(client: Client[IO], multiparts: Multiparts[IO]): IO[String] = {
     // n.b. This service does not appear to gracefully handle chunked requests.
     val url = Uri(
       scheme = Some(Scheme.http),
@@ -45,22 +45,24 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
       path = path"/t/http4s/post",
     )
 
-    val multipart = Multipart[IO](
-      Vector(
-        Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png)),
+    multiparts
+      .multipart(
+        Vector(
+          Part.formData("text", "This is text."),
+          Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png)),
+        )
       )
-    )
-
-    val request: Request[IO] =
-      Method.POST(multipart, url).withHeaders(multipart.headers)
-
-    client.expect[String](request)
+      .flatMap { multipart =>
+        val request: Request[IO] = Method.POST(multipart, url).withHeaders(multipart.headers)
+        client.expect[String](request)
+      }
   }
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeClientBuilder[IO](global).resource
-      .use(go)
-      .flatMap(s => IO(println(s)))
-      .as(ExitCode.Success)
+    Multiparts.forSync[IO].flatMap { multiparts =>
+      BlazeClientBuilder[IO](global).resource
+        .use(go(_, multiparts))
+        .flatMap(s => IO(println(s)))
+        .as(ExitCode.Success)
+    }
 }

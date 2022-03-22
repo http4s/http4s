@@ -21,7 +21,10 @@ import cats.syntax.all._
 
 import scala.util.Random
 
-/** An algebra for creating multipart values and boundaries */
+/** An algebra for creating multipart values and boundaries.
+  *
+  * A single instance may be shared by the entire application.
+  */
 trait Multiparts[F[_]] {
 
   /** Generate a random multipart boundary */
@@ -32,6 +35,14 @@ trait Multiparts[F[_]] {
 }
 
 object Multiparts {
+
+  /** Creates a `scala.util.Random` and provides Multiparts around it.
+    * This instance can be shared, or is cheap enough to create closer
+    * to where Multipart values are generated.
+    */
+  def forSync[F[_]](implicit F: Sync[F]): F[Multiparts[F]] =
+    F.delay(new Random()).map(fromScalaRandom[F])
+
   def fromScalaRandom[F[_]](random: Random)(implicit F: Sync[F]): Multiparts[F] =
     new Multiparts[F] {
       def boundary: F[Boundary] = F
