@@ -59,7 +59,6 @@ lazy val modules: List[CompositeProject] = List(
   blazeCore,
   blazeServer,
   blazeClient,
-  asyncHttpClient,
   jettyServer,
   jettyClient,
   okHttpClient,
@@ -355,21 +354,6 @@ lazy val blazeClient = libraryProject("blaze-client")
     startYear := Some(2014),
   )
   .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
-
-lazy val asyncHttpClient = libraryProject("async-http-client")
-  .settings(
-    description := "async http client implementation for http4s clients",
-    startYear := Some(2016),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.asyncHttpClient,
-      fs2ReactiveStreams,
-      nettyBuffer,
-      nettyCodecHttp,
-      reactiveStreams,
-    ),
-    Test / parallelExecution := false,
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
