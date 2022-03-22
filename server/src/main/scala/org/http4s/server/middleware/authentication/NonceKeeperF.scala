@@ -27,6 +27,7 @@ import cats.syntax.all._
 
 import java.util.LinkedHashMap
 import java.{util => ju}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
@@ -41,6 +42,7 @@ private[authentication] object NonceKeeperF {
     currentMillis <- Clock[F].monotonic(MILLISECONDS)
     lastCleanupMillis <- Ref[F].of(currentMillis)
     nonces = new LinkedHashMap[String, NonceF[F]]
+    blocker = Blocker.liftExecutionContext(ExecutionContext.global)
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
@@ -48,6 +50,7 @@ private[authentication] object NonceKeeperF {
     semaphore,
     lastCleanupMillis,
     nonces,
+    blocker,
   )
 }
 
@@ -65,6 +68,7 @@ private[authentication] class NonceKeeperF[F[_]](
     semaphore: Semaphore[F],
     lastCleanupMillis: Ref[F, Long],
     nonces: LinkedHashMap[String, NonceF[F]],
+    blocker: Blocker,
 )(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
 
@@ -102,16 +106,13 @@ private[authentication] class NonceKeeperF[F[_]](
     */
   def newNonce(): F[String] =
     semaphore.withPermit {
-      Blocker[F]
-        .use { blocker =>
-          for {
-            _ <- unsafeCheckStale()
-            n <- NonceF.gen[F](blocker, bits).iterateUntil(n => nonces.get(n.data) == null)
-          } yield {
-            nonces.put(n.data, n)
-            n.data
-          }
-        }
+      for {
+        _ <- unsafeCheckStale()
+        n <- NonceF.gen[F](blocker, bits).iterateUntil(n => nonces.get(n.data) == null)
+      } yield {
+        nonces.put(n.data, n)
+        n.data
+      }
     }
 
   /** Checks if the nonce {@link data} is known and the {@link nc} value is
