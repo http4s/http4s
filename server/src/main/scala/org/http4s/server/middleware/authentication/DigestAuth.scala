@@ -22,6 +22,7 @@ package authentication
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
+import cats.effect.Blocker
 import cats.effect.Concurrent
 import cats.effect.ContextShift
 import cats.effect.Sync
@@ -114,6 +115,7 @@ object DigestAuth {
   def applyF[F[_], A](
       realm: String,
       store: AuthStore[F, A],
+      blocker: Blocker,
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -124,6 +126,7 @@ object DigestAuth {
       nonceCleanupInterval = nonceCleanupInterval,
       nonceStaleTime = nonceStaleTime,
       nonceBits = nonceBits,
+      blocker = blocker,
     ).map { runChallenge =>
       challenged(runChallenge)
     }
@@ -161,6 +164,7 @@ object DigestAuth {
   def challenge[F[_], A](
       realm: String,
       store: AuthStore[F, A],
+      blocker: Blocker,
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -169,7 +173,7 @@ object DigestAuth {
       t: Timer[F],
       cs: ContextShift[F],
   ): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
+    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits, blocker)
       .map { nonceKeeper =>
         challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
       }

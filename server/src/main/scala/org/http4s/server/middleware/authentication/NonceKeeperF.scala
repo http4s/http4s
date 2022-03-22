@@ -27,7 +27,6 @@ import cats.syntax.all._
 
 import java.util.LinkedHashMap
 import java.{util => ju}
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.MILLISECONDS
 
@@ -36,13 +35,13 @@ private[authentication] object NonceKeeperF {
       staleTimeout: Duration,
       nonceCleanupInterval: Duration,
       bits: Int,
+      blocker: Blocker,
   )(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
     semaphore <- Semaphore[F](1)
     currentMillis <- Clock[F].monotonic(MILLISECONDS)
     lastCleanupMillis <- Ref[F].of(currentMillis)
     nonces = new LinkedHashMap[String, NonceF[F]]
-    blocker = Blocker.liftExecutionContext(ExecutionContext.global)
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
