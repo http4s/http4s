@@ -254,7 +254,7 @@ object Message {
   * @param uri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
-  * @param body fs2.Stream[F, Byte] defining the body of the request
+  * @param entity [[Entity]] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 final class Request[F[_]] private (
@@ -512,7 +512,7 @@ object Request {
     * @param uri representation of the request URI
     * @param httpVersion the HTTP version
     * @param headers collection of [[Header]]s
-    * @param body fs2.Stream[F, Byte] defining the body of the request
+    * @param entity [[Entity]] defining the body of the request
     * @param attributes Immutable Map used for carrying additional information in a type safe fashion
     */
   def apply[F[_]](
@@ -566,7 +566,7 @@ object Request {
   *
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
-  * @param body EntityBody[F] representing the possible body of the response
+  * @param entity [[Entity]] representing the possible body of the response
   * @param attributes [[org.typelevel.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
@@ -682,7 +682,7 @@ object Response extends KleisliSyntax {
     *
     * @param status [[Status]] code and message
     * @param headers [[Headers]] containing all response headers
-    * @param body EntityBody[F] representing the possible body of the response
+    * @param entity [[Entity]] representing the possible body of the response
     * @param attributes [[org.typelevel.vault.Vault]] containing additional
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object
