@@ -27,11 +27,18 @@ import org.http4s.headers._
   */
 final case class Multipart[F[_]](
     parts: Vector[Part[F]],
-    boundary: Boundary = Boundary.unsafeCreate(),
+    boundary: Boundary,
 ) {
   def headers: Headers =
     Headers(
       `Transfer-Encoding`(TransferCoding.chunked),
       `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value))),
     )
+}
+
+object Multipart {
+  @deprecated("Retaining for binary-compatibility", "0.22.14")
+  def `<init>$default$2`: String = apply$default$2
+  @deprecated("Retaining for binary-compatibility", "0.22.14")
+  def apply$default$2: String = Boundary.unsafeCreate().value
 }
