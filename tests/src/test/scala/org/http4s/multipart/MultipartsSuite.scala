@@ -22,23 +22,24 @@ import org.scalacheck.effect.PropF._
 
 import scala.util.Random
 
-class BoundarySuite extends Http4sSuite {
-  val random = new Random()
+class MultipartsSuite extends Http4sSuite {
+  private val random = new Random()
+  private val multiparts = Multiparts.fromScalaRandom[IO](random)
+  private val alphabet =
+    Set('A' to 'Z': _*) ++ Set('a' to 'z': _*) ++ Set('0' to '9': _*) ++ Set('_', '-')
 
-  test("generates 30-70 characters") {
+  test("generates 30-70 character boundaries") {
     forAllF { (_: Unit) =>
       for {
-        b <- Boundary.fromScalaRandom[IO](random)
+        b <- multiparts.boundary
         len = b.value.length
       } yield assert(len >= 30 && len <= 70, b.value)
     }
   }
 
-  test("pulls from correct alphabet") {
-    val alphabet =
-      Set('A' to 'Z': _*) ++ Set('a' to 'z': _*) ++ Set('0' to '9': _*) ++ Set('_', '-')
+  test("pulls boundaries from correct alphabet") {
     forAllF { (_: Unit) =>
-      Boundary.fromScalaRandom[IO](random).map(b => assert(b.value.forall(alphabet), b.value))
+      multiparts.boundary.map(b => assert(b.value.forall(alphabet), b.value))
     }
   }
 }
