@@ -34,10 +34,10 @@ import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
-import org.http4s.syntax.header._
 import org.http4s.syntax.KleisliSyntax
 import org.http4s.syntax.KleisliSyntaxBinCompat0
 import org.http4s.syntax.KleisliSyntaxBinCompat1
+import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
