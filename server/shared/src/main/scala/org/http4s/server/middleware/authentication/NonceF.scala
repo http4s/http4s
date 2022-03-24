@@ -16,11 +16,11 @@
 
 package org.http4s.server.middleware.authentication
 
+import cats.Functor
 import cats.effect.Async
 import cats.effect.Ref
-import cats.effect.Sync
+import cats.effect.std.Random
 import cats.syntax.all._
-import org.http4s.crypto.unsafe.SecureRandom
 
 import java.math.BigInteger
 import scala.concurrent.duration.FiniteDuration
@@ -32,16 +32,22 @@ private[authentication] class NonceF[F[_]](
 )
 
 private[authentication] object NonceF {
-  val random = new SecureRandom()
+  private def getRandomData[F[_]: Functor](random: Random[F], bits: Int): F[String] = {
+    val bytes = (bits + 7) / 8
+    random.nextBytes(bytes).map { arr =>
+      if (arr.nonEmpty) {
+        val extraBits = 8 * bytes - bits
+        arr(0) = (arr(0) & ((1 << (8 - extraBits)) - 1)).toByte
+      }
+      new BigInteger(arr).toString(16)
+    }
+  }
 
-  private def getRandomData[F[_]](bits: Int)(implicit F: Sync[F]): F[String] =
-    F.delay(new BigInteger(bits, random).toString(16))
-
-  def gen[F[_]](bits: Int)(implicit
+  def gen[F[_]](random: Random[F], bits: Int)(implicit
       F: Async[F]
   ): F[NonceF[F]] = for {
     nc <- Ref[F].of(0)
-    data <- getRandomData[F](bits)
-    createdMillis <- F.monotonic
-  } yield new NonceF(createdMillis, nc, data)
+    data <- getRandomData[F](random, bits)
+    created <- F.monotonic
+  } yield new NonceF(created, nc, data)
 }
