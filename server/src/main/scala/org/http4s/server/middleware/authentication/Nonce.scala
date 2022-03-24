@@ -21,8 +21,10 @@ import org.http4s.crypto.unsafe.SecureRandom
 import java.math.BigInteger
 import java.util.Date
 
+@deprecated("Contains mutable java.util.Date. Use Nonce.F", "0.22.13")
 private[authentication] class Nonce(val created: Date, var nc: Int, val data: String)
 
+@deprecated("Untracked side effects. Use NonceF.", "0.22.13")
 private[authentication] object Nonce {
   val random = new SecureRandom()
 
