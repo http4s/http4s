@@ -30,10 +30,9 @@ import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.pipeline.{Command => Cmd}
-import org.http4s.blaze.util.BufferTools
+import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
-import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.BodylessWriter
@@ -48,6 +47,7 @@ import org.typelevel.vault._
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -124,7 +124,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] var cancelToken: Option[CancelToken[F]] = None
+  private[this] val cancelToken = new AtomicReference[Option[CancelToken[F]]](None)
 
   val name = "Http4sServerStage"
 
@@ -235,9 +235,7 @@ private[blaze] class Http1ServerStage[F[_]](
               }.unsafeRunSync()
             )
 
-            parser.synchronized {
-              cancelToken = theCancelToken
-            }
+            cancelToken.set(theCancelToken)
           }
         })
       case Left((e, protocol)) =>
@@ -350,7 +348,7 @@ private[blaze] class Http1ServerStage[F[_]](
   }
 
   private def cancel(): Unit =
-    cancelToken.foreach { token =>
+    cancelToken.get().foreach { token =>
       F.runAsync(token) {
         case Right(_) => IO(logger.debug("Canceled request"))
         case Left(t) => IO(logger.error(t)("Error canceling request"))
