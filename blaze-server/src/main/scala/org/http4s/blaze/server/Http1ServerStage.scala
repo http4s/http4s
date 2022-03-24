@@ -229,9 +229,9 @@ private[blaze] class Http1ServerStage[F[_]](
               F.runCancelable(action) {
                 case Right(()) => IO.unit
                 case Left(t) =>
-                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                    closeConnection()
-                  )
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *>
+                    IO.delay(cancelToken.set(None)) *>
+                    IO(closeConnection())
               }.unsafeRunSync()
             )
 
