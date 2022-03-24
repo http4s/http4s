@@ -24,6 +24,7 @@ import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
+import org.http4s.internal.Random
 
 import java.util.LinkedHashMap
 import java.{util => ju}
@@ -42,6 +43,7 @@ private[authentication] object NonceKeeperF {
     currentMillis <- Clock[F].monotonic(MILLISECONDS)
     lastCleanupMillis <- Ref[F].of(currentMillis)
     nonces = new LinkedHashMap[String, NonceF[F]]
+    random <- Random.javaSecuritySecureRandom[F](blocker)
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
@@ -49,7 +51,7 @@ private[authentication] object NonceKeeperF {
     semaphore,
     lastCleanupMillis,
     nonces,
-    blocker,
+    random,
   )
 }
 
@@ -67,8 +69,8 @@ private[authentication] class NonceKeeperF[F[_]](
     semaphore: Semaphore[F],
     lastCleanupMillis: Ref[F, Long],
     nonces: LinkedHashMap[String, NonceF[F]],
-    blocker: Blocker,
-)(implicit F: Concurrent[F], t: Timer[F], cs: ContextShift[F]) {
+    random: Random[F],
+)(implicit F: Concurrent[F], t: Timer[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
 
   val clock = Clock[F]
@@ -107,7 +109,7 @@ private[authentication] class NonceKeeperF[F[_]](
     semaphore.withPermit {
       for {
         _ <- unsafeCheckStale()
-        n <- NonceF.gen[F](blocker, bits).iterateUntil(n => nonces.get(n.data) == null)
+        n <- NonceF.gen[F](random, bits).iterateUntil(n => nonces.get(n.data) == null)
       } yield {
         nonces.put(n.data, n)
         n.data
