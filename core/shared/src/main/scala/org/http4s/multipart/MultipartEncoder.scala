@@ -37,8 +37,12 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   val delimiter: Boundary => String =
     boundary => s"${Boundary.CRLF}$dash${boundary.value}"
 
+  // The close-delimiter does not require a trailing CRLF, but adding
+  // one makes it more robust with real implementations.  The wasted
+  // two bytes go into the "epilogue", which the recipient is to
+  // ignore.
   val closeDelimiter: Boundary => String =
-    boundary => s"${delimiter(boundary)}$dash"
+    boundary => s"${delimiter(boundary)}$dash${Boundary.CRLF}"
 
   val start: Boundary => Chunk[Byte] = boundary =>
     new ChunkWriter()

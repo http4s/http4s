@@ -362,7 +362,7 @@ final class Request[F[_]] private (
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing
