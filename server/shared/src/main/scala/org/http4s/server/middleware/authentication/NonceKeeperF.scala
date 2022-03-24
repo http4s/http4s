@@ -31,6 +31,7 @@ private[authentication] object NonceKeeperF {
   def apply[F[_]](
       staleTimeout: Duration,
       nonceCleanupInterval: Duration,
+      random: Random[F],
       bits: Int,
   )(implicit F: Async[F]): F[NonceKeeperF[F]] = for {
     // This semaphore controls who has access to `nonces` during stale nonce eviction. This must never be set above one.
@@ -38,10 +39,6 @@ private[authentication] object NonceKeeperF {
     current <- F.monotonic
     lastCleanupMillis <- Ref[F].of(current)
     nonces = new LinkedHashMap[String, NonceF[F]]
-    // Can't just call Random.javaSecuritySecureRandom
-    // https://github.com/typelevel/cats-effect/issues/2902
-    secureRandom <- F.delay(new org.http4s.crypto.unsafe.SecureRandom)
-    ceRandom <- Random.javaUtilRandom[F](secureRandom)
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
@@ -49,7 +46,7 @@ private[authentication] object NonceKeeperF {
     semaphore,
     lastCleanupMillis,
     nonces,
-    ceRandom,
+    random,
   )
 }
 
