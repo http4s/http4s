@@ -18,13 +18,22 @@ package org.http4s
 package server.middleware.authentication
 
 import cats.effect.IO
+import cats.effect.Sync
 import cats.effect.std.Random
+import cats.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF._
 
 class NonceFSpec extends Http4sSuite {
+  // Can't just call Random.javaSecuritySecureRandom
+  // https://github.com/typelevel/cats-effect/issues/2902
+  private def secureRandom[F[_]: Sync] =
+    Sync[F]
+      .delay(new org.http4s.crypto.unsafe.SecureRandom)
+      .flatMap(Random.javaUtilRandom[F])
+
   test("nonce in expected range") {
-    Random.javaSecuritySecureRandom[IO].map { random =>
+    secureRandom[IO].map { random =>
       forAllF(Gen.chooseNum(1, 240)) { (n: Int) =>
         NonceF
           .gen(random, n)
@@ -36,7 +45,7 @@ class NonceFSpec extends Http4sSuite {
 
   test("nonce has correct alphabet") {
     val alphabet = "0123456789abcdef".toSet
-    Random.javaSecuritySecureRandom[IO].map { random =>
+    secureRandom[IO].map { random =>
       forAllF { (_: Unit) =>
         NonceF.gen(random, 160).map(nonce => assert(nonce.data.forall(alphabet), nonce.data))
       }
