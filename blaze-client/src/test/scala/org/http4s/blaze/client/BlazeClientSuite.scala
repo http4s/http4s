@@ -56,8 +56,12 @@ class BlazeClientSuite extends BlazeClientBase {
     val name = sslAddress.host
     val port = sslAddress.port
     val u = Uri.fromString(s"https://$name:$port/simple").yolo
-    val resp = builder(1).resource.use(_.expect[String](u))
-    resp.map(_.length > 0).assertEquals(true)
+    TrustingSslContext
+      .flatMap { ctx =>
+        val resp = builder(1, sslContextOption = Some(ctx)).resource.use(_.expect[String](u))
+        resp.map(_.length > 0)
+      }
+      .assertEquals(true)
   }
 
   test("Blaze Http1Client should reject https requests when no SSLContext is configured") {
