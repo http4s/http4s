@@ -22,7 +22,6 @@ import cats.effect.Ref
 import cats.effect.std.Random
 import cats.syntax.all._
 
-import java.math.BigInteger
 import scala.concurrent.duration.FiniteDuration
 
 private[authentication] class NonceF[F[_]](
@@ -32,14 +31,26 @@ private[authentication] class NonceF[F[_]](
 )
 
 private[authentication] object NonceF {
-  private def getRandomData[F[_]: Functor](random: Random[F], bits: Int): F[String] = {
+  private[this] val hexAlphabet = "0123456789abcdef".toArray
+
+  private def bytesToHex(arr: Array[Byte]): String = {
+    val sb = new StringBuilder(arr.size * 2)
+    for (i <- 0 until arr.size) {
+      val b = arr(i) & 0xff
+      sb.append(hexAlphabet(b >>> 4))
+      sb.append(hexAlphabet(b & 0x0f))
+    }
+    sb.toString
+  }
+
+  private def getRandomBits[F[_]: Functor](random: Random[F], bits: Int): F[Array[Byte]] = {
     val bytes = (bits + 7) / 8
     random.nextBytes(bytes).map { arr =>
       if (arr.nonEmpty) {
         val extraBits = 8 * bytes - bits
         arr(0) = (arr(0) & ((1 << (8 - extraBits)) - 1)).toByte
       }
-      new BigInteger(arr).toString(16)
+      arr
     }
   }
 
@@ -47,7 +58,8 @@ private[authentication] object NonceF {
       F: Async[F]
   ): F[NonceF[F]] = for {
     nc <- Ref[F].of(0)
-    data <- getRandomData[F](random, bits)
+    bits <- getRandomBits[F](random, bits)
+    data = bytesToHex(bits)
     created <- F.monotonic
   } yield new NonceF(created, nc, data)
 }
