@@ -38,7 +38,10 @@ private[authentication] object NonceKeeperF {
     current <- F.monotonic
     lastCleanupMillis <- Ref[F].of(current)
     nonces = new LinkedHashMap[String, NonceF[F]]
-    random <- Random.javaSecuritySecureRandom[F]
+    // Can't just call Random.javaSecuritySecureRandom
+    // https://github.com/typelevel/cats-effect/issues/2902
+    secureRandom <- F.delay(new org.http4s.crypto.unsafe.SecureRandom)
+    ceRandom <- Random.javaUtilRandom[F](secureRandom)
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
@@ -46,7 +49,7 @@ private[authentication] object NonceKeeperF {
     semaphore,
     lastCleanupMillis,
     nonces,
-    random,
+    ceRandom,
   )
 }
 

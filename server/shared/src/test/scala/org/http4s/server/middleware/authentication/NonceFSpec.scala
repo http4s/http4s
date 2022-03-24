@@ -22,7 +22,6 @@ import cats.effect.std.Random
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF._
 
-
 class NonceFSpec extends Http4sSuite {
   test("nonce in expected range") {
     Random.javaSecuritySecureRandom[IO].map { random =>
