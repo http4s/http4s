@@ -30,9 +30,10 @@ import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.pipeline.{Command => Cmd}
-import org.http4s.blaze.util.{BufferTools, TickWheelExecutor}
+import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
+import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.BodylessWriter
