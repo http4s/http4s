@@ -19,7 +19,6 @@ package server.middleware.authentication
 
 import cats.effect.IO
 import cats.effect.std.Random
-import cats.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF._
 
