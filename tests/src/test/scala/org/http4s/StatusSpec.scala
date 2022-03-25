@@ -121,7 +121,6 @@ class StatusSpec extends StatusDeprecatedSpec {
     }
   }
 
-
   def isSanitized(s: Status): Boolean =
     s.renderString
       .getBytes(StandardCharsets.ISO_8859_1)
