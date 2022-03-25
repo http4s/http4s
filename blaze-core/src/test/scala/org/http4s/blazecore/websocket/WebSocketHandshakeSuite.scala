@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
+package org.http4s.blazecore.websocket
 
+import cats.effect.IO
+import cats.effect.std.Random
 import org.http4s.Http4sSuite
 
-@deprecated("Tests a deprecated feature", "0.23.13")
-class WebSocketHandshakeSpec extends Http4sSuite {
+class WebSocketHandshakeSuite extends Http4sSuite {
 
   test("WebSocketHandshake should Be able to split multi value header keys") {
     val totalValue = "keep-alive, Upgrade"
@@ -27,13 +28,16 @@ class WebSocketHandshakeSpec extends Http4sSuite {
     assert(values.forall(v => WebSocketHandshake.valueContains(v, totalValue)))
   }
 
-  test("WebSocketHandshake should Do a round trip") {
-    val client = WebSocketHandshake.clientHandshaker("www.foo.com")
-    val valid = WebSocketHandshake.serverHandshake(client.initHeaders)
-    assert(valid.isRight)
-
-    val Right(headers) = valid
-    assert(client.checkResponse(headers).isRight)
+  test("WebSocketHandshake should do a round trip") {
+    for {
+      random <- Random.javaSecuritySecureRandom[IO]
+      client <- WebSocketHandshake.clientHandshaker[IO]("www.foo.com", random)
+      hs = client.initHeaders
+      valid = WebSocketHandshake.serverHandshake(hs)
+      _ = assert(valid.isRight)
+      response = client.checkResponse(valid.toOption.get)
+      _ = assert(response.isRight, response.swap.toOption.get)
+    } yield ()
   }
 
 }
