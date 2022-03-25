@@ -121,7 +121,6 @@ class StatusSpec extends StatusDeprecatedSpec {
     }
   }
 
-  override def scalaCheckInitialSeed = "mHH4n4bmIN0r6i0yhujk-zIfZh6qXllsgrjAdMptTrO="
 
   def isSanitized(s: Status): Boolean =
     s.renderString
