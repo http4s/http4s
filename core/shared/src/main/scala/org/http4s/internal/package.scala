@@ -37,7 +37,6 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
-import scala.util.Try
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -330,13 +329,4 @@ package object internal {
       }
     }
   }
-
-  private[http4s] def javaMajorVersion[F[_]](implicit F: Sync[F]): F[Option[Int]] =
-    F.delay(sys.props.get("java.version")).map(_.flatMap(parseJavaMajorVersion))
-
-  private[internal] def parseJavaMajorVersion(javaVersion: String): Option[Int] =
-    if (javaVersion.startsWith("1."))
-      Try(javaVersion.split("\\.")(1).toInt).toOption
-    else
-      Try(javaVersion.split("\\.")(0).toInt).toOption
 }
