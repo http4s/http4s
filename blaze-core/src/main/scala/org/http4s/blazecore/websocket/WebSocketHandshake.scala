@@ -98,7 +98,7 @@ private[http4s] object WebSocketHandshake {
         }
         .map { case (_, key) =>
           genAcceptKey[Either[Throwable, *]](key) match {
-            case Left(_) => Left(-1, "Bad Sec-WebSocket-Key header")
+            case Left(_) => Left((-1, "Bad Sec-WebSocket-Key header"))
             case Right(acceptKey) =>
               Right(
                 collection.Seq(
