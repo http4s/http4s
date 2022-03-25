@@ -25,7 +25,6 @@ import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Sync
-import cats.effect.std.Random
 import cats.syntax.all._
 import org.http4s.crypto.Hash
 import org.http4s.headers._
@@ -104,9 +103,6 @@ object DigestAuth {
   /** @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
-    * @param random A random instance.  Should be backed by a
-    *               cryptographically secure instance, like
-    *               java.security.SecureRandom.
     * @param nonceCleanupInterval Interval (in milliseconds) at which stale
     *                             nonces should be cleaned up.
     * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
@@ -117,7 +113,6 @@ object DigestAuth {
   def applyF[F[_], A](
       realm: String,
       store: AuthStore[F, A],
-      random: Random[F],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
@@ -125,7 +120,6 @@ object DigestAuth {
     challenge[F, A](
       realm = realm,
       store = store,
-      random = random,
       nonceCleanupInterval = nonceCleanupInterval,
       nonceStaleTime = nonceStaleTime,
       nonceBits = nonceBits,
@@ -160,9 +154,6 @@ object DigestAuth {
     * @param realm The realm used for authentication purposes.
     * @param store A partial function mapping (realm, user) to the
     *              appropriate password.
-    * @param random A random instance.  Should be backed by a
-    *               cryptographically secure instance, like
-    *               java.security.SecureRandom.
     * @param nonceCleanupInterval Interval (in milliseconds) at which stale
     *                             nonces should be cleaned up.
     * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
@@ -173,14 +164,13 @@ object DigestAuth {
   def challenge[F[_], A](
       realm: String,
       store: AuthStore[F, A],
-      random: Random[F],
       nonceCleanupInterval: Duration = 1.hour,
       nonceStaleTime: Duration = 1.hour,
       nonceBits: Int = 160,
   )(implicit
       F: Async[F]
   ): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
-    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, random, nonceBits)
+    NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
       .map { nonceKeeper =>
         challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
       }

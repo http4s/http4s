@@ -18,7 +18,6 @@ package org.http4s.server.middleware.authentication
 
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.std.Random
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -70,13 +69,6 @@ class AuthenticationSuite extends Http4sSuite {
   }
 
   private val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
-
-  // Can't just call Random.javaSecuritySecureRandom
-  // https://github.com/typelevel/cats-effect/issues/2902
-  private def secureRandom[F[_]: Sync] =
-    Sync[F]
-      .delay(new org.http4s.crypto.unsafe.SecureRandom)
-      .flatMap(Random.javaUtilRandom[F])
 
   test("Failure to authenticate should not run unauthorized routes") {
     val req = Request[IO](uri = uri"/launch-the-nukes")
@@ -153,8 +145,7 @@ class AuthenticationSuite extends Http4sSuite {
     test("DigestAuthentication should respond to a request without authentication with 401") {
       val req = Request[IO](uri = uri"/")
       for {
-        random <- secureRandom[IO]
-        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore, random)
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
         authedService = digestAuthMiddleware(service)
         res <- authedService.orNotFound(req)
       } yield {
@@ -226,8 +217,7 @@ class AuthenticationSuite extends Http4sSuite {
 
     test("DigestAuthentication should respond to a request with correct credentials") {
       for {
-        random <- secureRandom[IO]
-        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore, random)
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
@@ -253,8 +243,7 @@ class AuthenticationSuite extends Http4sSuite {
       "DigestAuthentication should respond to a request with correct credentials when using secure hash"
     ) {
       for {
-        random <- secureRandom[IO]
-        digestAuthMiddleware <- DigestAuth.applyF(realm, md5HashedAuthStore, random)
+        digestAuthMiddleware <- DigestAuth.applyF(realm, md5HashedAuthStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
@@ -280,43 +269,40 @@ class AuthenticationSuite extends Http4sSuite {
       "DigestAuthentication should respond to many concurrent requests while cleaning up nonces"
     ) {
       val n = 100
-      secureRandom[IO].flatMap { random =>
-        DigestAuth
-          .applyF(realm, plainTextAuthStore, random, 2.millis, 2.millis)
-          .flatMap { digestAuthMiddleware =>
-            val digestAuthService = digestAuthMiddleware(service)
-            val results = (1 to n)
-              .map(_ =>
-                for {
-                  challenge <- doDigestAuth1(digestAuthService.orNotFound)
-                  _ <- IO {
-                    assert(
-                      challenge match {
-                        case Challenge("Digest", `realm`, _) => true
-                        case _ => false
-                      },
-                      challenge,
-                    )
-                  }
-                  res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
-                    .map(_._1)
-                } yield
-                // We don't check whether res.status is Ok since it may not
-                // be due to the low nonce stale timer.  Instead, we check
-                // that it's found.
-                assertNotEquals(res.status, NotFound)
-              )
-              .toList
-            results.parSequence
-          }
-      }
+      DigestAuth
+        .applyF(realm, plainTextAuthStore, 2.millis, 2.millis)
+        .flatMap { digestAuthMiddleware =>
+          val digestAuthService = digestAuthMiddleware(service)
+          val results = (1 to n)
+            .map(_ =>
+              for {
+                challenge <- doDigestAuth1(digestAuthService.orNotFound)
+                _ <- IO {
+                  assert(
+                    challenge match {
+                      case Challenge("Digest", `realm`, _) => true
+                      case _ => false
+                    },
+                    challenge,
+                  )
+                }
+                res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
+                  .map(_._1)
+              } yield
+              // We don't check whether res.status is Ok since it may not
+              // be due to the low nonce stale timer.  Instead, we check
+              // that it's found.
+              assertNotEquals(res.status, NotFound)
+            )
+            .toList
+          results.parSequence
+        }
     }
 
     test("DigestAuthentication should avoid many concurrent replay attacks") {
       val n = 100
       val results = for {
-        random <- secureRandom[IO]
-        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore, random)
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
         digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         results <- (1 to n)
@@ -343,8 +329,7 @@ class AuthenticationSuite extends Http4sSuite {
       val nonce = "abcdef"
 
       for {
-        random <- secureRandom[IO]
-        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore, random)
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
         digestAuthService = digestAuthMiddleware(service)
         response <- DigestUtil
           .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
