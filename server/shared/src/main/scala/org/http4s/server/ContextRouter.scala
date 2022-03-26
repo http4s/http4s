@@ -84,7 +84,7 @@ object ContextRouter {
   def apply[F[_]: Monad, A](mappings: (String, ContextRoutes[A, F])*): ContextRoutes[A, F] =
     define(mappings: _*)(ContextRoutes.empty[A, F])
 
-  @deprecated("Kept for binary compatiblity.  Use the apply with the Monad constraint.", "0.23.13")
+  @deprecated("Kept for binary compatiblity.  Use the apply with the Monad constraint.", "0.23.12")
   def apply[F[_], A](
       mappings: Seq[(String, ContextRoutes[A, F])],
       sync: Sync[F],
@@ -101,7 +101,7 @@ object ContextRouter {
   )(default: ContextRoutes[A, F]): ContextRoutes[A, F] =
     defineHelper(mappings, default)
 
-  @deprecated("Kept for binary compatiblity.  Use the define with the Monad constraint.", "0.23.13")
+  @deprecated("Kept for binary compatiblity.  Use the define with the Monad constraint.", "0.23.12")
   def define[F[_], A](
       mappings: Seq[(String, ContextRoutes[A, F])]
   )(default: ContextRoutes[A, F], sync: Sync[F]): ContextRoutes[A, F] =
