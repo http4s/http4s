@@ -84,6 +84,13 @@ object ContextRouter {
   def apply[F[_]: Monad, A](mappings: (String, ContextRoutes[A, F])*): ContextRoutes[A, F] =
     define(mappings: _*)(ContextRoutes.empty[A, F])
 
+  @deprecated("Kept for binary compatiblity.  Use the apply with the Monad constraint.", "0.23.13")
+  def apply[F[_], A](
+      mappings: Seq[(String, ContextRoutes[A, F])],
+      sync: Sync[F],
+  ): ContextRoutes[A, F] =
+    defineHelper(mappings, ContextRoutes.empty[A, F](sync))(sync)
+
   /** Defines an [[ContextRoutes]] based on list of mappings and
     * a default Service to be used when none in the list match incoming requests.
     *
@@ -92,6 +99,20 @@ object ContextRouter {
   def define[F[_]: Monad, A](
       mappings: (String, ContextRoutes[A, F])*
   )(default: ContextRoutes[A, F]): ContextRoutes[A, F] =
+    defineHelper(mappings, default)
+
+  @deprecated("Kept for binary compatiblity.  Use the define with the Monad constraint.", "0.23.13")
+  def define[F[_], A](
+      mappings: Seq[(String, ContextRoutes[A, F])]
+  )(default: ContextRoutes[A, F], sync: Sync[F]): ContextRoutes[A, F] =
+    defineHelper(mappings, default)(sync)
+
+  // Supports the deprecated methods.  We can't call the Sync
+  // version of define after defining the new Monad version.
+  private def defineHelper[F[_]: Monad, A](
+      mappings: Seq[(String, ContextRoutes[A, F])],
+      default: ContextRoutes[A, F],
+  ): ContextRoutes[A, F] =
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
       val prefixSegments = Uri.Path.unsafeFromString(prefix)
       if (prefixSegments.isEmpty) routes <+> acc
