@@ -57,7 +57,7 @@ trait Client[F[_]] {
   /** Returns this client as a [[cats.data.Kleisli]].  All connections created
     * by this service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `run` followed by `use`, and is
+    * This method effectively reverses the arguments to [[run]] followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
@@ -67,8 +67,8 @@ trait Client[F[_]] {
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
+    * This is intended for use in proxy servers.  [[run]], [[fetchAs]] and
+    * [[toKleisli]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
@@ -181,13 +181,13 @@ trait Client[F[_]] {
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
 
-  /** As [[#expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
+  /** As [[expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
   final def expectOptionOrT[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): OptionT[F, A] =
     OptionT(expectOptionOr(req)(onError)(d))
 
-  /** As [[#expectOption]], but defined in terms of [[cats.data.OptionT]]. */
+  /** As [[expectOption]], but defined in terms of [[cats.data.OptionT]]. */
   final def expectOptionT[A](req: Request[F])(implicit d: EntityDecoder[F, A]): OptionT[F, A] =
     OptionT(expectOption[A](req)(d))
 
