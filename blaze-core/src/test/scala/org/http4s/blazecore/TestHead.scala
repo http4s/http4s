@@ -38,7 +38,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   var closed = false
 
-  @volatile var closeCauses = Vector[Option[Throwable]]()
+  @volatile var closeCauses: Vector[Option[Throwable]] = Vector[Option[Throwable]]()
 
   def getBytes(): Array[Byte] = acc.toArray
 

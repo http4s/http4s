@@ -73,7 +73,7 @@ private[authentication] class NonceKeeperF[F[_]](
 )(implicit F: Concurrent[F], t: Timer[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
 
-  val clock = Clock[F]
+  val clock: Clock[F] = Clock[F]
 
   /** Removes nonces that are older than staleTimeout
     * Note: this _MUST_ be executed with the singleton permit from the semaphore

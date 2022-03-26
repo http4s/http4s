@@ -235,6 +235,6 @@ object EmberServerBuilder {
     val requestHeaderReceiveTimeout: Duration = 5.seconds
     val idleTimeout: Duration = server.defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
-    val additionalSocketOptions = List.empty[SocketOptionMapping[_]]
+    val additionalSocketOptions: List[SocketOptionMapping[_]] = Nil
   }
 }

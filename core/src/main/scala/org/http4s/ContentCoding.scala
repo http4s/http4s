@@ -50,7 +50,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
     hash
   }
 
-  override def toString = s"ContentCoding(${coding.toLowerCase}, $qValue)"
+  override def toString: String = s"ContentCoding(${coding.toLowerCase}, $qValue)"
 
   override def compare(other: ContentCoding): Int =
     ContentCoding.http4sOrderForContentCoding.compare(this, other)

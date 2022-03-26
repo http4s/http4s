@@ -87,7 +87,7 @@ final case class BlazeClientConfig( // HTTP properties
 object BlazeClientConfig {
 
   /** Default configuration of a blaze client. */
-  val defaultConfig =
+  val defaultConfig: BlazeClientConfig =
     BlazeClientConfig(
       responseHeaderTimeout = bits.DefaultResponseHeaderTimeout,
       idleTimeout = bits.DefaultTimeout,
