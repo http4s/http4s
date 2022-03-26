@@ -32,28 +32,6 @@ import scala.util.control.NoStackTrace
 trait Client[F[_]] {
   def run(req: Request[F]): Resource[F, Response[F]]
 
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req The request to submit
-    * @param f   A callback for the response to req.  The underlying HTTP connection
-    *            is disposed when the returned task completes.  Attempts to read the
-    *            response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  @deprecated("Use run(req).use(f)", "0.21.5")
-  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
-
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req An effect of the request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
-  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
-
   /** Returns this client as a [[cats.data.Kleisli]].  All connections created
     * by this service are disposed on completion of callback task f.
     *
