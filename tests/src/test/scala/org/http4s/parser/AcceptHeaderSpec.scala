@@ -29,7 +29,7 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
   val `audio/mod`: MediaType =
     new MediaType("audio", "mod", MediaType.Uncompressible, MediaType.Binary, List("mod"))
 
-  def ext: Map[String, String] = Map("foo" -> "bar", "baz" -> "whatever")
+  def ext = Map("foo" -> "bar", "baz" -> "whatever")
 
   test("Accept-Header parser should Parse all registered MediaRanges") {
     // Parse a single one

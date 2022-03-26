@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Control`] {
 
   // Default values
-  val valueless: List[CacheDirective with Serializable] = List(
+  val valueless = List(
     `no-store`,
     `no-transform`,
     `only-if-cached`,
@@ -35,7 +35,7 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
     `proxy-revalidate`,
   )
 
-  val numberdirectives: List[CacheDirective with Serializable] = List(
+  val numberdirectives = List(
     `max-age`(0.seconds),
     `min-fresh`(1.second),
     `s-maxage`(2.seconds),
@@ -43,10 +43,10 @@ class CacheControlSpec extends Http4sSuite with HeaderParserHelper[`Cache-Contro
     `stale-while-revalidate`(4.seconds),
   )
 
-  val strdirectives: List[CacheDirective with Serializable] =
+  val strdirectives =
     List(`private`(ci"Foo" :: Nil), `private`(Nil), `no-cache`(ci"Foo" :: Nil), `no-cache`())
 
-  val others: List[CacheDirective] = List(
+  val others = List(
     `max-stale`(None),
     `max-stale`(Some(2.seconds)),
     CacheDirective("Foo", None),
