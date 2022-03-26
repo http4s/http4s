@@ -48,7 +48,6 @@ import org.typelevel.vault._
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -125,7 +124,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] val cancelToken = new AtomicReference[Option[CancelToken[F]]](None)
+  @volatile private[this] var cancelToken: Option[CancelToken[F]] = None
 
   val name = "Http4sServerStage"
 
@@ -231,12 +230,14 @@ private[blaze] class Http1ServerStage[F[_]](
                 case Right(()) => IO.unit
                 case Left(t) =>
                   IO(logger.error(t)(s"Error running request: $req")).attempt *>
-                    IO.delay(cancelToken.set(None)) *>
+                    IO.delay {
+                      cancelToken = None
+                    } *>
                     IO(closeConnection())
               }.unsafeRunSync()
             )
 
-            cancelToken.set(theCancelToken)
+            cancelToken = theCancelToken
           }
         })
       case Left((e, protocol)) =>
@@ -349,7 +350,7 @@ private[blaze] class Http1ServerStage[F[_]](
   }
 
   private def cancel(): Unit =
-    cancelToken.get().foreach { token =>
+    cancelToken.foreach { token =>
       F.runAsync(token) {
         case Right(_) => IO(logger.debug("Canceled request"))
         case Left(t) => IO(logger.error(t)("Error canceling request"))
