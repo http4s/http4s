@@ -29,7 +29,7 @@ import org.typelevel.ci._
 
 object ServerTestRoutes extends Http4sDsl[IO] {
   private val textPlain = `Content-Type`(MediaType.text.plain, `UTF-8`).toRaw1
-  private val connClose = Connection(ci"close").toRaw1
+  private val connClose = Connection.close.toRaw1
   private val connKeep = Connection(ci"keep-alive").toRaw1
   private val chunked = `Transfer-Encoding`(TransferCoding.chunked).toRaw1
 

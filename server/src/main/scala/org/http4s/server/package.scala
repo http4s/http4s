@@ -25,7 +25,6 @@ import cats.syntax.all._
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -195,7 +194,7 @@ package object server {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(ci"close"),
+              Connection.close,
               `Content-Length`.zero,
             ),
           )
