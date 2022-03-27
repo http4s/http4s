@@ -374,7 +374,7 @@ object Forwarded extends ForwardedRenderers {
       .map(Forwarded.apply)
   }
 
-  val name = ci"Forwarded"
+  val name: CIString = ci"Forwarded"
 
   implicit val headerInstance: Header[Forwarded, Header.Recurring] =
     Header.createRendered(
