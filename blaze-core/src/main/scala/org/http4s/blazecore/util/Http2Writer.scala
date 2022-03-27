@@ -27,12 +27,12 @@ import org.http4s.blaze.http.http2.Priority
 import org.http4s.blaze.http.http2.StreamFrame
 import org.http4s.blaze.pipeline.TailStage
 
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](
     tail: TailStage[StreamFrame],
     private var headers: Headers,
-    protected val ec: ExecutionContext,
 )(implicit protected val F: Async[F])
     extends EntityBodyWriter[F] {
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
@@ -51,7 +51,7 @@ private[http4s] class Http2Writer[F[_]](
           )
       }
 
-    f.map(Function.const(false))(ec)
+    f.map(Function.const(false))(parasitic)
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =

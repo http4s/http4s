@@ -29,9 +29,9 @@ package org.http4s.util
 import org.http4s.internal.CharPredicate
 
 private[http4s] object UrlCodingUtils {
-  val GenDelims =
+  val GenDelims: CharPredicate =
     CharPredicate.from(":/?#[]@".toSet)
 
-  val SubDelims =
+  val SubDelims: CharPredicate =
     CharPredicate.from("!$&'()*+,;=".toSet)
 }

@@ -19,19 +19,17 @@ package blazecore
 package util
 
 import cats.effect._
-import cats.syntax.all._
 import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
 import java.nio.ByteBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent.Future
 
 private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(implicit
-    protected val F: Async[F],
-    protected val ec: ExecutionContext,
+    protected val F: Async[F]
 ) extends Http1Writer[F] {
 
   private[this] val logger = getLogger
@@ -57,7 +55,9 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
       logger.warn(msg)
 
       val reducedChunk = chunk.take((size - bodyBytesWritten).toInt)
-      writeBodyChunk(reducedChunk, flush = true) *> Future.failed(new IllegalArgumentException(msg))
+      writeBodyChunk(reducedChunk, flush = true).flatMap(_ =>
+        Future.failed(new IllegalArgumentException(msg))
+      )(parasitic)
     } else {
       val b = chunk.toByteBuffer
 
@@ -74,13 +74,17 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
     val total = bodyBytesWritten + chunk.size
 
     if (size < 0 || total >= size)
-      writeBodyChunk(chunk, flush = true).map(Function.const(size < 0)) // require close if infinite
+      writeBodyChunk(chunk, flush = true).map(Function.const(size < 0))(
+        parasitic
+      ) // require close if infinite
     else {
       val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk, flush = true) *> Future.failed(new IllegalStateException(msg))
+      writeBodyChunk(chunk, flush = true).flatMap(_ =>
+        Future.failed(new IllegalStateException(msg))
+      )(parasitic)
     }
   }
 }

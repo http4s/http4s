@@ -26,8 +26,8 @@ import java.time.ZonedDateTime
 class ExpiresSuite extends HeaderLaws {
   checkAll("Expires", headerLaws[Expires])
 
-  val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
-  val epochString = "Thu, 01 Jan 1970 00:00:00 GMT"
+  private val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
+  private val epochString = "Thu, 01 Jan 1970 00:00:00 GMT"
 
   test("render should format GMT date according to RFC 1123") {
     assertEquals(

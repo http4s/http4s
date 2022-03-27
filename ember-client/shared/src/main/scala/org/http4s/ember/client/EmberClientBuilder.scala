@@ -103,45 +103,96 @@ final class EmberClientBuilder[F[_]: Async] private (
       pushPromiseSupport = pushPromiseSupport,
     )
 
-  def withTLSContext(tlsContext: TLSContext[F]) =
+  /** Sets a custom `TLSContext`.
+    * By default a `TLSContext` is created from the system default `SSLContext`.
+    */
+  def withTLSContext(tlsContext: TLSContext[F]): EmberClientBuilder[F] =
     copy(tlsContextOpt = tlsContext.some)
-  def withoutTLSContext = copy(tlsContextOpt = None)
 
-  def withSocketGroup(sg: SocketGroup[F]) = copy(sgOpt = sg.some)
+  /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
+  def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
-  def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
-  def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
-  def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
-  def withIdleConnectionTime(idleConnectionTime: Duration) =
+  /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
+  def withSocketGroup(sg: SocketGroup[F]): EmberClientBuilder[F] = copy(sgOpt = sg.some)
+
+  /** Sets the connection pool's total maximum number of idle connections.
+    * Per `RequestKey` values set with `withMaxPerKey` cannot override this total maximum.
+    */
+  def withMaxTotal(maxTotal: Int): EmberClientBuilder[F] = copy(maxTotal = maxTotal)
+
+  /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
+  def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
+    copy(maxPerKey = maxPerKey)
+
+  /** Sets the connection pool's maximum time a connection can be idle.
+    * The timeout starts when a connection is returned the the pool, and reset when it is borrowed.
+    */
+  def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] =
+    copy(idleTimeInPool = idleTimeInPool)
+
+  /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
+  def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
     copy(idleConnectionTime = idleConnectionTime)
 
-  def withLogger(logger: Logger[F]) = copy(logger = logger)
-  def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
-  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
+  /** Sets the `Logger`. */
+  def withLogger(logger: Logger[F]): EmberClientBuilder[F] = copy(logger = logger)
+
+  /** Sets the max `chunkSize` in bytes to read from sockets at a time. */
+  def withChunkSize(chunkSize: Int): EmberClientBuilder[F] = copy(chunkSize = chunkSize)
+
+  /** Sets the max size in bytes to read while parsing response headers. */
+  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int): EmberClientBuilder[F] =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
-  def withTimeout(timeout: Duration) = copy(timeout = timeout)
-  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOption]) =
+  /** Sets the header receive timeout on connections. */
+  def withTimeout(timeout: Duration): EmberClientBuilder[F] = copy(timeout = timeout)
+
+  /** Sets additional socket options to apply to the underlying sockets. */
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOption]
+  ): EmberClientBuilder[F] =
     copy(additionalSocketOptions = additionalSocketOptions)
 
-  def withUserAgent(userAgent: `User-Agent`) =
+  /** Sets the default User-Agent string.
+    * A `User-Agent` header on a request takes priority over this setting.
+    */
+  def withUserAgent(userAgent: `User-Agent`): EmberClientBuilder[F] =
     copy(userAgent = userAgent.some)
-  def withoutUserAgent =
+
+  /** Clears the default User-Agent string, so no User-Agent header is sent.
+    * A `User-Agent` header on a request takes priority over this setting.
+    */
+  def withoutUserAgent: EmberClientBuilder[F] =
     copy(userAgent = None)
 
-  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
+  /** Sets whether or not to force endpoint authentication/verification on the `TLSContext`.
+    * Enabled by default. When enabled the server's identity will be checked against the server's
+    * certificate during SSL/TLS handshaking. This is important to avoid man-in-the-middle attacks
+    * by confirming server identity against their certificate.
+    */
+  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): EmberClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
-  def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
+  /** Disables endpoint authentication/verification. */
+  def withoutCheckEndpointAuthentication: EmberClientBuilder[F] =
+    copy(checkEndpointIdentification = false)
 
-  def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
+  /** Sets the `RetryPolicy`. */
+  def withRetryPolicy(retryPolicy: RetryPolicy[F]): EmberClientBuilder[F] =
     copy(retryPolicy = retryPolicy)
 
-  def withUnixSockets(unixSockets: UnixSockets[F]) =
+  /** Sets underlying `UnixSockets` to use for requests with a `UnixSocketAddress`.
+    * Useful for secure and efficient inter-process communication.
+    * See also `UnixSocket` client middleware to direct all requests to a `UnixSocketAddress`.
+    */
+  def withUnixSockets(unixSockets: UnixSockets[F]): EmberClientBuilder[F] =
     copy(unixSockets = Some(unixSockets))
 
-  def withHttp2 = copy(enableHttp2 = true)
-  def withoutHttp2 = copy(enableHttp2 = false)
+  /** Enables HTTP/2 support. Disabled by default. */
+  def withHttp2: EmberClientBuilder[F] = copy(enableHttp2 = true)
+
+  /** Disables HTTP/2 support. Disabled by default. */
+  def withoutHttp2: EmberClientBuilder[F] = copy(enableHttp2 = false)
 
   /** Push promises are implemented via responding with a PushPromise frame
     * which is effectively a request headers frame for a request that wasn't
@@ -156,12 +207,18 @@ final class EmberClientBuilder[F[_]: Async] private (
     * Push promises are very useful to get all the data necessary to render a page in parallel
     * to the actual data for that page leading to much faster render times, or sending
     * additional cache enriching information.
+    *
+    * Push promise support is disabled by default.
     */
   def withPushPromiseSupport(
       f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
-  ) =
+  ): EmberClientBuilder[F] =
     copy(pushPromiseSupport = f.some)
-  def withoutPushPromiseSupport =
+
+  /** Disables Push promise support.
+    * Push promise support is disabled by default.
+    */
+  def withoutPushPromiseSupport: EmberClientBuilder[F] =
     copy(pushPromiseSupport = None)
 
   def build: Resource[F, Client[F]] =
@@ -221,17 +278,19 @@ final class EmberClientBuilder[F[_]: Async] private (
               )
             }
           )
-          responseResource <- Resource.makeCase(
-            ClientHelpers
-              .request[F](
-                request,
-                managed.value,
-                chunkSize,
-                maxResponseHeaderSize,
-                idleConnectionTime,
-                timeout,
-                userAgent,
-              )
+          responseResource <- Resource.makeCaseFull((poll: Poll[F]) =>
+            poll(
+              ClientHelpers
+                .request[F](
+                  request,
+                  managed.value,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent,
+                )
+            )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
               case Resource.ExitCase.Succeeded =>
@@ -320,17 +379,17 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
-    val idleConnectionTime = org.http4s.client.defaults.RequestTimeout
+    val idleConnectionTime: FiniteDuration = org.http4s.client.defaults.RequestTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings
-    val maxPerKey = { (_: RequestKey) =>
+    val maxPerKey: RequestKey => Int = { (_: RequestKey) =>
       100
     }
-    val maxTotal = 100
-    val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
-    val additionalSocketOptions = List.empty[SocketOption]
-    val userAgent = Some(
+    val maxTotal: Int = 100
+    val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
+    val additionalSocketOptions: List[SocketOption] = List.empty[SocketOption]
+    val userAgent: Some[`User-Agent`] = Some(
       `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
     )
 

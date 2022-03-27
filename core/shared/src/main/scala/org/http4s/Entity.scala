@@ -46,6 +46,14 @@ object Entity {
     }
 
     def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] = Default(body.translate(fk), length)
+
+    override def toString: String = length match {
+      case None =>
+        "Entity.Default"
+
+      case Some(dataSize) =>
+        s"Entity.Default($dataSize bytes total)"
+    }
   }
 
   final case class Strict(chunk: Chunk[Byte]) extends Entity[Pure] {
@@ -60,6 +68,9 @@ object Entity {
     }
 
     def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
+
+    override def toString: String =
+      s"Entity.Strict(${chunk.size} bytes total)"
   }
 
   case object Empty extends Entity[Pure] {
@@ -70,6 +81,8 @@ object Entity {
     def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that
 
     def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
+
+    override def toString: String = "Entity.Empty"
   }
 
   implicit def http4sMonoidForEntity[F[_]]: Monoid[Entity[F]] =

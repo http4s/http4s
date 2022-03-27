@@ -171,37 +171,37 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */
-  protected final def collectBodyFromParser(
+  protected final def collectEntityFromParser(
       buffer: ByteBuffer,
       eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
-  ): (EntityBody[F], () => Future[ByteBuffer]) =
+  ): (Entity[F], () => Future[ByteBuffer]) =
     if (contentComplete())
-      if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
-      else (EmptyBody, () => Future.successful(buffer))
+      if (buffer.remaining() == 0) Http1Stage.CachedEmptyEntity
+      else (Entity.Empty, () => Future.successful(buffer))
     // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(buff) if contentComplete() =>
-        Stream.chunk(Chunk.byteBuffer(buff)) -> Http1Stage
+        Entity.strict(Chunk.byteBuffer(buff)) -> Http1Stage
           .futureBufferThunk(buffer)
 
       case Some(buff) =>
-        val (rst, end) = streamingBody(buffer, eofCondition)
-        (Stream.chunk(Chunk.byteBuffer(buff)) ++ rst, end)
+        val (rst, end) = streamingEntity(buffer, eofCondition)
+        Entity(Stream.chunk(Chunk.byteBuffer(buff)) ++ rst.body) -> end
 
       case None if contentComplete() =>
-        if (buffer.hasRemaining) EmptyBody -> Http1Stage.futureBufferThunk(buffer)
-        else Http1Stage.CachedEmptyBody
+        if (buffer.hasRemaining) Entity.Empty -> Http1Stage.futureBufferThunk(buffer)
+        else Http1Stage.CachedEmptyEntity
 
-      case None => streamingBody(buffer, eofCondition)
+      case None => streamingEntity(buffer, eofCondition)
     }
     // we are not finished and need more data.
-    else streamingBody(buffer, eofCondition)
+    else streamingEntity(buffer, eofCondition)
 
   // Streams the body off the wire
-  private def streamingBody(
+  private def streamingEntity(
       buffer: ByteBuffer,
       eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
-  ): (EntityBody[F], () => Future[ByteBuffer]) = {
+  ): (Entity[F], () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
@@ -245,7 +245,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       } else cb(End)
     }
 
-    (repeatEval(t).unNoneTerminate.flatMap(chunk(_)), () => drainBody(currentBuffer))
+    (Entity(repeatEval(t).unNoneTerminate.flatMap(chunk(_))), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
@@ -280,7 +280,7 @@ object Http1Stage {
     () => b
   }
 
-  private val CachedEmptyBody = EmptyBody -> CachedEmptyBufferThunk
+  private val CachedEmptyEntity = Entity.Empty -> CachedEmptyBufferThunk
 
   // Building the current Date header value each time is expensive, so we cache it for the current second
   private var currentEpoch: Long = _

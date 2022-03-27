@@ -18,6 +18,7 @@ package org.http4s
 package blazecore
 package util
 
+import cats.Applicative
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -30,22 +31,26 @@ import scala.concurrent._
 /** Discards the body, killing it so as to clean up resources
   *
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
-  * @param ec an ExecutionContext which will be used to complete operations
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(implicit
-    protected val F: Async[F],
-    protected val ec: ExecutionContext,
+    protected val F: Async[F]
 ) extends Http1Writer[F] {
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
-    * @param p an entity body that will be killed
+    * @param entity an [[Entity]] which body will be killed
     * @return the F which, when run, will send the headers and kill the entity body
     */
-  override def writeEntityBody(p: EntityBody[F]): F[Boolean] =
-    p.drain.compile.drain.map(_ => close)
+  override def writeEntityBody(entity: Entity[F]): F[Boolean] =
+    entity match {
+      case Entity.Default(body, _) =>
+        body.compile.drain.as(close)
+
+      case Entity.Strict(_) | Entity.Empty =>
+        Applicative[F].pure(close)
+    }
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
     Future.successful(close)

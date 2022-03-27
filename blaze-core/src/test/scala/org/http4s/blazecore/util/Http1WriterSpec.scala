@@ -55,19 +55,19 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
     for {
       _ <- IO.fromFuture(IO(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
-      _ <- w.writeEntityBody(p).attempt
+      _ <- w.writeEntityBody(Entity(p)).attempt
       _ <- IO(head.stageShutdown())
       _ <- IO.fromFuture(IO(head.result))
     } yield new String(head.getBytes(), StandardCharsets.ISO_8859_1)
   }
 
-  val message = "Hello world!"
-  val messageBuffer = Chunk.array(message.getBytes(StandardCharsets.ISO_8859_1))
+  private val message = "Hello world!"
+  private val messageBuffer = Chunk.array(message.getBytes(StandardCharsets.ISO_8859_1))
 
   final def runNonChunkedTests(
       name: String,
       builder: Dispatcher[IO] => TailStage[ByteBuffer] => Http1Writer[IO],
-  ) = {
+  ): Unit = {
     dispatcher.test(s"$name Write a single emit") { implicit dispatcher =>
       writeEntityBody(chunk(messageBuffer))(builder(dispatcher))
         .assertEquals("Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message)
@@ -256,7 +256,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     val p = s.through(Compression[IO].deflate(DeflateParams.DEFAULT))
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(s.through(Compression[IO].deflate(DeflateParams.DEFAULT))),
+      DumpingWriter.dump(Entity(s.through(Compression[IO].deflate(DeflateParams.DEFAULT)))),
     )
       .mapN(_ sameElements _)
       .assert
@@ -273,14 +273,15 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
 
   test("FlushingChunkWriter should write a resource") {
     val p = resource
-    (p.compile.toVector.map(_.toArray), DumpingWriter.dump(p)).mapN(_ sameElements _).assert
+    (p.compile.toVector.map(_.toArray), DumpingWriter.dump(Entity(p))).mapN(_ sameElements _).assert
   }
 
   test("FlushingChunkWriter should write a deflated resource") {
     val p = resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))
+
     (
       p.compile.toVector.map(_.toArray),
-      DumpingWriter.dump(resource.through(Compression[IO].deflate(DeflateParams.DEFAULT))),
+      DumpingWriter.dump(Entity(resource.through(Compression[IO].deflate(DeflateParams.DEFAULT)))),
     )
       .mapN(_ sameElements _)
       .assert
@@ -290,14 +291,14 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     val p = repeatEval(IO.pure[Byte](0.toByte)).take(300000)
 
     // The dumping writer is stack safe when using a trampolining EC
-    (new DumpingWriter).writeEntityBody(p).attempt.map(_.isRight).assert
+    (new DumpingWriter).writeEntityBody(Entity(p)).attempt.map(_.isRight).assert
   }
 
   test("FlushingChunkWriter should Execute cleanup on a failing Http1Writer") {
     (for {
       clean <- Ref.of[IO, Boolean](false)
       p = chunk(messageBuffer).onFinalizeWeak(clean.set(true))
-      w <- new FailingWriter().writeEntityBody(p).attempt
+      w <- new FailingWriter().writeEntityBody(Entity(p)).attempt
       c <- clean.get
     } yield w.isLeft && c).assert
   }
@@ -308,7 +309,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     (for {
       clean <- Ref.of[IO, Boolean](false)
       p = eval(IO.raiseError(Failed)).onFinalizeWeak(clean.set(true))
-      w <- new FailingWriter().writeEntityBody(p).attempt
+      w <- new FailingWriter().writeEntityBody(Entity(p)).attempt
       c <- clean.get
     } yield w.isLeft && c).assert
   }

@@ -43,13 +43,11 @@ import scala.concurrent.duration._
 
 class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
 
-  val trampoline = org.http4s.blaze.util.Execution.trampoline
+  private val trampoline = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_test = uri"http://www.foo.test"
-  val FooRequest = Request[IO](uri = www_foo_test)
-  val FooRequestKey = RequestKey.fromRequest(FooRequest)
-
-  val LongDuration = 30.seconds
+  private val www_foo_test = uri"http://www.foo.test"
+  private val FooRequest = Request[IO](uri = www_foo_test)
+  private val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
@@ -132,7 +130,7 @@ class Http1ClientStageSuite extends Http4sSuite with DispatcherIOFixture {
         .evalMap(q.offer)
         .compile
         .drain).start
-      req0 = req.withBodyStream(req.body.onFinalizeWeak(d.complete(()).void))
+      req0 = req.pipeBodyThrough(_.onFinalizeWeak(d.complete(()).void))
       response <- stage.runRequest(req0, IO.never)
       result <- response.use(_.as[String])
       _ <- IO(h.stageShutdown())

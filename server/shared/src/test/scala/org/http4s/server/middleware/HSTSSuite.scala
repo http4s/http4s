@@ -27,11 +27,11 @@ import org.http4s.syntax.all._
 import scala.concurrent.duration._
 
 class HSTSSuite extends Http4sSuite {
-  val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
+  private val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
     Ok("pong")
   }
 
-  val req = Request[IO](Method.GET, uri"/")
+  private val req = Request[IO](Method.GET, uri"/")
 
   test("add the Strict-Transport-Security header") {
     List(

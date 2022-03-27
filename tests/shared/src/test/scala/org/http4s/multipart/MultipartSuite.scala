@@ -29,7 +29,7 @@ import org.typelevel.ci._
 import scala.annotation.nowarn
 
 class MultipartSuite extends Http4sSuite {
-  val url = uri"https://example.com/path/to/some/where"
+  private val url = uri"https://example.com/path/to/some/where"
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
     for {
@@ -49,7 +49,7 @@ class MultipartSuite extends Http4sSuite {
         parts.forall(identity)
       }
 
-  def multipartSpec(name: String)(
+  private def multipartSpec(name: String)(
       mkDecoder: Resource[IO, EntityDecoder[IO, Multipart[IO]]]
   ) = {
     test(s"Multipart form data $name should be encoded and decoded with content types") {
@@ -215,7 +215,7 @@ I am a big moose
   }
   multipartSpec("with mixed resource decoder")(EntityDecoder.mixedMultipartResource[IO]())
 
-  def testPart[F[_]] = Part[F](Headers.empty, Entity.empty)
+  private def testPart[F[_]] = Part[F](Headers.empty, Entity.empty)
 
   test("Part.covary should disallow unrelated effects") {
     assert(

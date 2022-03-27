@@ -19,8 +19,10 @@ package jetty
 package client
 
 import cats.effect.IO
+import cats.effect.Resource
+import org.http4s.client.Client
 import org.http4s.client.ClientRouteTestBattery
 
 class JettyClientSuite extends ClientRouteTestBattery("JettyClient") {
-  def clientResource = JettyClient.resource[IO]()
+  def clientResource: Resource[IO, Client[IO]] = JettyClient.resource[IO]()
 }

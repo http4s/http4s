@@ -26,6 +26,7 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import fs2.Pipe
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
@@ -99,6 +100,9 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
     */
   def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
     change(entity = Entity(body))
@@ -108,6 +112,14 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     */
   def withEmptyBody: SelfF[F] =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+
+  /** Applies the given pipe to the entity body (byte-stream) of this message.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
+    */
+  private[http4s] def pipeBodyThrough[F1[x] >: F[x]](pipe: Pipe[F1, Byte, Byte]): SelfF[F1] =
+    withBodyStream(pipe(body))
 
   // General header methods
 
@@ -245,7 +257,7 @@ object Message {
   * @param uri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
-  * @param body fs2.Stream[F, Byte] defining the body of the request
+  * @param entity [[Entity]] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 final class Request[+F[_]] private (
@@ -450,7 +462,7 @@ final class Request[+F[_]] private (
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, httpVersion=${httpVersion}, headers=${headers
-      .redactSensitive()})"""
+        .redactSensitive()})"""
 
   def decode[F2[x] >: F[x], A](
       f: A => F2[Response[F2]]
@@ -493,7 +505,7 @@ object Request {
     * @param uri representation of the request URI
     * @param httpVersion the HTTP version
     * @param headers collection of [[Header]]s
-    * @param body fs2.Stream[F, Byte] defining the body of the request
+    * @param entity [[Entity]] defining the body of the request
     * @param attributes Immutable Map used for carrying additional information in a type safe fashion
     */
   def apply[F[_]](
@@ -547,7 +559,7 @@ object Request {
   *
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
-  * @param body EntityBody[F] representing the possible body of the response
+  * @param entity [[Entity]] representing the possible body of the response
   * @param attributes [[org.typelevel.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
@@ -645,7 +657,7 @@ final class Response[+F[_]] private (
 
   override def toString: String =
     s"""Response(status=${status.code}, httpVersion=${httpVersion}, headers=${headers
-      .redactSensitive()})"""
+        .redactSensitive()})"""
 }
 
 object Response extends KleisliSyntax {
@@ -668,7 +680,7 @@ object Response extends KleisliSyntax {
     *
     * @param status [[Status]] code and message
     * @param headers [[Headers]] containing all response headers
-    * @param body EntityBody[F] representing the possible body of the response
+    * @param entity [[Entity]] representing the possible body of the response
     * @param attributes [[org.typelevel.vault.Vault]] containing additional
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object

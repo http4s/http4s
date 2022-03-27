@@ -64,7 +64,7 @@ class StreamingParserSuite extends Http4sSuite {
   }
 
   object Fixtures {
-    val RequestFixedBody = toBytes(
+    private val RequestFixedBody = toBytes(
       List(
         "POST /foo HTTP/1.1\r\n",
         "Content-Type: text/plain\r\n",
@@ -73,7 +73,7 @@ class StreamingParserSuite extends Http4sSuite {
       )
     )
 
-    val RequestChunkedBody = toBytes(
+    private val RequestChunkedBody = toBytes(
       List(
         "POST /foo HTTP/1.1\r\n",
         "Content-Type: text/plain\r\n",
@@ -89,7 +89,7 @@ class StreamingParserSuite extends Http4sSuite {
       )
     )
 
-    val ResponseFixedBody = toBytes(
+    private val ResponseFixedBody = toBytes(
       List(
         "HTTP/1.1 200 OK\r\n",
         "Content-Type: text/plain\r\n",
@@ -98,7 +98,7 @@ class StreamingParserSuite extends Http4sSuite {
       )
     )
 
-    val ResponseVariableBody = toBytes(
+    private val ResponseVariableBody = toBytes(
       List(
         "HTTP/1.1 200 OK\r\n",
         "Content-Type: text/plain\r\n",

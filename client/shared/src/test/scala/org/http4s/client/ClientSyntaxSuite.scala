@@ -31,7 +31,7 @@ import org.http4s.headers.Accept
 import org.http4s.syntax.all._
 
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
-  val app = HttpRoutes
+  private val app = HttpRoutes
     .of[IO] {
       case r if r.method == GET && r.pathInfo == path"/" =>
         Response[IO](Ok).withEntity("hello").pure[IO]

@@ -22,8 +22,8 @@ import org.http4s.syntax.all._
 import org.scalacheck.Prop._
 
 class AcceptLanguageSuite extends HeaderLaws {
-  val english = LanguageTag("en")
-  val spanish = LanguageTag("es")
+  private val english = LanguageTag("en")
+  private val spanish = LanguageTag("es")
 
   checkAll("AcceptLanguage", headerLaws[`Accept-Language`])
 

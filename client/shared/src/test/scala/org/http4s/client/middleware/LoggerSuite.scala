@@ -52,7 +52,7 @@ class LoggerSuite extends Http4sSuite {
     res.assertEquals(expectedBody)
   }
 
-  val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
+  private val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
 
   test("RequestLogger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -65,7 +65,7 @@ class LoggerSuite extends Http4sSuite {
     res.assertEquals(expectedBody)
   }
 
-  val loggerApp =
+  private val loggerApp =
     Logger(true, true)(Client.fromHttpApp(testApp)).toHttpApp
 
   test("Logger should not affect a Get") {

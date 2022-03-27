@@ -44,7 +44,8 @@ class EntityDecoderSuite extends Http4sSuite {
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
-  val req = Response[IO](Ok).withEntity("foo").pure[IO]
+  private val req = Response[IO](Ok).withEntity("foo").pure[IO]
+
   test("flatMapR with success") {
     DecodeResult
       .success(req)
@@ -332,7 +333,7 @@ class EntityDecoderSuite extends Http4sSuite {
         .assertEquals(Left(MediaTypeMissing(expectedMediaRanges)))
   }
 
-  val request = Request[IO]().withEntity("whatever")
+  private val request = Request[IO]().withEntity("whatever")
 
   test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
@@ -402,7 +403,7 @@ class EntityDecoderSuite extends Http4sSuite {
   def readTextFile(in: Path): IO[String] =
     Files[IO].readAll(in).through(fs2.text.utf8.decode).compile.foldMonoid
 
-  def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
+  private def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
     route(req.withBodyStream(chunk(Chunk.array(binData))))
 
   test("A File EntityDecoder should write a text file from a byte string") {

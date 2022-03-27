@@ -33,7 +33,7 @@ import scala.annotation.tailrec
 /** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
 sealed abstract class ServletIo[F[_]: Async] {
-  protected[servlet] val F = Async[F]
+  protected[servlet] val F: Async[F] = Async[F]
 
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
@@ -57,7 +57,7 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
     val flush = response.isChunked
     response.body.chunks
       .evalTap { chunk =>
-        Async[F].delay {
+        Async[F].blocking {
           // Avoids copying for specialized chunks
           val byteChunk = chunk.toArraySlice
           out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
@@ -96,7 +96,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
 
       val state = new AtomicReference[State](Init)
 
-      def read(cb: Callback[Option[Chunk[Byte]]]) = {
+      def read(cb: Callback[Option[Chunk[Byte]]]): Unit = {
         val buf = new Array[Byte](chunkSize)
         val len = in.read(buf)
 
@@ -245,29 +245,36 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
       }
     }
 
+    val chunkHandler =
+      F.async_[Chunk[Byte] => Unit] { cb =>
+        val blocked = Blocked(cb)
+        state.getAndSet(blocked) match {
+          case Ready if out.isReady =>
+            if (state.compareAndSet(blocked, Ready))
+              cb(writeChunk)
+          case e @ Errored(t) =>
+            if (state.compareAndSet(blocked, e))
+              cb(Left(t))
+          case _ =>
+            ()
+        }
+      }
+
+    def flushPrelude =
+      if (autoFlush)
+        chunkHandler.map(_(Chunk.empty[Byte]))
+      else
+        F.unit
+
     { (response: Response[F]) =>
       if (response.isChunked)
         autoFlush = true
-      response.body.chunks
-        .evalMap { chunk =>
-          // Shift execution to a different EC
-          F.async_[Chunk[Byte] => Unit] { cb =>
-            val blocked = Blocked(cb)
-            state.getAndSet(blocked) match {
-              case Ready if out.isReady =>
-                if (state.compareAndSet(blocked, Ready))
-                  cb(writeChunk)
-              case e @ Errored(t) =>
-                if (state.compareAndSet(blocked, e))
-                  cb(Left(t))
-              case _ =>
-                ()
-            }
-          }.map(_(chunk))
-        }
-        .append(awaitLastWrite)
-        .compile
-        .drain
+      flushPrelude *>
+        response.body.chunks
+          .evalMap(chunk => chunkHandler.map(_(chunk)))
+          .append(awaitLastWrite)
+          .compile
+          .drain
     }
   }
 }

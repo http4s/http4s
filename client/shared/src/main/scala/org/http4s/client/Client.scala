@@ -17,7 +17,7 @@
 package org.http4s
 package client
 
-import cats.data.Kleisli
+import cats.data._
 import cats.effect.Ref
 import cats.effect._
 import cats.syntax.all._
@@ -32,32 +32,10 @@ import scala.util.control.NoStackTrace
 trait Client[F[_]] {
   def run(req: Request[F]): Resource[F, Response[F]]
 
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req The request to submit
-    * @param f   A callback for the response to req.  The underlying HTTP connection
-    *            is disposed when the returned task completes.  Attempts to read the
-    *            response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  @deprecated("Use run(req).use(f)", "0.21.5")
-  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A]
-
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req An effect of the request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  @deprecated("Use req.flatMap(run(_).use(f))", "0.21.5")
-  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
-
   /** Returns this client as a [[cats.data.Kleisli]].  All connections created
     * by this service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to `run` followed by `use`, and is
+    * This method effectively reverses the arguments to [[run]] followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
@@ -67,8 +45,8 @@ trait Client[F[_]] {
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
+    * This is intended for use in proxy servers.  [[run]], [[fetchAs]] and
+    * [[toKleisli]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
@@ -117,6 +95,7 @@ trait Client[F[_]] {
   def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): F[Option[A]]
+
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
@@ -180,6 +159,16 @@ trait Client[F[_]] {
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
 
+  /** As [[expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
+  final def expectOptionOrT[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
+      d: EntityDecoder[F, A]
+  ): OptionT[F, A] =
+    OptionT(expectOptionOr(req)(onError)(d))
+
+  /** As [[expectOption]], but defined in terms of [[cats.data.OptionT]]. */
+  final def expectOptionT[A](req: Request[F])(implicit d: EntityDecoder[F, A]): OptionT[F, A] =
+    OptionT(expectOption[A](req)(d))
+
   private[client] def translateImpl[G[_]: MonadCancelThrow](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
@@ -204,32 +193,32 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] =
-    Client { (req: Request[F]) =>
-      Resource.suspend {
-        Ref[F].of(false).map { disposed =>
-          def go(stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
-            stream.pull.uncons.flatMap {
-              case Some((chunk, stream)) =>
-                Pull.eval(disposed.get).flatMap {
-                  case true =>
-                    Pull.raiseError[F](new IOException("response was disposed"))
-                  case false =>
-                    Pull.output(chunk) >> go(stream)
-                }
-              case None =>
-                Pull.done
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
+    def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
+      def go(stream: Stream[F, A]): Pull[F, A, Unit] =
+        stream.pull.uncons.flatMap {
+          case Some((chunk, stream)) =>
+            Pull.eval(disposed.get).flatMap {
+              case true => Pull.raiseError[F](new IOException("response was disposed"))
+              case false => Pull.output(chunk) >> go(stream)
             }
-          val req0 =
-            addHostHeaderIfUriIsAbsolute(req.withBodyStream(go(req.body).stream))
 
-          Resource
-            .eval(app(req0))
-            .onFinalize(disposed.set(true))
-            .map(resp => resp.copy(entity = Entity(go(resp.body).stream)))
+          case None => Pull.done
         }
-      }
+      go(source).stream
     }
+
+    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
+      Ref[F].of(false).map { disposed =>
+        val req0 = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        Resource
+          .eval(app(req0))
+          .onFinalize(disposed.set(true))
+          .map(_.pipeBodyThrough(until(disposed)))
+      }
+
+    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+  }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
     * form the backend of tracing and these transformations are non-trivial.

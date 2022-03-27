@@ -29,6 +29,7 @@ import cats.effect.kernel.Sync
 import cats.syntax.all._
 import cats.~>
 import fs2.Chunk
+import fs2.Pipe
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
@@ -92,27 +93,20 @@ object RequestLogger {
       } else
         fk(F.ref(Vector.empty[Chunk[Byte]]))
           .flatMap { vec =>
-            val newBody = Stream
-              .eval(vec.get)
-              .flatMap(v => Stream.emits(v))
-              .flatMap(c => Stream.chunk(c))
+            val collectChunks: Pipe[F, Byte, Nothing] =
+              _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
-            val changedRequest = req.withBodyStream(
-              req.body
-                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-            )
-            def logRequest: F[Unit] =
-              logMessage(req.withBodyStream(newBody))
-            val response: G[Response[F]] =
-              http(changedRequest)
-                .guaranteeCase {
-                  case Outcome.Succeeded(_) => G.unit
-                  case _ => fk(logRequest)
+            val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
 
-                }
-                .map(resp => resp.withBodyStream(resp.body.onFinalizeWeak(logRequest)))
-            response
+            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+
+            http(changedRequest)
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => G.unit
+                case _ => fk(logRequest)
+              }
+              .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
           }
     }
   }

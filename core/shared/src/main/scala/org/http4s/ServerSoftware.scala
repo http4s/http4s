@@ -23,5 +23,5 @@ final case class ServerSoftware(
 )
 
 object ServerSoftware {
-  val Unknown = ServerSoftware("Unknown", None, None)
+  val Unknown: ServerSoftware = ServerSoftware("Unknown", None, None)
 }

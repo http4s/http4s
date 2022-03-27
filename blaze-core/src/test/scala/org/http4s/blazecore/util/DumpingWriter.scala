@@ -21,22 +21,18 @@ package util
 import cats.effect.Async
 import cats.effect.IO
 import fs2._
-import org.http4s.blaze.util.Execution
 
 import scala.collection.mutable.Buffer
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 object DumpingWriter {
-  def dump(p: EntityBody[IO]): IO[Array[Byte]] = {
+  def dump(entity: Entity[IO]): IO[Array[Byte]] = {
     val w = new DumpingWriter()
-    for (_ <- w.writeEntityBody(p)) yield (w.toArray)
+    w.writeEntityBody(entity).map(_ => w.toArray)
   }
 }
 
 class DumpingWriter(implicit protected val F: Async[IO]) extends EntityBodyWriter[IO] {
-  override implicit protected def ec: ExecutionContext = Execution.trampoline
-
   private val buffer = Buffer[Chunk[Byte]]()
 
   def toArray: Array[Byte] =

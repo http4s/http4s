@@ -25,8 +25,6 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.util._
 
-import scala.annotation.nowarn
-
 /** HTTP's version number consists of two decimal digits separated by
   * a "." (period or decimal point). The first digit ("major version")
   * indicates the messaging syntax, whereas the second digit ("minor
@@ -66,11 +64,6 @@ final case class HttpVersion private (major: Int, minor: Int)
     */
   override def compare(that: HttpVersion): Int =
     (this.major, this.minor).compare((that.major, that.minor))
-
-  @deprecated("Does not range check parameters. Will be removed from public API in 1.0.", "0.22.6")
-  @nowarn("msg=never used")
-  private def copy(major: Int = major, minor: Int = minor): HttpVersion =
-    new HttpVersion(major, minor)
 }
 
 object HttpVersion {
@@ -84,14 +77,14 @@ object HttpVersion {
     * @see [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945,
     * Hypertext Transfer Protocol -- HTTP/1.0]]
     */
-  val `HTTP/0.9` = new HttpVersion(0, 9)
+  val `HTTP/0.9`: HttpVersion = new HttpVersion(0, 9)
 
   /** HTTP/1.0 is the first major version of HTTP.
     *
     * @see [[https://datatracker.ietf.org/doc/html/rfc1945 RFC1945,
     * Hypertext Transfer Protocol -- HTTP/1.0]]
     */
-  val `HTTP/1.0` = new HttpVersion(1, 0)
+  val `HTTP/1.0`: HttpVersion = new HttpVersion(1, 0)
 
   /** HTTP/1.1 revises HTTP/1.0, and is currently defined by six RFCs.
     *
@@ -123,7 +116,7 @@ object HttpVersion {
     * [[https://datatracker.ietf.org/doc/draft-ietf-httpbis-messaging/
     * HTTP/1.1]] (draft)
     */
-  val `HTTP/1.1` = new HttpVersion(1, 1)
+  val `HTTP/1.1`: HttpVersion = new HttpVersion(1, 1)
 
   /** HTTP/2 is the second major version of HTTP.  It defines no minor
     * versions, so minor version `0` is implied.
@@ -131,10 +124,10 @@ object HttpVersion {
     * @see [[https://datatracker.ietf.org/doc/html/rfc7540 RFC7540,
     * Hypertext Transfer Protocol Version 2 (HTTP/2)]]
     */
-  val `HTTP/2` = new HttpVersion(2, 0)
+  val `HTTP/2`: HttpVersion = new HttpVersion(2, 0)
 
   @deprecated("Renamed to `HTTP/2`. HTTP/2 does not define minor versions.", "0.22.6")
-  def `HTTP/2.0` = `HTTP/2`
+  def `HTTP/2.0`: HttpVersion = `HTTP/2`
 
   /** HTTP/3 is the third major version of HTTP.  It defines no minor
     * versions, so minor version `0` is implied.
@@ -142,7 +135,7 @@ object HttpVersion {
     * @see [[https://quicwg.org/base-drafts/draft-ietf-quic-http.html
     * Hypertext Transfer Protocol Version 3 (HTTP/3)]] (draft)
     */
-  val `HTTP/3` = new HttpVersion(3, 0)
+  val `HTTP/3`: HttpVersion = new HttpVersion(3, 0)
 
   /** The set of HTTP versions that have a specification */
   private[http4s] val specified: Set[HttpVersion] = Set(

@@ -31,11 +31,11 @@ import org.http4s.syntax.all._
 import java.nio.charset.StandardCharsets
 
 class EntityLimiterSuite extends Http4sSuite {
-  val routes = HttpRoutes.of[IO] {
+  private val routes = HttpRoutes.of[IO] {
     case r if r.pathInfo == path"/echo" => r.decode(Response(Ok).withEntity(_: String).pure[IO])
   }
 
-  val e = Entity(chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8))))
+  private val e = Entity(chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8))))
 
   test("Allow reasonable entities") {
     EntityLimiter(routes, 100)

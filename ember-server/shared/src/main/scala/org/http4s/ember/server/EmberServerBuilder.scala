@@ -101,26 +101,30 @@ final class EmberServerBuilder[F[_]: Async] private (
       enableHttp2 = enableHttp2,
     )
 
-  def withHostOption(host: Option[Host]) = copy(host = host)
-  def withHost(host: Host) = withHostOption(Some(host))
-  def withoutHost = withHostOption(None)
+  def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
+  def withHost(host: Host): EmberServerBuilder[F] = withHostOption(Some(host))
+  def withoutHost: EmberServerBuilder[F] = withHostOption(None)
 
-  def withPort(port: Port) = copy(port = port)
-  def withHttpApp(httpApp: HttpApp[F]) = copy(httpApp = _ => httpApp)
-  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]) = copy(httpApp = f)
+  def withPort(port: Port): EmberServerBuilder[F] = copy(port = port)
+  def withHttpApp(httpApp: HttpApp[F]): EmberServerBuilder[F] = copy(httpApp = _ => httpApp)
+  def withHttpWebSocketApp(f: WebSocketBuilder[F] => HttpApp[F]): EmberServerBuilder[F] =
+    copy(httpApp = f)
 
-  def withSocketGroup(sg: SocketGroup[F]) =
+  def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
     copy(sgOpt = sg.pure[Option])
 
-  def withTLS(tlsContext: TLSContext[F], tlsParameters: TLSParameters = TLSParameters.Default) =
+  def withTLS(
+      tlsContext: TLSContext[F],
+      tlsParameters: TLSParameters = TLSParameters.Default,
+  ): EmberServerBuilder[F] =
     copy(tlsInfoOpt = (tlsContext, tlsParameters).pure[Option])
-  def withoutTLS =
+  def withoutTLS: EmberServerBuilder[F] =
     copy(tlsInfoOpt = None)
 
-  def withIdleTimeout(idleTimeout: Duration) =
+  def withIdleTimeout(idleTimeout: Duration): EmberServerBuilder[F] =
     copy(idleTimeout = idleTimeout)
 
-  def withShutdownTimeout(shutdownTimeout: Duration) =
+  def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
   @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
@@ -134,18 +138,24 @@ final class EmberServerBuilder[F[_]: Async] private (
     copy(onWriteFailure = onWriteFailure)
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.withMaxConnections", "0.22.3")
-  def withMaxConcurrency(maxConcurrency: Int) = copy(maxConnections = maxConcurrency)
+  def withMaxConcurrency(maxConcurrency: Int): EmberServerBuilder[F] =
+    copy(maxConnections = maxConcurrency)
 
-  def withMaxConnections(maxConnections: Int) = copy(maxConnections = maxConnections)
+  def withMaxConnections(maxConnections: Int): EmberServerBuilder[F] =
+    copy(maxConnections = maxConnections)
 
-  def withReceiveBufferSize(receiveBufferSize: Int) = copy(receiveBufferSize = receiveBufferSize)
-  def withMaxHeaderSize(maxHeaderSize: Int) = copy(maxHeaderSize = maxHeaderSize)
-  def withRequestHeaderReceiveTimeout(requestHeaderReceiveTimeout: Duration) =
+  def withReceiveBufferSize(receiveBufferSize: Int): EmberServerBuilder[F] =
+    copy(receiveBufferSize = receiveBufferSize)
+  def withMaxHeaderSize(maxHeaderSize: Int): EmberServerBuilder[F] =
+    copy(maxHeaderSize = maxHeaderSize)
+  def withRequestHeaderReceiveTimeout(
+      requestHeaderReceiveTimeout: Duration
+  ): EmberServerBuilder[F] =
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
-  def withLogger(l: Logger[F]) = copy(logger = l)
+  def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
-  def withHttp2 = copy(enableHttp2 = true)
-  def withoutHttp2 = copy(enableHttp2 = false)
+  def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
+  def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
@@ -153,9 +163,9 @@ final class EmberServerBuilder[F[_]: Async] private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
-  ) =
+  ): EmberServerBuilder[F] =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
-  def withoutUnixSocketConfig =
+  def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
 
   def build: Resource[F, Server] =

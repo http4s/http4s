@@ -29,17 +29,21 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
-  final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
+  final def write(headerWriter: StringWriter, entity: Entity[F]): F[Boolean] =
     fromFutureNoShift(F.delay(writeHeaders(headerWriter)))
       .guaranteeCase {
         case Outcome.Succeeded(_) =>
           F.unit
 
         case Outcome.Errored(_) | Outcome.Canceled() =>
-          body.drain.compile.drain.handleError { t2 =>
-            Http1Writer.logger.error(t2)("Error draining body")
+          entity match {
+            case Entity.Default(body, _) =>
+              body.drain.compile.drain.handleError { t2 =>
+                Http1Writer.logger.error(t2)("Error draining body")
+              }
+            case Entity.Strict(_) | Entity.Empty => F.unit
           }
-      } >> writeEntityBody(body)
+      } >> writeEntityBody(entity)
 
   /* Writes the header.  It is up to the writer whether to flush immediately or to
    * buffer the header with a subsequent chunk. */

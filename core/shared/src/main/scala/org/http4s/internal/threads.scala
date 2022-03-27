@@ -25,9 +25,9 @@ import scala.concurrent.duration._
 private[http4s] object threads {
   final case class ThreadPriority(toInt: Int)
   case object ThreadPriority {
-    val Min = ThreadPriority(Thread.MIN_PRIORITY)
-    val Norm = ThreadPriority(Thread.NORM_PRIORITY)
-    val Max = ThreadPriority(Thread.MAX_PRIORITY)
+    val Min: ThreadPriority = ThreadPriority(Thread.MIN_PRIORITY)
+    val Norm: ThreadPriority = ThreadPriority(Thread.NORM_PRIORITY)
+    val Max: ThreadPriority = ThreadPriority(Thread.MAX_PRIORITY)
   }
 
   def threadFactory(

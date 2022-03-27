@@ -33,7 +33,7 @@ import org.typelevel.ci.CIString
 import scala.concurrent.duration.Duration
 
 sealed trait CacheDirective extends Product with Renderable {
-  val name = CIString(productPrefix.replace("$minus", "-"))
+  val name: CIString = CIString(productPrefix.replace("$minus", "-"))
   def value: String = name.toString
   override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
