@@ -131,7 +131,7 @@ object DigestAuth {
     "Uses a side-effecting NonceKeeper. Use challenge(String, AuthStore, Blocker, Duration, Int, Int).",
     "0.22.13",
   )
-  def challenge[F[_], A](
+  private def challenge[F[_], A](
       realm: String,
       store: String => F[Option[(A, String)]],
       nonceKeeper: NonceKeeper,
