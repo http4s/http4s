@@ -48,7 +48,7 @@ class TransferCoding private (val coding: String) extends Ordered[TransferCoding
     hash
   }
 
-  override def toString = s"TransferCoding($coding)"
+  override def toString: String = s"TransferCoding($coding)"
 
   override def compare(other: TransferCoding): Int =
     coding.compareToIgnoreCase(other.coding)

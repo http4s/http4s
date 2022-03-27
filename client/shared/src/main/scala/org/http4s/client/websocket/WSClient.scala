@@ -62,9 +62,9 @@ object WSRequest {
       override val headers: Headers,
       override val method: Method,
   ) extends WSRequest {
-    def withUri(uri: Uri) = copy(uri = uri)
-    def withHeaders(headers: Headers) = copy(headers = headers)
-    def withMethod(method: Method) = copy(method = method)
+    def withUri(uri: Uri): WSRequestImpl = copy(uri = uri)
+    def withHeaders(headers: Headers): WSRequestImpl = copy(headers = headers)
+    def withMethod(method: Method): WSRequestImpl = copy(method = method)
   }
 
   implicit val catsHashAndOrderForWSRequest: Hash[WSRequest] with Order[WSRequest] =

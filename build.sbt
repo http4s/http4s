@@ -19,6 +19,7 @@ ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports"
 
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
+ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
 ThisBuild / githubWorkflowBuild ++= Seq(
   WorkflowStep.Sbt(

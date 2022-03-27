@@ -286,6 +286,6 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     val requestHeaderReceiveTimeout: Duration = 5.seconds
     val idleTimeout: Duration = server.defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
-    val additionalSocketOptions = List.empty[SocketOption]
+    val additionalSocketOptions: List[SocketOption] = Nil
   }
 }

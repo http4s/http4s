@@ -1114,8 +1114,8 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
     } yield headers.`Accept-Post`(values)
   }
 
-  val genObsText = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
-  val genVcharExceptDquote = genVchar.filter(_ != 0x22.toChar)
+  val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
+  val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)
 
   val genEntityTag: Gen[EntityTag] =
     for {

@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
 
 package object server {
   object defaults {
-    val Banner =
+    val Banner: List[String] =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
          | | ' \  _|  _| '_ \_  _(_-<
