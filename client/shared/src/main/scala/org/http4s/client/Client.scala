@@ -150,7 +150,7 @@ trait Client[F[_]] {
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  /** As [[#expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
+  /** As [[expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
   final def expectOptionOrT[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
   ): OptionT[F, A] =
