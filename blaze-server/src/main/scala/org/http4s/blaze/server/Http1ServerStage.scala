@@ -124,7 +124,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] var cancelToken: Option[CancelToken[F]] = None
+  @volatile private[this] var cancelToken: Option[CancelToken[F]] = None
 
   val name = "Http4sServerStage"
 
@@ -229,15 +229,15 @@ private[blaze] class Http1ServerStage[F[_]](
               F.runCancelable(action) {
                 case Right(()) => IO.unit
                 case Left(t) =>
-                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                    closeConnection()
-                  )
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *>
+                    IO.delay {
+                      cancelToken = None
+                    } *>
+                    IO(closeConnection())
               }.unsafeRunSync()
             )
 
-            parser.synchronized {
-              cancelToken = theCancelToken
-            }
+            cancelToken = theCancelToken
           }
         })
       case Left((e, protocol)) =>
