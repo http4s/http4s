@@ -221,7 +221,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Returns a new message object without the specified key in the
     * [[attributes]].
     *
-    * @param key [[io.chrisdavenport.vault.Key]] to remove
+    * @param key [[org.typelevel.vault.Key]] to remove
     * @return a new message object without the key
     */
   def withoutAttribute(key: Key[_]): SelfF[F] =
