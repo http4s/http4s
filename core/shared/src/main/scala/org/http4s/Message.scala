@@ -436,6 +436,35 @@ final class Request[+F[_]] private (
   def isIdempotent: Boolean =
     method.isIdempotent || headers.contains[`Idempotency-Key`]
 
+  def decodeWith[F2[x] >: F[x], A](decoder: EntityDecoder[F2, A], strict: Boolean)(
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2]): F2[Response[F2]] =
+    decoder
+      .decode(this, strict = strict)
+      .fold(_.toHttpResponse(httpVersion).covary[F2].pure[F2], f)
+      .flatten
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
+    */
+  def decode[F2[x] >: F[x], A](
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
+    decodeWith(decoder, strict = false)(f)
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
+    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+    */
+  def decodeStrict[F2[x] >: F[x], A](
+      f: A => F2[Response[F2]]
+  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
+    decodeWith(decoder, strict = true)(f)
+
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
   def canEqual(that: Any): Boolean = that match {
@@ -463,30 +492,6 @@ final class Request[+F[_]] private (
   override def toString: String =
     s"""Request(method=$method, uri=$uri, httpVersion=${httpVersion}, headers=${headers
         .redactSensitive()})"""
-
-  def decode[F2[x] >: F[x], A](
-      f: A => F2[Response[F2]]
-  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
-    decodeWith(decoder, strict = false)(f)
-
-  def decodeWith[F2[x] >: F[x], A](decoder: EntityDecoder[F2, A], strict: Boolean)(
-      f: A => F2[Response[F2]]
-  )(implicit F: Monad[F2]): F2[Response[F2]] =
-    decoder
-      .decode(this, strict = strict)
-      .fold(_.toHttpResponse(httpVersion).covary[F2].pure[F2], f)
-      .flatten
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
-    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
-    */
-  def decodeStrict[F2[x] >: F[x], A](
-      f: A => F2[Response[F2]]
-  )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
-    decodeWith(decoder, strict = true)(f)
 }
 
 object Request {
