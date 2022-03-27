@@ -38,6 +38,10 @@ private[http4s] object bits {
   val DefaultMaxWaitQueueLimit = 256
 
   /** Caution: trusts all certificates and disables endpoint identification */
+  @deprecated(
+    "Kept for binary compatibility.  Unfit for production.  Embeds a blocking call on some platforms.",
+    "0.23.13",
+  )
   lazy val TrustingSslContext: SSLContext = {
     val trustManager = new X509TrustManager {
       def getAcceptedIssuers(): Array[X509Certificate] = Array.empty
