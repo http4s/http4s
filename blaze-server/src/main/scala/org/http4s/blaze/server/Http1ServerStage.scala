@@ -40,7 +40,6 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
 import org.http4s.websocket.WebSocketContext
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.nio.ByteBuffer
@@ -357,7 +356,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -370,7 +369,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(
       req,
       resp,

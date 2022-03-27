@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.http4s.websocket
+package org.http4s.blazecore.websocket
 
+import cats.MonadThrow
 import cats.effect.Async
+import cats.effect.std.Random
 import cats.syntax.all._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
@@ -24,57 +26,45 @@ import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets._
 import java.util.Base64
-import scala.util.Random
 
-@deprecated(
-  "Retained for binary compatibility. Side-effecting. Only used by blaze-server.",
-  "0.23.13",
-)
 private[http4s] object WebSocketHandshake {
 
   /** Creates a new [[ClientHandshaker]] */
-  def clientHandshaker(host: String): ClientHandshaker = new ClientHandshaker(host)
+  def clientHandshaker[F[_]: MonadThrow](host: String, random: Random[F]): F[ClientHandshaker] =
+    for {
+      key <- random.nextBytes(16).map(Base64.getEncoder.encodeToString)
+      acceptKey <- genAcceptKey(key)
+    } yield new ClientHandshaker(host, key, acceptKey)
 
   /** Provides the initial headers and a 16 byte Base64 encoded random key for websocket connections */
-  class ClientHandshaker(host: String) {
-
-    /** Randomly generated 16-byte key in Base64 encoded form */
-    val key: String = {
-      val bytes = new Array[Byte](16)
-      Random.nextBytes(bytes)
-      Base64.getEncoder.encodeToString(bytes)
-    }
+  class ClientHandshaker(host: String, key: String, acceptKey: String) {
 
     /** Initial headers to send to the server */
     val initHeaders: List[(String, String)] =
       ("Host", host) :: ("Sec-WebSocket-Key", key) :: clientBaseHeaders
 
     /** Check if the server response is a websocket handshake response */
-    def checkResponse[F[_]: Async](headers: Iterable[(String, String)]): F[Either[String, Unit]] =
+    def checkResponse(headers: Iterable[(String, String)]): Either[String, Unit] =
       if (
         !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
         }
       )
-        Async[F].pure(Left("Bad Connection header"))
+        Left("Bad Connection header")
       else if (
         !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
         }
       )
-        Async[F].pure(Left("Bad Upgrade header"))
+        Left("Bad Upgrade header")
       else
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
-          .map { case (_, v) =>
-            genAcceptKey(key).map { acceptKey =>
-              if (acceptKey == v)
-                Right(())
-              else
-                Left(s"Invalid key: $acceptKey")
-            }
+          .map {
+            case (_, v) if acceptKey === v => Either.unit
+            case (_, v) => Left(s"Invalid key: $v")
           }
-          .getOrElse(Async[F].pure(Left("Missing Sec-WebSocket-Accept header")))
+          .getOrElse(Left("Missing Sec-WebSocket-Accept header"))
   }
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
@@ -134,7 +124,7 @@ private[http4s] object WebSocketHandshake {
 
   private def decodeLen(key: String): Int = Base64.getDecoder.decode(key).length
 
-  private def genAcceptKey[F[_]](str: String)(implicit F: Async[F]): F[String] = for {
+  private def genAcceptKey[F[_]](str: String)(implicit F: MonadThrow[F]): F[String] = for {
     data <- F.fromEither(ByteVector.encodeAscii(str))
     digest <- Hash[F].digest(HashAlgorithm.SHA1, data ++ magicString)
   } yield digest.toBase64

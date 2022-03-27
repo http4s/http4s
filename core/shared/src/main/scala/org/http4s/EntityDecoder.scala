@@ -383,7 +383,7 @@ object EntityDecoder {
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       msg.entity match {
         case Entity.Default(body, _) =>
-          DecodeResult.success(body.drain.compile.drain)
+          DecodeResult.success(body.compile.drain)
 
         case Entity.Strict(_) | Entity.Empty =>
           DecodeResult.success(Applicative[F].unit)

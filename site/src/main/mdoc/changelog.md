@@ -3,6 +3,18 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.21.33 (2022-03-18)
+
+This is a courtesy release for the 0.21.x series.  This series remains officially unmaintained except for urgent security patches.  It is binary compatible with the 0.21.x series.
+
+* http4s-ember-core
+    * Support parsing response bodies without Content-Length in ember (0.21) by @wemrysi in https://github.com/http4s/http4s/pull/6136
+
+* Behind the scenes
+    * Build tweaks in case there's another 0.21 by @rossabaker in https://github.com/http4s/http4s/pull/6034
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.32...v0.21.33
+
 # v1.0.0-M32 (2022-03-18)
 
 This is a milestone release.  It is binary incompatible with previous releases.  It includes the changes through v0.23.11.

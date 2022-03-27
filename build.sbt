@@ -794,7 +794,6 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalacheck.value,
   ).map(_ % Test),
-  apiURL := Some(url(s"https://http4s.org/v${tlBaseVersion.value}/api")),
 )
 
 lazy val skipUnusedDependenciesTestOnScala3 = Seq(

@@ -17,6 +17,7 @@
 package org.http4s.metrics
 
 import cats.Foldable
+import cats.~>
 import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Status
@@ -70,6 +71,40 @@ trait MetricsOps[F[_]] {
       terminationType: TerminationType,
       classifier: Option[String],
   ): F[Unit]
+
+  /** Transform the effect of MetricOps using the supplied natural transformation
+    *
+    * @param fk natural transformation
+    * @tparam G the effect to transform to
+    * @return a new metric ops in the transformed effect
+    */
+  def mapK[G[_]](fk: F ~> G): MetricsOps[G] = {
+    val ops = this
+    new MetricsOps[G] {
+      override def increaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
+        ops.increaseActiveRequests(classifier)
+      )
+      override def decreaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
+        ops.decreaseActiveRequests(classifier)
+      )
+      override def recordHeadersTime(
+          method: Method,
+          elapsed: Long,
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier))
+      override def recordTotalTime(
+          method: Method,
+          status: Status,
+          elapsed: Long,
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier))
+      override def recordAbnormalTermination(
+          elapsed: Long,
+          terminationType: TerminationType,
+          classifier: Option[String],
+      ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier))
+    }
+  }
 }
 
 object MetricsOps {

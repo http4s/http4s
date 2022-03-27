@@ -36,6 +36,7 @@ private[authentication] object NonceKeeper {
   *                     purposes anymore).
   * @param bits The number of random bits a nonce should consist of.
   */
+@deprecated("Side-effecting. Use NonceKeeperF.", "0.22.13")
 private[authentication] class NonceKeeper(
     staleTimeout: Long,
     nonceCleanupInterval: Long,
