@@ -416,7 +416,7 @@ private[ember] object H2Frame {
       identifier: Int,
       value: Integer,
   ) extends H2Frame {
-    override def toString =
+    override def toString: String =
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
   }
   object RstStream {
@@ -454,7 +454,7 @@ private[ember] object H2Frame {
   }
   object Settings {
     val `type`: Byte = 0x4
-    val Ack = Settings(0x0, true, Nil)
+    val Ack: Settings = Settings(0x0, true, Nil)
 
     def updateSettings(
         settings: Settings,
@@ -521,7 +521,7 @@ private[ember] object H2Frame {
 
       }
 
-      val default = ConnectionSettings(
+      val default: ConnectionSettings = ConnectionSettings(
         tableSize = SettingsHeaderTableSize(4096),
         enablePush = SettingsEnablePush(true),
         maxConcurrentStreams = SettingsMaxConcurrentStreams(1024),
@@ -599,8 +599,8 @@ private[ember] object H2Frame {
     // The initial value is 2^16-1 (65,535) octets.
     final case class SettingsInitialWindowSize(windowSize: Integer) extends Setting(0x4, windowSize)
     object SettingsInitialWindowSize {
-      val MAX = SettingsInitialWindowSize(Int.MaxValue - 1)
-      val MIN = SettingsInitialWindowSize(65536 - 1)
+      val MAX: SettingsInitialWindowSize = SettingsInitialWindowSize(Int.MaxValue - 1)
+      val MIN: SettingsInitialWindowSize = SettingsInitialWindowSize(65536 - 1)
       def fromInt(windowSize: Int): Either[H2Error, SettingsInitialWindowSize] =
         if (
           windowSize <= MAX.windowSize && windowSize >= 0
@@ -616,8 +616,8 @@ private[ember] object H2Frame {
     //  (16,777,215) octets, inclusive.
     final case class SettingsMaxFrameSize(frameSize: Int) extends Setting(0x5, frameSize)
     object SettingsMaxFrameSize {
-      val MAX = SettingsMaxFrameSize(16777215)
-      val MIN = SettingsMaxFrameSize(16384)
+      val MAX: SettingsMaxFrameSize = SettingsMaxFrameSize(16777215)
+      val MIN: SettingsMaxFrameSize = SettingsMaxFrameSize(16384)
       def fromInt(frameSize: Int): Either[H2Error, SettingsMaxFrameSize] =
         if (frameSize <= MAX.frameSize && frameSize >= MIN.frameSize)
           SettingsMaxFrameSize(frameSize).asRight
@@ -729,12 +729,12 @@ private[ember] object H2Frame {
   } // Always exactly 8 bytes
   object Ping {
     val `type`: Byte = 0x6
-    val empty = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
+    val empty: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
-    val default = Ping(0, false, empty)
-    val ack = Ping(0, true, empty)
+    val default: Ping = Ping(0, false, empty)
+    val ack: Ping = Ping(0, true, empty)
 
-    val emptyBV = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
+    val emptyBV: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
     def toRaw(ping: Ping): RawFrame = {
       val flag: Byte = (if (ping.ack) 0 | (1 << 0) else 0).toByte
@@ -767,7 +767,7 @@ private[ember] object H2Frame {
       errorCode: Integer,
       additionalDebugData: Option[ByteVector],
   ) extends H2Frame {
-    override def toString =
+    override def toString: String =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
   }
   object GoAway {
@@ -864,7 +864,7 @@ private[ember] object H2Frame {
       endHeaders: Boolean,
       headerBlockFragment: ByteVector,
   ) extends H2Frame {
-    override def toString =
+    override def toString: String =
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
   }
   object Continuation {

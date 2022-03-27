@@ -389,7 +389,7 @@ private[ember] object H2Client {
 
   /** Represents a key for requests that can conceivably share a [[Connection]]. */
   final case class RequestKey(scheme: Scheme, authority: Authority) {
-    override def toString = s"${scheme.value}://${authority}"
+    override def toString: String = s"${scheme.value}://${authority}"
   }
 
   object RequestKey {
