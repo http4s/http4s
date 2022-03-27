@@ -42,14 +42,16 @@ import scala.concurrent.duration._
 trait BlazeClientBase extends Http4sSuite {
   val tickWheel: TickWheelExecutor = new TickWheelExecutor(tick = 50.millis)
 
-  val TrustingSslContext: IO[SSLContext] = IO {
+  val TrustingSslContext: IO[SSLContext] = IO.blocking {
     val trustManager = new X509TrustManager {
       def getAcceptedIssuers(): Array[X509Certificate] = Array.empty
       def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
       def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
     }
-    (trustManager, SSLContext.getInstance("TLS"))
-  }.flatMap { case (mgr, ctx) => IO.blocking(ctx.init(null, Array(mgr), new SecureRandom)).as(ctx) }
+    val ctx = SSLContext.getInstance("TLS")
+    ctx.init(null, Array(trustManager), new SecureRandom())
+    ctx
+  }
 
   def builder(
       maxConnectionsPerRequestKey: Int,
