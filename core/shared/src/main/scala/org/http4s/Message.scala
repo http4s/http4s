@@ -272,7 +272,7 @@ final class Request[+F[_]] private (
     with Serializable {
   import Request._
 
-  type SelfF[+F0[_]] = Request[F0]
+  type SelfF[F0[_]] = Request[F0]
 
   private def copy[F1[_]](
       method: Method = this.method,
