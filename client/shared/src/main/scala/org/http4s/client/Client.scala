@@ -160,25 +160,9 @@ trait Client[F[_]] {
   final def expectOptionT[A](req: Request[F])(implicit d: EntityDecoder[F, A]): OptionT[F, A] =
     OptionT(expectOption[A](req)(d))
 
-  @deprecated("use public method with MonadCancelThrow instead", since = "0.23.7")
-  private[client] def translate[G[_]: Async](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
-
-  /** Translates the effect type of this client from F to G
-    */
-  @deprecated("use public method without MonadCancelThrow[G] constraint instead", since = "0.23.12")
-  private[client] def translate[G[_]: MonadCancelThrow](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
-
   /** Translates the effect type of this client from F to G
     */
   def translate[G[_]](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
-
-  private[client] def translateImpl[G[_]](
       fk: F ~> G
   )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = {
     implicit val G: MonadCancelThrow[G] = liftMonadCancel(F)(fk)(gK)

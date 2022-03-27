@@ -122,7 +122,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       }
     }
     client
-      .translateImpl[IO](handleError)(FunctionK.id[IO])
+      .translate[IO](handleError)(FunctionK.id[IO])
       .expect[String](Request[IO]())
       .attempt
       .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
@@ -142,7 +142,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       }
     }
     client
-      .translateImpl[IO](handleError)(FunctionK.id[IO])
+      .translate[IO](handleError)(FunctionK.id[IO])
       .expect[Multipart[IO]](Request[IO]())
       .attempt
       .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
