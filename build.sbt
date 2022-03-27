@@ -117,7 +117,6 @@ lazy val core = libraryCrossProject("core")
       catsCore.value,
       catsEffectStd.value,
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
-      crypto.value,
       fs2Core.value,
       fs2Io.value,
       ip4sCore.value,
@@ -217,6 +216,7 @@ lazy val server = libraryCrossProject("server")
       BuildInfoKey.map(Test / resourceDirectory) { case (k, v) => k -> v.toString }
     ),
     buildInfoPackage := "org.http4s.server.test",
+    libraryDependencies += crypto.value,
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
@@ -242,6 +242,7 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    libraryDependencies += crypto.value,
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -336,7 +337,8 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      blazeHttp
+      blazeHttp,
+      crypto.value,
     ),
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
