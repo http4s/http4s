@@ -115,7 +115,7 @@ object Method {
   val UPDATEREDIRECTREF: Method = idempotent("UPDATEREDIRECTREF")
   val `VERSION-CONTROL`: Method = idempotent("VERSION-CONTROL")
 
-  val all = List(
+  val all: List[Method] = List(
     ACL,
     `BASELINE-CONTROL`,
     BIND,

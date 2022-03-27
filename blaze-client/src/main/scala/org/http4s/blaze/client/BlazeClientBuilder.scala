@@ -33,6 +33,7 @@ import org.http4s.client.defaults
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.SSLContextOption
+import org.log4s.Logger
 import org.log4s.getLogger
 
 import java.net.InetSocketAddress
@@ -97,7 +98,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
-  protected final val logger = getLogger(this.getClass)
+  protected final val logger: Logger = getLogger(this.getClass)
 
   @deprecated("Preserved for binary compatibility", "0.23.8")
   private[BlazeClientBuilder] def this(

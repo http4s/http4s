@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets
 private[h2] object Preface {
   val client = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
   // This sequence MUST be followed by a SETTINGS frame
-  val clientBV = ByteVector(client.getBytes(StandardCharsets.ISO_8859_1))
+  val clientBV: ByteVector = ByteVector(client.getBytes(StandardCharsets.ISO_8859_1))
 
   // The server connection preface consists of a potentially empty
   // SETTINGS frame (Section 6.5) that MUST be the first frame the server

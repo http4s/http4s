@@ -28,7 +28,7 @@ private[h2] object PseudoHeaders {
   val SCHEME = ":scheme"
   val PATH = ":path"
   val AUTHORITY = ":authority"
-  val requestPsedo = Set(
+  val requestPsedo: Set[String] = Set(
     METHOD,
     SCHEME,
     PATH,

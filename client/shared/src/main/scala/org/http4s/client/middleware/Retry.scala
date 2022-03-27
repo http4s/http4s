@@ -144,7 +144,7 @@ object RetryPolicy {
   }
 
   /** Statuses that are retriable, per HTTP spec */
-  val RetriableStatuses = Set(
+  val RetriableStatuses: Set[Status] = Set(
     RequestTimeout,
     // TODO Leaving PayloadTooLarge out until we model Retry-After
     InternalServerError,
