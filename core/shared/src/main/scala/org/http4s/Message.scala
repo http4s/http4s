@@ -38,7 +38,6 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
-import scala.annotation.nowarn
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -671,15 +670,6 @@ object Response extends KleisliSyntax {
     *  A [[Response.Pure]] is always an instance of [[Response[F]]], regardless of `F`.
     */
   type Pure = Response[fs2.Pure]
-
-  /** An implicit conversion to covary pure `Response` instances up to an effect `G`.
-    * Improves type inference when constructing responses in an effectful context.
-    */
-  @nowarn("msg=never used")
-  implicit def covaryF[F[_], G[_]](fresp: F[Response[Nothing]])(implicit
-      F: Functor[F]
-  ): F[Response[G]] =
-    fresp.asInstanceOf
 
   /** Representation of the HTTP response to send back to the client
     *
