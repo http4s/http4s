@@ -211,12 +211,13 @@ private[blaze] class Http1ServerStage[F[_]](
               .flatMap {
                 case Right(_) => F.unit
                 case Left(t) =>
-                  F.delay(logger.error(t)(s"Error running request: $req")).guarantee(
-                    F.delay {
-                      cancelToken = None
-                      closeConnection()
-                    }
-                  )
+                  F.delay(logger.error(t)(s"Error running request: $req"))
+                    .guarantee(
+                      F.delay {
+                        cancelToken = None
+                        closeConnection()
+                      }
+                    )
               }
 
             cancelToken = Some(dispatcher.unsafeToFutureCancelable(action)._2)
