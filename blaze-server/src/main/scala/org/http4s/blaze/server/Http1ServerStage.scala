@@ -110,7 +110,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] var cancelToken: Option[() => Future[Unit]] = None
+  @volatile private[this] var cancelToken: Option[() => Future[Unit]] = None
 
   val name = "Http4sServerStage"
 
@@ -210,18 +210,12 @@ private[blaze] class Http1ServerStage[F[_]](
               .flatMap {
                 case Right(_) => F.unit
                 case Left(t) =>
-                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
-                    closeConnection()
-                  )
+                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *>
+                    F.delay { cancelToken = None } *>
+                    F.delay(closeConnection())
               }
 
-            val token = Some(dispatcher.unsafeToFutureCancelable(action)._2)
-
-            parser.synchronized {
-              cancelToken = token
-            }
-
-            ()
+            cancelToken = Some(dispatcher.unsafeToFutureCancelable(action)._2)
           }
         })
       case Left((e, protocol)) =>
