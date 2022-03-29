@@ -20,6 +20,7 @@ package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
+import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
 import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
@@ -210,9 +211,13 @@ private[blaze] class Http1ServerStage[F[_]](
               .flatMap {
                 case Right(_) => F.unit
                 case Left(t) =>
-                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *>
-                    F.delay { cancelToken = None } *>
-                    F.delay(closeConnection())
+                  F.delay(logger.error(t)(s"Error running request: $req"))
+                    .guarantee(
+                      F.delay {
+                        cancelToken = None
+                        closeConnection()
+                      }
+                    )
               }
 
             cancelToken = Some(dispatcher.unsafeToFutureCancelable(action)._2)
