@@ -33,7 +33,7 @@ it helps to be familiar with its dependencies.
 * [cats-effect](https://typelevel.github.io/cats-effect) is used to
   mark effectful code.
   * [An IO monad for cats](https://typelevel.org/blog/2017/05/02/io-monad-for-cats.html)
-* [FS2](https://functional-streams-for-scala.github.io/fs2/) provides
+* [FS2](https://fs2.io) provides
   support for streaming.
-  * [The Official Guide](https://github.com/functional-streams-for-scala/fs2/blob/series/0.10/docs/guide.md)
+  * [The Official Guide](https://fs2.io/#/guide)
 * [Circe](https://circe.github.io/circe/) is the recommended library for JSON.
