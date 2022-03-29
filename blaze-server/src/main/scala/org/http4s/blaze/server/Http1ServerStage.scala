@@ -292,7 +292,6 @@ private[blaze] class Http1ServerStage[F[_]](
           false,
         )
 
-    // TODO: pool shifting: https://github.com/http4s/http4s/blob/main/core/src/main/scala/org/http4s/internal/package.scala#L45
     val fa = bodyEncoder
       .write(rr, resp.body)
       .recover { case EOF => true }
@@ -303,15 +302,19 @@ private[blaze] class Http1ServerStage[F[_]](
             logger.trace("Request/route requested closing connection.")
             F.delay(closeConnection())
           } else
-            F.delay {
+            F.async_[Unit] { cb =>
               bodyCleanup().onComplete {
                 case s @ Success(_) => // Serve another request
-                  parser.reset()
-                  handleReqRead(s)
+                  cb(Right {
+                    parser.reset()
+                    handleReqRead(s)
+                  })
 
-                case Failure(EOF) => closeConnection()
+                case Failure(EOF) =>
+                  cb(Right(closeConnection()))
 
-                case Failure(t) => fatalError(t, "Failure in body cleanup")
+                case Failure(t) =>
+                  cb(Right(fatalError(t, "Failure in body cleanup")))
               }(trampoline)
             }
         case Left(t) =>
