@@ -47,7 +47,8 @@ object Metrics {
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
     * @param ops a algebra describing the metrics operations
-    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param classifierF a function that allows to add a classifier that can be customized per request, with the type
+    *                    being specified within the Classifier generic type
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
@@ -67,7 +68,8 @@ object Metrics {
     * @note Compiling the request body in `classifierF` is unsafe, unless you are using some caching middleware.
     *
     * @param ops a algebra describing the metrics operations
-    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param classifierF a function that allows to add a classifier that can be customized per request, with the type being
+    *                    being specified within the Classifier generic type
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */

@@ -21,7 +21,9 @@ import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Status
 
-/** Describes an algebra capable of writing metrics to a metrics registry
+/** Describes an algebra capable of writing metrics to a metrics registry.
+  *  The Classifier generic type is shared with [[org.http4s.server.middleware.Metrics]] and
+  * [[org.http4s.client.middleware.Metrics]].
   */
 trait MetricsOps[F[_], Classifier] {
 

@@ -49,7 +49,8 @@ object Metrics {
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
     * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
-    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param classifierF a function that allows to add a classifier that can be customized per request, with the type being
+    *                    specified within the Classifier generic type
     * @return the metrics middleware
     */
   def apply[F[_], Classifier](
@@ -74,7 +75,8 @@ object Metrics {
     * @param ops a algebra describing the metrics operations
     * @param emptyResponseHandler an optional http status to be registered for requests that do not match
     * @param errorResponseHandler a function that maps a [[java.lang.Throwable]] to an optional http status code to register
-    * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param classifierF a function that allows to add a classifier that can be customized per request, with the type being
+    *                    specified within the Classifier generic type
     * @return the metrics middleware
     */
   def effect[F[_], Classifier](
