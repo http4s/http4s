@@ -260,22 +260,19 @@ private final class Http1Connection[F[_]](
       idleTimeoutS: F[Either[Throwable, Unit]],
       idleRead: Option[Future[ByteBuffer]],
   ): F[Response[F]] =
-    F.async[Response[F]] { cb =>
-      F.delay {
-        idleRead match {
-          case Some(read) =>
-            handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
-          case None =>
-            handleRead(
-              channelRead(),
-              cb,
-              closeOnFinish,
-              doesntHaveBody,
-              "Initial Read",
-              idleTimeoutS,
-            )
-        }
-        None
+    F.async_[Response[F]] { cb =>
+      idleRead match {
+        case Some(read) =>
+          handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
+        case None =>
+          handleRead(
+            channelRead(),
+            cb,
+            closeOnFinish,
+            doesntHaveBody,
+            "Initial Read",
+            idleTimeoutS,
+          )
       }
     }
 
