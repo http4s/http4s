@@ -23,19 +23,19 @@ import org.http4s.Status
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
-trait MetricsOps[F[_]] {
+trait MetricsOps[F[_], Classifier] {
 
   /** Increases the count of active requests
     *
     * @param classifier the classifier to apply
     */
-  def increaseActiveRequests(classifier: Option[String]): F[Unit]
+  def increaseActiveRequests(classifier: Option[Classifier]): F[Unit]
 
   /** Decreases the count of active requests
     *
     * @param classifier the classifier to apply
     */
-  def decreaseActiveRequests(classifier: Option[String]): F[Unit]
+  def decreaseActiveRequests(classifier: Option[Classifier]): F[Unit]
 
   /** Records the time to receive the response headers
     *
@@ -43,7 +43,7 @@ trait MetricsOps[F[_]] {
     * @param elapsed the time to record
     * @param classifier the classifier to apply
     */
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[Classifier]): F[Unit]
 
   /** Records the time to fully consume the response, including the body
     *
@@ -56,7 +56,7 @@ trait MetricsOps[F[_]] {
       method: Method,
       status: Status,
       elapsed: Long,
-      classifier: Option[String],
+      classifier: Option[Classifier],
   ): F[Unit]
 
   /** Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
@@ -68,7 +68,7 @@ trait MetricsOps[F[_]] {
   def recordAbnormalTermination(
       elapsed: Long,
       terminationType: TerminationType,
-      classifier: Option[String],
+      classifier: Option[Classifier],
   ): F[Unit]
 }
 

@@ -51,9 +51,9 @@ object Metrics {
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def apply[F[_]](
-      ops: MetricsOps[F],
-      classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
+  def apply[F[_], Classifier](
+      ops: MetricsOps[F, Classifier],
+      classifierF: Request[F] => Option[Classifier] = { (_: Request[F]) =>
         None
       },
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
@@ -71,15 +71,18 @@ object Metrics {
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def effect[F[_]](ops: MetricsOps[F], classifierF: Request[F] => F[Option[String]])(
+  def effect[F[_], Classifier](
+      ops: MetricsOps[F, Classifier],
+      classifierF: Request[F] => F[Option[Classifier]],
+  )(
       client: Client[F]
   )(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF))
 
-  private def withMetrics[F[_]](
+  private def withMetrics[F[_], Classifier](
       client: Client[F],
-      ops: MetricsOps[F],
-      classifierF: Request[F] => F[Option[String]],
+      ops: MetricsOps[F, Classifier],
+      classifierF: Request[F] => F[Option[Classifier]],
   )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     for {
       statusRef <- Resource.eval(C.ref[Option[Status]](None))
@@ -94,10 +97,10 @@ object Metrics {
       )
     } yield resp
 
-  private def executeRequestAndRecordMetrics[F[_]](
+  private def executeRequestAndRecordMetrics[F[_], Classifier](
       client: Client[F],
-      ops: MetricsOps[F],
-      classifierF: Request[F] => F[Option[String]],
+      ops: MetricsOps[F, Classifier],
+      classifierF: Request[F] => F[Option[Classifier]],
       req: Request[F],
       statusRef: Ref[F, Option[Status]],
       start: Long,
@@ -127,7 +130,11 @@ object Metrics {
       )
     }
 
-  private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
+  private def registerError[F[_], Classifier](
+      start: Long,
+      ops: MetricsOps[F, Classifier],
+      classifier: Option[Classifier],
+  )(
       e: Throwable
   )(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
     F.monotonic
