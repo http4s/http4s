@@ -314,7 +314,7 @@ val registry = SharedMetricRegistries.getOrCreate("default")
 val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
 
 val meteredClient =
-  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
+  Metrics[IO, String](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
 ```
 
 A `classifier` is just a function `Request[F] => Option[String]` that allows
@@ -346,7 +346,7 @@ val prefixedClient: Resource[IO, Client[IO]] =
   for {
     registry <- Prometheus.collectorRegistry[IO]
     metrics <- Prometheus.metricsOps[IO](registry, "prefix")
-  } yield Metrics[IO](metrics, classifier)(httpClient)
+  } yield Metrics[IO, String](metrics, classifier)(httpClient)
 ```
 
 

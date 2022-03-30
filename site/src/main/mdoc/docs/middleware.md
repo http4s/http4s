@@ -183,7 +183,7 @@ import com.codahale.metrics.SharedMetricRegistries
 ```scala mdoc
 val registry = SharedMetricRegistries.getOrCreate("default")
 
-val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(apiService)
+val meteredRoutes = Metrics[IO, String](Dropwizard(registry, "server"))(apiService)
 ```
 
 #### Prometheus Metrics Middleware
@@ -213,7 +213,7 @@ val meteredRouter: Resource[IO, HttpRoutes[IO]] =
     metricsSvc <- PrometheusExportService.build[IO]
     metrics <- Prometheus.metricsOps[IO](metricsSvc.collectorRegistry, "server")
     router = Router[IO](
-      "/api" -> Metrics[IO](metrics)(apiService),
+      "/api" -> Metrics[IO, String](metrics)(apiService),
       "/" -> metricsSvc.routes
     )
   } yield router
