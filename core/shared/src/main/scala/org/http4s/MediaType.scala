@@ -265,7 +265,7 @@ object MediaType extends MimeDB {
       .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
       .toMap
 
-  val extensionMap: Map[String, MediaType] =
+  lazy val extensionMap: Map[String, MediaType] =
     allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
 
   val parser: Parser[MediaType] = {
