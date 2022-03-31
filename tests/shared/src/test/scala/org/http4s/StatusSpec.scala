@@ -110,12 +110,6 @@ class StatusSpec extends Http4sSuite {
     forAll((s: Status) => isSanitized(s))
   }
 
-  test("#5736 regression") {
-    val reason = "椗찦铝宏ýುؽ汃붒ᷖ鯣츑䭚䩰ܨ瀏ĵꎉ쎿뎯뾥뛾틨ޡ囨"
-    val s = Status.fromInt(200).toOption.get.withReason(reason): @nowarn("cat=deprecation")
-    assert(isSanitized(s))
-  }
-
   private def getStatus(code: Int) =
     fromInt(code) match {
       case Right(s) => s
