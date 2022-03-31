@@ -278,7 +278,7 @@ final case class Mime(mainType: String, secondaryType: String, descr: MimeDescr)
   val valName: String = s"`$secondaryType`"
   def toTree(mediaTypeClass: ClassSymbol): Tree =
     if (descr.extensions.isEmpty) {
-      LAZYVAL(valName, mediaTypeClass) := NEW(
+      DEF(valName, mediaTypeClass) := NEW(
         mediaTypeClass,
         LIT(mainType),
         LIT(secondaryType),
@@ -286,7 +286,7 @@ final case class Mime(mainType: String, secondaryType: String, descr: MimeDescr)
         binaryRef,
       )
     } else {
-      LAZYVAL(valName, mediaTypeClass) := NEW(
+      DEF(valName, mediaTypeClass) := NEW(
         mediaTypeClass,
         LIT(mainType),
         LIT(secondaryType),
