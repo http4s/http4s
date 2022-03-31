@@ -293,11 +293,17 @@ object MediaType extends MimeDB {
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)
 
-  private[http4s] def getMediaType(mainType: String, subType: String): MediaType =
-    MediaType.all.getOrElse(
-      (mainType.toLowerCase, subType.toLowerCase),
-      new MediaType(mainType.toLowerCase, subType.toLowerCase),
-    )
+  private[http4s] def getMediaType(_mainType: String, _subType: String): MediaType = {
+    val mainType = _mainType.toLowerCase
+    val subType = _subType.toLowerCase
+    if (Platform.isJvm)
+      MediaType.all.getOrElse(
+        (mainType, subType),
+        new MediaType(mainType, subType),
+      )
+    else // don't link the MimeDB!!!!
+      new MediaType(mainType, subType, binary = isBinary(mainType, subType))
+  }
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals
@@ -313,5 +319,79 @@ object MediaType extends MimeDB {
         MediaRange.renderExtensions(writer, mt)
         writer
       }
+    }
+
+  // only include `true`s since `false` is fallback
+  private[this] def isBinary(mainType: String, subType: String): Boolean =
+    mainType match {
+      case "audio" => true
+      case "image" => true
+      case "video" => true
+      case "application" =>
+        subType match {
+          case "base64" => true
+          case "excel" => true
+          case "font-woff" => true
+          case "gnutar" => true
+          case "gzip" => true
+          case "hal+json" => true
+          case "java-archive" => true
+          case "json" => true
+          case "lha" => true
+          case "lzx" => true
+          case "mspowerpoint" => true
+          case "msword" => true
+          case "octet-stream" => true
+          case "pdf" => true
+          case "problem+json" => true
+          case "postscript" => true
+          case "vnd.api+json" => true
+          case "vnd.google-earth.kmz" => true
+          case "vnd.ms-fontobject" => true
+          case "vnd.oasis.opendocument.chart" => true
+          case "vnd.oasis.opendocument.database" => true
+          case "vnd.oasis.opendocument.formula" => true
+          case "vnd.oasis.opendocument.graphics" => true
+          case "vnd.oasis.opendocument.image" => true
+          case "vnd.oasis.opendocument.presentation" => true
+          case "vnd.oasis.opendocument.spreadsheet" => true
+          case "vnd.oasis.opendocument.text" => true
+          case "vnd.oasis.opendocument.text-master" => true
+          case "vnd.oasis.opendocument.text-web" => true
+          case "vnd.openxmlformats-officedocument.presentationml.presentation" => true
+          case "vnd.openxmlformats-officedocument.presentationml.slide" => true
+          case "vnd.openxmlformats-officedocument.presentationml.slideshow" => true
+          case "vnd.openxmlformats-officedocument.presentationml.template" => true
+          case "vnd.openxmlformats-officedocument.spreadsheetml.sheet" => true
+          case "vnd.openxmlformats-officedocument.spreadsheetml.template" => true
+          case "vnd.openxmlformats-officedocument.wordprocessingml.document" => true
+          case "vnd.openxmlformats-officedocument.wordprocessingml.template" => true
+          case "x-7z-compressed" => true
+          case "x-ace-compressed" => true
+          case "x-apple-diskimage" => true
+          case "x-arc-compressed" => true
+          case "x-bzip" => true
+          case "x-bzip2" => true
+          case "x-chrome-extension" => true
+          case "x-compress" => true
+          case "x-debian-package" => true
+          case "x-dvi" => true
+          case "x-font-truetype" => true
+          case "x-font-opentype" => true
+          case "x-gtar" => true
+          case "x-gzip" => true
+          case "x-latex" => true
+          case "x-rar-compressed" => true
+          case "x-redhat-package-manager" => true
+          case "x-shockwave-flash" => true
+          case "x-tar" => true
+          case "x-tex" => true
+          case "x-texinfo" => true
+          case "x-x509-ca-cert" => true
+          case "x-xpinstall" => true
+          case "zip" => true
+          case _ => false
+        }
+      case _ => false
     }
 }
