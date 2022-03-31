@@ -166,10 +166,7 @@ object MediaRange {
     if (subType === "*")
       MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
     else
-      MediaType.all.getOrElse(
-        (mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType.toLowerCase, subType.toLowerCase),
-      )
+      MediaType.getMediaType(mainType, subType)
 
   implicit val http4sShowForMediaRange: Show[MediaRange] =
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
