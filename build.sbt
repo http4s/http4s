@@ -103,10 +103,8 @@ lazy val root = tlCrossRootProject
   .aggregate(modules: _*)
 
 lazy val core = libraryCrossProject("core")
-  .enablePlugins(
-    BuildInfoPlugin,
-    MimeLoaderPlugin,
-  )
+  .enablePlugins(BuildInfoPlugin)
+  .jvmEnablePlugins(MimeLoaderPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
     startYear := Some(2013),

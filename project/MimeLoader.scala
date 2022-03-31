@@ -10,7 +10,7 @@ import org.http4s.implicits._
 import org.http4s.circe._
 import org.http4s.ember.client.EmberClientBuilder
 import sbt._
-import sbt.Keys.scalaSource
+import sbt.Keys._
 import scala.concurrent.ExecutionContext.global
 import scala.io.Source
 import treehugger.forest._
@@ -29,7 +29,10 @@ object MimeLoaderPlugin extends AutoPlugin {
     generateMimeDb := {
       MimeLoader
         .toFile(
-          new File((Compile / scalaSource).value / "org" / "http4s", "MimeDB.scala"),
+          new File(
+            baseDirectory.value / ".." / "shared" / "src" / "main" / "scala" / "org" / "http4s",
+            "MimeDB.scala",
+          ),
           "org.http4s",
           "MimeDB",
           "MediaType",
@@ -46,7 +49,8 @@ object MimeLoaderPlugin extends AutoPlugin {
   */
 object MimeLoader {
   implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
-  val url = uri"https://cdn.rawgit.com/jshttp/mime-db/master/db.json"
+  val url =
+    uri"https://raw.githubusercontent.com/jshttp/mime-db/v1.48.0/db.json"
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
