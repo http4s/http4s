@@ -1200,6 +1200,12 @@ lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
     scalacOptions -= "-Xfatal-warnings"
   )
 
+lazy val exampleClient = exampleJSProject("examples-client")
+  .dependsOn(client.js, circe.js)
+  .settings(
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
   .enablePlugins(JavaAppPackaging, DockerPlugin, NoPublishPlugin)
