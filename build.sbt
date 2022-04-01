@@ -866,6 +866,10 @@ lazy val blazeClient = libraryProject("blaze-client")
         .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
       ProblemFilters
         .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Support.this"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Support.makeClient"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
