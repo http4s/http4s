@@ -73,7 +73,10 @@ private final class Http1Support[F[_]](
     connectTimeout,
   )
 
-  def makeClient(requestKey: RequestKey, executionContext: ExecutionContext): F[BlazeConnection[F]] =
+  def makeClient(
+      requestKey: RequestKey,
+      executionContext: ExecutionContext,
+  ): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
       case Right(a) =>
         fromFutureNoShift(F.delay(buildPipeline(requestKey, a, executionContext)))
