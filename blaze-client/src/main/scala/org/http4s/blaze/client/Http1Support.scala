@@ -20,7 +20,6 @@ package client
 
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.syntax.all._
 import org.http4s.blaze.channel.ChannelOptions
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.Command
@@ -28,7 +27,6 @@ import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.blazecore.ExecutionContextConfig
 import org.http4s.blazecore.IdleTimeoutStage
 import org.http4s.blazecore.util.fromFutureNoShift
 import org.http4s.client.ConnectionFailure
@@ -53,7 +51,6 @@ private final class Http1Support[F[_]](
     sslContextOption: SSLContextOption,
     bufferSize: Int,
     asynchronousChannelGroup: Option[AsynchronousChannelGroup],
-    executionContextConfig: ExecutionContextConfig,
     scheduler: TickWheelExecutor,
     checkEndpointIdentification: Boolean,
     maxResponseLineSize: Int,
@@ -76,14 +73,10 @@ private final class Http1Support[F[_]](
     connectTimeout,
   )
 
-  def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
+  def makeClient(requestKey: RequestKey, executionContext: ExecutionContext): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
       case Right(a) =>
-        fromFutureNoShift(
-          executionContextConfig.getExecutionContext.flatMap(ec =>
-            F.delay(buildPipeline(requestKey, a, ec))
-          )
-        )
+        fromFutureNoShift(F.delay(buildPipeline(requestKey, a, executionContext)))
       case Left(t) => F.raiseError(t)
     }
 

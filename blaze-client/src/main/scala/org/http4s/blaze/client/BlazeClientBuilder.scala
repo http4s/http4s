@@ -408,7 +408,6 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
             sslContextOption = sslContext,
             bufferSize = bufferSize,
             asynchronousChannelGroup = asynchronousChannelGroup,
-            executionContextConfig = executionContextConfig,
             scheduler = scheduler,
             checkEndpointIdentification = checkEndpointIdentification,
             maxResponseLineSize = maxResponseLineSize,
@@ -422,7 +421,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
             dispatcher = dispatcher,
             idleTimeout = idleTimeout,
             getAddress = customDnsResolver.getOrElse(BlazeClientBuilder.getAddress(_)),
-          ).makeClient(requestKey)
+          ).makeClient(requestKey, executionContext)
 
     for {
       dispatcher <- Dispatcher[F]
