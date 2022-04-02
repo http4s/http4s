@@ -1100,11 +1100,16 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
     scalaJSUseMainModuleInitializer := true,
     Test / test := {
       val log = streams.value.log
-      val size = (Compile / fullOptJS).value.data.length();
-      val sizeMB = size / 1e6
-      val targetMB = 1.3 // not a hard limit. increase moderately if need be
-      val msg = s"fullOptJS generated ${sizeMB} MB artifact (target: <$targetMB MB)"
-      if (sizeMB < targetMB)
+      val file = (Compile / fullOptJS).value.data
+      val size = io.Using.fileInputStream(file) { in =>
+        var size = 0L
+        IO.gzip(in, _ => size += 1)
+        size
+      }
+      val sizeKB = size / 1e3
+      val targetKB = 400 // not a hard limit. increase moderately if need be
+      val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
+      if (sizeKB < targetKB)
         log.info(msg)
       else
         sys.error(msg)
