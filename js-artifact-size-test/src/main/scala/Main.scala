@@ -15,15 +15,15 @@
  */
 
 import cats.effect._
-import org.http4s.client._
-import org.http4s.circe.CirceEntityCodec._
 import io.circe._
+import org.http4s.circe.CirceEntityCodec._
+import org.http4s.client._
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation._
 
 object Main extends IOApp.Simple {
-  def run = client.expect[Json]("https://www.boredapi.com/api/activity").void
+  def run: IO[Unit] = client.expect[Json]("https://www.boredapi.com/api/activity").void
 
   @JSGlobal("client")
   @js.native
