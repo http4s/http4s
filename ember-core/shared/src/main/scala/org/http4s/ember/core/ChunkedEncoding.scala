@@ -54,31 +54,32 @@ private[ember] object ChunkedEncoding {
   )(implicit F: MonadThrow[F]): Stream[F, Byte] = {
     // on left reading the header of chunk (acting as buffer)
     // on right reading the chunk itself, and storing remaining bytes of the chunk
-    def go(expect: Either[ByteVector, Long], head: Array[Byte]): Pull[F, Byte, Unit] = {
-      val nextChunk =
-        if (head.nonEmpty) Pull.pure(Some(Chunk.byteVector(ByteVector.apply(head))))
-        else Pull.eval(read)
-      nextChunk.flatMap {
+    def go(expect: Either[ByteVector, Long], head: ByteVector): Pull[F, Byte, Unit] = {
+      val nextBytes =
+        if (head.nonEmpty)
+          Pull.pure(Some(head))
+        else
+          Pull.eval(read).map(_.map(_.toByteVector))
+
+      nextBytes.flatMap {
         case None =>
           Pull.raiseError(EmberException.ReachedEndOfStream())
-        case Some(h) =>
-          val bv = h.toByteVector
+
+        case Some(bv) =>
           expect match {
             case Left(header) =>
               val nh = header ++ bv
               val endOfHeader = nh.indexOfSlice(`\r\n`)
               if (endOfHeader == 0)
-                go(
-                  expect,
-                  nh.drop(`\r\n`.size).toArray,
-                ) // strip any leading crlf on header, as this starts with /r/n
+                // strip any leading crlf on header, as this starts with /r/n
+                go(expect, nh.drop(`\r\n`.size))
               else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](
                   EmberException.ChunkedEncodingError(
                     s"Failed to get Chunk header. Size exceeds max($maxChunkHeaderSize) : ${nh.size} ${nh.decodeUtf8}"
                   )
                 )
-              else if (endOfHeader < 0) go(Left(nh), Array.emptyByteArray)
+              else if (endOfHeader < 0) go(Left(nh), ByteVector.empty)
               else {
                 val (hdr, rem) = nh.splitAt(endOfHeader + `\r\n`.size)
                 readChunkedHeader(hdr.dropRight(`\r\n`.size)) match {
@@ -96,28 +97,22 @@ private[ember] object ChunkedEncoding {
                           trailers.complete(t.headers) >> rest.set(Some(t.rest))
                         }
                     ) >> Pull.done
-                  case Some(sz) => go(Right(sz), rem.toArray)
+                  case Some(sz) => go(Right(sz), rem)
                 }
               }
 
             case Right(remains) =>
-              if (remains == bv.size)
-                Pull
-                  .output(Chunk.byteVector(bv)) >> go(Left(ByteVector.empty), Array.emptyByteArray)
-              else if (remains > bv.size)
-                Pull.output(Chunk.byteVector(bv)) >> go(
-                  Right(remains - bv.size),
-                  Array.emptyByteArray,
-                )
+              if (remains > bv.size)
+                Pull.output(Chunk.byteVector(bv)) >> go(Right(remains - bv.size), ByteVector.empty)
               else {
                 val (out, next) = bv.splitAt(remains.toLong)
-                Pull.output(Chunk.byteVector(out)) >> go(Left(ByteVector.empty), next.toArray)
+                Pull.output(Chunk.byteVector(out)) >> go(Left(ByteVector.empty), next)
               }
           }
       }
     }
 
-    go(Left(ByteVector.empty), head).stream
+    go(Left(ByteVector.empty), ByteVector.view(head)).stream
   }
 
   final case class Trailers(headers: Headers, rest: Array[Byte])
