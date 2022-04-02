@@ -90,18 +90,25 @@ private[http4s] final class IdleTimeoutStage[A](
     @tailrec def go(): Unit =
       timeoutState.get() match {
         case Disabled =>
-          val newCancel = exec.schedule(timeoutTask, timeout)
-          if (timeoutState.compareAndSet(Disabled, Enabled(timeoutTask, newCancel))) ()
-          else {
-            newCancel.cancel()
-            go()
+          tryScheduling(timeoutTask) match {
+            case Some(newCancel) =>
+              if (timeoutState.compareAndSet(Disabled, Enabled(timeoutTask, newCancel))) ()
+              else {
+                newCancel.cancel()
+                go()
+              }
+            case None => ()
           }
         case old @ Enabled(_, oldCancel) =>
-          val newCancel = exec.schedule(timeoutTask, timeout)
-          if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
-          else {
-            newCancel.cancel()
-            go()
+          tryScheduling(timeoutTask) match {
+            case Some(newCancel) =>
+              if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel)))
+                oldCancel.cancel()
+              else {
+                newCancel.cancel()
+                go()
+              }
+            case None => ()
           }
         case _ => ()
       }
@@ -112,18 +119,21 @@ private[http4s] final class IdleTimeoutStage[A](
   @tailrec private def resetTimeout(): Unit =
     timeoutState.get() match {
       case old @ Enabled(timeoutTask, oldCancel) =>
-        val newCancel = exec.schedule(timeoutTask, timeout)
-        if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
-        else {
-          newCancel.cancel()
-          resetTimeout()
+        tryScheduling(timeoutTask) match {
+          case Some(newCancel) =>
+            if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
+            else {
+              newCancel.cancel()
+              resetTimeout()
+            }
+          case None => ()
         }
       case _ => ()
     }
 
   @tailrec def cancelTimeout(): Unit =
     timeoutState.get() match {
-      case old @ IdleTimeoutStage.Enabled(_, cancel) =>
+      case old @ Enabled(_, cancel) =>
         if (timeoutState.compareAndSet(old, Disabled)) cancel.cancel()
         else cancelTimeout()
       case _ => ()
