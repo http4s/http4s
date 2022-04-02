@@ -78,6 +78,7 @@ lazy val modules: List[CompositeProject] = List(
   twirl,
   scalatags,
   bench,
+  jsArtifactSizeTest,
   unidocs,
   examples,
   examplesBlaze,
@@ -1093,6 +1094,24 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
+lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .settings(
+    scalaJSUseMainModuleInitializer := true,
+    Test / test := {
+      val log = streams.value.log
+      val size = (Compile / fullOptJS).value.data.length();
+      val sizeMB = size / 1e6
+      val targetMB = 1.3 // not a hard limit. increase moderately if need be
+      val msg = s"fullOptJS generated ${sizeMB} MB artifact (target: <$targetMB MB)"
+      if (sizeMB < targetMB)
+        log.info(msg)
+      else
+        sys.error(msg)
+    },
+  )
+  .dependsOn(client.js, circe.js)
+
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
   .settings(
@@ -1194,12 +1213,6 @@ lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
 
 lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
   .dependsOn(emberClient.js)
-  .settings(
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
-lazy val exampleClient = exampleJSProject("examples-client")
-  .dependsOn(client.js, circe.js)
   .settings(
     scalacOptions -= "-Xfatal-warnings"
   )
