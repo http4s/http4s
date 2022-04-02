@@ -26,7 +26,6 @@ import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -35,7 +34,7 @@ import scala.util.control.NonFatal
 
 package object server {
   object defaults {
-    val Banner =
+    val Banner: List[String] =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
          | | ' \  _|  _| '_ \_  _(_-<
@@ -181,7 +180,7 @@ package object server {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(ci"close"),
+              Connection.close,
               `Content-Length`.zero,
             ),
           )

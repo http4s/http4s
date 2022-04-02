@@ -244,7 +244,7 @@ object Uri extends UriPlatform {
       hash
     }
 
-    override def toString = s"Scheme($value)"
+    override def toString: String = s"Scheme($value)"
 
     override def compare(other: Scheme): Int =
       value.compareToIgnoreCase(other.value)

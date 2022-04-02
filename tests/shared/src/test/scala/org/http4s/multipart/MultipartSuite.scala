@@ -203,6 +203,15 @@ I am a big moose
       val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
       assert(request.isChunked)
     }
+
+    test("Multipart should be encoded with a \\r\\n after the final part for robustness") {
+      val field1 = Part.formData[IO]("bow", "wow")
+      val multipart = Multipart[IO](Vector(field1), Boundary("arf"))
+      val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+      val request =
+        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
+      request.as[String].map(s => assert(s.endsWith("--arf--\r\n"), s))
+    }
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))

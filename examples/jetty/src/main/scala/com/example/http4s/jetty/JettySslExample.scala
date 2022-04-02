@@ -22,13 +22,15 @@ import com.example.http4s.ssl
 import org.http4s.jetty.server.JettyBuilder
 import org.http4s.server.Server
 
+import javax.net.ssl.SSLContext
+
 object JettySslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     JettySslExampleApp.resource[IO].use(_ => IO.never).as(ExitCode.Success)
 }
 
 object JettySslExampleApp {
-  def sslContext[F[_]: Sync] =
+  def sslContext[F[_]: Sync]: F[SSLContext] =
     ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
 
   def builder[F[_]: Async]: F[JettyBuilder[F]] =

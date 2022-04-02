@@ -20,6 +20,7 @@ package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
+import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
 import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
@@ -40,7 +41,6 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
 import org.http4s.websocket.WebSocketContext
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.nio.ByteBuffer
@@ -111,7 +111,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] var cancelToken: Option[() => Future[Unit]] = None
+  @volatile private[this] var cancelToken: Option[() => Future[Unit]] = None
 
   val name = "Http4sServerStage"
 
@@ -211,18 +211,16 @@ private[blaze] class Http1ServerStage[F[_]](
               .flatMap {
                 case Right(_) => F.unit
                 case Left(t) =>
-                  F.delay(logger.error(t)(s"Error running request: $req")).attempt *> F.delay(
-                    closeConnection()
-                  )
+                  F.delay(logger.error(t)(s"Error running request: $req"))
+                    .guarantee(
+                      F.delay {
+                        cancelToken = None
+                        closeConnection()
+                      }
+                    )
               }
 
-            val token = Some(dispatcher.unsafeToFutureCancelable(action)._2)
-
-            parser.synchronized {
-              cancelToken = token
-            }
-
-            ()
+            cancelToken = Some(dispatcher.unsafeToFutureCancelable(action)._2)
           }
         })
       case Left((e, protocol)) =>
@@ -357,7 +355,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -370,7 +368,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(
       req,
       resp,

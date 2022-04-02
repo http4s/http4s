@@ -24,10 +24,9 @@ import fs2.concurrent.SignallingRef
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
+import org.http4s.blazecore.websocket.WebSocketHandshake
 import org.http4s.headers._
 import org.http4s.websocket.WebSocketContext
-import org.http4s.websocket.WebSocketHandshake
-import org.typelevel.ci._
 import org.typelevel.vault.Key
 
 import java.nio.ByteBuffer
@@ -66,7 +65,7 @@ private[http4s] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 wsContext.failureResponse
                   .map(
                     _.withHeaders(
-                      Connection(ci"close"),
+                      Connection.close,
                       "Sec-WebSocket-Version" -> "13",
                     )
                   )

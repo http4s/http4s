@@ -20,6 +20,8 @@ package client
 import cats.data._
 import cats.effect.Ref
 import cats.effect._
+import cats.effect.kernel.CancelScope
+import cats.effect.kernel.Poll
 import cats.syntax.all._
 import cats.~>
 import fs2._
@@ -148,17 +150,6 @@ trait Client[F[_]] {
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]
 
-  @deprecated("use public method with MonadCancelThrow instead", since = "0.23.7")
-  private[client] def translate[G[_]: Async](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
-
-  /** Translates the effect type of this client from F to G
-    */
-  def translate[G[_]: MonadCancelThrow](
-      fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = translateImpl(fk)(gK)
-
   /** As [[expectOptionOr]], but defined in terms of [[cats.data.OptionT]]. */
   final def expectOptionOrT[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
       d: EntityDecoder[F, A]
@@ -169,15 +160,57 @@ trait Client[F[_]] {
   final def expectOptionT[A](req: Request[F])(implicit d: EntityDecoder[F, A]): OptionT[F, A] =
     OptionT(expectOption[A](req)(d))
 
-  private[client] def translateImpl[G[_]: MonadCancelThrow](
+  /** Translates the effect type of this client from F to G
+    */
+  def translate[G[_]](
       fk: F ~> G
-  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] =
-    Client((req: Request[G]) =>
+  )(gK: G ~> F)(implicit F: MonadCancelThrow[F]): Client[G] = {
+    implicit val G: MonadCancelThrow[G] = liftMonadCancel(F)(fk)(gK)
+    Client[G]((req: Request[G]) =>
       run(
         req.mapK(gK)
       ).mapK(fk)
         .map(_.mapK(fk))
     )
+  }
+
+  private[this] def liftMonadCancel[G[_]](
+      F: MonadCancelThrow[F]
+  )(fk: F ~> G)(gk: G ~> F): MonadCancelThrow[G] =
+    new MonadCancelThrow[G] {
+      def pure[A](x: A): G[A] = fk(F.pure(x))
+
+      // Members declared in cats.ApplicativeError
+      def handleErrorWith[A](ga: G[A])(f: Throwable => G[A]): G[A] =
+        fk(F.handleErrorWith(gk(ga))(ex => gk(f(ex))))
+
+      def raiseError[A](e: Throwable): G[A] = fk(F.raiseError[A](e))
+
+      // Members declared in cats.FlatMap
+      def flatMap[A, B](ga: G[A])(f: A => G[B]): G[B] =
+        fk(F.flatMap(gk(ga))(a => gk(f(a))))
+
+      def tailRecM[A, B](a: A)(f: A => G[Either[A, B]]): G[B] =
+        fk(F.tailRecM(a)(a => gk(f(a))))
+
+      // Members declared in cats.effect.kernel.MonadCancel
+      def canceled: G[Unit] = fk(F.canceled)
+
+      def forceR[A, B](ga: G[A])(gb: G[B]): G[B] =
+        fk(F.forceR(gk(ga))(gk(gb)))
+
+      def onCancel[A](ga: G[A], fin: G[Unit]): G[A] =
+        fk(F.onCancel(gk(ga), gk(fin)))
+
+      def rootCancelScope: CancelScope = F.rootCancelScope
+
+      def uncancelable[A](body: Poll[G] => G[A]): G[A] =
+        fk(F.uncancelable { pollF =>
+          gk(body(new Poll[G] {
+            def apply[B](gb: G[B]): G[B] = fk(pollF(gk(gb)))
+          }))
+        })
+    }
 }
 
 object Client {

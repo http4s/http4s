@@ -33,6 +33,7 @@ import org.http4s.client.defaults
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.SSLContextOption
+import org.log4s.Logger
 import org.log4s.getLogger
 
 import java.net.InetSocketAddress
@@ -97,7 +98,7 @@ final class BlazeClientBuilder[F[_]] private (
     with BackendBuilder[F, Client[F]] {
   type Self = BlazeClientBuilder[F]
 
-  protected final val logger = getLogger(this.getClass)
+  protected final val logger: Logger = getLogger(this.getClass)
 
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -248,6 +249,11 @@ final class BlazeClientBuilder[F[_]] private (
   def withBufferSize(bufferSize: Int): BlazeClientBuilder[F] =
     copy(bufferSize = bufferSize)
 
+  /** Configures the compute thread pool used to run async computations.
+    *
+    * This defaults to `cats.effect.Async[F].executionContext`. In
+    * almost all cases, it is desirable to use the default.
+    */
   def withExecutionContext(executionContext: ExecutionContext): BlazeClientBuilder[F] =
     copy(executionContextConfig = ExecutionContextConfig.ExplicitContext(executionContext))
 

@@ -459,7 +459,7 @@ private[h2] object H2Stream {
       readBuffer: cats.effect.std.Queue[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
   ) {
-    override def toString =
+    override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"
   }
 

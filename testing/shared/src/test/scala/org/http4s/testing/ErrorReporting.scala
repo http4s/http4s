@@ -30,7 +30,6 @@ import cats.Monad
 import cats.syntax.all._
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
-import org.typelevel.ci._
 
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -73,7 +72,7 @@ object ErrorReporting {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(ci"close"),
+              Connection.close,
               `Content-Length`.zero,
             ),
           )
