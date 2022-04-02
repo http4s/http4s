@@ -78,6 +78,7 @@ lazy val modules: List[CompositeProject] = List(
   twirl,
   scalatags,
   bench,
+  jsArtifactSizeTest,
   unidocs,
   examples,
   examplesBlaze,
@@ -103,10 +104,8 @@ lazy val root = tlCrossRootProject
   .aggregate(modules: _*)
 
 lazy val core = libraryCrossProject("core")
-  .enablePlugins(
-    BuildInfoPlugin,
-    MimeLoaderPlugin,
-  )
+  .enablePlugins(BuildInfoPlugin)
+  .jvmEnablePlugins(MimeLoaderPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
     startYear := Some(2013),
@@ -1094,6 +1093,31 @@ lazy val bench = http4sProject("bench")
     unusedCompileDependenciesTest := {},
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
+
+lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .settings(
+    scalaJSUseMainModuleInitializer := true,
+    Test / test := {
+      val log = streams.value.log
+      val file = (Compile / fullOptJS).value.data
+      val size = io.Using.fileInputStream(file) { in =>
+        var size = 0L
+        IO.gzip(in, _ => size += 1)
+        size
+      }
+      val sizeKB = size / 1000
+      // not a hard target. increase *moderately* if need be
+      // linking MimeDB results in a 100 KB increase. don't let that happen :)
+      val targetKB = 350
+      val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
+      if (sizeKB < targetKB)
+        log.info(msg)
+      else
+        sys.error(msg)
+    },
+  )
+  .dependsOn(client.js, circe.js)
 
 lazy val unidocs = http4sProject("unidocs")
   .enablePlugins(TypelevelUnidocPlugin)
