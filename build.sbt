@@ -339,7 +339,6 @@ lazy val blazeCore = libraryProject("blaze-core")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       blazeHttp,
-      crypto.value,
     ),
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")

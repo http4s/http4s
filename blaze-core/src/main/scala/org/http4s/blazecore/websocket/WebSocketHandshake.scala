@@ -20,11 +20,9 @@ import cats.MonadThrow
 import cats.effect.Async
 import cats.effect.std.Random
 import cats.syntax.all._
-import org.http4s.crypto.Hash
-import org.http4s.crypto.HashAlgorithm
-import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets._
+import java.security.MessageDigest
 import java.util.Base64
 
 private[http4s] object WebSocketHandshake {
@@ -124,10 +122,15 @@ private[http4s] object WebSocketHandshake {
 
   private def decodeLen(key: String): Int = Base64.getDecoder.decode(key).length
 
-  private def genAcceptKey[F[_]](str: String)(implicit F: MonadThrow[F]): F[String] = for {
-    data <- F.fromEither(ByteVector.encodeAscii(str))
-    digest <- Hash[F].digest(HashAlgorithm.SHA1, data ++ magicString)
-  } yield digest.toBase64
+  private def genAcceptKey[F[_]](str: String)(implicit F: MonadThrow[F]): F[String] =
+    F.catchNonFatal {
+      val crypt = MessageDigest.getInstance("SHA-1")
+      crypt.reset()
+      crypt.update(str.getBytes(US_ASCII))
+      crypt.update(magicString)
+      val bytes = crypt.digest()
+      Base64.getEncoder.encodeToString(bytes)
+    }
 
   private[websocket] def valueContains(key: String, value: String): Boolean = {
     val parts = value.split(",").map(_.trim)
@@ -143,7 +146,7 @@ private[http4s] object WebSocketHandshake {
   }
 
   private val magicString =
-    ByteVector.view("258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII))
+    "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII)
 
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),
