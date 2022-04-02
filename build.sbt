@@ -13,8 +13,6 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
-ThisBuild / tlCiReleaseBranches += "issue/5273"
-
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
