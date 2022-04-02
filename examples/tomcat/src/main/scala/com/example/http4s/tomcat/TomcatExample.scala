@@ -34,7 +34,7 @@ object TomcatExample extends IOApp {
 object TomcatExampleApp {
   def builder[F[_]: Async]: TomcatBuilder[F] = {
     val metricsRegistry: MetricRegistry = new MetricRegistry
-    val metrics: HttpMiddleware[F] = Metrics[F](Dropwizard(metricsRegistry, "server"))
+    val metrics: HttpMiddleware[F] = Metrics[F, String](Dropwizard(metricsRegistry, "server"))
 
     TomcatBuilder[F]
       .bindHttp(8080)

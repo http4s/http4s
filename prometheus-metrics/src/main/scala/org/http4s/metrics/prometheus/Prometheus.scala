@@ -92,15 +92,15 @@ object Prometheus {
       registry: CollectorRegistry,
       prefix: String = "org_http4s_server",
       responseDurationSecondsHistogramBuckets: NonEmptyList[Double] = DefaultHistogramBuckets,
-  ): Resource[F, MetricsOps[F]] =
+  ): Resource[F, MetricsOps[F, String]] =
     for {
       metrics <- createMetricsCollection(registry, prefix, responseDurationSecondsHistogramBuckets)
     } yield createMetricsOps(metrics)
 
   private def createMetricsOps[F[_]](
       metrics: MetricsCollection
-  )(implicit F: Sync[F]): MetricsOps[F] =
-    new MetricsOps[F] {
+  )(implicit F: Sync[F]): MetricsOps[F, String] =
+    new MetricsOps[F, String] {
       override def increaseActiveRequests(classifier: Option[String]): F[Unit] =
         F.delay {
           metrics.activeRequests
