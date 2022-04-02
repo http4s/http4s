@@ -260,6 +260,9 @@ object MediaType extends MimeDB {
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
 
+  // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
+  // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
+  // JS application where artifact size matters (i.e. browser applications).
   lazy val all: Map[(String, String), MediaType] =
     (`text/event-stream` :: allMediaTypes)
       .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
@@ -321,7 +324,8 @@ object MediaType extends MimeDB {
       }
     }
 
-  // only include `true`s since `false` is fallback
+  // this is duplicated from project/MimeLoader.scala
+  // but only includes trues since false is fallback
   private[this] def isBinary(mainType: String, subType: String): Boolean =
     mainType match {
       case "audio" => true
