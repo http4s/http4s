@@ -90,11 +90,11 @@ class ChunkAggregatorSuite extends Http4sSuite {
       def check(response: Response[IO]) =
         response.body.compile.toVector.map {
           _ === chunks.foldMap(_.toVector) &&
-          (if (totalChunksSize > 0) {
-             response.contentLength === Some(totalChunksSize.toLong) &&
-             response.headers.get[`Transfer-Encoding`].map(_.values) === NonEmptyList
-               .fromList(transferCodings)
-           } else true)
+            (if (totalChunksSize > 0) {
+               response.contentLength === Some(totalChunksSize.toLong) &&
+               response.headers.get[`Transfer-Encoding`].map(_.values) === NonEmptyList
+                 .fromList(transferCodings)
+             } else true)
         }
 
       (
