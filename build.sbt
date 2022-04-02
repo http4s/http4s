@@ -338,7 +338,7 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      blazeHttp,
+      blazeHttp
     ),
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
