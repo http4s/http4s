@@ -1161,7 +1161,6 @@ lazy val docs = http4sProject("site")
       cryptobits,
     ),
     description := "Documentation for http4s",
-    mdocIn := (Compile / sourceDirectory).value / "mdoc",
     tlFatalWarningsInCi := false,
     fork := false,
   )
