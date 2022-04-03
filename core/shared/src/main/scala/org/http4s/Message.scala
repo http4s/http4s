@@ -435,8 +435,7 @@ final class Request[+F[_]] private (
   )(implicit F: Monad[F2]): F2[Response[F2]] =
     decoder
       .decode(this, strict = strict)
-      .fold(_.toHttpResponse(httpVersion).covary[F2].pure[F2], f)
-      .flatten
+      .foldF( e => F.pure(e.toHttpResponse(httpVersion)), f)
 
   /** Helper method for decoding [[Request]]s
     *
