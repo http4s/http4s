@@ -231,12 +231,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
 
   def mapK[F2[x] >: F[x], G[_]](f: F2 ~> G): SelfF[G] =
-    self.change(
-      httpVersion = httpVersion,
-      headers = headers,
-      entity = entity.translate(f),
-      attributes = attributes,
-    )
+    self.change(entity = entity.translate(f))
 }
 
 object Message {
