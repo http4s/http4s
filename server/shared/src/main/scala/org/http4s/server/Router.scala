@@ -39,16 +39,13 @@ object Router {
   )(default: HttpRoutes[F]): HttpRoutes[F] =
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
       val prefixPath = Uri.Path.unsafeFromString(prefix)
-      if (prefixPath.isEmpty) routes <+> acc
-      else
-        Kleisli { req =>
-          (
-            if (req.pathInfo.startsWith(prefixPath))
-              routes.local(translate[F](prefixPath)) <+> acc
-            else
-              acc
-          )(req)
-        }
+
+      Kleisli { req =>
+        if (req.pathInfo.startsWith(prefixPath))
+          routes(translate(prefixPath)(req)).orElse(acc(req))
+        else
+          acc(req)
+      }
     }
 
   private[server] def translate[F[_]](prefix: Uri.Path)(req: Request[F]): Request[F] = {
