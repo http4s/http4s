@@ -115,7 +115,8 @@ private[ember] object H2Server {
         val upgrade = connectionCheck && upgradeCheck
         (settings, upgrade) match {
           case (Some(settings), true) =>
-            cats.data.OptionT.liftF(req.body.compile.to(ByteVector): F[ByteVector]).flatMap { bv =>
+            val bb: F[ByteVector] = req.body.compile.to(ByteVector)
+            val fres: F[Response[F]] = bb.map { bv =>
               val newReq: Request[fs2.Pure] = Request[fs2.Pure](
                 req.method,
                 req.uri,
@@ -124,10 +125,9 @@ private[ember] object H2Server {
                 Entity.Strict(Chunk.byteVector(bv)),
                 req.attributes,
               )
-              cats.data.OptionT.some(
-                upgradeResponse.covary[F].withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
-              )
+              upgradeResponse.withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
             }
+            cats.data.OptionT.liftF(fres)
 
           case (_, _) => cats.data.OptionT.none
         }
@@ -270,7 +270,7 @@ private[ember] object H2Server {
           .map { i =>
             val x: F[Unit] = for {
               stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
-              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+              req <- stream.getRequest.map(_.withBodyStream(stream.readBody))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
               // Push Promises
@@ -292,7 +292,7 @@ private[ember] object H2Server {
               // _ <- Console.make[F].println("Writing Streams Commpleted")
               responses <- streams.parTraverse { case (req, stream) =>
                 for {
-                  resp <- httpApp(req.covary[F])
+                  resp <- httpApp(req)
                   // _ <- Console.make[F].println("Push Promise Response Completed")
                   _ <- stream.sendHeaders(
                     PseudoHeaders.responseToHeaders(resp),

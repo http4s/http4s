@@ -99,7 +99,7 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
       val uri = Uri.fromString(s"http://$address/echo").yolo
-      val req = POST(Stream.emits("This is chunked.".toSeq.map(_.toString)).covary[IO], uri)
+      val req = POST(Stream.emits("This is chunked.".toSeq.map(_.toString)), uri)
       val body = client().expect[String](req)
       body.assertEquals("This is chunked.")
     }

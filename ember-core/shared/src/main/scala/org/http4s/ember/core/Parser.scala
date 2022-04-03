@@ -426,19 +426,17 @@ private[ember] object Parser {
   }
 
   object Body {
-    def parseFixedBody[F[_]: Concurrent](
+    def parseFixedBody[F[_]](
         contentLength: Long,
         buffer: Array[Byte],
         read: Read[F],
-    ): F[(EntityBody[F], Drain[F])] =
+    )(implicit F: Concurrent[F]): F[(EntityBody[F], Drain[F])] =
       if (contentLength > 0) {
         if (buffer.length >= contentLength) {
           val (body, rest) = buffer.splitAt(contentLength.toInt)
-          (
-            Stream.chunk(Chunk.byteVector(ByteVector(body))).covary[F],
-            (Some(rest): Option[Array[Byte]]).pure[F],
-          )
-            .pure[F]
+          val eb: EntityBody[F] = Stream.chunk(Chunk.byteVector(ByteVector(body)))
+          val drain: Drain[F] = F.pure(Some(rest))
+          F.pure(eb -> drain)
         } else {
           val unread = contentLength - buffer.length
           Ref.of[F, Option[Array[Byte]]](None).map { state =>
@@ -450,9 +448,8 @@ private[ember] object Parser {
             (body, drain)
           }
         }
-      } else {
-        (Stream.empty.covaryAll[F, Byte], Option(buffer).pure[F]).pure[F]
-      }
+      } else
+        F.pure(Stream.empty -> F.pure(Some(buffer)))
 
     def parseUnknownBody[F[_]: Concurrent](
         buffer: Array[Byte],

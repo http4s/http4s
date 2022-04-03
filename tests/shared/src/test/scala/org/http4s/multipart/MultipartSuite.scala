@@ -155,7 +155,7 @@ Content-Type: application/pdf
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        entity = Entity(Stream.emit(body).covary[IO].through(text.utf8.encode)),
+        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 

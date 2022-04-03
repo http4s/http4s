@@ -41,7 +41,7 @@ object GetRoutes {
         .withEntity("a" * 8 * 1024)
         .pure[IO], // must be at least as large as the buffers used by the client
       ChunkedPath -> Response[IO](Ok)
-        .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
+        .withEntity(Stream.emits("chunk".toSeq.map(_.toString)))
         .pure[IO],
       DelayedPath ->
         F.sleep(1.second) *>
