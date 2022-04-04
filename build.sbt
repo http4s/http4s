@@ -86,7 +86,6 @@ lazy val modules: List[CompositeProject] = List(
   examplesEmber,
   examplesJetty,
   examplesTomcat,
-  examplesWar,
   scalafixInternalRules,
   scalafixInternalInput,
   scalafixInternalOutput,
@@ -1133,7 +1132,6 @@ lazy val unidocs = http4sProject("unidocs")
           examplesDocker,
           examplesJetty,
           examplesTomcat,
-          examplesWar,
           examplesEmber,
           exampleEmberServerH2,
           exampleEmberClientH2,
@@ -1255,18 +1253,6 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
   )
   .dependsOn(tomcatServer)
-
-// Run this with jetty:start
-lazy val examplesWar = exampleProject("examples-war")
-  .enablePlugins(JettyPlugin)
-  .settings(
-    description := "Example of a WAR deployment of an http4s service",
-    startYear := Some(2014),
-    fork := true,
-    libraryDependencies += javaxServletApi % Provided,
-    Jetty / containerLibs := List(jettyRunner),
-  )
-  .dependsOn(servlet)
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
