@@ -142,7 +142,6 @@ object Http4sPlugin extends AutoPlugin {
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
     val slf4j = "1.7.36"
-    val tomcat = "9.0.62"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val twitterHpack = "1.0.2"
@@ -231,9 +230,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
-  lazy val tomcatCatalina = "org.apache.tomcat" % "tomcat-catalina" % V.tomcat
-  lazy val tomcatCoyote = "org.apache.tomcat" % "tomcat-coyote" % V.tomcat
-  lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
   lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack

@@ -67,7 +67,6 @@ lazy val modules: List[CompositeProject] = List(
   jettyClient,
   okHttpClient,
   servlet,
-  tomcatServer,
   nodeServerless,
   theDsl,
   jawn,
@@ -85,7 +84,6 @@ lazy val modules: List[CompositeProject] = List(
   examplesDocker,
   examplesEmber,
   examplesJetty,
-  examplesTomcat,
   examplesWar,
   scalafixInternalRules,
   scalafixInternalInput,
@@ -953,18 +951,6 @@ lazy val jettyServer = libraryProject("jetty-server")
   )
   .dependsOn(servlet % "compile;test->test", theDsl.jvm % "test->test")
 
-lazy val tomcatServer = libraryProject("tomcat-server")
-  .settings(
-    description := "Tomcat implementation for http4s servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      tomcatCatalina,
-      tomcatCoyote,
-      tomcatUtilScan,
-    ),
-  )
-  .dependsOn(servlet % "compile;test->test")
-
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
@@ -1132,7 +1118,6 @@ lazy val unidocs = http4sProject("unidocs")
           examplesBlaze,
           examplesDocker,
           examplesJetty,
-          examplesTomcat,
           examplesWar,
           examplesEmber,
           exampleEmberServerH2,
@@ -1245,16 +1230,6 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
   )
   .dependsOn(jettyServer)
-
-lazy val examplesTomcat = exampleProject("examples-tomcat")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Example of http4s server on Tomcat",
-    startYear := Some(2014),
-    fork := true,
-    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
-  )
-  .dependsOn(tomcatServer)
 
 // Run this with jetty:start
 lazy val examplesWar = exampleProject("examples-war")
