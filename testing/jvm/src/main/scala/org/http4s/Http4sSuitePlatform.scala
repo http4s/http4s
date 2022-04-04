@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s
 
-import fs2.Chunk
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Gen
+import cats.effect.IO
+import cats.effect.Resource
 
-/** Arbitraries for fs2 types that aren't ours to publish. */
-object fs2Arbitraries {
-  implicit val http4sArbitraryForFs2ChunkOfBytes: Arbitrary[Chunk[Byte]] =
-    Arbitrary(Gen.containerOf[Array, Byte](arbitrary[Byte]).map(Chunk.array[Byte]))
+private[http4s] trait Http4sSuitePlatform { this: Http4sSuite =>
+
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
+    ResourceSuiteLocalFixture(name, resource)
+  )
+
+  // allow flaky tests on ci
+  override def munitFlakyOK = sys.env.contains("CI")
 }

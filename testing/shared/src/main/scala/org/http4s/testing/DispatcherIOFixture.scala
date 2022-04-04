@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.testing
 
-import scala.scalajs.js
-import scala.util.Try
+import cats.effect.IO
+import cats.effect.SyncIO
+import cats.effect.std.Dispatcher
+import munit.CatsEffectSuite
 
-trait Http4sSuitePlatform { this: Http4sSuite =>
-  // allow flaky tests on ci
-  override def munitFlakyOK =
-    Try(js.Dynamic.global.process.env.CI).toOption.filterNot(js.isUndefined).isDefined
+private[http4s] trait DispatcherIOFixture { this: CatsEffectSuite =>
+
+  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
+
 }

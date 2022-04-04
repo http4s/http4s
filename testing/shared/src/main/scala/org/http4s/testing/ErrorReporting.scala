@@ -35,7 +35,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import scala.util.control.NonFatal
 
-object ErrorReporting {
+private[http4s] object ErrorReporting {
 
   /** Silences System.out and System.err streams for the duration of thunk.
     * Restores the original streams before exiting.

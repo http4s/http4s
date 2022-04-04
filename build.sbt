@@ -316,12 +316,13 @@ lazy val testing = libraryCrossProject("testing", CrossType.Full)
       scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
-    ).map(_ % Test),
+    ),
+    mimaPreviousArtifacts := Set.empty
   )
   .jsSettings(
     libraryDependencies ++= Seq(
       scalaJavaTimeTzdb.value
-    ).map(_ % Test)
+    )
   )
   .dependsOn(laws)
 

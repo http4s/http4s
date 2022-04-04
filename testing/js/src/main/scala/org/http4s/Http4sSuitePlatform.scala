@@ -16,19 +16,11 @@
 
 package org.http4s
 
-import munit.ScalaCheckEffectSuite
-import org.scalacheck.effect.PropF
+import scala.scalajs.js
+import scala.util.Try
 
-/** Poor's man discipline runner to check a set of PropF[F]
-  */
-trait Http4sLawSuite extends ScalaCheckEffectSuite {
-  def checkAllF[F[_]](
-      name: String,
-      original: List[(String, PropF[F])],
-  )(implicit loc: munit.Location): Unit =
-    original.foreach { case (l, p) =>
-      test(s"$name - $l") {
-        p
-      }
-    }
+private[http4s] trait Http4sSuitePlatform { this: Http4sSuite =>
+  // allow flaky tests on ci
+  override def munitFlakyOK =
+    Try(js.Dynamic.global.process.env.CI).toOption.filterNot(js.isUndefined).isDefined
 }

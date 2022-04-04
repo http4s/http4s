@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.testing
 
-import cats.effect.IO
-import cats.effect.Resource
+import java.io.OutputStream
 
-trait Http4sSuitePlatform { this: Http4sSuite =>
-
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource)
-  )
-
-  // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.contains("CI")
+private[http4s] object NullOutStream extends OutputStream {
+  override def write(b: Int): Unit = {
+    // do nothing
+  }
 }

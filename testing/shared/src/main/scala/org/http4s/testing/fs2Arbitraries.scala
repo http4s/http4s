@@ -16,13 +16,13 @@
 
 package org.http4s.testing
 
-import cats.effect.IO
-import cats.effect.SyncIO
-import cats.effect.std.Dispatcher
-import munit.CatsEffectSuite
+import fs2.Chunk
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 
-trait DispatcherIOFixture { this: CatsEffectSuite =>
-
-  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
-
+/** Arbitraries for fs2 types that aren't ours to publish. */
+private[http4s] object fs2Arbitraries {
+  implicit val http4sArbitraryForFs2ChunkOfBytes: Arbitrary[Chunk[Byte]] =
+    Arbitrary(Gen.containerOf[Array, Byte](arbitrary[Byte]).map(Chunk.array[Byte]))
 }

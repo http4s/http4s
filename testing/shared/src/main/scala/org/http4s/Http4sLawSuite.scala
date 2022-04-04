@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s
 
-import java.io.OutputStream
+import munit.ScalaCheckEffectSuite
+import org.scalacheck.effect.PropF
 
-object NullOutStream extends OutputStream {
-  override def write(b: Int): Unit = {
-    // do nothing
-  }
+/** Poor's man discipline runner to check a set of PropF[F]
+  */
+private[http4s] trait Http4sLawSuite extends ScalaCheckEffectSuite {
+  def checkAllF[F[_]](
+      name: String,
+      original: List[(String, PropF[F])],
+  )(implicit loc: munit.Location): Unit =
+    original.foreach { case (l, p) =>
+      test(s"$name - $l") {
+        p
+      }
+    }
 }
