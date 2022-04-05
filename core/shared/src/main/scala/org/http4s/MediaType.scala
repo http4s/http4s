@@ -263,13 +263,21 @@ object MediaType extends MimeDB {
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
   // JS application where artifact size matters (i.e. browser applications).
-  lazy val all: Map[(String, String), MediaType] =
-    (`text/event-stream` :: allMediaTypes)
-      .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
-      .toMap
+  private[this] var _all: Map[(String, String), MediaType] = null
+  def all: Map[(String, String), MediaType] = {
+    if (_all eq null)
+      _all = (`text/event-stream` :: allMediaTypes)
+        .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
+        .toMap
+    _all
+  }
 
-  lazy val extensionMap: Map[String, MediaType] =
-    allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
+  private[this] var _extensionMap: Map[String, MediaType] = null
+  def extensionMap: Map[String, MediaType] = {
+    if (_extensionMap eq null)
+      _extensionMap = allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
+    _extensionMap
+  }
 
   val parser: Parser[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)

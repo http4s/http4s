@@ -150,6 +150,32 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
+
+      // MimeDB is a private trait (effectively sealed) so we can add abstract methods to it at will
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_0.org$http4s$MimeDB$application_parts$application_0$$_part_0"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_0.org$http4s$MimeDB$application_parts$application_0$$_part_0_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_1.org$http4s$MimeDB$application_parts$application_1$$_part_1"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_1.org$http4s$MimeDB$application_parts$application_1$$_part_1_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_2.org$http4s$MimeDB$application_parts$application_2$$_part_2"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_2.org$http4s$MimeDB$application_parts$application_2$$_part_2_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_3.org$http4s$MimeDB$application_parts$application_3$$_part_3"
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.MimeDB#application_parts#application_3.org$http4s$MimeDB$application_parts$application_3$$_part_3_="
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -197,6 +223,12 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.StaticFile.<clinit>"),
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.websocket.WebSocket.imapK"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
         )
       else Seq.empty
