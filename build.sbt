@@ -224,6 +224,12 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.websocket.WebSocket.imapK"
           ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes"
+          ),
+          ProblemFilters.exclude[ReversedMissingMethodProblem](
+            "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
+          ),
         )
       else Seq.empty
     },
