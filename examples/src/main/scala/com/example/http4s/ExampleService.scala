@@ -25,7 +25,6 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
-import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
