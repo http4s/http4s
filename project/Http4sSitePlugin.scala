@@ -30,7 +30,6 @@ object Http4sSitePlugin extends AutoPlugin {
   override def requires = Http4sPlugin && Http4sOrgSitePlugin
 
   override def projectSettings = Seq(
-    mdocVariables ++= tlSiteApiUrl.value.map("API_URL" -> _.toString).toMap,
     mdocVariables ++= Map(
       "CIRCE_VERSION" -> Http4sPlugin.V.circe,
       "CRYPTOBITS_VERSION" -> Http4sPlugin.V.cryptobits,
