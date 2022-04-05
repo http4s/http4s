@@ -352,6 +352,12 @@ lazy val server = libraryCrossProject("server")
         "org.http4s.server.middleware.GZip$TrailerGen"
       ), // private
       ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.server.middleware.Metrics$MetricsRequestContext"
+      ), // private
+      ProblemFilters.exclude[MissingClassProblem](
+        "org.http4s.server.middleware.Metrics$MetricsRequestContext$"
+      ),
+      ProblemFilters.exclude[MissingClassProblem](
         "org.http4s.server.middleware.GZip$TrailerGen$"
       ), // private
       // the following are private[middleware]
