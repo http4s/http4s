@@ -260,23 +260,9 @@ private final class Http1Connection[F[_]](
       idleTimeoutS: F[Either[Throwable, Unit]],
       idleRead: Option[Future[ByteBuffer]],
   ): F[Response[F]] =
-    F.async[Response[F]] { cb =>
-      F.delay {
-        idleRead match {
-          case Some(read) =>
-            handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
-          case None =>
-            handleRead(
-              channelRead(),
-              cb,
-              closeOnFinish,
-              doesntHaveBody,
-              "Initial Read",
-              idleTimeoutS,
-            )
-        }
-        None
-      }
+    F.async_[Response[F]] { cb =>
+      val read = idleRead.getOrElse(channelRead())
+      handleRead(read, cb, closeOnFinish, doesntHaveBody, "Initial Read", idleTimeoutS)
     }
 
   // this method will get some data, and try to continue parsing using the implicit ec
