@@ -150,6 +150,9 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$ArrayBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$RangeBased"),
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$MaskBased"),
+
+      // MimeDB is a private trait (effectively sealed) so we can add abstract methods to it at will
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.MimeDB*"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
