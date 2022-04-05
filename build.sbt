@@ -63,10 +63,8 @@ lazy val modules: List[CompositeProject] = List(
   blazeServer,
   blazeClient,
   asyncHttpClient,
-  jettyServer,
   jettyClient,
   okHttpClient,
-  servlet,
   nodeServerless,
   theDsl,
   jawn,
@@ -83,7 +81,6 @@ lazy val modules: List[CompositeProject] = List(
   examplesBlaze,
   examplesDocker,
   examplesEmber,
-  examplesJetty,
   scalafixInternalRules,
   scalafixInternalInput,
   scalafixInternalOutput,
@@ -924,32 +921,6 @@ lazy val okHttpClient = libraryProject("okhttp-client")
   )
   .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
-lazy val servlet = libraryProject("servlet")
-  .settings(
-    description := "Portable servlet implementation for http4s servers",
-    startYear := Some(2013),
-    libraryDependencies ++= Seq(
-      javaxServletApi % Provided,
-      Http4sPlugin.jettyServer % Test,
-      jettyServlet % Test,
-      Http4sPlugin.asyncHttpClient % Test,
-    ),
-  )
-  .dependsOn(server.jvm % "compile;test->test")
-
-lazy val jettyServer = libraryProject("jetty-server")
-  .settings(
-    description := "Jetty implementation for http4s servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jettyHttp2Server,
-      Http4sPlugin.jettyServer,
-      jettyServlet,
-      jettyUtil,
-    ),
-  )
-  .dependsOn(servlet % "compile;test->test", theDsl.jvm % "test->test")
-
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
@@ -1116,7 +1087,6 @@ lazy val unidocs = http4sProject("unidocs")
           examples,
           examplesBlaze,
           examplesDocker,
-          examplesJetty,
           examplesEmber,
           exampleEmberServerH2,
           exampleEmberClientH2,
@@ -1218,16 +1188,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     dockerExposedPorts := List(8080),
   )
   .dependsOn(blazeServer, theDsl.jvm)
-
-lazy val examplesJetty = exampleProject("examples-jetty")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Example of http4s server on Jetty",
-    startYear := Some(2014),
-    fork := true,
-    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
-  )
-  .dependsOn(jettyServer)
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
