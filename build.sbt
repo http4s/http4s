@@ -403,7 +403,10 @@ lazy val server = libraryCrossProject("server")
         Seq(
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.server.middleware.CSRF.genTokenString"
-          )
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.authentication.Nonce.random"
+          ),
         )
       else Nil
     },
