@@ -401,7 +401,7 @@ lazy val server = libraryCrossProject("server")
     ) ++ {
       if (tlIsScala3.value)
         Seq(
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+          ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.server.middleware.CSRF.genTokenString"
           ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
