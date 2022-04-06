@@ -493,7 +493,8 @@ object CSRF {
     */
   private val InitialSeedArraySize: Int = 20
   private val CachedRandom: Random[SyncIO] =
-    Random.javaSecuritySecureRandom[SyncIO]
+    Random
+      .javaSecuritySecureRandom[SyncIO]
       .flatTap(_.nextBytes(InitialSeedArraySize))
       .unsafeRunSync()
 
