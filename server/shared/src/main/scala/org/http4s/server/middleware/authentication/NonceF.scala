@@ -54,12 +54,14 @@ private[authentication] object NonceF {
     }
   }
 
+  def getRandomData[F[_]: Functor](random: Random[F], bits: Int): F[String] =
+    getRandomBits[F](random, bits).map(bytesToHex)
+
   def gen[F[_]](random: Random[F], bits: Int)(implicit
       F: Async[F]
   ): F[NonceF[F]] = for {
     nc <- Ref[F].of(0)
-    bits <- getRandomBits[F](random, bits)
-    data = bytesToHex(bits)
+    data <- getRandomData[F](random, bits)
     created <- F.monotonic
   } yield new NonceF(created, nc, data)
 }

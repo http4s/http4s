@@ -16,19 +16,18 @@
 
 package org.http4s.server.middleware.authentication
 
-import org.http4s.crypto.unsafe.SecureRandom
+import cats.effect.SyncIO
+import cats.effect.std.Random
 
-import java.math.BigInteger
 import java.util.Date
 
-@deprecated("Contains mutable java.util.Date. Use NonceF.", "0.22.13")
+@deprecated("Contains mutable java.util.Date. Use NonceF.", "0.23.11")
 private[authentication] class Nonce(val created: Date, var nc: Int, val data: String)
 
-@deprecated("Untracked side effects. Use NonceF.", "0.22.13")
+@deprecated("Untracked side effects. Use NonceF.", "0.23.11")
 private[authentication] object Nonce {
-  val random = new SecureRandom()
+  val random: Random[SyncIO] = Random.javaSecuritySecureRandom[SyncIO].unsafeRunSync()
 
-  private def getRandomData(bits: Int): String = new BigInteger(bits, random).toString(16)
-
-  def gen(bits: Int): Nonce = new Nonce(new Date(), 0, getRandomData(bits))
+  def gen(bits: Int): Nonce =
+    new Nonce(new Date(), 0, NonceF.getRandomData[SyncIO](random, bits).unsafeRunSync())
 }
