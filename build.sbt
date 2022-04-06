@@ -1128,10 +1128,14 @@ lazy val bench = http4sProject("bench")
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
   .settings(
-    scalaJSUseMainModuleInitializer := true,
+    // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
+    // By placing the app in Test scope it gets linked as part of that CI step
+    Test / scalaJSUseMainModuleInitializer := true,
+    Test / scalaJSUseTestModuleInitializer := false,
+    Test / scalaJSStage := FullOptStage,
     Test / test := {
       val log = streams.value.log
-      val file = (Compile / fullOptJS).value.data
+      val file = (Test / fullOptJS).value.data
       val size = io.Using.fileInputStream(file) { in =>
         var size = 0L
         IO.gzip(in, _ => size += 1)
