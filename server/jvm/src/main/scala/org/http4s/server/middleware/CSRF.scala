@@ -106,7 +106,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
-    CSRF.genTokenString.to[M].flatMap(signToken[M])
+    CSRF.genTokenString[M].flatMap(signToken[M])
 
   /** Create a Response cookie from a signed CSRF token
     *
@@ -526,8 +526,8 @@ object CSRF {
     )
 
   /** Generate an unsigned CSRF token from a `SecureRandom` */
-  private[middleware] def genTokenString: SyncIO[String] =
-    CachedRandom.nextBytes(CSRFTokenLength).map(encodeHexString)
+  private[middleware] def genTokenString[F[_]: Sync]: F[String] =
+    CachedRandom.nextBytes(CSRFTokenLength).to[F].map(encodeHexString)
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
