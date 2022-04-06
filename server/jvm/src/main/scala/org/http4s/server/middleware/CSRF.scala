@@ -24,6 +24,7 @@ import cats.data.Kleisli
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
+import cats.effect.std.Random
 import cats.syntax.all._
 import cats.~>
 import org.http4s.Uri.Scheme
@@ -32,7 +33,6 @@ import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.HmacKeyGen
 import org.http4s.crypto.SecretKey
 import org.http4s.crypto.SecureEq
-import org.http4s.crypto.unsafe.SecureRandom
 import org.http4s.headers.Host
 import org.http4s.headers.Referer
 import org.http4s.headers.`Content-Type`
@@ -106,7 +106,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
-    signToken[M](CSRF.genTokenString)
+    CSRF.genTokenString.to[M].flatMap(signToken[M])
 
   /** Create a Response cookie from a signed CSRF token
     *
@@ -492,11 +492,10 @@ object CSRF {
     * SecureRandom use via jvm flags.
     */
   private val InitialSeedArraySize: Int = 20
-  private val CachedRandom: SecureRandom = {
-    val r = new SecureRandom()
-    r.nextBytes(new Array[Byte](InitialSeedArraySize))
-    r
-  }
+  private val CachedRandom: Random[SyncIO] =
+    Random.javaSecuritySecureRandom[SyncIO]
+      .flatTap(_.nextBytes(InitialSeedArraySize))
+      .unsafeRunSync()
 
   private[CSRF] def cookieFromHeadersF[F[_], G[_]](request: Request[G], cookieName: String)(implicit
       F: Sync[F]
@@ -526,11 +525,8 @@ object CSRF {
     )
 
   /** Generate an unsigned CSRF token from a `SecureRandom` */
-  private[middleware] def genTokenString: String = {
-    val bytes = new Array[Byte](CSRFTokenLength)
-    CachedRandom.nextBytes(bytes)
-    encodeHexString(bytes)
-  }
+  private[middleware] def genTokenString: SyncIO[String] =
+    CachedRandom.nextBytes(CSRFTokenLength).map(encodeHexString)
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =

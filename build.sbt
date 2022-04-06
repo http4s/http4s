@@ -398,7 +398,15 @@ lazy val server = libraryCrossProject("server")
         .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$ExposeHeaders$In"),
       ProblemFilters
         .exclude[FinalClassProblem]("org.http4s.server.middleware.CORSPolicy$MaxAge$Some"),
-    ),
+    ) ++ {
+      if (tlIsScala3.value)
+        Seq(
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.CSRF.genTokenString"
+          )
+        )
+      else Nil
+    },
   )
   .settings(BuildInfoPlugin.buildInfoScopedSettings(Test))
   .settings(BuildInfoPlugin.buildInfoDefaultSettings)
