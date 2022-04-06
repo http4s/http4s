@@ -27,6 +27,7 @@ import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import fs2.Pipe
+import fs2.Pure
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
@@ -489,11 +490,6 @@ final class Request[+F[_]] private (
 
 object Request {
 
-  /** A [[Request]] that doesn't have a body requiring effectful evaluation.
-    *  A [[Request.Pure]] is always an instance of [[Request[F]]], regardless of `F`.
-    */
-  type Pure = Request[fs2.Pure]
-
   /** Representation of an incoming HTTP message
     *
     * A Request encapsulates the entirety of the incoming HTTP request including the
@@ -660,11 +656,6 @@ final class Response[+F[_]] private (
 
 object Response extends KleisliSyntax {
 
-  /** A [[Response]] that doesn't have a body requiring effectful evaluation.
-    *  A [[Response.Pure]] is always an instance of [[Response[F]]], regardless of `F`.
-    */
-  type Pure = Response[fs2.Pure]
-
   /** Representation of the HTTP response to send back to the client
     *
     * @param status [[Status]] code and message
@@ -690,7 +681,7 @@ object Response extends KleisliSyntax {
       (response.status, response.httpVersion, response.headers, response.body, response.attributes)
     )
 
-  val notFound: Response.Pure =
+  val notFound: Response[Pure] =
     Response(
       Status.NotFound,
       entity = Entity(Stream("Not found").through(utf8.encode)),
