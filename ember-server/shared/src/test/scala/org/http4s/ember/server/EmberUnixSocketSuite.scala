@@ -46,8 +46,8 @@ class EmberUnixSocketSuite extends Http4sSuite {
         .build
         .map(UnixSocket(localSocket))
       _ <- Resource.eval(IO.sleep(4.seconds))
-      resp <- client.run(Request[IO](Method.GET))
-      body <- Resource.eval(resp.bodyText.compile.string)
+      resp <- client.run(Request(Method.GET))
+      body <- Resource.eval(resp.bodyText[IO].compile.string)
     } yield {
       assertEquals(resp.status, Status.Ok)
       assertEquals(body, "Hello Unix Sockets!")

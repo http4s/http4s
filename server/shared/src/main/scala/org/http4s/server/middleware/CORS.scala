@@ -271,7 +271,7 @@ object CORS {
             }
           else {
             logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
-            Response(status = Status.Forbidden).pure[F]
+            Response[G](status = Status.Forbidden).pure[F]
           }
         case _ =>
           // This request is out of scope for CORS

@@ -92,7 +92,7 @@ class BlazeServerSuite extends Http4sSuite {
       IO.never
 
     case req @ POST -> Root / "issue2610" =>
-      req.decode[Multipart[IO]] { mp =>
+      req.decode { (mp: Multipart[IO]) =>
         Ok(mp.parts.foldMap(_.body))
       }
 

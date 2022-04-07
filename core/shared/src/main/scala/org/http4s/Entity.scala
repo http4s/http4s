@@ -34,7 +34,7 @@ object Entity {
   def apply[F[_]](body: EntityBody[F], length: Option[Long] = None): Entity[F] =
     Default(body, length)
 
-  // The type parameter aids type inference in Message constructors. This should be unnecessary when Messages are covariant.
+  // The type parameter aids type inference in Message constructors.
   def empty[F[_]]: Entity[F] = Empty
   def strict(chunk: Chunk[Byte]): Entity[Pure] = Strict(chunk)
 

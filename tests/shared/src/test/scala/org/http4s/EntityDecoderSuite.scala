@@ -362,7 +362,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   val server: Request[IO] => IO[Response[IO]] = { req =>
     req
-      .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])
+      .decode((form: UrlForm) => Response[IO](Ok).withEntity(form).pure[IO])
       .attempt
       .map {
         case Right(r) => r
@@ -411,7 +411,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .tempFile(None, "foo", "bar", None)
       .use { tmpFile =>
         val response = mockServe(Request()) { req =>
-          req.decodeWith(EntityDecoder.textFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.textFile[IO](tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
@@ -428,7 +428,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .tempFile(None, "foo", "bar", None)
       .use { tmpFile =>
         val response = mockServe(Request()) { case req =>
-          req.decodeWith(EntityDecoder.binFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(EntityDecoder.binFile[IO](tmpFile), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }
