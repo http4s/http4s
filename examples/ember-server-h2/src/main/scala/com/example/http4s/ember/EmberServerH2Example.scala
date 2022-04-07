@@ -55,7 +55,7 @@ object EmberServerH2Example extends IOApp {
         .orNotFound
     }
 
-    // This is commented since this is a different way to run 
+    // This is commented since this is a different way to run
     // a server. This is ALPN based h2, where the protocol is negotiated
     // in the TLS 1.3 handshake.
     // def testALPN[F[_]: Async: Parallel] = for {
