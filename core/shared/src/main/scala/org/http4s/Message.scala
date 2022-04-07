@@ -18,7 +18,6 @@ package org.http4s
 
 import cats._
 import cats.data.NonEmptyList
-import cats.data.OptionT
 import cats.effect.SyncIO
 import cats.syntax.all._
 import com.comcast.ip4s.Dns
@@ -399,7 +398,10 @@ final class Request[+F[_]] private (
   def remoteAddr: Option[IpAddress] = remote.map(_.host)
 
   def remoteHost[F1[x] >: F[x]](implicit F: Monad[F1], dns: Dns[F1]): F1[Option[Hostname]] =
-    OptionT.fromOption(remote.map(_.host)).flatMapF(dns.reverseOption).value
+    remote match {
+      case None => F.pure(None)
+      case Some(sa) => dns.reverseOption(sa.host)
+    }
 
   def remotePort: Option[Port] = remote.map(_.port)
 
