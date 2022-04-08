@@ -28,6 +28,11 @@ object Cookie {
   def apply(head: RequestCookie, tail: RequestCookie*): `Cookie` =
     apply(NonEmptyList(head, tail.toList))
 
+  def apply(head: (String, String), tail: (String, String)*): `Cookie` =
+    apply(NonEmptyList(head, tail.toList).map { case (name, content) =>
+      RequestCookie(name, content)
+    })
+
   def parse(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
