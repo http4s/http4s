@@ -32,21 +32,31 @@ import org.typelevel.ci._
 
 import scala.collection.mutable.ListBuffer
 
+/** Generic middleware to aggregate chunked response into memory.
+  *
+  * This middleware wraps any function that may produce an Http response.
+  * Upon receiving a chunk-encoded response, the composed function will
+  * pull and assemble the full response into memory before emitting the
+  * whole response. It also removes the "Chunked encoding" headers, and
+  * may add a Content-Length header for the whole payload.
+  *
+  * Reference: "Chunked Transfer Encoding", Section 4.1 of RFC 7230
+  *  https://datatracker.ietf.org/doc/html/rfc7230#section-4.1
+  */
 object ChunkAggregator {
   def apply[F[_]: FlatMap, G[_]: Sync, A](
       f: G ~> F
   )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
-    http.flatMapF { response =>
-      f(
-        response.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
-          .map { vec =>
-            val body = Chunk.concat(vec)
-            response
-              .withBodyStream(Stream.chunk(body))
-              .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
-          }
-      )
-    }
+    http.flatMapF(response => f(aggregate(response)))
+
+  private[this] def aggregate[G[_]: Sync](r: Response[G]): G[Response[G]] =
+    r.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
+      .map { vec =>
+        val body = Chunk.concat(vec)
+        r
+          .withBodyStream(Stream.chunk(body))
+          .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
+      }
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F])(httpRoutes)
