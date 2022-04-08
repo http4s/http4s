@@ -23,10 +23,13 @@ import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import org.http4s.client.RequestKey
 import org.http4s.internal.CollectionCompat
+import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.log4s.getLogger
 
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BiFunction
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -90,7 +93,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private var isClosed = false
   private val curTotal = new AtomicInteger(0)
-  private val allocated = mutable.Map.empty[RequestKey, Int]
+  private val allocated = new ConcurrentHashMap[RequestKey, Int]()
   private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[PooledConnection]]
   private var waitQueue = mutable.Queue.empty[Waiting]
 
@@ -111,24 +114,30 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def incrConnection(key: RequestKey): F[Unit] =
     F.delay {
       curTotal.getAndIncrement()
-      allocated.update(key, allocated.getOrElse(key, 0) + 1)
+      val update: BiFunction[RequestKey, Int, Int] = (_: RequestKey, v: Int) => v + 1
+      allocated.compute(key, update)
+      ()
     }
 
   private def decrConnection(key: RequestKey): F[Unit] =
     F.delay {
       curTotal.getAndDecrement()
-      val numConnections = allocated.getOrElse(key, 0)
+      val numConnections = allocated.getOrDefault(key, 0)
       // If there are no more connections drop the key
       if (numConnections == 1) {
         allocated.remove(key)
         idleQueues.remove(key)
         ()
-      } else
-        allocated.update(key, numConnections - 1)
+      } else {
+        allocated.put(key, numConnections - 1)
+        ()
+      }
     }
 
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
-    curTotal.intValue() < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
+    curTotal.intValue() < maxTotal && allocated.getOrDefault(key, 0) < maxConnectionsPerRequestKey(
+      key
+    )
 
   private def isRequestExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
@@ -371,7 +380,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         logger.debug(s"Dropped expired requests: $stats")
       }
       waitQueue.dequeueFirst { waiter =>
-        allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
+        allocated.getOrDefault(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
       }
     }
 
@@ -444,7 +453,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   def state: BlazeClientState[F] =
     new BlazeClientState[F] {
       def isClosed: F[Boolean] = F.delay(self.isClosed)
-      def allocated: F[Map[RequestKey, Int]] = F.delay(self.allocated.toMap)
+      def allocated: F[Map[RequestKey, Int]] = F.delay(self.allocated.asScala.toMap)
       def idleQueueDepth: F[Map[RequestKey, Int]] =
         F.delay(CollectionCompat.mapValues(self.idleQueues.toMap)(_.size))
       def waitQueueDepth: F[Int] = F.delay(self.waitQueue.size)
