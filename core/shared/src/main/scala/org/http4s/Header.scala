@@ -227,7 +227,7 @@ object Header {
     type Aux[A, G[_]] = Select[A] { type F[B] = G[B] }
 
     def fromRaw[A](h: Header.Raw)(implicit ev: Header[A, _]): Option[Ior[ParseFailure, A]] =
-      (h.name == Header[A].name).guard[Option].map(_ => Header[A].parse(h.value).toIor)
+      if (h.name == Header[A].name) Some(Header[A].parse(h.value).toIor) else None
 
     implicit def singleHeaders[A](implicit
         h: Header[A, Header.Single]
