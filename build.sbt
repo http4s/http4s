@@ -1040,10 +1040,12 @@ lazy val scalafixInternalTests = project
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
-    libraryDependencies ++= Seq(
-      ("ch.epfl.scala" %% "scalafix-testkit" % _root_.scalafix.sbt.BuildInfo.scalafixVersion % Test)
-        .cross(CrossVersion.full)
-    ).filter(_ => !tlIsScala3.value),
+    libraryDependencies := {
+      if (tlIsScala3.value)
+        libraryDependencies.value.filterNot(_.name == "scalafix-testkit")
+      else
+        libraryDependencies.value
+    },
     Compile / compile :=
       (Compile / compile).dependsOn(scalafixInternalInput / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
