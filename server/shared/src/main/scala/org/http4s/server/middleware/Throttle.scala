@@ -63,35 +63,24 @@ object Throttle {
 
       bucket.map { counter =>
         new TokenBucket[F] {
-          override def takeToken: F[TokenAvailability] = {
-            val attemptUpdate = counter.access.flatMap {
-              case ((previousTokens, previousTime), setter) =>
-                getTime.flatMap { currentTime =>
-                  val timeDifference = currentTime - previousTime
-                  val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
-                  val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
-
-                  val attemptSet: F[Option[TokenAvailability]] =
-                    if (newTokenTotal >= 1)
-                      setter((newTokenTotal - 1, currentTime))
-                        .map(if (_) Some(TokenAvailable) else None)
-                    else {
-                      val timeToNextToken = refillEvery.toNanos - timeDifference
-                      val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
-                      setter((newTokenTotal, currentTime))
-                        .map(if (_) Some(successResponse) else None)
-                    }
-
-                  attemptSet
+          override def takeToken: F[TokenAvailability] =
+            counter.access.flatMap { case ((previousTokens, previousTime), setter) =>
+              getTime.flatMap { currentTime =>
+                val timeDifference = currentTime - previousTime
+                val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
+                val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
+                def unavailable = {
+                  val timeToNextToken = refillEvery.toNanos - timeDifference
+                  TokenUnavailable(timeToNextToken.nanos.some)
                 }
-            }
 
-            def loop: F[TokenAvailability] =
-              attemptUpdate.flatMap { attempt =>
-                attempt.fold(loop)(token => token.pure[F])
+                // If setter fails (yields the value false), then retry with recursive call
+                if (newTokenTotal >= 1)
+                  setter((newTokenTotal - 1, currentTime)).ifM(F.pure(TokenAvailable), takeToken)
+                else
+                  setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
               }
-            loop
-          }
+            }
         }
       }
     }
