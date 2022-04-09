@@ -30,7 +30,7 @@ import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
-import org.http4s.multipart.Multipart
+import org.http4s.multipart.Multiparts
 import org.http4s.multipart.Part
 
 import java.net.URL
@@ -41,29 +41,28 @@ object MultipartClient extends MultipartHttpClient
 class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
   private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL, blocker: Blocker) =
-    Multipart[IO](
-      Vector(
-        Part.formData("name", "gvolpe"),
-        Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png)),
+  private def request(blocker: Blocker, multiparts: Multiparts[IO]) =
+    for {
+      url <- image
+      body <- multiparts.multipart(
+        Vector(
+          Part.formData("name", "gvolpe"),
+          Part.fileData("rick", url, blocker, `Content-Type`(MediaType.image.png)),
+        )
       )
-    )
+    } yield POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers)
 
-  private def request(blocker: Blocker) =
-    image
-      .map(multipart(_, blocker))
-      .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
-
-  private val resources: Resource[IO, (Blocker, Client[IO])] =
+  private val resources: Resource[IO, (Blocker, Client[IO], Multiparts[IO])] =
     for {
       blocker <- Blocker[IO]
       client <- BlazeClientBuilder[IO](global).resource
-    } yield (blocker, client)
+      multiparts <- Resource.eval(Multiparts.forSync[IO])
+    } yield (blocker, client, multiparts)
 
   private val example =
     for {
-      (blocker, client) <- Stream.resource(resources)
-      req <- Stream.eval(request(blocker))
+      (blocker, client, multiparts) <- Stream.resource(resources)
+      req <- Stream.eval(request(blocker, multiparts))
       value <- Stream.eval(client.expect[String](req))
       _ <- S.putStrLn(value)
     } yield ()
