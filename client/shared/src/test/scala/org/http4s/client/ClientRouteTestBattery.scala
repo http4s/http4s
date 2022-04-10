@@ -112,10 +112,11 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       Multiparts
         .forSync[IO]
         .flatMap { multiparts =>
-          multiparts.multipart(Vector(Part.formData("text", "This is text."))).flatMap { multipart =>
-            val req = POST(multipart, uri).withHeaders(multipart.headers)
-            val body = client().expect[String](req)
-            body.map(_.contains("This is text."))
+          multiparts.multipart(Vector(Part.formData("text", "This is text."))).flatMap {
+            multipart =>
+              val req = POST(multipart, uri).withHeaders(multipart.headers)
+              val body = client().expect[String](req)
+              body.map(_.contains("This is text."))
           }
         }
         .assert
