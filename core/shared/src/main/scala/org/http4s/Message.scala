@@ -290,11 +290,18 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * `Content-Length` header.  It is the caller's responsibility to
     * assure there is enough memory to materialize the body.
     */
-  def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[self.SelfF[F1]] =
-    self.body.covary[F1].compile.to(Chunk).map { chunk =>
-      self
-        .withBodyStream[F](Stream.chunk(chunk))
-        .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+  def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[SelfF[F1]] =
+    entity match {
+      case Entity.Empty =>
+        F.pure(self.covary[F1])
+      case Entity.Strict(chunk) =>
+        F.pure(self.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+      case Entity.Default(body, _) =>
+        body.covary[F1].compile.to(Chunk).map { chunk =>
+          self
+            .withBodyStream[F](Stream.chunk(chunk))
+            .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+        }
     }
 }
 
