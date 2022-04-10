@@ -25,7 +25,6 @@ import cats.~>
 import fs2.Chunk
 import fs2.Stream
 import org.http4s._
-import scodec.bits.ByteVector
 
 /** Middleware for caching the request body for multiple compilations
   *
@@ -68,10 +67,8 @@ object BodyCache {
   def httpApp[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
     apply(app)(identity, _ => identity)(FunctionK.id)
 
-  private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] = for {
-    body <- req.body.compile.to(ByteVector)
-    cachedReq = req.withBodyStream(Stream.chunk(Chunk.byteVector(body)))
-  } yield cachedReq
+  private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] =
+    req.toStrict
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
     req.contentLength.contains(0L)

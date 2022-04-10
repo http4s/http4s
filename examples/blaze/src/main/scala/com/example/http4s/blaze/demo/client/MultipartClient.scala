@@ -29,7 +29,7 @@ import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.implicits._
-import org.http4s.multipart.Multipart
+import org.http4s.multipart.Multiparts
 import org.http4s.multipart.Part
 
 import java.net.URL
@@ -39,26 +39,27 @@ object MultipartClient extends MultipartHttpClient
 class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
   private val image: IO[URL] = IO.blocking(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL) =
-    Multipart[IO](
-      Vector(
-        Part.formData("name", "gvolpe"),
-        Part.fileData("rick", url, `Content-Type`(MediaType.image.png)),
+  private def request(multiparts: Multiparts[IO]) =
+    for {
+      url <- image
+      body <- multiparts.multipart(
+        Vector(
+          Part.formData("name", "gvolpe"),
+          Part.fileData("rick", url, `Content-Type`(MediaType.image.png)),
+        )
       )
-    )
+    } yield POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers)
 
-  private def request =
-    image
-      .map(multipart)
-      .map(body => POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers))
-
-  private val resources: Resource[IO, Client[IO]] =
-    BlazeClientBuilder[IO].resource
+  private val resources: Resource[IO, (Client[IO], Multiparts[IO])] =
+    for {
+      client <- BlazeClientBuilder[IO].resource
+      multiparts <- Resource.eval(Multiparts.forSync[IO])
+    } yield (client, multiparts)
 
   private val example =
     for {
-      client <- Stream.resource(resources)
-      req <- Stream.eval(request)
+      (client, multiparts) <- Stream.resource(resources)
+      req <- Stream.eval(request(multiparts))
       value <- Stream.eval(client.expect[String](req))
       _ <- S.putStrLn(value)
     } yield ()
