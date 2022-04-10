@@ -292,7 +292,8 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     */
   def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[self.SelfF[F1]] =
     self.body.covary[F1].compile.to(Chunk).map { chunk =>
-      self.withBodyStream[F](Stream.chunk(chunk))
+      self
+        .withBodyStream[F](Stream.chunk(chunk))
         .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
     }
 }
