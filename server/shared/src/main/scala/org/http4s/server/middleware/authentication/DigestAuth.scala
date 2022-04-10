@@ -19,7 +19,6 @@ package server
 package middleware
 package authentication
 
-import cats.Functor
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
@@ -41,7 +40,9 @@ object DigestAuth {
   )
   type AuthenticationStore[F[_], A] = String => F[Option[(A, String)]]
 
-  sealed trait AuthStore[F[_], A]
+  sealed trait AuthStore[F[_], A] {
+    private[DigestAuth] def func: String => F[Option[(A, String)]]
+  }
 
   /** A function mapping username to a user object and password, or
     * None if no user exists.
@@ -184,14 +185,16 @@ object DigestAuth {
       F: Sync[F]
   ): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Kleisli { req =>
-      def paramsToChallenge(params: Map[String, String]) =
+      def toChallenge(nonce: String, staleNonce: Boolean): Either[Challenge, Nothing] = {
+        val m = Map("qop" -> "auth", "nonce" -> nonce)
+        val params = if (staleNonce) m + ("stale" -> "TRUE") else m
         Either.left(Challenge("Digest", realm, params))
+      }
 
       checkAuth(realm, store, receiveNonce, req).flatMap {
-        case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
-        case StaleNonce =>
-          getChallengeParams(newNonce, staleNonce = true).map(paramsToChallenge)
-        case _ => getChallengeParams(newNonce, staleNonce = false).map(paramsToChallenge)
+        case OK(authInfo) => F.pure(Right(AuthedRequest(authInfo, req)))
+        case StaleNonce => newNonce.map(toChallenge(_, true))
+        case _ => newNonce.map(toChallenge(_, false))
       }
     }
 
@@ -203,91 +206,75 @@ object DigestAuth {
   )(implicit F: Monad[F]): F[AuthReply[A]] =
     req.headers.get[Authorization] match {
       case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
-        checkAuthParams(realm, store, receiveNonce, req, params)
-      case Some(_) =>
-        F.pure(NoCredentials)
-      case None =>
-        F.pure(NoAuthorizationHeader)
+        if (params.hasAllAuthParams && params.isInsideRealm(realm))
+          checkAuthParams(realm, store, receiveNonce, req, params)
+        else F.pure(BadParameters)
+      case Some(_) => F.pure(NoCredentials)
+      case None => F.pure(NoAuthorizationHeader)
     }
 
-  private def getChallengeParams[F[_]](newNonce: F[String], staleNonce: Boolean)(implicit
-      F: Functor[F]
-  ): F[Map[String, String]] =
-    newNonce
-      .map { nonce =>
-        val m = Map("qop" -> "auth", "nonce" -> nonce)
-        if (staleNonce)
-          m + ("stale" -> "TRUE")
-        else
-          m
-      }
+  implicit private class ParamsSyntax(private val params: NonEmptyList[(String, String)])
+      extends AnyVal {
+    def isInsideRealm(realm: String): Boolean =
+      params.exists(p => p._1 == "realm" && p._2 == realm)
+
+    def hasAllAuthParams: Boolean =
+      allTheDigestAuthParams.forall(ap => params.exists(_._1 == ap))
+
+    def valueOf(name: String): String =
+      params.collectFirst { case (`name`, value) => value }.get
+  }
+
+  private[this] val allTheDigestAuthParams =
+    List("realm", "nonce", "nc", "username", "cnonce", "qop")
 
   private def checkAuthParams[F[_]: Hash, A](
       realm: String,
       store: AuthStore[F, A],
       receiveNonce: (String, Int) => F[NonceKeeper.Reply],
       req: Request[F],
-      paramsNel: NonEmptyList[(String, String)],
+      params: NonEmptyList[(String, String)],
   )(implicit F: Monad[F]): F[AuthReply[A]] = {
-    val params = paramsNel.toList.toMap
-    if (!Set("realm", "nonce", "nc", "username", "cnonce", "qop").subsetOf(params.keySet)) {
-      F.pure(BadParameters)
-    } else {
-      val method = req.method.toString
+    val nonce = params.valueOf("nonce")
+    val nc = params.valueOf("nc")
 
-      if (!params.get("realm").contains(realm)) {
-        F.pure(BadParameters)
-      } else {
-        val nonce = params("nonce")
-        val nc = params("nc")
-        receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
-          case NonceKeeper.StaleReply => F.pure(StaleNonce)
-          case NonceKeeper.BadNCReply => F.pure(BadNC)
-          case NonceKeeper.OKReply =>
-            (store match {
-              case authStore: PlainTextAuthStore[F, A] =>
-                authStore.func(params("username")).flatMap {
-                  case None => F.pure(UserUnknown)
-                  case Some((authInfo, password)) =>
-                    DigestUtil
-                      .computeResponse(
-                        method,
-                        params("username"),
-                        realm,
-                        password,
-                        req.uri,
-                        nonce,
-                        nc,
-                        params("cnonce"),
-                        params("qop"),
-                      )
-                      .map { resp =>
-                        if (resp == params("response")) OK(authInfo)
-                        else WrongResponse
-                      }
-                }
-              case authStore: Md5HashedAuthStore[F, A] =>
-                authStore.func(params("username")).flatMap {
-                  case None => F.pure(UserUnknown)
-                  case Some((authInfo, ha1Hash)) =>
-                    DigestUtil
-                      .computeHashedResponse(
-                        method,
-                        ha1Hash,
-                        req.uri,
-                        nonce,
-                        nc,
-                        params("cnonce"),
-                        params("qop"),
-                      )
-                      .map { resp =>
-                        if (resp == params("response")) OK(authInfo)
-                        else WrongResponse
-                      }
-                }
-            })
+    receiveNonce(nonce, Integer.parseInt(nc, 16)).flatMap {
+      case NonceKeeper.StaleReply => F.pure(StaleNonce)
+      case NonceKeeper.BadNCReply => F.pure(BadNC)
+      case NonceKeeper.OKReply =>
+        store.func(params.valueOf("username")).flatMap {
+          case None => F.pure(UserUnknown)
+          case Some((authInfo, password)) =>
+            val method = req.method.toString
+            val responseF: F[String] = store match {
+              case _: PlainTextAuthStore[F, A] =>
+                DigestUtil
+                  .computeResponse(
+                    method,
+                    params.valueOf("username"),
+                    realm,
+                    password,
+                    req.uri,
+                    nonce,
+                    nc,
+                    params.valueOf("cnonce"),
+                    params.valueOf("qop"),
+                  )
+              case _: Md5HashedAuthStore[F, A] =>
+                DigestUtil
+                  .computeHashedResponse(
+                    method,
+                    password,
+                    req.uri,
+                    nonce,
+                    nc,
+                    params.valueOf("cnonce"),
+                    params.valueOf("qop"),
+                  )
+            }
+            val expectedResponse = params.valueOf("response")
+            responseF.map(r => if (r == expectedResponse) OK(authInfo) else WrongResponse)
         }
-      }
     }
   }
 }
