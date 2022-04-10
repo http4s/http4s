@@ -12,6 +12,7 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
+ThisBuild / tlCiReleaseBranches += "issue/6239"
 
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
@@ -1303,9 +1304,9 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
-  .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
+    name := "http4s-scalafix-internal",
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
