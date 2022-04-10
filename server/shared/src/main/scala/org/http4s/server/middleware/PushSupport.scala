@@ -25,7 +25,7 @@ import cats.syntax.all._
 import org.log4s.getLogger
 import org.typelevel.vault._
 
-@deprecated("Obsolete. Not implemented by any backends.", "0.22.13")
+@deprecated("Obsolete. Not implemented by any backends.", "0.23.12")
 object PushSupport {
   private[this] val logger = getLogger
 

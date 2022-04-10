@@ -33,7 +33,7 @@ object Boundary {
 
   private val defaultRandom = new Random()
 
-  @deprecated("Impure. Use Multiparts.boundary", "0.22.14")
+  @deprecated("Impure. Use Multiparts.boundary", "0.23.12")
   def create: Boundary = unsafeCreate()
 
   private[multipart] def unsafeCreate(): Boundary = {
