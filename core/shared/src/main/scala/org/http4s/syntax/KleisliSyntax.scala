@@ -45,6 +45,11 @@ trait KleisliSyntax {
 final class KleisliResponseOps[F[_]: Functor, A](self: Kleisli[OptionT[F, *], A, Response[F]]) {
   def orNotFound: Kleisli[F, A, Response[F]] =
     Kleisli(a => self.run(a).getOrElse(Response.notFound))
+
+  /** Closes the `self` HttpRoutes into an HttpApp by giving the response
+    * to be given if the `self` routes yield `None`. */
+  def orElse(default: => Response[F]): HttpApp[F] =
+    Kleisli(a => self.run(a).getOrElse(response))
 }
 
 final class KleisliHttpRoutesOps[F[_]](self: HttpRoutes[F]) {
