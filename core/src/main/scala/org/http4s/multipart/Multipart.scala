@@ -29,7 +29,7 @@ final case class Multipart[F[_]](
 ) {
   @deprecated(
     "Creating a boundary is an effect.  Use Multiparts.multipart to generate an F[Multipart[F]], or call the two-parameter constructor with your own boundary.",
-    "0.22.14",
+    "0.22.13",
   )
   def this(parts: Vector[Part[F]]) =
     this(parts, Boundary.unsafeCreate())
@@ -42,14 +42,14 @@ final case class Multipart[F[_]](
 }
 
 object Multipart {
-  @deprecated("Retaining for binary-compatibility", "0.22.14")
+  @deprecated("Retaining for binary-compatibility", "0.22.13")
   def `<init>$default$2`: String = apply$default$2
-  @deprecated("Retaining for binary-compatibility", "0.22.14")
+  @deprecated("Retaining for binary-compatibility", "0.22.13")
   def apply$default$2: String = Boundary.unsafeCreate().value
 
   @deprecated(
     "Creating a boundary is an effect.  Use Multiparts.multipart to generate an F[Multipart[F]], or call the two-parameter apply with your own boundary.",
-    "0.22.14",
+    "0.22.13",
   )
   def apply[F[_]](parts: Vector[Part[F]]) = new Multipart(parts)
 }
