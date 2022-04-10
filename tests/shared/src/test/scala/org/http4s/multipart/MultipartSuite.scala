@@ -17,7 +17,7 @@
 package org.http4s
 package multipart
 
-import cats.data._
+import cats.data.EitherT
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -27,9 +27,13 @@ import org.http4s.syntax.literals._
 import org.typelevel.ci._
 
 import scala.annotation.nowarn
+import scala.util.Random
 
 class MultipartSuite extends Http4sSuite {
   private val url = uri"https://example.com/path/to/some/where"
+
+  private val random = new Random()
+  private val multiparts = Multiparts.fromScalaRandom[IO](random)
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
     for {
@@ -56,33 +60,48 @@ class MultipartSuite extends Http4sSuite {
       val field1 =
         Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
       val field2 = Part.formData[IO]("field2", "Text_Field_2")
-      val multipart = Multipart(Vector(field1, field2))
-      val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val request =
-        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
-      mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
-        val result = decoded.value
+      multiparts
+        .multipart(Vector(field1, field2))
+        .flatMap { multipart =>
+          val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+          val body = entity.body
+          val request =
+            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
-      }
+          mkDecoder.use { decoder =>
+            val decoded = decoder.decode(request, true)
+            val result = decoded.value
+
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
+          }
+        }
+        .assert
     }
 
     test(s"Multipart form data $name should be encoded and decoded without content types") {
       val field1 = Part.formData[IO]("field1", "Text_Field_1")
-      val multipart = Multipart[IO](Vector(field1))
 
-      val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val request =
-        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
+      multiparts
+        .multipart(Vector(field1))
+        .flatMap { multipart =>
+          val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+          val body = entity.body
+          val request =
+            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-      mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
-        val result = decoded.value
+          mkDecoder.use { decoder =>
+            val decoded = decoder.decode(request, true)
+            val result = decoded.value
 
-        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
-      }
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
+          }
+        }
+        .assert
     }
 
     test(s"Multipart form data $name should encoded and decoded with binary data") {
@@ -92,18 +111,24 @@ class MultipartSuite extends Http4sSuite {
       val field2 = Part
         .fileData[IO]("image", path, `Content-Type`(MediaType.image.png))
 
-      val multipart = Multipart[IO](Vector(field1, field2))
+      multiparts
+        .multipart(Vector(field1, field2))
+        .flatMap { multipart =>
+          val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+          val body = entity.body
+          val request =
+            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-      val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-      val request =
-        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
+          mkDecoder.use { decoder =>
+            val decoded = decoder.decode(request, true)
+            val result = decoded.value
 
-      mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
-        val result = decoded.value
-
-        assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
-      }
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
+          }
+        }
+        .assert
     }
 
     test(s"Multipart form data $name should be decoded and encode with content types") {
@@ -199,9 +224,10 @@ I am a big moose
     test(
       s"Multipart form data $name should include chunked transfer encoding header so that body is streamed by client"
     ) {
-      val multipart = Multipart(Vector())
-      val request = Request(method = Method.POST, uri = url, headers = multipart.headers)
-      assert(request.isChunked)
+      multiparts.boundary.map { boundary =>
+        val multipart = Multipart(Vector(), boundary)
+        Request(method = Method.POST, uri = url, headers = multipart.headers).isChunked
+      }.assert
     }
 
     test("Multipart should be encoded with a \\r\\n after the final part for robustness") {

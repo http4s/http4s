@@ -74,11 +74,12 @@ object Throttle {
                   val attemptSet: F[Option[TokenAvailability]] =
                     if (newTokenTotal >= 1)
                       setter((newTokenTotal - 1, currentTime))
-                        .map(_.guard[Option].as(TokenAvailable))
+                        .map(if (_) Some(TokenAvailable) else None)
                     else {
                       val timeToNextToken = refillEvery.toNanos - timeDifference
                       val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
-                      setter((newTokenTotal, currentTime)).map(_.guard[Option].as(successResponse))
+                      setter((newTokenTotal, currentTime))
+                        .map(if (_) Some(successResponse) else None)
                     }
 
                   attemptSet
