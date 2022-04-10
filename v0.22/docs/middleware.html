@@ -234,7 +234,7 @@
     </span><span class="type-name">Ok</span><span>()
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21634/950259163@24f273c8
+//   run = org.http4s.HttpRoutes$$$Lambda$21588/1157022335@38d13ae
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">goodRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -244,7 +244,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@661dc36e
+//    = org.typelevel.vault.Vault@22ae77fe
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">badRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/bad&quot;</span><span>)
 </span><span class="comment">// badRequest: Request[IO] = (
@@ -259,7 +259,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@5992c41a
+//    = org.typelevel.vault.Vault@284057a
 // )
 </span><span>
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -268,7 +268,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1091980a
+//    = org.typelevel.vault.Vault@2ba6d204
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[IO[A]] = (
@@ -276,7 +276,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@27cac5e3
+//    = org.typelevel.vault.Vault@405db4bd
 // )</span></code></pre>
         <p>Now, we&#39;ll wrap the service in our middleware to create a new service, and try it out.</p>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">wrappedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);
@@ -288,7 +288,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2f4474c7
+//    = org.typelevel.vault.Vault@119d2acf
 // )
 </span><span class="identifier">wrappedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[IO[A]] = (
@@ -296,7 +296,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@6039c721
+//    = org.typelevel.vault.Vault@33904253
 // )</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
         <p>If you intend to use you middleware in multiple places,  you may want to implement
@@ -314,7 +314,7 @@
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">newService</span><span> = </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)
 </span><span class="comment">// newService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = cats.data.Kleisli$$Lambda$23094/223372504@7cf452e4
+//   run = cats.data.Kleisli$$Lambda$23047/1804475032@2e3b80d7
 // )
 </span><span>
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -323,7 +323,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@d607544
+//    = org.typelevel.vault.Vault@36e31f1
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[IO[A]] = (
@@ -331,7 +331,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@10eca63
+//    = org.typelevel.vault.Vault@7bdda801
 // )</span></code></pre>
         <p>It is possible for the wrapped <code>Service</code> to have different <code>Request</code> and <code>Response</code>
         types than the middleware. Authentication is, again, a good example. Authentication
@@ -349,12 +349,12 @@
     </span><span class="type-name">Ok</span><span>()
 }
 </span><span class="comment">// apiService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21634/950259163@2fa005ac
+//   run = org.http4s.HttpRoutes$$$Lambda$21588/1157022335@4aeefff3
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">aggregateService</span><span> = </span><span class="identifier">apiService</span><span> &lt;+&gt; </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)
 </span><span class="comment">// aggregateService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   run = cats.data.KleisliSemigroupK$$Lambda$21635/700214727@719d01ce
+//   run = cats.data.KleisliSemigroupK$$Lambda$21589/1456759432@38a1e341
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">apiRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/api&quot;</span><span>)
@@ -370,7 +370,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@7fd980ec
+//    = org.typelevel.vault.Vault@4a32ac1d
 // )
 </span><span>
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -379,7 +379,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@8f300a6
+//    = org.typelevel.vault.Vault@5c3988fa
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[IO[A]] = (
@@ -387,7 +387,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@27d1e971
+//    = org.typelevel.vault.Vault@6195f5e9
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
@@ -424,13 +424,13 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="identifier">dropwizard</span><span>.</span><span class="type-name">Dropwizard</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">codahale</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="type-name">SharedMetricRegistries</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">clock</span><span> = </span><span class="type-name">Clock</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
-</span><span class="comment">// clock: Clock[IO] = cats.effect.Clock$$anon$1@3e5b1f34
+</span><span class="comment">// clock: Clock[IO] = cats.effect.Clock$$anon$1@5699b971
 </span><span class="keyword">val</span><span> </span><span class="identifier">registry</span><span> = </span><span class="type-name">SharedMetricRegistries</span><span>.</span><span class="identifier">getOrCreate</span><span>(</span><span class="string-literal">&quot;default&quot;</span><span>)
-</span><span class="comment">// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@51c69bc7
+</span><span class="comment">// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@75db1f76
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">meteredRoutes</span><span> = </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Dropwizard</span><span>(</span><span class="identifier">registry</span><span>, </span><span class="string-literal">&quot;server&quot;</span><span>))(</span><span class="identifier">apiService</span><span>)
 </span><span class="comment">// meteredRoutes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.server.middleware.BracketRequestResponse$$$Lambda$23369/1045068504@d3636f3
+//   run = org.http4s.server.middleware.BracketRequestResponse$$$Lambda$23319/985339257@994a5fb
 // )</span></code></pre>
         
         <h4 id="prometheus-metrics-middleware" class="section">Prometheus Metrics Middleware<a class="anchor-link right" href="#prometheus-metrics-middleware"><i class="icofont-laika">&#xef71;</i></a></h4>
@@ -447,7 +447,7 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">Router</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Metrics</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">clock</span><span> = </span><span class="type-name">Clock</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
-</span><span class="comment">// clock: Clock[IO] = cats.effect.Clock$$anon$1@1d50f1c3
+</span><span class="comment">// clock: Clock[IO] = cats.effect.Clock$$anon$1@197a826b
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">meteredRouter</span><span>: </span><span class="type-name">Resource</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>]] =
   </span><span class="keyword">for</span><span> {
@@ -464,7 +464,7 @@
 //       resource = Map(
 //         source = Map(
 //           source = Delay(
-//             thunk = org.http4s.metrics.prometheus.Prometheus$$$Lambda$22571/573931431@2d5e7a0f,
+//             thunk = org.http4s.metrics.prometheus.Prometheus$$$Lambda$22520/761182958@3f98b7e9,
 //             trace = StackTrace(
 //               stackTrace = List(
 //                 cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -490,7 +490,7 @@
 //               )
 //             )
 //           ),
-//           f = cats.effect.Resource$$$Lambda$21938/1709793179@35e21979,
+//           f = cats.effect.Resource$$$Lambda$21889/1741411966@570e1610,
 //           trace = StackTrace(
 //             stackTrace = List(
 //               cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),
@@ -518,20 +518,20 @@
         extracted from the header, or the generated request id.</p>
         <pre><code class="nohighlight"><span class="comment">// generated request id can be correlated with logs
 </span><span class="keyword">val</span><span> </span><span class="identifier">resp</span><span> = </span><span class="identifier">responseIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// request received, cid=389b3461-fe84-4c78-80c1-9027b59ec237
+</span><span class="comment">// request received, cid=12fcdf1c-bcf3-4588-87b9-7c2af65f8d85
 // resp: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, X-Request-ID: 389b3461-fe84-4c78-80c1-9027b59ec237),
+//    = Headers(Content-Length: 0, X-Request-ID: 12fcdf1c-bcf3-4588-87b9-7c2af65f8d85),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@5326124e
+//    = org.typelevel.vault.Vault@4cc76fb1
 // )
 // X-Request-ID header added to response
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 389b3461-fe84-4c78-80c1-9027b59ec237)
+</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 12fcdf1c-bcf3-4588-87b9-7c2af65f8d85)
 // the request id is also available using attributes
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)
-</span><span class="comment">// res9: Option[String] = Some(value = &quot;389b3461-fe84-4c78-80c1-9027b59ec237&quot;)</span></code></pre>
+</span><span class="comment">// res9: Option[String] = Some(value = &quot;12fcdf1c-bcf3-4588-87b9-7c2af65f8d85&quot;)</span></code></pre>
 
         <hr style="margin-top: 30px"/>
         <footer style="font-size: 90%; text-align: center">
