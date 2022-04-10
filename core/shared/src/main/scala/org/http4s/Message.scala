@@ -20,7 +20,9 @@ import cats.Applicative
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.OptionT
-import cats.effect.{Concurrent, Sync, SyncIO}
+import cats.effect.Concurrent
+import cats.effect.Sync
+import cats.effect.SyncIO
 import cats.syntax.all._
 import cats.~>
 import com.comcast.ip4s.Dns
@@ -28,8 +30,8 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.Pipe
 import fs2.Chunk
+import fs2.Pipe
 import fs2.Pure
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
