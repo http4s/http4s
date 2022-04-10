@@ -65,9 +65,8 @@ class MultipartSuite extends Http4sSuite {
         .multipart(Vector(field1, field2))
         .flatMap { multipart =>
           val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-          val body = entity.body
           val request =
-            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+            Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
             val decoded = decoder.decode(request, true)
@@ -88,9 +87,8 @@ class MultipartSuite extends Http4sSuite {
         .multipart(Vector(field1))
         .flatMap { multipart =>
           val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-          val body = entity.body
           val request =
-            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+            Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
             val decoded = decoder.decode(request, true)
@@ -115,9 +113,8 @@ class MultipartSuite extends Http4sSuite {
         .multipart(Vector(field1, field2))
         .flatMap { multipart =>
           val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-          val body = entity.body
           val request =
-            Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
+            Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
             val decoded = decoder.decode(request, true)
