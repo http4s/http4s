@@ -73,7 +73,9 @@ class MultipartSuite extends Http4sSuite {
             val decoded = decoder.decode(request, true)
             val result = decoded.value
 
-            assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
           }
         }
         .assert
@@ -94,7 +96,9 @@ class MultipartSuite extends Http4sSuite {
             val decoded = decoder.decode(request, true)
             val result = decoded.value
 
-            assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
           }
         }
         .assert
@@ -119,7 +123,9 @@ class MultipartSuite extends Http4sSuite {
             val decoded = decoder.decode(request, true)
             val result = decoded.value
 
-            assertIOBoolean(EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false))
+            assertIOBoolean(
+              EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
+            )
           }
         }
         .assert

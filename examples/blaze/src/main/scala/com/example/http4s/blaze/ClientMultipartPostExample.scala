@@ -54,10 +54,10 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
   }
 
   def run(args: List[String]): IO[ExitCode] =
-  Multiparts.forSync[IO].flatMap { multiparts =>
-    BlazeClientBuilder[IO].resource
-      .use(go(_, multiparts))
-      .flatMap(s => IO.println(s))
-      .as(ExitCode.Success)
-  }
+    Multiparts.forSync[IO].flatMap { multiparts =>
+      BlazeClientBuilder[IO].resource
+        .use(go(_, multiparts))
+        .flatMap(s => IO.println(s))
+        .as(ExitCode.Success)
+    }
 }
