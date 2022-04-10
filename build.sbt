@@ -1307,6 +1307,7 @@ lazy val scalafixInternalRules = project
   .disablePlugins(ScalafixPlugin)
   .settings(
     name := "http4s-scalafix-internal",
+    mimaPreviousArtifacts := Set.empty,
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
