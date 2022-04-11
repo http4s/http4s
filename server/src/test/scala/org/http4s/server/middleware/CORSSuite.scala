@@ -46,7 +46,7 @@ class CORSSuite extends Http4sSuite {
     .withMethod(Method.OPTIONS)
     .putHeaders(
       `Access-Control-Request-Method`(Method.POST),
-      Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite"),
+      `Access-Control-Request-Headers`(ci"X-Cors-Suite"),
     )
 
   private def assertAllowOrigin[F[_]](resp: Response[F], origin: Option[String]) =
@@ -574,7 +574,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(
         preflightReq.putHeaders(
-          Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")
+          `Access-Control-Request-Headers`(ci"X-Cors-Suite-1", ci"X-Cors-Suite-3")
         )
       )
       .map { resp =>
@@ -592,7 +592,7 @@ class CORSSuite extends Http4sSuite {
       .withAllowHeadersIn(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
       .run(
-        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1"))
+        preflightReq.putHeaders(`Access-Control-Request-Headers`(ci"X-Cors-Suite-1"))
       )
       .map { resp =>
         assertAllowHeaders(resp, ci"X-Cors-Suite-1, X-Cors-Suite-2".some)
@@ -666,7 +666,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(
         preflightReq.putHeaders(
-          Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1, X-Cors-Suite-3")
+          `Access-Control-Request-Headers`(ci"X-Cors-Suite-1", ci"X-Cors-Suite-3")
         )
       )
       .map { resp =>
@@ -681,7 +681,7 @@ class CORSSuite extends Http4sSuite {
       .withAllowHeadersStatic(Set(ci"X-Cors-Suite-1", ci"X-Cors-Suite-2"))
       .apply(app)
       .run(
-        preflightReq.putHeaders(Header.Raw(ci"Access-Control-Request-Headers", "X-Cors-Suite-1"))
+        preflightReq.putHeaders(`Access-Control-Request-Headers`(ci"X-Cors-Suite-1"))
       )
       .map { resp =>
         assertAllowHeaders(resp, Some(ci"X-Cors-Suite-1, X-Cors-Suite-2"))
