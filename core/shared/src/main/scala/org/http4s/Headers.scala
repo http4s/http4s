@@ -103,19 +103,19 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     *      |   `Transfer-Encoding`(TransferCoding.chunked),
     *      |   `Content-Type`(MediaType.text.plain))
     * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024))
-    * res0: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
+    * res0: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
     *
     * scala> val chunkedGzipped = Headers(
     *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
     *      |   `Content-Type`(MediaType.text.plain))
     * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024))
-    * res1: Headers = Headers(Transfer-Encoding: gzip, Content-Type: text/plain, Content-Length: 1024)
+    * res1: Headers = Headers(Content-Length: 1024, Transfer-Encoding: gzip, Content-Type: text/plain)
     *
     * scala> val const = Headers(
     *      |   `Content-Length`(2048),
     *      |   `Content-Type`(MediaType.text.plain))
     * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024))
-    * res1: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
+    * res1: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
     * }}}
     */
   def withContentLength(contentLength: `Content-Length`): Headers =
