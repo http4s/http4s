@@ -87,8 +87,6 @@ object Http4sPlugin extends AutoPlugin {
         )
       },
     doctestTestFramework := DoctestTestFramework.Munit,
-    // Remove after https://github.com/tkawachi/sbt-doctest/issues/300
-    doctestIgnoreRegex := Some(".*-.*.scala"),
   )
 
   def extractApiVersion(version: String) = {
