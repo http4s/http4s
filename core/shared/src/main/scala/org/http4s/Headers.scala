@@ -121,6 +121,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def withContentLength(contentLength: `Content-Length`): Headers =
     transform { hs =>
       val b = List.newBuilder[Header.Raw]
+      b += contentLength.toRaw1
       hs.foreach { h =>
         h.name match {
           case `Transfer-Encoding`.name =>
@@ -137,7 +138,6 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
             b += h
         }
       }
-      b += contentLength.toRaw1
       b.result()
     }
 
