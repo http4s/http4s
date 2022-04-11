@@ -19,7 +19,6 @@ package client
 package dsl
 
 import cats.Applicative
-import org.http4s.headers.`Content-Length`
 
 trait Http4sClientDsl[F[_]] {
   implicit def http4sClientSyntaxMethod(method: Method): MethodOps[F] =
@@ -50,13 +49,8 @@ class MethodOps[F[_]](private val method: Method) extends AnyVal {
   final def apply[A](body: A, uri: Uri, headers: Header.ToRaw*)(implicit
       w: EntityEncoder[F, A]
   ): Request[F] = {
-    val h = w.headers ++ Headers(headers: _*)
     val entity = w.toEntity(body)
-    val newHeaders = entity.length
-      .map { l =>
-        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-      }
-      .getOrElse(h)
+    val newHeaders = w.headers.put(headers).put(entity.length)
     Request(method = method, uri = uri, headers = newHeaders, entity = entity)
   }
 }

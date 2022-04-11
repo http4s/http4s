@@ -32,7 +32,7 @@ trait ResponseGenerator extends Any {
 
 private[impl] object ResponseGenerator {
   def addEntityLength[G[_]](entity: Entity[G], headers: Headers): Headers =
-    headers.put(entity.length.flatMap(x => `Content-Length`.fromLong(x).toOption))
+    headers.put(entity.length)
 }
 
 /**  Helper for the generation of a [[org.http4s.Response]] which will not contain a body

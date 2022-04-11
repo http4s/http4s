@@ -33,7 +33,7 @@ trait EntityEncoderLaws[F[_], A] {
       entity <- F.pure(encoder.toEntity(a))
       body <- entity.body.compile.toVector
       bodyLength = body.size.toLong
-      contentLength = entity.length
+      contentLength = entity.length.map(_.length)
     } yield contentLength.fold(true)(_ === bodyLength)) <-> F.pure(true)
 
   def noContentLengthInStaticHeaders: Boolean =
