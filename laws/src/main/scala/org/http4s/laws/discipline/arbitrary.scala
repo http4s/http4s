@@ -1107,6 +1107,14 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   val dntGen: Gen[DNT] = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 
+  implicit val arbitraryCrossOriginEmbedderPolicy: Arbitrary[`Cross-Origin-Embedder-Policy`] =
+    Arbitrary[`Cross-Origin-Embedder-Policy`](
+      Gen.oneOf(
+        `Cross-Origin-Embedder-Policy`.UnsafeNone,
+        `Cross-Origin-Embedder-Policy`.RequireCorp,
+      )
+    )
+
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
       values <- listOf(http4sGenMediaType)
