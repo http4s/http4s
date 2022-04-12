@@ -106,11 +106,11 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
     change(entity = Entity(body))
 
-  /** Set an empty entity body on this message, and remove all payload headers
+  /** Set an [[Entity.Empty]] entity on this message, and remove all payload headers
     * that make no sense with an empty body.
     */
-  def withEmptyBody: SelfF[F] =
-    withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+  def withEmptyBody: SelfF[Pure] =
+    change(entity = Entity.Empty).transformHeaders(_.removePayloadHeaders)
 
   /** Applies the given pipe to the entity body (byte-stream) of this message.
     *
