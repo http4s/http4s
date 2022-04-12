@@ -74,5 +74,12 @@ object BodyCache {
   } yield cachedReq
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
-    req.contentLength.contains(0L)
+    req.entity match {
+      case Entity.Empty =>
+        true
+      case Entity.Strict(chunk) =>
+        chunk.isEmpty
+      case Entity.Default(_, _) =>
+        req.contentLength.contains(0L)
+    }
 }
