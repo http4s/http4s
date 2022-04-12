@@ -47,21 +47,18 @@ object Jsonp {
     Kleisli { req =>
       req.params.get(callbackParam) match {
         case Some(ValidCallback(callback)) =>
-          http
-            .map { response =>
-              response.contentType.map(_.mediaType) match {
-                case Some(MediaType.application.json) =>
-                  jsonp(response, callback)
-                case _ => response
-              }
-            }
-            .apply(req)
+          http(req).map { response =>
+            if (hasJsonContent(response)) jsonp(response, callback) else response
+          }
         case Some(invalidCallback) =>
           logger.warn(s"Jsonp requested with invalid callback function name $invalidCallback")
           Response[G](Status.BadRequest).withEntity(s"Not a valid callback name.").pure[F]
         case None => http(req)
       }
     }
+
+  private def hasJsonContent[F[_]](resp: Response[F]): Boolean =
+    resp.contentType.map(_.mediaType).contains(MediaType.application.json)
 
   private def jsonp[F[_]](resp: Response[F], callback: String) = {
     val begin = beginJsonp(callback)

@@ -21,7 +21,6 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.Status.Accepted
 import org.http4s.Status.Ok
-import org.http4s.server.middleware.PushSupport._
 import org.http4s.syntax.literals._
 
 object MockRoute {
@@ -41,9 +40,5 @@ object MockRoute {
 
       case req if req.uri.path === path"/fail" =>
         sys.error("Problem!")
-
-      /** For testing the PushSupport middleware */
-      case req if req.uri.path === path"/push" =>
-        Response[IO](Ok).withEntity("Hello").push("/ping")(req).pure[IO]
     }
 }

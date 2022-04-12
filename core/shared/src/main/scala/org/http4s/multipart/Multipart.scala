@@ -19,7 +19,15 @@ package multipart
 
 import org.http4s.headers._
 
-final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
+/** Create a new multipart from a vector of parts and a boundary.
+  *
+  * To create Multipart values from a generated boundary, see the [[Multiparts]] algebra.
+  */
+final case class Multipart[F[_]](
+    parts: Vector[Part[F]],
+    boundary: Boundary,
+) {
+
   def headers: Headers =
     Headers(
       `Transfer-Encoding`(TransferCoding.chunked),

@@ -25,9 +25,7 @@ import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
-import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.syntax.all._
@@ -160,20 +158,6 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
           val s = m.values.mkString("\n")
           Ok(s"Form Encoded Data\n$s")
         }
-
-      // /////////////////////////////////////////////////////////////
-      // ////////////////////// Server Push //////////////////////////
-      case req @ GET -> Root / "push" =>
-        // http4s intends to be a forward looking library made with http2.0 in mind
-        val data = <html><body><img src="image.jpg"/></body></html>
-        Ok(data)
-          .map(_.withContentType(`Content-Type`(MediaType.text.`html`)))
-          .map(_.push("/image.jpg")(req))
-
-      case req @ GET -> Root / "image.jpg" =>
-        StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", Some(req))
-          .getOrElseF(NotFound())
 
       // /////////////////////////////////////////////////////////////
       // ////////////////////// Multi Part //////////////////////////
