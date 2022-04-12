@@ -99,6 +99,9 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     change(entity = entity, headers = headers ++ hs)
   }
 
+  def withEntity[F1[x]](entity: Entity[F1]): SelfF[F1] =
+    change(entity = entity)
+
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
@@ -290,16 +293,20 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * `Content-Length` header.  It is the caller's responsibility to
     * assure there is enough memory to materialize the body.
     */
-  def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[SelfF[F1]] =
+  def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[SelfF[Pure]] =
     entity match {
       case Entity.Empty =>
-        F.pure(self.covary[F1])
-      case Entity.Strict(chunk) =>
-        F.pure(self.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+        F.pure(self.withEntity(Entity.Empty))
+      case entity @ Entity.Strict(chunk) =>
+        F.pure(
+          self
+            .withEntity(entity)
+            .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+        )
       case Entity.Default(body, _) =>
         body.covary[F1].compile.to(Chunk).map { chunk =>
           self
-            .withBodyStream[F](Stream.chunk(chunk))
+            .withEntity(Entity.strict(chunk))
             .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
         }
     }
