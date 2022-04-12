@@ -65,7 +65,7 @@ object BodyCache {
   def httpApp[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
     apply(app)(identity, _ => identity)(FunctionK.id)
 
-  private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] =
+  private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[fs2.Pure]] =
     req.toStrict
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
