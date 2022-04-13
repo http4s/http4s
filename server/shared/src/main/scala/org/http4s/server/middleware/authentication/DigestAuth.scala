@@ -37,7 +37,7 @@ object DigestAuth {
 
   @deprecated(
     "AuthenticationStore is going away, in favor of explicit subclasses of AuthStore. PlainTextAuthStore maintains the previous, insecure behaviour, whereas Md5HashedAuthStore is the new advised implementation going forward.",
-    "0.22.13",
+    "0.23.12",
   )
   type AuthenticationStore[F[_], A] = String => F[Option[(A, String)]]
 
@@ -87,7 +87,7 @@ object DigestAuth {
   private case object NoCredentials extends AuthReply[Nothing]
   private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  @deprecated("Calling apply is side-effecting, please use applyF", "0.22.13")
+  @deprecated("Calling apply is side-effecting, please use applyF", "0.23.12")
   def apply[F[_]: Sync, A](
       realm: String,
       store: String => F[Option[(A, String)]],
@@ -129,7 +129,7 @@ object DigestAuth {
 
   @deprecated(
     "Uses a side-effecting NonceKeeper. Use challenge(String, AuthStore, Blocker, Duration, Int, Int).",
-    "0.22.13",
+    "0.23.12",
   )
   def challenge[F[_], A](
       realm: String,

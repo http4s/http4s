@@ -47,6 +47,8 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
+    // Remove after https://github.com/tkawachi/sbt-doctest/issues/300
+    doctestIgnoreRegex := Some(".*-.*.scala"),
   )
 
   def extractApiVersion(version: String) = {
@@ -113,7 +115,7 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "3.2.7"
     val ip4s = "3.1.2"
     val hpack = "1.0.3"
-    val javaWebSocket = "1.5.2"
+    val javaWebSocket = "1.5.3"
     val jawn = "1.3.2"
     val jawnFs2 = "2.2.0"
     val jetty = "9.4.46.v20220331"
@@ -138,7 +140,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.10.0"
-    val scalaXml = "2.0.1"
+    val scalaXml = "2.1.0"
     val scodecBits = "1.1.30"
     val servlet = "3.1.0"
     val slf4j = "1.7.36"

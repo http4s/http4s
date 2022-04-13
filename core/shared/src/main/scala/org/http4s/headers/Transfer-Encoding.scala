@@ -46,9 +46,23 @@ object `Transfer-Encoding` {
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =
     (a, b) => `Transfer-Encoding`(a.values.concatNel(b.values))
-
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) {
   def hasChunked: Boolean = values.exists(_ === TransferCoding.chunked)
+
+  /** Keep transfer codings matching the predicate.  If no values remain,
+    * return none
+    *
+    * {{{
+    * scala> import org.http4s._
+    * scala> val te = `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip)
+    * scala> te.filter(_ != TransferCoding.chunked)
+    * res0: Option[`Transfer-Encoding`] = Some(Transfer-Encoding(NonEmptyList(TransferCoding(gzip))))
+    * scala> te.filter(_ => false)
+    * res0: Option[`Transfer-Encoding`] = None
+    * }}}
+    */
+  def filter(f: TransferCoding => Boolean): Option[`Transfer-Encoding`] =
+    NonEmptyList.fromList(values.filter(f)).map(`Transfer-Encoding`(_))
 }
