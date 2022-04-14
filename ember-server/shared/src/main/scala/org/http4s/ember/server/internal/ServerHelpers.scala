@@ -21,12 +21,14 @@ import cats.effect._
 import cats.effect.kernel.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
+import fs2.Chunk
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
+import org.http4s.ember.core.ChunkedEncoding
 import org.http4s.ember.core.Drain
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.Encoder
@@ -351,17 +353,33 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       resp: Response[F],
       idleTimeout: Duration,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-  ): F[Unit] =
-    Encoder
-      .respToBytes[F](resp)
-      .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
-      .compile
-      .drain
-      .attempt
+  ): F[Unit] = {
+    val sendResponse =
+      resp.entity match {
+        case Entity.Strict(chunk) =>
+          val (initSection, chunked) = Encoder.initSection(resp)
+          if (chunked) {
+            val encodedChunk = ChunkedEncoding.encodeChunk(chunk)
+            timeoutMaybe(socket.write(Chunk.array(initSection) ++ encodedChunk), idleTimeout)
+          } else {
+            timeoutMaybe(socket.write(Chunk.array(initSection) ++ chunk), idleTimeout)
+          }
+        case Entity.Empty =>
+          val (initSection, _) = Encoder.initSection(resp)
+          timeoutMaybe(socket.write(Chunk.array(initSection)), idleTimeout)
+        case Entity.Default(_, _) =>
+          Encoder
+            .respToBytes[F](resp)
+            .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+            .compile
+            .drain
+      }
+    sendResponse.attempt
       .flatMap {
         case Left(err) => onWriteFailure(request, resp, err)
         case Right(()) => Applicative[F].unit
       }
+  }
 
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],

@@ -32,51 +32,54 @@ private[ember] object Encoder {
   private val CRLF = "\r\n"
   val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
 
-  def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+  def initSection[F[_]](resp: Response[F]): (Array[Byte], Boolean) = {
     var chunked = resp.isChunked
-    // resp.status.isEntityAllowed TODO
-    val initSection = {
-      var appliedContentLength = false
-      val stringBuilder = new StringBuilder()
+    var appliedContentLength = false
+    val stringBuilder = new StringBuilder()
 
-      // Response Prelude: HTTP-Version SP STATUS CRLF
-      stringBuilder
-        .append(resp.httpVersion.renderString)
-        .append(SPACE)
-        .append(resp.status.renderString)
-        .append(CRLF)
+    // Response Prelude: HTTP-Version SP STATUS CRLF
+    stringBuilder
+      .append(resp.httpVersion.renderString)
+      .append(SPACE)
+      .append(resp.status.renderString)
+      .append(CRLF)
 
-      resp.headers
-        .get[`Content-Length`]
-        .foreach { _ =>
+    // Apply each header followed by a CRLF
+    resp.headers.foreach { h =>
+      if (h.isNameValid) {
+        stringBuilder
+          .append(h.name)
+          .append(": ")
+        appendSanitized(stringBuilder, h.value)
+        stringBuilder.append(CRLF)
+        if (h.name == `Content-Length`.name) {
           appliedContentLength = true
         }
-
-      // Apply each header followed by a CRLF
-      resp.headers.foreach { h =>
-        if (h.isNameValid) {
-          stringBuilder
-            .append(h.name)
-            .append(": ")
-          appendSanitized(stringBuilder, h.value)
-          stringBuilder.append(CRLF)
-          ()
-        }
-      }
-      if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
-        stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
-        chunked = true
         ()
       }
-      // Final CRLF terminates headers and signals body to follow.
-      stringBuilder.append(CRLF)
-      stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
     }
+    if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
+      stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+      chunked = true
+      ()
+    }
+    // Final CRLF terminates headers and signals body to follow.
+    stringBuilder.append(CRLF)
+    (stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1), chunked)
+  }
+
+  def respToBytes[F[_]](
+      resp: Response[F],
+      writeBufferSize: Int = 32 * 1024,
+  ): Stream[F, Byte] = {
+    // resp.status.isEntityAllowed TODO
+    val (initSectionBytes, chunked) = initSection(resp)
+    val initSectionChunk = Chunk.array(initSectionBytes)
 
     if (chunked)
-      Stream.chunk(Chunk.array(initSection)) ++ resp.body.through(ChunkedEncoding.encode[F])
+      Stream.chunk(initSectionChunk) ++ resp.body.through(ChunkedEncoding.encode[F])
     else
-      (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
+      (Stream.chunk(initSectionChunk) ++ resp.body)
         .chunkMin(writeBufferSize)
         .flatMap(Stream.chunk)
   }
@@ -116,12 +119,6 @@ private[ember] object Encoder {
               .append(CRLF)
           }
 
-        req.headers
-          .get[`Content-Length`]
-          .foreach { _ =>
-            appliedContentLength = true
-          }
-
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
           if (h.isNameValid) {
@@ -130,6 +127,9 @@ private[ember] object Encoder {
               .append(": ")
             appendSanitized(stringBuilder, h.value)
             stringBuilder.append(CRLF)
+            if (h.name == `Content-Length`.name) {
+              appliedContentLength = true
+            }
             ()
           }
         }
@@ -144,12 +144,21 @@ private[ember] object Encoder {
         stringBuilder.append(CRLF)
         stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
       }
+      val initSectionChunk = Chunk.array(initSection)
       if (chunked)
-        Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
-      else
-        (Stream.chunk(Chunk.array(initSection)) ++ req.body)
-          .chunkMin(writeBufferSize)
-          .flatMap(Stream.chunk)
+        Stream.chunk(initSectionChunk) ++ req.body.through(ChunkedEncoding.encode[F])
+      else {
+        req.entity match {
+          case Entity.Default(body, _) =>
+            (Stream.chunk(initSectionChunk) ++ body)
+              .chunkMin(writeBufferSize)
+              .flatMap(Stream.chunk)
+          case Entity.Strict(chunk) =>
+            Stream.chunk(initSectionChunk ++ chunk)
+          case Entity.Empty =>
+            Stream.chunk(initSectionChunk)
+        }
+      }
     }
   }
 

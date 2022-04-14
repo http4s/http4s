@@ -154,6 +154,14 @@ private[ember] object ChunkedEncoding {
     } ++ Stream.chunk(lastChunk)
   }
 
+  def encodeChunk(chunk: Chunk[Byte]): Chunk[Byte] =
+    if (chunk.isEmpty) {
+      chunk
+    } else {
+      Chunk.array(chunk.size.toHexString.toUpperCase.getBytes) ++
+        Chunk.byteVector(`\r\n`) ++ chunk ++ Chunk.byteVector(`\r\n`) ++ lastChunk
+    }
+
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
   private def readChunkedHeader(hdr: ByteVector): Option[Long] =
     hdr.decodeUtf8.toOption.flatMap { s =>
