@@ -26,8 +26,6 @@ package object http4s {
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 
-  val EmptyBody: EntityBody[Nothing] = Stream.empty[Nothing]
-
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
   type DecodeResult[F[_], A] = EitherT[F, DecodeFailure, A]

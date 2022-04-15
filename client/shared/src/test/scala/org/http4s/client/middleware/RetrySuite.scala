@@ -52,7 +52,7 @@ class RetrySuite extends Http4sSuite {
       client: Client[IO],
       method: Method,
       status: Status,
-      body: EntityBody[IO],
+      body: EntityBody[IO] = Stream.empty,
   ): IO[Int] = {
     val max = 2
     var attemptsCounter = 1
@@ -87,12 +87,12 @@ class RetrySuite extends Http4sSuite {
       (ServiceUnavailable, 2),
       (GatewayTimeout, 2),
       (HttpVersionNotSupported, 1),
-    ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
+    ).traverse { case (s, r) => countRetries(defaultClient, GET, s).assertEquals(r) }
   }
 
   test("default retriable should not retry non-idempotent methods") {
     PropF.forAllF { (s: Status) =>
-      countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
+      countRetries(defaultClient, POST, s).assertEquals(1)
     }
   }
 
@@ -164,12 +164,12 @@ class RetrySuite extends Http4sSuite {
 
   test("default retriable should retry exceptions") {
     val failClient = Client[IO](_ => Resource.eval(IO.raiseError(new Exception("boom"))))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(2)
+    countRetries(failClient, GET, InternalServerError).assertEquals(2)
   }
 
   test("default retriable should not retry a TimeoutException") {
     val failClient = Client[IO](_ => Resource.eval(IO.raiseError(WaitQueueTimeoutException)))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
+    countRetries(failClient, GET, InternalServerError).assertEquals(1)
   }
 
   test("does not use more than one connection") {

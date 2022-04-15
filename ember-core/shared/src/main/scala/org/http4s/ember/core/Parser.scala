@@ -451,7 +451,7 @@ private[ember] object Parser {
           }
         }
       } else {
-        (EmptyBody.covary[F], (Some(buffer): Option[Array[Byte]]).pure[F]).pure[F]
+        (Stream.empty.covaryAll[F, Byte], Option(buffer).pure[F]).pure[F]
       }
 
     def parseUnknownBody[F[_]: Concurrent](
