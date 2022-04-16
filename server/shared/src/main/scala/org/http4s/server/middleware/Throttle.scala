@@ -24,6 +24,7 @@ import org.http4s.Http
 import org.http4s.Response
 import org.http4s.Status
 
+import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 
@@ -112,10 +113,9 @@ object Throttle {
     createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
   }
 
-  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = {
-    val _ = retryAfter
+  @nowarn
+  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] =
     Response[F](Status.TooManyRequests)
-  }
 
   /** Limits the supplied service using a provided [[TokenBucket]]
     *

@@ -78,7 +78,6 @@ private[blaze] final class BlazeHttp1ClientParser(
       majorversion: Int,
       minorversion: Int,
   ): Unit = {
-    val _ = reason
     status = Status.fromInt(code).valueOr(throw _)
     httpVersion =
       if (majorversion == 1 && minorversion == 1) HttpVersion.`HTTP/1.1`
