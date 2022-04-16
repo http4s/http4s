@@ -137,7 +137,7 @@ class RetrySuite extends Http4sSuite {
         })
         val req = Request[IO](method, uri"http://localhost/status-from-body")
           .withHeaders(headers)
-          .withEntity(body)
+          .withEntity(body)(EntityEncoder.streamEncoder[IO, String])
         val policy = RetryPolicy[IO](
           (attempts: Int) =>
             if (attempts >= 2) None

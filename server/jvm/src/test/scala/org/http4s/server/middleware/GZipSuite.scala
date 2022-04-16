@@ -33,6 +33,9 @@ import java.util.Arrays
 import java.util.zip.GZIPInputStream
 
 class GZipSuite extends Http4sSuite {
+  implicit def ofStream[A](implicit A: EntityEncoder[IO, A]): EntityEncoder[IO, Stream[IO, A]] =
+    EntityEncoder.streamEncoder[IO, A]
+
   test("fall through if the route doesn't match") {
     val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] { case GET -> Root =>
       Ok("pong")
@@ -91,7 +94,8 @@ class GZipSuite extends Http4sSuite {
       .flatMap(n => Gen.buildableOfN[Vector[Array[Byte]], Array[Byte]](n, genByteArray))
     PropF.forAllF(genVector) { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-        Ok(Stream.emits(vector).covary[IO])
+        val entity: Stream[IO, Array[Byte]] = Stream.emits(vector)
+        Ok(entity)(Concurrent[IO], EntityEncoder.streamEncoder[IO, Array[Byte]])
       }
       val gzipRoutes: HttpRoutes[IO] = GZip(routes)
       val req: Request[IO] = Request[IO](Method.GET, uri"/")

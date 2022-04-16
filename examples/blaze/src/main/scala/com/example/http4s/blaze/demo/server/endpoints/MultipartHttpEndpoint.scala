@@ -34,9 +34,12 @@ class MultipartHttpEndpoint[F[_]: Concurrent](fileService: FileService[F]) exten
         def filterFileTypes(part: Part[F]): Boolean =
           part.headers.headers.exists(_.value.contains("filename"))
 
-        val stream = response.parts.filter(filterFileTypes).traverse(fileService.store)
+        val stream = response.parts
+          .filter(filterFileTypes)
+          .traverse(fileService.store)
+          .map(_ => s"Multipart file parsed successfully > ${response.parts}")
 
-        Ok(stream.map(_ => s"Multipart file parsed successfully > ${response.parts}"))
+        Ok(stream)(Concurrent[F], EntityEncoder.streamEncoder)
       }
   }
 }

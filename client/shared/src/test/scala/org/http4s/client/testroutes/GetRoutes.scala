@@ -40,9 +40,10 @@ object GetRoutes {
       LargePath -> Response[IO](Ok)
         .withEntity("a" * 8 * 1024)
         .pure[IO], // must be at least as large as the buffers used by the client
-      ChunkedPath -> Response[IO](Ok)
-        .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
-        .pure[IO],
+      ChunkedPath -> {
+        val entity: Stream[IO, String] = Stream.emits("chunk".toSeq.map(_.toString))
+        Response[IO](Ok).withEntity(entity)(EntityEncoder.streamEncoder[IO, String]).pure[IO]
+      },
       DelayedPath ->
         F.sleep(1.second) *>
         Response[IO](Ok).withEntity("delayed path").pure[IO],

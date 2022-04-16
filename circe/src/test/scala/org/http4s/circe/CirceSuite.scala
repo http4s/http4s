@@ -138,13 +138,14 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   }
 
   test("stream json array encoder should write compact JSON") {
-    writeToString(jsons).assertEquals("""[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""")
+    val actual = writeToString(jsons)(streamJsonArrayEncoder[IO])
+    actual.assertEquals("""[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""")
   }
 
   test("stream json array encoder should write JSON according to custom encoders") {
     val custom = CirceInstances.withPrinter(Printer.spaces2).build
     import custom._
-    writeToString(jsons).assertEquals("""[{
+    writeToString(jsons)(streamJsonArrayEncoder[IO]).assertEquals("""[{
           |  "test1" : "CirceSupport"
           |},{
           |  "test2" : "CirceSupport"
@@ -160,7 +161,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   }
 
   test("stream json array encoder should write a valid JSON array for an empty stream") {
-    writeToString[Stream[IO, Json]](Stream.empty).assertEquals("[]")
+    writeToString[Stream[IO, Json]](Stream.empty)(streamJsonArrayEncoder[IO]).assertEquals("[]")
   }
 
   private val foos = Stream(

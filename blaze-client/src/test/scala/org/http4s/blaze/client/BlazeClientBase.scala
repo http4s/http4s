@@ -83,7 +83,8 @@ trait BlazeClientBase extends Http4sSuite {
         RoutesToHandlerAdapter(
           HttpRoutes.of[IO] {
             case Method.GET -> Root / "infinite" =>
-              Response[IO](Ok).withEntity(Stream.emit[IO, String]("a" * 8 * 1024).repeat).pure[IO]
+              val entity: Stream[IO, String] = Stream.emit("a" * 8 * 1024).repeat
+              Response[IO](Ok).withEntity(entity)(EntityEncoder.streamEncoder[IO, String]).pure[IO]
 
             case _ @(Method.GET -> path) =>
               GetRoutes.getPaths.getOrElse(path.toString, NotFound())

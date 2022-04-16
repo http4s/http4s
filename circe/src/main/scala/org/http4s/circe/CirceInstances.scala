@@ -153,10 +153,10 @@ trait CirceInstances extends JawnInstances {
   ): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
-  implicit def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
+  def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
-  implicit def streamJsonArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Stream[F, Json]] =
+  def streamJsonArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Stream[F, Json]] =
     EntityDecoder.decodeBy(MediaType.application.json) { media =>
       DecodeResult.successT(media.body.chunks.through(unwrapJsonArray))
     }

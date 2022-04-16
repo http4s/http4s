@@ -26,6 +26,6 @@ class FileHttpEndpoint[F[_]: Sync](fileService: FileService[F]) extends Http4sDs
 
   val service: HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "dirs" :? DepthQueryParamMatcher(depth) =>
-      Ok(fileService.homeDirectories(depth))
+      Ok(fileService.homeDirectories(depth))(Sync[F], EntityEncoder.streamEncoder)
   }
 }

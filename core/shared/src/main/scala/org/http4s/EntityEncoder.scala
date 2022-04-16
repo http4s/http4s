@@ -122,7 +122,7 @@ object EntityEncoder {
     * bodies in advance.  As such, it does not calculate the Content-Length in
     * advance.  This is for use with chunked transfer encoding.
     */
-  implicit def streamEncoder[F[_], A](implicit
+  def streamEncoder[F[_], A](implicit
       W: EntityEncoder[F, A]
   ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {

@@ -34,6 +34,9 @@ import java.nio.charset.StandardCharsets
 
 class EntityEncoderSpec extends Http4sSuite {
   {
+    implicit def ofStream[A](implicit A: EntityEncoder[IO, A]): EntityEncoder[IO, Stream[IO, A]] =
+      EntityEncoder.streamEncoder[IO, A]
+
     test("EntityEncoder should render streams") {
       val helloWorld: Stream[IO, String] = Stream("hello", "world")
       writeToString(helloWorld).assertEquals("helloworld")

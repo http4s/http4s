@@ -136,7 +136,8 @@ object ServerTestRoutes extends Http4sDsl[IO] {
           Ok("get")
 
         case req if req.method == Method.GET && req.pathInfo == path"/chunked" =>
-          Ok(eval(IO.cede *> IO("chu")) ++ eval(IO.cede *> IO("nk")))
+          val entity = eval(IO.cede *> IO("chu")) ++ eval(IO.cede *> IO("nk"))
+          Ok(entity)(Sync[IO], EntityEncoder.streamEncoder)
 
         case req if req.method == Method.POST && req.pathInfo == path"/post" =>
           Ok("post")
@@ -145,7 +146,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
           Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
         case req if req.method == Method.POST && req.pathInfo == path"/echo" =>
-          Ok(emit("post") ++ req.bodyText)
+          Ok(emit("post") ++ req.bodyText)(Sync[IO], EntityEncoder.streamEncoder)
 
         // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
         case req if req.method == Method.GET && req.pathInfo == path"/notmodified" =>

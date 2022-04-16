@@ -59,7 +59,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
 
       case GET -> Root / "streaming" =>
         // It's also easy to stream responses to clients
-        Ok(dataStream(100))
+        Ok(dataStream(100))(F, EntityEncoder.streamEncoder)
 
       case req @ GET -> Root / "ip" =>
         // It's possible to define an EntityEncoder anywhere so you're not limited to built in types
