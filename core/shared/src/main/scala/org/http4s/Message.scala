@@ -29,9 +29,7 @@ import com.comcast.ip4s.SocketAddress
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Pure
-import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.text.utf8
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
@@ -41,6 +39,7 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -764,7 +763,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity(Stream("Not found").through(utf8.encode)),
+      entity = Entity.Strict(Chunk.array("Not found".getBytes(StandardCharsets.UTF_8))),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

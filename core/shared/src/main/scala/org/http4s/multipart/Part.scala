@@ -18,17 +18,17 @@ package org.http4s
 package multipart
 
 import cats.effect.Sync
-import fs2.Stream
+import fs2.Chunk
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
 import fs2.io.readInputStream
-import fs2.text.utf8
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
 
 import java.io.InputStream
 import java.net.URL
+import java.nio.charset.StandardCharsets.UTF_8
 
 final case class Part[F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
@@ -44,7 +44,7 @@ object Part {
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Entity(Stream.emit(value).through(utf8.encode)),
+      Entity.Strict(Chunk.array(value.getBytes(UTF_8))),
     )
 
   def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
