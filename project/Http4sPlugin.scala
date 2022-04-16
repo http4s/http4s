@@ -135,7 +135,7 @@ object Http4sPlugin extends AutoPlugin {
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.4"
+    val scalacheck = "1.16.0"
     val scalacheckEffect = "1.0.3"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
