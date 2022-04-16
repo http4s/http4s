@@ -41,7 +41,7 @@ trait Media[+F[_]] {
   final def contentType: Option[`Content-Type`] =
     headers.get[`Content-Type`]
 
-  final def contentLength: Option[Long] =
+  final def contentLength: Option[NonNegative] =
     headers.get[`Content-Length`].map(_.length)
 
   final def charset: Option[Charset] =
