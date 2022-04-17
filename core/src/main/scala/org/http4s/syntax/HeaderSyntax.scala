@@ -46,5 +46,5 @@ final class SelectOpsOne[A](val a: A)(implicit ev: Header.Select[A]) {
 
 final class SelectOpsMultiple[A, H[_]](val a: H[A])(implicit ev: Header.Select.Aux[A, H]) {
   def toRaw: NonEmptyList[Header.Raw] = ev.toRaw(a)
-  // def renderString: String = Renderer.renderString(a) //TODO
+  def renderString: String = Renderer.renderString(toRaw)
 }
