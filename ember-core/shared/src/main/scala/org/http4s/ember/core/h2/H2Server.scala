@@ -122,7 +122,7 @@ private[ember] object H2Server {
                   Applicative[F].pure(ByteVector.empty)
                 case Entity.Strict(bv) =>
                   Applicative[F].pure(bv)
-                case Entity.Default(body, _) =>
+                case Entity.Streamed(body, _) =>
                   body.compile.to(ByteVector)
               }
             val fres: F[Response[F]] = bb.map { bv =>
@@ -196,8 +196,7 @@ private[ember] object H2Server {
         bv = req.entity match {
           case Entity.Empty => ByteVector.empty
           case Entity.Strict(bv) => bv
-          case Entity.Default(body, _) =>
-            body.compile.to(ByteVector)
+          case Entity.Streamed(body, _) => body.compile.to(ByteVector)
         }
         _ <- s.readBuffer.offer(Either.right(bv))
         _ <- s.writeBlock.complete(Either.unit)

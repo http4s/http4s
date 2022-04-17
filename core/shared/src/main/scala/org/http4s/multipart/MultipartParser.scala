@@ -80,7 +80,8 @@ object MultipartParser {
           case (None, _: PartChunk | PartEnd) =>
             F.raiseError(bug("Missing PartStart"))
           case (Some(acc0), PartChunk(chunk)) =>
-            F.pure((Some(acc0.copy(entity = Entity(acc0.body ++ Stream.chunk(chunk)))), None))
+            val nentity = Entity.stream(acc0.body ++ Stream.chunk(chunk))
+            F.pure((Some(acc0.copy(entity = nentity)), None))
           case (Some(_), PartEnd) =>
             // Part done - emit it and start over.
             F.pure((None, acc))
@@ -516,7 +517,7 @@ object MultipartParser {
               case (PartStart(headers), s) =>
                 partBodyFileStream(s, maxSizeBeforeWrite)
                   .flatMap { case (body, rest) =>
-                    Pull.output1(Part(headers, Entity(body))).as(rest)
+                    Pull.output1(Part(headers, Entity.stream(body))).as(rest)
                   }
               // Shouldn't happen if the `parseToEventsStream` contract holds.
               case (_: PartChunk | PartEnd, _) =>
@@ -699,7 +700,7 @@ object MultipartParser {
       case (Some((headers, acc)), PartEnd) =>
         // Part done - emit it and start over.
         stepPartEnd(acc)
-          .map(body => (None, Some(Part(headers, Entity(body)))))
+          .map(body => (None, Some(Part(headers, Entity.stream(body)))))
       // Shouldn't happen if the `parseToEventsStream` contract holds.
       case (Some(_), _: PartStart) =>
         F.raiseError(bug("Missing PartEnd"))

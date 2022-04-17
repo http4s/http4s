@@ -22,6 +22,7 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Chunk
 import fs2.Pure
+import fs2.Stream
 import org.http4s.headers.Authorization
 import org.http4s.headers.Cookie
 import org.http4s.headers.`Content-Type`
@@ -223,22 +224,22 @@ class MessageSuite extends Http4sSuite {
   test("toString should correctly print a request with a chunked entity") {
     val req = Request(
       method = Method.POST,
-      entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))),
+      entity = Entity.stream(Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))),
     )
     assertEquals(
       req.toString,
-      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default)",
+      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Streamed)",
     )
   }
 
   test("toString should correctly print a request with a chunked entity with a known size") {
     val req = Request(
       method = Method.POST,
-      entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)),
+      entity = Entity.stream(Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)),
     )
     assertEquals(
       req.toString,
-      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default(2 bytes total))",
+      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Streamed(2 bytes total))",
     )
   }
 
@@ -369,19 +370,19 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("toString should correctly print a response with a chunked entity") {
-    val resp = Response(entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))))
+    val resp = Response(entity = Entity.stream(Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))))
     assertEquals(
       resp.toString,
-      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default)",
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Streamed)",
     )
   }
 
   test("toString should correctly print a response with a chunked entity with a known size") {
     val resp =
-      Response(entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)))
+      Response(entity = Entity.stream(Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)))
     assertEquals(
       resp.toString,
-      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default(2 bytes total))",
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Streamed(2 bytes total))",
     )
   }
 

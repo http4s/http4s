@@ -55,7 +55,7 @@ object ChunkAggregator {
         G.pure(r.transformHeaders(removeChunkedTransferEncoding(0L)))
       case Entity.Strict(bv) =>
         G.pure(r.transformHeaders(removeChunkedTransferEncoding(bv.size)))
-      case Entity.Default(b, _) =>
+      case Entity.Streamed(b, _) =>
         b.compile
           .to(ByteVector)
           .map(bv =>

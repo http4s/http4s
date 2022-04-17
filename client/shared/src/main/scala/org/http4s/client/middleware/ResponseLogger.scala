@@ -80,7 +80,7 @@ object ResponseLogger {
         Resource.eval(logMessage(response).as(response))
       else
         response.entity match {
-          case Entity.Default(_, _) =>
+          case Entity.Streamed(_, _) =>
             Resource.suspend {
               Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
                 val dumpChunksToVec: Pipe[F, Byte, Nothing] =

@@ -58,7 +58,7 @@ object Logger {
             Some(F.pure(bv.decodeStringLenient()(charset)))
           } else
             Some(F.pure(bv.toHex))
-        case Entity.Default(_, _) =>
+        case Entity.Streamed(_, _) =>
           val string =
             if (!isBinary || isJson)
               message.bodyText.compile.string

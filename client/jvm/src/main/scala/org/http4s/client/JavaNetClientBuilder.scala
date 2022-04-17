@@ -152,7 +152,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .toList
         )
       )
-    } yield Response(status = status, headers = headers, entity = Entity(readBody(conn)))
+    } yield Response(status = status, headers = headers, entity = Entity.stream(readBody(conn)))
 
   private def timeoutMillis(d: Duration): Int =
     d match {

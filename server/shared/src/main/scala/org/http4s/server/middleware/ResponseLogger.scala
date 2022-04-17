@@ -80,7 +80,7 @@ object ResponseLogger {
           .as(response)
       else {
         response.entity match {
-          case Entity.Default(_, _) =>
+          case Entity.Streamed(_, _) =>
             F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
               val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization

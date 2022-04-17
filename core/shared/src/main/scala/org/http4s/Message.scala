@@ -113,7 +113,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * a consequence headers may be incoherent with the body.
     */
   def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
-    change(entity = Entity(body))
+    change(entity = Entity.stream(body))
 
   /** Set an [[Entity.Empty]] entity on this message, and remove all payload headers
     * that make no sense with an empty body.
@@ -282,7 +282,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
               _.withContentLength(`Content-Length`.unsafeFromLong(bytes.size))
             )
         )
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         withLimit(body).covary[F1].compile.to(ByteVector).map { byteVector =>
           self
             .withEntity(Entity.strict(byteVector))
@@ -511,7 +511,7 @@ final class Request[+F[_]] private (
     entity match {
       case Entity.Empty | Entity.Strict(_) =>
         true
-      case Entity.Default(_, _) =>
+      case Entity.Streamed(_, _) =>
         false
     }
 
@@ -768,7 +768,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity.Strict(asciiBytes"Not found"),
+      entity = Entity.utf8String("Not found"), // TODO
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

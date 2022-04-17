@@ -56,7 +56,7 @@ object DefaultHead {
         response
       case Entity.Strict(_) =>
         response.withEntity(Entity.empty)
-      case Entity.Default(_, _) =>
+      case Entity.Streamed(_, _) =>
         response.pipeBodyThrough(_.interruptWhen[G](G.pure(Either.unit[Throwable])).drain)
     }
 }

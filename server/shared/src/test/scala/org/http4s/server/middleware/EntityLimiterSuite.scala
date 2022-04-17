@@ -35,9 +35,9 @@ class EntityLimiterSuite extends Http4sSuite {
     case r if r.pathInfo == path"/echo" => r.decode(Response(Ok).withEntity(_: String).pure[IO])
   }
 
-  private val defaultEntity = Entity(chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8))))
-  private val strictEntity =
-    Entity.strict(ByteVector.view("hello".getBytes(StandardCharsets.UTF_8)))
+  private val helloBytes = "hello".getBytes(StandardCharsets.UTF_8)
+  private val defaultEntity = Entity.stream(chunk(Chunk.array(helloBytes)))
+  private val strictEntity = Entity.strict(ByteVector.view(helloBytes))
 
   test("Allow reasonable default entity") {
     EntityLimiter(routes, 100)

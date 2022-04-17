@@ -206,7 +206,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     (for {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
-          Entity(
+          Entity.stream(
             Stream.fromIterator[IO](
               """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
               128,
@@ -234,7 +234,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   ) {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
-        Entity(
+        Entity.stream(
           Stream.fromIterator[IO](
             """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
             128,
@@ -250,7 +250,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
   test("stream json array decoder should not fail on improper JSON") {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
-        Entity(
+        Entity.stream(
           Stream.fromIterator[IO](
             """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
             128,
@@ -267,7 +267,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     (for {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
-          Entity(
+          Entity.stream(
             Stream.fromIterator[IO](
               """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
               128,

@@ -74,7 +74,7 @@ private[http4s] class RoutesToHandlerAdapter[F[_]](
         bodyQueue <- Queue.unbounded[F, Option[Chunk[Byte]]]
         _ <- requestBodyQueue.set(bodyQueue)
         body = fs2.Stream.fromQueueNoneTerminatedChunk(bodyQueue)
-        http4sRequest = http4s.Request(method, uri, headers = headers, entity = Entity(body))
+        http4sRequest = http4s.Request(method, uri, headers = headers, entity = Entity.stream(body))
         _ <- processRequest(ctx, http4sRequest).start
       } yield ()
     )

@@ -47,7 +47,7 @@ final class EmberClient[F[_]] private[client] (
       resp.entity match {
         case Entity.Empty | Entity.Strict(_) =>
           F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
-        case Entity.Default(body, _) =>
+        case Entity.Streamed(body, _) =>
           body.compile.drain.as(UnexpectedStatus(resp.status, req.method, req.uri))
       }
 

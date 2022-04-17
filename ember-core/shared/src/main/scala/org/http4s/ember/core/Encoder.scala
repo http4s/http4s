@@ -149,7 +149,7 @@ private[ember] object Encoder {
         Stream.chunk(initSectionChunk) ++ req.body.through(ChunkedEncoding.encode[F])
       else {
         req.entity match {
-          case Entity.Default(body, _) =>
+          case Entity.Streamed(body, _) =>
             (Stream.chunk(initSectionChunk) ++ body)
               .chunkMin(writeBufferSize)
               .unchunks

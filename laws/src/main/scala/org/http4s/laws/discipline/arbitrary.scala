@@ -869,11 +869,11 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
     val chunkedEntityGen =
       http4sTestingGenForPureByteStream
-        .map(Entity(_))
+        .map(Entity.stream(_))
 
     val chunkedWithKnowingLengthGen =
       genByteStreamWithKnowingSize.map { case (body, size) =>
-        Entity(body, Some(size.toLong))
+        Entity.stream(body, Some(size.toLong))
       }
 
     Arbitrary(
@@ -996,7 +996,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, Entity(body))
+      } yield try Request(method, uri, httpVersion, headers, Entity.stream(body))
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -1022,7 +1022,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, Entity(body))
+      } yield Response(status, httpVersion, headers, Entity.stream(body))
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =

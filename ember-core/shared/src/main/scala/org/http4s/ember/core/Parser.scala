@@ -564,8 +564,7 @@ private[ember] object Parser {
             // If the remaining bytes for the body have not yet been read, close the connection.
             // followup: Check if there are bytes immediately available without blocking
             val drain: Drain[F] = state.get
-
-            (Entity(body), drain)
+            (Entity.stream(body), drain)
           }
         }
       } else
@@ -593,7 +592,7 @@ private[ember] object Parser {
 
         val drain: Drain[F] = (None: Option[Array[Byte]]).pure[F]
 
-        (Entity(body), drain)
+        (Entity.stream(body), drain)
       }
 
     final case class BodyAlreadyConsumedError()

@@ -265,7 +265,7 @@ object Client {
           case resp: Response[F] =>
             Resource.pure(resp)
         }
-      case Entity.Default(_, _) =>
+      case Entity.Streamed(_, _) =>
         message match {
           case req: Request[F] =>
             Resource.eval(Ref[F].of(false)).flatMap { disposed =>

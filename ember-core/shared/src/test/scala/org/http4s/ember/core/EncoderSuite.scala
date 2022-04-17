@@ -150,7 +150,7 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("reqToBytes should encode a no body request correctly with stream") {
-    val req = Request[IO](Method.POST, entity = Entity.Default(Stream.chunk(Chunk.empty), None))
+    val req = Request[IO](Method.POST, entity = Entity.Streamed(Stream.chunk(Chunk.empty), None))
 
     val expected =
       """POST / HTTP/1.1
@@ -164,7 +164,7 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("respToBytes should encode a no body response correctly with stream") {
-    val resp = Response[IO](Status.Ok, entity = Entity.Default(Stream.chunk(Chunk.empty), None))
+    val resp = Response[IO](Status.Ok, entity = Entity.Streamed(Stream.chunk(Chunk.empty), None))
 
     val expected =
       """HTTP/1.1 200 OK

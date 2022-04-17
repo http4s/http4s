@@ -206,7 +206,7 @@ object EntityDecoder {
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] = {
     val chunkF = m.entity match {
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         body.chunks.compile.to(Chunk).map(_.flatten)
 
       case Entity.Strict(b) =>
@@ -222,7 +222,7 @@ object EntityDecoder {
   /** Helper method which simply gathers the body into a single ByteVector */
   private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] = {
     val byteVectorF = m.entity match {
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         body.compile.to(ByteVector)
 
       case Entity.Strict(b) =>
@@ -248,7 +248,7 @@ object EntityDecoder {
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         m.entity match {
-          case Entity.Default(body, _) =>
+          case Entity.Streamed(body, _) =>
             DecodeResult(body.compile.drain *> F.raiseError(t))
 
           case Entity.Strict(_) | Entity.Empty =>
@@ -388,7 +388,7 @@ object EntityDecoder {
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       msg.entity match {
-        case Entity.Default(body, _) =>
+        case Entity.Streamed(body, _) =>
           DecodeResult.success(body.compile.drain)
 
         case Entity.Strict(_) | Entity.Empty =>

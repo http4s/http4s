@@ -97,7 +97,7 @@ object RequestLogger {
           case Entity.Empty | Entity.Strict(_) =>
             logRequest(req)
 
-          case Entity.Default(_, _) =>
+          case Entity.Streamed(_, _) =>
             fk(F.ref(Vector.empty[Chunk[Byte]]))
               .flatMap { vec =>
                 val collectChunks: Pipe[F, Byte, Nothing] =

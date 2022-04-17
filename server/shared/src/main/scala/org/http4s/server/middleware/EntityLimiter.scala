@@ -44,7 +44,7 @@ object EntityLimiter {
           if (chunk.size.toLong < limit) http.run(req)
           else F.raiseError[B](EntityTooLarge(limit))
 
-        case Entity.Default(_, _) =>
+        case Entity.Streamed(_, _) =>
           http.run(req.pipeBodyThrough[G](takeLimited(limit)))
       }
     }

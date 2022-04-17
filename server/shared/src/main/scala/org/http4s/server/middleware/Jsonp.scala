@@ -72,10 +72,10 @@ object Jsonp {
         val entity = Entity.Strict(begin ++ bv ++ end)
         entity -> Some(begin.size + end.size)
 
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         val begin = beginJsonpChunk(callback)
         val end = EndJsonpChunk
-        val entity = Entity.Default(fs2.Stream.chunk(begin) ++ body ++ fs2.Stream.chunk(end), None)
+        val entity = Entity.Streamed(fs2.Stream.chunk(begin) ++ body ++ fs2.Stream.chunk(end), None)
         entity -> Some(begin.size.toLong + end.size.toLong)
     }
     val newLengthHeaderOpt =

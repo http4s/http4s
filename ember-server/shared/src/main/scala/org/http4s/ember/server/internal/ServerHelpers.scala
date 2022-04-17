@@ -370,7 +370,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case Entity.Empty =>
           val (initSection, _) = Encoder.initSection(resp)
           timeoutMaybe(socket.write(Chunk.array(initSection)), idleTimeout)
-        case Entity.Default(_, _) =>
+        case Entity.Streamed(_, _) =>
           Encoder
             .respToBytes[F](resp)
             .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
