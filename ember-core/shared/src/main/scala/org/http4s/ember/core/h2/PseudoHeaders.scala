@@ -59,6 +59,12 @@ private[h2] object PseudoHeaders {
   }
 
   def headersToRequestNoBody(hI: NonEmptyList[(String, String)]): Option[Request[fs2.Pure]] = {
+    def toRawHeader(k: String, v: String): Header.ToRaw =
+      Header.ToRaw.rawToRaw(Header.Raw(org.typelevel.ci.CIString(k), v))
+
+    def isLowerCase(str: String): Boolean =
+      str.forall(c => c.toUpper === c)
+
     // TODO This can be a 1 pass operation. This is not...
     val headers: List[(String, String)] = hI.toList
     val pseudos = headers.takeWhile(_._1.startsWith(":"))
@@ -70,26 +76,22 @@ private[h2] object PseudoHeaders {
     val path = findWithNoDuplicates(pseudos)(_._1 === PATH).map(_._2)
     val authority = extractAuthority(pseudos)
 
-    val noOtherPseudo = pseudos
-      .filterNot(t => requestPsedo.contains(t._1))
-      .isEmpty
+    val noOtherPseudo = pseudos.forall(t => requestPsedo.contains(t._1))
 
-    val teIsCorrect = headers.find(_._1 === "te").headOption.fold(true)(_._2 === "trailers")
-    val connectionIsAbsent = headers.find(_._1 === "connection").isEmpty
+    val teIsCorrectAndNoConnection = !headers.exists { case (k, v) =>
+      (k === "te" && v =!= "trailers") ||
+      k === "connection"
+    }
 
     val reqHeaders = headers.dropWhile(_._1.startsWith(":"))
 
-    val noOtherPseudos = !reqHeaders.exists(_._1.startsWith(":"))
-    val noUppercaseHeaders = reqHeaders.map(_._1).forall(s => s === s.toLowerCase)
+    def noOtherPseudosNorUpperCased = reqHeaders.forall { case (k, _) =>
+      !k.startsWith(":") && isLowerCase(k)
+    }
 
-    val h = Headers(
-      reqHeaders
-        .map(t => Header.Raw(org.typelevel.ci.CIString(t._1), t._2))
-        .map(Header.ToRaw.rawToRaw): _*
-    )
     for {
       _ <- Alternative[Option].guard(
-        noOtherPseudo && teIsCorrect && connectionIsAbsent && noOtherPseudos && noUppercaseHeaders
+        noOtherPseudo && teIsCorrectAndNoConnection && noOtherPseudosNorUpperCased
       )
       m <- method
       p <- path
@@ -97,7 +99,10 @@ private[h2] object PseudoHeaders {
 
       u <- Uri.fromString(p).toOption
       s <- scheme // Required
-    } yield Request(m, u.copy(scheme = s.some, authority = authority), HttpVersion.`HTTP/2`, h)
+    } yield {
+      val h = Headers(reqHeaders.map(Function.tupled(toRawHeader)): _*)
+      Request(m, u.copy(scheme = s.some, authority = authority), HttpVersion.`HTTP/2`, h)
+    }
   }
 
   def extractAuthority(headers: List[(String, String)]): Option[Uri.Authority] =
