@@ -23,7 +23,7 @@ import org.http4s.headers._
   *
   * To create Multipart values from a generated boundary, see the [[Multiparts]] algebra.
   */
-final case class Multipart[F[_]](
+final case class Multipart[+F[_]](
     parts: Vector[Part[F]],
     boundary: Boundary,
 ) {

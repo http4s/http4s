@@ -30,18 +30,18 @@ import java.io.InputStream
 import java.net.URL
 import java.nio.charset.StandardCharsets.UTF_8
 
-final case class Part[F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
+final case class Part[+F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
   def filename: Option[String] =
     headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
 
-  override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
+  override def covary[F2[x] >: F[x]]: Part[F2] = this
 }
 
 object Part {
   private val ChunkSize = 8192
 
-  def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
+  def formData(name: String, value: String, headers: Header.ToRaw*): Part[fs2.Pure] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
       Entity.Strict(Chunk.array(value.getBytes(UTF_8))),
