@@ -28,7 +28,6 @@ import org.http4s.circe._
 import org.http4s.client._
 import org.http4s.implicits._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
-import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
@@ -68,14 +67,12 @@ object EmberClientSimpleExample extends IOApp {
       )
       .as(ExitCode.Success)
 
-  def getRequestBufferedBody[F[_]: Async](client: Client[F], req: Request[F]): F[Response[F]] =
-    client
-      .run(req)
-      .use(resp =>
-        resp.body.compile
-          .to(ByteVector)
-          .map(bv => resp.copy(entity = Entity(Stream.chunk(Chunk.byteVector(bv)))))
-      )
+  def getRequestBufferedBody[F[_]: Async](client: Client[F], req: Request[F]): F[Response[Pure]] = {
+    def buffer(resp: Response[F]): F[Response[Pure]] =
+      resp.body.compile.to(Chunk).map(bv => resp.copy(entity = Entity.Strict(bv)))
+
+    client.run(req).use(buffer)
+  }
 
   def logTimed[F[_]: Temporal, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
     timedMS(fa).flatMap { case (time, action) =>
