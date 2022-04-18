@@ -57,9 +57,8 @@ class MultipartSuite extends Http4sSuite {
       mkDecoder: Resource[IO, EntityDecoder[IO, Multipart[IO]]]
   ) = {
     test(s"Multipart form data $name should be encoded and decoded with content types") {
-      val field1 =
-        Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
-      val field2 = Part.formData[IO]("field2", "Text_Field_2")
+      val field1 = Part.formData("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
+      val field2 = Part.formData("field2", "Text_Field_2")
 
       multiparts
         .multipart(Vector(field1, field2))
@@ -81,7 +80,7 @@ class MultipartSuite extends Http4sSuite {
     }
 
     test(s"Multipart form data $name should be encoded and decoded without content types") {
-      val field1 = Part.formData[IO]("field1", "Text_Field_1")
+      val field1 = Part.formData("field1", "Text_Field_1")
 
       multiparts
         .multipart(Vector(field1))
@@ -105,9 +104,8 @@ class MultipartSuite extends Http4sSuite {
     test(s"Multipart form data $name should encoded and decoded with binary data") {
       val path = CrossPlatformResource("/ball.png")
 
-      val field1 = Part.formData[IO]("field1", "Text_Field_1")
-      val field2 = Part
-        .fileData[IO]("image", path, `Content-Type`(MediaType.image.png))
+      val field1 = Part.formData("field1", "Text_Field_1")
+      val field2 = Part.fileData[IO]("image", path, `Content-Type`(MediaType.image.png))
 
       multiparts
         .multipart(Vector(field1, field2))
@@ -228,11 +226,11 @@ I am a big moose
     }
 
     test("Multipart should be encoded with a \\r\\n after the final part for robustness") {
-      val field1 = Part.formData[IO]("bow", "wow")
-      val multipart = Multipart[IO](Vector(field1), Boundary("arf"))
+      val field1 = Part.formData("bow", "wow")
+      val multipart = Multipart(Vector(field1), Boundary("arf"))
       val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
       val request =
-        Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
+        Request(Method.POST, uri = url, entity = entity, headers = multipart.headers)
       request.as[String].map(s => assert(s.endsWith("--arf--\r\n"), s))
     }
   }

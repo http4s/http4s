@@ -44,7 +44,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
       .multipart(
         Vector(
           Part.formData("text", "This is text."),
-          Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png)),
+          Part.fileData[IO]("BALL", bottle, `Content-Type`(MediaType.image.png)),
         )
       )
       .flatMap { multipart =>

@@ -45,7 +45,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4s
       body <- multiparts.multipart(
         Vector(
           Part.formData("name", "gvolpe"),
-          Part.fileData("rick", url, `Content-Type`(MediaType.image.png)),
+          Part.fileData[IO]("rick", url, `Content-Type`(MediaType.image.png)),
         )
       )
     } yield POST(body, uri"http://localhost:8080/v1/multipart").withHeaders(body.headers)
