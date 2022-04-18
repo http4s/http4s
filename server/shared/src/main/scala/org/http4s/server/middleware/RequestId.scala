@@ -47,10 +47,6 @@ object RequestId {
   def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
     apply(requestIdHeader)(http)
 
-  @deprecated("Preserved for bincompat", "0.23.12")
-  def apply[G[_], F[_]](headerName: CIString, http: Http[G, F], G: Sync[G]): Http[G, F] =
-    apply(headerName)(http)(G, UUIDGen.fromSync(G))
-
   def apply[G[_], F[_]](
       headerName: CIString
   )(http: Http[G, F])(implicit G: Sync[G], gen: UUIDGen[G]): Http[G, F] =
