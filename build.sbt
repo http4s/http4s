@@ -187,7 +187,9 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
-          ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
+          ProblemFilters.exclude[MissingClassProblem](
+            "org.http4s.syntax.LiteralsSyntax$urischeme$"
+          ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.headers.Upgrade.parser"
           ),
