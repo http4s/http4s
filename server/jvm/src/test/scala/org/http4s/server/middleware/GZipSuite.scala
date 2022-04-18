@@ -91,7 +91,7 @@ class GZipSuite extends Http4sSuite {
       .flatMap(n => Gen.buildableOfN[Vector[Array[Byte]], Array[Byte]](n, genByteArray))
     PropF.forAllF(genVector) { (vector: Vector[Array[Byte]]) =>
       val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case GET -> Root =>
-        Ok(Stream.emits(vector).covary[IO])
+        Ok(Stream.emits(vector))
       }
       val gzipRoutes: HttpRoutes[IO] = GZip(routes)
       val req: Request[IO] = Request[IO](Method.GET, uri"/")

@@ -239,9 +239,7 @@ private[ember] class H2Client[F[_]: Async](
                 // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
                 req <- stream.getRequest
 
-                resp = stream.getResponse.map(
-                  _.covary[F].withBodyStream(stream.readBody)
-                )
+                resp = stream.getResponse.map(_.withBodyStream(stream.readBody))
                 // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
                 outE <- onPushPromise(req, resp).flatMap {
                   case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
@@ -316,7 +314,7 @@ private[ember] class H2Client[F[_]: Async](
           .flatMap(h => h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel)
           .traverse(nel => stream.sendHeaders(nel, true))
       )).background
-      resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
+      resp <- Resource.eval(stream.getResponse).map(_.withBodyStream(stream.readBody))
     } yield resp
   }
 }

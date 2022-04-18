@@ -342,7 +342,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       resp <- httpApp
         .run(req.withAttributes(requestVault))
         .handleErrorWith(errorHandler)
-        .handleError(_ => serverFailure.covary[F])
+        .handleError(_ => serverFailure)
     } yield (req, resp, drain)
   }
 
@@ -488,7 +488,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   Applicative[F].pure(None)
                 case err =>
                   errorHandler(err)
-                    .handleError(_ => serverFailure.covary[F])
+                    .handleError(_ => serverFailure)
                     .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
                     .as(None)
               }

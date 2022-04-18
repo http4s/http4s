@@ -43,8 +43,7 @@ object EmberServerH2Example extends IOApp {
             Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
 
           case _ -> Root / "push-promise" =>
-            resp
-              .covary[F] // URI needs authority scheme, etc
+            resp // URI needs authority scheme, etc
               .withAttribute(
                 org.http4s.ember.core.h2.H2Keys.PushPromises,
                 Request[Pure](Method.GET, uri"https://localhost:8080/foo") :: Nil,

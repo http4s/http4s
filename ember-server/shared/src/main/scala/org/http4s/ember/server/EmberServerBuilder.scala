@@ -267,13 +267,14 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
-    def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case (_: Throwable) =>
-      serverFailure.covary[F].pure[F]
+    def errorHandler[F[_]](implicit F: Applicative[F]): Throwable => F[Response[F]] = {
+      case (_: Throwable) =>
+        F.pure(serverFailure)
     }
 
     @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
     def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
-      serverFailure.covary[F]
+      serverFailure
     }
 
     def onWriteFailure[F[_]: Applicative]
