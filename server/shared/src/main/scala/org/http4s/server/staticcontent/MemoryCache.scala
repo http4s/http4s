@@ -21,7 +21,6 @@ package staticcontent
 import cats.effect.Concurrent
 import cats.syntax.functor._
 import fs2.Chunk
-import fs2.Stream
 import org.log4s.getLogger
 
 import java.util.concurrent.ConcurrentHashMap
@@ -58,7 +57,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
     resp
       .as[Chunk[Byte]]
       .map { chunk =>
-        val newResponse: Response[F] = resp.copy(entity = Entity(Stream.chunk(chunk)))
+        val newResponse: Response[F] = resp.copy(entity = Entity.Strict(chunk))
         cacheMap.put(path, newResponse)
         newResponse
       }
