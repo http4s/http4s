@@ -113,8 +113,7 @@ object Throttle {
     createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
   }
 
-  @nowarn
-  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] =
+  def defaultResponse[F[_]](@nowarn retryAfter: Option[FiniteDuration]): Response[F] =
     Response[F](Status.TooManyRequests)
 
   /** Limits the supplied service using a provided [[TokenBucket]]
