@@ -62,7 +62,7 @@ trait Client[F[_]] {
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
   /** Returns this client as a [[cats.data.Kleisli]].  All connections created
-    * by this service are disposed on completion of callback task f.
+    * by this service are released on completion of callback task f.
     *
     * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
@@ -70,13 +70,13 @@ trait Client[F[_]] {
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
-  /** Returns this client as an [[HttpApp]].  It is the responsibility of
-    * callers of this service to run the response body to dispose of the
-    * underlying HTTP connection.
+  /** Returns this client as an [[HttpApp]].  It is the responsibility
+    * of callers of this service to run the response body to release
+    * the underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * signatures guarantee release of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
 
