@@ -31,7 +31,11 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.{Chunk, Pipe, Pull, Pure, Stream}
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Pure
+import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
 import org.http4s.Message.EntityStreamException
@@ -43,7 +47,8 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
