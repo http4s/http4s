@@ -23,6 +23,7 @@ import cats.data.OptionT
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import cats.~>
 import com.comcast.ip4s.Dns
@@ -30,12 +31,10 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.Chunk
-import fs2.Pipe
-import fs2.Pure
-import fs2.Stream
+import fs2.{Chunk, Pipe, Pull, Pure, Stream}
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.text.utf8
+import org.http4s.Message.EntityStreamException
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
@@ -44,6 +43,8 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -246,18 +247,69 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
 
   /** Compiles the body stream to a single chunk and sets it as the
-    * body.  Replaces any `Transfer-Encoding: chunked` with a
-    * `Content-Length` header.  It is the caller's responsibility to
-    * assure there is enough memory to materialize the body.
+    * body. Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header. It is the caller's responsibility to
+    * assure there is enough memory to materialize the body. Also,
+    * potentially this method could run infinitely.
+    * Consider to use [[org.http4s.Message.toStrict]] instead.
     */
-  def toStrict(implicit F: Concurrent[F]): F[Self] =
+  def unsafeToStrict(implicit F: Concurrent[F]): F[Self] =
     body.compile.to(Chunk).map { chunk =>
       withBodyStream(Stream.chunk(chunk))
         .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
     }
+
+  /** Compiles the body stream to a single chunk and sets it as the
+    * body.  Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header.  It is the caller's responsibility to
+    * assure there is enough memory to materialize the body.
+    */
+  def toStrict(timeout: Duration, maxBytes: Option[Long])(implicit F: Temporal[F]): F[Self] = {
+    def withTimeout[A](fa: F[A]): F[A] =
+      timeout match {
+        case d: FiniteDuration =>
+          F.timeout(fa, d)
+        case _ =>
+          fa
+      }
+
+    def withLimit(entityBody: EntityBody[F]) = maxBytes match {
+      case Some(limit) =>
+        val limitingPipe: Pipe[F, Byte, Byte] =
+          _.pull
+            .take(limit)
+            .flatMap {
+              case Some(_) =>
+                Pull.raiseError[F](EntityStreamException.createWithDefaultMsg(limit))
+              case None =>
+                Pull.done
+            }
+            .stream
+
+        limitingPipe(entityBody)
+
+      case None =>
+        entityBody
+    }
+
+    val transformedMessage =
+      withLimit(body).compile.to(Chunk).map { chunk =>
+        withBodyStream(Stream.chunk(chunk))
+          .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+      }
+
+    withTimeout(transformedMessage)
+  }
 }
 
 object Message {
+  final case class EntityStreamException(msg: String) extends Exception(msg) with NoStackTrace
+
+  object EntityStreamException {
+    def createWithDefaultMsg(maxBytes: Long): EntityStreamException =
+      EntityStreamException(s"Entity stream has exceeded the maximum of $maxBytes bytes")
+  }
+
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()

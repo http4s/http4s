@@ -66,7 +66,7 @@ object BodyCache {
     apply(app)(identity, _ => identity)(FunctionK.id)
 
   private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[F]] =
-    req.toStrict
+    req.unsafeToStrict
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
     req.contentLength.contains(0L)
