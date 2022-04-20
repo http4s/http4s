@@ -260,9 +260,17 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     }
 
   /** Compiles the body stream to a single chunk and sets it as the
-    * body.  Replaces any `Transfer-Encoding: chunked` with a
-    * `Content-Length` header.  It is the caller's responsibility to
-    * assure there is enough memory to materialize the body.
+    * body. Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header. It is the caller's responsibility to
+    * assure there is enough memory to materialize the entity body and
+    * set an appropriate timeout.
+    *
+    * @param timeout duration to wait for the entity stream completion.
+    *                Exceeding finite timeout duration
+    *                (an instance of [[FiniteDuration]]) will lead to
+    *                failing processing with the `TimeoutException`
+    * @param maxBytes maximum length of the entity stream. If the stream
+    *                 exceeds the limit then processing fails with the [[EntityStreamException]]
     */
   def toStrict(timeout: Duration, maxBytes: Option[Long])(implicit F: Temporal[F]): F[Self] = {
     def withTimeout[A](fa: F[A]): F[A] =
