@@ -39,7 +39,6 @@ import fs2.text.utf8
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
-import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -91,21 +90,23 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     val entity = w.toEntity(b)
-    val hs = entity.length match {
+
+    val hsBase = headers ++ w.headers
+    val cl: Option[`Content-Length`] = entity.length match {
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[Headers](
+          .fold(
             _ => {
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
-              w.headers
+              None
             },
-            cl => Headers(cl, w.headers.headers),
+            Some(_),
           )
-
-      case None => w.headers
+      case None => None
     }
-    change(body = entity.body, headers = headers ++ hs)
+
+    change(body = entity.body, headers = cl.fold(hsBase)(hsBase.withContentLength))
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
@@ -218,55 +219,6 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def isChunked: Boolean =
     headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
 
-  /** Puts a `Content-Length` header, replacing any existing.  Removes
-    * any existing `chunked` value from the `Transfer-Encoding`
-    * header.  It is critical that the supplied content length
-    * accurately describe the length of the body stream.
-    *
-    * {{{
-    * scala> import org.http4s.headers._
-    * scala> val chunked = Request().withHeaders(
-    *      |   `Transfer-Encoding`(TransferCoding.chunked),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res0: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
-    *
-    * scala> val chunkedGzipped = Request().withHeaders(
-    *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res1: Headers = Headers(Transfer-Encoding: gzip, Content-Type: text/plain, Content-Length: 1024)
-    *
-    * scala> val const = Request().withHeaders(
-    *      |   `Content-Length`(2048),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res1: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
-    * }}}
-    */
-  def withContentLength(contentLength: `Content-Length`): Self =
-    transformHeaders(_.transform { hs =>
-      val b = List.newBuilder[Header.Raw]
-      hs.foreach { h =>
-        h.name match {
-          case `Transfer-Encoding`.name =>
-            `Transfer-Encoding`
-              .parse(h.value)
-              .redeem(
-                _ => b += h,
-                _.filter(_ != TransferCoding.chunked)
-                  .foreach(b += _.toRaw1),
-              )
-          case `Content-Length`.name =>
-            ()
-          case _ =>
-            b += h
-        }
-      }
-      b += contentLength.toRaw1
-      b.result()
-    })
-
   // Attribute methods
 
   /** Generates a new message object with the specified key/value pair appended
@@ -301,7 +253,7 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def toStrict(implicit F: Concurrent[F]): F[Self] =
     body.compile.to(Chunk).map { chunk =>
       withBodyStream(Stream.chunk(chunk))
-        .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+        .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
     }
 }
 

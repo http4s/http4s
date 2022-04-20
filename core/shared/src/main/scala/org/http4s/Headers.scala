@@ -22,6 +22,7 @@ import cats.Show
 import cats.data.Ior
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import org.http4s.implicits.http4sSelectSyntaxOne
 import org.typelevel.ci._
 
 import scala.collection.mutable
@@ -90,6 +91,55 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     */
   def removePayloadHeaders: Headers =
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
+
+  /** Puts a `Content-Length` header, replacing any existing.  Removes
+    * any existing `chunked` value from the `Transfer-Encoding`
+    * header.  It is critical that the supplied content length
+    * accurately describe the length of the body stream.
+    *
+    * {{{
+    * scala> import org.http4s.headers._
+    * scala> val chunked = Headers(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res0: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
+    *
+    * scala> val chunkedGzipped = Headers(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res1: Headers = Headers(Content-Length: 1024, Transfer-Encoding: gzip, Content-Type: text/plain)
+    *
+    * scala> val const = Headers(
+    *      |   `Content-Length`(2048),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res1: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
+    * }}}
+    */
+  def withContentLength(contentLength: `Content-Length`): Headers =
+    transform { hs =>
+      val b = List.newBuilder[Header.Raw]
+      b += contentLength.toRaw1
+      hs.foreach { h =>
+        h.name match {
+          case `Transfer-Encoding`.name =>
+            `Transfer-Encoding`
+              .parse(h.value)
+              .redeem(
+                _ => b += h,
+                _.filter(_ != TransferCoding.chunked)
+                  .foreach(b += _.toRaw1),
+              )
+          case `Content-Length`.name =>
+            ()
+          case _ =>
+            b += h
+        }
+      }
+      b.result()
+    }
 
   def redactSensitive(
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
