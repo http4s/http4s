@@ -80,20 +80,30 @@ object ResponseLogger {
       if (!logBody)
         Resource.eval(logMessage(response) *> F.delay(response))
       else
-        Resource.suspend {
-          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-            val dumpChunksToVec: Pipe[F, Byte, Nothing] =
-              _.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))
+        response.entity match {
+          case Entity.Default(_, _) =>
+            Resource.suspend {
+              Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+                val dumpChunksToVec: Pipe[F, Byte, Nothing] =
+                  _.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))
 
-            Resource.make(
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended before Finalization
-              F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
-            ) { _ =>
-              val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
-              logMessage(response.withBodyStream(newBody))
-                .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
+                Resource.make(
+                  // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended before Finalization
+                  F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
+                ) { _ =>
+                  val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
+                  logMessage(response.withBodyStream(newBody))
+                    .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
+                }
+              }
             }
-          }
+
+          case Entity.Empty | Entity.Strict(_) =>
+            Resource.eval(
+              logMessage(response)
+                .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
+                .as(response)
+            )
         }
 
     Client(req => client.run(req).flatMap(logResponse))
