@@ -78,7 +78,7 @@ object ResponseLogger {
   )(implicit F: Async[F]): Client[F] = {
     def logResponse(response: Response[F]): Resource[F, Response[F]] =
       if (!logBody)
-        Resource.eval(logMessage(response) *> F.delay(response))
+        Resource.eval(logMessage(response).as(response))
       else
         response.entity match {
           case Entity.Default(_, _) =>
