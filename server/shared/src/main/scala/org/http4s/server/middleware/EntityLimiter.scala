@@ -18,7 +18,8 @@ package org.http4s
 package server
 package middleware
 
-import cats.{ApplicativeThrow, MonadThrow}
+import cats.ApplicativeThrow
+import cats.MonadThrow
 import cats.data.Kleisli
 import fs2._
 
