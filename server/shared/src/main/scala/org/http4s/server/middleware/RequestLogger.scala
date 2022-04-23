@@ -79,35 +79,45 @@ object RequestLogger {
       case Right(_) => true
     }
 
-    Kleisli { req =>
-      if (!logBody) {
-        def logAct = logMessage(req)
-        // This construction will log on Any Error/Cancellation
-        // The Completed Case is Unit, as we rely on the semantics of G
-        // As None Is Successful, but we oly want to log on Some
-        http(req)
-          .guaranteeCase {
-            case Outcome.Succeeded(_) => G.unit
-            case _ => fk(logAct)
-          } <* fk(logAct)
-      } else
-        fk(F.ref(Vector.empty[Chunk[Byte]]))
-          .flatMap { vec =>
-            val collectChunks: Pipe[F, Byte, Nothing] =
-              _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
+    def logRequest(req: Request[F]): G[Response[F]] = {
+      def logAct = logMessage(req)
+      // This construction will log on Any Error/Cancellation
+      // The Completed Case is Unit, as we rely on the semantics of G
+      // As None Is Successful, but we oly want to log on Some
+      http(req)
+        .guaranteeCase {
+          case Outcome.Succeeded(_) => G.unit
+          case _ => fk(logAct)
+        } <* fk(logAct)
+    }
 
-            val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
+    Kleisli {
+      case req if !logBody =>
+        logRequest(req)
+      case req =>
+        req.entity match {
+          case Entity.Empty | Entity.Strict(_) =>
+            logRequest(req)
 
-            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+          case Entity.Default(_, _) =>
+            fk(F.ref(Vector.empty[Chunk[Byte]]))
+              .flatMap { vec =>
+                val collectChunks: Pipe[F, Byte, Nothing] =
+                  _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
-            http(changedRequest)
-              .guaranteeCase {
-                case Outcome.Succeeded(_) => G.unit
-                case _ => fk(logRequest)
+                val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
+
+                val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+                val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+
+                http(changedRequest)
+                  .guaranteeCase {
+                    case Outcome.Succeeded(_) => G.unit
+                    case _ => fk(logRequest)
+                  }
+                  .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
               }
-              .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
-          }
+        }
     }
   }
 
