@@ -243,11 +243,28 @@ object Client {
 
     def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
       Ref[F].of(false).map { disposed =>
-        val req0 = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        val req0 = {
+          val entity = req.entity match {
+            case Entity.Empty | Entity.Strict(_) =>
+              req
+            case Entity.Default(_, _) =>
+              req.pipeBodyThrough(until(disposed))
+          }
+
+          addHostHeaderIfUriIsAbsolute(entity)
+        }
+
         Resource
           .eval(app(req0))
           .onFinalize(disposed.set(true))
-          .map(_.pipeBodyThrough(until(disposed)))
+          .map { resp =>
+            resp.entity match {
+              case Entity.Empty | Entity.Strict(_) =>
+                resp
+              case Entity.Default(_, _) =>
+                resp.pipeBodyThrough(until(disposed))
+            }
+          }
       }
 
     Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
