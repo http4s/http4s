@@ -244,7 +244,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
 }
 </span><span class="comment">// helloWorldService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21694/1500621680@65e25207
+//   run = org.http4s.HttpRoutes$$$Lambda$21598/806523619@522c7906
 // )</span></code></pre>
         
         <h3 id="returning-content-in-the-response" class="section">Returning Content in the Response<a class="anchor-link right" href="#returning-content-in-the-response"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -272,7 +272,7 @@
     </span><span class="identifier">getTweet</span><span>(</span><span class="identifier">tweetId</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
 }
 </span><span class="comment">// tweetService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21694/1500621680@7cbb8620
+//   run = org.http4s.HttpRoutes$$$Lambda$21598/806523619@4016a37
 // )</span></code></pre>
         
         <h3 id="running-your-service" class="section">Running Your Service<a class="anchor-link right" href="#running-your-service"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -292,16 +292,16 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">Router</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">services</span><span> = </span><span class="identifier">tweetService</span><span> &lt;+&gt; </span><span class="identifier">helloWorldService</span><span>
 </span><span class="comment">// services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   run = cats.data.KleisliSemigroupK$$Lambda$21695/1872617192@58bdef6e
+//   run = cats.data.KleisliSemigroupK$$Lambda$21599/1242508348@6f553cb8
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">httpApp</span><span> = </span><span class="type-name">Router</span><span>(</span><span class="string-literal">&quot;/&quot;</span><span> -&gt; </span><span class="identifier">helloWorldService</span><span>, </span><span class="string-literal">&quot;/api&quot;</span><span> -&gt; </span><span class="identifier">services</span><span>).</span><span class="identifier">orNotFound</span><span>
 </span><span class="comment">// httpApp: cats.data.Kleisli[IO[A], Request[IO[A]], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$21957/681767383@10e554bd
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$21861/1619433125@2a0e80e5
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">serverBuilder</span><span> = </span><span class="type-name">BlazeServerBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">global</span><span>)
   .</span><span class="identifier">bindHttp</span><span>(</span><span class="number-literal">8080</span><span>, </span><span class="string-literal">&quot;localhost&quot;</span><span>)
   .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">httpApp</span><span>)
-</span><span class="comment">// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@67605ecc</span></code></pre>
+</span><span class="comment">// serverBuilder: BlazeServerBuilder[IO] = org.http4s.blaze.server.BlazeServerBuilder@1b5b38eb</span></code></pre>
         <p>The <code>bindHttp</code> call isn&#39;t strictly necessary as the server will be set to run
         using defaults of port 8080 and the loopback address. The <code>withHttpApp</code> call
         associates the specified routes with this http server instance.</p>
@@ -310,7 +310,7 @@
 </span><span class="comment">// fiber: Fiber[IO, Nothing] = Tuple(
 //   join = Bind(
 //     source = Async(
-//       k = cats.effect.internals.IOAsync$$$Lambda$21687/1014342571@47ca5e86,
+//       k = cats.effect.internals.IOAsync$$$Lambda$21591/128291956@1404b965,
 //       trampolineAfter = false,
 //       trace = StackTrace(
 //         stackTrace = List(
