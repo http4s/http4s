@@ -202,7 +202,7 @@ Apache License 2.0.
 ## Documentation
 
 The common area of http4s.org (i.e., directories not beginning with
-`/v#.#`) is generated from the `docs` module and is published only
+`/v#.#`) is generated from the `docs/` directory and is published only
 from the `main` branch. This module is intended to contain general
 info about the project that applies to all versions.
 
@@ -216,20 +216,18 @@ The [mdoc] content lives in `docs/docs`.
 For generating a static site locally, run from within sbt:
 
 ```sh
-project site
-tlSite
+site/tlSite
 ```
 
 For starting a preview server with live updates, run from within sbt:
 
 ```sh
-project site
-tlSitePreview
+site/tlSitePreview
 ```
 
 Now you can open a browser at http://localhost:4242/ to see the local version
 of the site. At `http://localhost:4242/v{currentVersion}/` would be the local version
-of the versioned part of the site (e.g. `http://localhost:4242/v1.0/`).
+of the versioned part of the site (e.g. `http://localhost:4242/v0.23/`).
 
 When you update any input sources, mdoc will detect this and compile the Scala code and write the modified Markdown
 sources to its output directory which in turn Laika is watching. Note that when running `tlSitePreview` Laika does
