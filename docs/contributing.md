@@ -201,87 +201,36 @@ Apache License 2.0.
 
 ## Documentation
 
-The documentation for http4s is divided into two projects: `website` and `docs`.
-
-### `website`
-
 The common area of http4s.org (i.e., directories not beginning with
-`/v#.#`) is generated from the `website` module and is published only
+`/v#.#`) is generated from the `docs/` directory and is published only
 from the `main` branch. This module is intended to contain general
 info about the project that applies to all versions.
 
-#### Editing the Common Site
-
-All pages have an edit link under the page navigation at the top right for direct editing of the
-Markdown via GitHub.
-
-### `docs` Documentation
-
 Each branch, `main` and `series/X.Y`, publishes documentation per
 minor version into the `/vX.Y` directory of http4s.org.  
-The [mdoc] content lives in `docs/src/main/mdoc`.  
+The [mdoc] content lives in `docs/docs`.  
 [mdoc] is used to typecheck our documentation as part of the build.
 
-#### Editing the Versioned Site
-
-All pages have an edit link under the page navigation at the top right for direct editing of the Markdown via GitHub. 
-Be aware that the Github Actions build will fail if invalid code is added.
-
-### Running the Common Site Locally
+### Running the Site Locally
 
 For generating a static site locally, run from within sbt:
 
 ```sh
-project website
-laikaSite
+site/tlSite
 ```
 
 For starting a preview server with live updates, run from within sbt:
 
 ```sh
-project website
-laikaPreview
+site/tlSitePreview
 ```
 
 Now you can open a browser at http://localhost:4242/ to see the local version
-of the common site.
+of the site. At `http://localhost:4242/v{currentVersion}/` would be the local version
+of the versioned part of the site (e.g. `http://localhost:4242/v0.23/`).
 
-Laika will automatically detect any changes in the input sources
-located in `website/src/hugo/content` and it will reload corresponding
-pages automatically.
-
-### Running the Versioned Site Locally
-
-For generating a static site locally, run from within sbt:
-
-```sh
-project docs
-mdoc
-laikaSite
-```
-
-For starting a preview server with live updates, you need to run two sbt shells simultaneously, as both mdoc
-and Laika need to watch for changes in their respective input sources.
-
-In the first sbt shell run:
-
-```sh
-project docs
-mdoc --watch
-```
-
-In the second run:
-
-```sh
-project docs
-laikaPreview
-```
-
-Now you can open a browser at `http://localhost:4242/v{currentVersion}/` to see the local version
-of the versioned part of the site (e.g. `http://localhost:4242/v1.0/`).
-
-When you update any input sources, mdoc will detect this and compile the Scala code and write the modified Markdown 
-sources to its output directory which in turn Laika is watching. Note that when running `laikaPreview` Laika does
+When you update any input sources, mdoc will detect this and compile the Scala code and write the modified Markdown
+sources to its output directory which in turn Laika is watching. Note that when running `tlSitePreview` Laika does
 not write any output to disk, it serves the site entirely from memory. And btw: it uses http4s for that.
 
 
