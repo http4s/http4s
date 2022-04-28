@@ -4,6 +4,77 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.22.13 (2022-04-28)
+
+This release is binary compatible with the 0.22.x series.
+
+* http4s-core
+    * Remove redundant draining of request/response body by @danicheg in https://github.com/http4s/http4s/pull/6128
+    * Use predefined Close connection header by @danicheg in https://github.com/http4s/http4s/pull/6167
+    * Fix comment in org.http4s.Message.scala by @takapi327 in https://github.com/http4s/http4s/pull/6166
+    * Render a trailing newline on multipart close-delimiter by @rossabaker in https://github.com/http4s/http4s/pull/6170
+    * Add mapK to MetricsOps by @hamnis in https://github.com/http4s/http4s/pull/6172
+    * Add Random shim for Cats-Effect 2 by @rossabaker in https://github.com/http4s/http4s/pull/6165
+    * Add Scalafix explicit result type rule by @danicheg in https://github.com/http4s/http4s/pull/6134
+    * Add withContentLength and toStrict helpers to Message by @rossabaker in https://github.com/http4s/http4s/pull/6176
+    * Improvements to multipart boundaries by @rossabaker in https://github.com/http4s/http4s/pull/6169
+    * Fix `SelectOpsMultiple#renderString` by @danicheg in https://github.com/http4s/http4s/pull/6307
+
+* http4s-server
+    * Routing on variable segments by @teigen in https://github.com/http4s/http4s/pull/6057
+    * Resolve #6068 digestauth challenge redux by @blast-hardcheese in https://github.com/http4s/http4s/pull/6138
+    * Integrate Random into DigestAuth by @rossabaker in https://github.com/http4s/http4s/pull/6177
+    * Update scalafmt-core to 3.5.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6223
+    * Deprecate PushSupport by @rossabaker in https://github.com/http4s/http4s/pull/6247
+
+* http4s-client
+    * Clarify connection lifecycle by @rossabaker in https://github.com/http4s/http4s/pull/6313
+
+* http4s-blaze-core
+    * Use tryScheduling within IdleTimeoutStage by @hamnis in https://github.com/http4s/http4s/pull/6198
+    * Remove synchronizations in `TestHead`, `QueueTestHead`, `SlowTestHead` by @danicheg in https://github.com/http4s/http4s/pull/6249
+
+* http4s-blaze-server
+    * Clean up `BlazeServerBuilder` scaladoc by @danicheg in https://github.com/http4s/http4s/pull/6180
+    * Blaze server enhancements by @danicheg in https://github.com/http4s/http4s/pull/6179
+
+* http4s-blaze-client
+    * Fix counting of current allocated connections in the blaze client pool manager by @danicheg in https://github.com/http4s/http4s/pull/6254
+    * Roll back the #6254 by @danicheg in https://github.com/http4s/http4s/pull/6332
+
+* Documentation
+    * Release v0.21.33 by @rossabaker in https://github.com/http4s/http4s/pull/6147
+    * Update sbt-http4s-org to 0.13.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6197
+
+* Behind the scenes
+    * Add unidocs project to root aggregate by @armanbilge in https://github.com/http4s/http4s/pull/6129
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.60 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6132
+    * Update http4s-circe, http4s-ember-client to 0.23.11 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6149
+    * Merge after 0.21.33 by @rossabaker in https://github.com/http4s/http4s/pull/6153
+    * Don't override api url by @armanbilge in https://github.com/http4s/http4s/pull/6158
+    * Fix StatusSpec sanitization property by @rossabaker in https://github.com/http4s/http4s/pull/6184
+    * Update sbt-doctest to 0.10.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6190
+    * Pin http4s-crypto to 0.1.x in 0.22 by @armanbilge in https://github.com/http4s/http4s/pull/6218
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.62 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6214
+    * Update jetty-client, jetty-http, ... to 9.4.46.v20220331 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6220
+    * Update cats-parse to 0.3.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6224
+    * Update scala-xml to 2.1.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6234
+    * Update scalafmt-core to 3.5.1 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6256
+    * Update sbt-scalafix, scalafix-core, ... to 0.10.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6260
+    * Update Java-WebSocket to 1.5.3 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6270
+    * Fix deprecated since versions by @danicheg in https://github.com/http4s/http4s/pull/6279
+    * Remove ignoring some files for `doctest` by @danicheg in https://github.com/http4s/http4s/pull/6284
+    * Update sbt-http4s-org to 0.13.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6287
+    * Update netty-buffer, netty-codec-http to 4.1.76.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6292
+    * Update scalafmt-core to 3.5.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6318
+    * Update fs2-core, fs2-io, ... to 2.5.11 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6322
+
+* New Contributors
+    * @teigen made their first contribution in https://github.com/http4s/http4s/pull/6057
+    * @takapi327 made their first contribution in https://github.com/http4s/http4s/pull/6166
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.12...v0.22.13
+
 # v0.21.33 (2022-03-18)
 
 This is a courtesy release for the 0.21.x series.  This series remains officially unmaintained except for urgent security patches.  It is binary compatible with the 0.21.x series.
