@@ -6,7 +6,7 @@ ordered chronologically, so each release contains all changes described below it
 
 # v0.22.13 (2022-04-28)
 
-This release is binary compatible with the 0.22.x series. Routine maintenance has stopped on the 0.22.x, but we'll continue to entertain PRs from the community.
+This release is binary compatible with the 0.22.x series. Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community. All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).
 
 * http4s-core
     * Remove redundant draining of request/response body by @danicheg in https://github.com/http4s/http4s/pull/6128
