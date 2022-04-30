@@ -134,7 +134,7 @@ object Http4sPlugin extends AutoPlugin {
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
-    val scalacheckEffect = "1.0.3"
+    val scalacheckEffect = "1.0.4"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.10.0"
