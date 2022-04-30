@@ -551,10 +551,7 @@ object BlazeServerBuilder {
   private class ContextOnly[F[_]](sslContext: SSLContext)(implicit F: Applicative[F])
       extends SslConfig[F] {
     def makeContext: F[Option[SSLContext]] = F.pure(sslContext.some)
-    def configureEngine(engine: SSLEngine): Unit = {
-      val _ = engine
-      ()
-    }
+    def configureEngine(engine: SSLEngine): Unit = ()
     def isSecure: Boolean = true
   }
 
@@ -577,10 +574,7 @@ object BlazeServerBuilder {
 
   private class NoSsl[F[_]]()(implicit F: Applicative[F]) extends SslConfig[F] {
     def makeContext: F[Option[SSLContext]] = F.pure(None)
-    def configureEngine(engine: SSLEngine): Unit = {
-      val _ = engine
-      ()
-    }
+    def configureEngine(engine: SSLEngine): Unit = ()
     def isSecure: Boolean = false
   }
 
