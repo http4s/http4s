@@ -153,7 +153,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
   {
     implicit def entityEq: Eq[Entity[Id]] =
-      Eq.by[Entity[Id], (Option[Long], Vector[Byte])] { entity =>
+      Eq.by[Entity[Id], (Option[`Content-Length`], Vector[Byte])] { entity =>
         (entity.length, entity.body.compile.toVector)
       }
 

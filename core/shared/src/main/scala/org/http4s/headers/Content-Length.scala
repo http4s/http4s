@@ -17,6 +17,8 @@
 package org.http4s
 package headers
 
+import cats.Eq
+import org.http4s.headers.`Content-Length`.unsafeFromLong
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
 
@@ -27,9 +29,12 @@ import org.typelevel.ci._
   *
   * @param length the length
   */
-final case class `Content-Length`(length: Long) {
+final case class `Content-Length`(length: Long) extends AnyVal {
   def modify(f: Long => Long): Option[`Content-Length`] =
     `Content-Length`.fromLong(f(length)).toOption
+
+  def +(that: `Content-Length`): `Content-Length` = `Content-Length`(length + that.length)
+  def addUnchecked(toAdd: Long): `Content-Length` = unsafeFromLong(length + toAdd)
 }
 
 object `Content-Length` {
@@ -56,4 +61,5 @@ object `Content-Length` {
       parse,
     )
 
+  implicit val eqInstance: Eq[`Content-Length`] = Eq.by(_.length)
 }

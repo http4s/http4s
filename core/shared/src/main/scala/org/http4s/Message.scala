@@ -82,17 +82,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   def withEntity[F1[x] >: F[x], T](b: T)(implicit w: EntityEncoder[F1, T]): SelfF[F1] = {
     val entity = w.toEntity(b)
     val hs = entity.length match {
-      case Some(l) =>
-        `Content-Length`
-          .fromLong(l)
-          .fold[Headers](
-            _ => {
-              Message.logger.warn(s"Attempt to provide a negative content length of $l")
-              w.headers
-            },
-            cl => Headers(cl, w.headers.headers),
-          )
-
+      case Some(cl) => Headers(cl, w.headers.headers)
       case None => w.headers
     }
     change(entity = entity, headers = headers ++ hs)

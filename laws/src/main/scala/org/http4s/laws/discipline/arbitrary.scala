@@ -828,6 +828,9 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForUri: Cogen[Uri] =
     Cogen[String].contramap(_.renderString)
 
+  implicit val http4sTestingCogenForContentLength: Cogen[`Content-Length`] =
+    Cogen[Long].contramap(_.length)
+
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
   implicit def http4sTestingGenForPureByteStream[F[_]]: Gen[Stream[Pure, Byte]] =
@@ -859,7 +862,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     Arbitrary(Gen.sized { size =>
       for {
         body <- http4sTestingGenForPureByteStream
-        length <- Gen.oneOf(Some(size.toLong), None)
+        length <- Gen.oneOf(Some(`Content-Length`.unsafeFromLong(size.toLong)), None)
       } yield Entity(body, length)
     })
 
@@ -868,7 +871,9 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       dispatcher: Dispatcher[F],
       testContext: TestContext,
   ): Cogen[Entity[F]] =
-    Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
+    Cogen[(EntityBody[F], Option[`Content-Length`])].contramap(entity =>
+      (entity.body, entity.length)
+    )
 
   implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](implicit
       CA: Cogen[A]
