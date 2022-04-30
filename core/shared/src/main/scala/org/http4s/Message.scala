@@ -33,7 +33,6 @@ import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
-import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -81,21 +80,22 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     */
   def withEntity[F1[x] >: F[x], T](b: T)(implicit w: EntityEncoder[F1, T]): SelfF[F1] = {
     val entity = w.toEntity(b)
-    val hs = entity.length match {
+
+    val hsBase = headers ++ w.headers
+    val cl: Option[`Content-Length`] = entity.length match {
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[Headers](
+          .fold(
             _ => {
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
-              w.headers
+              None
             },
-            cl => Headers(cl, w.headers.headers),
+            Some(_),
           )
-
-      case None => w.headers
+      case None => None
     }
-    change(entity = entity, headers = headers ++ hs)
+    change(entity = entity, headers = cl.fold(hsBase)(hsBase.withContentLength))
   }
 
   def withEntity[F1[x]](entity: Entity[F1]): SelfF[F1] =
@@ -209,55 +209,6 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   def isChunked: Boolean =
     headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
 
-  /** Puts a `Content-Length` header, replacing any existing.  Removes
-    * any existing `chunked` value from the `Transfer-Encoding`
-    * header.  It is critical that the supplied content length
-    * accurately describe the length of the body stream.
-    *
-    * {{{
-    * scala> import org.http4s.headers._
-    * scala> val chunked = Request().withHeaders(
-    *      |   `Transfer-Encoding`(TransferCoding.chunked),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res0: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
-    *
-    * scala> val chunkedGzipped = Request().withHeaders(
-    *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res1: Headers = Headers(Transfer-Encoding: gzip, Content-Type: text/plain, Content-Length: 1024)
-    *
-    * scala> val const = Request().withHeaders(
-    *      |   `Content-Length`(2048),
-    *      |   `Content-Type`(MediaType.text.plain))
-    * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
-    * res1: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
-    * }}}
-    */
-  def withContentLength(contentLength: `Content-Length`): SelfF[F] =
-    transformHeaders(_.transform { hs =>
-      val b = List.newBuilder[Header.Raw]
-      hs.foreach { h =>
-        h.name match {
-          case `Transfer-Encoding`.name =>
-            `Transfer-Encoding`
-              .parse(h.value)
-              .redeem(
-                _ => b += h,
-                _.filter(_ != TransferCoding.chunked)
-                  .foreach(b += _.toRaw1),
-              )
-          case `Content-Length`.name =>
-            ()
-          case _ =>
-            b += h
-        }
-      }
-      b += contentLength.toRaw1
-      b.result()
-    })
-
   // Attribute methods
 
   /** Generates a new message object with the specified key/value pair appended
@@ -300,13 +251,17 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
         F.pure(
           self
             .withEntity(entity)
-            .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            .transformHeaders(
+              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            )
         )
       case Entity.Default(body, _) =>
         body.covary[F1].compile.to(Chunk).map { chunk =>
           self
             .withEntity(Entity.strict(chunk))
-            .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            .transformHeaders(
+              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            )
         }
     }
 }

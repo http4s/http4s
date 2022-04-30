@@ -26,7 +26,6 @@ import org.http4s.client.RequestKey
 import org.log4s.getLogger
 
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -63,13 +62,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private[this] val logger = getLogger
 
   private var isClosed = false
-  private val curTotal = new AtomicInteger(0)
+  private var curTotal = 0
   private val allocated = mutable.Map.empty[RequestKey, Int]
   private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[PooledConnection]]
   private var waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
-    s"curAllocated=${curTotal.intValue()} idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
+    s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
 
   private def getConnectionFromQueue(key: RequestKey): F[Option[PooledConnection]] =
     F.delay {
@@ -84,13 +83,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def incrConnection(key: RequestKey): F[Unit] =
     F.delay {
-      curTotal.getAndIncrement()
+      curTotal += 1
       allocated.update(key, allocated.getOrElse(key, 0) + 1)
     }
 
   private def decrConnection(key: RequestKey): F[Unit] =
     F.delay {
-      curTotal.getAndDecrement()
+      curTotal -= 1
       val numConnections = allocated.getOrElse(key, 0)
       // If there are no more connections drop the key
       if (numConnections == 1) {
@@ -102,7 +101,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
 
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
-    curTotal.intValue() < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
+    curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
   private def isRequestExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
@@ -210,7 +209,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if maxConnectionsPerRequestKey(key) <= 0 =>
                 F.delay(callback(Left(NoConnectionAllowedException(key))))
 
-              case None if curTotal.intValue() == maxTotal =>
+              case None if curTotal == maxTotal =>
                 val keys = idleQueues.keys
                 if (keys.nonEmpty)
                   F.delay(
@@ -411,7 +410,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           idleQueues.foreach(_._2.foreach(_.conn.shutdown()))
           idleQueues.clear()
           allocated.clear()
-          curTotal.set(0)
+          curTotal = 0
         }
       }
     }
