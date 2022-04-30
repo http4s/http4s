@@ -95,7 +95,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
           )
       case None => None
     }
-    change(entity = entity, headers  = cl.fold(hsBase)(hsBase.withContentLength))
+    change(entity = entity, headers = cl.fold(hsBase)(hsBase.withContentLength))
   }
 
   def withEntity[F1[x]](entity: Entity[F1]): SelfF[F1] =
@@ -251,13 +251,17 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
         F.pure(
           self
             .withEntity(entity)
-            .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+            .transformHeaders(
+              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            )
         )
       case Entity.Default(body, _) =>
         body.covary[F1].compile.to(Chunk).map { chunk =>
           self
             .withEntity(Entity.strict(chunk))
-            .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+            .transformHeaders(
+              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+            )
         }
     }
 }
