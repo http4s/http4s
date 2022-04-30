@@ -189,10 +189,7 @@
           <li class="level2"><a href="#grant-of-license">Grant of License</a></li>
           <li class="level1"><a href="#tests">Tests</a></li>
           <li class="level1"><a href="#documentation">Documentation</a></li>
-          <li class="level2"><a href="#website"><code>website</code></a></li>
-          <li class="level2"><a href="#docs-documentation"><code>docs</code> Documentation</a></li>
-          <li class="level2"><a href="#running-the-common-site-locally">Running the Common Site Locally</a></li>
-          <li class="level2"><a href="#running-the-versioned-site-locally">Running the Versioned Site Locally</a></li>
+          <li class="level2"><a href="#running-the-site-locally">Running the Site Locally</a></li>
           <li class="level1"><a href="#submit-a-pull-request">Submit a Pull Request</a></li>
         </ul>
 
@@ -355,58 +352,25 @@ def fromLong(l: Long): ParseResult[Foo] =
         </ul>
         
         <h2 id="documentation" class="section">Documentation<a class="anchor-link right" href="#documentation"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>The documentation for http4s is divided into two projects: <code>website</code> and <code>docs</code>.</p>
-        
-        <h3 id="website" class="section"><code>website</code><a class="anchor-link right" href="#website"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>The common area of http4s.org (i.e., directories not beginning with
-        <code>/v#.#</code>) is generated from the <code>website</code> module and is published only
+        <code>/v#.#</code>) is generated from the <code>docs/</code> directory and is published only
         from the <code>main</code> branch. This module is intended to contain general
         info about the project that applies to all versions.</p>
-        
-        <h4 id="editing-the-common-site" class="section">Editing the Common Site<a class="anchor-link right" href="#editing-the-common-site"><i class="icofont-laika">&#xef71;</i></a></h4>
-        <p>All pages have an edit link under the page navigation at the top right for direct editing of the
-        Markdown via GitHub.</p>
-        
-        <h3 id="docs-documentation" class="section"><code>docs</code> Documentation<a class="anchor-link right" href="#docs-documentation"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Each branch, <code>main</code> and <code>series/X.Y</code>, publishes documentation per
         minor version into the <code>/vX.Y</code> directory of http4s.org.<br>
-        The <a href="https://scalameta.org/mdoc/">mdoc</a> content lives in <code>docs/src/main/mdoc</code>.<br>
+        The <a href="https://scalameta.org/mdoc/">mdoc</a> content lives in <code>docs/docs</code>.<br>
         <a href="https://scalameta.org/mdoc/">mdoc</a> is used to typecheck our documentation as part of the build.</p>
         
-        <h4 id="editing-the-versioned-site" class="section">Editing the Versioned Site<a class="anchor-link right" href="#editing-the-versioned-site"><i class="icofont-laika">&#xef71;</i></a></h4>
-        <p>All pages have an edit link under the page navigation at the top right for direct editing of the Markdown via GitHub. 
-        Be aware that the Github Actions build will fail if invalid code is added.</p>
-        
-        <h3 id="running-the-common-site-locally" class="section">Running the Common Site Locally<a class="anchor-link right" href="#running-the-common-site-locally"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="running-the-site-locally" class="section">Running the Site Locally<a class="anchor-link right" href="#running-the-site-locally"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>For generating a static site locally, run from within sbt:</p>
-        <pre class="keep-together pdf epub"><code class="sh">project website
-laikaSite</code></pre>
+        <pre class="keep-together pdf epub"><code class="sh">site/tlSite</code></pre>
         <p>For starting a preview server with live updates, run from within sbt:</p>
-        <pre class="keep-together pdf epub"><code class="sh">project website
-laikaPreview</code></pre>
+        <pre class="keep-together pdf epub"><code class="sh">site/tlSitePreview</code></pre>
         <p>Now you can open a browser at <a href="http://localhost:4242/">http://localhost:4242/</a> to see the local version
-        of the common site.</p>
-        <p>Laika will automatically detect any changes in the input sources
-        located in <code>website/src/hugo/content</code> and it will reload corresponding
-        pages automatically.</p>
-        
-        <h3 id="running-the-versioned-site-locally" class="section">Running the Versioned Site Locally<a class="anchor-link right" href="#running-the-versioned-site-locally"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <p>For generating a static site locally, run from within sbt:</p>
-        <pre class="keep-together pdf epub"><code class="sh">project docs
-mdoc
-laikaSite</code></pre>
-        <p>For starting a preview server with live updates, you need to run two sbt shells simultaneously, as both mdoc
-        and Laika need to watch for changes in their respective input sources.</p>
-        <p>In the first sbt shell run:</p>
-        <pre class="keep-together pdf epub"><code class="sh">project docs
-mdoc --watch</code></pre>
-        <p>In the second run:</p>
-        <pre class="keep-together pdf epub"><code class="sh">project docs
-laikaPreview</code></pre>
-        <p>Now you can open a browser at <code>http://localhost:4242/v{currentVersion}/</code> to see the local version
-        of the versioned part of the site (e.g. <code>http://localhost:4242/v1.0/</code>).</p>
-        <p>When you update any input sources, mdoc will detect this and compile the Scala code and write the modified Markdown 
-        sources to its output directory which in turn Laika is watching. Note that when running <code>laikaPreview</code> Laika does
+        of the site. At <code>http://localhost:4242/v{currentVersion}/</code> would be the local version
+        of the versioned part of the site (e.g. <code>http://localhost:4242/v0.23/</code>).</p>
+        <p>When you update any input sources, mdoc will detect this and compile the Scala code and write the modified Markdown
+        sources to its output directory which in turn Laika is watching. Note that when running <code>tlSitePreview</code> Laika does
         not write any output to disk, it serves the site entirely from memory. And btw: it uses http4s for that.</p>
         
         <h2 id="submit-a-pull-request" class="section">Submit a Pull Request<a class="anchor-link right" href="#submit-a-pull-request"><i class="icofont-laika">&#xef71;</i></a></h2>
