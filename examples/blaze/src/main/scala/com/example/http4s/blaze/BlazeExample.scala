@@ -19,10 +19,9 @@ package com.example.http4s.blaze
 import cats.effect._
 import com.example.http4s.ExampleService
 import org.http4s.HttpApp
-import org.http4s.server.{Router, Server}
-import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.syntax.kleisli._
-import scala.concurrent.ExecutionContext.global
+import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.server.Router
+import org.http4s.server.Server
 
 object BlazeExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -30,18 +29,16 @@ object BlazeExample extends IOApp {
 }
 
 object BlazeExampleApp {
-  def httpApp[F[_]: Effect: ContextShift: Timer](blocker: Blocker): HttpApp[F] =
+  def httpApp[F[_]: Async]: HttpApp[F] =
     Router(
-      "/http4s" -> ExampleService[F](blocker).routes
+      "/http4s" -> ExampleService[F].routes
     ).orNotFound
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
-    for {
-      blocker <- Blocker[F]
-      app = httpApp[F](blocker)
-      server <- BlazeServerBuilder[F](global)
-        .bindHttp(8080)
-        .withHttpApp(app)
-        .resource
-    } yield server
+  def resource[F[_]: Async]: Resource[F, Server] = {
+    val app = httpApp[F]
+    BlazeServerBuilder[F]
+      .bindHttp(8080)
+      .withHttpApp(app)
+      .resource
+  }
 }

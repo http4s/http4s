@@ -16,14 +16,17 @@
 
 package com.example.http4s.blaze.demo.server.service
 
-import java.io.File
-import java.nio.file.Paths
-import cats.effect.{Blocker, ContextShift, Effect}
+import cats.effect.Async
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.multipart.Part
 
-class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S: StreamUtils[F]) {
+import java.io.File
+import java.nio.file.Paths
+
+class FileService[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
   def homeDirectories(depth: Option[Int]): Stream[F, String] =
     S.env("HOME").flatMap { maybePath =>
       val ifEmpty = S.error("HOME environment variable not found!")
@@ -32,7 +35,7 @@ class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S
 
   def directories(path: String, depth: Int): Stream[F, String] = {
     def dir(f: File, d: Int): Stream[F, File] = {
-      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory).covary[F]
+      val dirs = Stream.emits(f.listFiles().toSeq).filter(_.isDirectory)
 
       if (d <= 0) Stream.empty
       else if (d == 1) dirs
@@ -52,6 +55,6 @@ class FileService[F[_]: ContextShift](blocker: Blocker)(implicit F: Effect[F], S
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
       path <- S.evalF(Paths.get(s"$home/$filename"))
-      _ <- part.body.through(fs2.io.file.writeAll(path, blocker))
-    } yield ()
+      result <- part.body.through(Files[F].writeAll(Path.fromNioPath(path)))
+    } yield result
 }

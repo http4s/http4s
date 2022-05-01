@@ -1,5 +1,5 @@
 http4s
-Copyright 2013-2018 http4s.org
+Copyright 2013-2021 http4s.org
 Licensed under Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from akka-http
@@ -42,30 +42,20 @@ https://github.com/Spinoco/fs2-http
 Copyright (c) 2017 Spinoco
 Licensed under the MIT License (see licenses/LICENSE_fs2-http)
 
-This software contains portions of code derived from jawn
-https://github.com/non/jawn
-Copyright Erik Osheim, 2012-2015.
-Licensed under the MIT License (see licenses/LICENSE_jawn)
+This software contains portions of code derived from parboiled2
+https://github.com/sirthias/parboiled2
+Copyright 2009-2019 Mathias Doenitz
+Licensed under the Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from rl
 https://github.com/scalatra/rl
 Copyright (c) 2011 Mojolly Ltd.
 Licensed under BSD-style license (see licenses/LICENSE_rl)
 
-This software contains portions of code derived from scalaz-specs2
-https://github.com/typelevel/scalaz-specs2
-Copyright (C) 2013 Lars Hupel
-Licensed under BSD-style license (see licenses/LICENSE_scalaz-specs2)
-
 This software contains portions of code derived from shapeless
 https://github.com/milessabin/shapeless
 Copyright (c) 2013-16 Miles Sabin
 Licensed under Apache License 2.0 (see LICENSE)
-
-This software contains portions of code derived from specs2
-https://github.com/etorreborre/specs2
-Copyright (c) 2007-2012 Eric Torreborre <etorreborre@yahoo.com>
-Licensed under MIT license (see licenses/LICENSE_specs2)
 
 This software contains portions of code derived from spray
 https://github.com/spray/spray

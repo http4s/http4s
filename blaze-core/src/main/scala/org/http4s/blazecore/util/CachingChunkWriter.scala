@@ -19,23 +19,30 @@ package blazecore
 package util
 
 import cats.effect._
+import cats.effect.std.Dispatcher
 import fs2._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.collection.mutable.Buffer
 import scala.concurrent._
 
 private[http4s] class CachingChunkWriter[F[_]](
     pipe: TailStage[ByteBuffer],
     trailer: F[Headers],
-    bufferMaxSize: Int)(implicit protected val F: Effect[F], protected val ec: ExecutionContext)
-    extends Http1Writer[F] {
+    bufferMaxSize: Int,
+    omitEmptyContentLength: Boolean,
+)(implicit
+    protected val F: Async[F],
+    private val ec: ExecutionContext,
+    protected val dispatcher: Dispatcher[F],
+) extends Http1Writer[F] {
   import ChunkWriter._
 
   private[this] var pendingHeaders: StringWriter = _
-  private[this] var bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
+  private[this] val bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
   private[this] var size: Int = 0
 
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
@@ -43,29 +50,36 @@ private[http4s] class CachingChunkWriter[F[_]](
     FutureUnit
   }
 
-  private def addChunk(chunk: Chunk[Byte]): Unit = {
-    bodyBuffer += chunk
-    size += chunk.size
-  }
+  private def addChunk(chunk: Chunk[Byte]): Unit =
+    if (chunk.nonEmpty) {
+      bodyBuffer += chunk
+      size += chunk.size
+    }
 
-  private def clear(): Unit = {
+  private def toChunkAndClear: Chunk[Byte] = {
+    val chunk = if (size == 0) {
+      Chunk.empty
+    } else if (bodyBuffer.size == 1) {
+      bodyBuffer.head
+    } else {
+      Chunk.concat(bodyBuffer)
+    }
     bodyBuffer.clear()
     size = 0
+    chunk
   }
 
-  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
-
-  override protected def exceptionFlush(): Future[Unit] = {
-    val c = toChunk
-    bodyBuffer.clear()
-    if (c.nonEmpty) pipe.channelWrite(encodeChunk(c, Nil))
-    else FutureUnit
-  }
+  override protected def exceptionFlush(): Future[Unit] =
+    if (size > 0) {
+      val c = toChunkAndClear
+      pipe.channelWrite(encodeChunk(c, Nil))
+    } else {
+      FutureUnit
+    }
 
   def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     addChunk(chunk)
-    val c = toChunk
-    bodyBuffer.clear()
+    val c = toChunkAndClear
     doWriteEnd(c)
   }
 
@@ -83,14 +97,19 @@ private[http4s] class CachingChunkWriter[F[_]](
           val hbuff = ByteBuffer.wrap(h.result.getBytes(ISO_8859_1))
           pipe.channelWrite(hbuff :: body :: Nil)
         } else {
-          h << s"Content-Length: 0\r\n\r\n"
+          if (!omitEmptyContentLength)
+            h << s"Content-Length: 0\r\n"
+          h << "\r\n"
           val hbuff = ByteBuffer.wrap(h.result.getBytes(ISO_8859_1))
           pipe.channelWrite(hbuff)
         }
-      } else if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ =>
+      } else if (!chunk.isEmpty) {
+        writeBodyChunk(chunk, true).flatMap { _ =>
+          writeTrailer(pipe, trailer)
+        }
+      } else {
         writeTrailer(pipe, trailer)
       }
-      else writeTrailer(pipe, trailer)
 
     f.map(Function.const(false))
   }
@@ -98,8 +117,7 @@ private[http4s] class CachingChunkWriter[F[_]](
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     addChunk(chunk)
     if (size >= bufferMaxSize || flush) { // time to flush
-      val c = toChunk
-      clear()
+      val c = toChunkAndClear
       pipe.channelWrite(encodeChunk(c, Nil))
     } else FutureUnit // Pretend to be done.
   }

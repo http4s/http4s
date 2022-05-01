@@ -16,15 +16,14 @@
 
 package org.http4s.circe.middleware
 
-import cats.effect._
 import cats.data._
+import cats.effect._
 import io.circe._
 import io.circe.syntax._
 import org.http4s._
-import org.http4s.headers.Connection
-import org.http4s.util.CaseInsensitiveString
-import org.http4s.implicits._
 import org.http4s.circe._
+import org.http4s.headers.Connection
+import org.typelevel.ci._
 
 object JsonDebugErrorHandler {
   private[this] val messageFailureLogger =
@@ -33,14 +32,15 @@ object JsonDebugErrorHandler {
     org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]: Sync, G[_]](
+  def apply[F[_]: Concurrent, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
-      redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       import cats.syntax.applicative._
       import cats.syntax.applicativeError._
-      implicit def entEnc[M[_], N[_]] = JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
+      implicit def entEnc[M[_], N[_]]: EntityEncoder[M, JsonErrorHandlerResponse[N]] =
+        JsonErrorHandlerResponse.entEnc[M, N](redactWhen)
 
       service
         .run(req)
@@ -48,25 +48,24 @@ object JsonDebugErrorHandler {
           case mf: MessageFailure =>
             messageFailureLogger.debug(mf)(
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}""")
+                  .getOrElse("<unknown>")}"""
+            )
             val firstResp = mf.toHttpResponse[G](req.httpVersion)
             Response[G](
               status = firstResp.status,
               httpVersion = firstResp.httpVersion,
-              headers = firstResp.headers.redactSensitive(redactWhen)
+              headers = firstResp.headers.redactSensitive(redactWhen),
             ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
           case t =>
             serviceErrorLogger.error(t)(
               s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
+                  .getOrElse("<unknown>")}"""
             )
             Response[G](
               Status.InternalServerError,
               req.httpVersion,
-              Headers(
-                Connection("close".ci) ::
-                  Nil
-              ))
+              Headers(Connection.close),
+            )
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]
         }
@@ -74,30 +73,26 @@ object JsonDebugErrorHandler {
 
   private final case class JsonErrorHandlerResponse[F[_]](
       req: Request[F],
-      caught: Throwable
+      caught: Throwable,
   )
   private object JsonErrorHandlerResponse {
     def entEnc[F[_], G[_]](
-        redactWhen: CaseInsensitiveString => Boolean
+        redactWhen: CIString => Boolean
     ): EntityEncoder[F, JsonErrorHandlerResponse[G]] =
       jsonEncoderOf(
         encoder(redactWhen)
       )
     def encoder[F[_]](
-        redactWhen: CaseInsensitiveString => Boolean
+        redactWhen: CIString => Boolean
     ): Encoder[JsonErrorHandlerResponse[F]] =
-      new Encoder[JsonErrorHandlerResponse[F]] {
-        def apply(a: JsonErrorHandlerResponse[F]): Json =
-          Json.obj(
-            "request" -> encodeRequest(a.req, redactWhen),
-            "throwable" -> encodeThrowable(a.caught)
-          )
-      }
+      (a: JsonErrorHandlerResponse[F]) =>
+        Json.obj(
+          "request" -> encodeRequest(a.req, redactWhen),
+          "throwable" -> encodeThrowable(a.caught),
+        )
   }
 
-  private def encodeRequest[F[_]](
-      req: Request[F],
-      redactWhen: CaseInsensitiveString => Boolean): Json =
+  private def encodeRequest[F[_]](req: Request[F], redactWhen: CIString => Boolean): Json =
     Json
       .obj(
         "method" -> req.method.name.asJson,
@@ -112,28 +107,28 @@ object JsonDebugErrorHandler {
                     "port" -> auth.port.asJson,
                     "user_info" -> auth.userInfo
                       .map(_.toString())
-                      .asJson
+                      .asJson,
                   )
-                  .dropNullValues)
+                  .dropNullValues
+              )
               .asJson,
-            "path" -> req.uri.path.asJson,
-            "query" -> req.uri.query.multiParams.asJson
+            "path" -> req.uri.path.renderString.asJson,
+            "query" -> req.uri.query.multiParams.asJson,
           )
           .dropNullValues,
         "headers" -> req.headers
           .redactSensitive(redactWhen)
-          .toList
-          .map(_.toRaw)
+          .headers
           .map { h =>
             Json.obj(
               "name" -> h.name.toString.asJson,
-              "value" -> h.value.asJson
+              "value" -> h.value.asJson,
             )
           }
           .asJson,
-        "path_info" -> req.pathInfo.asJson,
-        "remote_address" -> req.remoteAddr.asJson,
-        "http_version" -> req.httpVersion.toString().asJson
+        "path_info" -> req.pathInfo.renderString.asJson,
+        "remote_address" -> req.remoteAddr.toString.asJson,
+        "http_version" -> req.httpVersion.toString.asJson,
       )
       .dropNullValues
 
@@ -154,8 +149,13 @@ object JsonDebugErrorHandler {
           .map(_.toList.map(encodeThrowable(_)))
           .asJson,
         "class_name" -> Option(a.getClass())
-          .flatMap(c => Option(c.getCanonicalName()))
-          .asJson
+          .flatMap(c =>
+            if (Platform.isJvm)
+              Option(c.getCanonicalName())
+            else
+              Option(c.getName())
+          )
+          .asJson,
       )
       .dropNullValues
 }

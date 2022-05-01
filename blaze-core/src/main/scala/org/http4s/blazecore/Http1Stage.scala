@@ -17,23 +17,29 @@
 package org.http4s
 package blazecore
 
-import cats.effect.Effect
+import cats.effect.Async
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
-import java.nio.ByteBuffer
-import java.time.Instant
-
+import fs2._
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
-import org.http4s.blaze.pipeline.{Command, TailStage}
+import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blazecore.util._
 import org.http4s.headers._
-import org.http4s.util.{Renderer, StringWriter, Writer}
+import org.http4s.syntax.header._
+import org.http4s.util.Renderer
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import java.nio.ByteBuffer
+import java.time.Instant
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.util.Failure
+import scala.util.Success
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
@@ -41,9 +47,11 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows
     */
-  protected implicit def executionContext: ExecutionContext
+  implicit protected def executionContext: ExecutionContext
 
-  protected implicit def F: Effect[F]
+  implicit protected def F: Async[F]
+
+  implicit protected def dispatcher: Dispatcher[F]
 
   protected def chunkBufferMaxSize: Int
 
@@ -52,7 +60,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   protected def contentComplete(): Boolean
 
   /** Check Connection header and add applicable headers to response */
-  final protected def checkCloseConnection(conn: Connection, rr: StringWriter): Boolean =
+  protected final def checkCloseConnection(conn: Connection, rr: StringWriter): Boolean =
     if (conn.hasKeepAlive) { // connection, look to the request
       logger.trace("Found Keep-Alive header")
       false
@@ -62,39 +70,45 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       true
     } else {
       logger.info(
-        s"Unknown connection header: '${conn.value}'. Closing connection upon completion.")
+        s"Unknown connection header: '${conn.value}'. Closing connection upon completion."
+      )
       rr << "Connection:close\r\n"
       true
     }
 
-  /** Get the proper body encoder based on the message headers */
-  final protected def getEncoder(
-      msg: Message[F],
+  /** Get the proper body encoder based on the request */
+  protected final def getEncoder(
+      req: Request[F],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] = {
-    val headers = msg.headers
+      closeOnFinish: Boolean,
+  ): Http1Writer[F] = {
+    val headers = req.headers
     getEncoder(
-      Connection.from(headers),
-      `Transfer-Encoding`.from(headers),
-      `Content-Length`.from(headers),
-      msg.trailerHeaders,
+      headers.get[Connection],
+      headers.get[`Transfer-Encoding`],
+      headers.get[`Content-Length`],
+      req.trailerHeaders,
       rr,
       minor,
-      closeOnFinish)
+      closeOnFinish,
+      Http1Stage.omitEmptyContentLength(req),
+    )
   }
 
-  /** Get the proper body encoder based on the message headers,
+  /** Get the proper body encoder based on the request,
     * adding the appropriate Connection and Transfer-Encoding headers along the way
     */
-  final protected def getEncoder(
+  protected final def getEncoder(
       connectionHeader: Option[Connection],
       bodyEncoding: Option[`Transfer-Encoding`],
       lengthHeader: Option[`Content-Length`],
       trailer: F[Headers],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] =
+      closeOnFinish: Boolean,
+      omitEmptyContentLength: Boolean,
+  ): Http1Writer[F] =
     lengthHeader match {
       case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
         // HTTP 1.1: we have a length and no chunked encoding
@@ -102,7 +116,9 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
 
         bodyEncoding.foreach(enc =>
           logger.warn(
-            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+            s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."
+          )
+        )
 
         logger.trace("Using static encoder")
 
@@ -132,17 +148,19 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
             case Some(enc) => // Signaling chunked means flush every chunk
               if (!enc.hasChunked)
                 logger.warn(
-                  s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
+                  s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."
+                )
 
               if (lengthHeader.isDefined)
                 logger.warn(
-                  s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
+                  s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length."
+                )
 
               new FlushingChunkWriter(this, trailer)
 
             case None => // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
               logger.trace("Using Caching Chunk Encoder")
-              new CachingChunkWriter(this, trailer, chunkBufferMaxSize)
+              new CachingChunkWriter(this, trailer, chunkBufferMaxSize, omitEmptyContentLength)
           }
     }
 
@@ -153,17 +171,17 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */
-  final protected def collectBodyFromParser(
+  protected final def collectBodyFromParser(
       buffer: ByteBuffer,
-      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-      : (EntityBody[F], () => Future[ByteBuffer]) =
+      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
+  ): (EntityBody[F], () => Future[ByteBuffer]) =
     if (contentComplete())
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
     // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(buff) if contentComplete() =>
-        Stream.chunk(Chunk.byteBuffer(buff)).covary[F] -> Http1Stage
+        Stream.chunk(Chunk.byteBuffer(buff)) -> Http1Stage
           .futureBufferThunk(buffer)
 
       case Some(buff) =>
@@ -182,12 +200,12 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   // Streams the body off the wire
   private def streamingBody(
       buffer: ByteBuffer,
-      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]])
-      : (EntityBody[F], () => Future[ByteBuffer]) = {
+      eofCondition: () => Either[Throwable, Option[Chunk[Byte]]],
+  ): (EntityBody[F], () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = F.async[Option[Chunk[Byte]]] { cb =>
+    val t = F.async_[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
         def go(): Unit =
           try {
@@ -227,7 +245,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       } else cb(End)
     }
 
-    (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))
+    (repeatEval(t).unNoneTerminate.flatMap(chunk(_)), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
@@ -242,7 +260,7 @@ private[http4s] trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   }
 
   /** Cleans out any remaining body from the parser */
-  final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
+  protected final def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
     logger.trace(s"Draining body: $buffer")
 
     while (!contentComplete() && doParseContent(buffer).nonEmpty) { /* NOOP */ }
@@ -268,6 +286,9 @@ object Http1Stage {
   private var currentEpoch: Long = _
   private var cachedString: String = _
 
+  private val NoPayloadMethods: Set[Method] =
+    Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
+
   private def currentDate: String = {
     val now = Instant.now()
     val epochSecond = now.getEpochSecond
@@ -283,23 +304,29 @@ object Http1Stage {
       Future.successful(buffer)
     } else CachedEmptyBufferThunk
 
-  /** Encodes the headers into the Writer. Does not encode `Transfer-Encoding` or
-    * `Content-Length` headers, which are left for the body encoder. Adds
-    * `Date` header if one is missing and this is a server response.
+  /** Encodes the headers into the Writer. Does not encode
+    * `Transfer-Encoding` or `Content-Length` headers, which are left
+    * for the body encoder. Does not encode headers with invalid
+    * names. Adds `Date` header if one is missing and this is a server
+    * response.
     *
     * Note: this method is very niche but useful for both server and client.
     */
-  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
+  def encodeHeaders(headers: Iterable[Header.Raw], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
+    val dateName = Header[Date].name
     headers.foreach { h =>
-      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-        if (isServer && h.name == Date.name) dateEncoded = true
+      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name && h.isNameValid) {
+        if (isServer && h.name == dateName) dateEncoded = true
         rr << h << "\r\n"
       }
     }
 
     if (isServer && !dateEncoded)
-      rr << Date.name << ": " << currentDate << "\r\n"
+      rr << dateName << ": " << currentDate << "\r\n"
     ()
   }
+
+  private def omitEmptyContentLength[F[_]](req: Request[F]) =
+    NoPayloadMethods.contains(req.method)
 }

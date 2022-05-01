@@ -18,22 +18,24 @@ package com.example.http4s.blaze.demo.server
 
 import cats.data.OptionT
 import cats.effect._
-import cats.syntax.semigroupk._ // For <+>
+import cats.syntax.semigroupk._
 import com.example.http4s.blaze.demo.server.endpoints._
-import com.example.http4s.blaze.demo.server.endpoints.auth.{
-  BasicAuthHttpEndpoint,
-  GitHubHttpEndpoint
-}
-import com.example.http4s.blaze.demo.server.service.{FileService, GitHubService}
+import com.example.http4s.blaze.demo.server.endpoints.auth.BasicAuthHttpEndpoint
+import com.example.http4s.blaze.demo.server.endpoints.auth.GitHubHttpEndpoint
+import com.example.http4s.blaze.demo.server.service.FileService
+import com.example.http4s.blaze.demo.server.service.GitHubService
 import org.http4s.HttpRoutes
 import org.http4s.client.Client
 import org.http4s.server.HttpMiddleware
-import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
+import org.http4s.server.middleware.AutoSlash
+import org.http4s.server.middleware.ChunkAggregator
+import org.http4s.server.middleware.GZip
+import org.http4s.server.middleware.Timeout
 
 import scala.concurrent.duration._
 
-class Module[F[_]: ConcurrentEffect: ContextShift: Timer](client: Client[F], blocker: Blocker) {
-  private val fileService = new FileService[F](blocker)
+class Module[F[_]: Async](client: Client[F]) {
+  private val fileService = new FileService[F]
 
   private val gitHubService = new GitHubService[F](client)
 

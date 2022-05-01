@@ -16,44 +16,48 @@
 
 package com.example.http4s.blaze
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import java.net.URL
-import org.http4s._
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import org.http4s.Uri._
+import org.http4s._
+import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
-import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
-import scala.concurrent.ExecutionContext.global
+import org.http4s.syntax.literals._
+
+import java.net.URL
 
 object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
-  val blocker = Blocker.liftExecutionContext(global)
+  private val bottle: URL = getClass.getResource("/beerbottle.png")
 
-  val bottle: URL = getClass.getResource("/beerbottle.png")
-
-  def go(client: Client[IO]): IO[String] = {
-    // n.b. This service does not appear to gracefully handle chunked requests.
+  def go(client: Client[IO], multiparts: Multiparts[IO]): IO[String] = {
     val url = Uri(
       scheme = Some(Scheme.http),
-      authority = Some(Authority(host = RegName("ptsv2.com"))),
-      path = "/t/http4s/post")
+      authority = Some(Authority(host = RegName("httpbin.org"))),
+      path = path"/post",
+    )
 
-    val multipart = Multipart[IO](
-      Vector(
-        Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, blocker, `Content-Type`(MediaType.image.png))
-      ))
-
-    val request: IO[Request[IO]] =
-      Method.POST(multipart, url).map(_.withHeaders(multipart.headers))
-
-    client.expect[String](request)
+    multiparts
+      .multipart(
+        Vector(
+          Part.formData("text", "This is text."),
+          Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png)),
+        )
+      )
+      .flatMap { multipart =>
+        val request: Request[IO] = Method.POST(multipart, url).withHeaders(multipart.headers)
+        client.expect[String](request)
+      }
   }
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeClientBuilder[IO](global).resource
-      .use(go)
-      .flatMap(s => IO(println(s)))
-      .as(ExitCode.Success)
+    Multiparts.forSync[IO].flatMap { multiparts =>
+      BlazeClientBuilder[IO].resource
+        .use(go(_, multiparts))
+        .flatMap(s => IO.println(s))
+        .as(ExitCode.Success)
+    }
 }

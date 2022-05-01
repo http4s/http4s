@@ -16,18 +16,19 @@
 
 package org.http4s.blazecore.websocket
 
-import cats.effect.{ContextShift, IO, Timer}
-import cats.effect.concurrent.Semaphore
+import cats.effect.IO
+import cats.effect.std.Queue
+import cats.effect.std.Semaphore
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import fs2.Stream
-import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebSocketFrame
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-/** A simple stage t
-  * o help test websocket requests
+/** A simple stage to help test websocket requests
   *
   * This is really disgusting code but bear with me here:
   * `java.util.LinkedBlockingDeque` does NOT have nodes with
@@ -42,17 +43,16 @@ import scala.concurrent.duration._
   */
 sealed abstract class WSTestHead(
     inQueue: Queue[IO, WebSocketFrame],
-    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
-    extends HeadStage[WebSocketFrame] {
-
-  private[this] val writeSemaphore = Semaphore[IO](1L).unsafeRunSync()
+    outQueue: Queue[IO, WebSocketFrame],
+    writeSemaphore: Semaphore[IO],
+) extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
     *
     * @return
     */
   override def readRequest(size: Int): Future[WebSocketFrame] =
-    inQueue.dequeue1.unsafeToFuture()
+    inQueue.take.unsafeToFuture()
 
   /** Sent downstream from the websocket stage,
     * put the result in our outqueue, so we may
@@ -62,7 +62,7 @@ sealed abstract class WSTestHead(
     writeSemaphore.tryAcquire
       .flatMap {
         case true =>
-          outQueue.enqueue1(data) *> writeSemaphore.release
+          outQueue.offer(data) *> writeSemaphore.release
         case false =>
           IO.raiseError(new IllegalStateException("pending write"))
       }
@@ -73,28 +73,41 @@ sealed abstract class WSTestHead(
     * @param ws
     */
   def put(ws: WebSocketFrame): IO[Unit] =
-    inQueue.enqueue1(ws)
+    inQueue.offer(ws)
 
   val outStream: Stream[IO, WebSocketFrame] =
-    outQueue.dequeue
+    Stream.repeatEval(outQueue.take)
 
   /** poll our queue for a value,
     * timing out after `timeoutSeconds` seconds
     * runWorker(this);
     */
   def poll(timeoutSeconds: Long): IO[Option[WebSocketFrame]] =
-    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
+    IO.race(IO.sleep(timeoutSeconds.seconds), outQueue.take)
       .map {
         case Left(_) => None
         case Right(wsFrame) =>
           Some(wsFrame)
       }
 
-  def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] =
-    outQueue
-      .dequeueChunk1(batchSize)
-      .map(_.toList)
+  def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] = {
+    def batch(acc: List[WebSocketFrame]): IO[List[WebSocketFrame]] =
+      if (acc.length == 0) {
+        outQueue.take.flatMap { frame =>
+          batch(List(frame))
+        }
+      } else if (acc.length < batchSize) {
+        outQueue.tryTake.flatMap {
+          case Some(frame) => batch(acc :+ frame)
+          case None => IO.pure(acc)
+        }
+      } else {
+        IO.pure(acc)
+      }
+
+    batch(Nil)
       .timeoutTo(timeoutSeconds.seconds, IO.pure(Nil))
+  }
 
   override def name: String = "WS test stage"
 
@@ -102,7 +115,7 @@ sealed abstract class WSTestHead(
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): IO[WSTestHead] =
-    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame])
-      .mapN(new WSTestHead(_, _) {})
+  def apply(): IO[WSTestHead] =
+    (Queue.unbounded[IO, WebSocketFrame], Queue.unbounded[IO, WebSocketFrame], Semaphore[IO](1L))
+      .mapN(new WSTestHead(_, _, _) {})
 }

@@ -20,18 +20,20 @@ package servlet
 import cats.effect._
 import cats.syntax.all._
 import fs2._
-import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.{ReadListener, WriteListener}
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.internal.bug
-import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
+
+import java.util.concurrent.atomic.AtomicReference
+import javax.servlet.ReadListener
+import javax.servlet.WriteListener
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import scala.annotation.tailrec
 
 /** Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
 sealed abstract class ServletIo[F[_]: Async] {
-  protected[servlet] val F = Async[F]
+  protected[servlet] val F: Async[F] = Async[F]
 
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
@@ -44,20 +46,20 @@ sealed abstract class ServletIo[F[_]: Async] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, blocker: Blocker)
-    extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
-    io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize, blocker)
+    io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { (response: Response[F]) =>
+      servletResponse: HttpServletResponse
+  ): BodyWriter[F] = { (response: Response[F]) =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.chunks
       .evalTap { chunk =>
-        blocker.delay[F, Unit] {
+        Async[F].blocking {
           // Avoids copying for specialized chunks
-          val byteChunk = chunk.toBytes
+          val byteChunk = chunk.toArraySlice
           out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
           if (flush)
             servletResponse.flushBuffer()
@@ -75,7 +77,7 @@ final case class BlockingServletIo[F[_]: Effect: ContextShift](chunkSize: Int, b
   * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
   * operationally annoying.
   */
-final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
+final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))
@@ -94,18 +96,18 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
 
       val state = new AtomicReference[State](Init)
 
-      def read(cb: Callback[Option[Chunk[Byte]]]) = {
+      def read(cb: Callback[Option[Chunk[Byte]]]): Unit = {
         val buf = new Array[Byte](chunkSize)
         val len = in.read(buf)
 
-        if (len == chunkSize) cb(rightSome(Chunk.bytes(buf)))
+        if (len == chunkSize) cb(rightSome(Chunk.array(buf)))
         else if (len < 0) {
           state.compareAndSet(Ready, Complete) // will not overwrite an `Errored` state
           cb(rightNone)
         } else if (len == 0) {
           logger.warn("Encountered a read of length 0")
           cb(rightSome(Chunk.empty))
-        } else cb(rightSome(Chunk.bytes(buf, 0, len)))
+        } else cb(rightSome(Chunk.array(buf, 0, len)))
       }
 
       if (in.isFinished) Stream.empty
@@ -113,77 +115,77 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
-          Async.shift(trampoline) *>
-            F.async[Option[Chunk[Byte]]] { cb =>
-              if (!state.compareAndSet(Init, Blocked(cb)))
-                cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
-              else
-                in.setReadListener(
-                  new ReadListener {
-                    override def onDataAvailable(): Unit =
-                      state.getAndSet(Ready) match {
-                        case Blocked(cb) => read(cb)
-                        case _ => ()
-                      }
+          F.async_[Option[Chunk[Byte]]] { cb =>
+            if (!state.compareAndSet(Init, Blocked(cb)))
+              cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
+            else
+              in.setReadListener(
+                new ReadListener {
+                  override def onDataAvailable(): Unit =
+                    state.getAndSet(Ready) match {
+                      case Blocked(cb) => read(cb)
+                      case _ => ()
+                    }
 
-                    override def onError(t: Throwable): Unit =
-                      state.getAndSet(Errored(t)) match {
-                        case Blocked(cb) => cb(Left(t))
-                        case _ => ()
-                      }
+                  override def onError(t: Throwable): Unit =
+                    state.getAndSet(Errored(t)) match {
+                      case Blocked(cb) => cb(Left(t))
+                      case _ => ()
+                    }
 
-                    override def onAllDataRead(): Unit =
-                      state.getAndSet(Complete) match {
-                        case Blocked(cb) => cb(rightNone)
-                        case _ => ()
-                      }
-                  }
-                )
-            }
+                  override def onAllDataRead(): Unit =
+                    state.getAndSet(Complete) match {
+                      case Blocked(cb) => cb(rightNone)
+                      case _ => ()
+                    }
+                }
+              )
+          }
 
         val readStream = Stream.eval(registerRead) ++ Stream
           .repeatEval( // perform the initial set then transition into normal read mode
             // Shift execution to a different EC
-            Async.shift(trampoline) *>
-              F.async[Option[Chunk[Byte]]] { cb =>
-                @tailrec
-                def go(): Unit =
-                  state.get match {
-                    case Ready if in.isReady => read(cb)
+            F.async_[Option[Chunk[Byte]]] { cb =>
+              @tailrec
+              def go(): Unit =
+                state.get match {
+                  case Ready if in.isReady => read(cb)
 
-                    case Ready => // wasn't ready so set the callback and double check that we're still not ready
-                      val blocked = Blocked(cb)
-                      if (state.compareAndSet(Ready, blocked))
-                        if (in.isReady && state.compareAndSet(blocked, Ready))
-                          read(cb) // data became available while we were setting up the callbacks
-                        else {
-                          /* NOOP: our callback is either still needed or has been handled */
-                        }
-                      else go() // Our state transitioned so try again.
+                  case Ready => // wasn't ready so set the callback and double check that we're still not ready
+                    val blocked = Blocked(cb)
+                    if (state.compareAndSet(Ready, blocked))
+                      if (in.isReady && state.compareAndSet(blocked, Ready))
+                        read(cb) // data became available while we were setting up the callbacks
+                      else {
+                        /* NOOP: our callback is either still needed or has been handled */
+                      }
+                    else go() // Our state transitioned so try again.
 
-                    case Complete => cb(rightNone)
+                  case Complete => cb(rightNone)
 
-                    case Errored(t) => cb(Left(t))
+                  case Errored(t) => cb(Left(t))
 
-                    // This should never happen so throw a huge fit if it does.
-                    case Blocked(c1) =>
-                      val t = bug("Two callbacks found in read state")
-                      cb(Left(t))
-                      c1(Left(t))
-                      logger.error(t)("This should never happen. Please report.")
-                      throw t
+                  // This should never happen so throw a huge fit if it does.
+                  case Blocked(c1) =>
+                    val t = bug("Two callbacks found in read state")
+                    cb(Left(t))
+                    c1(Left(t))
+                    logger.error(t)("This should never happen. Please report.")
+                    throw t
 
-                    case Init =>
-                      cb(Left(bug("Should have left Init state by now")))
-                  }
-                go()
-              })
+                  case Init =>
+                    cb(Left(bug("Should have left Init state by now")))
+                }
+              go()
+            }
+          )
         readStream.unNoneTerminate.flatMap(Stream.chunk)
       }
     }
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = {
+      servletResponse: HttpServletResponse
+  ): BodyWriter[F] = {
     sealed trait State
     case object Init extends State
     case object Ready extends State
@@ -233,41 +235,46 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
      */
     out.setWriteListener(listener)
 
-    val awaitLastWrite = Stream.eval_ {
+    val awaitLastWrite = Stream.exec {
       // Shift execution to a different EC
-      Async.shift(trampoline) *>
-        F.async[Unit] { cb =>
-          state.getAndSet(AwaitingLastWrite(cb)) match {
-            case Ready if out.isReady => cb(Right(()))
-            case _ => ()
-          }
+      F.async_[Unit] { cb =>
+        state.getAndSet(AwaitingLastWrite(cb)) match {
+          case Ready if out.isReady => cb(Right(()))
+          case _ => ()
         }
+      }
     }
+
+    val chunkHandler =
+      F.async_[Chunk[Byte] => Unit] { cb =>
+        val blocked = Blocked(cb)
+        state.getAndSet(blocked) match {
+          case Ready if out.isReady =>
+            if (state.compareAndSet(blocked, Ready))
+              cb(writeChunk)
+          case e @ Errored(t) =>
+            if (state.compareAndSet(blocked, e))
+              cb(Left(t))
+          case _ =>
+            ()
+        }
+      }
+
+    def flushPrelude =
+      if (autoFlush)
+        chunkHandler.map(_(Chunk.empty[Byte]))
+      else
+        F.unit
 
     { (response: Response[F]) =>
       if (response.isChunked)
         autoFlush = true
-      response.body.chunks
-        .evalMap { chunk =>
-          // Shift execution to a different EC
-          Async.shift(trampoline) *>
-            F.async[Chunk[Byte] => Unit] { cb =>
-              val blocked = Blocked(cb)
-              state.getAndSet(blocked) match {
-                case Ready if out.isReady =>
-                  if (state.compareAndSet(blocked, Ready))
-                    cb(writeChunk)
-                case e @ Errored(t) =>
-                  if (state.compareAndSet(blocked, e))
-                    cb(Left(t))
-                case _ =>
-                  ()
-              }
-            }.map(_(chunk))
-        }
-        .append(awaitLastWrite)
-        .compile
-        .drain
+      flushPrelude *>
+        response.body.chunks
+          .evalMap(chunk => chunkHandler.map(_(chunk)))
+          .append(awaitLastWrite)
+          .compile
+          .drain
     }
   }
 }

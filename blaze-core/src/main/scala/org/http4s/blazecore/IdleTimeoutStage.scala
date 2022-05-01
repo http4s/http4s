@@ -17,40 +17,35 @@
 package org.http4s
 package blazecore
 
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.{AtomicReference}
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.util.{Cancelable, TickWheelExecutor}
-import org.log4s.getLogger
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.FiniteDuration
+import org.http4s.blaze.util.Cancelable
+import org.http4s.blaze.util.Execution
+import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.blazecore.IdleTimeoutStage.Disabled
+import org.http4s.blazecore.IdleTimeoutStage.Enabled
+import org.http4s.blazecore.IdleTimeoutStage.ShutDown
+import org.http4s.blazecore.IdleTimeoutStage.State
 
-final private[http4s] class IdleTimeoutStage[A](
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
+import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
+import scala.util.control.NonFatal
+
+private[http4s] final class IdleTimeoutStage[A](
     timeout: FiniteDuration,
     exec: TickWheelExecutor,
-    ec: ExecutionContext)
-    extends MidStage[A, A] { stage =>
-  private[this] val logger = getLogger
+    ec: ExecutionContext,
+) extends MidStage[A, A] { stage =>
 
-  @volatile private var cb: Callback[TimeoutException] = null
-
-  private val timeoutState = new AtomicReference[Cancelable](NoOpCancelable)
+  private val timeoutState = new AtomicReference[State](Disabled)
 
   override def name: String = "IdleTimeoutStage"
 
-  private val killSwitch = new Runnable {
-    override def run(): Unit = {
-      val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
-      logger.debug(t.getMessage)
-      cb(Right(t))
-      removeStage()
-    }
-  }
-
-  override def readRequest(size: Int): Future[A] = {
-    resetTimeout()
-    channelRead(size)
-  }
+  override def readRequest(size: Int): Future[A] =
+    channelRead(size).andThen { case _ => resetTimeout() }(Execution.directec)
 
   override def writeRequest(data: A): Future[Unit] = {
     resetTimeout()
@@ -63,24 +58,108 @@ final private[http4s] class IdleTimeoutStage[A](
   }
 
   override protected def stageShutdown(): Unit = {
-    cancelTimeout()
     logger.debug(s"Shutting down idle timeout stage")
+
+    @tailrec def go(): Unit =
+      timeoutState.get() match {
+        case old @ IdleTimeoutStage.Enabled(_, cancel) =>
+          if (timeoutState.compareAndSet(old, ShutDown)) cancel.cancel()
+          else go()
+        case old =>
+          if (!timeoutState.compareAndSet(old, ShutDown)) go()
+      }
+
+    go()
+
     super.stageShutdown()
   }
 
-  def init(cb: Callback[TimeoutException]): Unit = {
-    logger.debug(s"Starting idle timeout stage with timeout of ${timeout.toMillis} ms")
-    stage.cb = cb
-    resetTimeout()
+  def init(cb: Callback[TimeoutException]): Unit = setTimeout(cb)
+
+  def setTimeout(cb: Callback[TimeoutException]): Unit = {
+    logger.debug(s"Starting idle timeout with timeout of ${timeout.toMillis} ms")
+
+    val timeoutTask = new Runnable {
+      override def run(): Unit = {
+        val t = new TimeoutException(s"Idle timeout after ${timeout.toMillis} ms.")
+        logger.debug(t.getMessage)
+        cb(Right(t))
+      }
+    }
+
+    @tailrec def go(): Unit =
+      timeoutState.get() match {
+        case Disabled =>
+          tryScheduling(timeoutTask) match {
+            case Some(newCancel) =>
+              if (timeoutState.compareAndSet(Disabled, Enabled(timeoutTask, newCancel))) ()
+              else {
+                newCancel.cancel()
+                go()
+              }
+            case None => ()
+          }
+        case old @ Enabled(_, oldCancel) =>
+          tryScheduling(timeoutTask) match {
+            case Some(newCancel) =>
+              if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel)))
+                oldCancel.cancel()
+              else {
+                newCancel.cancel()
+                go()
+              }
+            case None => ()
+          }
+        case _ => ()
+      }
+
+    go()
   }
 
-  private def setAndCancel(next: Cancelable): Unit = {
-    val _ = timeoutState.getAndSet(next).cancel()
-  }
+  @tailrec private def resetTimeout(): Unit =
+    timeoutState.get() match {
+      case old @ Enabled(timeoutTask, oldCancel) =>
+        tryScheduling(timeoutTask) match {
+          case Some(newCancel) =>
+            if (timeoutState.compareAndSet(old, Enabled(timeoutTask, newCancel))) oldCancel.cancel()
+            else {
+              newCancel.cancel()
+              resetTimeout()
+            }
+          case None => ()
+        }
+      case _ => ()
+    }
 
-  private def resetTimeout(): Unit =
-    setAndCancel(exec.schedule(killSwitch, ec, timeout))
+  @tailrec def cancelTimeout(): Unit =
+    timeoutState.get() match {
+      case old @ Enabled(_, cancel) =>
+        if (timeoutState.compareAndSet(old, Disabled)) cancel.cancel()
+        else cancelTimeout()
+      case _ => ()
+    }
 
-  private def cancelTimeout(): Unit =
-    setAndCancel(NoOpCancelable)
+  def tryScheduling(timeoutTask: Runnable): Option[Cancelable] =
+    if (exec.isAlive) {
+      try Some(exec.schedule(timeoutTask, ec, timeout))
+      catch {
+        case TickWheelExecutor.AlreadyShutdownException =>
+          logger.warn(s"Resetting timeout after tickwheelexecutor is shutdown")
+          None
+        case NonFatal(e) => throw e
+      }
+    } else {
+      None
+    }
+}
+
+object IdleTimeoutStage {
+
+  sealed trait State
+  case object Disabled extends State
+  // scalafix:off Http4sGeneralLinters; bincompat until 1.0
+  case class Enabled(timeoutTask: Runnable, cancel: Cancelable) extends State
+  // scalafix:on
+  case object ShutDown extends State
+
 }

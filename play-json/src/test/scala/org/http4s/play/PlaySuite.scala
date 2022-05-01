@@ -19,27 +19,25 @@ package play.test // Get out of play package so we can import custom instances
 
 import _root_.play.api.libs.json._
 import cats.effect.IO
-import cats.effect.laws.util.TestContext
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSuite
+import org.http4s.laws.discipline.arbitrary
 import org.http4s.play._
+import org.scalacheck.Prop.forAll
 
 // Originally based on CirceSpec
 class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
-  implicit val testContext = TestContext()
-
   testJsonDecoder(jsonDecoder)
 
   sealed case class Foo(bar: Int)
-  val foo = Foo(42)
+  private val foo = Foo(42)
   implicit val format: OFormat[Foo] = Json.format[Foo]
 
   val json: JsValue = Json.obj("test" -> JsString("PlaySupport"))
 
   test("json encoder should have json content type") {
-    assertEquals(
-      jsonEncoder.headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val ct: Option[`Content-Type`] = jsonEncoder[IO].headers.get[`Content-Type`]
+    assertEquals(ct, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("json encoder should write JSON") {
@@ -47,9 +45,8 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
   }
 
   test("jsonEncoderOf should have json content type") {
-    assertEquals(
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`),
-      Some(`Content-Type`(MediaType.application.json)))
+    val maybeHeaderT: Option[`Content-Type`] = jsonEncoderOf[IO, Foo].headers.get[`Content-Type`]
+    assertEquals(maybeHeaderT, Some(`Content-Type`(MediaType.application.json)))
   }
 
   test("jsonEncoderOf should write compact JSON") {
@@ -62,11 +59,13 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
     result.value.assertEquals(Right(Foo(42)))
   }
 
-  test("Uri codec should round trip") {
-    // TODO would benefit from Arbitrary[Uri]
-    val uri = Uri.uri("http://www.example.com/")
-
-    assertEquals(Json.fromJson[Uri](Json.toJson(uri)).asOpt, Some(uri))
+  property("Uri codec round trip") {
+    forAll(arbitrary.createGenUri) { (uri: Uri) =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val preparedUri = uri.fragment.fold(uri)(f => uri.withFragment(Uri.encode(f)))
+      assertEquals(Json.fromJson[Uri](Json.toJson(uri)).asOpt, Some(preparedUri))
+    }
   }
 
   test("Message[F].decodeJson[A] should decode json from a message") {
@@ -76,7 +75,7 @@ class PlaySuite extends JawnDecodeSupportSuite[JsValue] {
 
   test("Message[F].decodeJson[A] should fail on invalid json") {
     val req = Request[IO]().withEntity(Json.toJson(List(13, 14)))
-    req.decodeJson[Foo].attempt.map(_.isLeft).assertEquals(true)
+    req.decodeJson[Foo].attempt.map(_.isLeft).assert
   }
 
   test("PlayEntityCodec should decode json without defining EntityDecoder") {

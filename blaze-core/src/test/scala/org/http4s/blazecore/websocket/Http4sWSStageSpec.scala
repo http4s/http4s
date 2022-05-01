@@ -17,35 +17,38 @@
 package org.http4s.blazecore
 package websocket
 
-import fs2.Stream
-import fs2.concurrent.{Queue, SignallingRef}
 import cats.effect.IO
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import cats.syntax.all._
-import java.util.concurrent.atomic.AtomicBoolean
-import org.http4s.Http4sSpec
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.websocket.{WebSocket, WebSocketFrame}
-import org.http4s.websocket.WebSocketFrame._
+import fs2.Stream
+import fs2.concurrent.SignallingRef
+import org.http4s.Http4sSuite
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.testing.DispatcherIOFixture
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame._
+import org.http4s.websocket.WebSocketSeparatePipe
+import scodec.bits.ByteVector
+
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
-import cats.effect.testing.specs2.CatsEffect
 
-class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
-  override implicit def testExecutionContext: ExecutionContext =
-    ExecutionContext.global
+class Http4sWSStageSpec extends Http4sSuite with DispatcherIOFixture {
+  implicit val testExecutionContext: ExecutionContext = munitExecutionContext
 
   class TestWebsocketStage(
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
       closeHook: AtomicBoolean,
-      backendInQ: Queue[IO, WebSocketFrame]) {
+      backendInQ: Queue[IO, WebSocketFrame],
+  ) {
     def sendWSOutbound(w: WebSocketFrame*): IO[Unit] =
       Stream
         .emits(w)
-        .covary[IO]
-        .through(outQ.enqueue)
+        .evalMap(outQ.offer)
         .compile
         .drain
 
@@ -56,7 +59,8 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
       head.poll(timeoutSeconds)
 
     def pollBackendInbound(timeoutSeconds: Long = 4L): IO[Option[WebSocketFrame]] =
-      IO.delay(backendInQ.dequeue1.unsafeRunTimed(timeoutSeconds.seconds))
+      IO.race(backendInQ.take, IO.sleep(timeoutSeconds.seconds))
+        .map(_.fold(Some(_), _ => None))
 
     def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): IO[List[WebSocketFrame]] =
       head.pollBatch(batchSize, timeoutSeconds)
@@ -69,79 +73,102 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
   }
 
   object TestWebsocketStage {
-    def apply(): IO[TestWebsocketStage] =
+    def apply()(implicit dispatcher: Dispatcher[IO]): IO[TestWebsocketStage] =
       for {
         outQ <- Queue.unbounded[IO, WebSocketFrame]
         backendInQ <- Queue.unbounded[IO, WebSocketFrame]
         closeHook = new AtomicBoolean(false)
-        ws = WebSocket[IO](outQ.dequeue, backendInQ.enqueue, IO(closeHook.set(true)))
+        ws = WebSocketSeparatePipe[IO](
+          Stream.repeatEval(outQ.take),
+          _.evalMap(backendInQ.offer),
+          IO(closeHook.set(true)),
+        )
         deadSignal <- SignallingRef[IO, Boolean](false)
         wsHead <- WSTestHead()
-        head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(wsHead)
+        http4sWSStage <- Http4sWSStage[IO](ws, closeHook, deadSignal, dispatcher)
+        head = LeafBuilder(http4sWSStage).base(wsHead)
         _ <- IO(head.sendInboundCommand(Command.Connected))
       } yield new TestWebsocketStage(outQ, head, closeHook, backendInQ)
   }
 
-  "Http4sWSStage" should {
-    "reply with pong immediately after ping" in (for {
-      socket <- TestWebsocketStage()
-      _ <- socket.sendInbound(Ping())
-      _ <- socket.pollOutbound(2).map(_ must beSome[WebSocketFrame](Pong()))
-      _ <- socket.sendInbound(Close())
-    } yield ok)
+  dispatcher.test("Http4sWSStage should reply with pong immediately after ping".flaky) {
+    implicit d =>
+      for {
+        socket <- TestWebsocketStage()
+        _ <- socket.sendInbound(Ping())
+        p <- socket.pollOutbound(2).map(_.exists(_ == Pong()))
+        _ <- socket.sendInbound(Close())
+      } yield assert(p)
+  }
 
-    "not write any more frames after close frame sent" in (for {
-      socket <- TestWebsocketStage()
-      _ <- socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
-      _ <- socket.pollOutbound().map(_ must_=== Some(Text("hi")))
-      _ <- socket.pollOutbound().map(_ must_=== Some(Close()))
-      _ <- socket.pollOutbound().map(_ must_=== None)
-      _ <- socket.sendInbound(Close())
-    } yield ok)
+  dispatcher.test("Http4sWSStage should not write any more frames after close frame sent") {
+    implicit d =>
+      for {
+        socket <- TestWebsocketStage()
+        _ <- socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
+        p1 <- socket.pollOutbound().map(_.contains(Text("hi")))
+        p2 <- socket.pollOutbound().map(_.contains(Close()))
+        p3 <- socket.pollOutbound().map(_.isEmpty)
+        _ <- socket.sendInbound(Close())
+      } yield assert(p1 && p2 && p3)
+  }
 
-    "send a close frame back and call the on close handler upon receiving a close frame" in (for {
+  dispatcher.test(
+    "Http4sWSStage should send a close frame back and call the on close handler upon receiving a close frame"
+  ) { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Close())
-      _ <- socket.pollBatchOutputbound(2, 2).map(_ must_=== List(Close()))
-      _ <- socket.wasCloseHookCalled().map(_ must_=== true)
-    } yield ok)
+      p1 <- socket.pollBatchOutputbound(2, 2).map(_ == List(Close()))
+      p2 <- socket.wasCloseHookCalled().map(_ == true)
+    } yield assert(p1 && p2)
+  }
 
-    "not send two close frames " in (for {
+  dispatcher.test("Http4sWSStage should not send two close frames".flaky) { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       _ <- socket.sendWSOutbound(Close())
       _ <- socket.sendInbound(Close())
-      _ <- socket.pollBatchOutputbound(2).map(_ must_=== List(Close()))
-      _ <- socket.wasCloseHookCalled().map(_ must_=== true)
-    } yield ok)
+      p1 <- socket.pollBatchOutputbound(2).map(_ == List(Close()))
+      p2 <- socket.wasCloseHookCalled()
+    } yield assert(p1 && p2)
+  }
 
-    "ignore pong frames" in (for {
+  dispatcher.test("Http4sWSStage should ignore pong frames") { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Pong())
-      _ <- socket.pollOutbound().map(_ must_=== None)
+      p <- socket.pollOutbound().map(_.isEmpty)
       _ <- socket.sendInbound(Close())
-    } yield ok)
+    } yield assert(p)
+  }
 
-    "send a ping frames to backend" in (for {
+  dispatcher.test("Http4sWSStage should send a ping frames to backend") { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Ping())
-      _ <- socket.pollBackendInbound().map(_ must_=== Some(Ping()))
+      p1 <- socket.pollBackendInbound().map(_.contains(Ping()))
       pingWithBytes = Ping(ByteVector(Array[Byte](1, 2, 3)))
       _ <- socket.sendInbound(pingWithBytes)
-      _ <- socket.pollBackendInbound().map(_ must_=== Some(pingWithBytes))
+      p2 <- socket.pollBackendInbound().map(_.contains(pingWithBytes))
       _ <- socket.sendInbound(Close())
-    } yield ok)
+    } yield assert(p1 && p2)
+  }
 
-    "send a pong frames to backend" in (for {
+  dispatcher.test("Http4sWSStage should send a pong frames to backend") { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       _ <- socket.sendInbound(Pong())
-      _ <- socket.pollBackendInbound().map(_ must_=== Some(Pong()))
+      p1 <- socket.pollBackendInbound().map(_.contains(Pong()))
       pongWithBytes = Pong(ByteVector(Array[Byte](1, 2, 3)))
       _ <- socket.sendInbound(pongWithBytes)
-      _ <- socket.pollBackendInbound().map(_ must_=== Some(pongWithBytes))
+      p2 <- socket.pollBackendInbound().map(_.contains(pongWithBytes))
       _ <- socket.sendInbound(Close())
-    } yield ok)
+    } yield assert(p1 && p2)
+  }
 
-    "not fail on pending write request" in (for {
+  dispatcher.test("Http4sWSStage should not fail on pending write request") { implicit d =>
+    for {
       socket <- TestWebsocketStage()
       reasonSent = ByteVector(42)
       in = Stream.eval(socket.sendInbound(Ping())).repeat.take(100)
@@ -154,7 +181,6 @@ class Http4sWSStageSpec extends Http4sSpec with CatsEffect {
           .compile
           .toList
           .timeout(5.seconds)
-      _ = reasonReceived must_== (List(reasonSent))
-    } yield ok)
+    } yield assertEquals(reasonReceived, List(reasonSent))
   }
 }

@@ -18,11 +18,12 @@ package org.http4s.dsl
 
 import cats.arrow.FunctionK
 import org.http4s.Method
+import org.http4s.Uri
 import org.http4s.dsl.impl._
 
 trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, G] {
-  val Path: impl.Path.type = impl.Path
-  val Root: impl.Root.type = impl.Root
+  val Path: Uri.Path.type = Uri.Path
+  val Root: Uri.Path.Root.type = Uri.Path.Root
   val / : impl./.type = impl./
   val :? : impl.:?.type = impl.:?
   val ~ : impl.~.type = impl.~
@@ -46,16 +47,6 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
   val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
-
-  // Restore binary compatibility with mixin forwarder
-  // TODO remove in 1.0
-  override implicit def http4sMethodSyntax(method: Method): Http4sDsl.MethodOps =
-    new Http4sDsl.MethodOps(method)
-
-  // Restore binary compatibility with mixin forwarder
-  // TODO remove in 1.0
-  override implicit def http4sMethodConcatSyntax(methods: MethodConcat): Http4sDsl.MethodConcatOps =
-    new Http4sDsl.MethodConcatOps(methods)
 }
 
 trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
@@ -63,7 +54,8 @@ trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
 }
 
 object Http4sDsl {
-  def apply[F[_]]: Http4sDsl[F] = new Http4sDsl[F] {}
+  // Does not return Http4sDslBinCompat for bincompat reasons. ¯\_(ツ)_/¯
+  def apply[F[_]]: Http4sDsl[F] with RequestDslBinCompat = new Http4sDslBinCompat[F] {}
 
   final class MethodOps(val method: Method) extends AnyVal {
     def |(another: Method) = new MethodConcat(Set(method, another))
@@ -73,3 +65,5 @@ object Http4sDsl {
     def |(another: Method) = new MethodConcat(methods.methods + another)
   }
 }
+
+trait Http4sDslBinCompat[F[_]] extends Http4sDsl[F] with RequestDslBinCompat

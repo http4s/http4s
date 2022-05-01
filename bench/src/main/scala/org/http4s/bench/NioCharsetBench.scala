@@ -18,11 +18,14 @@ package org.http4s
 package bench
 
 import cats.syntax.all._
-import java.nio.charset.{UnsupportedCharsetException, Charset => NioCharset}
-import java.util.{HashMap, Locale}
-import java.util.concurrent.TimeUnit
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.openjdk.jmh.annotations._
+
+import java.nio.charset.UnsupportedCharsetException
+import java.nio.charset.{Charset => NioCharset}
+import java.util.HashMap
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 import scala.collection.mutable
 
 @Fork(2)
@@ -43,13 +46,13 @@ class NioCharsetBench {
   private val scalaCache: mutable.Map[String, NioCharset] =
     mutable.Map(javaCache.asScala.toSeq: _*)
 
-  def javaCached(name: String) =
+  def javaCached(name: String): Either[UnsupportedCharsetException, NioCharset] =
     javaCache.get(name.toLowerCase(Locale.ROOT)) match {
       case null => Left(new UnsupportedCharsetException(name))
       case cs => Right(cs)
     }
 
-  def scalaCached(name: String) =
+  def scalaCached(name: String): Either[UnsupportedCharsetException, NioCharset] =
     scalaCache.get(name.toLowerCase(Locale.ROOT)) match {
       case None => Left(new UnsupportedCharsetException(name))
       case Some(cs) => Right(cs)

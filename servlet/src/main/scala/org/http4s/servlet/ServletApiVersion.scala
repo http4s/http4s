@@ -23,7 +23,7 @@ final case class ServletApiVersion(major: Int, minor: Int) extends Ordered[Servl
   override def compare(that: ServletApiVersion): Int =
     (this.major, this.minor).compare((that.major, that.minor))
 
-  override val toString = s"$major.$minor"
+  override val toString: String = s"$major.$minor"
 }
 
 object ServletApiVersion {

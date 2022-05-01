@@ -19,9 +19,10 @@ package blaze
 
 import cats.effect._
 import cats.syntax.all._
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Server
-import org.http4s.server.blaze.BlazeServerBuilder
-import scala.concurrent.ExecutionContext.global
+
+import javax.net.ssl.SSLContext
 
 object BlazeSslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -29,20 +30,19 @@ object BlazeSslExample extends IOApp {
 }
 
 object BlazeSslExampleApp {
-  def context[F[_]: Sync] =
+  def context[F[_]: Sync]: F[SSLContext] =
     ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
 
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer]: F[BlazeServerBuilder[F]] =
+  def builder[F[_]: Async]: F[BlazeServerBuilder[F]] =
     context.map { sslContext =>
-      BlazeServerBuilder[F](global)
+      BlazeServerBuilder[F]
         .bindHttp(8443)
         .withSslContext(sslContext)
     }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: Async]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
-      b <- Resource.liftF(builder[F])
-      server <- b.withHttpApp(BlazeExampleApp.httpApp(blocker)).resource
+      b <- Resource.eval(builder[F])
+      server <- b.withHttpApp(BlazeExampleApp.httpApp).resource
     } yield server
 }

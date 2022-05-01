@@ -21,14 +21,18 @@ package util
 import cats.effect._
 import fs2._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http2.{DataFrame, HeadersFrame, Priority, StreamFrame}
+import org.http4s.blaze.http.http2.DataFrame
+import org.http4s.blaze.http.http2.HeadersFrame
+import org.http4s.blaze.http.http2.Priority
+import org.http4s.blaze.http.http2.StreamFrame
 import org.http4s.blaze.pipeline.TailStage
+
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](
     tail: TailStage[StreamFrame],
     private var headers: Headers,
-    protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
+)(implicit protected val F: Async[F])
     extends EntityBodyWriter[F] {
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f =
@@ -42,10 +46,11 @@ private[http4s] class Http2Writer[F[_]](
           tail.channelWrite(
             HeadersFrame(Priority.NoPriority, endStream = false, hs)
               :: DataFrame(endStream = true, chunk.toByteBuffer)
-              :: Nil)
+              :: Nil
+          )
       }
 
-    f.map(Function.const(false))(ec)
+    f.map(Function.const(false))(parasitic)
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
@@ -57,6 +62,7 @@ private[http4s] class Http2Writer[F[_]](
       tail.channelWrite(
         HeadersFrame(Priority.NoPriority, endStream = false, hs)
           :: DataFrame(endStream = false, chunk.toByteBuffer)
-          :: Nil)
+          :: Nil
+      )
     }
 }

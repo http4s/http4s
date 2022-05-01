@@ -18,12 +18,14 @@ package org.http4s
 package servlet
 
 import cats.effect._
-import java.util
-import javax.servlet.{DispatcherType, Filter}
-import javax.servlet.http.HttpServlet
 import org.http4s.server.ServerBuilder
 
-abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
+import java.util
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.http.HttpServlet
+
+abstract class ServletContainer[F[_]] extends ServerBuilder[F] {
   type Self <: ServletContainer[F]
 
   /** Mounts a servlet to the server.
@@ -49,7 +51,9 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
         DispatcherType.REQUEST,
         DispatcherType.FORWARD,
         DispatcherType.INCLUDE,
-        DispatcherType.ASYNC)): Self
+        DispatcherType.ASYNC,
+      ),
+  ): Self
 
   /** Sets the servlet I/O mode for reads and writes within the servlet.
     * Not to be confused with the server connectors.
@@ -60,7 +64,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] {
 }
 
 object ServletContainer {
-  def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
+  def DefaultServletIo[F[_]: Async]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /** Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
     * mountService into a standard servlet prefix mapping.

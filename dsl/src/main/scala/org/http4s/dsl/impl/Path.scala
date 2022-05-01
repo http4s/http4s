@@ -1,4 +1,20 @@
 /*
+ * Copyright 2013 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
  * Copyright 2013-2020 http4s.org
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -9,76 +25,18 @@
 
 package org.http4s.dsl.impl
 
-import cats.data._
-import cats.data.Validated._
-import cats.syntax.all._
-import org.http4s._
-import scala.util.Try
+import cats.Applicative
 import cats.Foldable
 import cats.Monad
+import cats.data.Validated._
+import cats.data._
+import cats.syntax.all._
+import org.http4s.Uri.Path
+import org.http4s.Uri.Path._
+import org.http4s._
+import org.http4s.headers.Allow
 
-/** Base class for path extractors. */
-trait Path {
-  def /(child: String) = new /(this, child)
-  def toList: List[String]
-  def parent: Path
-  def lastOption: Option[String]
-  def startsWith(other: Path): Boolean
-}
-
-object Path {
-
-  /** Constructs a path from a single string by splitting on the `'/'`
-    * character.
-    *
-    * Leading slashes do not create an empty path segment.  This is to
-    * reflect that there is no distinction between a request to
-    * `http://www.example.com` from `http://www.example.com/`.
-    *
-    * Trailing slashes result in a path with an empty final segment,
-    * unless the path is `"/"`, which is `Root`.
-    *
-    * Segments are URL decoded.
-    *
-    * {{{
-    * scala> Path("").toList
-    * res0: List[String] = List()
-    * scala> Path("/").toList
-    * res1: List[String] = List()
-    * scala> Path("a").toList
-    * res2: List[String] = List(a)
-    * scala> Path("/a").toList
-    * res3: List[String] = List(a)
-    * scala> Path("/a/").toList
-    * res4: List[String] = List(a, "")
-    * scala> Path("//a").toList
-    * res5: List[String] = List("", a)
-    * scala> Path("/%2F").toList
-    * res0: List[String] = List(/)
-    * }}}
-    */
-  def apply(str: String): Path =
-    if (str == "" || str == "/")
-      Root
-    else {
-      val segments = str.split("/", -1)
-      // .head is safe because split always returns non-empty array
-      val segments0 = if (segments.head == "") segments.drop(1) else segments
-      segments0.foldLeft(Root: Path)((path, seg) => path / Uri.decode(seg))
-    }
-
-  def apply(first: String, rest: String*): Path =
-    rest.foldLeft(Root / first)(_ / _)
-
-  def apply(list: List[String]): Path =
-    list.foldLeft(Root: Path)(_ / _)
-
-  def unapplySeq(path: Path): Some[List[String]] =
-    Some(path.toList)
-
-  def unapplySeq[F[_]](request: Request[F]): Some[List[String]] =
-    Some(Path(request.pathInfo).toList)
-}
+import scala.util.Try
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -97,7 +55,7 @@ object ~ {
       case Root => None
       case parent / last =>
         unapply(last).map { case (base, ext) =>
-          (parent / base, ext)
+          (parent / Path.Segment(base), ext)
         }
     }
 
@@ -114,19 +72,21 @@ object ~ {
     }
 }
 
-final case class /(parent: Path, child: String) extends Path {
-  lazy val toList: List[String] = parent.toList ++ List(child)
-
-  def lastOption: Some[String] = Some(child)
-
-  lazy val asString: String = s"$parent/${Uri.pathEncode(child)}"
-
-  override def toString: String = asString
-
-  def startsWith(other: Path): Boolean = {
-    val components = other.toList
-    toList.take(components.length) === components
-  }
+object / {
+  def unapply(path: Path): Option[(Path, String)] =
+    if (path != Root && path.endsWithSlash)
+      Some(path.dropEndsWithSlash -> "")
+    else
+      path.segments match {
+        case allButLast :+ last if allButLast.isEmpty =>
+          if (path.absolute)
+            Some(Root -> last.decoded())
+          else
+            Some(empty -> last.decoded())
+        case allButLast :+ last =>
+          Some(Path(allButLast, absolute = path.absolute) -> last.decoded())
+        case _ => None
+      }
 }
 
 object -> {
@@ -138,7 +98,44 @@ object -> {
     * }}}
     */
   def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
-    Some((req.method, Path(req.pathInfo)))
+    Some((req.method, req.pathInfo))
+}
+
+object ->> {
+  private val allMethods = Method.all.toSet
+
+  /** Extractor to match an http resource and then enumerate all supported methods:
+    * {{{
+    *   (request.method, Path(request.path)) match {
+    *     case withMethod ->> Root / "test.json" => withMethod {
+    *       case Method.GET => ...
+    *       case Method.POST => ...
+    * }}}
+    *
+    * Returns an error response if the method is not matched, in accordance with [[https://datatracker.ietf.org/doc/html/rfc7231#section-4.1 RFC7231]]
+    */
+  def unapply[F[_]: Applicative](
+      req: Request[F]
+  ): Some[(PartialFunction[Method, F[Response[F]]] => F[Response[F]], Path)] =
+    Some {
+      (
+        pf =>
+          pf.applyOrElse(
+            req.method,
+            (method: Method) =>
+              Applicative[F].pure {
+                if (allMethods.contains(method)) {
+                  Response(
+                    status = Status.MethodNotAllowed,
+                    headers = Headers(Allow(allMethods.filter(pf.isDefinedAt))),
+                  )
+                } else { Response(status = Status.NotImplemented) }
+              },
+          ),
+        req.pathInfo,
+      )
+
+    }
 }
 
 class MethodConcat(val methods: Set[Method]) {
@@ -155,25 +152,6 @@ class MethodConcat(val methods: Set[Method]) {
     Some(method).filter(methods)
 }
 
-/** Root extractor:
-  * {{{
-  *   Path("/") match {
-  *     case Root => ...
-  *   }
-  * }}}
-  */
-case object Root extends Path {
-  def toList: List[String] = Nil
-
-  def parent: Path = this
-
-  def lastOption: None.type = None
-
-  override def toString = ""
-
-  def startsWith(other: Path): Boolean = other == Root
-}
-
 /** Path separator extractor:
   * {{{
   *   Path("/1/2/3/test.json") match {
@@ -182,9 +160,9 @@ case object Root extends Path {
   */
 object /: {
   def unapply(path: Path): Option[(String, Path)] =
-    path.toList match {
-      case head :: tail => Some(head -> Path(tail))
-      case Nil => None
+    path.segments match {
+      case head +: tail => Some(head.decoded() -> Path(tail))
+      case _ => None
     }
 }
 
@@ -254,7 +232,8 @@ abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
     } else None
 
   private def toAssocList(
-      recState: MatrixVar.RecState): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
+      recState: MatrixVar.RecState
+  ): Option[Either[MatrixVar.RecState, List[(String, String)]]] =
     // We can't extract anything else but there was a trailing ;
     if (recState.position >= recState.str.length - 1)
       Some(Right(recState.accumulated))
@@ -271,7 +250,9 @@ abstract class MatrixVar[F[_]: Foldable](name: String, domain: F[String]) {
         toAssocListElem(recState.str, recState.position, nextSplit)
           .map(elem =>
             Left(
-              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)))
+              recState.copy(position = nextSplit + 1, accumulated = elem :: recState.accumulated)
+            )
+          )
     }
 
   private def toAssocListElem(str: String, position: Int, end: Int): Option[(String, String)] = {
@@ -298,8 +279,9 @@ object MatrixVar {
   * }}}
   */
 object +& {
-  def unapply(params: Map[String, collection.Seq[String]])
-      : Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
+  def unapply(
+      params: Map[String, collection.Seq[String]]
+  ): Some[(Map[String, collection.Seq[String]], Map[String, collection.Seq[String]])] =
     Some((params, params))
 }
 
@@ -318,7 +300,8 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
     params
       .get(name)
       .flatMap(values =>
-        values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption))
+        values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption)
+      )
 
   def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
     params
@@ -351,6 +334,22 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .toOption
 }
 
+/** A param extractor with a default value. If the query param is not present, the default value is returned
+  * If the query param is present but incorrectly formatted, will return `None`
+  */
+abstract class QueryParamDecoderMatcherWithDefault[T: QueryParamDecoder](name: String, default: T) {
+  def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
+    params
+      .get(name)
+      .flatMap(_.headOption)
+      .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      .toOption
+      .map(_.getOrElse(default))
+}
+
+abstract class QueryParamMatcherWithDefault[T: QueryParamDecoder: QueryParam](default: T)
+    extends QueryParamDecoderMatcherWithDefault[T](QueryParam[T].key.value, default)
+
 /** Flag (value-less) query param extractor
   */
 abstract class FlagQueryParamMatcher(name: String) {
@@ -379,7 +378,8 @@ abstract class FlagQueryParamMatcher(name: String) {
   */
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(
-      params: Map[String, collection.Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
+      params: Map[String, collection.Seq[String]]
+  ): Option[ValidatedNel[ParseFailure, List[T]]] =
     params.get(name) match {
       case Some(values) =>
         Some(values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s))))
@@ -438,7 +438,8 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(
-      params: Map[String, collection.Seq[String]]): Some[Option[ValidatedNel[ParseFailure, T]]] =
+      params: Map[String, collection.Seq[String]]
+  ): Some[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
       params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s =>

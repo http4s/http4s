@@ -19,8 +19,10 @@ package com.example.http4s.jetty
 import cats.effect._
 import cats.syntax.all._
 import com.example.http4s.ssl
+import org.http4s.jetty.server.JettyBuilder
 import org.http4s.server.Server
-import org.http4s.server.jetty.JettyBuilder
+
+import javax.net.ssl.SSLContext
 
 object JettySslExample extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -28,21 +30,20 @@ object JettySslExample extends IOApp {
 }
 
 object JettySslExampleApp {
-  def sslContext[F[_]: Sync] =
+  def sslContext[F[_]: Sync]: F[SSLContext] =
     ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
 
-  def builder[F[_]: ConcurrentEffect: ContextShift: Timer](blocker: Blocker): F[JettyBuilder[F]] =
+  def builder[F[_]: Async]: F[JettyBuilder[F]] =
     sslContext.map { sslCtx =>
       JettyExampleApp
-        .builder[F](blocker)
+        .builder[F]
         .bindHttp(8443)
         .withSslContext(sslCtx)
     }
 
-  def resource[F[_]: ConcurrentEffect: ContextShift: Timer]: Resource[F, Server[F]] =
+  def resource[F[_]: Async]: Resource[F, Server] =
     for {
-      blocker <- Blocker[F]
-      b <- Resource.liftF(builder[F](blocker))
+      b <- Resource.eval(builder[F])
       server <- b.resource
     } yield server
 }

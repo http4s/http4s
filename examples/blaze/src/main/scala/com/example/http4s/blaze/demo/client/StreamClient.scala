@@ -16,29 +16,33 @@
 
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
+import cats.effect.Async
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import com.example.http4s.blaze.demo.StreamUtils
 import io.circe.Json
-import org.http4s.client.blaze.BlazeClientBuilder
-import org.http4s.{Request, Uri}
+import org.http4s.Request
+import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.syntax.literals._
 import org.typelevel.jawn.Facade
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamClient extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     new HttpClient[IO].run.as(ExitCode.Success)
 }
 
-class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
+class HttpClient[F[_]](implicit F: Async[F], S: StreamUtils[F]) {
   implicit val jsonFacade: Facade[Json] =
     new io.circe.jawn.CirceSupportParser(None, false).facade
 
   def run: F[Unit] =
-    BlazeClientBuilder[F](global).stream
+    BlazeClientBuilder[F].stream
       .flatMap { client =>
-        val request = Request[F](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
+        val request =
+          Request[F](uri = uri"http://localhost:8080/v1/dirs?depth=3")
         for {
-          response <- client.stream(request).flatMap(_.body.chunks.through(fs2.text.utf8DecodeC))
+          response <- client.stream(request).flatMap(_.body.chunks.through(fs2.text.utf8.decodeC))
           _ <- S.putStr(response)
         } yield ()
       }
