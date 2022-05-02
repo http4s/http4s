@@ -76,7 +76,6 @@ lazy val modules: List[CompositeProject] = List(
   boopickle,
   circe,
   playJson,
-  scalaXml,
   twirl,
   scalatags,
   bench,
@@ -939,16 +938,6 @@ lazy val playJson = libraryProject("play-json")
   )
   .dependsOn(jawn.jvm % "compile;test->test")
 
-lazy val scalaXml = libraryProject("scala-xml")
-  .settings(
-    description := "Provides scala-xml codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
 lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
@@ -1089,7 +1078,7 @@ lazy val examples = http4sProject("examples")
     ),
     // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm /*, twirl*/ )
 // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
