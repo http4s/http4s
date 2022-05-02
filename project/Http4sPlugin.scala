@@ -99,7 +99,6 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
     val blaze = "0.15.3"
-    val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
     val catsEffect = "3.3.11"
@@ -150,7 +149,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient = "org.asynchttpclient" % "async-http-client" % V.asyncHttpClient
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
   lazy val blazeHttp = "org.http4s" %% "blaze-http" % V.blaze
-  lazy val boopickle = Def.setting("io.suzaku" %%% "boopickle" % V.boopickle)
   lazy val caseInsensitive = Def.setting("org.typelevel" %%% "case-insensitive" % V.caseInsensitive)
   lazy val caseInsensitiveTesting =
     Def.setting("org.typelevel" %%% "case-insensitive-testing" % V.caseInsensitive)
