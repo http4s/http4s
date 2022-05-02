@@ -76,7 +76,6 @@ lazy val modules: List[CompositeProject] = List(
   circe,
   playJson,
   scalaXml,
-  twirl,
   scalatags,
   bench,
   jsArtifactSizeTest,
@@ -934,25 +933,6 @@ lazy val scalaXml = libraryProject("scala-xml")
   )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
-lazy val twirl = http4sProject("twirl")
-  .settings(
-    description := "Twirl template support for http4s",
-    startYear := Some(2014),
-    TwirlKeys.templateImports := Nil,
-    libraryDependencies := {
-      libraryDependencies.value.map {
-        case module if module.name == "twirl-api" && tlIsScala3.value =>
-          module.cross(CrossVersion.for3Use2_13)
-        case module => module
-      }
-    },
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .enablePlugins(SbtTwirl)
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
@@ -1072,10 +1052,8 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
-// todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)

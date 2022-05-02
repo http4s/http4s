@@ -142,7 +142,6 @@ object Http4sPlugin extends AutoPlugin {
     val servlet = "3.1.0"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
-    val twirl = "1.4.2"
     val twitterHpack = "1.0.2"
     val vault = "3.1.0"
   }
@@ -223,7 +222,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
-  lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
 }
