@@ -219,8 +219,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaJavaLocalesEnUS =
     Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
-  lazy val scalaJavaTimeTzdb =
-    Def.setting("io.github.cquiroz" %%% "scala-java-time-tzdb" % V.scalaJavaTime)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
   lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
   lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml

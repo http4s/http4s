@@ -47,6 +47,11 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   )
 )
 
+ThisBuild / jsEnv := {
+  import org.scalajs.jsenv.nodejs.NodeJSEnv
+  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+}
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
@@ -267,11 +272,6 @@ lazy val testing = libraryCrossProject("testing", CrossType.Full)
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ).map(_ % Test),
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value
-    ).map(_ % Test)
   )
   .dependsOn(laws)
 
