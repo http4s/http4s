@@ -19,6 +19,7 @@ package server
 package middleware
 
 import cats.ApplicativeThrow
+import cats.MonadThrow
 import cats.data.Kleisli
 import fs2._
 
@@ -30,11 +31,25 @@ object EntityLimiter {
   val DefaultMaxEntitySize: Long = 2L * 1024L * 1024L // 2 MB default
 
   def apply[F[_], G[_], B](http: Kleisli[F, Request[G], B], limit: Long = DefaultMaxEntitySize)(
-      implicit G: ApplicativeThrow[G]
+      implicit
+      G: ApplicativeThrow[G],
+      F: ApplicativeThrow[F],
   ): Kleisli[F, Request[G], B] =
-    http.local(_.pipeBodyThrough(takeLimited(limit)))
+    Kleisli[F, Request[G], B] { req =>
+      req.entity match {
+        case Entity.Empty =>
+          http.run(req)
 
-  def httpRoutes[F[_]: ApplicativeThrow](
+        case Entity.Strict(chunk) =>
+          if (chunk.size.toLong < limit) http.run(req)
+          else F.raiseError[B](EntityTooLarge(limit))
+
+        case Entity.Default(_, _) =>
+          http.run(req.pipeBodyThrough[G](takeLimited(limit)))
+      }
+    }
+
+  def httpRoutes[F[_]: MonadThrow](
       httpRoutes: HttpRoutes[F],
       limit: Long = DefaultMaxEntitySize,
   ): HttpRoutes[F] =
