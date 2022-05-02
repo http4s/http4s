@@ -92,7 +92,7 @@ final case class UriTemplate(
   def expandQuery[T: QueryParamEncoder](name: String, values: T*): UriTemplate =
     expandQuery(name, values.toList)
 
-  override lazy val toString =
+  override lazy val toString: String =
     renderUriTemplate(this)
 
   /** If no expansion is available an `Uri` will be created otherwise the
@@ -111,7 +111,7 @@ object UriTemplate {
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
 
-  protected val unreserved =
+  protected val unreserved: Set[Char] =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') :+ '-' :+ '.' :+ '_' :+ '~').toSet
 
   //  protected val genDelims = ':' :: '/' :: '?' :: '#' :: '[' :: ']' :: '@' :: Nil
@@ -127,7 +127,7 @@ object UriTemplate {
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
-    def appendValues() =
+    def appendValues(): Unit =
       values.foreach { v =>
         acc.append(PathElm(v.value))
       }

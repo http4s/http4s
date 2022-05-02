@@ -29,7 +29,6 @@ import org.http4s.ember.core.Parser
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.typelevel.ci._
 
 import scala.concurrent.duration._
 
@@ -46,7 +45,7 @@ class ConnectionSuite extends Http4sSuite {
         case GET -> Root / "keep-alive" =>
           Ok("keep-alive") // keep-alive enabled by default
         case GET -> Root / "close" =>
-          Ok("close").map(_.withHeaders(Connection(ci"close")))
+          Ok("close").map(_.withHeaders(Connection.close))
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
         case POST -> Root / "unread" =>
@@ -67,7 +66,7 @@ class ConnectionSuite extends Http4sSuite {
       .build
 
   sealed case class TestClient(client: Socket[IO]) {
-    val clientChunkSize = 32 * 1024
+    private val clientChunkSize = 32 * 1024
     def request(req: Request[IO]): IO[Unit] =
       client.writes(Encoder.reqToBytes(req)).compile.drain
     def response: IO[Response[IO]] =
@@ -87,7 +86,7 @@ class ConnectionSuite extends Http4sSuite {
       socket <- Network[IO].client(host)
     } yield TestClient(socket)
 
-  def fixture(
+  private def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
       headerTimeout: FiniteDuration = 60.seconds,
   ) = ResourceFixture(

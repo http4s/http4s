@@ -41,7 +41,6 @@ import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -171,8 +170,8 @@ object WebSocketHelpers {
 
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {
-        case WebSocketFrame.Ping(data) =>
-          writeFrame(WebSocketFrame.Pong(data)) *> F.pure(Ping(data).some)
+        case ping @ WebSocketFrame.Ping(data) =>
+          writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
         case frame @ WebSocketFrame.Close(_) =>
           closeState.get.flatMap {
             case Open =>
@@ -198,7 +197,7 @@ object WebSocketHelpers {
         }
         Stream
           .iterable(chunks)
-          .flatMap(Stream.chunk)
+          .flatMap(Stream.chunk(_))
       }
 
   private def decodeFrames[F[_]](

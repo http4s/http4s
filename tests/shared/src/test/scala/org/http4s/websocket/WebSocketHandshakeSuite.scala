@@ -18,6 +18,7 @@ package org.http4s.websocket
 
 import org.http4s.Http4sSuite
 
+@deprecated("Tests a deprecated feature", "0.23.13")
 class WebSocketHandshakeSpec extends Http4sSuite {
 
   test("WebSocketHandshake should Be able to split multi value header keys") {

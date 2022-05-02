@@ -24,6 +24,7 @@ import cats.effect.Sync
 import org.http4s.headers._
 
 package object authentication {
+  // TODO Could be reduced to a Monad[F]
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]
   )(routes: AuthedRoutes[A, F])(implicit F: Sync[F]): HttpRoutes[F] =

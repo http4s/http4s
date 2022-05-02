@@ -26,7 +26,7 @@ import org.typelevel.discipline.Laws
   * must satisfy the following properties
   */
 object QueryParamCodecLaws extends Laws {
-  val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
+  private val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
 
   def apply[T: Arbitrary: Eq: QueryParamDecoder: QueryParamEncoder] =
     new SimpleRuleSet(

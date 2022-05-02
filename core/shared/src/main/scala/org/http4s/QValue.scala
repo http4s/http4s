@@ -34,7 +34,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
   def isAcceptable: Boolean = thousandths > 0
 
-  override def toString = s"QValue(${0.001 * thousandths})"
+  override def toString: String = s"QValue(${0.001 * thousandths})"
 
   override def compare(that: QValue): Int = thousandths - that.thousandths
 

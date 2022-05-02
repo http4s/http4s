@@ -31,11 +31,17 @@ private[http4s] object bits {
   val DefaultResponseHeaderTimeout: Duration = 10.seconds
   val DefaultTimeout: Duration = 60.seconds
   val DefaultBufferSize: Int = 8 * 1024
-  val DefaultUserAgent = Some(`User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version))))
+  val DefaultUserAgent: Option[`User-Agent`] = Some(
+    `User-Agent`(ProductId("http4s-blaze", Some(BuildInfo.version)))
+  )
   val DefaultMaxTotalConnections = 10
   val DefaultMaxWaitQueueLimit = 256
 
   /** Caution: trusts all certificates and disables endpoint identification */
+  @deprecated(
+    "Kept for binary compatibility.  Unfit for production.  Embeds a blocking call on some platforms.",
+    "0.23.13",
+  )
   lazy val TrustingSslContext: SSLContext = {
     val trustManager = new X509TrustManager {
       def getAcceptedIssuers(): Array[X509Certificate] = Array.empty

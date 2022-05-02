@@ -24,28 +24,44 @@ import cats.syntax.all._
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
+import scala.util.Try
+
 class RouterSuite extends Http4sSuite {
-  val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  private val numbers = HttpRoutes.of[IO] { case GET -> Root / "1" =>
     Ok("one")
   }
-  val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
+  private val numbers2 = HttpRoutes.of[IO] { case GET -> Root / "1" =>
     Ok("two")
   }
 
-  val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
+  private val letters = HttpRoutes.of[IO] { case GET -> Root / "/b" =>
     Ok("bee")
   }
-  val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
+  private val shadow = HttpRoutes.of[IO] { case GET -> Root / "shadowed" =>
     Ok("visible")
   }
-  val root = HttpRoutes.of[IO] {
+  private val root = HttpRoutes.of[IO] {
     case GET -> Root / "about" =>
       Ok("about")
     case GET -> Root / "shadow" / "shadowed" =>
       Ok("invisible")
   }
 
-  val notFound = HttpRoutes.of[IO] { case _ =>
+  private val numElem = Router.Segment(s => OptionT.fromOption[IO](Try(s.decoded().toInt).toOption))
+  private val element = Router.Segment(s => OptionT.pure[IO](s.decoded()))
+
+  private val routable = Router.of[IO](
+    "/1" -> HttpRoutes.of[IO] { case GET -> Root => Ok("one") },
+    "/2" -> Router.of[IO](
+      element -> ContextRoutes.of { case GET -> Root as x => Ok(x) }
+    ),
+    numElem -> ContextRoutes.of { case GET -> Root as x => Ok(s"${x * 2}") },
+    element -> ContextRoutes.of { case GET -> Root as x =>
+      Ok(x)
+    },
+  )
+
+  private val notFound = HttpRoutes.of[IO] { case _ =>
     NotFound("Custom NotFound")
   }
 
@@ -55,13 +71,33 @@ class RouterSuite extends Http4sSuite {
       else routes(r)
     )
 
-  val service = Router[IO](
+  private val service = Router[IO](
     "/numbers" -> numbers,
     "/numb" -> middleware(numbers2),
     "/" -> root,
     "/shadow" -> shadow,
     "/letters" -> letters,
+    "/routable" -> routable,
   )
+
+  test("routable") {
+    service
+      .orNotFound(Request[IO](GET, uri"/routable/1"))
+      .flatMap(_.as[String])
+      .assertEquals("one") *>
+      service
+        .orNotFound(Request[IO](GET, uri"/routable/2"))
+        .flatMap(_.as[String])
+        .assertEquals("4") *>
+      service
+        .orNotFound(Request[IO](GET, uri"/routable/2/3"))
+        .flatMap(_.as[String])
+        .assertEquals("3") *>
+      service
+        .orNotFound(Request[IO](GET, uri"/routable/foo"))
+        .flatMap(_.as[String])
+        .assertEquals("foo")
+  }
 
   test("translate mount prefixes") {
     service
@@ -125,7 +161,7 @@ class RouterSuite extends Http4sSuite {
   }
 
   test("Order of variable path should not matter") {
-    val router = Router[IO]("/foo" -> HttpRoutes.of {
+    val router = Router[IO]("/foo" -> HttpRoutes.of[IO] {
       case GET -> Root / variable =>
         val _ = variable
         BadRequest("nope")

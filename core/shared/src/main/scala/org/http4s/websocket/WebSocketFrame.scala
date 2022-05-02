@@ -55,7 +55,7 @@ object WebSocketFrame {
 
   sealed abstract class Text extends WebSocketFrame {
     def str: String
-    def opcode = TEXT
+    def opcode: Int = TEXT
 
     override def toString: String = s"Text('$str', last: $last)"
   }
@@ -76,7 +76,7 @@ object WebSocketFrame {
   }
 
   final case class Binary(data: ByteVector, last: Boolean = true) extends WebSocketFrame {
-    def opcode = BINARY
+    def opcode: Int = BINARY
     override def toString: String = s"Binary(Array(${data.length}), last: $last)"
   }
 
@@ -86,21 +86,21 @@ object WebSocketFrame {
   }
 
   final case class Ping(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = PING
+    def opcode: Int = PING
     override def toString: String =
       if (data.length > 0) s"Ping(Array(${data.length}))"
       else s"Ping"
   }
 
   final case class Pong(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = PONG
+    def opcode: Int = PONG
     override def toString: String =
       if (data.length > 0) s"Pong(Array(${data.length}))"
       else s"Pong"
   }
 
   final case class Close(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = CLOSE
+    def opcode: Int = CLOSE
 
     def closeCode: Int =
       if (data.length > 0)

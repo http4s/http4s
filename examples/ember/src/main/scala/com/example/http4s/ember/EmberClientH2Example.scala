@@ -34,7 +34,7 @@ object EmberClientH2Example extends IOApp {
         Sync[F].delay(println(s"Push Promise: $req")) >>
           fResp
             .flatMap(resp =>
-              resp.bodyText.compile.string.flatMap(s =>
+              resp.bodyText.compile.string.flatMap(_ =>
                 Sync[F].delay(println(s"Push Promise Resp:($req, $resp)"))
               )
             )
@@ -46,7 +46,7 @@ object EmberClientH2Example extends IOApp {
       Applicative[F].pure(Outcome.succeeded(Applicative[F].unit))
     }
 
-    def test[F[_]: Async: Parallel] =
+    def test[F[_]: Async]: F[Unit] =
       Resource
         .eval(Network[F].tlsContext.insecure)
         .flatMap { tls =>

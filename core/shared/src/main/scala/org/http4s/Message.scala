@@ -20,6 +20,7 @@ import cats.Applicative
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.OptionT
+import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
 import cats.syntax.all._
@@ -29,6 +30,8 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import fs2.Chunk
+import fs2.Pipe
 import fs2.Pure
 import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -87,26 +90,31 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     val entity = w.toEntity(b)
-    val hs = entity.length match {
+
+    val hsBase = headers ++ w.headers
+    val cl: Option[`Content-Length`] = entity.length match {
       case Some(l) =>
         `Content-Length`
           .fromLong(l)
-          .fold[Headers](
+          .fold(
             _ => {
               Message.logger.warn(s"Attempt to provide a negative content length of $l")
-              w.headers
+              None
             },
-            cl => Headers(cl, w.headers.headers),
+            Some(_),
           )
-
-      case None => w.headers
+      case None => None
     }
-    change(body = entity.body, headers = headers ++ hs)
+
+    change(body = entity.body, headers = cl.fold(hsBase)(hsBase.withContentLength))
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
     */
   def withBodyStream(body: EntityBody[F]): Self =
     change(body = body)
@@ -116,6 +124,14 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     */
   def withEmptyBody: Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+
+  /** Applies the given pipe to the entity body (byte-stream) of this message.
+    *
+    * WARNING: this method does not modify the headers of the message, and as
+    * a consequence headers may be incoherent with the body.
+    */
+  private[http4s] def pipeBodyThrough(pipe: Pipe[F, Byte, Byte]): Self =
+    withBodyStream(pipe(body))
 
   // General header methods
 
@@ -228,6 +244,17 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** Lifts this Message's body to the specified effect type.
     */
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+
+  /** Compiles the body stream to a single chunk and sets it as the
+    * body.  Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header.  It is the caller's responsibility to
+    * assure there is enough memory to materialize the body.
+    */
+  def toStrict(implicit F: Concurrent[F]): F[Self] =
+    body.compile.to(Chunk).map { chunk =>
+      withBodyStream(Stream.chunk(chunk))
+        .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+    }
 }
 
 object Message {
@@ -350,7 +377,7 @@ final class Request[F[_]] private (
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing

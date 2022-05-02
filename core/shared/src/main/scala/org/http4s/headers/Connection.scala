@@ -32,6 +32,8 @@ object Connection {
   def parse(s: String): ParseResult[Connection] =
     ParseResult.fromParser(parser, "Invalid Connection header")(s)
 
+  val close: Connection = Connection(ci"close")
+
   private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
     Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
   }

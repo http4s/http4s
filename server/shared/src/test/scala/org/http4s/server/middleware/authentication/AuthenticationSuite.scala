@@ -28,7 +28,7 @@ import org.typelevel.ci._
 import scala.concurrent.duration._
 
 class AuthenticationSuite extends Http4sSuite {
-  def nukeService(launchTheNukes: => Unit) =
+  private def nukeService(launchTheNukes: => Unit) =
     AuthedRoutes.of[String, IO] { case GET -> Root / "launch-the-nukes" as user =>
       for {
         _ <- IO(launchTheNukes)
@@ -36,28 +36,39 @@ class AuthenticationSuite extends Http4sSuite {
       } yield r
     }
 
-  val realm = "Test Realm"
-  val username = "Test User"
-  val password = "Test Password"
+  private val realm = "Test Realm"
+  private val username = "Test User"
+  private val password = "Test Password"
+  private val ha1 = "ef8937c627875dd03ca694994558f74e" // md5(${username}:${realm}:${password})
 
-  def authStore(u: String): IO[Option[(String, String)]] =
-    IO.pure {
-      if (u === username) Some(u -> password)
-      else None
-    }
+  private val plainTextAuthStore: DigestAuth.AuthStore[IO, String] =
+    DigestAuth.PlainTextAuthStore[IO, String]((u: String) =>
+      IO.pure {
+        if (u === username) Some(u -> password)
+        else None
+      }
+    )
 
-  def validatePassword(creds: BasicCredentials): IO[Option[String]] =
+  private val md5HashedAuthStore: DigestAuth.AuthStore[IO, String] =
+    DigestAuth.Md5HashedAuthStore[IO, String]((u: String) =>
+      IO.pure {
+        if (u === username) Some(u -> ha1)
+        else None
+      }
+    )
+
+  private def validatePassword(creds: BasicCredentials): IO[Option[String]] =
     IO.pure {
       if (creds.username == username && creds.password == password) Some(creds.username)
       else None
     }
 
-  val service = AuthedRoutes.of[String, IO] {
+  private val service = AuthedRoutes.of[String, IO] {
     case GET -> Root as user => Ok(user)
     case req as _ => Response.notFoundFor(req)
   }
 
-  val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
+  private val basicAuthMiddleware = BasicAuth(realm, validatePassword _)
 
   test("Failure to authenticate should not run unauthorized routes") {
     val req = Request[IO](uri = uri"/launch-the-nukes")
@@ -131,12 +142,13 @@ class AuthenticationSuite extends Http4sSuite {
       .fold(e => sys.error(s"Couldn't parse: '$value', error: ${e.details}'"), identity)
 
   { // DigestAuthentication
-    val digestAuthMiddleware = DigestAuth(realm, authStore)
-
     test("DigestAuthentication should respond to a request without authentication with 401") {
-      val authedService = digestAuthMiddleware(service)
       val req = Request[IO](uri = uri"/")
-      authedService.orNotFound(req).map { res =>
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        authedService = digestAuthMiddleware(service)
+        res <- authedService.orNotFound(req)
+      } yield {
         assertEquals(res.status, Unauthorized)
         val opt = res.headers.get[`WWW-Authenticate`].map(_.value)
         assert(clue(opt).isDefined)
@@ -172,7 +184,7 @@ class AuthenticationSuite extends Http4sSuite {
     ): IO[(Response[IO], Response[IO])] = {
       // Second request with credentials
       val method = "GET"
-      val uri = "/"
+      val uri = uri"/"
       val qop = "auth"
       val nc = "00000001"
       val cnonce = "abcdef"
@@ -185,7 +197,7 @@ class AuthenticationSuite extends Http4sSuite {
             "username" -> username,
             "realm" -> realm,
             "nonce" -> nonce,
-            "uri" -> uri,
+            "uri" -> uri.toString(),
             "qop" -> qop,
             "nc" -> nc,
             "cnonce" -> cnonce,
@@ -204,9 +216,35 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("DigestAuthentication should respond to a request with correct credentials") {
-      val digestAuthService = digestAuthMiddleware(service)
-
       for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
+        challenge <- doDigestAuth1(digestAuthService.orNotFound)
+        _ <- IO {
+          assert(
+            challenge match {
+              case Challenge("Digest", `realm`, _) => true
+              case _ => false
+            },
+            challenge,
+          )
+        }
+        results <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = true)
+        (res2, res3) = results
+      } yield {
+        assertEquals(res2.status, Ok)
+
+        // Digest prevents replay
+        assertEquals(res3.status, Unauthorized)
+      }
+    }
+
+    test(
+      "DigestAuthentication should respond to a request with correct credentials when using secure hash"
+    ) {
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, md5HashedAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         _ <- IO {
           assert(
@@ -231,37 +269,41 @@ class AuthenticationSuite extends Http4sSuite {
       "DigestAuthentication should respond to many concurrent requests while cleaning up nonces"
     ) {
       val n = 100
-      val digestAuthMiddleware = DigestAuth(realm, authStore, 2.millis, 2.millis)
-      val digestAuthService = digestAuthMiddleware(service)
-      val results = (1 to n)
-        .map(_ =>
-          for {
-            challenge <- doDigestAuth1(digestAuthService.orNotFound)
-            _ <- IO {
-              assert(
-                (challenge match {
-                  case Challenge("Digest", `realm`, _) => true
-                  case _ => false
-                }),
-                challenge,
-              )
-            }
-            res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
-              .map(_._1)
-          } yield
-          // We don't check whether res.status is Ok since it may not
-          // be due to the low nonce stale timer.  Instead, we check
-          // that it's found.
-          assertNotEquals(res.status, NotFound)
-        )
-        .toList
-      results.parSequence
+      DigestAuth
+        .applyF(realm, plainTextAuthStore, 2.millis, 2.millis)
+        .flatMap { digestAuthMiddleware =>
+          val digestAuthService = digestAuthMiddleware(service)
+          val results = (1 to n)
+            .map(_ =>
+              for {
+                challenge <- doDigestAuth1(digestAuthService.orNotFound)
+                _ <- IO {
+                  assert(
+                    challenge match {
+                      case Challenge("Digest", `realm`, _) => true
+                      case _ => false
+                    },
+                    challenge,
+                  )
+                }
+                res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
+                  .map(_._1)
+              } yield
+              // We don't check whether res.status is Ok since it may not
+              // be due to the low nonce stale timer.  Instead, we check
+              // that it's found.
+              assertNotEquals(res.status, NotFound)
+            )
+            .toList
+          results.parSequence
+        }
     }
 
     test("DigestAuthentication should avoid many concurrent replay attacks") {
       val n = 100
-      val digestAuthService = digestAuthMiddleware(service)
       val results = for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
         challenge <- doDigestAuth1(digestAuthService.orNotFound)
         results <- (1 to n)
           .map(_ =>
@@ -279,32 +321,34 @@ class AuthenticationSuite extends Http4sSuite {
     }
 
     test("DigestAuthentication should respond to invalid requests with 401") {
-      val digestAuthService = digestAuthMiddleware(service)
       val method = "GET"
-      val uri = "/"
+      val uri = uri"/"
       val qop = "auth"
       val nc = "00000001"
       val cnonce = "abcdef"
       val nonce = "abcdef"
 
-      DigestUtil
-        .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
-        .flatMap { response =>
-          val params = NonEmptyList.of(
-            "username" -> username,
-            "realm" -> realm,
-            "nonce" -> nonce,
-            "uri" -> uri,
-            "qop" -> qop,
-            "nc" -> nc,
-            "cnonce" -> cnonce,
-            "response" -> response,
-            "method" -> method,
-          )
+      for {
+        digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
+        digestAuthService = digestAuthMiddleware(service)
+        response <- DigestUtil
+          .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
+        params = NonEmptyList.of(
+          "username" -> username,
+          "realm" -> realm,
+          "nonce" -> nonce,
+          "uri" -> uri.toString(),
+          "qop" -> qop,
+          "nc" -> nc,
+          "cnonce" -> cnonce,
+          "response" -> response,
+          "method" -> method,
+        )
 
-          val expected = List.fill(params.size + 1)(Unauthorized)
+        expected = List.fill(params.size + 1)(Unauthorized)
 
-          val result = (0 to params.size).map { i =>
+        result <- (0 to params.size).toList
+          .parTraverse { i =>
             val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
             val header = Authorization(
               Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*)
@@ -312,9 +356,14 @@ class AuthenticationSuite extends Http4sSuite {
             val req = Request[IO](uri = uri"/", headers = Headers(header))
             digestAuthService.orNotFound(req).map(_.status)
           }
+          .assertEquals(expected)
+      } yield result
+    }
 
-          result.toList.parSequence.assertEquals(expected)
-        }
+    test("DigestAuthentication can calculate the expected ha1 using the helper function") {
+      for {
+        newHa1 <- DigestAuth.Md5HashedAuthStore.precomputeHash[IO](username, realm, password)
+      } yield assertEquals(newHa1, ha1)
     }
   }
 }

@@ -42,12 +42,12 @@ trait Http4sSuite
   // Scala 3 likes this better
   implicit def saneUnitToProp(unit: Unit): Prop = unitToProp(unit)
 
-  def registerSuiteFixture[A](fixture: Fixture[A]) = {
+  def registerSuiteFixture[A](fixture: Fixture[A]): Fixture[A] = {
     suiteFixtures += fixture
     fixture
   }
 
-  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]) =
+  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]): Fixture[IO[A]] =
     registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {

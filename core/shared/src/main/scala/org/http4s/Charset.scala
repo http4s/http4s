@@ -55,12 +55,12 @@ object Charset extends CharsetCompanionPlatform {
         x.nioCharset.compareTo(y.nioCharset)
     }
 
-  val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
-  val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
-  val `UTF-8` = Charset(StandardCharsets.UTF_8)
-  val `UTF-16` = Charset(StandardCharsets.UTF_16)
-  val `UTF-16BE` = Charset(StandardCharsets.UTF_16BE)
-  val `UTF-16LE` = Charset(StandardCharsets.UTF_16LE)
+  val `US-ASCII`: Charset = Charset(StandardCharsets.US_ASCII)
+  val `ISO-8859-1`: Charset = Charset(StandardCharsets.ISO_8859_1)
+  val `UTF-8`: Charset = Charset(StandardCharsets.UTF_8)
+  val `UTF-16`: Charset = Charset(StandardCharsets.UTF_16)
+  val `UTF-16BE`: Charset = Charset(StandardCharsets.UTF_16BE)
+  val `UTF-16LE`: Charset = Charset(StandardCharsets.UTF_16LE)
 
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups

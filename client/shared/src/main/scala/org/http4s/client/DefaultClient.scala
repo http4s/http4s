@@ -74,7 +74,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
       F.map(run(req).allocated) { case (resp, release) =>
-        resp.withBodyStream(resp.body.onFinalizeWeak(release))
+        resp.pipeBodyThrough(_.onFinalizeWeak(release))
       }
     }
 

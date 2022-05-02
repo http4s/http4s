@@ -26,6 +26,7 @@ import org.http4s._
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.server.SecureSession
 import org.http4s.server.ServerRequestKeys
+import org.log4s.Logger
 import org.log4s.getLogger
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -43,7 +44,7 @@ abstract class Http4sServlet[F[_]](
     dispatcher: Dispatcher[F],
 )(implicit F: Async[F])
     extends HttpServlet {
-  protected val logger = getLogger
+  protected val logger: Logger = getLogger
 
   // micro-optimization: unwrap the service and call its .run directly
   protected val serviceFn: Request[F] => F[Response[F]] = service.run
@@ -80,6 +81,12 @@ abstract class Http4sServlet[F[_]](
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F],
   ): F[Unit] =
+    // Note: the servlet API gives us no undeprecated method to both set
+    // a body and a status reason.  We sacrifice the status reason.
+    //
+    // This F.attempt.flatMap can be interrupted, which prevents the body from
+    // running, which prevents the response from finalizing.  Woe betide you if
+    // your effect isn't Concurrent.
     F.delay {
       servletResponse.setStatus(response.status.code)
       for (header <- response.headers.headers if header.name != ci"Transfer-Encoding")
@@ -88,7 +95,7 @@ abstract class Http4sServlet[F[_]](
       .flatMap {
         case Right(()) => bodyWriter(response)
         case Left(t) =>
-          response.body.drain.compile.drain.handleError { t2 =>
+          response.body.compile.drain.handleError { t2 =>
             logger.error(t2)("Error draining body")
           } *> F.raiseError(t)
       }

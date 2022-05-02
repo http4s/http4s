@@ -177,13 +177,13 @@ object CORS {
     "Not the actual default CORS Vary heder, and will be removed from the public API.",
     "0.21.27",
   )
-  val defaultVaryHeader = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
+  val defaultVaryHeader: Header.Raw = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
   @deprecated(
     "The default `CORSConfig` is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
     "0.21.27",
   )
-  def DefaultCORSConfig =
+  def DefaultCORSConfig: CORSConfig =
     CORSConfig.default.withAnyOrigin(true).withAllowCredentials(true).withMaxAge(1.day)
 
   /** CORS middleware
@@ -740,15 +740,15 @@ object CORSPolicy {
   private val logger = getLogger
 
   private object CommonHeaders {
-    val someAllowOriginWildcard =
+    val someAllowOriginWildcard: Option[Header.Raw] =
       Header.Raw(ci"Access-Control-Allow-Origin", "*").some
-    val someAllowCredentials =
+    val someAllowCredentials: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Credentials`].name, "true").some
-    val someExposeHeadersWildcard =
+    val someExposeHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Expose-Headers`].name, "*").some
-    val someAllowMethodsWildcard =
+    val someAllowMethodsWildcard: Option[Header.Raw] =
       Header.Raw(ci"Access-Control-Allow-Methods", "*").some
-    val someAllowHeadersWildcard =
+    val someAllowHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Headers`].name, "*").some
   }
 

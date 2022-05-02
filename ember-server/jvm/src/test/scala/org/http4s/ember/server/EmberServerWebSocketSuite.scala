@@ -59,6 +59,18 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
           wsBuilder.build(send, _.void)
+        case GET -> Root / "ws-filter-false" =>
+          F.deferred[Unit].flatMap { deferred =>
+            wsBuilder
+              .withFilterPingPongs(false)
+              .build(
+                Stream.eval(deferred.get).as(WebSocketFrame.Close()),
+                _.collect {
+                  case WebSocketFrame.Ping(data) if data.decodeAscii.exists(_ == "pingu") =>
+                    ()
+                }.foreach(deferred.complete(_).void),
+              )
+          }
       }
       .orNotFound
   }
@@ -70,7 +82,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .withHttpWebSocketApp(service[IO])
       .build
 
-  def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  private def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
   sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
@@ -178,4 +190,17 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       _ <- client.remoteClosed.get
     } yield ()
   }
+
+  fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- client.ping("pingu")
+      _ <- client.remoteClosed.get
+    } yield ()
+  }
+
 }

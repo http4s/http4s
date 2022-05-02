@@ -34,7 +34,7 @@ import org.scalacheck.effect.PropF
 import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {
-  val app = HttpRoutes
+  private val app = HttpRoutes
     .of[IO] {
       case req @ _ -> Root / "status-from-body" =>
         req.as[String].flatMap {
@@ -46,7 +46,7 @@ class RetrySuite extends Http4sSuite {
     }
     .orNotFound
 
-  val defaultClient: Client[IO] = Client.fromHttpApp(app)
+  private val defaultClient: Client[IO] = Client.fromHttpApp(app)
 
   def countRetries(
       client: Client[IO],
@@ -125,7 +125,7 @@ class RetrySuite extends Http4sSuite {
     }
   }
 
-  def resubmit(method: Method, headers: Headers = Headers.empty)(
+  private def resubmit(method: Method, headers: Headers = Headers.empty)(
       retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean
   ) =
     Ref[IO]

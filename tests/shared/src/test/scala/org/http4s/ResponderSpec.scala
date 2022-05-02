@@ -22,7 +22,7 @@ import org.http4s.headers._
 import org.typelevel.ci._
 
 class ResponderSpec extends Http4sSuite {
-  val resp = Response[IO](Status.Ok)
+  private val resp = Response[IO](Status.Ok)
 
   test("Responder should Change status") {
     val resp = Response[IO](Status.Ok)
@@ -53,9 +53,9 @@ class ResponderSpec extends Http4sSuite {
   }
 
   test("Responder should Remove headers") {
-    val wHeader = resp.putHeaders(Connection(ci"close"))
+    val wHeader = resp.putHeaders(Connection.close)
     val maybeHeaderT = wHeader.headers.get[Connection]
-    assertEquals(maybeHeaderT, Some(Connection(ci"close")))
+    assertEquals(maybeHeaderT, Some(Connection.close))
 
     val newHeaders = wHeader.removeHeader[Connection]
     assert(newHeaders.headers.get[Connection].isEmpty)
@@ -63,7 +63,7 @@ class ResponderSpec extends Http4sSuite {
 
   test("Responder should Replace all headers") {
     val wHeader =
-      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      resp.putHeaders(Connection.close, `Content-Length`.unsafeFromLong(10), Host("foo"))
     assertEquals(wHeader.headers.headers.length, 3)
 
     val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
@@ -73,7 +73,7 @@ class ResponderSpec extends Http4sSuite {
 
   test("Responder should Replace all headers II") {
     val wHeader =
-      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      resp.putHeaders(Connection.close, `Content-Length`.unsafeFromLong(10), Host("foo"))
     assertEquals(wHeader.headers.headers.length, 3)
 
     val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.Epoch)))
@@ -83,7 +83,7 @@ class ResponderSpec extends Http4sSuite {
 
   test("Responder should Filter headers") {
     val wHeader =
-      resp.putHeaders(Connection(ci"close"), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      resp.putHeaders(Connection.close, `Content-Length`.unsafeFromLong(10), Host("foo"))
     assertEquals(wHeader.headers.headers.length, 3)
 
     val newHeaders = wHeader.filterHeaders(_.name != ci"Connection")

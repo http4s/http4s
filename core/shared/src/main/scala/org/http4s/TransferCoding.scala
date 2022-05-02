@@ -35,7 +35,7 @@ import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util._
 
 class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
-  override def equals(o: Any) =
+  override def equals(o: Any): Boolean =
     o match {
       case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
       case _ => false
@@ -48,7 +48,7 @@ class TransferCoding private (val coding: String) extends Ordered[TransferCoding
     hash
   }
 
-  override def toString = s"TransferCoding($coding)"
+  override def toString: String = s"TransferCoding($coding)"
 
   override def compare(other: TransferCoding): Int =
     coding.compareToIgnoreCase(other.coding)

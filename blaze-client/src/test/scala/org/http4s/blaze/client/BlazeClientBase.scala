@@ -33,11 +33,25 @@ import org.http4s.client.scaffold._
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {
-  val tickWheel = new TickWheelExecutor(tick = 50.millis)
+  val tickWheel: TickWheelExecutor = new TickWheelExecutor(tick = 50.millis)
+
+  val TrustingSslContext: IO[SSLContext] = IO.blocking {
+    val trustManager = new X509TrustManager {
+      def getAcceptedIssuers(): Array[X509Certificate] = Array.empty
+      def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+      def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+    }
+    val ctx = SSLContext.getInstance("TLS")
+    ctx.init(null, Array(trustManager), new SecureRandom())
+    ctx
+  }
 
   def builder(
       maxConnectionsPerRequestKey: Int,
@@ -45,9 +59,9 @@ trait BlazeClientBase extends Http4sSuite {
       responseHeaderTimeout: Duration = 30.seconds,
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
-      sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
+      sslContextOption: Option[SSLContext] = None,
       retries: Int = 0,
-  ) = {
+  ): BlazeClientBuilder[IO] = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO]
         .withCheckEndpointAuthentication(false)
@@ -118,6 +132,7 @@ trait BlazeClientBase extends Http4sSuite {
       },
     )
 
-  val server = resourceSuiteFixture("http", makeScaffold(2, false))
-  val secureServer = resourceSuiteFixture("https", makeScaffold(1, true))
+  val server: Fixture[ServerScaffold[IO]] = resourceSuiteFixture("http", makeScaffold(2, false))
+  val secureServer: Fixture[ServerScaffold[IO]] =
+    resourceSuiteFixture("https", makeScaffold(1, true))
 }

@@ -27,6 +27,8 @@ import scodec.bits.ByteVector
 
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import java.util.function.BinaryOperator
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.concurrent.duration.Duration
@@ -35,35 +37,33 @@ import scala.util.Success
 import scala.util.Try
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-  private var acc = ByteVector.empty
+  private val acc = new AtomicReference[ByteVector](ByteVector.empty)
   private val p = Promise[ByteBuffer]()
+  private val binaryOperator: BinaryOperator[ByteVector] = (x: ByteVector, y: ByteVector) => x ++ y
 
-  var closed = false
+  @volatile var closed = false
 
-  @volatile var closeCauses = Vector[Option[Throwable]]()
+  @volatile var closeCauses: Vector[Option[Throwable]] = Vector[Option[Throwable]]()
 
   private[this] val disconnectSent = new AtomicBoolean(false)
 
-  def getBytes(): Array[Byte] = acc.toArray
+  def getBytes(): Array[Byte] = acc.get().toArray
 
   val result = p.future
 
   override def writeRequest(data: ByteBuffer): Future[Unit] =
-    synchronized {
-      if (closed) Future.failed(EOF)
-      else {
-        acc ++= ByteVector.view(data)
-        util.FutureUnit
-      }
+    if (closed) Future.failed(EOF)
+    else {
+      acc.accumulateAndGet(ByteVector.view(data), binaryOperator)
+      util.FutureUnit
     }
 
-  override def stageShutdown(): Unit =
-    synchronized {
-      closed = true
-      super.stageShutdown()
-      p.trySuccess(ByteBuffer.wrap(getBytes()))
-      ()
-    }
+  override def stageShutdown(): Unit = {
+    closed = true
+    super.stageShutdown()
+    p.trySuccess(ByteBuffer.wrap(getBytes()))
+    ()
+  }
 
   override def doClosePipeline(cause: Option[Throwable]): Unit = {
     closeCauses :+= cause
@@ -77,13 +77,11 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   private val bodyIt = body.iterator
 
   override def readRequest(size: Int): Future[ByteBuffer] =
-    synchronized {
-      if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
-      else {
-        stageShutdown()
-        sendInboundCommand(Disconnected)
-        Future.failed(EOF)
-      }
+    if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
+    else {
+      stageShutdown()
+      sendInboundCommand(Disconnected)
+      Future.failed(EOF)
     }
 }
 
@@ -121,41 +119,35 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
     currentRequest = None
   }
 
-  private def clear(): Unit =
-    synchronized {
-      while (bodyIt.hasNext) bodyIt.next()
-      resolvePending(Failure(EOF))
-    }
+  private def clear(): Unit = {
+    while (bodyIt.hasNext) bodyIt.next()
+    resolvePending(Failure(EOF))
+  }
 
-  override def stageShutdown(): Unit =
-    synchronized {
-      clear()
-      super.stageShutdown()
-    }
+  override def stageShutdown(): Unit = {
+    clear()
+    super.stageShutdown()
+  }
 
   override def readRequest(size: Int): Future[ByteBuffer] =
-    self.synchronized {
-      currentRequest match {
-        case Some(_) =>
-          Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
-        case None =>
-          val p = Promise[ByteBuffer]()
-          currentRequest = Some(p)
+    currentRequest match {
+      case Some(_) =>
+        Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
+      case None =>
+        val p = Promise[ByteBuffer]()
+        currentRequest = Some(p)
 
-          scheduler.schedule(
-            new Runnable {
-              override def run(): Unit =
-                self.synchronized {
-                  resolvePending {
-                    if (!closed && bodyIt.hasNext) Success(bodyIt.next())
-                    else Failure(EOF)
-                  }
-                }
-            },
-            pause,
-          )
+        scheduler.schedule(
+          new Runnable {
+            override def run(): Unit =
+              resolvePending {
+                if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+                else Failure(EOF)
+              }
+          },
+          pause,
+        )
 
-          p.future
-      }
+        p.future
     }
 }

@@ -17,20 +17,22 @@
 package org.http4s.ember.core.h2
 
 import cats.effect._
+import fs2.Pure
 import org.http4s.Request
 import org.typelevel.vault._
 
 object H2Keys {
-  val PushPromiseInitialStreamIdentifier = Key.newKey[SyncIO, Int].unsafeRunSync()
+  val PushPromiseInitialStreamIdentifier: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
   val StreamIdentifier: Key[Int] = Key.newKey[SyncIO, Int].unsafeRunSync()
 
-  val PushPromises = Key.newKey[SyncIO, List[org.http4s.Request[fs2.Pure]]].unsafeRunSync()
+  val PushPromises: Key[List[Request[Pure]]] =
+    Key.newKey[SyncIO, List[org.http4s.Request[fs2.Pure]]].unsafeRunSync()
 
   // Client Side Key To Try Http2-Prior-Knowledge
   // which means immediately using http2 without any upgrade mechanism
   // but is invalid if the receiving server does not support the
   // mechanism.
-  val Http2PriorKnowledge = Key.newKey[SyncIO, Unit].unsafeRunSync()
+  val Http2PriorKnowledge: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
 
   private[ember] val H2cUpgrade =
     Key.newKey[SyncIO, (H2Frame.Settings.ConnectionSettings, Request[fs2.Pure])].unsafeRunSync()

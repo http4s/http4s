@@ -26,7 +26,6 @@ import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.log4s.getLogger
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -36,7 +35,7 @@ import scala.util.control.NonFatal
 
 package object server {
   object defaults {
-    val Banner =
+    val Banner: List[String] =
       """|  _   _   _        _ _
          | | |_| |_| |_ _ __| | | ___
          | | ' \  _|  _| '_ \_  _(_-<
@@ -78,7 +77,7 @@ package object server {
         "Please use IPv4SocketAddress or IPv6SocketAddress. This value can change depending on Platform specific settings and can be either the canonical IPv4 or IPv6 address. If you require this behavior please call `InetAddress.getLoopbackAddress` directly.",
       since = "0.21.23",
     )
-    def SocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
+    def SocketAddress: InetSocketAddress = InetSocketAddress.createUnresolved(Host, HttpPort)
 
     @deprecated("Renamed to ResponseTimeout", "0.21.0-M3")
     def AsyncTimeout: Duration = ResponseTimeout
@@ -200,7 +199,7 @@ package object server {
             Status.InternalServerError,
             req.httpVersion,
             Headers(
-              Connection(ci"close"),
+              Connection.close,
               `Content-Length`.zero,
             ),
           )

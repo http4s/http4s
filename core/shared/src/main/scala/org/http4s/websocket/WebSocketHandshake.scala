@@ -25,6 +25,10 @@ import java.nio.charset.StandardCharsets._
 import java.util.Base64
 import scala.util.Random
 
+@deprecated(
+  "Retained for binary compatibility. Side-effecting. Only used by blaze-server.",
+  "0.23.13",
+)
 private[http4s] object WebSocketHandshake {
 
   /** Creates a new [[ClientHandshaker]] */
@@ -34,7 +38,7 @@ private[http4s] object WebSocketHandshake {
   class ClientHandshaker(host: String) {
 
     /** Randomly generated 16-byte key in Base64 encoded form */
-    val key = {
+    val key: String = {
       val bytes = new Array[Byte](16)
       Random.nextBytes(bytes)
       Base64.getEncoder.encodeToString(bytes)

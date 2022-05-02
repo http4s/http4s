@@ -142,7 +142,7 @@ class BlazeServerMtlsSpec extends Http4sSuite {
         .getOrElse("")
     }
 
-  def blazeServer(sslParameters: SSLParameters) =
+  private def blazeServer(sslParameters: SSLParameters) =
     ResourceFixture(serverR(sslParameters))
 
   /** Test "required" auth mode

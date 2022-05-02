@@ -82,7 +82,7 @@ final case class BasicCredentials(
     password: String,
     charset: JavaCharset = StandardCharsets.UTF_8,
 ) {
-  lazy val token = {
+  lazy val token: String = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(charset)
     Base64.getEncoder.encodeToString(bytes)
