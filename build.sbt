@@ -73,7 +73,6 @@ lazy val modules: List[CompositeProject] = List(
   nodeServerless,
   theDsl,
   jawn,
-  boopickle,
   circe,
   playJson,
   scalaXml,
@@ -886,20 +885,6 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
       jawnFs2.value,
       jawnParser.value,
     ),
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
-  .dependsOn(core, testing % "test->test")
-
-lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
-  .settings(
-    description := "Provides Boopickle codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value
-    ),
-    tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
