@@ -77,7 +77,6 @@ lazy val modules: List[CompositeProject] = List(
   playJson,
   scalaXml,
   twirl,
-  scalatags,
   bench,
   jsArtifactSizeTest,
   unidocs,
@@ -951,22 +950,6 @@ lazy val twirl = http4sProject("twirl")
     mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
   )
   .enablePlugins(SbtTwirl)
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val scalatags = http4sProject("scalatags")
-  .settings(
-    description := "Scalatags template support for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        scalatagsApi.cross(CrossVersion.for3Use2_13)
-      else
-        scalatagsApi
-    ),
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
   .dependsOn(core.jvm, testing.jvm % "test->test")
 
 lazy val bench = http4sProject("bench")
