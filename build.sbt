@@ -58,9 +58,7 @@ lazy val modules: List[CompositeProject] = List(
   testing,
   tests,
   server,
-  prometheusMetrics,
   client,
-  dropwizardMetrics,
   emberCore,
   emberServer,
   emberClient,
@@ -342,24 +340,6 @@ lazy val server = libraryCrossProject("server")
   )
   .dependsOn(core, testing % "test->test", theDsl % "test->compile")
 
-lazy val prometheusMetrics = libraryProject("prometheus-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      prometheusClient,
-      prometheusCommon,
-      prometheusHotspot,
-    ),
-  )
-  .dependsOn(
-    core.jvm % "compile->compile",
-    theDsl.jvm % "test->compile",
-    testing.jvm % "test->test",
-    server.jvm % "test->compile",
-    client.jvm % "test->compile",
-  )
-
 lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
@@ -430,23 +410,6 @@ lazy val client = libraryCrossProject("client")
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
   .jsConfigure(_.dependsOn(nodeServerless % Test))
-
-lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
-  .settings(
-    description := "Support for Dropwizard Metrics",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      dropwizardMetricsCore,
-      dropwizardMetricsJson,
-    ),
-  )
-  .dependsOn(
-    core.jvm % "compile->compile",
-    testing.jvm % "test->test",
-    theDsl.jvm % "test->compile",
-    client.jvm % "test->compile",
-    server.jvm % "test->compile",
-  )
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
@@ -1059,8 +1022,6 @@ lazy val docs = http4sProject("site")
     emberServer.jvm,
     emberClient.jvm,
     circe.jvm,
-    dropwizardMetrics,
-    prometheusMetrics,
   )
 
 lazy val examples = http4sProject("examples")
@@ -1074,7 +1035,7 @@ lazy val examples = http4sProject("examples")
     ),
     // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
+  .dependsOn(server.jvm, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
 // todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
