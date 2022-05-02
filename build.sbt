@@ -39,10 +39,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       WorkflowStep.Run(
         List("cd scalafix", "sbt ci"),
         name = Some("Scalafix tests"),
-        cond = Some(s"matrix.scala == '$scala_213'"),
       )
     ),
-    scalas = crossScalaVersions.value.toList,
+    scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
   )
 )
