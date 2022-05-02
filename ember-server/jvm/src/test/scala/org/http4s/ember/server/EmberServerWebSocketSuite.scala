@@ -191,7 +191,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield ()
   }
 
-  fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
+  fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
