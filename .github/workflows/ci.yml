@@ -29,13 +29,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.2, 2.12.15, 2.13.8]
+        scala: [3.1.1, 2.12.15, 2.13.8]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM]
         exclude:
-          - scala: 3.1.2
+          - scala: 3.1.1
             java: temurin@11
-          - scala: 3.1.2
+          - scala: 3.1.1
             java: temurin@17
           - scala: 2.12.15
             java: temurin@11
@@ -135,7 +135,7 @@ jobs:
         run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' doc
 
       - name: Check Scalafix rules
-        if: matrix.scala != '3.1.2'
+        if: matrix.scala != '3.1.1'
         run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' '${{ matrix.ci }}' 'scalafixAll --check'
 
       - name: Check unused compile dependencies
@@ -233,22 +233,22 @@ jobs:
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
-      - name: Download target directories (3.1.2, rootJS)
+      - name: Download target directories (3.1.1, rootJS)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.1.2-rootJS
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.1.1-rootJS
 
-      - name: Inflate target directories (3.1.2, rootJS)
+      - name: Inflate target directories (3.1.1, rootJS)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.1.2, rootJVM)
+      - name: Download target directories (3.1.1, rootJVM)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.1.2-rootJVM
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.1.1-rootJVM
 
-      - name: Inflate target directories (3.1.2, rootJVM)
+      - name: Inflate target directories (3.1.1, rootJVM)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -332,7 +332,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.2, 2.12.15, 2.13.8]
+        scala: [3.1.1, 2.12.15, 2.13.8]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
