@@ -389,7 +389,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
-    val _ = logger
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {

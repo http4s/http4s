@@ -47,8 +47,6 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
-    // Remove after https://github.com/tkawachi/sbt-doctest/issues/300
-    doctestIgnoreRegex := Some(".*-.*.scala"),
   )
 
   def extractApiVersion(version: String) = {
@@ -101,7 +99,6 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val asyncHttpClient = "2.12.3"
     val blaze = "0.15.3"
-    val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
     val catsEffect = "3.3.11"
@@ -110,7 +107,7 @@ object Http4sPlugin extends AutoPlugin {
     val circe15 = "0.15.0-M1"
     val crypto = "0.2.3"
     val cryptobits = "1.3"
-    val disciplineCore = "1.4.0"
+    val disciplineCore = "1.5.1"
     val dropwizardMetrics = "4.2.9"
     val fs2 = "3.2.7"
     val ip4s = "3.1.2"
@@ -123,28 +120,27 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "2.2.0"
+    val log4cats = "2.3.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.75.Final"
+    val netty = "4.1.76.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
     val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.15.4"
-    val scalacheckEffect = "1.0.3"
+    val scalacheck = "1.16.0"
+    val scalacheckEffect = "1.0.4"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.10.0"
     val scalaXml = "2.1.0"
-    val scodecBits = "1.1.30"
+    val scodecBits = "1.1.31"
     val servlet = "3.1.0"
     val slf4j = "1.7.36"
-    val tomcat = "9.0.62"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val twitterHpack = "1.0.2"
@@ -154,7 +150,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient = "org.asynchttpclient" % "async-http-client" % V.asyncHttpClient
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
   lazy val blazeHttp = "org.http4s" %% "blaze-http" % V.blaze
-  lazy val boopickle = Def.setting("io.suzaku" %%% "boopickle" % V.boopickle)
   lazy val caseInsensitive = Def.setting("org.typelevel" %%% "case-insensitive" % V.caseInsensitive)
   lazy val caseInsensitiveTesting =
     Def.setting("org.typelevel" %%% "case-insensitive-testing" % V.caseInsensitive)
@@ -190,10 +185,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnPlay = "org.typelevel" %% "jawn-play" % V.jawn
   lazy val jettyClient = "org.eclipse.jetty" % "jetty-client" % V.jetty
   lazy val jettyHttp = "org.eclipse.jetty" % "jetty-http" % V.jetty
-  lazy val jettyHttp2Server = "org.eclipse.jetty.http2" % "http2-server" % V.jetty
-  lazy val jettyRunner = "org.eclipse.jetty" % "jetty-runner" % V.jetty
-  lazy val jettyServer = "org.eclipse.jetty" % "jetty-server" % V.jetty
-  lazy val jettyServlet = "org.eclipse.jetty" % "jetty-servlet" % V.jetty
   lazy val jettyUtil = "org.eclipse.jetty" % "jetty-util" % V.jetty
   lazy val jnrUnixSocket = "com.github.jnr" % "jnr-unixsocket" % V.jnrUnixSocket
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
@@ -226,16 +217,11 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaJavaLocalesEnUS =
     Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
-  lazy val scalaJavaTimeTzdb =
-    Def.setting("io.github.cquiroz" %%% "scala-java-time-tzdb" % V.scalaJavaTime)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
   lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
   lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
-  lazy val tomcatCatalina = "org.apache.tomcat" % "tomcat-catalina" % V.tomcat
-  lazy val tomcatCoyote = "org.apache.tomcat" % "tomcat-coyote" % V.tomcat
-  lazy val tomcatUtilScan = "org.apache.tomcat" % "tomcat-util-scan" % V.tomcat
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
   lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack

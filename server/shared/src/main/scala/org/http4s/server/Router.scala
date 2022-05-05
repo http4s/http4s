@@ -78,12 +78,10 @@ object Router {
       if (prefixPath.isEmpty) routes <+> acc
       else
         Kleisli { req =>
-          (
-            if (req.pathInfo.startsWith(prefixPath))
-              routes.local(translate(prefixPath)) <+> acc
-            else
-              acc
-          )(req)
+          if (req.pathInfo.startsWith(prefixPath))
+            routes(translate(prefixPath)(req)).orElse(acc(req))
+          else
+            acc(req)
         }
     }
 

@@ -30,7 +30,14 @@ import org.http4s.headers.Host
 import java.io.IOException
 import scala.util.control.NoStackTrace
 
-/** A [[Client]] submits [[Request]]s to a server and processes the [[Response]]. */
+/** A [[Client]] submits [[Request]]s to a server and processes the [[Response]].
+  *
+  * When a connection is "released" and the HTTP semantics of the
+  * request and response permit, the connection may be kept alive by
+  * the backend and used for a subsequent request.  When HTTP
+  * semantics require it, or at the backend's discretion, a released
+  * connection may also be closed.
+  */
 trait Client[F[_]] {
   def run(req: Request[F]): Resource[F, Response[F]]
 
@@ -38,7 +45,7 @@ trait Client[F[_]] {
     *
     * @param req The request to submit
     * @param f   A callback for the response to req.  The underlying HTTP connection
-    *            is disposed when the returned task completes.  Attempts to read the
+    *            is released when the returned task completes.  Attempts to read the
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
@@ -49,7 +56,7 @@ trait Client[F[_]] {
     *
     * @param req An effect of the request to submit
     * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
+    *          is released when the returned task completes.  Attempts to read the
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
@@ -57,7 +64,7 @@ trait Client[F[_]] {
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A]
 
   /** Returns this client as a [[cats.data.Kleisli]].  All connections created
-    * by this service are disposed on completion of callback task f.
+    * by this service are released on completion of callback task f.
     *
     * This method effectively reverses the arguments to `run` followed by `use`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
@@ -65,13 +72,13 @@ trait Client[F[_]] {
     */
   def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A]
 
-  /** Returns this client as an [[HttpApp]].  It is the responsibility of
-    * callers of this service to run the response body to dispose of the
-    * underlying HTTP connection.
+  /** Returns this client as an [[HttpApp]].  It is the responsibility
+    * of callers of this service to run the response body to release
+    * the underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
-    * signatures guarantee disposal of the HTTP connection.
+    * signatures guarantee release of the HTTP connection.
     */
   def toHttpApp: HttpApp[F]
 
@@ -85,7 +92,7 @@ trait Client[F[_]] {
   ): F[A]
 
   /** Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
+    * status code is returned.  The underlying HTTP connection is released at the
     * completion of the decoding.
     */
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
@@ -102,7 +109,7 @@ trait Client[F[_]] {
 
   /** Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
+    * connection is released at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A]
 
@@ -112,7 +119,7 @@ trait Client[F[_]] {
 
   /** Submits a GET request to the URI specified by the String and decodes the
     * response on success.  On failure, the status code is returned.  The
-    * underlying HTTP connection is closed at the completion of the decoding.
+    * underlying HTTP connection is released at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A]
 
@@ -123,13 +130,13 @@ trait Client[F[_]] {
   def expectOption[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[Option[A]]
 
   /** Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
+    * The underlying HTTP connection is released at the completion of the
     * decoding.
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A]
 
   /** Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
+    * The underlying HTTP connection is released at the completion of the
     * decoding.
     */
   def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
@@ -160,14 +167,14 @@ trait Client[F[_]] {
     *
     * @param uri The URI to GET
     * @param f A callback for the response to a GET on uri.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
+    *          is released when the returned task completes.  Attempts to read the
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
   def get[A](uri: Uri)(f: Response[F] => F[A]): F[A]
 
   /** Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
+    * status code is returned.  The underlying HTTP connection is released at the
     * completion of the decoding.
     */
   def get[A](s: String)(f: Response[F] => F[A]): F[A]

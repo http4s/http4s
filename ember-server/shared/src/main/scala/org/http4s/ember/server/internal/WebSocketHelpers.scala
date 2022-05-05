@@ -170,7 +170,8 @@ object WebSocketHelpers {
 
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {
-        case WebSocketFrame.Ping(data) => writeFrame(WebSocketFrame.Pong(data)).as(None)
+        case ping @ WebSocketFrame.Ping(data) =>
+          writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
         case frame @ WebSocketFrame.Close(_) =>
           closeState.get.flatMap {
             case Open =>

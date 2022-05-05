@@ -39,13 +39,17 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       WorkflowStep.Run(
         List("cd scalafix", "sbt ci"),
         name = Some("Scalafix tests"),
-        cond = Some(s"matrix.scala == '$scala_213'"),
       )
     ),
-    scalas = crossScalaVersions.value.toList,
+    scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
   )
 )
+
+ThisBuild / jsEnv := {
+  import org.scalajs.jsenv.nodejs.NodeJSEnv
+  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+}
 
 lazy val modules: List[CompositeProject] = List(
   core,
@@ -63,15 +67,11 @@ lazy val modules: List[CompositeProject] = List(
   blazeServer,
   blazeClient,
   asyncHttpClient,
-  jettyServer,
   jettyClient,
   okHttpClient,
-  servlet,
-  tomcatServer,
   nodeServerless,
   theDsl,
   jawn,
-  boopickle,
   circe,
   playJson,
   scalaXml,
@@ -84,8 +84,6 @@ lazy val modules: List[CompositeProject] = List(
   examplesBlaze,
   examplesDocker,
   examplesEmber,
-  examplesJetty,
-  examplesTomcat,
   scalafixInternalRules,
   scalafixInternalInput,
   scalafixInternalOutput,
@@ -179,44 +177,22 @@ lazy val core = libraryCrossProject("core")
     ) ++ {
       if (tlIsScala3.value)
         Seq(
-          // private[syntax]
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uri"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.urischeme"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.uripath"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.mediatype"),
-          ProblemFilters.exclude[MissingFieldProblem]("org.http4s.syntax.LiteralsSyntax.qvalue"),
           ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateUri"),
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
           ProblemFilters
-            .exclude[DirectMissingMethodProblem](
-              "org.http4s.syntax.LiteralsSyntax.validateUriScheme"
-            ),
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
           ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validatePath"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem](
-              "org.http4s.syntax.LiteralsSyntax.validateMediatype"
-            ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validateQvalue"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.syntax.LiteralsSyntax.validate"),
+            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$Validator"),
           ProblemFilters
             .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$mediatype$"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$qvalue$"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uri$"),
           ProblemFilters.exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$uripath$"),
-          ProblemFilters
-            .exclude[MissingClassProblem]("org.http4s.syntax.LiteralsSyntax$urischeme$"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Max-Forwards.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
-          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Server.parser"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.headers.Upgrade.parser"),
+          ProblemFilters.exclude[MissingClassProblem](
+            "org.http4s.syntax.LiteralsSyntax$urischeme$"
+          ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.headers.Upgrade.parser"
           ),
@@ -274,61 +250,7 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.laws.discipline.ArbitraryInstances#ParseResultSyntax.this"
       ) // private
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          // private[discipline]
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.http4sGenMediaType"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sGenMediaType_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.http4sTestingArbitraryForAccessControlAllowMethodsHeader"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstances.org$http4s$laws$discipline$ArbitraryInstances$_setter_$http4sTestingArbitraryForAccessControlAllowMethodsHeader_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genObsText"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genObsText_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genVcharExceptDquote"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genVcharExceptDquote_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.genEntityTag"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$genEntityTag_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForIfRangeLastModified"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForIfRangeLastModified_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryTrailer"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryTrailer_="
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.http4sTestingArbitraryForKeepAlive"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.laws.discipline.ArbitraryInstancesBinCompat0.org$http4s$laws$discipline$ArbitraryInstancesBinCompat0$_setter_$http4sTestingArbitraryForKeepAlive_="
-          ),
-        )
-      else Seq.empty
-    },
+    ),
   )
   .dependsOn(core)
   .jsSettings(
@@ -348,11 +270,6 @@ lazy val testing = libraryCrossProject("testing", CrossType.Full)
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ).map(_ % Test),
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value
-    ).map(_ % Test)
   )
   .dependsOn(laws)
 
@@ -480,13 +397,7 @@ lazy val client = libraryCrossProject("client")
       // end wsclient
     ) ++ {
       if (tlIsScala3.value)
-        Seq( // private[oauth1]
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.UTF_8"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.bytes"),
+        Seq(
           ProblemFilters
             .exclude[DirectMissingMethodProblem]("org.http4s.client.oauth1.package.SHA1"),
           ProblemFilters
@@ -498,9 +409,6 @@ lazy val client = libraryCrossProject("client")
           ),
           ProblemFilters.exclude[DirectMissingMethodProblem](
             "org.http4s.WaitQueueTimeoutException.getStackTraceElement"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.client.Client.translateImpl"
           ),
         )
       else Seq.empty
@@ -709,15 +617,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this")
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.client.internal.ClientHelpers#RetryLogic.isEmptyStreamError"
-          )
-        )
-      else Seq.empty
-    },
+    ),
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
@@ -912,11 +812,7 @@ lazy val blazeClient = libraryProject("blaze-client")
         Seq(
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
-          ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeClient.makeClient"),
-          ProblemFilters
-            .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.bits.DefaultUserAgent"),
+          )
         )
       else Seq.empty
     },
@@ -969,44 +865,6 @@ lazy val okHttpClient = libraryProject("okhttp-client")
   )
   .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
 
-lazy val servlet = libraryProject("servlet")
-  .settings(
-    description := "Portable servlet implementation for http4s servers",
-    startYear := Some(2013),
-    libraryDependencies ++= Seq(
-      javaxServletApi % Provided,
-      Http4sPlugin.jettyServer % Test,
-      jettyServlet % Test,
-      Http4sPlugin.asyncHttpClient % Test,
-    ),
-  )
-  .dependsOn(server.jvm % "compile;test->test")
-
-lazy val jettyServer = libraryProject("jetty-server")
-  .settings(
-    description := "Jetty implementation for http4s servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      jettyHttp2Server,
-      Http4sPlugin.jettyServer,
-      jettyServlet,
-      jettyUtil,
-    ),
-  )
-  .dependsOn(servlet % "compile;test->test", theDsl.jvm % "test->test")
-
-lazy val tomcatServer = libraryProject("tomcat-server")
-  .settings(
-    description := "Tomcat implementation for http4s servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      tomcatCatalina,
-      tomcatCoyote,
-      tomcatUtilScan,
-    ),
-  )
-  .dependsOn(servlet % "compile;test->test")
-
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
@@ -1026,20 +884,6 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
       jawnFs2.value,
       jawnParser.value,
     ),
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
-  .dependsOn(core, testing % "test->test")
-
-lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
-  .settings(
-    description := "Provides Boopickle codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value
-    ),
-    tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
@@ -1177,8 +1021,6 @@ lazy val unidocs = http4sProject("unidocs")
           examples,
           examplesBlaze,
           examplesDocker,
-          examplesJetty,
-          examplesTomcat,
           examplesEmber,
           exampleEmberServerH2,
           exampleEmberClientH2,
@@ -1280,26 +1122,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     dockerExposedPorts := List(8080),
   )
   .dependsOn(blazeServer, theDsl.jvm)
-
-lazy val examplesJetty = exampleProject("examples-jetty")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Example of http4s server on Jetty",
-    startYear := Some(2014),
-    fork := true,
-    reStart / mainClass := Some("com.example.http4s.jetty.JettyExample"),
-  )
-  .dependsOn(jettyServer)
-
-lazy val examplesTomcat = exampleProject("examples-tomcat")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Example of http4s server on Tomcat",
-    startYear := Some(2014),
-    fork := true,
-    reStart / mainClass := Some("com.example.http4s.tomcat.TomcatExample"),
-  )
-  .dependsOn(tomcatServer)
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
