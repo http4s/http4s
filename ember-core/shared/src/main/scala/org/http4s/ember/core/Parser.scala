@@ -24,7 +24,6 @@ import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
-import scodec.bits.ByteVector
 
 import scala.annotation.switch
 import scala.collection.mutable
@@ -282,9 +281,9 @@ private[ember] object Parser {
                 )
             }
           } else {
-            Body.parseFixedBody(headerP.contentLength.getOrElse(0L), finalBuffer, read).map {
-              case (bodyStream, drain) =>
-                (baseReq.withBodyStream(bodyStream), drain)
+            Body.parseFixedBody(headerP.contentLength.getOrElse(0), finalBuffer, read).map {
+              case (bodyEntity, drain) =>
+                (baseReq.withEntity(bodyEntity), drain)
             }
           }
       } yield request
@@ -338,8 +337,8 @@ private[ember] object Parser {
               .fold(Body.parseUnknownBody(finalBuffer, read))(
                 Body.parseFixedBody(_, finalBuffer, read)
               )
-              .map { case (bodyStream, drain) =>
-                baseResp.withBodyStream(bodyStream) -> drain
+              .map { case (bodyEntity, drain) =>
+                baseResp.withEntity(bodyEntity) -> drain
               }
           }
       } yield resp
@@ -430,13 +429,14 @@ private[ember] object Parser {
         contentLength: Long,
         buffer: Array[Byte],
         read: Read[F],
-    )(implicit F: Concurrent[F]): F[(EntityBody[F], Drain[F])] =
+    )(implicit F: Concurrent[F]): F[(Entity[F], Drain[F])] =
       if (contentLength > 0) {
-        if (buffer.length >= contentLength) {
-          val (body, rest) = buffer.splitAt(contentLength.toInt)
-          val eb: EntityBody[F] = Stream.chunk(Chunk.byteVector(ByteVector(body)))
-          val drain: Drain[F] = F.pure(Some(rest))
-          F.pure(eb -> drain)
+        if (buffer.length == contentLength) {
+          val drain: Drain[F] = F.pure(Some(Array.emptyByteArray): Option[Array[Byte]])
+          F.pure(Entity.strict(Chunk.array(buffer)) -> drain)
+        } else if (buffer.length > contentLength) {
+          val drain: Drain[F] = F.pure(Some(buffer.drop(contentLength.toInt)): Option[Array[Byte]])
+          F.pure(Entity.strict(Chunk.array(buffer, 0, contentLength.toInt)) -> drain)
         } else {
           val unread = contentLength - buffer.length
           Ref.of[F, Option[Array[Byte]]](None).map { state =>
@@ -445,16 +445,16 @@ private[ember] object Parser {
             // followup: Check if there are bytes immediately available without blocking
             val drain: Drain[F] = state.get
 
-            (body, drain)
+            (Entity(body), drain)
           }
         }
       } else
-        F.pure(Stream.empty -> F.pure(Some(buffer)))
+        F.pure(Entity.empty[F] -> F.pure(Some(buffer)))
 
     def parseUnknownBody[F[_]: Concurrent](
         buffer: Array[Byte],
         read: Read[F],
-    ): F[(EntityBody[F], Drain[F])] =
+    ): F[(Entity[F], Drain[F])] =
       Ref[F].of(false).map { consumed =>
         lazy val readAll: Pull[F, Byte, Unit] =
           Pull.eval(read).flatMap {
@@ -473,7 +473,7 @@ private[ember] object Parser {
 
         val drain: Drain[F] = (None: Option[Array[Byte]]).pure[F]
 
-        (body, drain)
+        (Entity(body), drain)
       }
 
     final case class BodyAlreadyConsumedError()

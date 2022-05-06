@@ -510,7 +510,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
-      bodyString <- body._1.through(fs2.text.utf8.decode).compile.string
+      bodyString <- body._1.body.through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "hello world!")
@@ -528,7 +528,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
-      bodyString <- body._1.take(2).through(fs2.text.utf8.decode).compile.string
+      bodyString <- body._1.body.take(2).through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "he")
@@ -550,7 +550,7 @@ class ParsingSuite extends Http4sSuite {
         "hello ".getBytes(java.nio.charset.StandardCharsets.US_ASCII),
         take,
       )
-      bodyString <- body._1.through(fs2.text.utf8.decode).compile.string
+      bodyString <- body._1.body.through(fs2.text.utf8.decode).compile.string
       drained <- body._2
     } yield {
       assertEquals(bodyString, "hello world!")
@@ -569,8 +569,8 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking(byteStream)
       body <- Parser.Body.parseFixedBody(12L, Array.emptyByteArray, take)
-      _ <- body._1.compile.drain
-      _ <- body._1.compile.drain.intercept[Throwable]
+      _ <- body._1.body.compile.drain
+      _ <- body._1.body.compile.drain.intercept[Throwable]
     } yield ()
   }
 
