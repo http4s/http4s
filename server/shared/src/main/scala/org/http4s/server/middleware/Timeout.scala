@@ -18,7 +18,9 @@ package org.http4s
 package server
 package middleware
 
+import cats.Applicative
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.kernel.Temporal
 import cats.syntax.applicative._
 
@@ -48,4 +50,32 @@ object Timeout {
       F: Temporal[F]
   ): Kleisli[F, A, Response[G]] =
     apply(timeout, Response.timeout[G].pure[F])(http)
+
+  /** As [[[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)* apply(timeout)]]], but for HttpRoutes
+    */
+  def httpRoutes[F[_]](timeout: FiniteDuration)(httpRoutes: HttpRoutes[F])(implicit
+      F: Temporal[F]
+  ): HttpRoutes[F] =
+    apply(timeout)(httpRoutes)
+
+  /** As [[[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse:* apply(timeout,timeoutResponse)]]], but for HttpRoutes
+    */
+  def httpRoutes[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
+      httpRoutes: HttpRoutes[F]
+  )(implicit F: Temporal[F]): HttpRoutes[F] =
+    apply(timeout, OptionT.liftF(timeoutResponse))(httpRoutes)
+
+  /** As [[[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)* apply(timeout)]]], but for HttpApp
+    */
+  def httpApp[F[_]](timeout: FiniteDuration)(httpApp: HttpApp[F])(implicit
+      F: Temporal[F]
+  ): HttpApp[F] =
+    apply(timeout)(httpApp)
+
+  /** As [[[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse:* apply(timeout,timeoutResponse)]]], but for HttpApp
+    */
+  def httpApp[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(httpApp: HttpApp[F])(
+      implicit F: Temporal[F]
+  ): HttpApp[F] =
+    apply(timeout, timeoutResponse)(httpApp)
 }
