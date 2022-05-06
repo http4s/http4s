@@ -18,9 +18,12 @@ package org.http4s.server.middleware
 
 import cats._
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.kernel.Temporal
 import cats.implicits._
 import org.http4s.Http
+import org.http4s.HttpApp
+import org.http4s.HttpRoutes
 import org.http4s.Response
 import org.http4s.Status
 
@@ -98,6 +101,11 @@ object Throttle {
     }
   }
 
+  private def createBucket[F[_]](amount: Int, per: FiniteDuration)(implicit F: Temporal[F]) = {
+    val refillFrequency = per / amount.toLong
+    TokenBucket.local(amount, refillFrequency)
+  }
+
   /** Limits the supplied service to a given rate of calls using an in-memory [[TokenBucket]]
     *
     * @param amount the number of calls to the service to permit within the given time period.
@@ -108,10 +116,18 @@ object Throttle {
   def apply[F[_], G[_]](amount: Int, per: FiniteDuration)(
       http: Http[F, G]
   )(implicit F: Temporal[F]): F[Http[F, G]] = {
-    val refillFrequency = per / amount.toLong
-    val createBucket = TokenBucket.local(amount, refillFrequency)
-    createBucket.map(bucket => apply(bucket, defaultResponse[G] _)(http))
+    createBucket(amount, per).map(bucket => apply(bucket, defaultResponse[G] _)(http))
   }
+
+  /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpRoutes[F]
+    */
+  def httpRoutes[F[_]](amount: Int, per: FiniteDuration)(httpRoutes: HttpRoutes[F])(implicit F: Temporal[F]): F[HttpRoutes[F]] =
+    createBucket(amount, per).map(bucket => Throttle.httpRoutes(bucket, defaultResponse[F] _)(httpRoutes))
+
+  /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpApp[F]
+    */
+  def httpAapp[F[_]](amount: Int, per: FiniteDuration)(httpApp: HttpApp[F])(implicit F: Temporal[F]): F[HttpApp[F]] =
+    apply(amount, per)(httpApp)
 
   def defaultResponse[F[_]](@nowarn retryAfter: Option[FiniteDuration]): Response[F] =
     Response[F](Status.TooManyRequests)
@@ -133,4 +149,20 @@ object Throttle {
         case TokenUnavailable(retryAfter) => throttleResponse(retryAfter).pure[F]
       }
     }
+
+  /** As [[[apply[F[_],G[_]](bucket:org\.http4s\.server\.middleware\.Throttle\.TokenBucket[F],throttleResponse:Option[scala\.concurrent\.duration\.FiniteDuration]=>org\.http4s\.Response[G]* apply(bucket,throttleResponse)]]], but for HttpRoutes[F]
+    */
+  def httpRoutes[F[_]: Monad](
+      bucket: TokenBucket[F],
+      throttleResponse: Option[FiniteDuration] => Response[F] = defaultResponse[F] _,
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(bucket.mapK(OptionT.liftK), throttleResponse)(httpRoutes)
+
+  /** As [[[apply[F[_],G[_]](bucket:org\.http4s\.server\.middleware\.Throttle\.TokenBucket[F],throttleResponse:Option[scala\.concurrent\.duration\.FiniteDuration]=>org\.http4s\.Response[G]* apply(bucket,throttleResponse)]]], but for HttpApp[F]
+    */
+  def httpApp[F[_]: Monad](
+      bucket: TokenBucket[F],
+      throttleResponse: Option[FiniteDuration] => Response[F] = defaultResponse[F] _,
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    apply(bucket, throttleResponse)(httpApp)
 }

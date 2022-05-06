@@ -19,9 +19,12 @@ package org.http4s.server.middleware
 import cats.effect.IO
 import cats.effect.testkit.TestContext
 import cats.implicits._
+import org.http4s.Http
+import org.http4s.HttpRoutes
 import org.http4s.Http4sSuite
 import org.http4s.HttpApp
 import org.http4s.Request
+import org.http4s.Response
 import org.http4s.Status
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
@@ -131,24 +134,50 @@ class ThrottleSuite extends Http4sSuite {
     Ok()
   }
 
-  test("Throttle / should allow a request to proceed when the rate limit has not been reached") {
-    val limitNotReachedBucket = new TokenBucket[IO] {
-      override def takeToken: IO[TokenAvailability] = TokenAvailable.pure[IO]
-    }
-
-    val testee = Throttle(limitNotReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri"/")
-
-    testee(req).map(_.status).assertEquals(Status.Ok)
+  private val alwaysOkRootRoute = HttpRoutes.of[IO] {
+    case GET -> Root => Ok()
   }
 
-  test(" Throttle / should deny a request when the rate limit had been reached") {
+  private def testMiddleware(test: ((TokenBucket[IO], Option[FiniteDuration] => Response[IO]) => Http[IO, IO]) => IO[Unit]) =
+     for {
+       _ <- test(Throttle(_, _)(alwaysOkApp))
+       _ <- test(Throttle.httpApp(_, _)(alwaysOkApp))
+       _ <- test(Throttle.httpRoutes(_, _)(alwaysOkRootRoute).orNotFound)
+     } yield ()
+
+  test("Throttle / should allow a request to proceed when the rate limit has not been reached") {
+    testMiddleware { middleware =>
+      val limitNotReachedBucket = new TokenBucket[IO] {
+        override def takeToken: IO[TokenAvailability] = TokenAvailable.pure[IO]
+      }
+
+      val testee = middleware(limitNotReachedBucket, defaultResponse[IO] _)
+      val req = Request[IO](uri = uri"/")
+
+      testee(req).map(_.status).assertEquals(Status.Ok)
+    }
+  }
+
+  test("Throttle / should deny a request when the rate limit had been reached") {
+    testMiddleware { middleware =>
+      val limitReachedBucket = new TokenBucket[IO] {
+        override def takeToken: IO[TokenAvailability] = TokenUnavailable(None).pure[IO]
+      }
+
+      val testee = middleware(limitReachedBucket, defaultResponse[IO] _)
+      val req = Request[IO](uri = uri"/")
+
+      testee(req).map(_.status).assertEquals(Status.TooManyRequests)
+    }
+  }
+
+  test("Throttle / should deny a request when the rate limit had been reached but the route's not been found") {
     val limitReachedBucket = new TokenBucket[IO] {
       override def takeToken: IO[TokenAvailability] = TokenUnavailable(None).pure[IO]
     }
 
-    val testee = Throttle(limitReachedBucket, defaultResponse[IO] _)(alwaysOkApp)
-    val req = Request[IO](uri = uri"/")
+    val testee = Throttle.httpRoutes(limitReachedBucket, defaultResponse[IO] _)(alwaysOkRootRoute).orNotFound
+    val req = Request[IO](uri = uri"/nonexistent")
 
     testee(req).map(_.status).assertEquals(Status.TooManyRequests)
   }
