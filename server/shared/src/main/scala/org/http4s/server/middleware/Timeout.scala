@@ -18,7 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.Applicative
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.kernel.Temporal
