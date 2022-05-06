@@ -115,18 +115,23 @@ object Throttle {
     */
   def apply[F[_], G[_]](amount: Int, per: FiniteDuration)(
       http: Http[F, G]
-  )(implicit F: Temporal[F]): F[Http[F, G]] = {
+  )(implicit F: Temporal[F]): F[Http[F, G]] =
     createBucket(amount, per).map(bucket => apply(bucket, defaultResponse[G] _)(http))
-  }
 
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpRoutes[F]
     */
-  def httpRoutes[F[_]](amount: Int, per: FiniteDuration)(httpRoutes: HttpRoutes[F])(implicit F: Temporal[F]): F[HttpRoutes[F]] =
-    createBucket(amount, per).map(bucket => Throttle.httpRoutes(bucket, defaultResponse[F] _)(httpRoutes))
+  def httpRoutes[F[_]](amount: Int, per: FiniteDuration)(
+      httpRoutes: HttpRoutes[F]
+  )(implicit F: Temporal[F]): F[HttpRoutes[F]] =
+    createBucket(amount, per).map(bucket =>
+      Throttle.httpRoutes(bucket, defaultResponse[F] _)(httpRoutes)
+    )
 
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpApp[F]
     */
-  def httpAapp[F[_]](amount: Int, per: FiniteDuration)(httpApp: HttpApp[F])(implicit F: Temporal[F]): F[HttpApp[F]] =
+  def httpAapp[F[_]](amount: Int, per: FiniteDuration)(httpApp: HttpApp[F])(implicit
+      F: Temporal[F]
+  ): F[HttpApp[F]] =
     apply(amount, per)(httpApp)
 
   def defaultResponse[F[_]](@nowarn retryAfter: Option[FiniteDuration]): Response[F] =

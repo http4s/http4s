@@ -20,9 +20,9 @@ import cats.effect.IO
 import cats.effect.testkit.TestContext
 import cats.implicits._
 import org.http4s.Http
-import org.http4s.HttpRoutes
 import org.http4s.Http4sSuite
 import org.http4s.HttpApp
+import org.http4s.HttpRoutes
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
@@ -134,16 +134,18 @@ class ThrottleSuite extends Http4sSuite {
     Ok()
   }
 
-  private val alwaysOkRootRoute = HttpRoutes.of[IO] {
-    case GET -> Root => Ok()
+  private val alwaysOkRootRoute = HttpRoutes.of[IO] { case GET -> Root =>
+    Ok()
   }
 
-  private def testMiddleware(test: ((TokenBucket[IO], Option[FiniteDuration] => Response[IO]) => Http[IO, IO]) => IO[Unit]) =
-     for {
-       _ <- test(Throttle(_, _)(alwaysOkApp))
-       _ <- test(Throttle.httpApp(_, _)(alwaysOkApp))
-       _ <- test(Throttle.httpRoutes(_, _)(alwaysOkRootRoute).orNotFound)
-     } yield ()
+  private def testMiddleware(
+      test: ((TokenBucket[IO], Option[FiniteDuration] => Response[IO]) => Http[IO, IO]) => IO[Unit]
+  ) =
+    for {
+      _ <- test(Throttle(_, _)(alwaysOkApp))
+      _ <- test(Throttle.httpApp(_, _)(alwaysOkApp))
+      _ <- test(Throttle.httpRoutes(_, _)(alwaysOkRootRoute).orNotFound)
+    } yield ()
 
   test("Throttle / should allow a request to proceed when the rate limit has not been reached") {
     testMiddleware { middleware =>
@@ -171,12 +173,15 @@ class ThrottleSuite extends Http4sSuite {
     }
   }
 
-  test("Throttle / should deny a request when the rate limit had been reached but the route's not been found") {
+  test(
+    "Throttle / should deny a request when the rate limit had been reached but the route's not been found"
+  ) {
     val limitReachedBucket = new TokenBucket[IO] {
       override def takeToken: IO[TokenAvailability] = TokenUnavailable(None).pure[IO]
     }
 
-    val testee = Throttle.httpRoutes(limitReachedBucket, defaultResponse[IO] _)(alwaysOkRootRoute).orNotFound
+    val testee =
+      Throttle.httpRoutes(limitReachedBucket, defaultResponse[IO] _)(alwaysOkRootRoute).orNotFound
     val req = Request[IO](uri = uri"/nonexistent")
 
     testee(req).map(_.status).assertEquals(Status.TooManyRequests)
