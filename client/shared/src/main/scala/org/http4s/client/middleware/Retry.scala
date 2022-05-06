@@ -39,6 +39,11 @@ import scala.math.random
 object Retry {
   private[this] val logger = getLogger
 
+  /** This key tracks the retry count, the retry middleware starts the very
+    * first request as 1, with no retries. So if one wants to monitor retries
+    * explicitly and not the initial request one may want to subtract the
+    * value of this key by 1.
+    */
   val RetryCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
   def apply[F[_]](
