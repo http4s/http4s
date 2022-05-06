@@ -116,10 +116,10 @@ class StaticFileSuite extends Http4sSuite {
 
   test("handle a symlink") {
     StaticFile
-      .fromPath[IO](CrossPlatformResource("/lipsum-symlink.txt"))
+      .fromPath[IO](Path("tests/shared/src/test/resources/lipsum-symlink.txt"))
       .semiflatMap(_.body.compile.count)
-      .exists(_ == 24005)
-      .assert
+      .getOrElse(0)
+      .assertEquals(24005)
   }
 
   test("Don't send unmodified files") {
