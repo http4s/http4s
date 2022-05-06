@@ -39,12 +39,13 @@ import scala.math.random
 object Retry {
   private[this] val logger = getLogger
 
-  /** This key tracks the retry count, the retry middleware starts the very
-    * first request as 1, with no retries. So if one wants to monitor retries
-    * explicitly and not the initial request one may want to subtract the
+  /** This key tracks the attempt count, the retry middleware starts the very
+    * first request with 1 as the first request, even with no retries
+    * (aka the first attempt). If one wants to monitor retries
+    * explicitly and not the attempts one may want to subtract the
     * value of this key by 1.
     */
-  val RetryCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
+  val AttemptCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
   def apply[F[_]](
       policy: RetryPolicy[F],
@@ -93,8 +94,8 @@ object Retry {
         hotswap
           .swap(
             client
-              .run(req.withAttribute(RetryCountKey, attempts))
-              .map(_.withAttribute(RetryCountKey, attempts))
+              .run(req.withAttribute(AttemptCountKey, attempts))
+              .map(_.withAttribute(AttemptCountKey, attempts))
               .attempt
           )
           .flatMap {
