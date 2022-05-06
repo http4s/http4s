@@ -114,6 +114,14 @@ class StaticFileSuite extends Http4sSuite {
     emptyFile.flatMap(StaticFile.fromPath[IO](_).value).map(_.isDefined).assert
   }
 
+  test("handle a symlink") {
+    StaticFile
+      .fromPath[IO](CrossPlatformResource("/lipsum-symlink.txt"))
+      .semiflatMap(_.body.compile.count)
+      .exists(_ == 24005)
+      .assert
+  }
+
   test("Don't send unmodified files") {
     val emptyFile = Files[IO].createTempFile(None, "empty", ".tmp", None)
 
