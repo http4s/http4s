@@ -34,9 +34,12 @@ import scala.concurrent.duration._
 import scala.math.min
 import scala.math.pow
 import scala.math.random
+import org.typelevel.vault.Key
 
 object Retry {
   private[this] val logger = getLogger
+
+  val RetryCountKey = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
   def apply[F[_]](
       policy: RetryPolicy[F],
@@ -82,7 +85,7 @@ object Retry {
         hotswap: Hotswap[F, Either[Throwable, Response[F]]],
     ): F[Response[F]] =
       hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
-        hotswap.swap(client.run(req).attempt).flatMap {
+        hotswap.swap(client.run(req.withAttribute(RetryCountKey, attempts)).attempt).flatMap {
           case Right(response) =>
             policy(req, Right(response), attempts) match {
               case Some(duration) =>
