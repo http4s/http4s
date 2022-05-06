@@ -27,6 +27,7 @@ import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+import org.typelevel.vault.Key
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -34,12 +35,11 @@ import scala.concurrent.duration._
 import scala.math.min
 import scala.math.pow
 import scala.math.random
-import org.typelevel.vault.Key
 
 object Retry {
   private[this] val logger = getLogger
 
-  val RetryCountKey = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
+  val RetryCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
   def apply[F[_]](
       policy: RetryPolicy[F],
@@ -85,36 +85,43 @@ object Retry {
         hotswap: Hotswap[F, Either[Throwable, Response[F]]],
     ): F[Response[F]] =
       hotswap.clear *> // Release the prior connection before allocating the next, or we can deadlock the pool
-        hotswap.swap(client.run(req.withAttribute(RetryCountKey, attempts)).attempt).flatMap {
-          case Right(response) =>
-            policy(req, Right(response), attempts) match {
-              case Some(duration) =>
-                if (logRetries)
-                  logger.info(
-                    s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
-                  )
-                nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
-              case None =>
-                F.pure(response)
-            }
+        hotswap
+          .swap(
+            client
+              .run(req.withAttribute(RetryCountKey, attempts))
+              .map(_.withAttribute(RetryCountKey, attempts))
+              .attempt
+          )
+          .flatMap {
+            case Right(response) =>
+              policy(req, Right(response), attempts) match {
+                case Some(duration) =>
+                  if (logRetries)
+                    logger.info(
+                      s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                    )
+                  nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
+                case None =>
+                  F.pure(response)
+              }
 
-          case Left(e) =>
-            policy(req, Left(e), attempts) match {
-              case Some(duration) =>
-                // info instead of error(e), because e is not discarded
-                if (logRetries)
-                  logger.info(e)(
-                    s"Request threw an exception on attempt #$attempts. Retrying after $duration"
-                  )
-                nextAttempt(req, attempts, duration, None, hotswap)
-              case None =>
-                if (logRetries)
-                  logger.info(e)(
-                    s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-                  )
-                F.raiseError(e)
-            }
-        }
+            case Left(e) =>
+              policy(req, Left(e), attempts) match {
+                case Some(duration) =>
+                  // info instead of error(e), because e is not discarded
+                  if (logRetries)
+                    logger.info(e)(
+                      s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                    )
+                  nextAttempt(req, attempts, duration, None, hotswap)
+                case None =>
+                  if (logRetries)
+                    logger.info(e)(
+                      s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+                    )
+                  F.raiseError(e)
+              }
+          }
 
     Client { req =>
       Hotswap.create[F, Either[Throwable, Response[F]]].flatMap { hotswap =>
