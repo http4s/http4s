@@ -119,7 +119,7 @@ class StaticFileSuite extends Http4sSuite {
       .fromPath[IO](Path("tests/shared/src/test/resources/lipsum-symlink.txt"))
       .semiflatMap(_.body.compile.count)
       .getOrElse(0)
-      .assertEquals(24005)
+      .map2(Files[IO].size(CrossPlatformResource("/lorem-ipsum.txt")))(assertEquals(_, _))
   }
 
   test("Don't send unmodified files") {
