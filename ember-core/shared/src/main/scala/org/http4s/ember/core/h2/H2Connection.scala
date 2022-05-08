@@ -163,14 +163,9 @@ private[h2] class H2Connection[F[_]](
                 new SocketException("Socket closed when attempting to write").raiseError,
               )
           } else {
-            val list = chunk.toList
-            val nonData = list.takeWhile {
-              case _: H2Frame.Data => false
-              case _ => true
-            }
-            val after = list.dropWhile {
-              case _: H2Frame.Data => false
-              case _ => true
+            val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
+              case None => (chunk, Chunk.empty[H2Frame])
+              case Some(ix) => chunk.splitAt(ix)
             }
 
             val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
@@ -182,7 +177,7 @@ private[h2] class H2Connection[F[_]](
               new SocketException("Socket closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
-              go(Chunk.seq(after))
+              go(after)
           }
         }
         val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
