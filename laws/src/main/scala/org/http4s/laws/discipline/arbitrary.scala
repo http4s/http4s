@@ -860,7 +860,15 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body, length)
+        entity = length match {
+          case Some(0) =>
+            Entity.Empty
+          case Some(_) =>
+            Entity.strict(body.compile.to(fs2.Chunk))
+          case None =>
+            Entity(body)
+        }
+      } yield entity
     })
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
