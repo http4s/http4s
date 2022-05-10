@@ -20,6 +20,7 @@ package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
+import com.rossabaker.otel4s.Histogram
 import org.http4s.blaze.http.http2.DefaultFlowStrategy
 import org.http4s.blaze.http.http2.Http2Settings
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -53,6 +54,7 @@ private[http4s] object ProtocolSelector {
       dispatcher: Dispatcher[F],
       webSocketKey: Key[WebSocketContext[F]],
       maxWebSocketBufferSize: Option[Int],
+      durationHistogram: Histogram[F, Double]
   )(implicit F: Async[F]): ALPNServerSelector = {
     def http2Stage(): TailStage[ByteBuffer] = {
       val newNode = { (streamId: Int) =>
@@ -100,6 +102,7 @@ private[http4s] object ProtocolSelector {
         scheduler,
         dispatcher,
         maxWebSocketBufferSize,
+        durationHistogram,
       )
 
     def preference(protos: Set[String]): String =

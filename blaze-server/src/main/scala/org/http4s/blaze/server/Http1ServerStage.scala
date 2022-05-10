@@ -22,6 +22,9 @@ import cats.effect.Async
 import cats.effect.std.Dispatcher
 import cats.effect.syntax.monadCancel._
 import cats.syntax.all._
+import com.rossabaker.otel4s.Attribute
+import com.rossabaker.otel4s.AttributeKey
+import com.rossabaker.otel4s.Histogram
 import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
@@ -71,6 +74,7 @@ private[http4s] object Http1ServerStage {
       scheduler: TickWheelExecutor,
       dispatcher: Dispatcher[F],
       maxWebSocketBufferSize: Option[Int],
+      durationHistogram: Histogram[F, Double],
   )(implicit F: Async[F]): Http1ServerStage[F] =
     new Http1ServerStage(
       routes,
@@ -84,6 +88,7 @@ private[http4s] object Http1ServerStage {
       idleTimeout,
       scheduler,
       dispatcher,
+      durationHistogram,
     ) with WebSocketSupport[F] {
       val webSocketKey = wsKey
       override protected def maxBufferSize: Option[Int] = maxWebSocketBufferSize
@@ -102,6 +107,7 @@ private[blaze] class Http1ServerStage[F[_]](
     idleTimeout: Duration,
     scheduler: TickWheelExecutor,
     val dispatcher: Dispatcher[F],
+    durationHistogram: Histogram[F, Double],
 )(implicit protected val F: Async[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
@@ -112,6 +118,8 @@ private[blaze] class Http1ServerStage[F[_]](
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
   @volatile private[this] var cancelToken: Option[() => Future[Unit]] = None
+
+  private[this] var startTime: Long = -1L
 
   val name = "Http4sServerStage"
 
@@ -160,6 +168,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   private def reqLoopCallback(buff: ByteBuffer): Unit = {
     logRequest(buff)
+    if (startTime < 0L) startTime = System.nanoTime()
     parser.synchronized {
       if (!isClosed)
         try
@@ -206,7 +215,8 @@ private[blaze] class Http1ServerStage[F[_]](
           def run(): Unit = {
             val action = raceTimeout(req)
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+              .flatTap(resp => F.delay(renderResponse(req, resp, cleanup)))
+              .flatTap(resp => recordDuration(System.nanoTime - startTime, req, resp))
               .attempt
               .flatMap {
                 case Right(_) => F.unit
@@ -306,6 +316,7 @@ private[blaze] class Http1ServerStage[F[_]](
             F.delay {
               bodyCleanup().onComplete {
                 case s @ Success(_) => // Serve another request
+                  startTime = -1L
                   parser.reset()
                   handleReqRead(s)
 
@@ -390,4 +401,28 @@ private[blaze] class Http1ServerStage[F[_]](
       case _ =>
         runApp
     }
+
+  private[this] def recordDuration(nanos: Long, req: Request[F], resp: Response[F]): F[Unit] =
+    durationHistogram.record(
+      nanos / 1e6,
+      Attribute(Attributes.method, req.method.toString),
+      Attribute(Attributes.scheme, req.isSecure match {
+        case Some(true) => "https"
+        case _ => "http"
+      }),
+      Attribute(Attributes.statusCode, resp.status.code.toString),
+      Attribute(Attributes.flavor, req.httpVersion match {
+        case HttpVersion.`HTTP/1.1` => "1.1"
+        case HttpVersion.`HTTP/1.0` => "1.0"
+        case HttpVersion(major, minor) => s"${major}.${minor}"
+      }),
+    )
+
+  private object Attributes {
+    val method: AttributeKey[String] = AttributeKey.string("method")
+    val host: AttributeKey[String] = AttributeKey.string("hist")
+    val scheme: AttributeKey[String] = AttributeKey.string("scheme")
+    val statusCode: AttributeKey[String] = AttributeKey.string("status_code")
+    val flavor: AttributeKey[String] = AttributeKey.string("flavor")
+  }
 }
