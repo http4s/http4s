@@ -20,7 +20,8 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.{Chunk, Pure}
+import fs2.Chunk
+import fs2.Pure
 import org.http4s.headers.Authorization
 import org.http4s.headers.Cookie
 import org.http4s.headers.`Content-Type`
