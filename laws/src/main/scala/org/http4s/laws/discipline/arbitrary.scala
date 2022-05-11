@@ -830,9 +830,12 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
-  implicit def http4sTestingGenForPureByteStream[F[_]]: Gen[Stream[Pure, Byte]] =
+  implicit def http4sTestingGenForPureByteStream: Gen[Stream[Pure, Byte]] =
+    genByteStreamWithKnowingSize.map(_._1)
+
+  private def genByteStreamWithKnowingSize: Gen[(Stream[Pure, Byte], Int)] =
     Gen.sized { size =>
-      Gen.listOfN(size, getArbitrary[Byte]).map(Stream.emits)
+      Gen.listOfN(size, getArbitrary[Byte]).map(list => Stream.emits(list) -> size)
     }
 
   // Borrowed from cats-effect tests for the time being
@@ -855,13 +858,32 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       dispatcher.unsafeToFuture(stream.compile.toVector)
     }
 
-  implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] =
-    Arbitrary(Gen.sized { size =>
-      for {
-        body <- http4sTestingGenForPureByteStream
-        length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body, length)
-    })
+  implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] = {
+    val emptyEntityGen =
+      Gen.const(Entity.Empty)
+
+    val strictEntityGen =
+      http4sTestingGenForPureByteStream
+        .map(body => Entity.strict(body.compile.to(fs2.Chunk)))
+
+    val chunkedEntityGen =
+      http4sTestingGenForPureByteStream
+        .map(Entity(_))
+
+    val chunkedWithKnowingLengthGen =
+      genByteStreamWithKnowingSize.map { case (body, size) =>
+        Entity(body, Some(size.toLong))
+      }
+
+    Arbitrary(
+      Gen.frequency(
+        1 -> emptyEntityGen,
+        2 -> strictEntityGen,
+        4 -> chunkedEntityGen,
+        2 -> chunkedWithKnowingLengthGen,
+      )
+    )
+  }
 
   implicit def http4sTestingCogenForEntity[F[_]](implicit
       F: Concurrent[F],
