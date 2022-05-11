@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.Pure
+import fs2.{Chunk, Pure}
 import org.http4s.headers.Authorization
 import org.http4s.headers.Cookie
 import org.http4s.headers.`Content-Type`
@@ -193,7 +193,7 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Authorization: <REDACTED>))",
+      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Authorization: <REDACTED>), entity=Entity.Empty)",
     )
   }
 
@@ -202,7 +202,38 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Cookie: <REDACTED>))",
+      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Cookie: <REDACTED>), entity=Entity.Empty)",
+    )
+  }
+
+  test("toString should correctly print a request with a strict entity") {
+    val req =
+      Request(method = Method.POST, entity = Entity.strict(Chunk(Byte.MinValue, Byte.MaxValue)))
+    assertEquals(
+      req.toString,
+      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Strict(2 bytes total))",
+    )
+  }
+
+  test("toString should correctly print a request with a chunked entity") {
+    val req = Request(
+      method = Method.POST,
+      entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))),
+    )
+    assertEquals(
+      req.toString,
+      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default)",
+    )
+  }
+
+  test("toString should correctly print a request with a chunked entity with a known size") {
+    val req = Request(
+      method = Method.POST,
+      entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)),
+    )
+    assertEquals(
+      req.toString,
+      "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default(2 bytes total))",
     )
   }
 
@@ -320,7 +351,32 @@ class MessageSuite extends Http4sSuite {
     val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
     assertEquals(
       resp.toString,
-      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(Set-Cookie: <REDACTED>))",
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(Set-Cookie: <REDACTED>), entity=Entity.Empty)",
+    )
+  }
+
+  test("toString should correctly print a response with a strict entity") {
+    val resp = Response(entity = Entity.strict(Chunk(Byte.MinValue, Byte.MaxValue)))
+    assertEquals(
+      resp.toString,
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Strict(2 bytes total))",
+    )
+  }
+
+  test("toString should correctly print a response with a chunked entity") {
+    val resp = Response(entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue))))
+    assertEquals(
+      resp.toString,
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default)",
+    )
+  }
+
+  test("toString should correctly print a response with a chunked entity with a known size") {
+    val resp =
+      Response(entity = Entity(fs2.Stream.chunk(Chunk(Byte.MinValue, Byte.MaxValue)), Some(2)))
+    assertEquals(
+      resp.toString,
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Default(2 bytes total))",
     )
   }
 
