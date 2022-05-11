@@ -242,13 +242,19 @@
         <code>org.http4s.circe</code> object, which gives us exactly this for an
         <code>io.circe.Json</code> value:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">_</span></code></pre>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="identifier">greeting</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+        <pre><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="identifier">greeting</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@2082fb0c
+//    = Strict(
+//     chunk = ByteBuffer(
+//       buf = java.nio.HeapByteBuffer[pos=0 lim=17 cap=18],
+//       offset = 0,
+//       size = 17
+//     )
+//   ),
+//    = org.typelevel.vault.Vault@3903eccc
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -265,8 +271,14 @@
 //   ),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 16),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@456e6842
+//    = Strict(
+//     chunk = ByteBuffer(
+//       buf = java.nio.HeapByteBuffer[pos=0 lim=16 cap=17],
+//       offset = 0,
+//       size = 16
+//     )
+//   ),
+//    = org.typelevel.vault.Vault@2d5fd844
 // )</span></code></pre>
         
         <h2 id="encoding-case-classes-as-json" class="section">Encoding case classes as JSON<a class="anchor-link right" href="#encoding-case-classes-as-json"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -285,7 +297,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@316e04e5
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@3694cc57
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -302,8 +314,14 @@
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@6acdfcf7
+//    = Strict(
+//     chunk = ByteBuffer(
+//       buf = java.nio.HeapByteBuffer[pos=0 lim=17 cap=18],
+//       offset = 0,
+//       size = 17
+//     )
+//   ),
+//    = org.typelevel.vault.Vault@4c778c34
 // )
 </span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
 </span><span class="comment">// res6: Request[IO] = (
@@ -317,8 +335,14 @@
 //   ),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 14),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@5da02039
+//    = Strict(
+//     chunk = ByteBuffer(
+//       buf = java.nio.HeapByteBuffer[pos=0 lim=14 cap=15],
+//       offset = 0,
+//       size = 14
+//     )
+//   ),
+//    = org.typelevel.vault.Vault@6a346cfa
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -348,7 +372,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@6b3a6fb7
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@397a0400
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
@@ -410,7 +434,7 @@
         <p>We start a server resource in the background.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
 </span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$22687/450195300@2a320719,
+//   body = cats.effect.IO$$Lambda$22612/218888588@299c910c,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
