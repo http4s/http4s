@@ -508,7 +508,7 @@ final class Request[+F[_]] private (
       case 1 => uri
       case 2 => httpVersion
       case 3 => headers
-      case 4 => body
+      case 4 => entity
       case 5 => attributes
       case _ => throw new IndexOutOfBoundsException()
     }
@@ -674,7 +674,7 @@ final class Response[+F[_]] private (
       case 0 => status
       case 1 => httpVersion
       case 2 => headers
-      case 3 => body
+      case 3 => entity
       case 4 => attributes
       case _ => throw new IndexOutOfBoundsException()
     }
