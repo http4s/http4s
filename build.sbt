@@ -1125,9 +1125,10 @@ lazy val examplesDocker = http4sProject("examples-docker")
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
-  .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
+    name := "http4s-scalafix-internal",
+    mimaPreviousArtifacts := Set.empty,
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
