@@ -192,12 +192,12 @@ private[h2] class H2Connection[F[_]](
     firstGoAway.getOrElse(F.unit) >> go(chunk)
   }
 
-  def writeLoop: Stream[F, Nothing] =
-    Stream
-      .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
-      .chunks
-      .foreach(writeChunk)
-      .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
+  def writeLoop: F[Unit] =
+    outgoing.tryTakeN(None).flatMap { (chs: List[Chunk[H2Frame]]) =>
+      val ch = Chunk.concat(chs)
+      writeChunk(ch).handleErrorWith(ex => logger.debug(ex)("writeLoop terminated")) >> writeLoop
+    }
+
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
