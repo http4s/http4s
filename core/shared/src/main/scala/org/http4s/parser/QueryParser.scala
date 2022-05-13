@@ -153,7 +153,7 @@ private[http4s] object QueryParser {
     * against the spec but due to PHP's widespread adoption it is necessary to
     * support this extension.
     */
-  val ExtendedQChars: BitSet = QChars ++ ("[]".map(_.toInt).toSet)
+  val ExtendedQChars: BitSet = QChars ++ "[]".map(_.toInt).toSet
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved = "-._~".toSet ++ AlphaNum
   private def SubDelims = "!$&'()*+,;=".toSet

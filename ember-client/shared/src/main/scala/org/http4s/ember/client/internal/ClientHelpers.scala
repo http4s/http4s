@@ -171,7 +171,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       res <- writeRead(processedReq)
     } yield res
   }.adaptError { case e: EmberException.EmptyStream =>
-    new ClosedChannelException() {
+    new ClosedChannelException {
       initCause(e)
 
       override def getMessage(): String =

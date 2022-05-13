@@ -46,7 +46,7 @@ import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSuite {
 
-  private val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor())) { twe =>
+  private val fixture = ResourceFixture(Resource.make(IO.delay(new TickWheelExecutor)) { twe =>
     IO.delay(twe.shutdown())
   })
 

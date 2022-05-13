@@ -81,7 +81,7 @@ class StaticFileSuite extends Http4sSuite {
 
   if (Platform.isJvm)
     test("load from resource using different classloader") {
-      val loader = new ClassLoader() {
+      val loader = new ClassLoader {
         override def getResource(name: String): URL =
           getClass.getClassLoader.getResource(name)
       }

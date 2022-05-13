@@ -104,7 +104,7 @@ object WebSocketFrame {
 
     def closeCode: Int =
       if (data.length > 0)
-        (data(0) << 8 & 0xff00) | (data(1) & 0xff) // 16-bit unsigned
+        data(0) << 8 & 0xff00 | data(1) & 0xff // 16-bit unsigned
       else 1005 // No code present
 
     override def toString: String =
@@ -118,7 +118,7 @@ object WebSocketFrame {
   class ReasonTooLongException(val s: String) extends InvalidCloseDataException
   // scalafix:on
 
-  private def toUnsignedShort(x: Int) = Array[Byte](((x >> 8) & 0xff).toByte, (x & 0xff).toByte)
+  private def toUnsignedShort(x: Int) = Array[Byte]((x >> 8 & 0xff).toByte, (x & 0xff).toByte)
 
   private def reasonToBytes(reason: String) = {
     val asBytes = ByteVector.view(reason.getBytes(UTF_8))

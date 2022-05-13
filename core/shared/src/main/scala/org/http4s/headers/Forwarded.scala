@@ -117,7 +117,7 @@ object Forwarded extends ForwardedRenderers {
 
     object Obfuscated {
       val parser: P[Obfuscated] =
-        (P.char('_') ~ (P.oneOf(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))).rep(1))).string
+        (P.char('_') ~ P.oneOf(List(Rfc5234.alpha, Rfc5234.digit, P.charIn("._-"))).rep(1)).string
           .map(Obfuscated.apply)
 
       def fromString(s: String): ParseResult[Obfuscated] =
@@ -288,7 +288,7 @@ object Forwarded extends ForwardedRenderers {
   final val PortMax = 65535
 
   private def checkPortNum(portNum: Int): Option[ParseFailure] =
-    if ((portNum >= PortMin) && (portNum <= PortMax))
+    if (portNum >= PortMin && portNum <= PortMax)
       None
     else
       Some(Failures.invalidPortNum(portNum))

@@ -223,7 +223,7 @@ private[blaze] class Http1ServerStage[F[_]](
             cancelToken = Some(dispatcher.unsafeToFutureCancelable(action)._2)
           }
         })
-      case Left((e, protocol)) =>
+      case Left(e, protocol) =>
         badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
     }
   }

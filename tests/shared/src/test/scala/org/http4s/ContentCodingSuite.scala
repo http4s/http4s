@@ -29,7 +29,7 @@ class ContentCodingSuite extends Http4sSuite {
 
   test("equals should be consistent with equalsIgnoreCase of the codings and quality") {
     forAll { (a: ContentCoding, b: ContentCoding) =>
-      (a == b) == (a.coding.equalsIgnoreCase(b.coding) && a.qValue == b.qValue)
+      a == b == (a.coding.equalsIgnoreCase(b.coding) && a.qValue == b.qValue)
     }
   }
 
@@ -37,13 +37,13 @@ class ContentCodingSuite extends Http4sSuite {
     forAll { (a: ContentCoding, b: ContentCoding, q: QValue) =>
       val aq = a.withQValue(q)
       val bq = b.withQValue(q)
-      (aq.compare(bq)) == (aq.coding.compareToIgnoreCase(bq.coding))
+      aq.compare(bq) == aq.coding.compareToIgnoreCase(bq.coding)
     }
   }
 
   test("hashCode should be consistent with equality") {
     forAll { (a: ContentCoding, b: ContentCoding) =>
-      (a == b) == (a.## == b.##)
+      a == b == (a.## == b.##)
     }
   }
 

@@ -260,7 +260,7 @@ object MultipartParser {
 
       if (c.size == 1)
         rest.pull.uncons.flatMap {
-          case Some((chnk, remaining)) =>
+          case Some(chnk, remaining) =>
             checkTwoNonEmpty(c, chnk, remaining)
           case None =>
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
@@ -291,7 +291,7 @@ object MultipartParser {
         Pull.pure((lacc, racc ++ s))
       else
         s.pull.uncons.flatMap {
-          case Some((chnk, str)) =>
+          case Some(chnk, str) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r, limitCTR + add)
           case None =>
@@ -299,7 +299,7 @@ object MultipartParser {
         }
 
     stream.pull.uncons.flatMap {
-      case Some((chunk, rest)) =>
+      case Some(chunk, rest) =>
         checkIfLast(chunk, rest)
       case None =>
         Pull.raiseError[F](MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
@@ -352,7 +352,7 @@ object MultipartParser {
         Pull.pure((lacc, racc ++ s))
       else
         s.pull.uncons.flatMap {
-          case Some((chnk, str)) =>
+          case Some(chnk, str) =>
             val (ix, l, r) = splitOnChunk[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r)
           case None =>
@@ -361,7 +361,7 @@ object MultipartParser {
         }
 
     stream.pull.uncons.flatMap {
-      case Some((chunk, rest)) =>
+      case Some(chunk, rest) =>
         val (ix, l, r) = splitOnChunk[F](values, 0, chunk, Stream.empty, Stream.empty)
         go(rest, ix, l, r)
       case None =>
@@ -539,13 +539,13 @@ object MultipartParser {
   ): Pipe[F, Event, Event] = {
     def go(st: Stream[F, Event], partsCounter: Int): Pull[F, Event, Unit] =
       st.pull.uncons1.flatMap {
-        case Some((event: PartStart, rest)) =>
+        case Some(event: PartStart, rest) =>
           if (partsCounter < maxParts) {
             Pull.output1(event) >> go(rest, partsCounter + 1)
           } else if (failOnLimit) {
             Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
           } else Pull.pure(())
-        case Some((event, rest)) =>
+        case Some(event, rest) =>
           Pull.output1(event) >> go(rest, partsCounter)
         case None => Pull.pure(())
       }
@@ -574,9 +574,9 @@ object MultipartParser {
         ) >> streamAndWrite(s, Stream.empty, 0, fileRef)
       else
         s.pull.uncons1.flatMap {
-          case Some((PartChunk(chnk), str)) =>
+          case Some(PartChunk(chnk), str) =>
             streamAndWrite(str, lacc ++ Stream.chunk(chnk), limitCTR + chnk.size, fileRef)
-          case Some((PartEnd, str)) =>
+          case Some(PartEnd, str) =>
             Pull
               .eval(
                 lacc
@@ -586,7 +586,7 @@ object MultipartParser {
               )
               .as(str)
           // Shouldn't happen if the `parseToEventsStream` contract holds.
-          case Some((_: PartStart, _)) | None =>
+          case Some(_: PartStart, _) | None =>
             Pull.raiseError(bug("Missing PartEnd"))
         }
 
@@ -608,12 +608,12 @@ object MultipartParser {
           }
       else
         s.pull.uncons1.flatMap {
-          case Some((PartChunk(chnk), str)) =>
+          case Some(PartChunk(chnk), str) =>
             go(str, lacc ++ Stream.chunk(chnk), limitCTR + chnk.size)
-          case Some((PartEnd, str)) =>
+          case Some(PartEnd, str) =>
             Pull.pure((lacc, str))
           // Shouldn't happen if the `parseToEventsStream` contract holds.
-          case Some((_: PartStart, _)) | None =>
+          case Some(_: PartStart, _) | None =>
             Pull.raiseError(bug("Missing PartEnd"))
         }
 
@@ -692,11 +692,11 @@ object MultipartParser {
       // Shouldn't happen if the `parseToEventsStream` contract holds.
       case (None, (_: PartChunk | PartEnd)) =>
         F.raiseError(bug("Missing PartStart"))
-      case (Some((headers, oldAcc)), PartChunk(chunk)) =>
+      case (Some(headers, oldAcc), PartChunk(chunk)) =>
         stepPartChunk(oldAcc, chunk).map { newAcc =>
           (Some((headers, newAcc)), None)
         }
-      case (Some((headers, acc)), PartEnd) =>
+      case (Some(headers, acc), PartEnd) =>
         // Part done - emit it and start over.
         stepPartEnd(acc)
           .map(body => (None, Some(Part(headers, body))))
@@ -761,7 +761,7 @@ object MultipartParser {
 
     def go(s: Stream[F, Byte], state: Int): Pull[F, Nothing, Stream[F, Byte]] =
       s.pull.uncons.flatMap {
-        case Some((chnk, rest)) =>
+        case Some(chnk, rest) =>
           val (ix, remainder) = splitAndIgnorePrev(dashBoundaryBytes, state, chnk)
           if (ix === dashBoundaryBytes.length) Pull.pure(remainder ++ rest)
           else go(rest, ix)
@@ -838,7 +838,7 @@ object MultipartParser {
         Pull.pure(racc ++ s)
       else
         s.pull.uncons.flatMap {
-          case Some((chnk, rest)) =>
+          case Some(chnk, rest) =>
             val (ix, l, r) = splitOnChunk[F](delimiterBytes, state, chnk, Stream.empty, racc)
             l.chunks.map(PartChunk(_)).pull.echo >> {
               if (ix == delimiterBytes.length) Pull.pure(r ++ rest)

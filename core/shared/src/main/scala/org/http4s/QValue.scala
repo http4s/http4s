@@ -117,7 +117,7 @@ object QValue extends QValuePlatform {
         ch('1') *> (ch('.') *> ch('0').rep0.void).?.as(One)
       )
 
-    ((ch(';') *> ows *> ignoreCaseChar('q') *> ch('=')) *> qValue).backtrack
+    (ch(';') *> ows *> ignoreCaseChar('q') *> ch('=') *> qValue).backtrack
       .orElse(pure(QValue.One))
   }
 

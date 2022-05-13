@@ -129,7 +129,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def isRequestExpired(t: Instant): Boolean = {
     val elapsed = Instant.now().toEpochMilli - t.toEpochMilli
-    (requestTimeout.isFinite && elapsed >= requestTimeout.toMillis) || (responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis)
+    requestTimeout.isFinite && elapsed >= requestTimeout.toMillis || responseHeaderTimeout.isFinite && elapsed >= responseHeaderTimeout.toMillis
   }
 
   /** This method is the core method for creating a connection which increments allocated synchronously

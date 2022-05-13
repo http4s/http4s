@@ -44,7 +44,7 @@ import org.reactivestreams.Publisher
 
 @deprecated("Upstream is unmaintained. Recommend choosing another backend.", "0.22.12")
 object AsyncHttpClient {
-  val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
+  val defaultConfig: DefaultAsyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(defaults.RequestTimeout.toMillis.toInt)

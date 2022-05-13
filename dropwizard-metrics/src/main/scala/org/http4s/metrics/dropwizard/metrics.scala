@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 package object dropwizard {
   private val defaultMapper = {
     val module = new MetricsModule(TimeUnit.SECONDS, TimeUnit.SECONDS, true)
-    new ObjectMapper().registerModule(module)
+    new ObjectMapper.registerModule(module)
   }
 
   /** Encodes a metric registry in JSON format */

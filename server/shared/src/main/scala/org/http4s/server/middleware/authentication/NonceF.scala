@@ -48,7 +48,7 @@ private[authentication] object NonceF {
     random.nextBytes(bytes).map { arr =>
       if (arr.nonEmpty) {
         val extraBits = 8 * bytes - bits
-        arr(0) = (arr(0) & ((1 << (8 - extraBits)) - 1)).toByte
+        arr(0) = (arr(0) & (1 << 8 - extraBits) - 1).toByte
       }
       arr
     }

@@ -86,7 +86,7 @@ object ErrorReporting {
     synchronized {
       // Silencing System.err
       val oldErr = System.err
-      val outStream = new ByteArrayOutputStream()
+      val outStream = new ByteArrayOutputStream
       val fakeErr = new PrintStream(outStream)
       System.setErr(fakeErr)
       try {
@@ -109,7 +109,7 @@ object ErrorReporting {
   def catchSystemErr(thunk: => Unit): String =
     synchronized {
       val oldErr = System.err
-      val outStream = new ByteArrayOutputStream()
+      val outStream = new ByteArrayOutputStream
       val fakeErr = new PrintStream(outStream)
       System.setErr(fakeErr)
       try thunk

@@ -126,7 +126,7 @@ object UriTemplate {
       .forall(c => unreserved.contains(c) || c == '%')
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
-    val acc = new ArrayBuffer[PathDef]()
+    val acc = new ArrayBuffer[PathDef]
     def appendValues(): Unit =
       values.foreach { v =>
         acc.append(PathElm(v.value))
@@ -162,7 +162,7 @@ object UriTemplate {
   }
 
   protected def expandQueryN(query: Query, name: String, values: List[String]): Query = {
-    val acc = new ArrayBuffer[QueryDef]()
+    val acc = new ArrayBuffer[QueryDef]
     query.foreach {
       case p @ ParamElm(_, _) => acc.append(p)
       case p @ ParamVarExp(r, List(n)) =>
@@ -202,7 +202,7 @@ object UriTemplate {
   }
 
   protected def expandFragmentN(fragment: Fragment, name: String, value: String): Fragment = {
-    val acc = new ArrayBuffer[FragmentDef]()
+    val acc = new ArrayBuffer[FragmentDef]
     fragment.foreach {
       case p @ FragmentElm(_) => acc.append(p)
       case p @ SimpleFragmentExp(n) =>
@@ -259,7 +259,7 @@ object UriTemplate {
       case ParamExp(_) => true
       case ParamContExp(_) => true
     }
-    val elements = new ArrayBuffer[String]()
+    val elements = new ArrayBuffer[String]
     parted._2.foreach {
       case ParamElm(n, Nil) => elements.append(n)
       case ParamElm(n, List(v)) => elements.append(n + "=" + v)
@@ -268,7 +268,7 @@ object UriTemplate {
       case ParamReservedExp(n, vs) => elements.append(n + "=" + "{+" + vs.mkString(",") + "}")
       case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
     }
-    val exps = new ArrayBuffer[String]()
+    val exps = new ArrayBuffer[String]
     def separator = if (elements.isEmpty && exps.isEmpty) "?" else "&"
     parted._1.foreach {
       case ParamExp(ns) => exps.append("{" + separator + ns.mkString(",") + "}")
@@ -280,8 +280,8 @@ object UriTemplate {
   }
 
   protected def renderFragment(f: Fragment): String = {
-    val elements = new mutable.ArrayBuffer[String]()
-    val expansions = new mutable.ArrayBuffer[String]()
+    val elements = new mutable.ArrayBuffer[String]
+    val expansions = new mutable.ArrayBuffer[String]
     f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(n) => expansions.append(n)
@@ -298,7 +298,7 @@ object UriTemplate {
   }
 
   protected def renderFragmentIdentifier(f: Fragment): String = {
-    val elements = new mutable.ArrayBuffer[String]()
+    val elements = new mutable.ArrayBuffer[String]
     f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(_) =>
@@ -312,10 +312,10 @@ object UriTemplate {
 
   protected def buildQuery(q: Query): org.http4s.Query = {
     val vec = q.foldLeft(Vector.empty[(String, Option[String])]) {
-      case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
-      case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
+      case (elements, ParamElm(n, Nil)) => elements :+ n -> None
+      case (elements, ParamElm(n, List(v))) => elements :+ n -> Some(v)
       case (elements, ParamElm(n, vs)) =>
-        vs.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
+        vs.foldLeft(elements) { case (elements, v) => elements :+ n -> Some(v) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
@@ -327,7 +327,7 @@ object UriTemplate {
     p match {
       case Nil => "/"
       case ps =>
-        val elements = new ArrayBuffer[String]()
+        val elements = new ArrayBuffer[String]
         ps.foreach {
           case PathElm(n) => elements.append("/" + n)
           case VarExp(ns) => elements.append("{" + ns.mkString(",") + "}")
@@ -387,12 +387,12 @@ object UriTemplate {
       case UriTemplate(_, _, Nil, Nil, Nil) => false
       case UriTemplate(_, _, Nil, Nil, f) => f.exists(fragmentExp)
       case UriTemplate(_, _, Nil, q, Nil) => q.exists(queryExp)
-      case UriTemplate(_, _, Nil, q, f) => (q.exists(queryExp)) || (f.exists(fragmentExp))
+      case UriTemplate(_, _, Nil, q, f) => q.exists(queryExp) || f.exists(fragmentExp)
       case UriTemplate(_, _, p, Nil, Nil) => p.exists(pathExp)
-      case UriTemplate(_, _, p, Nil, f) => (p.exists(pathExp)) || (f.exists(fragmentExp))
-      case UriTemplate(_, _, p, q, Nil) => (p.exists(pathExp)) || (q.exists(queryExp))
+      case UriTemplate(_, _, p, Nil, f) => p.exists(pathExp) || f.exists(fragmentExp)
+      case UriTemplate(_, _, p, q, Nil) => p.exists(pathExp) || q.exists(queryExp)
       case UriTemplate(_, _, p, q, f) =>
-        (p.exists(pathExp)) || (q.exists(queryExp)) || (f.exists(fragmentExp))
+        p.exists(pathExp) || q.exists(queryExp) || f.exists(fragmentExp)
     }
 
   protected def toUri(t: UriTemplate): Uri =

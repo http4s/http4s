@@ -221,7 +221,7 @@ class ClientTimeoutSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("Eventually timeout on connect timeout") { case (tickWheel, dispatcher) =>
     val manager = ConnectionManager.basic[IO, BlazeConnection[IO]] { _ =>
       // In a real use case this timeout is under OS's control (AsynchronousSocketChannel.connect)
-      IO.sleep(1000.millis) *> IO.raiseError[BlazeConnection[IO]](new IOException())
+      IO.sleep(1000.millis) *> IO.raiseError[BlazeConnection[IO]](new IOException)
     }
     val c = BlazeClient.makeClient(
       manager = manager,

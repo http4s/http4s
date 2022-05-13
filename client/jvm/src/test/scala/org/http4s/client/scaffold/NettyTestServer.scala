@@ -70,13 +70,13 @@ object NettyTestServer {
     bossGroup <- nioEventLoopGroup[F]
     workerGroup <- nioEventLoopGroup[F]
     establishedConnections <- Resource.eval(Ref[F].of(0L))
-    bootstrap = new ServerBootstrap()
+    bootstrap = new ServerBootstrap
       .group(bossGroup, workerGroup)
       .channelFactory(new ChannelFactory[NioServerSocketChannel] {
-        override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
+        override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel
       })
       .handler(new LoggingHandler(LogLevel.INFO))
-      .childHandler(new ChannelInitializer[NioSocketChannel]() {
+      .childHandler(new ChannelInitializer[NioSocketChannel] {
         def initChannel(ch: NioSocketChannel): Unit = {
           logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].")
           dispatcher.unsafeRunSync(establishedConnections.update(_ + 1))
@@ -86,8 +86,8 @@ object NettyTestServer {
             ch.pipeline().addLast(new SslHandler(engine))
           }
           ch.pipeline()
-            .addLast(new HttpRequestDecoder())
-            .addLast(new HttpResponseEncoder())
+            .addLast(new HttpRequestDecoder)
+            .addLast(new HttpResponseEncoder)
             .addLast(dispatcher.unsafeRunSync(makeHandler))
           ()
         }
@@ -99,7 +99,7 @@ object NettyTestServer {
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
     Resource.make(
-      F.delay(new NioEventLoopGroup())
+      F.delay(new NioEventLoopGroup)
     )(el => F.delay(el.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS)).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit

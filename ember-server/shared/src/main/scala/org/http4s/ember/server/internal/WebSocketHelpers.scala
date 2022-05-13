@@ -205,7 +205,7 @@ object WebSocketHelpers {
   )(implicit F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
       rest.pull.uncons.flatMap {
-        case Some((chunk, next)) =>
+        case Some(chunk, next) =>
           val buffer = acc ++ chunk.toArray[Byte]
           val byteBuffer = ByteBuffer.wrap(buffer)
           Pull

@@ -122,9 +122,9 @@ trait QueryOps {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
     val vec = params.foldLeft(query.toVector) {
-      case (m, (k, Seq())) => m :+ (penc.getKey(k).value -> None)
+      case (m, (k, Seq())) => m :+ penc.getKey(k).value -> None
       case (m, (k, vs)) =>
-        vs.foldLeft(m) { case (m, v) => m :+ (penc.getKey(k).value -> Some(venc.encode(v).value)) }
+        vs.foldLeft(m) { case (m, v) => m :+ penc.getKey(k).value -> Some(venc.encode(v).value) }
     }
     replaceQuery(Query.fromVector(vec))
   }
@@ -192,10 +192,10 @@ trait QueryOps {
     val q = if (query == Query.blank) Query.empty else query
     val baseQuery = q.toVector.filter(_._1 != name.value)
     val vec =
-      if (values.isEmpty) baseQuery :+ (name.value -> None)
+      if (values.isEmpty) baseQuery :+ name.value -> None
       else
         values.toList.foldLeft(baseQuery) { case (vec, v) =>
-          vec :+ (name.value -> Some(v.value))
+          vec :+ name.value -> Some(v.value)
         }
 
     replaceQuery(Query.fromVector(vec))

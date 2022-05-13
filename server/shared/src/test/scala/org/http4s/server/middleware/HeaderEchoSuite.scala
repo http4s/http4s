@@ -36,8 +36,8 @@ class HeaderEchoSuite extends Http4sSuite {
         headers = Headers("someheaderkey" -> "someheadervalue"),
       )
 
-    (testee
-      .apply(requestMatchingSingleHeaderKey))
+    testee
+      .apply(requestMatchingSingleHeaderKey)
       .map(_.headers)
       .map { responseHeaders =>
         responseHeaders.headers.exists(_.value === "someheadervalue") &&

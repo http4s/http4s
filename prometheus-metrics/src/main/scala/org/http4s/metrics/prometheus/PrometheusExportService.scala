@@ -68,13 +68,13 @@ object PrometheusExportService {
 
   def addDefaults[F[_]: Sync](cr: CollectorRegistry): Resource[F, Unit] =
     for {
-      _ <- Prometheus.registerCollector(new StandardExports(), cr)
-      _ <- Prometheus.registerCollector(new MemoryPoolsExports(), cr)
-      _ <- Prometheus.registerCollector(new BufferPoolsExports(), cr)
-      _ <- Prometheus.registerCollector(new GarbageCollectorExports(), cr)
-      _ <- Prometheus.registerCollector(new ThreadExports(), cr)
-      _ <- Prometheus.registerCollector(new ClassLoadingExports(), cr)
-      _ <- Prometheus.registerCollector(new VersionInfoExports(), cr)
-      _ <- Prometheus.registerCollector(new MemoryAllocationExports(), cr)
+      _ <- Prometheus.registerCollector(new StandardExports, cr)
+      _ <- Prometheus.registerCollector(new MemoryPoolsExports, cr)
+      _ <- Prometheus.registerCollector(new BufferPoolsExports, cr)
+      _ <- Prometheus.registerCollector(new GarbageCollectorExports, cr)
+      _ <- Prometheus.registerCollector(new ThreadExports, cr)
+      _ <- Prometheus.registerCollector(new ClassLoadingExports, cr)
+      _ <- Prometheus.registerCollector(new VersionInfoExports, cr)
+      _ <- Prometheus.registerCollector(new MemoryAllocationExports, cr)
     } yield ()
 }

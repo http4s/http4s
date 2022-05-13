@@ -29,5 +29,5 @@ private[authentication] object Nonce {
   val random: Random[SyncIO] = Random.javaSecuritySecureRandom[SyncIO].unsafeRunSync()
 
   def gen(bits: Int): Nonce =
-    new Nonce(new Date(), 0, NonceF.getRandomData[SyncIO](random, bits).unsafeRunSync())
+    new Nonce(new Date, 0, NonceF.getRandomData[SyncIO](random, bits).unsafeRunSync())
 }

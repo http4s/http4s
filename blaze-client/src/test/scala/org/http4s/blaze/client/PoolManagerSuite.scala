@@ -48,7 +48,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       maxTotal: Int,
       maxWaitQueueLimit: Int = 10,
       requestTimeout: Duration = Duration.Inf,
-      builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection()),
+      builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection),
       maxIdleDuration: Duration = Duration.Inf,
   ) =
     ConnectionManager.pool(
@@ -162,13 +162,13 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
   test("A pool manager should continue processing waitQueue after allocation failure".fail) {
     for {
       isEstablishingConnectionsPossible <- Ref[IO].of(true)
-      connectionFailure = new ConnectionFailure(key, new InetSocketAddress(1234), new Exception())
+      connectionFailure = new ConnectionFailure(key, new InetSocketAddress(1234), new Exception)
       pool <- mkPool(
         maxTotal = 1,
         maxWaitQueueLimit = 10,
         builder = _ =>
           isEstablishingConnectionsPossible.get
-            .ifM(IO(new TestConnection()), IO.raiseError(connectionFailure)),
+            .ifM(IO(new TestConnection), IO.raiseError(connectionFailure)),
       )
       conn1 <- pool.borrow(key)
       conn2Fiber <- pool.borrow(key).start
@@ -202,7 +202,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
         maxWaitQueueLimit = 10,
         builder = _ =>
           connectionAttemptsStarted.release >>
-            isEstablishingConnectionsHangs.get.ifM(IO.never, IO(new TestConnection())),
+            isEstablishingConnectionsHangs.get.ifM(IO.never, IO(new TestConnection)),
       )
       conn1Fiber <- pool.borrow(key).start
       // wait for the first connection attempt to start before we cancel it

@@ -61,7 +61,7 @@ class AgeSuite extends HeaderLaws {
   }
   test("parse should roundtrip") {
     forAll { (l: Long) =>
-      (l >= 0) ==> {
+      l >= 0 ==> {
         Age.fromLong(l).map(_.value).flatMap(Age.parse) == Age.fromLong(l)
       }
     }

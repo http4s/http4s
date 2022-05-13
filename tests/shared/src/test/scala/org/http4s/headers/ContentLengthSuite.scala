@@ -63,7 +63,7 @@ class ContentLengthSuite extends HeaderLaws {
   }
   test("fromString should roundtrip") {
     forAll { (l: Long) =>
-      (l >= 0) ==> {
+      l >= 0 ==> {
         `Content-Length`
           .fromLong(l)
           .map(_.value)

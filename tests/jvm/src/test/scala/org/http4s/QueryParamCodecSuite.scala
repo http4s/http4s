@@ -173,11 +173,11 @@ trait QueryParamCodecInstances {
     QueryParamCodec.monthDay(DateTimeFormatter.ofPattern("--MM-dd"))
 
   implicit val yearQueryParamCodec: QueryParamCodec[Year] = QueryParamCodec.year(
-    new DateTimeFormatterBuilder().appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter
+    new DateTimeFormatterBuilder.appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD).toFormatter
   )
 
   implicit val yearMonthQueryParamCodec: QueryParamCodec[YearMonth] = QueryParamCodec.yearMonth(
-    new DateTimeFormatterBuilder()
+    new DateTimeFormatterBuilder
       .appendValue(YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
       .appendLiteral('-')
       .appendValue(MONTH_OF_YEAR, 2)

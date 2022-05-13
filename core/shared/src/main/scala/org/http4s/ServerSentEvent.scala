@@ -122,9 +122,9 @@ object ServerSentEvent {
       stream.pull.uncons1.flatMap {
         case None =>
           Pull.done
-        case Some(("", stream)) =>
+        case Some("", stream) =>
           dispatch(stream)
-        case Some((s, stream)) =>
+        case Some(s, stream) =>
           FieldSeparator.split(s, 2) match {
             case Array(field, value) =>
               handleLine(field, value, stream)

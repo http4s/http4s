@@ -138,7 +138,7 @@ object MediaRange {
     mr.extensions.foreach { case (k, v) => sb << ';' << ' ' << k << '=' <<# v }
 
   private[http4s] def extensionsToString(mr: MediaRange): String = {
-    val sw = new StringWriter()
+    val sw = new StringWriter
     renderExtensions(sw, mr)
     sw.result
   }

@@ -35,7 +35,7 @@ class QValueSuite extends Http4sSuite {
 
   test("sort by descending q-value") {
     forAll { (x: QValue, y: QValue) =>
-      x.thousandths > y.thousandths ==> (x > y)
+      x.thousandths > y.thousandths ==> x > y
     }
   }
 

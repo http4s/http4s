@@ -31,7 +31,7 @@ final case class Boundary(value: String) extends AnyVal {
 object Boundary {
   val CRLF = "\r\n"
 
-  private val defaultRandom = new Random()
+  private val defaultRandom = new Random
 
   @deprecated("Impure. Use Multiparts.boundary", "0.23.12")
   def create: Boundary = unsafeCreate()

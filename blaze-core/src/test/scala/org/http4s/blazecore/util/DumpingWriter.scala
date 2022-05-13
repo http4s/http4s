@@ -27,7 +27,7 @@ import scala.concurrent.Future
 
 object DumpingWriter {
   def dump(p: EntityBody[IO]): IO[Array[Byte]] = {
-    val w = new DumpingWriter()
+    val w = new DumpingWriter
     for (_ <- w.writeEntityBody(p)) yield (w.toArray)
   }
 }

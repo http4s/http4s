@@ -203,7 +203,7 @@ private[h2] class H2Connection[F[_]](
         }
       } else {
         H2Frame.RawFrame.fromByteVector(acc) match {
-          case Some((raw, leftover)) =>
+          case Some(raw, leftover) =>
             H2Frame.fromRaw(raw) match {
               case Right(frame) =>
                 Pull.output1(frame) >>
@@ -237,7 +237,7 @@ private[h2] class H2Connection[F[_]](
       // Headers if not closed MUST
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None),
+            H2Connection.State(_, _, _, _, _, _, _, Some(h, cs), None),
           ) =>
         if (h.identifier == id) {
           state.update(s => s.copy(headersInProgress = None)) >>
@@ -259,7 +259,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some((p, cs))),
+            H2Connection.State(_, _, _, _, _, _, _, None, Some(p, cs)),
           ) =>
         if (p.promisedStreamId == id) {
           state.update(s => s.copy(headersInProgress = None)) >>
@@ -282,7 +282,7 @@ private[h2] class H2Connection[F[_]](
         }
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some((h, cs))),
+            H2Connection.State(_, _, _, _, _, _, _, None, Some(h, cs)),
           ) =>
         if (h.identifier == id) {
           state.update(s => s.copy(pushPromiseInProgress = (h, cs ::: c :: Nil).some))
@@ -293,7 +293,7 @@ private[h2] class H2Connection[F[_]](
 
       case (
             c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None),
+            H2Connection.State(_, _, _, _, _, _, _, Some(h, cs), None),
           ) =>
         if (h.identifier == id) {
           state.update(s => s.copy(headersInProgress = (h, cs ::: c :: Nil).some))
@@ -450,7 +450,7 @@ private[h2] class H2Connection[F[_]](
               t <- state.modify { s =>
                 val newSize = s.writeWindow + size
                 val sizeValid =
-                  (s.writeWindow >= 0 && newSize >= 0) || s.writeWindow < 0 // Less than 2^31-1 and didn't overflow, going negative
+                  s.writeWindow >= 0 && newSize >= 0 || s.writeWindow < 0 // Less than 2^31-1 and didn't overflow, going negative
                 (
                   s.copy(writeBlock = newWriteBlock, writeWindow = s.writeWindow + size),
                   (s.writeBlock, sizeValid),
@@ -487,7 +487,7 @@ private[h2] class H2Connection[F[_]](
                 st <- state.get
                 newSize = st.readWindow - d.data.size.toInt
 
-                needsWindowUpdate = (newSize <= (localSettings.initialWindowSize.windowSize / 2))
+                needsWindowUpdate = (newSize <= localSettings.initialWindowSize.windowSize / 2)
                 _ <- state.update(s =>
                   s.copy(readWindow =
                     if (needsWindowUpdate) localSettings.initialWindowSize.windowSize

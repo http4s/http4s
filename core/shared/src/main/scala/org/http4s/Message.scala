@@ -515,7 +515,7 @@ final class Request[F[_]] private (
       case 3 => headers
       case 4 => body
       case 5 => attributes
-      case _ => throw new IndexOutOfBoundsException()
+      case _ => throw new IndexOutOfBoundsException
     }
 
   /** A projection of this request without the body. */
@@ -690,7 +690,7 @@ final class Response[F[_]] private (
       case 2 => headers
       case 3 => body
       case 4 => attributes
-      case _ => throw new IndexOutOfBoundsException()
+      case _ => throw new IndexOutOfBoundsException
     }
 
   /** A projection of this response without the body. */

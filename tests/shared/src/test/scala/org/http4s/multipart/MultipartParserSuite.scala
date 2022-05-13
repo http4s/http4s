@@ -43,7 +43,7 @@ class MultipartParserSuite extends Http4sSuite {
     }
 
   def jumble(str: String): Stream[IO, Byte] = {
-    val rand = new scala.util.Random()
+    val rand = new scala.util.Random
 
     @tailrec
     def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =

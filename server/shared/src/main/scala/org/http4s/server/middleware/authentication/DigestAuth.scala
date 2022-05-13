@@ -248,7 +248,7 @@ object DigestAuth {
               case authStore: PlainTextAuthStore[F, A] =>
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
-                  case Some((authInfo, password)) =>
+                  case Some(authInfo, password) =>
                     DigestUtil
                       .computeResponse(
                         method,
@@ -269,7 +269,7 @@ object DigestAuth {
               case authStore: Md5HashedAuthStore[F, A] =>
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
-                  case Some((authInfo, ha1Hash)) =>
+                  case Some(authInfo, ha1Hash) =>
                     DigestUtil
                       .computeHashedResponse(
                         method,

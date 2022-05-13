@@ -117,7 +117,7 @@ private[http4s] object Rfc3986 {
     val h16Colon = h16 <* colon
 
     val parsedIpv4Bytes = ipv4Bytes.map { case (a: Byte, b: Byte, c: Byte, d: Byte) =>
-      List(((a << 8) | b).toShort, ((c << 8) | d).toShort)
+      List((a << 8 | b).toShort, (c << 8 | d).toShort)
     }
 
     def rightsWithIpv4(n: Int) = (1 to n)

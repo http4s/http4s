@@ -130,7 +130,7 @@ class RoutesToHandlerAdapter[F[_]](
     } yield ()
 
   private def makeNettyHeaders(http4sHeaders: Headers): DefaultHttpHeaders = {
-    val nettyHeaders = new DefaultHttpHeaders()
+    val nettyHeaders = new DefaultHttpHeaders
     http4sHeaders.foreach { h =>
       nettyHeaders.add(h.name.toString, h.value)
       ()

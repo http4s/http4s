@@ -49,7 +49,7 @@ trait BlazeClientBase extends Http4sSuite {
       def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
     }
     val ctx = SSLContext.getInstance("TLS")
-    ctx.init(null, Array(trustManager), new SecureRandom())
+    ctx.init(null, Array(trustManager), new SecureRandom)
     ctx
   }
 

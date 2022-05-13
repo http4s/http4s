@@ -25,7 +25,7 @@ sealed trait ProductIdOrComment extends Renderable
 object ProductIdOrComment {
   private[http4s] val serverAgentParser: P[(ProductId, List[ProductIdOrComment])] = {
     val rws = P.charIn(' ', '	').rep.void
-    ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0
+    ProductId.parser ~ (rws *> ProductId.parser.orElse(ProductComment.parser)).rep0
   }
 }
 

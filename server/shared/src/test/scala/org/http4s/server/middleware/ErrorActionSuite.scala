@@ -28,7 +28,7 @@ import org.typelevel.vault.Vault
 class ErrorActionSuite extends Http4sSuite {
   private val remote = Ipv4Address.fromBytes(192, 168, 0, 1)
 
-  private def httpRoutes(error: Throwable = new RuntimeException()) =
+  private def httpRoutes(error: Throwable = new RuntimeException) =
     HttpRoutes.of[IO] { case GET -> Root / "error" =>
       IO.raiseError(error)
     }

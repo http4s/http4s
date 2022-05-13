@@ -61,15 +61,13 @@ object MaxActiveRequests {
         Function.const(F.unit),
       )
       .map(middleware =>
-        (
-            httpApp =>
-              middleware(Kleisli {
-                case ContextRequest(concurrent, _) if concurrent > maxActive =>
-                  defaultResp.pure[F]
-                case ContextRequest(_, req) =>
-                  httpApp(req)
-              })
-        )
+        httpApp =>
+          middleware(Kleisli {
+            case ContextRequest(concurrent, _) if concurrent > maxActive =>
+              defaultResp.pure[F]
+            case ContextRequest(_, req) =>
+              httpApp(req)
+          })
       )
 
   @deprecated(message = "Please use forHttpRoutes instead.", since = "0.21.14")
@@ -115,14 +113,12 @@ object MaxActiveRequests {
         Function.const(F.unit),
       )
       .map(middleware =>
-        (
-            httpRoutes =>
-              middleware(Kleisli {
-                case ContextRequest(concurrent, _) if concurrent > maxActive =>
-                  defaultResp.pure[OptionT[F, *]]
-                case ContextRequest(_, req) =>
-                  httpRoutes(req)
-              })
-        )
+        httpRoutes =>
+          middleware(Kleisli {
+            case ContextRequest(concurrent, _) if concurrent > maxActive =>
+              defaultResp.pure[OptionT[F, *]]
+            case ContextRequest(_, req) =>
+              httpRoutes(req)
+          })
       )
 }

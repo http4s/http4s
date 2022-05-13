@@ -37,7 +37,7 @@ private[ember] object Encoder {
     // resp.status.isEntityAllowed TODO
     val initSection = {
       var appliedContentLength = false
-      val stringBuilder = new StringBuilder()
+      val stringBuilder = new StringBuilder
 
       // Response Prelude: HTTP-Version SP STATUS CRLF
       stringBuilder
@@ -96,7 +96,7 @@ private[ember] object Encoder {
       var chunked = req.isChunked
       val initSection = {
         var appliedContentLength = false
-        val stringBuilder = new StringBuilder()
+        val stringBuilder = new StringBuilder
 
         // Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
         stringBuilder

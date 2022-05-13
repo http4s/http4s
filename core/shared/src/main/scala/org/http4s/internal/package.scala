@@ -150,7 +150,7 @@ package object internal {
       fa: F[A],
       dispatcher: Dispatcher[F],
   )(implicit F: Sync[F]): CompletionStage[A] = {
-    val cf = new CompletableFuture[A]()
+    val cf = new CompletableFuture[A]
     dispatcher.unsafeToFuture(fa.attemptTap {
       case Right(a) => F.delay { cf.complete(a); () }
       case Left(e) => F.delay { cf.completeExceptionally(e); () }
@@ -223,7 +223,7 @@ package object internal {
               case _ if result.isUnmappable =>
                 Pull.raiseError(new UnmappableCharacterException(result.length()))
             }
-          case Some((chunk, stream)) =>
+          case Some(chunk, stream) =>
             val chunkWithoutBom = skipByteOrderMark(chunk)
             byteBuffer.put(chunkWithoutBom.toArray)
             byteBuffer.flip()

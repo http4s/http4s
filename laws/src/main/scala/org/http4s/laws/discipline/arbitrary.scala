@@ -201,7 +201,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
             v <- getArbitrary[Option[String]]
           } yield (k, v)
         },
-        2 -> const(("foo" -> Some("bar"))), // Want some repeats
+        2 -> const("foo" -> Some("bar")), // Want some repeats
       )
     }
 

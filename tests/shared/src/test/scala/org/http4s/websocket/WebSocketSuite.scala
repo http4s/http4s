@@ -96,7 +96,7 @@ class WebSocketSuite extends Http4sSuite {
       assertEquals(msg, frame)
       assert(msg.last)
       val closeCode = msg.data.slice(0, 2)
-      assertEquals((closeCode(0) << 8 & 0xff00) | (closeCode(1) & 0xff), validCloseCode)
+      assertEquals(closeCode(0) << 8 & 0xff00 | closeCode(1) & 0xff, validCloseCode)
       val reason = msg.data.slice(2, msg.data.length)
       assertEquals(new String(reason.toArray, UTF_8), validReason)
     }
@@ -114,7 +114,7 @@ class WebSocketSuite extends Http4sSuite {
     val validCloseCode = 1000
 
     forAll { (reason: String) =>
-      (reason.getBytes(UTF_8).length > 123) ==> Close(validCloseCode, reason).isLeft
+      reason.getBytes(UTF_8).length > 123 ==> Close(validCloseCode, reason).isLeft
     }
   }
 
@@ -130,7 +130,7 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test("WebSocket decoder should encode and decode a message len > 0xffff") {
-    val bytes = ByteVector((0 until (0xffff + 1)).map(_.toByte))
+    val bytes = ByteVector((0 until 0xffff + 1).map(_.toByte))
     val frame = Binary(bytes, false)
 
     val msg = decode(encode(frame, true), false)

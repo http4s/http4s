@@ -37,7 +37,7 @@ object PushSupport {
       val newUrl = {
         val script = req.scriptName
         if (script.nonEmpty) {
-          val sb = new StringBuilder()
+          val sb = new StringBuilder
           sb.append(script.toAbsolute)
           sb.append(url).result()
         } else url

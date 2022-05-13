@@ -83,7 +83,7 @@ object GZip {
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)
-        case Some((_, fullStream)) => Pull.output1(fullStream)
+        case Some(_, fullStream) => Pull.output1(fullStream)
       }
       .stream
       .flatten

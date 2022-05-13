@@ -105,7 +105,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
         req
           .decode[UrlForm] { data =>
             data.values.get("sum").flatMap(_.uncons) match {
-              case Some((s, _)) =>
+              case Some(s, _) =>
                 val sum = s.split(' ').filter(_.nonEmpty).map(_.trim.toInt).sum
                 Ok(sum.toString)
 

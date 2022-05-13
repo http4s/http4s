@@ -42,7 +42,7 @@ private[http4s] object UriCoding {
         out.put('+')
       } else {
         out.put('%')
-        out.put(HexUpperCaseChars((c >> 4) & 0xf))
+        out.put(HexUpperCaseChars(c >> 4 & 0xf))
         out.put(HexUpperCaseChars(c & 0xf))
       }
     }

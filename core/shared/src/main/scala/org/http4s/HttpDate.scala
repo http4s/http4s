@@ -295,7 +295,7 @@ object HttpDate {
     val oneDigit = digit.map(_ - '0')
 
     /* date3        = month SP ( 2DIGIT / ( SP 1DIGIT )) */
-    val date3 = (month <* sp) ~ (twoDigit.orElse(sp *> oneDigit))
+    val date3 = (month <* sp) ~ twoDigit.orElse(sp *> oneDigit)
 
     /* asctime-date = day-name SP date3 SP time-of-day SP year
      *              ; e.g., Jun  2

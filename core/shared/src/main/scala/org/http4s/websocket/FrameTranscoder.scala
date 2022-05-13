@@ -52,7 +52,7 @@ private[http4s] object FrameTranscoder {
   private def bodyLength(in: ByteBuffer) = {
     val len = in.get(1) & LENGTH
     if (len < 126) len
-    else if (len == 126) (in.get(2) << 8 & 0xff00) | (in.get(3) & 0xff)
+    else if (len == 126) in.get(2) << 8 & 0xff00 | in.get(3) & 0xff
     else if (len == 127) {
       val l = in.getLong(2)
       if (l > Integer.MAX_VALUE) throw new FrameTranscoder.TranscodeError("Frame is too long")
@@ -123,10 +123,10 @@ class FrameTranscoder(val isClient: Boolean) {
     if (isClient && in.length > 0) { // need to mask outgoing bytes
       val mask = (Math.random * Integer.MAX_VALUE).toInt
       val maskBits = Array(
-        ((mask >>> 24) & 0xff).toByte,
-        ((mask >>> 16) & 0xff).toByte,
-        ((mask >>> 8) & 0xff).toByte,
-        ((mask >>> 0) & 0xff).toByte,
+        (mask >>> 24 & 0xff).toByte,
+        (mask >>> 16 & 0xff).toByte,
+        (mask >>> 8 & 0xff).toByte,
+        (mask >>> 0 & 0xff).toByte,
       )
 
       buff.put(maskBits)

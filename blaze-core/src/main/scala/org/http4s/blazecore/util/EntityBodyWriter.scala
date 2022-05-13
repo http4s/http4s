@@ -74,7 +74,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
       s.repeatPull {
         _.uncons.flatMap {
           case None => Pull.pure(None)
-          case Some((hd, tl)) => Pull.eval(writeChunk(hd)).as(Some(tl))
+          case Some(hd, tl) => Pull.eval(writeChunk(hd)).as(Some(tl))
         }
       }
 

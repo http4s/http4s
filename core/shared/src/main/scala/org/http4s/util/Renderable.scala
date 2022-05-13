@@ -45,7 +45,7 @@ trait Renderer[T] {
 object Renderer {
   @inline def apply[A](implicit ev: Renderer[A]): Renderer[A] = ev
 
-  def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
+  def renderString[T: Renderer](t: T): String = new StringWriter.append(t).result
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
     private val dateFormat =

@@ -37,7 +37,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
   private def queryOverrideStrategy[F[_], G[_]] = QueryOverrideStrategy[F, G](overrideParam)
   private val formOverrideStrategy = FormOverrideStrategy(
     overrideParam,
-    new (IO ~> IO) { def apply[A](i: IO[A]): IO[A] = i },
+    new IO ~> IO { def apply[A](i: IO[A]): IO[A] = i },
   )
 
   private def postHeaderOverriderConfig[F[_], G[_]] = defaultConfig[F, G]
@@ -309,7 +309,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
               reqMethod = PUT,
               overriddenMethod = Some(POST),
             ) &&
-            res.status === (Status.Ok)
+            res.status === Status.Ok
         )
     }
   }
@@ -329,7 +329,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
             msg = "resource updated",
             reqMethod = PUT,
             overriddenMethod = Some(POST),
-          ) && res.status === (Status.Ok)
+          ) && res.status === Status.Ok
         )
     }
   }
@@ -351,7 +351,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
             msg = "resource updated",
             reqMethod = PUT,
             overriddenMethod = Some(POST),
-          ) && res.status === (Status.Ok)
+          ) && res.status === Status.Ok
         )
     }
   }
@@ -373,7 +373,7 @@ class HttpMethodOverriderSuite extends Http4sSuite {
             reqMethod = PUT,
             overriddenMethod = Some(POST),
           ) &&
-            res.status === (Status.Ok) &&
+            res.status === Status.Ok &&
             res.headers.headers
               .exists(_ === Header.Raw(CIString(varyHeader), s"$customHeader, $overrideHeader"))
         )

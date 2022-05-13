@@ -98,7 +98,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       IO(client.close()) >> waitClose.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def send(msg: String): IO[Unit] = IO(client.send(msg))
     def ping(data: String): IO[Unit] = IO {
-      val frame = new PingFrame()
+      val frame = new PingFrame
       frame.setPayload(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)))
       client.sendFrame(frame)
     }

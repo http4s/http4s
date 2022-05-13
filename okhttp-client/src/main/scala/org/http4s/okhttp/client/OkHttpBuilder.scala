@@ -171,7 +171,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
         }
     }
 
-    new OKRequest.Builder()
+    new OKRequest.Builder
       .headers(OKHeaders.of(req.headers.headers.map(h => (h.name.toString, h.value)).toMap.asJava))
       .method(req.method.toString(), body)
       .url(req.uri.toString())
@@ -199,7 +199,7 @@ object OkHttpBuilder {
     defaultOkHttpClient.map(apply(_))
 
   private def defaultOkHttpClient[F[_]](implicit F: Async[F]): Resource[F, OkHttpClient] =
-    Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
+    Resource.make(F.delay(new OkHttpClient))(shutdown(_))
 
   private def shutdown[F[_]](client: OkHttpClient)(implicit F: Async[F]) =
     F.delay {

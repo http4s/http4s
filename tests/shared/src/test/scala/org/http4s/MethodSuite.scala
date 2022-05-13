@@ -71,7 +71,7 @@ class MethodSuite extends Http4sSuite {
     forAll { (m: Method) =>
       val upper = m.name.toUpperCase(Locale.ROOT)
       val lower = m.name.toLowerCase(Locale.ROOT)
-      (upper != lower) ==> { fromString(upper) != fromString(lower) }
+      upper != lower ==> { fromString(upper) != fromString(lower) }
     }
   }
 

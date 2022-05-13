@@ -116,7 +116,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       Response(Status.InternalServerError).pure[IO]
     }
     val client = Client.fromHttpApp(app)
-    val handleError = new (IO ~> IO) {
+    val handleError = new IO ~> IO {
       def apply[A](fa: IO[A]): IO[A] = fa.adaptError { case _: UnexpectedStatus =>
         MyThrowable
       }
@@ -136,7 +136,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
         .pure[IO]
     }
     val client = Client.fromHttpApp(app)
-    val handleError = new (IO ~> IO) {
+    val handleError = new IO ~> IO {
       def apply[A](fa: IO[A]): IO[A] = fa.adaptError { case _: DecodeFailure =>
         MyThrowable
       }

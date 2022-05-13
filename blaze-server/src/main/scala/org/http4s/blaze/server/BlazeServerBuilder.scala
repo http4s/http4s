@@ -207,7 +207,7 @@ class BlazeServerBuilder[F[_]] private (
     copy(sslConfig = new ContextWithParameters[F](sslContext, sslParameters))
 
   def withoutSsl: Self =
-    copy(sslConfig = new NoSsl[F]())
+    copy(sslConfig = new NoSsl[F])
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -365,7 +365,7 @@ class BlazeServerBuilder[F[_]] private (
       Key.newKey[F, WebSocketContext[F]].flatMap { wsKey =>
         executionContextConfig.getExecutionContext[F].map { executionContext =>
           engineConfig match {
-            case Some((ctx, configure)) =>
+            case Some(ctx, configure) =>
               val engine = ctx.createSSLEngine()
               engine.setUseClientMode(false)
               configure(engine)
@@ -479,7 +479,7 @@ object BlazeServerBuilder {
       connectorPoolSize = DefaultPoolSize,
       bufferSize = 64 * 1024,
       selectorThreadFactory = defaultThreadSelectorFactory,
-      sslConfig = new NoSsl[F](),
+      sslConfig = new NoSsl[F],
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = defaults.MaxHeadersSize,
@@ -572,7 +572,7 @@ object BlazeServerBuilder {
     def isSecure: Boolean = true
   }
 
-  private class NoSsl[F[_]]()(implicit F: Applicative[F]) extends SslConfig[F] {
+  private class NoSsl[F[_]](implicit F: Applicative[F]) extends SslConfig[F] {
     def makeContext: F[Option[SSLContext]] = F.pure(None)
     def configureEngine(engine: SSLEngine): Unit = ()
     def isSecure: Boolean = false

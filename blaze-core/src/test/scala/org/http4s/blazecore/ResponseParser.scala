@@ -91,9 +91,9 @@ class ResponseParser extends Http1ClientParser {
 
 object ResponseParser {
   def apply(buff: Seq[ByteBuffer]): (Status, Set[Header.Raw], String) =
-    new ResponseParser().parseResponse(buff)
+    new ResponseParser.parseResponse(buff)
   def apply(buff: ByteBuffer): (Status, Set[Header.Raw], String) = parseBuffer(buff)
 
   def parseBuffer(buff: ByteBuffer): (Status, Set[Header.Raw], String) =
-    new ResponseParser().parseResponseBuffer(buff)
+    new ResponseParser.parseResponseBuffer(buff)
 }

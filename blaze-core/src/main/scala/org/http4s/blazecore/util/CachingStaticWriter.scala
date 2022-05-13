@@ -58,7 +58,7 @@ private[http4s] class CachingStaticWriter[F[_]](
 
     if (innerWriter == null) { // We haven't written anything yet
       writer << "\r\n"
-      new InnerWriter().writeBodyChunk(c, flush = true)
+      new InnerWriter.writeBodyChunk(c, flush = true)
     } else writeBodyChunk(c, flush = true) // we are already proceeding
   }
 
@@ -70,7 +70,7 @@ private[http4s] class CachingStaticWriter[F[_]](
       clear()
       writer << "Content-Length: " << c.size << "\r\nConnection: keep-alive\r\n\r\n"
 
-      new InnerWriter().writeEnd(c).map(_ || _forceClose)(parasitic)
+      new InnerWriter.writeEnd(c).map(_ || _forceClose)(parasitic)
     }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =

@@ -35,7 +35,7 @@ import scala.util.Try
 class DecodeSpec extends Http4sSuite {
   test("decode should be consistent with utf8.decode") {
     forAll { (s: String, chunkSize: Int) =>
-      (chunkSize > 0) ==> {
+      chunkSize > 0 ==> {
         val source = Stream
           .emits {
             s.getBytes(StandardCharsets.UTF_8)
@@ -122,7 +122,7 @@ class DecodeSpec extends Http4sSuite {
 
   test("decode stream result should be consistent with nio's decode on full stream") {
     forAll { (bs: Array[Byte], cs: Charset) =>
-      (cs != Charset.`UTF-8`) ==> {
+      cs != Charset.`UTF-8` ==> {
         val referenceDecoder = cs.nioCharset
           .newDecoder()
           // setting these to be consistent with our decoder's behavior

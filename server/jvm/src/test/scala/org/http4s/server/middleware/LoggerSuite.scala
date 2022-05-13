@@ -60,7 +60,7 @@ class LoggerSuite extends Http4sSuite {
       res
         .as[String]
         .map(
-          _ === expectedBody && res.status === (Status.Ok)
+          _ === expectedBody && res.status === Status.Ok
         )
     }.assert
   }

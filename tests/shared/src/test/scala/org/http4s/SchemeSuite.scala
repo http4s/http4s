@@ -29,7 +29,7 @@ import org.scalacheck.Prop._
 class SchemeSuite extends munit.DisciplineSuite {
   test("equals should be consistent with equalsIgnoreCase of the values") {
     forAll { (a: Scheme, b: Scheme) =>
-      (a == b) == a.value.equalsIgnoreCase(b.value)
+      a == b == a.value.equalsIgnoreCase(b.value)
     }
   }
 
@@ -41,7 +41,7 @@ class SchemeSuite extends munit.DisciplineSuite {
 
   test("hashcode should be consistent with equality") {
     forAll { (a: Scheme, b: Scheme) =>
-      (a == b) ==> (a.## == b.##)
+      a == b ==> (a.## == b.##)
     }
   }
 

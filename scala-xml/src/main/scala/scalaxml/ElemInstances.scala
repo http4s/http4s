@@ -52,7 +52,7 @@ trait ElemInstances {
   implicit def xml[F[_]](implicit F: Concurrent[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
-      val source = new InputSource()
+      val source = new InputSource
       msg.charset.foreach(cs => source.setEncoding(cs.nioCharset.name))
 
       collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>

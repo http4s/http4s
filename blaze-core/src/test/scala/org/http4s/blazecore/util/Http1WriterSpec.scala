@@ -297,7 +297,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     (for {
       clean <- Ref.of[IO, Boolean](false)
       p = chunk(messageBuffer).onFinalizeWeak(clean.set(true))
-      w <- new FailingWriter().writeEntityBody(p).attempt
+      w <- new FailingWriter.writeEntityBody(p).attempt
       c <- clean.get
     } yield w.isLeft && c).assert
   }
@@ -308,7 +308,7 @@ class Http1WriterSpec extends Http4sSuite with DispatcherIOFixture {
     (for {
       clean <- Ref.of[IO, Boolean](false)
       p = eval(IO.raiseError(Failed)).onFinalizeWeak(clean.set(true))
-      w <- new FailingWriter().writeEntityBody(p).attempt
+      w <- new FailingWriter.writeEntityBody(p).attempt
       c <- clean.get
     } yield w.isLeft && c).assert
   }

@@ -39,7 +39,7 @@ object `X-Forwarded-For` {
     Rfc7230
       .headerRep1(
         (Rfc3986.ipv4Address.backtrack | Rfc3986.ipv6Address)
-          .map(s => Some(s)) | (Parser.string("unknown").as(None))
+          .map(s => Some(s)) | Parser.string("unknown").as(None)
       )
       .map(`X-Forwarded-For`.apply)
 

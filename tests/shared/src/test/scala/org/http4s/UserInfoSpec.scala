@@ -90,7 +90,7 @@ class UserInfoSpec extends Http4sSuite {
   test("fromString should reject userinfos with invalid characters") {
     forAll { (s: String) =>
       !s.forall(Uri.Unreserved ++ GenDelims ++ SubDelims ++ ":") ==>
-        (UserInfo.fromString(s).isLeft)
+        UserInfo.fromString(s).isLeft
     }
   }
 
@@ -103,7 +103,7 @@ class UserInfoSpec extends Http4sSuite {
 
   test("compare should be consistent with Ordered") {
     forAll { (a: UserInfo, b: UserInfo) =>
-      (math.signum(a.compareTo(b)) == math.signum(a.compare(b)))
+      math.signum(a.compareTo(b)) == math.signum(a.compare(b))
     }
   }
 

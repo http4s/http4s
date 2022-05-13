@@ -110,7 +110,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   test("BlazeClient should reuse the connection after response decoding failed") {
     // This will work regardless of whether we drain the entity or not,
     // because the response is small and it is read in full in first read operation
-    val drainThenFail = EntityDecoder.error[IO, String](new Exception())
+    val drainThenFail = EntityDecoder.error[IO, String](new Exception)
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -126,7 +126,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   test(
     "BlazeClient should reuse the connection after response decoding failed and the (large) entity was drained"
   ) {
-    val drainThenFail = EntityDecoder.error[IO, String](new Exception())
+    val drainThenFail = EntityDecoder.error[IO, String](new Exception)
     builder().resource.use { client =>
       for {
         servers <- makeServers()
@@ -144,7 +144,7 @@ class BlazeClientConnectionReuseSuite extends BlazeClientBase {
   ) {
     val failWithoutDraining = new EntityDecoder[IO, String] {
       override def decode(m: Media[IO], strict: Boolean): DecodeResult[IO, String] =
-        DecodeResult[IO, String](IO.raiseError(new Exception()))
+        DecodeResult[IO, String](IO.raiseError(new Exception))
       override def consumes: Set[MediaRange] = Set.empty
     }
     builder().resource.use { client =>

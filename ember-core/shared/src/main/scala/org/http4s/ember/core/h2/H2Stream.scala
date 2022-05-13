@@ -304,12 +304,12 @@ private[h2] class H2Stream[F[_]: Concurrent](
         }
         else s.state
         val sizeReadOk = if (data.endStream) {
-          s.contentLengthCheck.forall { case (max, current) => max === (current + data.data.size) }
+          s.contentLengthCheck.forall { case (max, current) => max === current + data.data.size }
         } else true
 
         val isClosed = newState == StreamState.Closed
 
-        val needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
+        val needsWindowUpdate = newSize <= localSettings.initialWindowSize.windowSize / 2
         for {
           _ <- state.update(s =>
             s.copy(
@@ -389,7 +389,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     t <- state.modify { s =>
       val oldSize = s.writeWindow
       val newSize = oldSize + window.windowSizeIncrement
-      val sizeValid = (s.writeWindow >= 0 && newSize >= 0) || s.writeWindow < 0 // Less than 2^31-1
+      val sizeValid = s.writeWindow >= 0 && newSize >= 0 || s.writeWindow < 0 // Less than 2^31-1
       val newS = s.copy(writeBlock = newWriteBlock, writeWindow = newSize)
       // println(s"Receive Window Update $newS - increment: ${window.windowSizeIncrement} oldSize: $oldSize")
       (newS, (s.writeBlock, sizeValid))

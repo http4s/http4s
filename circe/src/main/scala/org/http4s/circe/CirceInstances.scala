@@ -259,7 +259,7 @@ object CirceInstances {
   def withPrinter(p: Printer): CirceInstancesBuilder =
     builder.withPrinter(p)
 
-  val builder: CirceInstancesBuilder = new CirceInstancesBuilder() {}
+  val builder: CirceInstancesBuilder = new CirceInstancesBuilder {}
 
   // These are lazy since they are used when initializing the `builder`!
 
@@ -293,14 +293,14 @@ object CirceInstances {
   private def streamedJsonArray[F[_]](printer: Printer)(s: Stream[F, Json]): Stream[F, Byte] =
     s.pull.uncons1.flatMap {
       case None => Pull.output(emptyArray)
-      case Some((hd, tl)) =>
+      case Some(hd, tl) =>
         Pull.output(
           Chunk.concat(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
         ) >> // Output First Json As Chunk with leading `[`
           tl.repeatPull {
             _.uncons.flatMap {
               case None => Pull.pure(None)
-              case Some((hd, tl)) =>
+              case Some(hd, tl) =>
                 val interspersed = {
                   val bldr = Vector.newBuilder[Chunk[Byte]]
                   bldr.sizeHint(hd.size * 2)

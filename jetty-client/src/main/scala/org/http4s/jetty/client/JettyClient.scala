@@ -75,7 +75,7 @@ object JettyClient {
     Stream.resource(resource(client))
 
   def defaultHttpClient(): HttpClient = {
-    val sslCtxFactory = new SslContextFactory.Client();
+    val sslCtxFactory = new SslContextFactory.Client;
     val c = new HttpClient(sslCtxFactory)
     c.setFollowRedirects(false)
     c.setDefaultRequestContentType(null)

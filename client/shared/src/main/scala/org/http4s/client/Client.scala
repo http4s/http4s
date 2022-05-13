@@ -275,7 +275,7 @@ object Client {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
-          case Some((chunk, stream)) =>
+          case Some(chunk, stream) =>
             Pull.eval(disposed.get).flatMap {
               case true => Pull.raiseError[F](new IOException("response was disposed"))
               case false => Pull.output(chunk) >> go(stream)

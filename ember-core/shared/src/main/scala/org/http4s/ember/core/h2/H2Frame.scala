@@ -62,7 +62,7 @@ private[ember] object H2Frame {
 
     def fromByteVector(bv: ByteVector): Option[(RawFrame, ByteVector)] =
       if (bv.length >= 9) {
-        val length = (bv(2) & 0xff) | ((bv(1) & 0xff) << 8) | ((bv(0) & 0xff) << 16)
+        val length = bv(2) & 0xff | (bv(1) & 0xff) << 8 | (bv(0) & 0xff) << 16
         if (bv.length >= 9 + length) {
           val `type` = bv(3)
           val flags = bv(4)
@@ -89,19 +89,19 @@ private[ember] object H2Frame {
     // Network Byte Order is Big Endian, so Highest Identifier is First
     def toByteVector(raw: RawFrame): ByteVector = {
       // 3
-      val zero = ((raw.length >> 16) & 0xff).toByte
-      val one = ((raw.length >> 8) & 0xff).toByte
-      val two = ((raw.length >> 0) & 0xff).toByte
+      val zero = (raw.length >> 16 & 0xff).toByte
+      val one = (raw.length >> 8 & 0xff).toByte
+      val two = (raw.length >> 0 & 0xff).toByte
 
       // 2
       val t = raw.`type`
       val f = raw.flags
 
       // 4
-      val iZero = ((raw.identifier >> 24) & 0xff).toByte
-      val iOne = ((raw.identifier >> 16) & 0xff).toByte
-      val iTwo = ((raw.identifier >> 8) & 0xff).toByte
-      val iThree = ((raw.identifier) & 0xff).toByte
+      val iZero = (raw.identifier >> 24 & 0xff).toByte
+      val iOne = (raw.identifier >> 16 & 0xff).toByte
+      val iTwo = (raw.identifier >> 8 & 0xff).toByte
+      val iThree = (raw.identifier & 0xff).toByte
 
       ByteVector(
         zero,
@@ -176,8 +176,8 @@ private[ember] object H2Frame {
     // Padded = Bit 3 indicates
     def fromRaw(rawFrame: RawFrame): Either[H2Error, Data] =
       if (rawFrame.`type` === `type`) {
-        val endStream = (rawFrame.flags & (0x01 << 0)) != 0
-        val padded = (rawFrame.flags & (0x01 << 3)) != 0
+        val endStream = (rawFrame.flags & 0x01 << 0) != 0
+        val padded = (rawFrame.flags & 0x01 << 3) != 0
         if (padded) {
           val padLength = rawFrame.payload(0)
           val baseSize = rawFrame.payload.size.toInt - 1
@@ -202,8 +202,8 @@ private[ember] object H2Frame {
         .getOrElse(data.data)
       val flags: Byte = {
         val init: Int = 0x0
-        val endStreamBitSet: Int = if (data.endStream) (init | (1 << 0)) else init
-        val paddedSet: Int = if (data.pad.isDefined) endStreamBitSet | (1 << 3) else endStreamBitSet
+        val endStreamBitSet: Int = if (data.endStream) (init | 1 << 0) else init
+        val paddedSet: Int = if (data.pad.isDefined) endStreamBitSet | 1 << 3 else endStreamBitSet
         paddedSet.toByte
       }
       RawFrame(
@@ -248,10 +248,10 @@ private[ember] object H2Frame {
     def fromRaw(rawFrame: RawFrame): Either[H2Error, Headers] =
       rawFrame.`type` match {
         case `type` =>
-          val endStream = (rawFrame.flags & (0x01 << 0)) != 0
-          val endHeaders = (rawFrame.flags & (0x01 << 2)) != 0
-          val padded = (rawFrame.flags & (0x01 << 3)) != 0
-          val priority = (rawFrame.flags & (0x01 << 5)) != 0
+          val endStream = (rawFrame.flags & 0x01 << 0) != 0
+          val endHeaders = (rawFrame.flags & 0x01 << 2) != 0
+          val padded = (rawFrame.flags & 0x01 << 3) != 0
+          val priority = (rawFrame.flags & 0x01 << 5) != 0
 
           (priority, padded) match {
             case (false, false) =>
@@ -276,7 +276,7 @@ private[ember] object H2Frame {
               val weight = rest.get(4)
               val mod0 = s0 & ~(1 << 7)
               val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
-              val exclusive = (s0 & (0x01 << 7)) != 0
+              val exclusive = (s0 & 0x01 << 7) != 0
               val payload = rest.drop(5)
               Headers(
                 rawFrame.identifier,
@@ -295,7 +295,7 @@ private[ember] object H2Frame {
               val weight = rest.get(4)
               val mod0 = s0 & ~(1 << 7)
               val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
-              val exclusive = (s0 & (0x01 << 7)) != 0
+              val exclusive = (s0 & 0x01 << 7) != 0
               val payload = rest.drop(5)
 
               Headers(
@@ -326,10 +326,10 @@ private[ember] object H2Frame {
     def toRaw(headers: Headers): RawFrame = {
       val flags = {
         var init = 0
-        if (headers.endStream) init = init | (1 << 0)
-        if (headers.endHeaders) init = init | (1 << 2)
-        if (headers.padding.isDefined) init = init | (1 << 3)
-        if (headers.dependency.isDefined) init = init | (1 << 5)
+        if (headers.endStream) init = init | 1 << 0
+        if (headers.endHeaders) init = init | 1 << 2
+        if (headers.padding.isDefined) init = init | 1 << 3
+        if (headers.dependency.isDefined) init = init | 1 << 5
         init
       }.toByte
 
@@ -339,11 +339,11 @@ private[ember] object H2Frame {
           ByteVector(pad.length.toByte) ++ headers.headerBlock ++
             pad
         case (padO, Some(dependency)) =>
-          val dep0 = ((dependency.dependency >> 24) & 0xff).toByte
-          val dep1 = ((dependency.dependency >> 16) & 0xff).toByte
-          val dep2 = ((dependency.dependency >> 8) & 0xff).toByte
-          val dep3 = ((dependency.dependency >> 0) & 0xff).toByte
-          val modDep0 = (if (dependency.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
+          val dep0 = (dependency.dependency >> 24 & 0xff).toByte
+          val dep1 = (dependency.dependency >> 16 & 0xff).toByte
+          val dep2 = (dependency.dependency >> 8 & 0xff).toByte
+          val dep3 = (dependency.dependency >> 0 & 0xff).toByte
+          val modDep0 = (if (dependency.exclusive) dep0 | 1 << 7 else dep0 & ~(1 << 7)).toByte
           val base = ByteVector(modDep0, dep1, dep2, dep3, dependency.weight) ++ headers.headerBlock
           padO match {
             case None => base
@@ -386,7 +386,7 @@ private[ember] object H2Frame {
           val s2 = raw.payload(2)
           val s3 = raw.payload(3)
           val mod0 = s0 & ~(1 << 7)
-          val exclusive = (s0 & (0x01 << 7)) != 0
+          val exclusive = (s0 & 0x01 << 7) != 0
           val dependency = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
           val weight = raw.payload(4)
 
@@ -396,11 +396,11 @@ private[ember] object H2Frame {
 
     def toRaw(priority: Priority): RawFrame = {
       val payload = {
-        val dep0 = ((priority.streamDependency >> 24) & 0xff).toByte
-        val dep1 = ((priority.streamDependency >> 16) & 0xff).toByte
-        val dep2 = ((priority.streamDependency >> 8) & 0xff).toByte
-        val dep3 = ((priority.streamDependency >> 0) & 0xff).toByte
-        val modDep0 = (if (priority.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
+        val dep0 = (priority.streamDependency >> 24 & 0xff).toByte
+        val dep1 = (priority.streamDependency >> 16 & 0xff).toByte
+        val dep2 = (priority.streamDependency >> 8 & 0xff).toByte
+        val dep3 = (priority.streamDependency >> 0 & 0xff).toByte
+        val modDep0 = (if (priority.exclusive) dep0 | 1 << 7 else dep0 & ~(1 << 7)).toByte
         ByteVector(modDep0, dep1, dep2, dep3, priority.weight)
       }
       RawFrame(payload.size.toInt, `type`, 0, priority.identifier, payload)
@@ -534,7 +534,7 @@ private[ember] object H2Frame {
     // Effect?
     def fromRaw(raw: RawFrame): Either[H2Error, Settings] =
       if (raw.`type` == `type`) {
-        val ack = (raw.flags & (0x01 << 0)) != 0
+        val ack = (raw.flags & 0x01 << 0) != 0
         if (ack && raw.payload.nonEmpty) H2Error.FrameSizeError.asLeft
         else if (ack) Settings(raw.identifier, ack, List.empty).asRight
         else fromPayload(raw.payload, raw.identifier, ack)
@@ -543,7 +543,7 @@ private[ember] object H2Frame {
       if (payload.size % 6 != 0) H2Error.FrameSizeError.asLeft
       else {
         val settings = for {
-          i <- 0 to (payload.size.toInt - 5) by 6
+          i <- 0 to payload.size.toInt - 5 by 6
         } yield {
           val s = (payload(i) << 8) + (payload(i + 1) << 0)
           val v0 = (payload(i + 2) & 0xff) << 24
@@ -558,16 +558,16 @@ private[ember] object H2Frame {
 
     def toRaw(settings: Settings): RawFrame = {
       val payload = settings.list.foldRight(ByteVector.empty) { case (next, bv) =>
-        val s0 = ((next.identifier >> 8) & 0xff).toByte
-        val s1 = ((next.identifier >> 0) & 0xff).toByte
+        val s0 = (next.identifier >> 8 & 0xff).toByte
+        val s1 = (next.identifier >> 0 & 0xff).toByte
 
-        val v0 = ((next.value >> 24) & 0xff).toByte
-        val v1 = ((next.value >> 16) & 0xff).toByte
-        val v2 = ((next.value >> 8) & 0xff).toByte
-        val v3 = ((next.value >> 0) & 0xff).toByte
+        val v0 = (next.value >> 24 & 0xff).toByte
+        val v1 = (next.value >> 16 & 0xff).toByte
+        val v2 = (next.value >> 8 & 0xff).toByte
+        val v3 = (next.value >> 0 & 0xff).toByte
         ByteVector(s0, s1, v0, v1, v2, v3) ++ bv
       }
-      val flag: Byte = (if (settings.ack) 0 | (1 << 0) else 0).toByte
+      val flag: Byte = (if (settings.ack) 0 | 1 << 0 else 0).toByte
       RawFrame(payload.size.toInt, `type`, flag, settings.identifier, payload)
     }
 
@@ -658,16 +658,16 @@ private[ember] object H2Frame {
     def toRaw(push: PushPromise): RawFrame = {
       val flag = {
         var base = 0
-        if (push.endHeaders) base = base | (1 << 2)
-        if (push.padding.isDefined) base = base | (1 << 3)
+        if (push.endHeaders) base = base | 1 << 2
+        if (push.padding.isDefined) base = base | 1 << 3
         base
       }.toByte
       val payload = {
         val base: ByteVector = {
-          val s0 = (push.promisedStreamId >> 24) & 0xff
-          val s1: Byte = ((push.promisedStreamId >> 16) & 0xff).toByte
-          val s2: Byte = ((push.promisedStreamId >> 8) & 0xff).toByte
-          val s3: Byte = ((push.promisedStreamId >> 0) & 0xff).toByte
+          val s0 = push.promisedStreamId >> 24 & 0xff
+          val s1: Byte = (push.promisedStreamId >> 16 & 0xff).toByte
+          val s2: Byte = (push.promisedStreamId >> 8 & 0xff).toByte
+          val s3: Byte = (push.promisedStreamId >> 0 & 0xff).toByte
           val modS0: Byte = (s0 & ~(1 << 7)).toByte
 
           ByteVector(modS0, s1, s2, s3) ++ push.headerBlock
@@ -679,8 +679,8 @@ private[ember] object H2Frame {
 
     def fromRaw(raw: RawFrame): Either[H2Error, PushPromise] =
       if (raw.`type` == `type`) {
-        val endHeaders = (raw.flags & (0x01 << 2)) != 0
-        val padded = (raw.flags & (0x01 << 3)) != 0
+        val endHeaders = (raw.flags & 0x01 << 2) != 0
+        val padded = (raw.flags & 0x01 << 3) != 0
 
         if (padded) {
 
@@ -737,7 +737,7 @@ private[ember] object H2Frame {
     val emptyBV: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
     def toRaw(ping: Ping): RawFrame = {
-      val flag: Byte = (if (ping.ack) 0 | (1 << 0) else 0).toByte
+      val flag: Byte = (if (ping.ack) 0 | 1 << 0 else 0).toByte
       val payload = ping.data
 
       RawFrame(8, `type`, flag, ping.identifier, payload)
@@ -745,7 +745,7 @@ private[ember] object H2Frame {
 
     def fromRaw(raw: RawFrame): Either[H2Error, Ping] =
       if (raw.`type` == `type`) {
-        val ack = (raw.flags & (0x01 << 0)) != 0
+        val ack = (raw.flags & 0x01 << 0) != 0
         if (raw.length == 8) Either.right(Ping(raw.identifier, ack, raw.payload))
         else H2Error.FrameSizeError.asLeft
       } else H2Error.InternalError.asLeft
@@ -775,16 +775,16 @@ private[ember] object H2Frame {
 
     def toRaw(goAway: GoAway): RawFrame = {
       val payload = {
-        val s0 = (goAway.lastStreamId >> 24) & 0xff
-        val s1: Byte = ((goAway.lastStreamId >> 16) & 0xff).toByte
-        val s2: Byte = ((goAway.lastStreamId >> 8) & 0xff).toByte
-        val s3: Byte = ((goAway.lastStreamId >> 0) & 0xff).toByte
+        val s0 = goAway.lastStreamId >> 24 & 0xff
+        val s1: Byte = (goAway.lastStreamId >> 16 & 0xff).toByte
+        val s2: Byte = (goAway.lastStreamId >> 8 & 0xff).toByte
+        val s3: Byte = (goAway.lastStreamId >> 0 & 0xff).toByte
         val modS0: Byte = (s0 & ~(1 << 7)).toByte
 
-        val e0: Byte = ((goAway.errorCode >> 24) & 0xff).toByte
-        val e1: Byte = ((goAway.errorCode >> 16) & 0xff).toByte
-        val e2: Byte = ((goAway.errorCode >> 8) & 0xff).toByte
-        val e3: Byte = ((goAway.errorCode >> 0) & 0xff).toByte
+        val e0: Byte = (goAway.errorCode >> 24 & 0xff).toByte
+        val e1: Byte = (goAway.errorCode >> 16 & 0xff).toByte
+        val e2: Byte = (goAway.errorCode >> 8 & 0xff).toByte
+        val e3: Byte = (goAway.errorCode >> 0 & 0xff).toByte
 
         ByteVector(modS0, s1, s2, s3, e0, e1, e2, e3) ++ goAway.additionalDebugData.getOrElse(
           ByteVector.empty
@@ -829,10 +829,10 @@ private[ember] object H2Frame {
 
     def toRaw(windowUpdate: WindowUpdate): RawFrame = {
       val payload = {
-        val s0 = (windowUpdate.windowSizeIncrement >> 24) & 0xff
-        val s1: Byte = ((windowUpdate.windowSizeIncrement >> 16) & 0xff).toByte
-        val s2: Byte = ((windowUpdate.windowSizeIncrement >> 8) & 0xff).toByte
-        val s3: Byte = ((windowUpdate.windowSizeIncrement >> 0) & 0xff).toByte
+        val s0 = windowUpdate.windowSizeIncrement >> 24 & 0xff
+        val s1: Byte = (windowUpdate.windowSizeIncrement >> 16 & 0xff).toByte
+        val s2: Byte = (windowUpdate.windowSizeIncrement >> 8 & 0xff).toByte
+        val s3: Byte = (windowUpdate.windowSizeIncrement >> 0 & 0xff).toByte
         val modS0: Byte = (s0 & ~(1 << 7)).toByte
         ByteVector(modS0, s1, s2, s3)
       }
@@ -870,7 +870,7 @@ private[ember] object H2Frame {
   object Continuation {
     val `type`: Byte = 0x9
     def toRaw(cont: Continuation): RawFrame = {
-      val flag: Byte = (if (cont.endHeaders) 0 | (1 << 2) else 0).toByte
+      val flag: Byte = (if (cont.endHeaders) 0 | 1 << 2 else 0).toByte
       RawFrame(
         cont.headerBlockFragment.size.toInt,
         `type`,
@@ -881,7 +881,7 @@ private[ember] object H2Frame {
     }
     def fromRaw(raw: RawFrame): Either[H2Error, Continuation] =
       if (raw.`type` == `type`) {
-        val endHeaders = (raw.flags & (0x01 << 2)) != 0
+        val endHeaders = (raw.flags & 0x01 << 2) != 0
         Continuation(raw.identifier, endHeaders, raw.payload).asRight
       } else H2Error.InternalError.asLeft
   }

@@ -27,7 +27,7 @@ class TransferCodingSpec extends Http4sSuite {
 
   test("equals should be consistent with equalsIgnoreCase of the codings") {
     Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
-      (a == b) == a.coding.equalsIgnoreCase(b.coding)
+      a == b == a.coding.equalsIgnoreCase(b.coding)
     }
   }
 

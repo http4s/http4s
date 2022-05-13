@@ -19,7 +19,7 @@ package org.http4s.internal
 import scala.annotation.tailrec
 import scala.collection.immutable.NumericRange
 
-sealed abstract class CharPredicate extends (Char => Boolean) {
+sealed abstract class CharPredicate extends Char => Boolean {
   import CharPredicate._
 
   /** Determines wether this CharPredicate is an instance of the high-performance,
@@ -156,7 +156,7 @@ object CharPredicate {
 
     def apply(c: Char): Boolean = {
       val mask = if (c < 64) lowMask else highMask
-      ((1L << c.toLong) & ((c - 128) >> 31) & mask) != 0L // branchless for `(c < 128) && (mask & (1L << c) != 0)`
+      (1L << c.toLong & c - 128 >> 31 & mask) != 0L // branchless for `(c < 128) && (mask & (1L << c) != 0)`
     }
 
     def ++(that: CharPredicate): CharPredicate =
@@ -213,7 +213,7 @@ object CharPredicate {
     def getChars(array: Array[Char], startIx: Int): Unit = {
       @tailrec def rec(mask: Long, offset: Int, bit: Int, ix: Int): Int =
         if (bit < 64 && ix < array.length)
-          if ((mask & (1L << bit)) > 0) {
+          if ((mask & 1L << bit) > 0) {
             array(ix) = (offset + bit).toChar
             rec(mask, offset, bit + 1, ix + 1)
           } else rec(mask, offset, bit + 1, ix)

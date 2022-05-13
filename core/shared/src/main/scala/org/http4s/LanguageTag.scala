@@ -63,6 +63,6 @@ final case class LanguageTag(
     else checkLists(tags1.tail, tags2.tail)
 
   def matches(languageTag: LanguageTag): Boolean =
-    this.primaryTag == "*" || (this.primaryTag == languageTag.primaryTag &&
-      checkLists(subTags, languageTag.subTags))
+    this.primaryTag == "*" || this.primaryTag == languageTag.primaryTag &&
+      checkLists(subTags, languageTag.subTags)
 }

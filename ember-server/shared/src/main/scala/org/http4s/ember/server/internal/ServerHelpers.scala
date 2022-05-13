@@ -428,7 +428,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           }
 
           result.attempt.flatMap {
-            case Right((req, resp, drain)) =>
+            case Right(req, resp, drain) =>
               // TODO: Should we pay this cost for every HTTP request?
               // Intercept the response for various upgrade paths
               resp.attributes.lookup(webSocketKey) match {
@@ -461,7 +461,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         nextBuffer <- drain
                       } yield nextBuffer.map(buffer => ((req, nextResp), (buffer, true)))
                     // h2c escalation of the connection
-                    case Some((settings, newReq)) =>
+                    case Some(settings, newReq) =>
                       for {
                         nextResp <- postProcessResponse(req, resp)
                         _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)

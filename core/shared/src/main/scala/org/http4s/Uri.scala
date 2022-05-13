@@ -381,8 +381,8 @@ object Uri extends UriPlatform {
     def concat(path: Path): Path =
       Path(
         segments ++ path.segments,
-        absolute = this.absolute || (this.isEmpty && path.absolute),
-        endsWithSlash = path.endsWithSlash || (path.isEmpty && this.endsWithSlash),
+        absolute = this.absolute || this.isEmpty && path.absolute,
+        endsWithSlash = path.endsWithSlash || path.isEmpty && this.endsWithSlash,
       )
 
     def startsWith(path: Path): Boolean = segments.startsWith(path.segments)
@@ -453,7 +453,7 @@ object Uri extends UriPlatform {
       override val toString: String = encoded
     }
 
-    object Segment extends (String => Segment) {
+    object Segment extends String => Segment {
       def apply(value: String): Segment = new Segment(pathEncode(value))
       def encoded(value: String): Segment = new Segment(value)
 
@@ -1193,7 +1193,7 @@ object Uri extends UriPlatform {
     /* path-absolute = "/" [ segment-nz *( "/" segment ) ] */
     private[http4s] val pathAbsolute: P[Uri.Path] =
       (char('/') *> (segmentNz ~ (char('/') *> segment).rep0).?).map {
-        case Some((head, tail)) =>
+        case Some(head, tail) =>
           val segmentsV = head +: tail.toVector
           if (segmentsV.last.isEmpty)
             Uri.Path(segmentsV.dropRight(1), absolute = true, endsWithSlash = true)
@@ -1351,8 +1351,8 @@ object Uri extends UriPlatform {
       P.oneOf0(
         (string("//") *> authority(cs) ~ pathAbempty).map { case (a, p) =>
           (Some(a), p)
-        } :: (pathAbsolute
-          .map((None, _))) :: (pathNoscheme.map((None, _))) :: (pathEmpty.map((None, _))) :: Nil
+        } :: pathAbsolute
+          .map((None, _)) :: pathNoscheme.map((None, _)) :: pathEmpty.map((None, _)) :: Nil
       )
     }
 
