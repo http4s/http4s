@@ -123,7 +123,7 @@ object WebSocketHelpers {
         case WebSocketCombinedPipe(receiveSend, onClose) =>
           incoming
             .through(decodeFrames[F])
-            .through(handleIncomingFrames(write, close))
+            .evalMapFilter(handleIncomingFrame[F](write, close))
             .through(receiveSend)
             .flatMap(encodeFrame[F])
             .through(write) -> onClose
@@ -147,7 +147,7 @@ object WebSocketHelpers {
 
           val reader = incoming
             .through(decodeFrames[F])
-            .through(handleIncomingFrames(write, close))
+            .evalMapFilter(handleIncomingFrame[F](write, close))
             .through(receive)
 
           reader.concurrently(writer) -> onClose
@@ -161,29 +161,27 @@ object WebSocketHelpers {
     }
   }
 
-  private def handleIncomingFrames[F[_]](
-      write: Pipe[F, Byte, Unit],
-      closeState: Ref[F, Close],
-  )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
+  private def handleIncomingFrame[F[_]](write: Pipe[F, Byte, Unit], closeState: Ref[F, Close])(
+      frame: WebSocketFrame
+  )(implicit F: Concurrent[F]): F[Option[WebSocketFrame]] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
       encodeFrame[F](frame).through(write).compile.drain
 
-    stream =>
-      stream.evalMapFilter[F, WebSocketFrame] {
-        case ping @ WebSocketFrame.Ping(data) =>
-          writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
-        case frame @ WebSocketFrame.Close(_) =>
-          closeState.get.flatMap {
-            case Open =>
-              for {
-                frame <- F.fromEither(WebSocketFrame.Close(frame.closeCode))
-                _ <- writeFrame(frame)
-                _ <- closeState.set(BothClosed)
-              } yield None
-            case _ => F.pure(None)
-          }
-        case x => F.pure(Some(x))
-      }
+    frame match {
+      case ping @ WebSocketFrame.Ping(data) =>
+        writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
+      case frame @ WebSocketFrame.Close(_) =>
+        closeState.get.flatMap {
+          case Open =>
+            for {
+              frame <- F.fromEither(WebSocketFrame.Close(frame.closeCode))
+              _ <- writeFrame(frame)
+              _ <- closeState.set(BothClosed)
+            } yield None
+          case _ => F.pure(None)
+        }
+      case x => F.pure(Some(x))
+    }
   }
 
   private def encodeFrame[F[_]](frame: WebSocketFrame): Stream[F, Byte] = {
