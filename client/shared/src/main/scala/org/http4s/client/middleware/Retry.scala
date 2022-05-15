@@ -169,7 +169,7 @@ object RetryPolicy {
     GatewayTimeout,
   )
 
-  /** Returns true if (the request method is idempotent and its entity isn't streamed;
+  /** Returns true if (the request method is idempotent and the request's entity is pure (isn't effectful);
     * or request contains [[`Idempotency-Key`]] header) and the result is either a throwable or
     * has one of the `RetriableStatuses`.
     *
