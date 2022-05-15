@@ -125,7 +125,7 @@ object WebSocketHelpers {
             .through(decodeFrames[F])
             .through(handleIncomingFrames(write, close))
             .through(receiveSend)
-            .through(encodeFrames[F])
+            .flatMap(encodeFrame[F])
             .through(write) -> onClose
         case WebSocketSeparatePipe(send, receive, onClose) =>
           val closeFrame: F[Stream[F, WebSocketFrame]] = close.get.flatMap {
@@ -142,7 +142,7 @@ object WebSocketHelpers {
           val sendWithClose = send ++ Stream.eval(closeFrame).flatten
 
           val writer = sendWithClose
-            .through(encodeFrames[F])
+            .flatMap(encodeFrame[F])
             .through(write)
 
           val reader = incoming
@@ -166,7 +166,7 @@ object WebSocketHelpers {
       closeState: Ref[F, Close],
   )(implicit F: Concurrent[F]): Pipe[F, WebSocketFrame, WebSocketFrame] = {
     def writeFrame(frame: WebSocketFrame): F[Unit] =
-      Stream(frame).through(encodeFrames[F]).through(write).compile.drain
+      encodeFrame[F](frame).through(write).compile.drain
 
     stream =>
       stream.evalMapFilter[F, WebSocketFrame] {
@@ -186,19 +186,15 @@ object WebSocketHelpers {
       }
   }
 
-  private def encodeFrames[F[_]]: Pipe[F, WebSocketFrame, Byte] =
-    stream =>
-      stream.flatMap { frame =>
-        val chunks = nonClientTranscoder.frameToBuffer(frame).map { buffer =>
-          // TODO followup: improve the buffering here
-          val bytes = new Array[Byte](buffer.remaining())
-          buffer.get(bytes)
-          Chunk.array(bytes)
-        }
-        Stream
-          .iterable(chunks)
-          .flatMap(Stream.chunk(_))
-      }
+  private def encodeFrame[F[_]](frame: WebSocketFrame): Stream[F, Byte] = {
+    val chunks = nonClientTranscoder.frameToBuffer(frame).map { buffer =>
+      // TODO followup: improve the buffering here
+      val bytes = new Array[Byte](buffer.remaining())
+      buffer.get(bytes)
+      Chunk.array(bytes)
+    }
+    Stream.iterable(chunks).flatMap(Stream.chunk(_))
+  }
 
   private def decodeFrames[F[_]](implicit F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
