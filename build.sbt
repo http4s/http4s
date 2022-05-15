@@ -37,13 +37,17 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       WorkflowStep.Run(
         List("cd scalafix", "sbt ci"),
         name = Some("Scalafix tests"),
-        cond = Some(s"matrix.scala == '$scala_213'"),
       )
     ),
-    scalas = crossScalaVersions.value.toList,
+    scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
   )
 )
+
+ThisBuild / jsEnv := {
+  import org.scalajs.jsenv.nodejs.NodeJSEnv
+  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+}
 
 lazy val modules: List[CompositeProject] = List(
   core,
@@ -65,7 +69,6 @@ lazy val modules: List[CompositeProject] = List(
   nodeServerless,
   theDsl,
   jawn,
-  boopickle,
   circe,
   playJson,
   scalaXml,
@@ -181,11 +184,6 @@ lazy val testing = libraryCrossProject("testing", CrossType.Full)
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ).map(_ % Test),
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value
-    ).map(_ % Test)
   )
   .dependsOn(laws)
 
@@ -397,17 +395,6 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
       jawnFs2.value,
       jawnParser.value,
     ),
-  )
-  .dependsOn(core, testing % "test->test")
-
-lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
-  .settings(
-    description := "Provides Boopickle codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value
-    ),
-    tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
   )
   .dependsOn(core, testing % "test->test")
 
@@ -636,9 +623,10 @@ lazy val examplesDocker = http4sProject("examples-docker")
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
-  .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
+    name := "http4s-scalafix-internal",
+    mimaPreviousArtifacts := Set.empty,
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion

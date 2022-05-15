@@ -19,6 +19,7 @@ package multipart
 
 import cats.data.EitherT
 import cats.effect._
+import cats.effect.std.Random
 import cats.syntax.all._
 import fs2._
 import org.http4s.EntityEncoder._
@@ -27,13 +28,12 @@ import org.http4s.syntax.literals._
 import org.typelevel.ci._
 
 import scala.annotation.nowarn
-import scala.util.Random
 
 class MultipartSuite extends Http4sSuite {
   private val url = uri"https://example.com/path/to/some/where"
 
-  private val random = new Random()
-  private val multiparts = Multiparts.fromScalaRandom[IO](random)
+  private val multiparts =
+    Random.scalaUtilRandom[IO].map(Multiparts.fromRandom[IO]).syncStep.unsafeRunSync().toOption.get
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
     for {
