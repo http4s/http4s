@@ -465,14 +465,13 @@ final class Request[+F[_]] private (
   def isIdempotent: Boolean =
     method.isIdempotent || headers.contains[`Idempotency-Key`]
 
-  /**
-   * Checks whether the [[Entity]] of the [[Message]] is pure in the sense of
-   * indicating that the entity body can be re-run without side effects.
-   *
-   * @return the [[Boolean]] value:
-   *         'true' if entity is empty or already loaded into memory;
-   *         'false' if entity is streamed.
-   */
+  /** Checks whether the [[Entity]] of the [[Message]] is pure in the sense of
+    * indicating that the entity body can be re-run without side effects.
+    *
+    * @return the [[Boolean]] value:
+    *         'true' if entity is empty or already loaded into memory;
+    *         'false' if entity is streamed.
+    */
   def isPureEntity: Boolean =
     entity match {
       case Entity.Empty | Entity.Strict(_) =>
