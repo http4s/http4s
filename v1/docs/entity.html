@@ -202,8 +202,21 @@
         http client usage, where you can start a connection before the body is fully
         materialized. You don&#39;t have to load the full body into memory to submit the
         request either. Taking a look at <code>Request[F]</code> and <code>Response[F]</code>, both have a body of
-        type <code>EntityBody[F]</code>, which is simply an alias to <code>Stream[F, Byte]</code>. To
-        understand <code>Stream</code>, take a look at the <a href="https://youtu.be/cahvyadYfX8">introduction-to-functional-streams</a>.</p>
+        type <code>Entity[F]</code>. </p>
+        <p><code>Entity[F]</code> is an ADT with three alternatives: </p>
+        <ul>
+          <li>
+            <p><code>Empty</code> - stands for an empty entity; </p>
+          </li>
+          <li>
+            <p><code>Strict</code> - stands for an entity that is completely loaded into memory; </p>
+          </li>
+          <li>
+            <p><code>Default</code> - stands for a streamed entity that could be the finite or potentially 
+            infinite size. Stream is represented by <code>fs2.Stream[F, Byte]</code>. To understand <code>fs2.Stream</code>, 
+            take a look at the <a href="https://youtu.be/cahvyadYfX8">introduction-to-functional-streams</a>.</p>
+          </li>
+        </ul>
         <p>The <code>EntityDecoder</code> and <code>EntityEncoder</code> help with the streaming nature of the
         data in a http body, and they also have additional logic to deal with media
         types. Not all decoders are streaming, depending on the implementation.</p>
@@ -247,7 +260,7 @@
 //        = HttpVersion(major = 1, minor = 1),
 //        = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
 //        = Strict(chunk = empty),
-//        = org.typelevel.vault.Vault@617c284d
+//        = org.typelevel.vault.Vault@37fcb5b5
 //     )
 //   ),
 //   f = &lt;function1&gt;,
@@ -258,15 +271,15 @@
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Audio</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// audioDec: EntityDecoder[IO[A], Audio] = org.http4s.EntityDecoder$$anon$7@b6e2af9
+</span><span class="comment">// audioDec: EntityDecoder[IO[A], Audio] = org.http4s.EntityDecoder$$anon$7@560e3a58
 </span><span class="keyword">val</span><span> </span><span class="identifier">videoDec</span><span> = </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">decodeBy</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">video</span><span>.</span><span class="identifier">ogg</span><span>) { (</span><span class="identifier">m</span><span>: </span><span class="type-name">Media</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
   </span><span class="type-name">EitherT</span><span> {
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Video</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// videoDec: EntityDecoder[IO[A], Video] = org.http4s.EntityDecoder$$anon$7@2b748a46
+</span><span class="comment">// videoDec: EntityDecoder[IO[A], Video] = org.http4s.EntityDecoder$$anon$7@2b9cabf9
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">bothDec</span><span> = </span><span class="identifier">audioDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>] </span><span class="identifier">orElse</span><span> </span><span class="identifier">videoDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>]
-</span><span class="comment">// bothDec: EntityDecoder[IO[A], Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@3ccaa590
+</span><span class="comment">// bothDec: EntityDecoder[IO[A], Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@5593a550
 </span><span class="identifier">println</span><span>(</span><span class="identifier">response</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Resp</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>())
 </span><span class="comment">// Audio()</span></code></pre>
         
