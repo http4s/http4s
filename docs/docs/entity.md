@@ -9,8 +9,17 @@ streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
 request either. Taking a look at `Request[F]` and `Response[F]`, both have a body of
-type `EntityBody[F]`, which is simply an alias to `Stream[F, Byte]`. To
-understand `Stream`, take a look at the [introduction-to-functional-streams].
+type `Entity[F]`. 
+
+`Entity[F]` is an ADT with three alternatives: 
+
+- `Empty` - stands for an empty entity; 
+
+- `Strict` - stands for an entity that is completely loaded into memory; 
+
+- `Default` - stands for a streamed entity that could be the finite or potentially 
+infinite size. Stream is represented by `fs2.Stream[F, Byte]`. To understand `fs2.Stream`, 
+take a look at the [introduction-to-functional-streams].
 
 The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
