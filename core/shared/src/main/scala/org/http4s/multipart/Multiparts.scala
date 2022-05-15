@@ -16,10 +16,10 @@
 
 package org.http4s.multipart
 
+import cats.Functor
 import cats.effect.Sync
+import cats.effect.std.Random
 import cats.syntax.all._
-
-import scala.util.Random
 
 /** An algebra for creating multipart values and boundaries.
   *
@@ -36,22 +36,17 @@ trait Multiparts[F[_]] {
 
 object Multiparts {
 
-  /** Creates a `scala.util.Random` and provides Multiparts around it.
+  /** Creates a `cats.effect.std.Random` and provides Multiparts around it.
     * This instance can be shared, or is cheap enough to create closer
     * to where Multipart values are generated.
     */
   def forSync[F[_]](implicit F: Sync[F]): F[Multiparts[F]] =
-    F.delay(new Random()).map(fromScalaRandom[F])
+    Random.scalaUtilRandom[F].map(fromRandom[F])
 
-  def fromScalaRandom[F[_]](random: Random)(implicit F: Sync[F]): Multiparts[F] =
+  def fromRandom[F[_]](random: Random[F])(implicit F: Functor[F]): Multiparts[F] =
     new Multiparts[F] {
-      def boundary: F[Boundary] = F
-        .delay {
-          val bytes = new Array[Byte](30)
-          random.nextBytes(bytes)
-          bytes
-        }
-        .map(Boundary.unsafeFromBytes)
+      def boundary: F[Boundary] =
+        random.nextBytes(30).map(Boundary.unsafeFromBytes)
 
       def multipart(parts: Vector[Part[F]]): F[Multipart[F]] =
         F.map(boundary)(Multipart(parts, _))
