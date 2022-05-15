@@ -194,7 +194,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
     for {
       client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
+        URI.create(s"ws://${server.address}/ws-filter-false"),
         dispatcher,
       )
       _ <- client.connect
