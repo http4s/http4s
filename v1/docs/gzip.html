@@ -208,7 +208,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;I repeat myself when I&#39;m under stress. &quot;</span><span> * </span><span class="number-literal">3</span><span>)
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21863/927198518@50be1010
+//   run = org.http4s.HttpRoutes$$$Lambda$21826/1596793017@694aa83d
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -218,7 +218,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@61ae9b80
+//    = org.typelevel.vault.Vault@4f25535e
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -281,7 +281,7 @@
         <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">serviceZip</span><span> = </span><span class="type-name">GZip</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// serviceZip: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.GZip$$$Lambda$23535/1153838727@50333d6
+//   run = org.http4s.server.middleware.GZip$$$Lambda$23495/508038198@7ce723fc
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -350,7 +350,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Accept-Encoding: gzip),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@61ae9b80
+//    = org.typelevel.vault.Vault@4f25535e
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -360,7 +360,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //    = Default(body = Stream(..), length = None),
-//    = org.typelevel.vault.Vault@18a9b3f4
+//    = org.typelevel.vault.Vault@6c93b481
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyZip</span><span> = </span><span class="identifier">respZip</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyZip: String = &quot;\u001f\ufffd\b\u0000\u0000\u0000\u0000\u0000\u0000\u0003\ufffdT(J-HM,Q\u022d,N\ufffdIS(\ufffdH\ufffdS\ufffdT\ufffdU(\ufffdKI-R(.)J-.\ufffdS\ufffd2\u0000UX\ufffd&lt;u\u0000\u0000\u0000&quot;
