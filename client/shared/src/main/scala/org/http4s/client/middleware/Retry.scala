@@ -169,16 +169,23 @@ object RetryPolicy {
     GatewayTimeout,
   )
 
-  /** Returns true if (the request method is idempotent or request contains Idempotency-Key header)
-    * and the result is either a throwable or has one of the `RetriableStatuses`.
+  /** Returns true if (the request method is idempotent and its entity isn't streamed;
+    * or request contains [[`Idempotency-Key`]] header) and the result is either a throwable or
+    * has one of the `RetriableStatuses`.
     *
-    * Caution: if the request body is effectful, the effects will be
-    * run twice.  The most common symptom of this will be resubmitting
-    * an idempotent request.
+    * Caution: a request wouldn't be resubmitted if the idempotent request contains
+    * streamed (effectful) [[Entity]] (nor empty, nor fully loaded into memory).
     */
-  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
-      isErrorOrRetriableStatus(result)
+  def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean = {
+    def isReqIdempotentAndEntityPure =
+      req.method.isIdempotent && req.isPureEntity
+
+    def isHeadersContainsIdempotencyHeader =
+      req.headers.get[`Idempotency-Key`].isDefined
+
+    (isReqIdempotentAndEntityPure || isHeadersContainsIdempotencyHeader) &&
+    isErrorOrRetriableStatus(result)
+  }
 
   /** Like [[defaultRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
