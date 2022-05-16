@@ -108,7 +108,6 @@ object Http4sPlugin extends AutoPlugin {
     val crypto = "0.2.3"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val dropwizardMetrics = "4.2.9"
     val fs2 = "3.2.7"
     val ip4s = "3.1.2"
     val hpack = "1.0.3"
@@ -128,7 +127,6 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.77.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
-    val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
@@ -166,8 +164,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val crypto = Def.setting("org.http4s" %%% "http4s-crypto" % V.crypto)
   lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
   lazy val disciplineCore = Def.setting("org.typelevel" %%% "discipline-core" % V.disciplineCore)
-  lazy val dropwizardMetricsCore = "io.dropwizard.metrics" % "metrics-core" % V.dropwizardMetrics
-  lazy val dropwizardMetricsJson = "io.dropwizard.metrics" % "metrics-json" % V.dropwizardMetrics
   lazy val fs2Core = Def.setting("co.fs2" %%% "fs2-core" % V.fs2)
   lazy val fs2Io = Def.setting("co.fs2" %%% "fs2-io" % V.fs2)
   lazy val fs2ReactiveStreams = "co.fs2" %% "fs2-reactive-streams" % V.fs2
@@ -198,9 +194,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val okio = "com.squareup.okio" % "okio" % V.okio
   lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % V.okhttp
-  lazy val prometheusClient = "io.prometheus" % "simpleclient" % V.prometheusClient
-  lazy val prometheusCommon = "io.prometheus" % "simpleclient_common" % V.prometheusClient
-  lazy val prometheusHotspot = "io.prometheus" % "simpleclient_hotspot" % V.prometheusClient
   lazy val reactiveStreams = "org.reactivestreams" % "reactive-streams" % V.reactiveStreams
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
