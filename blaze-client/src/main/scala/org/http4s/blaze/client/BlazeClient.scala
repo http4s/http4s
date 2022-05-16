@@ -18,6 +18,7 @@ package org.http4s
 package blaze
 package client
 
+import cats.Applicative
 import cats.effect.implicits._
 import cats.effect.kernel.Async
 import cats.effect.kernel.Deferred
@@ -30,6 +31,7 @@ import org.http4s.blazecore.ResponseHeaderTimeoutStage
 import org.http4s.client.Client
 import org.http4s.client.DefaultClient
 import org.http4s.client.RequestKey
+import org.http4s.client.UnexpectedStatus
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 
@@ -94,6 +96,11 @@ private class BlazeClient[F[_], A <: BlazeConnection[F]](
       response <- responseResource
     } yield response
   }
+
+  override def defaultOnError(req: Request[F])(resp: Response[F])(implicit
+      G: Applicative[F]
+  ): F[Throwable] =
+    resp.body.compile.drain.as(UnexpectedStatus(resp.status, req.method, req.uri))
 
   private def prepareConnection(key: RequestKey): Resource[F, (A, F[TimeoutException])] = for {
     conn <- borrowConnection(key)
