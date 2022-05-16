@@ -169,9 +169,15 @@ object RetryPolicy {
     GatewayTimeout,
   )
 
-  /** Returns true if (the request method is idempotent and the request's entity is pure (isn't effectful);
-    * or request contains [[`Idempotency-Key`]] header) and the result is either a throwable or
-    * has one of the `RetriableStatuses`.
+  /** Returns true if both the request and response effect are retriable.
+    *
+    * The request is retriable if either:
+    * - its method is idempotent and its request entity is pure
+    * - it has an [[`Idempotency-Key`]] header
+    *
+    * The response effect is retriable if:
+    * - it raised an error
+    * - it is a response whose status code is a member of `RetriableStatuses`
     *
     * Caution: a request wouldn't be resubmitted if the idempotent request contains
     * streamed (effectful) [[Entity]] (nor empty, nor fully loaded into memory).
