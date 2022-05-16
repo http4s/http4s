@@ -472,7 +472,7 @@ final class Request[+F[_]] private (
     *         'true' if entity is empty or already loaded into memory;
     *         'false' if entity is streamed.
     */
-  def isPureEntity: Boolean =
+  def hasKnownPureEntity: Boolean =
     entity match {
       case Entity.Empty | Entity.Strict(_) =>
         true

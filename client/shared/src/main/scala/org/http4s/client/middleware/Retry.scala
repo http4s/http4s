@@ -184,7 +184,7 @@ object RetryPolicy {
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean = {
     def isReqIdempotentAndEntityPure =
-      req.method.isIdempotent && req.isPureEntity
+      req.method.isIdempotent && req.hasKnownPureEntity
 
     def isHeadersContainsIdempotencyHeader =
       req.headers.contains[`Idempotency-Key`]
