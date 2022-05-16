@@ -187,7 +187,7 @@ object RetryPolicy {
       req.method.isIdempotent && req.isPureEntity
 
     def isHeadersContainsIdempotencyHeader =
-      req.headers.get[`Idempotency-Key`].isDefined
+      req.headers.contains[`Idempotency-Key`]
 
     (isReqIdempotentAndEntityPure || isHeadersContainsIdempotencyHeader) &&
     isErrorOrRetriableStatus(result)
