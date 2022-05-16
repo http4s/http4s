@@ -128,7 +128,6 @@ object Http4sPlugin extends AutoPlugin {
     val netty = "4.1.77.Final"
     val okio = "2.10.0"
     val okhttp = "4.9.3"
-    val playJson = "2.9.2"
     val prometheusClient = "0.11.0"
     val reactiveStreams = "1.0.3"
     val quasiquotes = "2.1.0"
@@ -136,13 +135,10 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "1.0.4"
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
-    val scalatags = "0.10.0"
-    val scalaXml = "2.1.0"
     val scodecBits = "1.1.31"
     val servlet = "3.1.0"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
-    val twirl = "1.4.2"
     val twitterHpack = "1.0.2"
     val vault = "3.1.0"
   }
@@ -182,7 +178,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnFs2 = Def.setting("org.typelevel" %%% "jawn-fs2" % V.jawnFs2)
   lazy val javaWebSocket = "org.java-websocket" % "Java-WebSocket" % V.javaWebSocket
   lazy val jawnParser = Def.setting("org.typelevel" %%% "jawn-parser" % V.jawn)
-  lazy val jawnPlay = "org.typelevel" %% "jawn-play" % V.jawn
   lazy val jettyClient = "org.eclipse.jetty" % "jetty-client" % V.jetty
   lazy val jettyHttp = "org.eclipse.jetty" % "jetty-http" % V.jetty
   lazy val jettyUtil = "org.eclipse.jetty" % "jetty-util" % V.jetty
@@ -203,7 +198,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val okio = "com.squareup.okio" % "okio" % V.okio
   lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % V.okhttp
-  lazy val playJson = "com.typesafe.play" %% "play-json" % V.playJson
   lazy val prometheusClient = "io.prometheus" % "simpleclient" % V.prometheusClient
   lazy val prometheusCommon = "io.prometheus" % "simpleclient_common" % V.prometheusClient
   lazy val prometheusHotspot = "io.prometheus" % "simpleclient_hotspot" % V.prometheusClient
@@ -218,12 +212,9 @@ object Http4sPlugin extends AutoPlugin {
     Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
-  lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
-  lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
-  lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
 }

@@ -73,10 +73,6 @@ lazy val modules: List[CompositeProject] = List(
   theDsl,
   jawn,
   circe,
-  playJson,
-  scalaXml,
-  twirl,
-  scalatags,
   bench,
   jsArtifactSizeTest,
   unidocs,
@@ -906,68 +902,6 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .jsSettings(libraryDependencies += circeJawn15.value)
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
-lazy val playJson = libraryProject("play-json")
-  .settings(
-    description := "Provides Play json codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
-      else
-        Http4sPlugin.playJson
-    ),
-    publish / skip := tlIsScala3.value,
-    compile / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .dependsOn(jawn.jvm % "compile;test->test")
-
-lazy val scalaXml = libraryProject("scala-xml")
-  .settings(
-    description := "Provides scala-xml codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val twirl = http4sProject("twirl")
-  .settings(
-    description := "Twirl template support for http4s",
-    startYear := Some(2014),
-    TwirlKeys.templateImports := Nil,
-    libraryDependencies := {
-      libraryDependencies.value.map {
-        case module if module.name == "twirl-api" && tlIsScala3.value =>
-          module.cross(CrossVersion.for3Use2_13)
-        case module => module
-      }
-    },
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .enablePlugins(SbtTwirl)
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val scalatags = http4sProject("scalatags")
-  .settings(
-    description := "Scalatags template support for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        scalatagsApi.cross(CrossVersion.for3Use2_13)
-      else
-        scalatagsApi
-    ),
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .enablePlugins(NoPublishPlugin)
@@ -1071,10 +1005,8 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
-// todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)
