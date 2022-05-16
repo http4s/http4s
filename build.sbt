@@ -74,7 +74,6 @@ lazy val modules: List[CompositeProject] = List(
   theDsl,
   jawn,
   circe,
-  playJson,
   scalatags,
   bench,
   jsArtifactSizeTest,
@@ -904,23 +903,6 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .jvmSettings(libraryDependencies += circeJawn.value)
   .jsSettings(libraryDependencies += circeJawn15.value)
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
-
-lazy val playJson = libraryProject("play-json")
-  .settings(
-    description := "Provides Play json codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
-      else
-        Http4sPlugin.playJson
-    ),
-    publish / skip := tlIsScala3.value,
-    compile / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .dependsOn(jawn.jvm % "compile;test->test")
 
 lazy val scalatags = http4sProject("scalatags")
   .settings(
