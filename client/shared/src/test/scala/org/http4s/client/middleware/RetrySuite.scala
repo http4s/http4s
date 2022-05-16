@@ -52,7 +52,7 @@ class RetrySuite extends Http4sSuite {
       client: Client[IO],
       method: Method,
       status: Status,
-      body: EntityBody[IO] = Stream.empty,
+      entity: Entity[IO] = Entity.Empty,
   ): IO[Int] = {
     val max = 2
     var attemptsCounter = 1
@@ -64,7 +64,7 @@ class RetrySuite extends Http4sSuite {
       }
     }
     val retryClient = Retry[IO](policy)(client)
-    val req = Request[IO](method, uri"http://localhost/" / status.code.toString).withEntity(body)
+    val req = Request[IO](method, uri"http://localhost/" / status.code.toString).withEntity(entity)
     retryClient
       .run(req)
       .use { _ =>
@@ -125,19 +125,31 @@ class RetrySuite extends Http4sSuite {
     }
   }
 
-  private def resubmit(method: Method, headers: Headers = Headers.empty)(
+  private def resubmit(
+      method: Method,
+      headers: Headers = Headers.empty,
+      entity: Option[Entity[IO]] = None,
+  )(
       retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean
   ) =
     Ref[IO]
       .of(false)
       .flatMap { ref =>
-        val body = Stream.eval(ref.get.flatMap {
+        def body = Stream.eval(ref.get.flatMap {
           case false => ref.update(_ => true) *> IO.pure("")
           case true => IO.pure("OK")
         })
-        val req = Request[IO](method, uri"http://localhost/status-from-body")
-          .withHeaders(headers)
-          .withEntity(body)
+
+        val req = Request[IO](method, uri"http://localhost/status-from-body").withHeaders(headers)
+
+        val reqWithEntity =
+          entity match {
+            case None =>
+              req.withEntity(body)
+            case Some(e) =>
+              req.withEntity(e)
+          }
+
         val policy = RetryPolicy[IO](
           (attempts: Int) =>
             if (attempts >= 2) None
@@ -145,19 +157,39 @@ class RetrySuite extends Http4sSuite {
           retriable,
         )
         val retryClient = Retry[IO](policy)(defaultClient)
-        retryClient.status(req)
+        retryClient.status(reqWithEntity)
       }
 
   test("default retriable should defaultRetriable does not resubmit bodies on idempotent methods") {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
+
   test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
     resubmit(POST, Headers(`Idempotency-Key`("key")))(RetryPolicy.defaultRetriable)
       .assertEquals(Status.Ok)
   }
-  test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
-    resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
+
+  test(
+    "default retriable should resubmits bodies on idempotent methods and pure entities (strict entity)"
+  ) {
+    val emptyEntity = Entity.Empty
+
+    val strictEntity =
+      Entity.strict(fs2.Chunk.array("OK".getBytes))
+
+    (emptyEntity, strictEntity).parTraverse_(entity =>
+      resubmit(method = PUT, entity = Some(entity))(RetryPolicy.defaultRetriable)
+        .assertEquals(Status.Ok)
+    )
   }
+
+  test(
+    "default retriable should doesn't resubmit bodies on idempotent methods and impure (effectful) entities"
+  ) {
+    resubmit(method = PUT)(RetryPolicy.defaultRetriable)
+      .assertEquals(Status.InternalServerError)
+  }
+
   test("default retriable should recklesslyRetriable resubmits bodies on non-idempotent methods") {
     resubmit(POST)((_, result) => RetryPolicy.recklesslyRetriable(result)).assertEquals(Status.Ok)
   }
