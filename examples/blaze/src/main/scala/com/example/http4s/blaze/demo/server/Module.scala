@@ -61,9 +61,6 @@ class Module[F[_]: Async](client: Client[F]) {
   private val timeoutEndpoints: HttpRoutes[F] =
     Timeout(1.second)(timeoutHttpEndpoint)
 
-  private val mediaHttpEndpoint: HttpRoutes[F] =
-    new JsonXmlHttpEndpoint[F].service
-
   private val multipartHttpEndpoint: HttpRoutes[F] =
     new MultipartHttpEndpoint[F](fileService).service
 
@@ -74,8 +71,7 @@ class Module[F[_]: Async](client: Client[F]) {
     new BasicAuthHttpEndpoint[F].service
 
   val httpServices: HttpRoutes[F] = (
-    compressedEndpoints <+> timeoutEndpoints
-      <+> mediaHttpEndpoint <+> multipartHttpEndpoint
+    compressedEndpoints <+> timeoutEndpoints <+> multipartHttpEndpoint
       <+> gitHubHttpEndpoint
   )
 }

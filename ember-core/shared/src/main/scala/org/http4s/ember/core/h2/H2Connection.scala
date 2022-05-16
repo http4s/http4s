@@ -143,13 +143,6 @@ private[h2] class H2Connection[F[_]](
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
-      .evalMapChunk {
-        case g: H2Frame.GoAway =>
-          mapRef.get.flatMap { m =>
-            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-          } >> state.update(s => s.copy(closed = true)).as(g).widen[H2Frame]
-        case otherwise => otherwise.pure[F]
-      }
       .chunks
       .evalMap { chunk =>
         def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
@@ -170,14 +163,9 @@ private[h2] class H2Connection[F[_]](
                 new SocketException("Socket closed when attempting to write").raiseError,
               )
           } else {
-            val list = chunk.toList
-            val nonData = list.takeWhile {
-              case _: H2Frame.Data => false
-              case _ => true
-            }
-            val after = list.dropWhile {
-              case _: H2Frame.Data => false
-              case _ => true
+            val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
+              case None => (chunk, Chunk.empty[H2Frame])
+              case Some(ix) => chunk.splitAt(ix)
             }
 
             val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
@@ -189,10 +177,15 @@ private[h2] class H2Connection[F[_]](
               new SocketException("Socket closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
-              go(Chunk.seq(after))
+              go(after)
           }
         }
-        go(chunk)
+        val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
+          mapRef.get.flatMap { m =>
+            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+          } >> state.update(s => s.copy(closed = true))
+        }
+        firstGoAway.getOrElse(F.unit) >> go(chunk)
       }
       .drain
   // TODO Split Frames between Data and Others Hold Data If we are at cap
