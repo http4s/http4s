@@ -75,7 +75,6 @@ lazy val modules: List[CompositeProject] = List(
   jawn,
   circe,
   playJson,
-  scalaXml,
   scalatags,
   bench,
   jsArtifactSizeTest,
@@ -923,16 +922,6 @@ lazy val playJson = libraryProject("play-json")
   )
   .dependsOn(jawn.jvm % "compile;test->test")
 
-lazy val scalaXml = libraryProject("scala-xml")
-  .settings(
-    description := "Provides scala-xml codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
 lazy val scalatags = http4sProject("scalatags")
   .settings(
     description := "Scalatags template support for http4s",
@@ -1053,7 +1042,7 @@ lazy val examples = http4sProject("examples")
       logbackClassic % Runtime,
     ),
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml)
+  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)

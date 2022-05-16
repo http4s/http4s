@@ -137,7 +137,6 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJavaLocales = "1.3.0"
     val scalaJavaTime = "2.3.0"
     val scalatags = "0.10.0"
-    val scalaXml = "2.1.0"
     val scodecBits = "1.1.31"
     val servlet = "3.1.0"
     val slf4j = "1.7.36"
@@ -218,7 +217,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
   lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
-  lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
