@@ -233,12 +233,12 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
 }.</span><span class="identifier">orNotFound</span><span>
 </span><span class="comment">// app: cats.data.Kleisli[IO[A], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$22293/648658285@7fc1c03
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$22205/1108206814@230a683a
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">finalHttpApp</span><span> = </span><span class="type-name">Logger</span><span>.</span><span class="identifier">httpApp</span><span>(</span><span class="boolean-literal">true</span><span>, </span><span class="boolean-literal">true</span><span>)(</span><span class="identifier">app</span><span>)
 </span><span class="comment">// finalHttpApp: HttpApp[IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.ResponseLogger$$$Lambda$22303/2075789393@3ef18272
+//   run = org.http4s.server.middleware.ResponseLogger$$$Lambda$22215/1706206707@45ebb1f0
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">server</span><span> = </span><span class="type-name">EmberServerBuilder</span><span>
@@ -248,13 +248,13 @@
   .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">finalHttpApp</span><span>)
   .</span><span class="identifier">build</span><span>
 </span><span class="comment">// server: Resource[IO, org.http4s.server.Server] = Bind(
-//   source = Pure(a = fs2.io.net.NetworkCompanionPlatform$$anon$1@38483054),
-//   fs = org.http4s.ember.server.EmberServerBuilder$$Lambda$22422/43435810@4dbc0cbc
+//   source = Pure(a = fs2.io.net.NetworkCompanionPlatform$$anon$1@7d3e00c7),
+//   fs = org.http4s.ember.server.EmberServerBuilder$$Lambda$22334/2068466185@626ae85f
 // )</span></code></pre>
         <p>We&#39;ll start the server in the background.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
 </span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$22734/1810621957@536fe353,
+//   body = cats.effect.IO$$Lambda$22645/412170819@5c13e7ee,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
@@ -287,10 +287,10 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">helloJames</span><span> = </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">&quot;http://localhost:8080/hello/James&quot;</span><span>)
 </span><span class="comment">// helloJames: IO[String] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22775/1962452686@48f6986,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22691/102649951@7184c594,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$22755/187116524@3e62551f,
+//   f = cats.effect.kernel.Resource$$Lambda$22671/549892458@648b1295,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         <p>Note that we don&#39;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -323,13 +323,13 @@
 </span><span class="comment">// greetingList: IO[Vector[String]] = Map(
 //   ioe = Map(
 //     ioe = Uncancelable(
-//       body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22780/815076785@7c886b87,
+//       body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22696/1209383935@79f7f432,
 //       event = cats.effect.tracing.TracingEvent$StackTrace
 //     ),
-//     f = cats.data.Chain$$$Lambda$22106/903574597@2d8f2447,
+//     f = cats.data.Chain$$$Lambda$22018/882330033@5901f083,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.instances.VectorInstances$$anon$1$$Lambda$22781/140768792@35bc8d18,
+//   f = cats.instances.VectorInstances$$anon$1$$Lambda$22697/1812095565@4c0e1453,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -349,13 +349,13 @@
 //   ioe = Map(
 //     ioe = Map(
 //       ioe = Uncancelable(
-//         body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22780/815076785@7c886b87,
+//         body = cats.effect.kernel.instances.GenSpawnInstances$$anon$4$$Lambda$22696/1209383935@79f7f432,
 //         event = cats.effect.tracing.TracingEvent$StackTrace
 //       ),
-//       f = cats.data.Chain$$$Lambda$22106/903574597@2d8f2447,
+//       f = cats.data.Chain$$$Lambda$22018/882330033@5901f083,
 //       event = cats.effect.tracing.TracingEvent$StackTrace
 //     ),
-//     f = cats.instances.VectorInstances$$anon$1$$Lambda$22781/140768792@35bc8d18,
+//     f = cats.instances.VectorInstances$$anon$1$$Lambda$22697/1812095565@4c0e1453,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
 //   f = &lt;function1&gt;,
@@ -549,13 +549,13 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="identifier">dropwizard</span><span>.</span><span class="type-name">Dropwizard</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">codahale</span><span>.</span><span class="identifier">metrics</span><span>.</span><span class="type-name">SharedMetricRegistries</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">registry</span><span> = </span><span class="type-name">SharedMetricRegistries</span><span>.</span><span class="identifier">getOrCreate</span><span>(</span><span class="string-literal">&quot;default&quot;</span><span>)
-</span><span class="comment">// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@3335c47c
+</span><span class="comment">// registry: com.codahale.metrics.MetricRegistry = com.codahale.metrics.MetricRegistry@7e048faf
 </span><span class="keyword">val</span><span> </span><span class="identifier">requestMethodClassifier</span><span> = (</span><span class="identifier">r</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt; </span><span class="type-name">Some</span><span>(</span><span class="identifier">r</span><span>.</span><span class="identifier">method</span><span>.</span><span class="identifier">toString</span><span>.</span><span class="identifier">toLowerCase</span><span>)
 </span><span class="comment">// requestMethodClassifier: Request[IO] =&gt; Some[String] = &lt;function1&gt;
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">meteredClient</span><span> =
   </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Dropwizard</span><span>(</span><span class="identifier">registry</span><span>, </span><span class="string-literal">&quot;prefix&quot;</span><span>), </span><span class="identifier">requestMethodClassifier</span><span>)(</span><span class="identifier">httpClient</span><span>)
-</span><span class="comment">// meteredClient: Client[IO] = org.http4s.client.Client$$anon$3@6db4e759</span></code></pre>
+</span><span class="comment">// meteredClient: Client[IO] = org.http4s.client.Client$$anon$3@43241f13</span></code></pre>
         <p>A <code>classifier</code> is just a function <code>Request[F] =&gt; Option[String]</code> that allows
         to add a subprefix to every metric based on the <code>Request</code></p>
         
@@ -580,7 +580,7 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
   } </span><span class="keyword">yield</span><span> </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">metrics</span><span>, </span><span class="identifier">classifier</span><span>)(</span><span class="identifier">httpClient</span><span>)
 </span><span class="comment">// prefixedClient: Resource[IO, Client[IO]] = Bind(
 //   source = Allocate(
-//     resource = cats.effect.kernel.Resource$$$Lambda$22477/129651639@2ad4172e
+//     resource = cats.effect.kernel.Resource$$$Lambda$22389/1607118662@331fee01
 //   ),
 //   fs = &lt;function1&gt;
 // )</span></code></pre>
@@ -594,10 +594,10 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">uri&quot;https://google.com/&quot;</span><span>)
 </span><span class="comment">// res5: IO[String] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22775/1962452686@10d9e50c,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22691/102649951@7e372847,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$22755/187116524@dd2c54f,
+//   f = cats.effect.kernel.Resource$$Lambda$22671/549892458@2414b9d9,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         <p>If you need to do something more complicated like setting request headers, you
@@ -628,16 +628,16 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Authorization: Bearer open sesame, Accept: application/json),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@3aa327a4
+//    = org.typelevel.vault.Vault@410c1b35
 // )
 </span><span>
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">request</span><span>)
 </span><span class="comment">// res6: IO[String] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22775/1962452686@53636afc,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22691/102649951@35c5cd5e,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$22755/187116524@b19d9d5,
+//   f = cats.effect.kernel.Resource$$Lambda$22671/549892458@78d4b701,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
@@ -649,7 +649,7 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">authResponseEntityDecoder</span><span>: </span><span class="type-name">EntityDecoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>] =
   </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>]
-</span><span class="comment">// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@12133a8b
+</span><span class="comment">// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@66c3f49a
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">POST</span><span>(
   </span><span class="type-name">UrlForm</span><span>(
@@ -677,16 +677,16 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@312eb16a
+//    = org.typelevel.vault.Vault@47378ec4
 // )
 </span><span>
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">AuthResponse</span><span>](</span><span class="identifier">postRequest</span><span>)
 </span><span class="comment">// res7: IO[AuthResponse] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22775/1962452686@79520939,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$22691/102649951@5c830441,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$22755/187116524@3c40a0b7,
+//   f = cats.effect.kernel.Resource$$Lambda$22671/549892458@132cc6f,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
