@@ -193,7 +193,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * If the pool is closed the effect failure is executed.
     * If the pool is not closed then we look for any connections in the idleQueues that match
     * the RequestKey requested.
-    * If a matching connection exists and it is stil open the callback is executed with the connection.
+    * If a matching connection exists and it is still open the callback is executed with the connection.
     * If a matching connection is closed we deallocate and repeat the check through the idleQueues.
     * If no matching connection is found, and the pool is not full we create a new Connection to perform
     * the request.
