@@ -312,7 +312,7 @@ object Client {
 
   private def addHostHeaderIfUriIsAbsolute[F[_]](req: Request[F]): Request[F] =
     req.uri.host match {
-      case Some(host) if req.headers.get[Host].isEmpty =>
+      case Some(host) if !req.headers.contains[Host] =>
         req.withHeaders(req.headers.put(Host(host.value, req.uri.port)))
       case _ => req
     }
