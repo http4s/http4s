@@ -77,6 +77,7 @@ private object ConnectionManager {
     * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
     * @param executionContext `ExecutionContext` where async operations will execute
+    * @param maxBorrowDuration the maximum time for connection borrowing
     */
   def pool[F[_]: Async, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
@@ -87,6 +88,7 @@ private object ConnectionManager {
       requestTimeout: Duration,
       executionContext: ExecutionContext,
       maxIdleDuration: Duration,
+      maxBorrowDuration: Duration,
   ): F[ConnectionManager.Stateful[F, A]] =
     Semaphore(1).map { semaphore =>
       new PoolManager[F, A](
@@ -99,6 +101,7 @@ private object ConnectionManager {
         semaphore,
         executionContext,
         maxIdleDuration,
+        maxBorrowDuration,
       )
     }
 
@@ -120,6 +123,7 @@ private object ConnectionManager {
       responseHeaderTimeout,
       requestTimeout,
       executionContext,
+      Duration.Inf,
       Duration.Inf,
     )
 }

@@ -68,6 +68,7 @@ import scala.concurrent.duration._
   * @param maxIdleDuration maximum time a connection can be idle and still
   * be borrowed.  Helps deal with connections that are closed while
   * idling in the pool for an extended period.
+  * @param maxBorrowDuration the maximum time for connection borrowing
   */
 sealed abstract class BlazeClientBuilder[F[_]] private (
     val responseHeaderTimeout: Duration,
@@ -93,6 +94,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val customDnsResolver: Option[RequestKey => Either[Throwable, InetSocketAddress]],
     val retries: Int,
     val maxIdleDuration: Duration,
+    val maxBorrowDuration: Duration,
 )(implicit protected val F: Async[F])
     extends BlazeBackendBuilder[Client[F]]
     with BackendBuilder[F, Client[F]] {
@@ -148,6 +150,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     customDnsResolver = customDnsResolver,
     retries = 0,
     maxIdleDuration = Duration.Inf,
+    maxBorrowDuration = Duration.Inf,
   )(F)
 
   private def copy(
@@ -175,6 +178,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         customDnsResolver,
       retries: Int = retries,
       maxIdleDuration: Duration = maxIdleDuration,
+      maxBorrowDuration: Duration = maxBorrowDuration,
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -200,6 +204,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       customDnsResolver = customDnsResolver,
       retries = retries,
       maxIdleDuration = maxIdleDuration,
+      maxBorrowDuration = maxBorrowDuration,
     ) {}
 
   @deprecated(
@@ -434,6 +439,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
           requestTimeout = requestTimeout,
           executionContext = executionContext,
           maxIdleDuration = maxIdleDuration,
+          maxBorrowDuration = maxBorrowDuration,
         )
       )
     )(_.shutdown)
@@ -467,6 +473,7 @@ object BlazeClientBuilder {
       customDnsResolver = None,
       retries = 2,
       maxIdleDuration = Duration.Inf,
+      maxBorrowDuration = Duration.Inf,
     ) {}
 
   @deprecated(
