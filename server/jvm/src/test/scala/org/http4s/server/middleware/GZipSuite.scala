@@ -43,7 +43,7 @@ class GZipSuite extends Http4sSuite {
       .orNotFound(req)
       .map { resp =>
         resp.status === Status.Ok &&
-        resp.headers.get[`Content-Encoding`].isEmpty
+        !resp.headers.contains[`Content-Encoding`]
       }
       .assert
   }
@@ -80,7 +80,7 @@ class GZipSuite extends Http4sSuite {
       .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
     val resp: IO[Response[IO]] = gzipRoutes.orNotFound(req)
 
-    resp.map(_.headers.get[`Content-Encoding`].isEmpty).assert
+    resp.map(!_.headers.contains[`Content-Encoding`]).assert
   }
 
   test("encoding") {
