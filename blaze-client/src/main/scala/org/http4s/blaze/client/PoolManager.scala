@@ -187,9 +187,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   /** This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
+    * If borrowing takes more than [[maxBorrowDuration]] (if it's a finite duration) then
+    * [[ConnectionBorrowingException]] will be thrown.
     *
     * If the pool is closed the effect failure is executed.
-    *
     * If the pool is not closed then we look for any connections in the idleQueues that match
     * the RequestKey requested.
     * If a matching connection exists and it is stil open the callback is executed with the connection.
