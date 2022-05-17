@@ -50,6 +50,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       requestTimeout: Duration = Duration.Inf,
       builder: ConnectionBuilder[IO, TestConnection] = _ => IO(new TestConnection()),
       maxIdleDuration: Duration = Duration.Inf,
+      maxBorrowDuration: Duration = Duration.Inf,
   ) =
     ConnectionManager.pool(
       builder = builder,
@@ -60,6 +61,7 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       requestTimeout = requestTimeout,
       executionContext = ExecutionContext.Implicits.global,
       maxIdleDuration = maxIdleDuration,
+      maxBorrowDuration = maxBorrowDuration,
     )
 
   test("A pool manager should wait up to maxWaitQueueLimit") {
@@ -260,5 +262,39 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
       _ <- pool.release(conn1.connection)
       _ <- pool.borrow(key)
     } yield assert(conn1.connection.isClosed)
+  }
+
+  test("Should not borrow connection if it exceeds the maxBorrowDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = Duration.Inf,
+        maxBorrowDuration = Duration.Zero,
+      )
+      _ <- pool
+        .borrow(key)
+        .as(false)
+        .recover { case ConnectionBorrowingException(_) =>
+          true
+        }
+        .assert
+    } yield ()
+  }
+
+  test("Should borrow connection if it doesn't exceed the maxBorrowDuration") {
+    for {
+      pool <- mkPool(
+        maxTotal = 1,
+        maxIdleDuration = Duration.Inf,
+        maxBorrowDuration = 2.seconds,
+      )
+      _ <- pool
+        .borrow(key)
+        .as(true)
+        .recover { case ConnectionBorrowingException(_) =>
+          false
+        }
+        .assert
+    } yield ()
   }
 }
