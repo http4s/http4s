@@ -177,7 +177,7 @@ object RetryPolicy {
     * an idempotent request.
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    (req.method.isIdempotent || req.headers.get[`Idempotency-Key`].isDefined) &&
+    (req.method.isIdempotent || req.headers.contains[`Idempotency-Key`]) &&
       isErrorOrRetriableStatus(result)
 
   /** Like [[defaultRetriable]], but returns true even if the request method

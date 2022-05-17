@@ -40,7 +40,7 @@ class HSTSSuite extends Http4sSuite {
       HSTS.httpApp.unsafeFromDuration(innerRoutes.orNotFound, 365.days),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 
@@ -53,7 +53,7 @@ class HSTSSuite extends Http4sSuite {
       HSTS.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 
@@ -64,7 +64,7 @@ class HSTSSuite extends Http4sSuite {
       HSTS.httpApp(innerRoutes.orNotFound),
     ).traverse { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 

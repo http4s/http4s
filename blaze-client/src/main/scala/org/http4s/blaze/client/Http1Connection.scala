@@ -197,7 +197,7 @@ private final class Http1Connection[F[_]](
           // Side Effecting Code
           encodeRequestLine(req, rr)
           Http1Stage.encodeHeaders(req.headers.headers, rr, isServer)
-          if (userAgent.nonEmpty && req.headers.get[`User-Agent`].isEmpty)
+          if (userAgent.nonEmpty && !req.headers.contains[`User-Agent`])
             rr << userAgent.get << "\r\n"
 
           val mustClose: Boolean = req.headers.get[HConnection] match {
@@ -428,7 +428,7 @@ private final class Http1Connection[F[_]](
 
     minor match {
       // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
-      case 0 if req.headers.get[`Content-Length`].isEmpty =>
+      case 0 if !req.headers.contains[`Content-Length`] =>
         logger.warn(s"Request $req is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
         validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
 
@@ -442,7 +442,7 @@ private final class Http1Connection[F[_]](
             }
             validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
 
-          case None if req.headers.get[`Content-Length`].nonEmpty =>
+          case None if req.headers.contains[`Content-Length`] =>
             // translate to HTTP/1.0
             validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
 
@@ -485,7 +485,7 @@ private object Http1Connection {
     writer << req.method << ' ' << uri.toOriginForm << ' ' << req.httpVersion << "\r\n"
     if (
       getHttpMinor(req) == 1 &&
-      req.headers.get[Host].isEmpty
+      !req.headers.contains[Host]
     ) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>

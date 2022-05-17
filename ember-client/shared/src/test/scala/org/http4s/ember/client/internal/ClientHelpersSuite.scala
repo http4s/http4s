@@ -32,7 +32,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
       .map { req =>
-        req.headers.get[Date].isDefined
+        req.headers.contains[Date]
       }
       .assert
   }
@@ -81,7 +81,7 @@ class ClientHelpersSuite extends Http4sSuite {
     ClientHelpers
       .preprocessRequest(Request[IO](), EmberClientBuilder.default[IO].userAgent)
       .map { req =>
-        req.headers.get[`User-Agent`].isDefined
+        req.headers.contains[`User-Agent`]
       }
       .assert
   }

@@ -108,7 +108,7 @@ private[ember] object Encoder {
           .append(CRLF)
 
         // Host From Uri Becomes Header if not already present in headers
-        if (req.headers.get[Host].isEmpty)
+        if (!req.headers.contains[Host])
           req.uri.authority.foreach { auth =>
             stringBuilder
               .append("Host: ")
