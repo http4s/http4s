@@ -45,12 +45,12 @@ object IncomingMessage {
   final class IncomingMessageOps private[nodejs] (private val incomingMessage: IncomingMessage)
       extends AnyVal {
 
-    def incomingMessageToRequest[F[_]](incomingMessage: IncomingMessage)(implicit
+    def toRequest[F[_]](implicit
         F: Async[F]
     ): F[Request[F]] = for {
       method <- Method.fromString(incomingMessage.method).liftTo[F]
       uri <- Uri.fromString(incomingMessage.url).liftTo[F]
-      httpVersion <- HttpVersion.fromString(incomingMessage.httpVersion).liftTo[F]
+      httpVersion <- HttpVersion.fromString("HTTP/" + incomingMessage.httpVersion).liftTo[F]
       headers = {
         val rawHeaders = incomingMessage.rawHeaders
         val n = rawHeaders.length

@@ -21,29 +21,57 @@ package scaffold
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
+import cats.syntax.all._
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import org.http4s.node.serverless.ServerlessApp
+import org.http4s.nodejs.IncomingMessage
+import org.http4s.nodejs.ServerResponse
 
+import scala.annotation.nowarn
 import scala.scalajs.js
 
+final case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])
+
 object ServerScaffold {
+
+  @js.native
+  @js.annotation.JSImport("http", "createServer")
+  @nowarn
+  private def createServer(
+      requestListener: js.Function2[IncomingMessage, ServerResponse, Unit]
+  ): Server = js.native
+
+  @js.native
+  @nowarn
+  private trait Server extends js.Object {
+    def listen(cb: js.Function0[Unit]): Any = js.native
+    def address(): Address = js.native
+    def close(cb: js.Function0[Unit]): Any = js.native
+  }
+
+  @js.native
+  private trait Address extends js.Object {
+    def address: String = js.native
+    def port: Int
+  }
+
   val http = js.Dynamic.global.require("http")
 
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]
   ): Resource[F, ServerScaffold] = {
     require(num == 1 && !secure)
+    val app = routes.orNotFound
     Dispatcher[F].flatMap { dispatcher =>
       Resource
         .make {
           F.delay(
-            http.createServer(
-              Function.untupled(
-                ServerlessApp(routes.orNotFound).tupled.andThen(dispatcher.unsafeRunAndForget)
+            createServer { (req, res) =>
+              dispatcher.unsafeRunAndForget(
+                req.toRequest.flatMap(app(_)).flatMap(res.writeResponse[F])
               )
-            )
+            }
           )
         } { server =>
           F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
@@ -56,8 +84,8 @@ object ServerScaffold {
                   ServerScaffold(
                     List(
                       SocketAddress(
-                        IpAddress.fromString(server.address().address.asInstanceOf[String]).get,
-                        Port.fromInt(server.address().port.asInstanceOf[Int]).get,
+                        IpAddress.fromString(server.address().address).get,
+                        Port.fromInt(server.address().port).get,
                       )
                     )
                   )
@@ -71,5 +99,3 @@ object ServerScaffold {
 
   }
 }
-
-final case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])
