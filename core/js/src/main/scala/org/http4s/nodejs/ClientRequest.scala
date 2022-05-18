@@ -23,7 +23,6 @@ import cats.syntax.all._
 import fs2.io.Writable
 
 import scala.annotation.nowarn
-import scala.scalajs.concurrent.QueueExecutionContext
 import scala.scalajs.js
 
 /** Facade for [[https://nodejs.org/api/http.html#class-httpclientrequest]]
@@ -70,13 +69,7 @@ object ClientRequest {
         ()
       }
 
-      F.deferred[Either[Throwable, Unit]].flatMap { deferredError =>
-        error.attempt
-          .flatMap(deferredError.complete)
-          // register the error listener with high-priority on the promises queue
-          .backgroundOn(QueueExecutionContext.promises())
-          .surround(write.race(deferredError.get.rethrow).void)
-      }
+      write.race(error).void
     }
   }
 
