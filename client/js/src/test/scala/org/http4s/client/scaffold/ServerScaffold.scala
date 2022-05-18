@@ -45,7 +45,7 @@ object ServerScaffold {
   @js.native
   @nowarn
   private trait Server extends js.Object {
-    def listen(cb: js.Function0[Unit]): Any = js.native
+    def listen(port: Int, host: String, cb: js.Function0[Unit]): Any = js.native
     def address(): Address = js.native
     def close(cb: js.Function0[Unit]): Any = js.native
   }
@@ -78,20 +78,23 @@ object ServerScaffold {
         }
         .evalMap { server =>
           F.async_[ServerScaffold] { cb =>
-            server.listen { () =>
-              cb(
-                Right(
-                  ServerScaffold(
-                    List(
-                      SocketAddress(
-                        IpAddress.fromString(server.address().address).get,
-                        Port.fromInt(server.address().port).get,
+            server.listen(
+              0,
+              "localhost",
+              () =>
+                cb(
+                  Right(
+                    ServerScaffold(
+                      List(
+                        SocketAddress(
+                          IpAddress.fromString(server.address().address).get,
+                          Port.fromInt(server.address().port).get,
+                        )
                       )
                     )
                   )
-                )
-              )
-            }
+                ),
+            )
             ()
           }
         }
