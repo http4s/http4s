@@ -70,12 +70,9 @@ object ClientRequest {
         ()
       }
 
-      F.deferred[Either[Throwable, Unit]].flatMap { deferredError =>
-        error.attempt
-          .flatMap(deferredError.complete)
-          // register the error listener with high-priority on the promises queue
-          .backgroundOn(QueueExecutionContext.promises())
-          .surround(write.race(deferredError.get.rethrow).void)
+      // register the error listener with high-priority on the promises queue
+      error.backgroundOn(QueueExecutionContext.promises()).use { error =>
+        write.race(error.flatMap(_.embedNever)).void
       }
     }
   }
