@@ -20,7 +20,6 @@ package client
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.Dispatcher
-import cats.effect.syntax.all._
 import cats.syntax.all._
 import org.http4s.internal.BackendBuilder
 import org.http4s.nodejs.ClientRequest
@@ -70,10 +69,8 @@ sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[
               F.delay(httpsRequest(options, cb))
             else
               F.delay(httpRequest(options, cb))
-          response <- clientRequest
-            .writeRequest(req)
-            .background
-            .surround(incomingMessage.get.flatMap(_.toResponse))
+          _ <- clientRequest.writeRequest(req)
+          response <- incomingMessage.get.flatMap(_.toResponse)
         } yield response
       }
     }
