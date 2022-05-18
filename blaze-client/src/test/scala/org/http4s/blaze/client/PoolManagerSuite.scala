@@ -265,11 +265,15 @@ class PoolManagerSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Should not borrow connection if it exceeds the maxBorrowDuration") {
+    val connectionBuilder: ConnectionBuilder[IO, TestConnection] =
+      _ => IO.sleep(50.milliseconds) *> IO(new TestConnection())
+
     for {
       pool <- mkPool(
         maxTotal = 1,
+        builder = connectionBuilder,
         maxIdleDuration = Duration.Inf,
-        maxBorrowDuration = Duration.Zero,
+        maxBorrowDuration = 10.milliseconds,
       )
       _ <- pool
         .borrow(key)
