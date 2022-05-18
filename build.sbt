@@ -695,6 +695,8 @@ lazy val blazeClient = libraryProject("blaze-client")
     mimaBinaryIssueFilters ++= Seq(
       // private constructor
       ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
+      ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
@@ -738,11 +740,15 @@ lazy val blazeClient = libraryProject("blaze-client")
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
       ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
+      ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
+      ProblemFilters
+        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.PoolManager.this"),
       // inside private trait/clas/object
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
