@@ -29,11 +29,14 @@ import scala.scalajs.js
   */
 @js.native
 trait IncomingMessage extends js.Object with Readable {
-  protected[nodejs] def method: String = js.native
-  protected[nodejs] def url: String = js.native
   protected[nodejs] def httpVersionMajor: Int = js.native
   protected[nodejs] def httpVersionMinor: Int = js.native
   protected[nodejs] def rawHeaders: js.Array[String] = js.native
+
+  protected[nodejs] def method: String = js.native
+  protected[nodejs] def url: String = js.native
+
+  protected[nodejs] def statusCode: Int = js.native
 }
 
 object IncomingMessage {
@@ -51,22 +54,37 @@ object IncomingMessage {
     ): F[Request[F]] = for {
       method <- Method.fromString(incomingMessage.method).liftTo[F]
       uri <- Uri.fromString(incomingMessage.url).liftTo[F]
-      httpVersion <- HttpVersion
-        .fromVersion(incomingMessage.httpVersionMajor, incomingMessage.httpVersionMinor)
-        .liftTo[F]
-      headers = {
-        val rawHeaders = incomingMessage.rawHeaders
-        val n = rawHeaders.length
-        var i = 0
-        val headers = List.newBuilder[Header.Raw]
-        while (i < n) {
-          headers += Header.Raw(CIString(rawHeaders(i)), rawHeaders(i + 1))
-          i += 2
-        }
-        new Headers(headers.result())
+      httpVersion <- parseHttpVersion
+    } yield Request(method, uri, httpVersion, headers, body)
+
+    def toResponse[F[_]](implicit
+        F: Async[F]
+    ): F[Response[F]] = for {
+      status <- Status.fromInt(incomingMessage.statusCode).liftTo[F]
+      httpVersion <- parseHttpVersion
+    } yield Response(status, httpVersion, headers, body)
+
+    private def parseHttpVersion[F[_]: Async] = HttpVersion
+      .fromVersion(
+        incomingMessage.httpVersionMajor,
+        incomingMessage.httpVersionMinor,
+      )
+      .liftTo[F]
+
+    private def headers = {
+      val rawHeaders = incomingMessage.rawHeaders
+      val n = rawHeaders.length
+      var i = 0
+      val headers = List.newBuilder[Header.Raw]
+      while (i < n) {
+        headers += Header.Raw(CIString(rawHeaders(i)), rawHeaders(i + 1))
+        i += 2
       }
-      body = Stream.resource(fs2.io.suspendReadableAndRead()(incomingMessage)).flatMap(_._2)
-    } yield Request(method, uri, httpVersion, headers, body = body)
+      new Headers(headers.result())
+    }
+
+    private def body[F[_]: Async] =
+      Stream.resource(fs2.io.suspendReadableAndRead()(incomingMessage)).flatMap(_._2)
 
   }
 
