@@ -56,8 +56,6 @@ object ServerScaffold {
     def port: Int
   }
 
-  val http = js.Dynamic.global.require("http")
-
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]
   ): Resource[F, ServerScaffold] = {
