@@ -112,8 +112,8 @@ object WebSocketHelpers {
       idleTimeout: Duration,
   )(implicit F: Async[F]): F[Unit] = {
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
-    def write(s: Stream[F, Byte]) =
-      s.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout))
+    def writeFrame(frame: WebSocketFrame): F[Unit] =
+      frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
 
     val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 
@@ -123,10 +123,9 @@ object WebSocketHelpers {
         case WebSocketCombinedPipe(receiveSend, onClose) =>
           incoming
             .through(decodeFrames[F])
-            .evalMapFilter(handleIncomingFrame[F](write, close))
+            .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
             .through(receiveSend)
-            .flatMap(encodeFrame[F])
-            .through(write) -> onClose
+            .foreach(writeFrame) -> onClose
         case WebSocketSeparatePipe(send, receive, onClose) =>
           val closeFrame: F[List[WebSocketFrame]] = close.get.flatMap {
             case Open =>
@@ -139,15 +138,12 @@ object WebSocketHelpers {
               } yield List(frame)
             case _ => F.pure(Nil)
           }
-          val sendWithClose = send ++ Stream.evalSeq(closeFrame)
 
-          val writer = sendWithClose
-            .flatMap(encodeFrame[F])
-            .through(write)
+          val writer = (send ++ Stream.evalSeq(closeFrame)).foreach(writeFrame)
 
           val reader = incoming
             .through(decodeFrames[F])
-            .evalMapFilter(handleIncomingFrame[F](write, close))
+            .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
             .through(receive)
 
           reader.concurrently(writer) -> onClose
@@ -161,12 +157,12 @@ object WebSocketHelpers {
     }
   }
 
-  private def handleIncomingFrame[F[_]](write: Pipe[F, Byte, Unit], closeState: Ref[F, Close])(
+  private def handleIncomingFrame[F[_]](
+      writeFrame: WebSocketFrame => F[Unit],
+      closeState: Ref[F, Close],
+  )(
       frame: WebSocketFrame
-  )(implicit F: Concurrent[F]): F[Option[WebSocketFrame]] = {
-    def writeFrame(frame: WebSocketFrame): F[Unit] =
-      encodeFrame[F](frame).through(write).compile.drain
-
+  )(implicit F: Concurrent[F]): F[Option[WebSocketFrame]] =
     frame match {
       case ping @ WebSocketFrame.Ping(data) =>
         writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
@@ -182,17 +178,14 @@ object WebSocketHelpers {
         }
       case x => F.pure(Some(x))
     }
-  }
 
-  private def encodeFrame[F[_]](frame: WebSocketFrame): Stream[F, Byte] = {
-    val chunks = nonClientTranscoder.frameToBuffer(frame).map { buffer =>
+  private def frameToBytes(frame: WebSocketFrame): List[Chunk[Byte]] =
+    nonClientTranscoder.frameToBuffer(frame).toList.map { buffer =>
       // TODO followup: improve the buffering here
       val bytes = new Array[Byte](buffer.remaining())
       buffer.get(bytes)
       Chunk.array(bytes)
     }
-    Stream.iterable(chunks).flatMap(Stream.chunk(_))
-  }
 
   private def decodeFrames[F[_]](implicit F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
     def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
