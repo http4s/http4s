@@ -31,7 +31,8 @@ import scala.scalajs.js
 trait IncomingMessage extends js.Object with Readable {
   protected[nodejs] def method: String = js.native
   protected[nodejs] def url: String = js.native
-  protected[nodejs] def httpVersion: String = js.native
+  protected[nodejs] def httpVersionMajor: Int = js.native
+  protected[nodejs] def httpVersionMinor: Int = js.native
   protected[nodejs] def rawHeaders: js.Array[String] = js.native
 }
 
@@ -50,7 +51,9 @@ object IncomingMessage {
     ): F[Request[F]] = for {
       method <- Method.fromString(incomingMessage.method).liftTo[F]
       uri <- Uri.fromString(incomingMessage.url).liftTo[F]
-      httpVersion <- HttpVersion.fromString("HTTP/" + incomingMessage.httpVersion).liftTo[F]
+      httpVersion <- HttpVersion
+        .fromVersion(incomingMessage.httpVersionMajor, incomingMessage.httpVersionMinor)
+        .liftTo[F]
       headers = {
         val rawHeaders = incomingMessage.rawHeaders
         val n = rawHeaders.length
