@@ -18,6 +18,7 @@ package org.http4s
 package nodejs
 
 import cats.effect.Async
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.io.Writable
 
@@ -31,6 +32,8 @@ import scala.scalajs.js
 trait ClientRequest extends js.Object with Writable {
   protected[nodejs] def setHeader(name: String, value: js.Array[String]): Unit = js.native
   protected[nodejs] def getHeader(name: String): js.UndefOr[js.Array[String]] = js.native
+  protected[nodejs] def once[E](eventName: String, listener: js.Function1[E, Unit]): ClientRequest =
+    js.native
 }
 
 object ClientRequest {
@@ -43,22 +46,31 @@ object ClientRequest {
     /** Writes the contents of an http4s [[Request]] to a this [[ClientRequest]] */
     def writeRequest[F[_]](request: Request[F])(implicit
         F: Async[F]
-    ): F[Unit] = for {
-      _ <- F.delay {
-        request.headers.foreach { case Header.Raw(name, value) =>
-          clientRequest
-            .getHeader(name.toString)
-            .fold(clientRequest.setHeader(name.toString, js.Array(value))) { values =>
-              values.push(value)
-              ()
-            }
+    ): F[Unit] = {
+      val write = for {
+        _ <- F.delay {
+          request.headers.foreach { case Header.Raw(name, value) =>
+            clientRequest
+              .getHeader(name.toString)
+              .fold(clientRequest.setHeader(name.toString, js.Array(value))) { values =>
+                values.push(value)
+                ()
+              }
+          }
         }
+        _ <- request.body
+          .through(fs2.io.writeWritable[F](F.pure(clientRequest)))
+          .compile
+          .drain
+      } yield ()
+
+      val error = F.async_[Unit] { cb =>
+        clientRequest.once[js.Error]("error", e => cb(Left(js.JavaScriptException(e))))
+        ()
       }
-      _ <- request.body
-        .through(fs2.io.writeWritable[F](F.pure(clientRequest)))
-        .compile
-        .drain
-    } yield ()
+
+      write.race(error).void
+    }
   }
 
 }
