@@ -105,7 +105,7 @@ object NodeJSClientBuilder {
   }
 
   @js.native
-  @js.annotation.JSGlobal
+  @js.annotation.JSGlobal("AbortController")
   private class AbortController extends js.Object {
     def abort(): Unit = js.native
     def signal: AbortSignal = js.native
