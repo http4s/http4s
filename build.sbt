@@ -67,7 +67,6 @@ lazy val modules: List[CompositeProject] = List(
   asyncHttpClient,
   jettyClient,
   okHttpClient,
-  nodeServerless,
   theDsl,
   jawn,
   circe,
@@ -404,7 +403,6 @@ lazy val client = libraryCrossProject("client")
     ),
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
-  .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
@@ -804,14 +802,6 @@ lazy val jettyClient = libraryProject("jetty-client")
     ),
   )
   .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
-
-lazy val nodeServerless = libraryProject("node-serverless")
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .settings(
-    description := "Node.js serverless wrapper for http4s apps",
-    startYear := Some(2021),
-  )
-  .dependsOn(core.js)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
