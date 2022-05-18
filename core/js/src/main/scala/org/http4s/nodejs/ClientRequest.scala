@@ -53,7 +53,7 @@ object ClientRequest {
 
   final class ClientRequestOps(private val clientRequest: ClientRequest) extends AnyVal {
 
-    /** Writes the contents of an http4s [[Request]] to a this [[ClientRequest]] */
+    /** Writes the contents of an http4s [[Request]] to this [[ClientRequest]] */
     def writeRequest[F[_]](request: Request[F])(implicit
         F: Async[F]
     ): F[Unit] = {

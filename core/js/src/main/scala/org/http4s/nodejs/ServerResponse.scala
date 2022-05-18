@@ -46,7 +46,7 @@ object ServerResponse {
   final class ServerResponseOps private[nodejs] (private val serverResponse: ServerResponse)
       extends AnyVal {
 
-    /** Writes the contents of an http4s [[Response]] to a this [[ServerResponse]] */
+    /** Writes the contents of an http4s [[Response]] to this [[ServerResponse]] */
     def writeResponse[F[_]](response: Response[F])(implicit
         F: Async[F]
     ): F[Unit] =
