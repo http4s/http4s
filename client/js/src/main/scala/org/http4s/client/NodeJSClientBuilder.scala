@@ -48,14 +48,14 @@ sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] = Client { (req: Request[F]) =>
-    Resource.make(F.delay(new AbortSignal))(sig => F.delay(sig.abort())).evalMap { abortSignal =>
+    Resource.make(F.delay(new AbortController))(ctr => F.delay(ctr.abort())).evalMap { abort =>
       val options = new RequestOptions {
         method = req.method.renderString
-        protocol = req.uri.scheme.map(_.value).orUndefined
+        protocol = req.uri.scheme.map(_.value + ":").orUndefined
         host = req.uri.authority.map(_.host.renderString).orUndefined
         port = req.uri.authority.flatMap(_.port).map(_.toInt).orUndefined
         path = req.uri.copy(scheme = None, authority = None).renderString
-        signal = abortSignal
+        signal = abort.signal
       }
 
       F.async[IncomingMessage] { cb =>
@@ -77,6 +77,7 @@ sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[
 }
 
 object NodeJSClientBuilder {
+  def apply[F[_]: Async]: NodeJSClientBuilder[F] = new NodeJSClientBuilder[F] {}
 
   @js.native
   @js.annotation.JSImport("http", "request")
@@ -105,8 +106,11 @@ object NodeJSClientBuilder {
 
   @js.native
   @js.annotation.JSGlobal
-  private class AbortSignal extends js.Object {
+  private class AbortController extends js.Object {
     def abort(): Unit = js.native
+    def signal: AbortSignal = js.native
   }
+
+  private trait AbortSignal extends js.Object
 
 }
