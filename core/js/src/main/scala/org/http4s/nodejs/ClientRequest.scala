@@ -31,9 +31,18 @@ import scala.scalajs.js
 @js.native
 @nowarn
 trait ClientRequest extends js.Object with Writable {
+
   protected[nodejs] def setHeader(name: String, value: js.Array[String]): Unit = js.native
+
   protected[nodejs] def getHeader(name: String): js.UndefOr[js.Array[String]] = js.native
+
   protected[nodejs] def once[E](eventName: String, listener: js.Function1[E, Unit]): ClientRequest =
+    js.native
+
+  protected[nodejs] def removeListener(
+      eventName: String,
+      listener: js.Function1[Nothing, Unit],
+  ): ClientRequest =
     js.native
 }
 
@@ -65,9 +74,13 @@ object ClientRequest {
           .drain
       } yield ()
 
-      val error = F.async_[Unit] { cb =>
-        clientRequest.once[js.Error]("error", e => cb(Left(js.JavaScriptException(e))))
-        ()
+      val error = F.async[Unit] { cb =>
+        val fn: js.Function1[js.Error, Unit] = e => cb(Left(js.JavaScriptException(e)))
+        F.delay(clientRequest.once[js.Error]("error", fn))
+          .as(Some(F.delay {
+            clientRequest.removeListener("error", fn)
+            ()
+          }))
       }
 
       // register the error listener with high-priority on the promises queue
