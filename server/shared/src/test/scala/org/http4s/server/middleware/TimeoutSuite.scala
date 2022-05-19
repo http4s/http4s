@@ -42,7 +42,7 @@ class TimeoutSuite extends Http4sSuite {
   private val neverReq = Request[IO](GET, uri"/never")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
-    IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))
+    resp.map(_.status).timeout(3.seconds).assertEquals(status)
 
   def testMiddleware(timeout: FiniteDuration, routes: HttpRoutes[IO] = defaultRoutes)(
       test: Http[IO, IO] => IO[Unit]
