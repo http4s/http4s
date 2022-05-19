@@ -41,7 +41,7 @@ import NodeJSClientBuilder._
   * resources, and any resources allocated while using this client
   * are reclaimed by the Node.js runtime at its own leisure.
   */
-sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[F])
+private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[F])
     extends BackendBuilder[F, Client[F]] {
 
   /** Creates a [[Client]].
@@ -81,7 +81,7 @@ sealed abstract class NodeJSClientBuilder[F[_]](implicit protected val F: Async[
 
 }
 
-object NodeJSClientBuilder {
+private[client] object NodeJSClientBuilder {
   def apply[F[_]: Async]: NodeJSClientBuilder[F] = new NodeJSClientBuilder[F] {}
 
   @js.native
