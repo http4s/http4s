@@ -20,6 +20,7 @@ package server
 
 import cats.effect.Async
 import cats.effect.std.Dispatcher
+import cats.effect.syntax.temporal._
 import cats.syntax.all._
 import fs2.Stream._
 import fs2._
@@ -284,8 +285,7 @@ private class Http2NodeStage[F[_]](
   private[this] val raceTimeout: Request[F] => F[Response[F]] =
     responseHeaderTimeout match {
       case finite: FiniteDuration =>
-        val timeoutResponse = F.sleep(finite).as(Response.timeout[F])
-        req => F.race(runApp(req), timeoutResponse).map(_.merge)
+        req => runApp(req).timeoutTo(finite, F.pure(Response.timeout[F]))
       case _ =>
         runApp
     }
