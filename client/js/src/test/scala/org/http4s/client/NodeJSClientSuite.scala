@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 http4s.org
+ * Copyright 2014 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.http4s.node.serverless
+package org.http4s
+package client
 
-import fs2.io.Writable
+import cats.effect.IO
+import cats.effect.Resource
 
-import scala.annotation.nowarn
-import scala.scalajs.js
-
-@js.native
-@nowarn
-trait ServerResponse extends js.Object with Writable {
-  def writeHead(
-      statusCode: Int,
-      statusMessage: String,
-      headers: js.Dictionary[String],
-  ): ServerResponse = js.native
+class NodeJSClientSuite extends ClientRouteTestBattery("NodeJSClient") {
+  def clientResource: Resource[IO, Client[IO]] = NodeJSClientBuilder[IO].resource
 }
