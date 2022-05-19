@@ -210,17 +210,18 @@ private final class PoolManager[F[_], A <: Connection[F]](
       F.defer(
         Ref[F]
           .of(false)
-          .flatMap(ref =>
+          .flatMap(cancelingRef =>
             F.async[NextConnection] { callback =>
               semaphore.permit.use { _ =>
                 if (!isClosed) {
                   def go(): F[Unit] =
-                    ref.get.flatMap {
+                    cancelingRef.get.flatMap {
                       case true =>
-                        F.delay(
-                          logger.warn(s"Requesting connection for $key has exceed timeout")
-                        ) *>
-                          F.delay(callback(Left(ConnectionBorrowingException(key))))
+                        val errorMsg =
+                          s"Requesting connection for $key was canceled"
+
+                        F.delay(logger.warn(errorMsg)) *>
+                          F.delay(callback(Left(new IllegalStateException(errorMsg))))
 
                       case false =>
                         getConnectionFromQueue(key).flatMap {
@@ -300,7 +301,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                   F.delay(callback(Left(new IllegalStateException("Connection pool is closed"))))
                     .as(None)
               }
-            }.onCancel(ref.set(true))
+            }.onCancel(cancelingRef.set(true))
           )
       )
 
@@ -494,4 +495,4 @@ final case class NoConnectionAllowedException(key: RequestKey)
     extends IllegalArgumentException(s"No client connections allowed to $key")
 
 final case class ConnectionBorrowingException(key: RequestKey)
-    extends IllegalStateException(s"Requesting connection for $key has exceed timeout")
+    extends IllegalStateException(s"Requesting connection for $key has exceeded the timeout")
