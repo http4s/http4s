@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client
+package org.http4s.client.testkit
 
 import cats.effect.Async
 import cats.implicits._

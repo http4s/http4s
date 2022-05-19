@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.scaffold
+package org.http4s.client.testkit.scaffold
 
 import cats.effect.Ref
 import cats.effect.Resource

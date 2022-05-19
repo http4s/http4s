@@ -16,13 +16,15 @@
 
 package org.http4s
 package client
+package testkit
 
 import cats.effect._
 import cats.syntax.all._
 import fs2._
+import munit._
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.client.scaffold.ServerScaffold
-import org.http4s.client.testroutes.GetRoutes
+import org.http4s.client.testkit.scaffold.ServerScaffold
+import org.http4s.client.testkit.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.multipart.Multiparts
@@ -33,7 +35,9 @@ import java.util.Arrays
 import java.util.Locale
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
+abstract class ClientRouteTestBattery(name: String)
+    extends CatsEffectSuite
+    with Http4sClientDsl[IO] {
   val timeout: FiniteDuration = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
@@ -204,5 +208,24 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       _ <- IO(rec.httpVersion).assertEquals(expected.httpVersion)
     } yield true
   }
+
+  private def registerSuiteFixture[A](fixture: Fixture[A]): Fixture[A] = {
+    suiteFixtures += fixture
+    fixture
+  }
+
+  private def resourceSuiteDeferredFixture[A](
+      name: String,
+      resource: Resource[IO, A],
+  ): Fixture[IO[A]] =
+    registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
+
+  implicit private class ParseResultSyntax[A](self: ParseResult[A]) {
+    def yolo: A = self.valueOr(e => sys.error(e.toString))
+  }
+
+  private[this] lazy val suiteFixtures = List.newBuilder[Fixture[_]]
+
+  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
 
 }

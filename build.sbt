@@ -404,6 +404,24 @@ lazy val client = libraryCrossProject("client")
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
 
+lazy val clientTestkit = libraryCrossProject("client-testkit")
+  .settings(
+    description := "Client testkit for building http4s clients",
+    startYear := Some(2014),
+    libraryDependencies ++= Seq(
+      munit.value,
+      munitCatsEffect.value,
+    ),
+    mimaPreviousArtifacts := Set.empty,
+  )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer,
+      nettyCodecHttp,
+    )
+  )
+  .dependsOn(client, theDsl)
+
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
     description := "Base library for ember http4s clients and servers",

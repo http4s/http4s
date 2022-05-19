@@ -15,7 +15,7 @@
  */
 
 package org.http4s
-package client.testroutes
+package client.testkit.testroutes
 
 import cats.effect._
 import cats.syntax.all._

@@ -16,6 +16,7 @@
 
 package org.http4s
 package client
+package testkit
 package scaffold
 
 import cats.effect.kernel.Async
