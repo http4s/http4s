@@ -21,7 +21,7 @@ package client
 import cats.effect.IO
 import cats.effect.Resource
 import org.http4s.client.Client
-import org.http4s.client.ClientRouteTestBattery
+import org.http4s.client.testkit.ClientRouteTestBattery
 
 class OkHttpClientSuite extends ClientRouteTestBattery("OkHttp") {
   def clientResource: Resource[IO, Client[IO]] =

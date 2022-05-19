@@ -21,7 +21,7 @@ import cats.effect.IO
 import cats.effect.Resource
 import org.http4s.Http4sSuite
 import org.http4s.client.Client
-import org.http4s.client.ClientRouteTestBattery
+import org.http4s.client.testkit.ClientRouteTestBattery
 
 class EmberClientSuite extends ClientRouteTestBattery("EmberClient") with Http4sSuite {
 

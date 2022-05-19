@@ -28,10 +28,10 @@ import io.netty.handler.codec.http.HttpRequest
 import io.netty.handler.codec.http.HttpResponseStatus
 import org.http4s.client.ConnectionFailure
 import org.http4s.client.RequestKey
-import org.http4s.client.scaffold.Handler
-import org.http4s.client.scaffold.HandlerHelpers
-import org.http4s.client.scaffold.HandlersToNettyAdapter
-import org.http4s.client.scaffold.ServerScaffold
+import org.http4s.client.testkit.scaffold.Handler
+import org.http4s.client.testkit.scaffold.HandlerHelpers
+import org.http4s.client.testkit.scaffold.HandlersToNettyAdapter
+import org.http4s.client.testkit.scaffold.ServerScaffold
 import org.http4s.syntax.all._
 
 import java.net.SocketException

@@ -607,7 +607,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     ),
     jsVersionIntroduced("0.23.5"),
   )
-  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", client, clientTestkit)
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -794,7 +794,7 @@ lazy val blazeClient = libraryProject("blaze-client")
       else Seq.empty
     },
   )
-  .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", client.jvm, clientTestkit.jvm % Test)
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
@@ -809,7 +809,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     ),
     Test / parallelExecution := false,
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm)
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -821,7 +821,7 @@ lazy val jettyClient = libraryProject("jetty-client")
       jettyUtil,
     ),
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm)
 
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
@@ -832,7 +832,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
       okio,
     ),
   )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
+  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm)
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)

@@ -23,7 +23,7 @@ import fs2.Chunk
 import fs2.Stream
 import org.http4s.Method._
 import org.http4s._
-import org.http4s.client.scaffold.TestServer
+import org.http4s.client.testkit.scaffold.TestServer
 
 import java.net.SocketException
 import java.util.concurrent.TimeUnit
