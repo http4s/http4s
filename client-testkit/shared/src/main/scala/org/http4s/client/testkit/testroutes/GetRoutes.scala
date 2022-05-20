@@ -24,7 +24,7 @@ import org.http4s.Status._
 
 import scala.concurrent.duration._
 
-object GetRoutes {
+private[http4s] object GetRoutes {
   val SimplePath = "/simple"
   val LargePath = "/large"
   val ChunkedPath = "/chunked"

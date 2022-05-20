@@ -32,9 +32,9 @@ import org.http4s.nodejs.ServerResponse
 import scala.annotation.nowarn
 import scala.scalajs.js
 
-final case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])
+private[http4s] final case class ServerScaffold[F[_]](addresses: List[SocketAddress[IpAddress]])
 
-object ServerScaffold {
+private[http4s] object ServerScaffold {
 
   @js.native
   @js.annotation.JSImport("http", "createServer")

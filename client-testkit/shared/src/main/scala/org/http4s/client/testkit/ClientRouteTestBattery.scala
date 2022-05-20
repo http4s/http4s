@@ -35,7 +35,7 @@ import java.util.Arrays
 import java.util.Locale
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String)
+private[http4s] abstract class ClientRouteTestBattery(name: String)
     extends CatsEffectSuite
     with Http4sClientDsl[IO] {
   val timeout: FiniteDuration = 20.seconds
