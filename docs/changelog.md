@@ -49,7 +49,6 @@ All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-E
     * Roll back the #6254 by @danicheg in https://github.com/http4s/http4s/pull/6332
 
 * http4s-tomcat
-    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.60 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6132
     * Update tomcat-catalina, tomcat-coyote, ... to 9.0.62 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6214
     
 * http4s-scala-xml
@@ -60,6 +59,7 @@ All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-E
 
 * Behind the scenes
     * Add unidocs project to root aggregate by @armanbilge in https://github.com/http4s/http4s/pull/6129
+    * Update tomcat-catalina, tomcat-coyote, ... to 9.0.60 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6132
     * Update http4s-circe, http4s-ember-client to 0.23.11 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6149
     * Merge after 0.21.33 by @rossabaker in https://github.com/http4s/http4s/pull/6153
     * Don't override api url by @armanbilge in https://github.com/http4s/http4s/pull/6158
