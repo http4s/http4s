@@ -65,9 +65,6 @@ lazy val modules: List[CompositeProject] = List(
   blazeCore,
   blazeServer,
   blazeClient,
-  asyncHttpClient,
-  jettyClient,
-  okHttpClient,
   theDsl,
   jawn,
   circe,
@@ -795,44 +792,6 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client.jvm, clientTestkit.jvm % Test)
 
-lazy val asyncHttpClient = libraryProject("async-http-client")
-  .settings(
-    description := "async http client implementation for http4s clients",
-    startYear := Some(2016),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.asyncHttpClient,
-      fs2ReactiveStreams,
-      nettyBuffer,
-      nettyCodecHttp,
-      reactiveStreams,
-    ),
-    Test / parallelExecution := false,
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm % Test)
-
-lazy val jettyClient = libraryProject("jetty-client")
-  .settings(
-    description := "jetty implementation for http4s clients",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.jettyClient,
-      jettyHttp,
-      jettyUtil,
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm % Test)
-
-lazy val okHttpClient = libraryProject("okhttp-client")
-  .settings(
-    description := "okhttp implementation for http4s clients",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.okhttp,
-      okio,
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm, clientTestkit.jvm % Test)
-
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
@@ -864,14 +823,13 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeJawn.value,
       circeTesting.value % Test,
     ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .jvmSettings(libraryDependencies += circeJawn.value)
-  .jsSettings(libraryDependencies += circeJawn15.value)
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
