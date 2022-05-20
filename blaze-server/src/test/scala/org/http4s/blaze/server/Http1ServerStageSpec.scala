@@ -104,6 +104,7 @@ class Http1ServerStageSpec extends Http4sSuite {
       tw,
       dispatcher(),
       None,
+      Histogram.noop
     )
 
     pipeline.LeafBuilder(httpStage).base(head)

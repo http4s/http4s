@@ -338,6 +338,7 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers",
     startYear := Some(2014),
+    libraryDependencies += "com.rossabaker" %% "otel4s" % "0.0-db83cad-SNAPSHOT"
   )
   .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
 

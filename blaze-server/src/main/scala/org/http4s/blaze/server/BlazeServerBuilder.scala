@@ -28,6 +28,8 @@ import cats.syntax.all._
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import com.rossabaker.otel4s.Histogram
+import com.rossabaker.otel4s.MeterProvider
 import org.http4s.blaze.channel._
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
@@ -109,6 +111,7 @@ class BlazeServerBuilder[F[_]] private (
     maxConnections: Int,
     val channelOptions: ChannelOptions,
     maxWebSocketBufferSize: Option[Int],
+    meterProvider: MeterProvider[F]
 )(implicit protected val F: Async[F])
     extends ServerBuilder[F]
     with BlazeBackendBuilder[Server] {
@@ -135,6 +138,7 @@ class BlazeServerBuilder[F[_]] private (
       maxConnections: Int = maxConnections,
       channelOptions: ChannelOptions = channelOptions,
       maxWebSocketBufferSize: Option[Int] = maxWebSocketBufferSize,
+      meterProvider: MeterProvider[F] = meterProvider,
   ): Self =
     new BlazeServerBuilder(
       socketAddress,
@@ -155,6 +159,7 @@ class BlazeServerBuilder[F[_]] private (
       maxConnections,
       channelOptions,
       maxWebSocketBufferSize,
+      meterProvider,
     )
 
   /** Configure HTTP parser length limits
@@ -281,6 +286,7 @@ class BlazeServerBuilder[F[_]] private (
       scheduler: TickWheelExecutor,
       engineConfig: Option[(SSLContext, SSLEngine => Unit)],
       dispatcher: Dispatcher[F],
+      durationHistogram: Histogram[F, Double],
   )(conn: SocketConnection): Future[LeafBuilder[ByteBuffer]] = {
     def requestAttributes(secure: Boolean, optionalSslEngine: Option[SSLEngine]): () => Vault =
       (conn.local, conn.remote) match {
@@ -337,6 +343,7 @@ class BlazeServerBuilder[F[_]] private (
         scheduler,
         dispatcher,
         maxWebSocketBufferSize,
+        durationHistogram,
       )
 
     def http2Stage(
@@ -359,6 +366,7 @@ class BlazeServerBuilder[F[_]] private (
         dispatcher,
         webSocketKey,
         maxWebSocketBufferSize,
+        durationHistogram,
       )
 
     dispatcher.unsafeToFuture {
@@ -405,13 +413,14 @@ class BlazeServerBuilder[F[_]] private (
         factory: ServerChannelGroup,
         scheduler: TickWheelExecutor,
         dispatcher: Dispatcher[F],
+        durationHistogram: Histogram[F, Double]
     ): Resource[F, ServerChannel] =
       Resource.make(
         for {
           ctxOpt <- sslConfig.makeContext
           engineCfg = ctxOpt.map(ctx => (ctx, sslConfig.configureEngine _))
           address = resolveAddress(socketAddress)
-        } yield factory.bind(address, pipelineFactory(scheduler, engineCfg, dispatcher)).get
+        } yield factory.bind(address, pipelineFactory(scheduler, engineCfg, dispatcher, durationHistogram)).get
       )(serverChannel => F.delay(serverChannel.close()))
 
     def logStart(server: Server): Resource[F, Unit] =
@@ -431,11 +440,16 @@ class BlazeServerBuilder[F[_]] private (
       // ever after the server has acknowledged shutdown, so we just need to allocate
       dispatcher <- Resource.eval(Dispatcher[F].allocated.map(_._1))
       scheduler <- tickWheelResource
-
       _ <- Resource.eval(verifyTimeoutRelations())
 
       factory <- mkFactory
-      serverChannel <- mkServerChannel(factory, scheduler, dispatcher)
+      meter <- Resource.eval(meterProvider.meter("org.http4s.blaze.server").withVersion(BuildInfo.version).get)
+      durationHistogram <- Resource.eval(meter
+        .histogram("http.server.duration")
+        .withUnit("ms")
+        .withDescription("Duration of the inbound HTTP request")
+        .create)
+      serverChannel <- mkServerChannel(factory, scheduler, dispatcher, durationHistogram)
       server = new Server {
         val address: SocketAddress[IpAddress] =
           SocketAddress.fromInetSocketAddress(serverChannel.socketAddress)
@@ -490,6 +504,7 @@ object BlazeServerBuilder {
       maxConnections = defaults.MaxConnections,
       channelOptions = ChannelOptions(Vector.empty),
       maxWebSocketBufferSize = None,
+      meterProvider = MeterProvider.noop
     )
 
   private def defaultApp[F[_]: Applicative]: HttpApp[F] =
