@@ -845,14 +845,13 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeJawn.value,
       circeTesting.value % Test,
     ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .jvmSettings(libraryDependencies += circeJawn.value)
-  .jsSettings(libraryDependencies += circeJawn15.value)
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
