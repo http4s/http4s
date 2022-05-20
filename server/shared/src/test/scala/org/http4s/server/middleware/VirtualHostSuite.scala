@@ -110,7 +110,7 @@ class VirtualHostSuite extends Http4sSuite {
       req.withHeaders(Host("b.service", Some(80))),
     )
 
-    reqs.traverse { req =>
+    reqs.parTraverse_ { req =>
       vhostWildcard(req).flatMap(_.as[String]).assertEquals("routesB")
     }
   }
@@ -120,7 +120,7 @@ class VirtualHostSuite extends Http4sSuite {
     val reqs =
       List(req.withHeaders(Host(".service", Some(80))), req.withHeaders(Host("service", Some(80))))
 
-    reqs.traverse { req =>
+    reqs.parTraverse_ { req =>
       vhostWildcard(req).map(_.status).assertEquals(NotFound)
     }
   }
