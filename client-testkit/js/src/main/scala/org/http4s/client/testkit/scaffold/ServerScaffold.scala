@@ -59,7 +59,7 @@ private[http4s] object ServerScaffold {
 
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]
-  ): Resource[F, ServerScaffold] = {
+  ): Resource[F, ServerScaffold[F]] = {
     require(num == 1 && !secure)
     val app = routes.orNotFound
     Dispatcher[F].flatMap { dispatcher =>
@@ -76,7 +76,7 @@ private[http4s] object ServerScaffold {
           F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
         }
         .evalMap { server =>
-          F.async_[ServerScaffold] { cb =>
+          F.async_[ServerScaffold[F]] { cb =>
             server.listen(
               0,
               "localhost",
