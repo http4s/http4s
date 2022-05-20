@@ -4,9 +4,9 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.22.13 (2022-04-28)
+# v0.22.13 (2022-05-20)
 
-This release is binary compatible with the 0.22.x series. 
+This release is binary compatible with 0.22.x series. 
 Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community. 
 All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
 
@@ -24,6 +24,7 @@ All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-E
     * Update cats-parse to 0.3.7 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6224
     * Fix `SelectOpsMultiple#renderString` by @danicheg in https://github.com/http4s/http4s/pull/6307
     * Update fs2-core, fs2-io, ... to 2.5.11 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6322
+    * Update to Cats Effect 2.5.5 by @armanbilge in https://github.com/http4s/http4s/pull/6392
 
 * http4s-server
     * Routing on variable segments by @teigen in https://github.com/http4s/http4s/pull/6057
@@ -74,6 +75,7 @@ All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-E
     * Remove ignoring some files for `doctest` by @danicheg in https://github.com/http4s/http4s/pull/6284
     * Update sbt-http4s-org to 0.13.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6287
     * Update scalafmt-core to 3.5.2 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6318
+    * Upgrade jawn-fs2, keypool, log4cats, vault to last CE2 versions by @rossabaker in https://github.com/http4s/http4s/pull/6383
 
 * New Contributors
     * @teigen made their first contribution in https://github.com/http4s/http4s/pull/6057
