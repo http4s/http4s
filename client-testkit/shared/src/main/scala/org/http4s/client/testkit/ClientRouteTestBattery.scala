@@ -54,7 +54,7 @@ abstract class ClientRouteTestBattery(name: String)
       Ok(req.body)
   }
 
-  val serverClient = resourceSuiteDeferredFixture(
+  val serverClient: Fixture[IO[(() => ServerScaffold, () => Client[IO])]] = resourceSuiteDeferredFixture(
     "serverClient",
     ServerScaffold[IO](1, false, testHandler)
       .map(() => _)
