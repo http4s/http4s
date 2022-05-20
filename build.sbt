@@ -60,6 +60,7 @@ lazy val modules: List[CompositeProject] = List(
   tests,
   server,
   client,
+  clientTestkit,
   emberCore,
   emberServer,
   emberClient,
