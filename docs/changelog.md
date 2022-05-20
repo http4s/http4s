@@ -26,9 +26,12 @@ It is the first release after "The Great Schism", where several integrations are
 * [http4s-tomcat](https://github.com/http4s/http4s-tomcat)
 * [http4s-twirl](https://github.com/http4s/http4s-twirl)
 
-These modules can now publish for newer versions of what they integrate without requiring a breaking change to the entire http4s ecosystem.  It also makes this repo leaner and easier to maintain and contribute to.
-
-Be aware that versions of these modules may become untethered from the core version they depend on.  All modules will continue to adhere to [early semver](https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html#early-semver-and-sbt-version-policy).  We recommend [sbt-updates](https://github.com/rtimush/sbt-updates) or [Scala Steward](https://github.com/scala-steward-org/scala-steward) for all your dependencies, and heeding SBT's eviction warnings.
+Be aware that versions of these modules will be untethered from the core version they depend on.
+* These modules may not be republished with each core patch release, but will still work on the latest 0.23 core.
+* Some of these modules will see breaking releases to upgrade their integrated dependencies, based on the 0.23 core.  These upgrades could previously not be undertaken without a breaking change of the entire http4s ecosystem.
+* All modules will continue to adhere to [early semver](https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html#early-semver-and-sbt-version-policy).
+* We recommend [sbt-updates](https://github.com/rtimush/sbt-updates) or [Scala Steward](https://github.com/scala-steward-org/scala-steward) for all your dependencies, and heeding SBT's eviction warnings.
+* We would like to welcome new maintainers to help out on each of these modules.  Look for the "help wanted" label in these repos.
 
 # v0.22.13 (2022-05-20)
 
