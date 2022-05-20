@@ -38,7 +38,6 @@ object ScaladocApiMapping {
       vaultMapping(scalaBinaryVersion)(file).toMap ++
         catsEffectMapping(scalaBinaryVersion)(file).toMap ++
         fs2CoreMapping(scalaBinaryVersion)(file).toMap ++
-        jettyMapping(file).toMap ++
         acc
     }
 
@@ -88,17 +87,4 @@ object ScaladocApiMapping {
     }
   }
 
-  private def jettyMapping(file: File): Option[(File, URL)] = {
-    val jettyMajorVersion: String =
-      Http4sPlugin.V.jetty.takeWhile(_ != '.')
-    if (file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
-      Some(
-        file -> new URL(
-          s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"
-        )
-      )
-    } else {
-      None
-    }
-  }
 }
