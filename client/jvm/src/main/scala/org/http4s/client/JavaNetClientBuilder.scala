@@ -109,7 +109,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] =
-    Client { (req: Request[F]) =>
+    Client { (request: Request[F]) =>
+      val req = normalizeRequest(request)
       def respond(conn: HttpURLConnection): F[Response[F]] =
         for {
           _ <- configureSsl(conn)
@@ -138,6 +139,14 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 
   def resource: Resource[F, Client[F]] =
     Resource.eval(F.delay(create))
+
+  private def normalizeRequest(req: Request[F]): Request[F] =
+    if (req.method === Method.GET) {
+      // Normalize to use an empty body, otherwise JavaNet changes the request to a POST
+      // which is different behaviour compared to other clients
+      req.withEmptyBody
+    } else
+      req
 
   private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {

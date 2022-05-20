@@ -29,7 +29,7 @@ import org.http4s.multipart.Multiparts
 import org.http4s.multipart.Part
 import org.typelevel.ci._
 
-import java.util.Arrays
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Locale
 import scala.concurrent.duration._
 
@@ -136,6 +136,51 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
     }
   }
 
+  GetRoutes.getPaths.get(GetRoutes.SimplePath).foreach { expected =>
+    val path = GetRoutes.SimplePath
+
+    test(s"$name Execute GET withEntity $path") {
+      serverClient().flatMap { case (server, client) =>
+        val address = server().addresses.head
+        val req =
+          Request[IO](uri = Uri.fromString(s"http://$address$path").yolo).withEntity("entity")
+        client()
+          .run(req)
+          .use(resp => expected.flatMap(checkResponse(resp, _)))
+          .assert
+      }
+    }
+
+    // test(s"$name Execute GET withEntity then withHeaders $path") {
+    //   serverClient().flatMap { case (server, client) =>
+    //     val address = server().addresses.head
+    //     val req =
+    //       Request[IO](uri = Uri.fromString(s"http://$address$path").yolo)
+    //         .withEntity("entity")
+    //         .withHeaders(headers.`Content-Type`(MediaType.text.plain))
+    //     client()
+    //       .run(req)
+    //       .use(resp => expected.flatMap(checkResponse(resp, _)))
+    //       .assert
+    //   }
+    // }
+
+    test(s"$name Execute GET withHeaders then withEntity $path") {
+      serverClient().flatMap { case (server, client) =>
+        val address = server().addresses.head
+        val req =
+          Request[IO](uri = Uri.fromString(s"http://$address$path").yolo)
+            .withHeaders(headers.`Content-Type`(MediaType.text.plain))
+            .withEntity("entity")
+        client()
+          .run(req)
+          .use(resp => expected.flatMap(checkResponse(resp, _)))
+          .assert
+      }
+    }
+
+  }
+
   test("Mitigates request splitting attack in URI path") {
     serverClient().flatMap { case (server, client) =>
       val address = server().addresses.head
@@ -197,7 +242,10 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
       _ <- IO(rec.status).assertEquals(expected.status)
       body <- rec.body.compile.to(Array)
       expBody <- expected.body.compile.to(Array)
-      _ <- IO(body).map(Arrays.equals(_, expBody)).assert
+      _ <- IO(body.toList).assertEquals(
+        expBody.toList,
+        s"Unexpected body: actual '${new String(body, UTF_8)}' expected '${new String(expBody.toArray, UTF_8)}'",
+      )
       headers = rec.headers.headers.map(normalizeHeaderValue)
       expectedHeaders = expected.headers.headers.map(normalizeHeaderValue)
       _ <- IO(expectedHeaders.diff(headers)).assertEquals(Nil)

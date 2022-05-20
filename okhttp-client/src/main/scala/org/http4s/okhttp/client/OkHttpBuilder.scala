@@ -79,8 +79,17 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
   private def run(dispatcher: Dispatcher[F])(req: Request[F]) =
     Resource.suspend(F.async_[Resource[F, Response[F]]] { cb =>
-      okHttpClient.newCall(toOkHttpRequest(req, dispatcher)).enqueue(handler(cb, dispatcher))
+      okHttpClient
+        .newCall(toOkHttpRequest(normalizeRequest(req), dispatcher))
+        .enqueue(handler(cb, dispatcher))
     })
+
+  private def normalizeRequest(req: Request[F]): Request[F] =
+    if (req.method === Method.GET) {
+      // Normalize to use an empty body, otherwise okhttp throws an IllegalArgumentException
+      req.withEmptyBody
+    } else
+      req
 
   private def handler(cb: Result[F] => Unit, dispatcher: Dispatcher[F])(implicit
       F: Async[F]
