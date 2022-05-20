@@ -4,10 +4,36 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.12
+
+This release is binary compatible with the 0.23.x series.
+
+## The Great Schism
+
+It is the first release after "The Great Schism", where several integrations are published separately.  These include:
+
+* [http4s-async-http-client](https://github.com/http4s/http4s-async-http-client)
+* [http4s-boopickle](https://github.com/http4s/http4s-boopickle)
+* [http4s-dropwizard-metrics](https://github.com/http4s/http4s-dropwizard-metrics)
+* [http4s-jetty-client](https://github.com/http4s/http4s-jetty)
+* [http4s-jetty-server](https://github.com/http4s/http4s-jetty)
+* [http4s-okhttp-client](https://github.com/http4s/http4s-okhttp-client)
+* [http4s-play-json](https://github.com/http4s/http4s-play-json)
+* [http4s-prometheus-metrics](https://github.com/http4s/http4s-prometheus-metrics)
+* [http4s-scala-xml](https://github.com/http4s/http4s-scala-xml)
+* [http4s-scalatags](https://github.com/http4s/http4s-scalatags)
+* [http4s-servlet](https://github.com/http4s/http4s-servlet)
+* [http4s-tomcat](https://github.com/http4s/http4s-tomcat)
+* [http4s-twirl](https://github.com/http4s/http4s-twirl)
+
+These modules can now publish for newer versions of what they integrate without requiring a breaking change to the entire http4s ecosystem.  It also makes this repo leaner and easier to maintain and contribute to.
+
+Be aware that versions of these modules may become untethered from the core version they depend on.  All modules will continue to adhere to [early semver](https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html#early-semver-and-sbt-version-policy).  We recommend [sbt-updates](https://github.com/rtimush/sbt-updates) or [Scala Steward](https://github.com/scala-steward-org/scala-steward) for all your dependencies, and heeding SBT's eviction warnings.
+
 # v0.22.13 (2022-05-20)
 
 This release is binary compatible with 0.22.x series. 
-Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community. 
+Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.
 All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
 
 
