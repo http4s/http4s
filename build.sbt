@@ -789,7 +789,6 @@ lazy val docs = http4sProject("site")
     description := "Documentation for http4s",
     tlFatalWarningsInCi := false,
     fork := false,
-    tlSiteApiUrl := Some(url("https://http4s.org/v0.22/api/")),
   )
   .dependsOn(
     client,
