@@ -54,12 +54,13 @@ abstract class ClientRouteTestBattery(name: String)
       Ok(req.body)
   }
 
-  val serverClient: Fixture[IO[(() => ServerScaffold, () => Client[IO])]] = resourceSuiteDeferredFixture(
-    "serverClient",
-    ServerScaffold[IO](1, false, testHandler)
-      .map(() => _)
-      .product(clientResource.map(() => _)),
-  )
+  val serverClient: Fixture[IO[(() => ServerScaffold, () => Client[IO])]] =
+    resourceSuiteDeferredFixture(
+      "serverClient",
+      ServerScaffold[IO](1, false, testHandler)
+        .map(() => _)
+        .product(clientResource.map(() => _)),
+    )
 
   test(s"$name Repeat a simple request") {
     serverClient().flatMap { case (server, client) =>
