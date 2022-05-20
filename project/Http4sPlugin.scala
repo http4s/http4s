@@ -103,8 +103,7 @@ object Http4sPlugin extends AutoPlugin {
     val cats = "2.7.0"
     val catsEffect = "3.3.11"
     val catsParse = "0.3.7"
-    val circe = "0.14.1"
-    val circe15 = "0.15.0-M1"
+    val circe = "0.14.2"
     val crypto = "0.2.3"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
@@ -157,7 +156,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore = Def.setting("io.circe" %%% "circe-core" % V.circe)
   lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
   lazy val circeJawn = Def.setting("io.circe" %%% "circe-jawn" % V.circe)
-  lazy val circeJawn15 = Def.setting("io.circe" %%% "circe-jawn" % V.circe15)
   lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
   lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
   lazy val circeTesting = Def.setting("io.circe" %%% "circe-testing" % V.circe)
