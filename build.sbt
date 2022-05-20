@@ -62,9 +62,6 @@ lazy val modules: List[CompositeProject] = List(
   emberCore,
   emberServer,
   emberClient,
-  blazeCore,
-  blazeServer,
-  blazeClient,
   theDsl,
   jawn,
   circe,
@@ -72,7 +69,6 @@ lazy val modules: List[CompositeProject] = List(
   jsArtifactSizeTest,
   unidocs,
   examples,
-  examplesBlaze,
   examplesDocker,
   examplesEmber,
   scalafixInternalRules,
@@ -605,193 +601,6 @@ lazy val emberClient = libraryCrossProject("ember-client")
   )
   .dependsOn(emberCore % "compile;test->test", client, clientTestkit % Test)
 
-lazy val blazeCore = libraryProject("blaze-core")
-  .settings(
-    description := "Base library for binding blaze to http4s clients and servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      blazeHttp
-    ),
-    mimaBinaryIssueFilters := {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.CachingChunkWriter.ec"),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.this"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.ec"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.FlushingChunkWriter.ec"
-          ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.ec"),
-        )
-      else Seq.empty
-    },
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val blazeServer = libraryProject("blaze-server")
-  .settings(
-    description := "blaze implementation for http4s servers",
-    startYear := Some(2014),
-    mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.WebSocketDecoder.this"
-      ), // private
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"
-      ), // private
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.webSocketKey"
-          ),
-        )
-      else Seq.empty,
-    },
-  )
-  .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
-
-lazy val blazeClient = libraryProject("blaze-client")
-  .settings(
-    description := "blaze implementation for http4s clients",
-    startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      // private constructor
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
-      // These are all private to blaze-client and fallout from from
-      // the deprecation of org.http4s.client.Connection
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.release"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.BlazeConnection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.connection"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy$default$1"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.this"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.apply"
-      ),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.Http1Connection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.release"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
-      // inside private trait/clas/object
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.runRequest"
-      ),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.resetWrite"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Read$"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$ReadWrite$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Write$"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.Http1Connection.isRecyclable"
-      ),
-      ProblemFilters
-        .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
-          )
-        )
-      else Seq.empty
-    },
-  )
-  .dependsOn(blazeCore % "compile;test->test", client.jvm, clientTestkit.jvm % Test)
-
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
@@ -883,7 +692,6 @@ lazy val unidocs = http4sProject("unidocs")
         (List[ProjectReference](
           bench,
           examples,
-          examplesBlaze,
           examplesDocker,
           examplesEmber,
           exampleEmberServerH2,
@@ -936,22 +744,10 @@ lazy val examples = http4sProject("examples")
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
-lazy val examplesBlaze = exampleProject("examples-blaze")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Examples of http4s server and clients on blaze",
-    startYear := Some(2013),
-    fork := true,
-    libraryDependencies ++= Seq(
-      circeGeneric
-    ),
-  )
-  .dependsOn(blazeServer, blazeClient)
-
 lazy val examplesEmber = exampleProject("examples-ember")
   .settings(Revolver.settings)
   .settings(
-    description := "Examples of http4s server and clients on blaze",
+    description := "Examples of http4s server and clients on ember",
     startYear := Some(2020),
     fork := true,
     scalacOptions -= "-Xfatal-warnings",
@@ -974,14 +770,14 @@ lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
   .enablePlugins(JavaAppPackaging, DockerPlugin, NoPublishPlugin)
   .settings(
-    description := "Builds a docker image for a blaze-server",
+    description := "Builds a docker image for a ember-server",
     startYear := Some(2017),
-    Docker / packageName := "http4s/blaze-server",
+    Docker / packageName := "http4s/ember-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
   )
-  .dependsOn(blazeServer, theDsl.jvm)
+  .dependsOn(emberServer.jvm, theDsl.jvm)
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
