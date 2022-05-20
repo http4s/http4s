@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.scaffold
+package org.http4s.client.testkit.scaffold
 
 import cats.effect.Ref
 import cats.effect.Resource
@@ -41,7 +41,7 @@ import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 
-trait TestServer[F[_]] {
+private[http4s] trait TestServer[F[_]] {
   def localAddress: SocketAddress[IpAddress]
   def establishedConnections: F[Long]
   def resetEstablishedConnections: F[Unit]
@@ -49,7 +49,7 @@ trait TestServer[F[_]] {
   def uri: Uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
 }
 
-class NettyTestServer[F[_]](
+private[http4s] class NettyTestServer[F[_]](
     establishedConnectionsRef: Ref[F, Long],
     val localAddress: SocketAddress[IpAddress],
     val secure: Boolean,
@@ -58,7 +58,7 @@ class NettyTestServer[F[_]](
   def resetEstablishedConnections: F[Unit] = establishedConnectionsRef.set(0L)
 }
 
-object NettyTestServer {
+private[http4s] object NettyTestServer {
   private val logger = getLogger(this.getClass)
 
   def apply[F[_]: Async](

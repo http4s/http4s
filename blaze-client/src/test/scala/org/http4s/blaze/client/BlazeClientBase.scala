@@ -29,8 +29,8 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import org.http4s.Status.Ok
 import org.http4s._
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.client.scaffold._
-import org.http4s.client.testroutes.GetRoutes
+import org.http4s.client.testkit.scaffold._
+import org.http4s.client.testkit.testroutes.GetRoutes
 import org.http4s.dsl.io._
 
 import java.security.SecureRandom

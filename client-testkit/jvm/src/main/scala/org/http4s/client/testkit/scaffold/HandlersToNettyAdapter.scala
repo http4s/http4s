@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.scaffold
+package org.http4s.client.testkit.scaffold
 
 import cats.effect.Sync
 import io.netty.buffer.ByteBuf
@@ -29,7 +29,7 @@ import org.log4s.getLogger
 
 import java.net.URI
 
-object HandlersToNettyAdapter {
+private[http4s] object HandlersToNettyAdapter {
   val defaultFallbackHandler: Handler = (ctx: ChannelHandlerContext, _: HttpRequest) => {
     HandlerHelpers.sendResponse(ctx, HttpResponseStatus.NOT_FOUND)
     ()
@@ -42,7 +42,7 @@ object HandlersToNettyAdapter {
     F.delay(new HandlersToNettyAdapter(handlers, fallbackHandler))
 }
 
-class HandlersToNettyAdapter private (
+private[http4s] class HandlersToNettyAdapter private (
     handlers: Map[(HttpMethod, String), Handler],
     fallbackHandler: Handler,
 ) extends SimpleChannelInboundHandler[HttpObject] {
@@ -102,7 +102,7 @@ class HandlersToNettyAdapter private (
 
 }
 
-trait Handler {
+private[http4s] trait Handler {
 
   def onRequestStart(
       @deprecated("unused", "") ctx: ChannelHandlerContext,
@@ -119,7 +119,7 @@ trait Handler {
 
 }
 
-object HandlerHelpers {
+private[http4s] object HandlerHelpers {
 
   def sendResponse(
       ctx: ChannelHandlerContext,

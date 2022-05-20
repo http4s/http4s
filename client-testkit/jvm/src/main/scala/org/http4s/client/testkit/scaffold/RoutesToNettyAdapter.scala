@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.client.scaffold
+package org.http4s.client.testkit.scaffold
 
 import cats.effect.Ref
 import cats.effect.implicits.genSpawnOps
@@ -38,14 +38,14 @@ import org.http4s.headers.`Transfer-Encoding`
 import scala.annotation.nowarn
 import scala.collection.JavaConverters._
 
-object RoutesToNettyAdapter {
+private[http4s] object RoutesToNettyAdapter {
   def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit
       F: Async[F]
   ): F[ChannelInboundHandler] =
     RoutesToHandlerAdapter[F](routes, dispatcher).flatMap(HandlersToNettyAdapter[F](Map.empty, _))
 }
 
-object RoutesToHandlerAdapter {
+private[http4s] object RoutesToHandlerAdapter {
   def apply[F[_]](routes: HttpRoutes[F], dispatcher: Dispatcher[F])(implicit
       F: Async[F]
   ): F[RoutesToHandlerAdapter[F]] =
@@ -55,7 +55,7 @@ object RoutesToHandlerAdapter {
     } yield new RoutesToHandlerAdapter(routes, dispatcher, requestBodyQueue)
 }
 
-class RoutesToHandlerAdapter[F[_]](
+private[http4s] class RoutesToHandlerAdapter[F[_]](
     routes: HttpRoutes[F],
     dispatcher: Dispatcher[F],
     requestBodyQueue: Ref[F, Queue[F, Option[Chunk[Byte]]]],

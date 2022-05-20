@@ -20,6 +20,6 @@ package client
 import cats.effect.IO
 import cats.effect.Resource
 
-class JavaNetClientSpec extends ClientRouteTestBattery("JavaNetClient") {
-  def clientResource: Resource[IO, Client[IO]] = JavaNetClientBuilder[IO].resource
+class NodeJSClientSuite extends testkit.ClientRouteTestBattery("NodeJSClient") {
+  def clientResource: Resource[IO, Client[IO]] = NodeJSClientBuilder[IO].resource
 }

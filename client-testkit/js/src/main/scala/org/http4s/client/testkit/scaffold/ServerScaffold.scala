@@ -16,6 +16,7 @@
 
 package org.http4s
 package client
+package testkit
 package scaffold
 
 import cats.effect.kernel.Async
@@ -31,9 +32,9 @@ import org.http4s.nodejs.ServerResponse
 import scala.annotation.nowarn
 import scala.scalajs.js
 
-final case class ServerScaffold(addresses: List[SocketAddress[IpAddress]])
+private[http4s] final case class ServerScaffold[F[_]](addresses: List[SocketAddress[IpAddress]])
 
-object ServerScaffold {
+private[http4s] object ServerScaffold {
 
   @js.native
   @js.annotation.JSImport("http", "createServer")
@@ -58,7 +59,7 @@ object ServerScaffold {
 
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]
-  ): Resource[F, ServerScaffold] = {
+  ): Resource[F, ServerScaffold[F]] = {
     require(num == 1 && !secure)
     val app = routes.orNotFound
     Dispatcher[F].flatMap { dispatcher =>
@@ -75,7 +76,7 @@ object ServerScaffold {
           F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
         }
         .evalMap { server =>
-          F.async_[ServerScaffold] { cb =>
+          F.async_[ServerScaffold[F]] { cb =>
             server.listen(
               0,
               "localhost",

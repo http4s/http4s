@@ -58,6 +58,7 @@ lazy val modules: List[CompositeProject] = List(
   tests,
   server,
   client,
+  clientTestkit,
   emberCore,
   emberServer,
   emberClient,
@@ -401,6 +402,24 @@ lazy val client = libraryCrossProject("client")
   )
   .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
 
+lazy val clientTestkit = libraryCrossProject("client-testkit")
+  .settings(
+    description := "Client testkit for building http4s clients",
+    startYear := Some(2014),
+    libraryDependencies ++= Seq(
+      munit.value,
+      munitCatsEffect.value,
+    ),
+    mimaPreviousArtifacts := Set.empty,
+  )
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer,
+      nettyCodecHttp,
+    )
+  )
+  .dependsOn(client, theDsl)
+
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
     description := "Base library for ember http4s clients and servers",
@@ -584,7 +603,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     ),
     jsVersionIntroduced("0.23.5"),
   )
-  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", client, clientTestkit % Test)
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -771,7 +790,7 @@ lazy val blazeClient = libraryProject("blaze-client")
       else Seq.empty
     },
   )
-  .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", client.jvm, clientTestkit.jvm % Test)
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)

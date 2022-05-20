@@ -21,7 +21,7 @@ package client
 import cats.effect.IO
 import cats.effect.Resource
 import org.http4s.client.Client
-import org.http4s.client.ClientRouteTestBattery
+import org.http4s.client.testkit.ClientRouteTestBattery
 
 class BlazeHttp1ClientSuite extends ClientRouteTestBattery("BlazeClient") {
   def clientResource: Resource[IO, Client[IO]] =
