@@ -32,11 +32,11 @@ import java.security.Security
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 
-class ServerScaffold[F[_]] private (val servers: Vector[TestServer[F]]) {
+private[http4s] class ServerScaffold[F[_]] private (val servers: Vector[TestServer[F]]) {
   def addresses: Vector[SocketAddress[IpAddress]] = servers.map(_.localAddress)
 }
 
-object ServerScaffold {
+private[http4s] object ServerScaffold {
 
   // high-level API
   def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
