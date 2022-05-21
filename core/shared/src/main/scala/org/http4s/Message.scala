@@ -23,7 +23,6 @@ import cats.data.OptionT
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
-import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import cats.~>
 import com.comcast.ip4s.Dns
@@ -47,8 +46,6 @@ import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
@@ -254,38 +251,14 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** Compiles the body stream to a single chunk and sets it as the
     * body. Replaces any `Transfer-Encoding: chunked` with a
     * `Content-Length` header. It is the caller's responsibility to
-    * assure there is enough memory to materialize the body. Also,
-    * potentially this method could run infinitely.
-    * Consider to use [[org.http4s.Message.toStrict]] instead.
-    */
-  def unsafeToStrict(implicit F: Concurrent[F]): F[Self] =
-    body.compile.to(Chunk).map { chunk =>
-      withBodyStream(Stream.chunk(chunk))
-        .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
-    }
-
-  /** Compiles the body stream to a single chunk and sets it as the
-    * body. Replaces any `Transfer-Encoding: chunked` with a
-    * `Content-Length` header. It is the caller's responsibility to
     * assure there is enough memory to materialize the entity body and
-    * set an appropriate timeout.
+    * control the time limits of that materialization.
     *
-    * @param timeout duration to wait for the entity stream completion.
-    *                Exceeding finite timeout duration
-    *                (an instance of [[FiniteDuration]]) will lead to
-    *                failing processing with the `TimeoutException`
     * @param maxBytes maximum length of the entity stream. If the stream
-    *                 exceeds the limit then processing fails with the [[EntityStreamException]]
+    *                 exceeds the limit then processing fails with the [[EntityStreamException]].
+    *                 Pass the [[None]] if you don't want to limit the entity body.
     */
-  def toStrict(timeout: Duration, maxBytes: Option[Long])(implicit F: Temporal[F]): F[Self] = {
-    def withTimeout[A](fa: F[A]): F[A] =
-      timeout match {
-        case d: FiniteDuration =>
-          F.timeout(fa, d)
-        case _ =>
-          fa
-      }
-
+  def toStrict(maxBytes: Option[Long])(implicit F: Concurrent[F]): F[Self] = {
     def withLimit(entityBody: EntityBody[F]) = maxBytes match {
       case Some(limit) =>
         val limitingPipe: Pipe[F, Byte, Byte] =
@@ -305,13 +278,10 @@ sealed trait Message[F[_]] extends Media[F] { self =>
         entityBody
     }
 
-    val transformedMessage =
-      withLimit(body).compile.to(Chunk).map { chunk =>
-        withBodyStream(Stream.chunk(chunk))
-          .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
-      }
-
-    withTimeout(transformedMessage)
+    withLimit(body).compile.to(Chunk).map { chunk =>
+      withBodyStream(Stream.chunk(chunk))
+        .transformHeaders(_.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong)))
+    }
   }
 }
 
