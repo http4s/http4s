@@ -261,18 +261,15 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def toStrict(maxBytes: Option[Long])(implicit F: Concurrent[F]): F[Self] = {
     def withLimit(entityBody: EntityBody[F]) = maxBytes match {
       case Some(limit) =>
-        val limitingPipe: Pipe[F, Byte, Byte] =
-          _.pull
-            .take(limit)
-            .flatMap {
-              case Some(_) =>
-                Pull.raiseError[F](EntityStreamException.createWithDefaultMsg(limit))
-              case None =>
-                Pull.done
-            }
-            .stream
-
-        limitingPipe(entityBody)
+        entityBody.pull
+          .take(limit)
+          .flatMap {
+            case Some(_) =>
+              Pull.raiseError[F](EntityStreamException.createWithDefaultMsg(limit))
+            case None =>
+              Pull.done
+          }
+          .stream
 
       case None =>
         entityBody
