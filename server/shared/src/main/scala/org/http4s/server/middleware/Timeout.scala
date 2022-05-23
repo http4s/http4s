@@ -31,6 +31,15 @@ object Timeout {
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
     *
+    * Note, if effects of service responding is uncancelable
+    * (e.g. if service uses `MonadCancel#uncancelable` under the hood) and has exceeded
+    * the timeout, then an expected behavior is:
+    * <ul>
+    *   <li> effects will be completed naturally (regardless of how long it takes), </li>
+    *   <li> after that, the timeout response will be returned. </li>
+    * </ul>
+    * To get more insights on effect canceling, dig into the Cats-Effect documentation.
+    *
     * @param timeout Finite duration to wait before returning the provided response
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
@@ -41,6 +50,15 @@ object Timeout {
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
+    *
+    * Note, if effects of service responding is uncancelable
+    * (e.g. if service uses `MonadCancel#uncancelable` under the hood) and has exceeded
+    * the timeout, then an expected behavior is:
+    * <ul>
+    *   <li> effects will be completed naturally (regardless of how long it takes), </li>
+    *   <li> after that, the timeout response will be returned. </li>
+    * </ul>
+    * To get more insights on effect canceling, dig into the Cats-Effect documentation.
     *
     * @param timeout Finite duration to wait before returning
     * a `503 Service Unavailable` response
