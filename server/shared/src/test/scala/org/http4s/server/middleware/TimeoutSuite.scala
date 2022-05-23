@@ -39,7 +39,7 @@ class TimeoutSuite extends Http4sSuite {
       IO.never[Response[IO]]
 
     case _ -> Root / "uncancelable" =>
-      IO.uncancelable(_ => IO.sleep(3100.milliseconds)) *> Ok("uncancelable")
+      IO.uncancelable(_ => IO.sleep(1100.milliseconds)) *> Ok("uncancelable")
   }
 
   private val fastReq = Request[IO](GET, uri"/fast")
@@ -47,7 +47,7 @@ class TimeoutSuite extends Http4sSuite {
   private val uncancelableReq = Request[IO](GET, uri"/uncancelable")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
-    resp.map(_.status).timeout(3.seconds).assertEquals(status)
+    resp.map(_.status).timeout(1.seconds).assertEquals(status)
 
   def testMiddleware(timeout: FiniteDuration, routes: HttpRoutes[IO] = defaultRoutes)(
       test: Http[IO, IO] => IO[Unit]
