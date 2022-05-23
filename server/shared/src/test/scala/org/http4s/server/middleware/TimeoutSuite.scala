@@ -24,6 +24,7 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class TimeoutSuite extends Http4sSuite {
@@ -36,10 +37,14 @@ class TimeoutSuite extends Http4sSuite {
 
     case _ -> Root / "never" =>
       IO.never[Response[IO]]
+
+    case _ -> Root / "uncancelable" =>
+      IO.uncancelable(_ => IO.sleep(3100.milliseconds)) *> Ok("uncancelable")
   }
 
   private val fastReq = Request[IO](GET, uri"/fast")
   private val neverReq = Request[IO](GET, uri"/never")
+  private val uncancelableReq = Request[IO](GET, uri"/uncancelable")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
     resp.map(_.status).timeout(3.seconds).assertEquals(status)
@@ -73,6 +78,18 @@ class TimeoutSuite extends Http4sSuite {
   test("return a 503 error if the result takes too long") {
     testMiddleware(5.milliseconds) { app =>
       checkStatus(app(neverReq), Status.ServiceUnavailable)
+    }
+  }
+
+  test(
+    "return a 503 error if the result takes too long and execute underlying uncancelable effect"
+  ) {
+    testMiddleware(5.milliseconds) { app =>
+      for {
+        _ <- app(uncancelableReq).map(_.status).assertEquals(Status.ServiceUnavailable)
+        _ <- checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
+          .intercept[TimeoutException]
+      } yield ()
     }
   }
 
