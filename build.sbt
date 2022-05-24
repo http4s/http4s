@@ -250,7 +250,6 @@ lazy val tests = libraryCrossProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
-      catsEffectLaws.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
