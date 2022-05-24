@@ -211,7 +211,7 @@ private[ember] class H2Client[F[_]: Async](
         socket,
         logger,
       )
-      _ <- h2.readLoop.compile.drain.background
+      _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <-
         Stream
