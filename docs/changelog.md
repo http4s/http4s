@@ -131,6 +131,8 @@ Be aware that versions of these modules will be untethered from the core version
 * Make Node.js interop APIs private by @armanbilge in https://github.com/http4s/http4s/pull/6404
 * Update cats-effect, cats-effect-laws, ... to 3.3.12 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6406
 * Ember Core: write readLoop without Streams. by @diesalbla in https://github.com/http4s/http4s/pull/6163
+### http4s-circe
+* Update to circe 0.14.2 by @armanbilge in https://github.com/http4s/http4s/pull/6401
 
 ## New Contributors
 * @teigen made their first contribution in https://github.com/http4s/http4s/pull/6057
