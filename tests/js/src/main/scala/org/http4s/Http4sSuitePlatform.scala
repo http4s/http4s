@@ -21,6 +21,6 @@ import scala.util.Try
 
 trait Http4sSuitePlatform { this: Http4sSuite =>
   // allow flaky tests on ci
-  override def munitFlakyOK =
+  override def munitFlakyOK: Boolean =
     Try(js.Dynamic.global.process.env.CI).toOption.filterNot(js.isUndefined).isDefined
 }

@@ -37,7 +37,7 @@ trait Http4sSuite
   override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
 
   // Override to remove implicit modifier
-  override def unitToProp = super.unitToProp
+  override def unitToProp: Unit => Prop = super.unitToProp
 
   // Scala 3 likes this better
   implicit def saneUnitToProp(unit: Unit): Prop = unitToProp(unit)
