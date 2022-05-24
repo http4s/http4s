@@ -38,6 +38,7 @@ Be aware that versions of these modules will be untethered from the core version
 ## What's Changed
 ### http4s-core
 * Make MimeDB go away on JS by @armanbilge in https://github.com/http4s/http4s/pull/6211
+* Update sbt-scalajs, scalajs-compiler, ... to 1.10.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6245
 * Use thread unsafe "lazy val"s to avoid deadlocks initializing MimeDB by @armanbilge in https://github.com/http4s/http4s/pull/6248
 * Move `withContentLength` from Message to  Headers by @bplommer in https://github.com/http4s/http4s/pull/6285
 * Follow links when accessing file attributes in `StaticFile` by @armanbilge in https://github.com/http4s/http4s/pull/6368
@@ -46,7 +47,6 @@ Be aware that versions of these modules will be untethered from the core version
 ### http4s-server
 * Relax ContextRouter's constraints by @danicheg in https://github.com/http4s/http4s/pull/6164
 * Use CE `Random.javaSecuritySecureRandom` instead of Java `SecureRandom` by @armanbilge in https://github.com/http4s/http4s/pull/6252
-* Update sbt-scalajs, scalajs-compiler, ... to 1.10.0 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6245
 * httpRoutes and httpApp shortcuts for Timeout middleware by @voidcontext in https://github.com/http4s/http4s/pull/6366
 * httpRoutes and httpApp shortcuts for Throttle middleware by @voidcontext in https://github.com/http4s/http4s/pull/6365
 * Highlight the uncancelable behavior in `Timeout` middleware scaladoc by @danicheg in https://github.com/http4s/http4s/pull/6407
