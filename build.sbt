@@ -54,7 +54,6 @@ ThisBuild / jsEnv := {
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
-  testing,
   tests,
   server,
   client,
@@ -244,30 +243,21 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
     jsVersionIntroduced("0.23.5")
   )
 
-lazy val testing = libraryCrossProject("testing", CrossType.Full)
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Internal utilities for http4s tests",
-    startYear := Some(2016),
-    libraryDependencies ++= Seq(
-      catsEffectLaws.value,
-      munitCatsEffect.value,
-      munitDiscipline.value,
-      scalacheck.value,
-      scalacheckEffect.value,
-      scalacheckEffectMunit.value,
-    ).map(_ % Test),
-  )
-  .dependsOn(laws)
-
-// Defined outside core/src/test so it can depend on published testing
+// Also defines shared test utils in Compile scope
 lazy val tests = libraryCrossProject("tests")
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
     startYear := Some(2013),
+    libraryDependencies ++= Seq(
+      munitCatsEffect.value,
+      munitDiscipline.value,
+      scalacheck.value,
+      scalacheckEffect.value,
+      scalacheckEffectMunit.value,
+    ),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, laws)
 
 lazy val server = libraryCrossProject("server")
   .settings(
@@ -326,7 +316,7 @@ lazy val server = libraryCrossProject("server")
   .jsSettings(
     jsVersionIntroduced("0.23.7")
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, tests % Test, theDsl % Test)
 
 lazy val client = libraryCrossProject("client")
   .settings(
@@ -396,7 +386,7 @@ lazy val client = libraryCrossProject("client")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder$"),
     ),
   )
-  .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(core, server % Test, tests % Test, theDsl % Test)
 
 lazy val clientTestkit = libraryCrossProject("client-testkit")
   .settings(
@@ -510,7 +500,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jsSettings(
     libraryDependencies += hpack.value
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
@@ -610,7 +600,7 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
   .settings(
@@ -624,7 +614,7 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .settings(
@@ -639,7 +629,7 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+  .dependsOn(core, tests % Test, jawn % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
@@ -694,8 +684,6 @@ lazy val unidocs = http4sProject("unidocs")
           examples,
           examplesDocker,
           examplesEmber,
-          exampleEmberServerH2,
-          exampleEmberClientH2,
           scalafixInternalInput,
           scalafixInternalOutput,
           scalafixInternalRules,
@@ -753,18 +741,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     scalacOptions -= "-Xfatal-warnings",
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
-
-lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
-  .dependsOn(emberServer.js)
-  .settings(
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
-lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
-  .dependsOn(emberClient.js)
-  .settings(
-    scalacOptions -= "-Xfatal-warnings"
-  )
 
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
@@ -874,16 +850,6 @@ def exampleProject(name: String) =
     .enablePlugins(NoPublishPlugin)
     .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
-
-def exampleJSProject(name: String) =
-  http4sProject(name)
-    .in(file(name.replace("examples-", "examples/")))
-    .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-    .settings(
-      scalaJSUseMainModuleInitializer := true,
-      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
-    )
-    .dependsOn(theDsl.js)
 
 lazy val commonSettings = Seq(
   Compile / doc / scalacOptions += "-no-link-warnings",
