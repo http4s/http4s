@@ -37,7 +37,6 @@ Be aware that versions of these modules will be untethered from the core version
 
 ## What's Changed
 ### http4s-core
-* Surface Random in DigestAuth middleware by @rossabaker in https://github.com/http4s/http4s/pull/6181
 * Make MimeDB go away on JS by @armanbilge in https://github.com/http4s/http4s/pull/6211
 * Use thread unsafe "lazy val"s to avoid deadlocks initializing MimeDB by @armanbilge in https://github.com/http4s/http4s/pull/6248
 * Move `withContentLength` from Message to  Headers by @bplommer in https://github.com/http4s/http4s/pull/6285
