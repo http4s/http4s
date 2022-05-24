@@ -249,14 +249,14 @@ lazy val tests = libraryCrossProject("tests")
   .settings(
     description := "Tests for core project",
     startYear := Some(2013),
-        libraryDependencies ++= Seq(
+    libraryDependencies ++= Seq(
       catsEffectLaws.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
-    )
+    ),
   )
   .dependsOn(core, laws)
 
