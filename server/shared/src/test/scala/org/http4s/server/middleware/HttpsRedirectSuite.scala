@@ -41,7 +41,7 @@ class HttpsRedirectSuite extends Http4sSuite {
       HttpsRedirect(innerRoutes).orNotFound,
       HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
       HttpsRedirect.httpApp(innerRoutes.orNotFound),
-    ).traverse { app =>
+    ).parTraverse_ { app =>
       val expectedAuthority = Authority(host = RegName("example.com"))
       val expectedLocation =
         Location(
@@ -62,7 +62,7 @@ class HttpsRedirectSuite extends Http4sSuite {
       HttpsRedirect(innerRoutes).orNotFound,
       HttpsRedirect.httpRoutes(innerRoutes).orNotFound,
       HttpsRedirect.httpApp(innerRoutes.orNotFound),
-    ).traverse { app =>
+    ).parTraverse_ { app =>
       val noHeadersReq = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root))
       app(noHeadersReq).map(_.status).assertEquals(Status.Ok) *>
         app(noHeadersReq).flatMap(_.as[String]).assertEquals("pong")

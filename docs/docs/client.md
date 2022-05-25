@@ -288,70 +288,7 @@ package. These include:
 ### Metrics Middleware
 
 Apart from the middleware mentioned in the previous section. There is, as well,
-Out of the Box middleware for Dropwizard and Prometheus metrics
-
-#### Dropwizard Metrics Middleware
-
-To make use of this metrics middleware the following dependencies are needed:
-
-```scala
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-client" % http4sVersion,
-  "org.http4s" %% "http4s-dropwizard-metrics" % http4sVersion
-)
-```
-
-We can create a middleware that registers metrics prefixed with a
-provided prefix like this.
-
-```scala mdoc:silent
-import org.http4s.client.middleware.Metrics
-import org.http4s.metrics.dropwizard.Dropwizard
-import com.codahale.metrics.SharedMetricRegistries
-```
-```scala mdoc
-val registry = SharedMetricRegistries.getOrCreate("default")
-val requestMethodClassifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-
-val meteredClient =
-  Metrics[IO](Dropwizard(registry, "prefix"), requestMethodClassifier)(httpClient)
-```
-
-A `classifier` is just a function `Request[F] => Option[String]` that allows
-to add a subprefix to every metric based on the `Request`
-
-#### Prometheus Metrics Middleware
-
-To make use of this metrics middleware the following dependencies are needed:
-
-```scala
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-client" % http4sVersion,
-  "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
-)
-```
-
-We can create a middleware that registers metrics prefixed with a
-provided prefix like this.
-
-```scala mdoc:silent
-import cats.effect.{Resource, IO}
-import org.http4s.client.middleware.Metrics
-import org.http4s.metrics.prometheus.Prometheus
-```
-```scala mdoc
-val classifier = (r: Request[IO]) => Some(r.method.toString.toLowerCase)
-
-val prefixedClient: Resource[IO, Client[IO]] =
-  for {
-    registry <- Prometheus.collectorRegistry[IO]
-    metrics <- Prometheus.metricsOps[IO](registry, "prefix")
-  } yield Metrics[IO](metrics, classifier)(httpClient)
-```
-
-
-A `classifier` is just a function `Request[F] => Option[String]` that allows
-to add a label to every metric based on the `Request`
+Out of the Box middleware for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/) and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 
 ## Examples
 

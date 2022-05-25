@@ -28,8 +28,11 @@ import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import fs2.Chunk
 import fs2.Pipe
+import fs2.Pull
 import fs2.Pure
+import fs2.Stream
 import fs2.io.net.unixsocket.UnixSocketAddress
+import org.http4s.Message.EntityStreamException
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
@@ -39,6 +42,7 @@ import org.typelevel.vault._
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
@@ -239,11 +243,34 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     self.change(entity = entity.translate(f))
 
   /** Compiles the body stream to a single chunk and sets it as the
-    * body.  Replaces any `Transfer-Encoding: chunked` with a
-    * `Content-Length` header.  It is the caller's responsibility to
-    * assure there is enough memory to materialize the body.
+    * body. Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header. It is the caller's responsibility to
+    * assure there is enough memory to materialize the entity body and
+    * control the time limits of that materialization.
+    *
+    * @param maxBytes maximum length of the entity stream. If the stream
+    *                 exceeds the limit then processing fails with the [[EntityStreamException]].
+    *                 Pass the [[None]] if you don't want to limit the entity body.
     */
-  def toStrict[F1[x] >: F[x]](implicit F: Concurrent[F1]): F1[SelfF[Pure]] =
+  def toStrict[F1[x] >: F[x]](
+      maxBytes: Option[Long]
+  )(implicit F: Concurrent[F1]): F1[SelfF[Pure]] = {
+    def withLimit(entityBody: Stream[F, Byte]) = maxBytes match {
+      case Some(limit) =>
+        entityBody.pull
+          .take(limit)
+          .flatMap {
+            case Some(_) =>
+              Pull.raiseError[F1](EntityStreamException.createWithDefaultMsg(limit))
+            case None =>
+              Pull.done
+          }
+          .stream
+
+      case None =>
+        entityBody
+    }
+
     entity match {
       case Entity.Empty =>
         F.pure(self.withEntity(Entity.Empty))
@@ -256,7 +283,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
             )
         )
       case Entity.Default(body, _) =>
-        body.covary[F1].compile.to(Chunk).map { chunk =>
+        withLimit(body).covary[F1].compile.to(Chunk).map { chunk =>
           self
             .withEntity(Entity.strict(chunk))
             .transformHeaders(
@@ -264,9 +291,17 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
             )
         }
     }
+  }
 }
 
 object Message {
+  final case class EntityStreamException(msg: String) extends Exception(msg) with NoStackTrace
+
+  object EntityStreamException {
+    def createWithDefaultMsg(maxBytes: Long): EntityStreamException =
+      EntityStreamException(s"Entity stream has exceeded the maximum of $maxBytes bytes")
+  }
+
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()

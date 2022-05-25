@@ -327,7 +327,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     result.value.assertEquals(
       Left(
         InvalidMessageBodyFailure(
-          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Missing required field"
         )
       )
     )
@@ -358,7 +358,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     result.value.assertEquals(
       Left(
         InvalidMessageBodyFailure(
-          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Missing required field, DecodingFailure at .b: Missing required field"
         )
       )
     )

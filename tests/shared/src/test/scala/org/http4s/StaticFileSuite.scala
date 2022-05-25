@@ -45,7 +45,7 @@ class StaticFileSuite extends Http4sSuite {
       "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
       "/test.fiddlefaddle" -> None,
     )
-    tests.traverse { case (p, om) =>
+    tests.parTraverse { case (p, om) =>
       check(CrossPlatformResource(p), om)
     }
   }
@@ -76,7 +76,7 @@ class StaticFileSuite extends Http4sSuite {
         "/missing.html" -> NotFound,
       )
 
-      tests.traverse(Function.tupled(check))
+      tests.parTraverse(Function.tupled(check))
     }
 
   if (Platform.isJvm)
@@ -105,7 +105,7 @@ class StaticFileSuite extends Http4sSuite {
         "/missing.html" -> NotFound,
       )
 
-      tests.traverse(Function.tupled(check))
+      tests.parTraverse(Function.tupled(check))
     }
 
   test("handle an empty file") {
@@ -244,11 +244,11 @@ class StaticFileSuite extends Http4sSuite {
         .void
 
     val tests = List(
-      "./testing/shared/src/test/resources/logback-test.xml",
+      "./tests/shared/src/main/resources/logback-test.xml",
       "./server/shared/src/test/resources/testresource.txt",
     )
 
-    tests.traverse(check)
+    tests.parTraverse(check)
   }
 
   test("Send file larger than BufferSize") {

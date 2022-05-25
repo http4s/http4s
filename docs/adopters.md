@@ -37,6 +37,9 @@
 [NetworkedAssets](https://www.networkedassets.com)
 : Builds APIs and API clients with http4s.
 
+[On Air Entertainment](https://onairentertainment.com/)
+: Uses http4s for some API services.
+
 [Quantiply](https://www.quantiply.com)
 : Uses http4s to power the critical data APIs.
 
