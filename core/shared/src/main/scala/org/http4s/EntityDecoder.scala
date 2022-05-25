@@ -355,7 +355,7 @@ object EntityDecoder {
   ): EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
-  implicit def serverSentEventDecoder[F[_]: Applicative]: EntityDecoder[F, EventStream[F]] =
+  implicit def eventStream[F[_]: Applicative]: EntityDecoder[F, EventStream[F]] =
     EntityDecoder.decodeBy(MediaType.`text/event-stream`) { msg =>
       DecodeResult.successT(msg.body.through(ServerSentEvent.decoder))
     }
