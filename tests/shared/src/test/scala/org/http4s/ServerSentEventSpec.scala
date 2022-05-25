@@ -171,24 +171,21 @@ class ServerSentEventSpec extends Http4sSuite {
     assertEquals(roundTrip, Some(sse))
   }
 
-  val eventStream: Stream[IO, ServerSentEvent] =
+  val eventStream: EventStream[IO] =
     Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString.some))
-  test("EntityEncoder[ServerSentEvent] should set Content-Type to text/event-stream") {
+  test("EntityEncoder[EventStream] should set Content-Type to text/event-stream") {
     assertEquals(
       Response[IO]().withEntity(eventStream).contentType,
       Some(`Content-Type`(MediaType.`text/event-stream`)),
     )
   }
 
-  test("EntityEncoder[ServerSentEvent] should decode to original event stream") {
+  test("EntityDecoder[EventStream] should decode to original event stream") {
     for {
       r <- Response[IO]()
         .withEntity(eventStream)
-        .body
-        .through(ServerSentEvent.decoder)
-        .dropLast
-        .compile
-        .toVector
+        .as[EventStream[IO]]
+        .flatMap(_.dropLast.compile.toVector)
       e <- eventStream.compile.toVector
     } yield assertEquals(r, e)
   }
