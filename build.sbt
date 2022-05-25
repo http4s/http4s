@@ -59,7 +59,6 @@ lazy val modules: List[CompositeProject] = List(
   emberCore,
   emberServer,
   emberClient,
-  nodeServerless,
   theDsl,
   jawn,
   circe,
@@ -204,7 +203,6 @@ lazy val client = libraryCrossProject("client")
     )
   )
   .dependsOn(core, server % Test, tests % Test, theDsl % Test)
-  .jsConfigure(_.dependsOn(nodeServerless % Test))
 
 lazy val clientTestkit = libraryCrossProject("client-testkit")
   .settings(
@@ -285,14 +283,6 @@ lazy val emberClient = libraryCrossProject("ember-client")
     )
   )
   .dependsOn(emberCore % "compile;test->test", client, clientTestkit % Test)
-
-lazy val nodeServerless = libraryProject("node-serverless")
-  .enablePlugins(ScalaJSPlugin)
-  .settings(
-    description := "Node.js serverless wrapper for http4s apps",
-    startYear := Some(2021),
-  )
-  .dependsOn(core.js)
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
