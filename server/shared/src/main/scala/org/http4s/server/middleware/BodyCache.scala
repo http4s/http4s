@@ -66,7 +66,7 @@ object BodyCache {
     apply(app)(identity, _ => identity)(FunctionK.id)
 
   private def compileBody[F[_]: Concurrent](req: Request[F]): F[Request[fs2.Pure]] =
-    req.toStrict
+    req.toStrict(None)
 
   def hasNoBody[F[_]](req: Request[F]): Boolean =
     req.entity match {

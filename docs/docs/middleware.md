@@ -159,65 +159,7 @@ And a few others.
 ### Metrics Middleware
 
 Apart from the middleware mentioned in the previous section. There is, as well,
-Out of the Box middleware for Dropwizard and Prometheus metrics
-
-#### Dropwizard Metrics Middleware
-
-To make use of this metrics middleware the following dependencies are needed:
-
-```scala
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-server" % http4sVersion,
-  "org.http4s" %% "http4s-dropwizard-metrics" % http4sVersion
-)
-```
-
-We can create a middleware that registers metrics prefixed with a
-provided prefix like this.
-
-```scala mdoc:silent
-import org.http4s.server.middleware.Metrics
-import org.http4s.metrics.dropwizard.Dropwizard
-import com.codahale.metrics.SharedMetricRegistries
-```
-```scala mdoc
-val registry = SharedMetricRegistries.getOrCreate("default")
-
-val meteredRoutes = Metrics[IO](Dropwizard(registry, "server"))(apiService)
-```
-
-#### Prometheus Metrics Middleware
-
-To make use of this metrics middleware the following dependencies are needed:
-
-```scala
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-server" % http4sVersion,
-  "org.http4s" %% "http4s-prometheus-metrics" % http4sVersion
-)
-```
-
-We can create a middleware that registers metrics prefixed with a
-provided prefix like this.
-
-```scala mdoc:silent
-import cats.effect.{IO, Resource}
-import org.http4s.HttpRoutes
-import org.http4s.metrics.prometheus.{Prometheus, PrometheusExportService}
-import org.http4s.server.Router
-import org.http4s.server.middleware.Metrics
-```
-```scala mdoc
-val meteredRouter: Resource[IO, HttpRoutes[IO]] =
-  for {
-    metricsSvc <- PrometheusExportService.build[IO]
-    metrics <- Prometheus.metricsOps[IO](metricsSvc.collectorRegistry, "server")
-    router = Router[IO](
-      "/api" -> Metrics[IO](metrics)(apiService),
-      "/" -> metricsSvc.routes
-    )
-  } yield router
-```
+Out of the Box middleware for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/) and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 
 ### X-Request-ID Middleware
 

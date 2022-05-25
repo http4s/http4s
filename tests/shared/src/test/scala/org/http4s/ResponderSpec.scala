@@ -58,7 +58,7 @@ class ResponderSpec extends Http4sSuite {
     assertEquals(maybeHeaderT, Some(Connection.close))
 
     val newHeaders = wHeader.removeHeader[Connection]
-    assert(newHeaders.headers.get[Connection].isEmpty)
+    assert(!newHeaders.headers.contains[Connection])
   }
 
   test("Responder should Replace all headers") {
@@ -68,7 +68,7 @@ class ResponderSpec extends Http4sSuite {
 
     val newHeaders = wHeader.withHeaders(Date(HttpDate.Epoch))
     assertEquals(newHeaders.headers.headers.length, 1)
-    assert(newHeaders.headers.get[Connection].isEmpty)
+    assert(!newHeaders.headers.contains[Connection])
   }
 
   test("Responder should Replace all headers II") {
@@ -78,7 +78,7 @@ class ResponderSpec extends Http4sSuite {
 
     val newHeaders = wHeader.withHeaders(Headers(Date(HttpDate.Epoch)))
     assertEquals(newHeaders.headers.headers.length, 1)
-    assert(newHeaders.headers.get[Connection].isEmpty)
+    assert(!newHeaders.headers.contains[Connection])
   }
 
   test("Responder should Filter headers") {
@@ -88,7 +88,7 @@ class ResponderSpec extends Http4sSuite {
 
     val newHeaders = wHeader.filterHeaders(_.name != ci"Connection")
     assertEquals(newHeaders.headers.headers.length, 2)
-    assert(newHeaders.headers.get[Connection].isEmpty)
+    assert(!newHeaders.headers.contains[Connection])
   }
 
   test("Responder should Set cookie from tuple") {

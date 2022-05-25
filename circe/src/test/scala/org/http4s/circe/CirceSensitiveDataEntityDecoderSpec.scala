@@ -56,7 +56,10 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
       it match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           assertEquals(details, "Could not decode JSON: <REDACTED>")
-          assertEquals(cause.getMessage, "String: DownField(ssn)")
+          assertEquals(
+            cause.getMessage,
+            "Got value '123456789' with wrong type, expecting string: DownField(ssn)",
+          )
         case other => fail(other.toString)
       }
     }
@@ -71,7 +74,7 @@ class CirceSensitiveDataEntityDecoderSpec extends Http4sSuite {
       it match {
         case Left(InvalidMessageBodyFailure(details, Some(cause))) =>
           assertEquals(details, "Could not decode JSON: <REDACTED>")
-          assertEquals(cause.getMessage, "Attempt to decode value on failed cursor: DownField(ssn)")
+          assertEquals(cause.getMessage, "Missing required field: DownField(ssn)")
         case other => fail(other.toString)
       }
     }

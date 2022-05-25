@@ -266,7 +266,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     )
     Files[IO].size(Path(defaultSystemPath) / "testresource.txt").flatMap { size =>
       val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))
-      reqs.toList.traverse { req =>
+      reqs.toList.parTraverse_ { req =>
         routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
           routes
             .orNotFound(req)

@@ -19,6 +19,7 @@ package server
 package middleware
 
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect.kernel.Temporal
 import cats.syntax.applicative._
 
@@ -29,6 +30,15 @@ object Timeout {
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
+    *
+    * @note if the service runs uncancelable effects while responding
+    * (e.g. if service uses [[cats.effect.kernel.MonadCancel#uncancelable MonadCancel#uncancelable]] under the hood) and has exceeded
+    * the timeout, then the expected behavior is:
+    * <ul>
+    *   <li> uncancelable effects will be completed naturally (regardless of how long it takes), </li>
+    *   <li> after that, the timeout response will be returned. </li>
+    * </ul>
+    * To get more insights on effect cancelation, dig into the [[cats.effect.kernel.MonadCancel MonadCancel]] documentation.
     *
     * @param timeout Finite duration to wait before returning the provided response
     */
@@ -41,6 +51,15 @@ object Timeout {
     * duration if the service has not yet responded.  If the timeout
     * fires, the service's response is canceled.
     *
+    * @note if the service runs uncancelable effects while responding
+    * (e.g. if service uses [[cats.effect.kernel.MonadCancel#uncancelable MonadCancel#uncancelable]] under the hood) and has exceeded
+    * the timeout, then the expected behavior is:
+    * <ul>
+    *   <li> uncancelable effects will be completed naturally (regardless of how long it takes), </li>
+    *   <li> after that, the timeout response will be returned. </li>
+    * </ul>
+    * To get more insights on effect cancelation, dig into the [[cats.effect.kernel.MonadCancel MonadCancel]] documentation.
+    *
     * @param timeout Finite duration to wait before returning
     * a `503 Service Unavailable` response
     */
@@ -48,4 +67,28 @@ object Timeout {
       F: Temporal[F]
   ): Kleisli[F, A, Response[G]] =
     apply(timeout, Response.timeout[G].pure[F])(http)
+
+  /** This is the same as [[apply]], but for HttpRoutes */
+  def httpRoutes[F[_]](timeout: FiniteDuration)(httpRoutes: HttpRoutes[F])(implicit
+      F: Temporal[F]
+  ): HttpRoutes[F] =
+    apply(timeout)(httpRoutes)
+
+  /** This is the same as [[apply]], but for HttpRoutes */
+  def httpRoutes[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
+      httpRoutes: HttpRoutes[F]
+  )(implicit F: Temporal[F]): HttpRoutes[F] =
+    apply(timeout, OptionT.liftF(timeoutResponse))(httpRoutes)
+
+  /** This is the same as [[apply]], but for HttpApp */
+  def httpApp[F[_]](timeout: FiniteDuration)(httpApp: HttpApp[F])(implicit
+      F: Temporal[F]
+  ): HttpApp[F] =
+    apply(timeout)(httpApp)
+
+  /** This is the same as [[apply]], but for HttpApp */
+  def httpApp[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(httpApp: HttpApp[F])(
+      implicit F: Temporal[F]
+  ): HttpApp[F] =
+    apply(timeout, timeoutResponse)(httpApp)
 }

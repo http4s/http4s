@@ -211,7 +211,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
-  private def defaultOnError(req: Request[F])(resp: Response[F])(implicit
+  def defaultOnError(req: Request[F])(resp: Response[F])(implicit
       F: Applicative[F]
   ): F[Throwable] =
     F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
