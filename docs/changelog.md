@@ -3,6 +3,79 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M33 (2022-05-25)
+
+This is the latest milestone in the 1.x series.  It is binary incompatible with http4s-1.0.0-M32.
+
+This is the first 1.x release after "The Great Schism", described in v0.23.12.  Because 1.0 isn't stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the "Maintainers wanted!" issue in the repository of interest.
+
+Additional to the below, this release includes all changes in v0.23.12.
+
+## What's Changed
+### http4s-core
+* Remove deprecated things by @danicheg in https://github.com/http4s/http4s/pull/6156
+* Override `toString` for `Entity` by @danicheg in https://github.com/http4s/http4s/pull/6168
+* Fix `Request`/`Response` scaladoc by @danicheg in https://github.com/http4s/http4s/pull/6171
+* Covariant `Message`s: minimum viable PR by @bplommer in https://github.com/http4s/http4s/pull/5712
+* Tweak `Message#withEmptyBody` by @danicheg in https://github.com/http4s/http4s/pull/6288
+* Remove `http4s.EmptyBody` by @danicheg in https://github.com/http4s/http4s/pull/6296
+* Message - Use Strict Entity for string responses by @diesalbla in https://github.com/http4s/http4s/pull/6299
+* Make Part and Multipart covariant by @diesalbla in https://github.com/http4s/http4s/pull/6304
+* Fix `Request#productElement` and `Response#productElement` by @danicheg in https://github.com/http4s/http4s/pull/6372
+* Add info about the entity into the `toString` of `Request` and `Response` by @danicheg in https://github.com/http4s/http4s/pull/6373
+* Resubmit idempotent requests with only pure entities in `Retry` middleware by @danicheg in https://github.com/http4s/http4s/pull/6379
+### http4s-laws
+* Address the `Entity` model in `Arbitrary[Entity[*]]` by @danicheg in https://github.com/http4s/http4s/pull/6369
+### http4s-server
+* Relax `authentication#challenged` constraints by @danicheg in https://github.com/http4s/http4s/pull/6253
+* Use Strict entities where possible by @diesalbla in https://github.com/http4s/http4s/pull/6306
+* Take into account the `Entity` model in the `EntityLimiter` by @danicheg in https://github.com/http4s/http4s/pull/6320
+### http4s-client
+* Fix `Client` scaladoc by @danicheg in https://github.com/http4s/http4s/pull/6188
+* Remove deprecated `Client.fetch`, `DefaultClient.fetch` by @danicheg in https://github.com/http4s/http4s/pull/6187
+### http4s-ember-core
+* ember: Add support for strict entities, look for content-length only once by @wjoel in https://github.com/http4s/http4s/pull/6317
+### http4s-node-serverless
+* Removed. Serverless integrations are developed in https://github.com/typelevel/feral
+### Documentation
+* Tweak `Entity` docs by @danicheg in https://github.com/http4s/http4s/pull/6375
+### Behind the scenes
+* Release v0.21.33 by @rossabaker in https://github.com/http4s/http4s/pull/6147
+* Restore changes to versions page on main by @armanbilge in https://github.com/http4s/http4s/pull/6148
+* Remove deprecated execution contexts by @rossabaker in https://github.com/http4s/http4s/pull/6124
+* Ignore http4s-crypto updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6217
+* Merge 0.23 -> main by @rossabaker in https://github.com/http4s/http4s/pull/6193
+* Merge 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6250
+* Message - remoteHost: define without OptionT. by @diesalbla in https://github.com/http4s/http4s/pull/6257
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6282
+* Ignore `scala-lang` updates by @danicheg in https://github.com/http4s/http4s/pull/6293
+* Tweak `BodyCache#hasNoBody` by @danicheg in https://github.com/http4s/http4s/pull/6289
+* Ignore discipline updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6309
+* Reduce use of `covary` method. by @diesalbla in https://github.com/http4s/http4s/pull/6230
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6311
+* Ignore `okio` updates by @danicheg in https://github.com/http4s/http4s/pull/6315
+* Address the entity model in the `DefaultHead` by @danicheg in https://github.com/http4s/http4s/pull/6324
+* Address the entity model in the `Client#fromHttpApp` by @danicheg in https://github.com/http4s/http4s/pull/6325
+* ignore scodec updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6337
+* Ignore `log4cats` updates by @danicheg in https://github.com/http4s/http4s/pull/6341
+* Ignore `scalacheck-effect-munit` updates by @danicheg in https://github.com/http4s/http4s/pull/6347
+* Ignore updates for all log4cats modules by @danicheg in https://github.com/http4s/http4s/pull/6346
+* Merge `0.23` -> `main` by @danicheg in https://github.com/http4s/http4s/pull/6348
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6378
+* Get ip4s updates from series/0.23 by @rossabaker in https://github.com/http4s/http4s/pull/6384
+* Ignore `circe` updates by @danicheg in https://github.com/http4s/http4s/pull/6400
+* Merge 0.23.12 to main by @rossabaker in https://github.com/http4s/http4s/pull/6416
+
+## New Contributors
+* @teigen made their first contribution in https://github.com/http4s/http4s/pull/6057
+* @takapi327 made their first contribution in https://github.com/http4s/http4s/pull/6166
+* @zainab-ali made their first contribution in https://github.com/http4s/http4s/pull/6098
+* @dragonfly-ai made their first contribution in https://github.com/http4s/http4s/pull/6203
+* @CharlesAHunt made their first contribution in https://github.com/http4s/http4s/pull/6036
+* @OnAirEntertainment-Scala made their first contribution in https://github.com/http4s/http4s/pull/6385
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33
+
 # v0.23.12 (2022-05-24)
 
 This release is binary compatible with the 0.23.x series.
