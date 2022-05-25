@@ -35,6 +35,8 @@ Additional to the below, this release includes all changes in v0.23.12.
 * Remove deprecated `Client.fetch`, `DefaultClient.fetch` by @danicheg in https://github.com/http4s/http4s/pull/6187
 ### http4s-ember-core
 * ember: Add support for strict entities, look for content-length only once by @wjoel in https://github.com/http4s/http4s/pull/6317
+### http4s-node-serverless
+* Removed. Serverless integrations are developed in https://github.com/typelevel/feral
 ### Documentation
 * Tweak `Entity` docs by @danicheg in https://github.com/http4s/http4s/pull/6375
 ### Behind the scenes
