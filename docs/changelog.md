@@ -56,7 +56,7 @@ Additional to the below, this release includes all changes in v0.23.12.
 * Ignore `okio` updates by @danicheg in https://github.com/http4s/http4s/pull/6315
 * Address the entity model in the `DefaultHead` by @danicheg in https://github.com/http4s/http4s/pull/6324
 * Address the entity model in the `Client#fromHttpApp` by @danicheg in https://github.com/http4s/http4s/pull/6325
-* [ci skip] ignore scodec updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6337
+* ignore scodec updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6337
 * Ignore `log4cats` updates by @danicheg in https://github.com/http4s/http4s/pull/6341
 * Ignore `scalacheck-effect-munit` updates by @danicheg in https://github.com/http4s/http4s/pull/6347
 * Ignore updates for all log4cats modules by @danicheg in https://github.com/http4s/http4s/pull/6346
