@@ -178,10 +178,13 @@
         <p class="header"><a href="#">Changelog</a></p>
 
         <ul class="nav-list">
+          <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-1">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#new-contributors-1">New Contributors</a></li>
           <li class="level1"><a href="#v0-23-12-2022-05-24">v0.23.12 (2022-05-24)</a></li>
           <li class="level2"><a href="#the-great-schism">The Great Schism</a></li>
-          <li class="level2"><a href="#what-s-changed">What&#39;s Changed</a></li>
-          <li class="level2"><a href="#new-contributors">New Contributors</a></li>
+          <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#new-contributors-2">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-13-2022-05-20">v0.22.13 (2022-05-20)</a></li>
           <li class="level1"><a href="#v0-21-33-2022-03-18">v0.21.33 (2022-03-18)</a></li>
           <li class="level1"><a href="#v1-0-0-m32-2022-03-18">v1.0.0-M32 (2022-03-18)</a></li>
@@ -472,6 +475,80 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
+        <h1 id="v1-0-0-m33-2022-05-25" class="section">v1.0.0-M33 (2022-05-25)<a class="anchor-link right" href="#v1-0-0-m33-2022-05-25"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This is the latest milestone in the 1.x series.  It is binary incompatible with http4s-1.0.0-M32.</p>
+        <p>This is the first 1.x release after &quot;The Great Schism&quot;, described in v0.23.12.  Because 1.0 isn&#39;t stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the &quot;Maintainers wanted!&quot; issue in the repository of interest.</p>
+        <p>Additional to the below, this release includes all changes in v0.23.12.</p>
+        
+        <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-1" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Remove deprecated things by @danicheg in <a href="https://github.com/http4s/http4s/pull/6156">https://github.com/http4s/http4s/pull/6156</a></li>
+          <li>Override <code>toString</code> for <code>Entity</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6168">https://github.com/http4s/http4s/pull/6168</a></li>
+          <li>Fix <code>Request</code>/<code>Response</code> scaladoc by @danicheg in <a href="https://github.com/http4s/http4s/pull/6171">https://github.com/http4s/http4s/pull/6171</a></li>
+          <li>Covariant <code>Message</code>s: minimum viable PR by @bplommer in <a href="https://github.com/http4s/http4s/pull/5712">https://github.com/http4s/http4s/pull/5712</a></li>
+          <li>Tweak <code>Message#withEmptyBody</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6288">https://github.com/http4s/http4s/pull/6288</a></li>
+          <li>Remove <code>http4s.EmptyBody</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6296">https://github.com/http4s/http4s/pull/6296</a></li>
+          <li>Message - Use Strict Entity for string responses by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6299">https://github.com/http4s/http4s/pull/6299</a></li>
+          <li>Make Part and Multipart covariant by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6304">https://github.com/http4s/http4s/pull/6304</a></li>
+          <li>Fix <code>Request#productElement</code> and <code>Response#productElement</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6372">https://github.com/http4s/http4s/pull/6372</a></li>
+          <li>Add info about the entity into the <code>toString</code> of <code>Request</code> and <code>Response</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6373">https://github.com/http4s/http4s/pull/6373</a></li>
+          <li>Resubmit idempotent requests with only pure entities in <code>Retry</code> middleware by @danicheg in <a href="https://github.com/http4s/http4s/pull/6379">https://github.com/http4s/http4s/pull/6379</a>
+          ### http4s-laws</li>
+          <li>Address the <code>Entity</code> model in <code>Arbitrary[Entity[*]]</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6369">https://github.com/http4s/http4s/pull/6369</a>
+          ### http4s-server</li>
+          <li>Relax <code>authentication#challenged</code> constraints by @danicheg in <a href="https://github.com/http4s/http4s/pull/6253">https://github.com/http4s/http4s/pull/6253</a></li>
+          <li>Use Strict entities where possible by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6306">https://github.com/http4s/http4s/pull/6306</a></li>
+          <li>Take into account the <code>Entity</code> model in the <code>EntityLimiter</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6320">https://github.com/http4s/http4s/pull/6320</a>
+          ### http4s-client</li>
+          <li>Fix <code>Client</code> scaladoc by @danicheg in <a href="https://github.com/http4s/http4s/pull/6188">https://github.com/http4s/http4s/pull/6188</a></li>
+          <li>Remove deprecated <code>Client.fetch</code>, <code>DefaultClient.fetch</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6187">https://github.com/http4s/http4s/pull/6187</a>
+          ### http4s-ember-core</li>
+          <li>ember: Add support for strict entities, look for content-length only once by @wjoel in <a href="https://github.com/http4s/http4s/pull/6317">https://github.com/http4s/http4s/pull/6317</a>
+          ### http4s-node-serverless</li>
+          <li>Removed. Serverless integrations are developed in <a href="https://github.com/typelevel/feral">https://github.com/typelevel/feral</a>
+          ### Documentation</li>
+          <li>Tweak <code>Entity</code> docs by @danicheg in <a href="https://github.com/http4s/http4s/pull/6375">https://github.com/http4s/http4s/pull/6375</a>
+          ### Behind the scenes</li>
+          <li>Release v0.21.33 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6147">https://github.com/http4s/http4s/pull/6147</a></li>
+          <li>Restore changes to versions page on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6148">https://github.com/http4s/http4s/pull/6148</a></li>
+          <li>Remove deprecated execution contexts by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6124">https://github.com/http4s/http4s/pull/6124</a></li>
+          <li>Ignore http4s-crypto updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6217">https://github.com/http4s/http4s/pull/6217</a></li>
+          <li>Merge 0.23 -&gt; main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6193">https://github.com/http4s/http4s/pull/6193</a></li>
+          <li>Merge 0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6250">https://github.com/http4s/http4s/pull/6250</a></li>
+          <li>Message - remoteHost: define without OptionT. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6257">https://github.com/http4s/http4s/pull/6257</a></li>
+          <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6282">https://github.com/http4s/http4s/pull/6282</a></li>
+          <li>Ignore <code>scala-lang</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6293">https://github.com/http4s/http4s/pull/6293</a></li>
+          <li>Tweak <code>BodyCache#hasNoBody</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6289">https://github.com/http4s/http4s/pull/6289</a></li>
+          <li>Ignore discipline updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6309">https://github.com/http4s/http4s/pull/6309</a></li>
+          <li>Reduce use of <code>covary</code> method. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6230">https://github.com/http4s/http4s/pull/6230</a></li>
+          <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6311">https://github.com/http4s/http4s/pull/6311</a></li>
+          <li>Ignore <code>okio</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6315">https://github.com/http4s/http4s/pull/6315</a></li>
+          <li>Address the entity model in the <code>DefaultHead</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6324">https://github.com/http4s/http4s/pull/6324</a></li>
+          <li>Address the entity model in the <code>Client#fromHttpApp</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6325">https://github.com/http4s/http4s/pull/6325</a></li>
+          <li>ignore scodec updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6337">https://github.com/http4s/http4s/pull/6337</a></li>
+          <li>Ignore <code>log4cats</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6341">https://github.com/http4s/http4s/pull/6341</a></li>
+          <li>Ignore <code>scalacheck-effect-munit</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6347">https://github.com/http4s/http4s/pull/6347</a></li>
+          <li>Ignore updates for all log4cats modules by @danicheg in <a href="https://github.com/http4s/http4s/pull/6346">https://github.com/http4s/http4s/pull/6346</a></li>
+          <li>Merge <code>0.23</code> -&gt; <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6348">https://github.com/http4s/http4s/pull/6348</a></li>
+          <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6378">https://github.com/http4s/http4s/pull/6378</a></li>
+          <li>Get ip4s updates from series/0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6384">https://github.com/http4s/http4s/pull/6384</a></li>
+          <li>Ignore <code>circe</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6400">https://github.com/http4s/http4s/pull/6400</a></li>
+          <li>Merge 0.23.12 to main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6416">https://github.com/http4s/http4s/pull/6416</a></li>
+        </ul>
+        
+        <h2 id="new-contributors-1" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <ul>
+          <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
+          <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>
+          <li>@zainab-ali made their first contribution in <a href="https://github.com/http4s/http4s/pull/6098">https://github.com/http4s/http4s/pull/6098</a></li>
+          <li>@dragonfly-ai made their first contribution in <a href="https://github.com/http4s/http4s/pull/6203">https://github.com/http4s/http4s/pull/6203</a></li>
+          <li>@CharlesAHunt made their first contribution in <a href="https://github.com/http4s/http4s/pull/6036">https://github.com/http4s/http4s/pull/6036</a></li>
+          <li>@OnAirEntertainment-Scala made their first contribution in <a href="https://github.com/http4s/http4s/pull/6385">https://github.com/http4s/http4s/pull/6385</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33">https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33</a></p>
+        
         <h1 id="v0-23-12-2022-05-24" class="section">v0.23.12 (2022-05-24)<a class="anchor-link right" href="#v0-23-12-2022-05-24"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with the 0.23.x series.</p>
         
@@ -501,9 +578,9 @@
         * We recommend <a href="https://github.com/rtimush/sbt-updates">sbt-updates</a> or <a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> for all your dependencies, and heeding SBT&#39;s eviction warnings.
         * We would like to welcome new maintainers to help out on each of these modules.  Look for the &quot;help wanted&quot; label in these repos.</p>
         
-        <h2 id="what-s-changed" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core" class="section">http4s-core<a class="anchor-link right" href="#http4s-core"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Make MimeDB go away on JS by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6211">https://github.com/http4s/http4s/pull/6211</a></li>
           <li>Update sbt-scalajs, scalajs-compiler, ... to 1.10.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6245">https://github.com/http4s/http4s/pull/6245</a></li>
@@ -602,7 +679,7 @@
           <li>Update to circe 0.14.2 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6401">https://github.com/http4s/http4s/pull/6401</a></li>
         </ul>
         
-        <h2 id="new-contributors" class="section">New Contributors<a class="anchor-link right" href="#new-contributors"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-2" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-2"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
           <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>
