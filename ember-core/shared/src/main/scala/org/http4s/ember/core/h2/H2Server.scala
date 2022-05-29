@@ -175,6 +175,20 @@ private[ember] object H2Server {
   )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
 
+    // h2c Initial Request Communication on h2c Upgrade
+    def sendInitialRequest(h2: H2Connection[F])(req: Request[Pure]): F[Unit] =
+      for {
+        h2Stream <- h2.initiateRemoteStreamById(1)
+        s <- h2Stream.state.modify { s =>
+          val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
+          (x, x)
+        }
+        _ <- s.request.complete(Either.right(req))
+        er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
+        _ <- s.readBuffer.offer(er)
+        _ <- s.writeBlock.complete(Either.right(()))
+      } yield ()
+
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
@@ -234,24 +248,7 @@ private[ember] object H2Server {
       _ <- Resource.eval(h2.settingsAck.get.rethrow)
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
-        initialRequest.traverse_(req =>
-          h2.initiateRemoteStreamById(1)
-            .flatMap(h2Stream =>
-              h2Stream.state
-                .modify { s =>
-                  val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
-                  (x, x)
-                }
-                .flatMap(s =>
-                  s.request.complete(Either.right(req)) >>
-                    s.readBuffer.offer(
-                      Either
-                        .right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-                    ) >>
-                    s.writeBlock.complete(Either.right(()))
-                ) >> created.offer(1)
-            )
-        )
+        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> created.offer(1))
       )
       _ <-
         Stream
