@@ -359,26 +359,21 @@ private[ember] object H2Client {
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
-      val h2Prior = Alternative[Option].guard(priorKnowledge).as(Http2)
-      for {
-        socketType <- Resource.eval(
-          socketMap.get.map(_.get(key))
-        )
-        resp <- h2Prior.orElse(socketType) match {
-          case Some(Http2) => h2.runHttp2Only(req)
-          case Some(Http1) => http1Client(req)
-          case None =>
-            (
-              h2.runHttp2Only(req) <*
-                Resource.eval(socketMap.update(s => s + (key -> Http2)))
-            ).handleErrorWith[org.http4s.Response[F], Throwable] {
-              case InvalidSocketType() | MissingHost() | MissingPort() =>
-                Resource.eval(socketMap.update(s => s + (key -> Http1))) >>
-                  http1Client(req)
-              case e => Resource.raiseError[F, Response[F], Throwable](e)
-            }
-        }
-      } yield resp
+      val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
+      Resource.eval(socketTypeF).flatMap {
+        case Some(Http2) => h2.runHttp2Only(req)
+        case Some(Http1) => http1Client(req)
+        case None =>
+          (
+            h2.runHttp2Only(req) <*
+              Resource.eval(socketMap.update(s => s + (key -> Http2)))
+          ).handleErrorWith[org.http4s.Response[F], Throwable] {
+            case InvalidSocketType() | MissingHost() | MissingPort() =>
+              Resource.eval(socketMap.update(s => s + (key -> Http1))) >>
+                http1Client(req)
+            case e => Resource.raiseError[F, Response[F], Throwable](e)
+          }
+      }
     }
 
   sealed trait SocketType extends Product with Serializable
