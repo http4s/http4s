@@ -1,7 +1,6 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -691,12 +690,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate): _*
       ),
-    apiMappings ++= {
-      ScaladocApiMapping.mappings(
-        (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
-        scalaBinaryVersion.value,
-      )
-    },
   )
 
 lazy val docs = http4sProject("site")
