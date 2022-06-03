@@ -255,8 +255,8 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     * control the time limits of that materialization.
     *
     * @param maxBytes maximum length of the entity stream. If the stream
-    *                 exceeds the limit then processing fails with the [[EntityStreamException]].
-    *                 Pass the [[None]] if you don't want to limit the entity body.
+    *                 exceeds the limit then processing fails with the [[Message.EntityStreamException]].
+    *                 Pass the [[scala.None]] if you don't want to limit the entity body.
     */
   def toStrict(maxBytes: Option[Long])(implicit F: Concurrent[F]): F[Self] = {
     def withLimit(entityBody: EntityBody[F]) = maxBytes match {
@@ -669,21 +669,21 @@ final class Response[F[_]] private (
   def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
-  /** Add a [[org.http4s.headers.`Set-Cookie`]] header with the provided values */
+  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.`Set-Cookie`]]
+  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
