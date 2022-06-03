@@ -101,11 +101,11 @@ final case class Uri(
   def addSegment[A: Uri.Path.SegmentEncoder](newSegment: A): Uri =
     copy(path = path / newSegment)
 
-  /** This is an alias to [[addSegment]]
+  /** This is an alias to [[addSegment(*]]
     */
   def /(newSegment: String): Uri = addSegment[String](newSegment)
 
-  /** This is an alias to [[addSegment]]
+  /** This is an alias to [[addSegment[*]]]
     */
   def /[A: Uri.Path.SegmentEncoder](newSegment: A): Uri = addSegment[A](newSegment)
 
@@ -355,11 +355,11 @@ object Uri extends UriPlatform {
     override val renderString: String = super.renderString
     override def toString: String = renderString
 
-    /** This is an alias to [[addSegment]]
+    /** This is an alias to [[addSegment(*]]
       */
     def /(segment: Path.Segment): Path = addSegment(segment)
 
-    /** This is an alias to [[addSegment]]
+    /** This is an alias to [[addSegment[*]]
       */
     def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
 

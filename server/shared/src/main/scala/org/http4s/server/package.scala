@@ -99,7 +99,7 @@ package object server {
       Key.newKey[SyncIO, Option[SecureSession]].unsafeRunSync()
   }
 
-  /** A middleware is a function of one [[Service]] to another, possibly of a
+  /** A middleware is a function of one [[cats.data.Kleisli]] to another, possibly of a
     * different [[Request]] and [[Response]] type.  http4s comes with several
     * middlewares for composing common functionality into services.
     *

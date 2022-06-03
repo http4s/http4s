@@ -68,7 +68,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]] and [[streaming]] signatures guarantee disposal of the
+    * [[toKleisli]] and [[stream]] signatures guarantee disposal of the
     * HTTP connection.
     */
   def toHttpApp: HttpApp[F] =
