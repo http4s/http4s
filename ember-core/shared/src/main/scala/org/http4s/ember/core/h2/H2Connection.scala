@@ -18,6 +18,7 @@ package org.http4s.ember.core.h2
 
 import cats._
 import cats.effect._
+import cats.effect.kernel.Outcome
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
@@ -143,13 +144,6 @@ private[h2] class H2Connection[F[_]](
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
-      .evalMapChunk {
-        case g: H2Frame.GoAway =>
-          mapRef.get.flatMap { m =>
-            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-          } >> state.update(s => s.copy(closed = true)).as(g).widen[H2Frame]
-        case otherwise => otherwise.pure[F]
-      }
       .chunks
       .evalMap { chunk =>
         def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
@@ -170,14 +164,9 @@ private[h2] class H2Connection[F[_]](
                 new SocketException("Socket closed when attempting to write").raiseError,
               )
           } else {
-            val list = chunk.toList
-            val nonData = list.takeWhile {
-              case _: H2Frame.Data => false
-              case _ => true
-            }
-            val after = list.dropWhile {
-              case _: H2Frame.Data => false
-              case _ => true
+            val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
+              case None => (chunk, Chunk.empty[H2Frame])
+              case Some(ix) => chunk.splitAt(ix)
             }
 
             val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
@@ -189,57 +178,49 @@ private[h2] class H2Connection[F[_]](
               new SocketException("Socket closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
-              go(Chunk.seq(after))
+              go(after)
           }
         }
-        go(chunk)
+        val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
+          mapRef.get.flatMap { m =>
+            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+          } >> state.update(s => s.copy(closed = true))
+        }
+        firstGoAway.getOrElse(F.unit) >> go(chunk)
       }
       .drain
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
-  def readLoop: Stream[F, Nothing] = {
-    def p(acc: ByteVector): Pull[F, H2Frame, Unit] =
+  def readLoop: F[Unit] = {
+    def connectionTerminated: String = s"Connection $host:$port readLoop Terminated"
+    val readFromSocket: F[Option[Chunk[Byte]]] =
+      socket.read(localSettings.initialWindowSize.windowSize)
+
+    def readNextFrame(acc: ByteVector): F[Option[(H2Frame, ByteVector)]] =
       if (acc.isEmpty) {
-        Pull.eval(socket.read(localSettings.initialWindowSize.windowSize)).flatMap {
-          case Some(chunk) => p(chunk.toByteVector)
+        readFromSocket.flatMap {
+          case Some(chunk) => readNextFrame(chunk.toByteVector)
           case None =>
-            Pull.eval(
-              logger.debug(s"Connection $host:$port readLoop Terminated with empty")
-            ) >> Pull.done
+            logger.debug(s"$connectionTerminated with empty").as(None)
         }
-      } else {
+      } else
         H2Frame.RawFrame.fromByteVector(acc) match {
           case Some((raw, leftover)) =>
             H2Frame.fromRaw(raw) match {
-              case Right(frame) =>
-                Pull.output1(frame) >>
-                  p(leftover)
+              case Right(frame) => F.pure(Some((frame, leftover)))
               case Left(e) =>
-                Pull.eval(
-                  logger.warn(s"Connection $host:$port readLoop Terminated invalid Raw to Frame $e")
-                ) >>
-                  Pull.eval(goAway(e)) >>
-                  Pull.done
+                logger.warn(s"$connectionTerminated invalid Raw to Frame $e") >>
+                  goAway(e) >> F.pure(None)
             }
           case None =>
-            Pull.eval(socket.read(localSettings.initialWindowSize.windowSize)).flatMap {
-              case Some(chunk) =>
-                p(acc ++ chunk.toByteVector)
-              case None =>
-                //
-                Pull.eval(
-                  logger.debug(s"Connection $host:$port readLoop Terminated with $acc")
-                ) >> Pull.done
+            readFromSocket.flatMap {
+              case Some(chunk) => readNextFrame(acc ++ chunk.toByteVector)
+              case None => logger.debug(s"$connectionTerminated with $acc").as(None)
             }
-
         }
-      }
-    p(acc).stream
-  }
-    .evalTapChunk(frame => logger.debug(s"$host:$port Read - $frame"))
-    .evalMapChunk(f => state.get.map(s => (f, s)))
-    .evalTapChunk {
+
+    def processFrame(frame: H2Frame, s: H2Connection.State[F]): F[Unit] = (frame, s) match {
       // Headers and Continuation Frames are Stateful
       // Headers if not closed MUST
       case (
@@ -537,18 +518,28 @@ private[h2] class H2Connection[F[_]](
         else Applicative[F].unit // We Do Nothing with these presently
       case (H2Frame.Unknown(_), _) => Applicative[F].unit // Ignore Unknown Frames
     }
-    .drain
-    .onFinalizeCase[F] {
-      case Resource.ExitCase.Errored(H2Connection.KillWithoutMessage()) =>
+
+    def readLoopAux(acc: ByteVector): F[Unit] =
+      readNextFrame(acc).flatMap {
+        case Some((frame, nacc)) =>
+          logger.debug(s"$host:$port Read - $frame") >>
+            state.get.flatMap(processFrame(frame, _)) >>
+            readLoopAux(nacc)
+        case None => F.unit
+      }
+
+    F.guaranteeCase(readLoopAux(acc)) {
+      case Outcome.Errored(H2Connection.KillWithoutMessage()) =>
         logger.debug(s"ReadLoop has received that is should kill") >>
           state.update(s => s.copy(closed = true))
-      case Resource.ExitCase.Errored(e) =>
+      case Outcome.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
           goAway(H2Error.InternalError) >>
           state.update(s => s.copy(closed = true))
 
       case _ => state.update(s => s.copy(closed = true))
     }
+  }
 
 }
 

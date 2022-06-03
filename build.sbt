@@ -39,46 +39,35 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       WorkflowStep.Run(
         List("cd scalafix", "sbt ci"),
         name = Some("Scalafix tests"),
-        cond = Some(s"matrix.scala == '$scala_213'"),
       )
     ),
-    scalas = crossScalaVersions.value.toList,
+    scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
   )
 )
 
+ThisBuild / jsEnv := {
+  import org.scalajs.jsenv.nodejs.NodeJSEnv
+  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+}
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
-  testing,
   tests,
   server,
-  prometheusMetrics,
   client,
-  dropwizardMetrics,
+  clientTestkit,
   emberCore,
   emberServer,
   emberClient,
-  blazeCore,
-  blazeServer,
-  blazeClient,
-  asyncHttpClient,
-  jettyClient,
-  okHttpClient,
-  nodeServerless,
   theDsl,
   jawn,
-  boopickle,
   circe,
-  playJson,
-  scalaXml,
-  twirl,
-  scalatags,
   bench,
   jsArtifactSizeTest,
   unidocs,
   examples,
-  examplesBlaze,
   examplesDocker,
   examplesEmber,
   scalafixInternalRules,
@@ -254,35 +243,21 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
     jsVersionIntroduced("0.23.5")
   )
 
-lazy val testing = libraryCrossProject("testing", CrossType.Full)
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    description := "Internal utilities for http4s tests",
-    startYear := Some(2016),
-    libraryDependencies ++= Seq(
-      catsEffectLaws.value,
-      munitCatsEffect.value,
-      munitDiscipline.value,
-      scalacheck.value,
-      scalacheckEffect.value,
-      scalacheckEffectMunit.value,
-    ).map(_ % Test),
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      scalaJavaTimeTzdb.value
-    ).map(_ % Test)
-  )
-  .dependsOn(laws)
-
-// Defined outside core/src/test so it can depend on published testing
+// Also defines shared test utils in Compile scope
 lazy val tests = libraryCrossProject("tests")
   .enablePlugins(NoPublishPlugin)
   .settings(
     description := "Tests for core project",
     startYear := Some(2013),
+    libraryDependencies ++= Seq(
+      munitCatsEffect.value,
+      munitDiscipline.value,
+      scalacheck.value,
+      scalacheckEffect.value,
+      scalacheckEffectMunit.value,
+    ),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, laws)
 
 lazy val server = libraryCrossProject("server")
   .settings(
@@ -341,25 +316,7 @@ lazy val server = libraryCrossProject("server")
   .jsSettings(
     jsVersionIntroduced("0.23.7")
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
-
-lazy val prometheusMetrics = libraryProject("prometheus-metrics")
-  .settings(
-    description := "Support for Prometheus Metrics",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      prometheusClient,
-      prometheusCommon,
-      prometheusHotspot,
-    ),
-  )
-  .dependsOn(
-    core.jvm % "compile->compile",
-    theDsl.jvm % "test->compile",
-    testing.jvm % "test->test",
-    server.jvm % "test->compile",
-    client.jvm % "test->compile",
-  )
+  .dependsOn(core, tests % Test, theDsl % Test)
 
 lazy val client = libraryCrossProject("client")
   .settings(
@@ -429,25 +386,25 @@ lazy val client = libraryCrossProject("client")
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.client.JavaNetClientBuilder$"),
     ),
   )
-  .dependsOn(core, server % Test, testing % "test->test", theDsl % "test->compile")
-  .jsConfigure(_.dependsOn(nodeServerless % Test))
+  .dependsOn(core, server % Test, tests % Test, theDsl % Test)
 
-lazy val dropwizardMetrics = libraryProject("dropwizard-metrics")
+lazy val clientTestkit = libraryCrossProject("client-testkit")
   .settings(
-    description := "Support for Dropwizard Metrics",
-    startYear := Some(2018),
+    description := "Client testkit for building http4s clients",
+    startYear := Some(2014),
     libraryDependencies ++= Seq(
-      dropwizardMetricsCore,
-      dropwizardMetricsJson,
+      munit.value,
+      munitCatsEffect.value,
     ),
+    mimaPreviousArtifacts := Set.empty,
   )
-  .dependsOn(
-    core.jvm % "compile->compile",
-    testing.jvm % "test->test",
-    theDsl.jvm % "test->compile",
-    client.jvm % "test->compile",
-    server.jvm % "test->compile",
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      nettyBuffer,
+      nettyCodecHttp,
+    )
   )
+  .dependsOn(client, theDsl)
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
@@ -543,7 +500,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jsSettings(
     libraryDependencies += hpack.value
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val emberServer = libraryCrossProject("ember-server")
   .settings(
@@ -632,240 +589,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     ),
     jsVersionIntroduced("0.23.5"),
   )
-  .dependsOn(emberCore % "compile;test->test", client % "compile;test->test")
-
-lazy val blazeCore = libraryProject("blaze-core")
-  .settings(
-    description := "Base library for binding blaze to http4s clients and servers",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      blazeHttp
-    ),
-    mimaBinaryIssueFilters := {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.BodylessWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.EntityBodyWriter.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.CachingChunkWriter.ec"),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.this"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.CachingStaticWriter.ec"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.blazecore.util.FlushingChunkWriter.ec"
-          ),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.Http2Writer.ec"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.this"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blazecore.util.IdentityWriter.ec"),
-        )
-      else Seq.empty
-    },
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val blazeServer = libraryProject("blaze-server")
-  .settings(
-    description := "blaze implementation for http4s servers",
-    startYear := Some(2014),
-    mimaBinaryIssueFilters := Seq(
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "org.http4s.blaze.server.WebSocketDecoder.this"
-      ), // private
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder.this"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$DefaultContext$"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext"
-      ), // private
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.blaze.server.BlazeServerBuilder$ExecutionContextConfig$ExplicitContext$"
-      ), // private
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.BlazeServerBuilder.this"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.WebSocketDecoder.this"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.Http1ServerStage.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters
-            .exclude[DirectMissingMethodProblem]("org.http4s.blaze.server.ProtocolSelector.apply"),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.maxBufferSize"
-          ),
-          ProblemFilters.exclude[ReversedMissingMethodProblem](
-            "org.http4s.blaze.server.WebSocketSupport.webSocketKey"
-          ),
-        )
-      else Seq.empty,
-    },
-  )
-  .dependsOn(blazeCore % "compile;test->test", server.jvm % "compile;test->test")
-
-lazy val blazeClient = libraryProject("blaze-client")
-  .settings(
-    description := "blaze implementation for http4s clients",
-    startYear := Some(2014),
-    mimaBinaryIssueFilters ++= Seq(
-      // private constructor
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BlazeClientBuilder.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.Http1Support.this"),
-      // These are all private to blaze-client and fallout from from
-      // the deprecation of org.http4s.client.Connection
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.release"),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.BlazeConnection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.ConnectionManager.release"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.ConnectionManager.invalidate"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.connection"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.copy$default$1"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.this"
-      ),
-      ProblemFilters.exclude[IncompatibleMethTypeProblem](
-        "org.http4s.blaze.client.ConnectionManager#NextConnection.apply"
-      ),
-      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.blaze.client.Http1Connection"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.release"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.invalidate"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.BasicManager.this"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.pool"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.ConnectionManager.basic"),
-      ProblemFilters
-        .exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.client.PoolManager.this"),
-      // inside private trait/clas/object
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.BlazeConnection.runRequest"),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.blaze.client.BlazeConnection.runRequest"
-      ),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.runRequest"),
-      ProblemFilters
-        .exclude[DirectMissingMethodProblem]("org.http4s.blaze.client.Http1Connection.resetWrite"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Idle$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Read$"),
-      ProblemFilters
-        .exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$ReadWrite$"),
-      ProblemFilters.exclude[MissingClassProblem]("org.http4s.blaze.client.Http1Connection$Write$"),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "org.http4s.blaze.client.Http1Connection.isRecyclable"
-      ),
-      ProblemFilters
-        .exclude[IncompatibleResultTypeProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-      ProblemFilters
-        .exclude[ReversedMissingMethodProblem]("org.http4s.blaze.client.Connection.isRecyclable"),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[IncompatibleResultTypeProblem](
-            "org.http4s.blaze.client.ConnectionManager#NextConnection._1"
-          )
-        )
-      else Seq.empty
-    },
-  )
-  .dependsOn(blazeCore % "compile;test->test", client.jvm % "compile;test->test")
-
-lazy val asyncHttpClient = libraryProject("async-http-client")
-  .settings(
-    description := "async http client implementation for http4s clients",
-    startYear := Some(2016),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.asyncHttpClient,
-      fs2ReactiveStreams,
-      nettyBuffer,
-      nettyCodecHttp,
-      reactiveStreams,
-    ),
-    Test / parallelExecution := false,
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
-
-lazy val jettyClient = libraryProject("jetty-client")
-  .settings(
-    description := "jetty implementation for http4s clients",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.jettyClient,
-      jettyHttp,
-      jettyUtil,
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
-
-lazy val nodeServerless = libraryProject("node-serverless")
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .settings(
-    description := "Node.js serverless wrapper for http4s apps",
-    startYear := Some(2021),
-  )
-  .dependsOn(core.js)
-
-lazy val okHttpClient = libraryProject("okhttp-client")
-  .settings(
-    description := "okhttp implementation for http4s clients",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.okhttp,
-      okio,
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test", client.jvm % "compile;test->test")
+  .dependsOn(emberCore % "compile;test->test", client, clientTestkit % Test)
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
@@ -876,7 +600,7 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
   .settings(
@@ -890,21 +614,7 @@ lazy val jawn = libraryCrossProject("jawn", CrossType.Pure)
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .dependsOn(core, testing % "test->test")
-
-lazy val boopickle = libraryCrossProject("boopickle", CrossType.Pure)
-  .settings(
-    description := "Provides Boopickle codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.boopickle.value
-    ),
-    tlVersionIntroduced ~= { _.updated("3", "0.22.1") },
-  )
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(core, tests % Test)
 
 lazy val circe = libraryCrossProject("circe", CrossType.Pure)
   .settings(
@@ -912,77 +622,14 @@ lazy val circe = libraryCrossProject("circe", CrossType.Pure)
     startYear := Some(2015),
     libraryDependencies ++= Seq(
       circeCore.value,
+      circeJawn.value,
       circeTesting.value % Test,
     ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
   )
-  .jvmSettings(libraryDependencies += circeJawn.value)
-  .jsSettings(libraryDependencies += circeJawn15.value)
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
-
-lazy val playJson = libraryProject("play-json")
-  .settings(
-    description := "Provides Play json codecs for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        Http4sPlugin.playJson.cross(CrossVersion.for3Use2_13)
-      else
-        Http4sPlugin.playJson
-    ),
-    publish / skip := tlIsScala3.value,
-    compile / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .dependsOn(jawn.jvm % "compile;test->test")
-
-lazy val scalaXml = libraryProject("scala-xml")
-  .settings(
-    description := "Provides scala-xml codecs for http4s",
-    startYear := Some(2014),
-    libraryDependencies ++= Seq(
-      Http4sPlugin.scalaXml
-    ),
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val twirl = http4sProject("twirl")
-  .settings(
-    description := "Twirl template support for http4s",
-    startYear := Some(2014),
-    TwirlKeys.templateImports := Nil,
-    libraryDependencies := {
-      libraryDependencies.value.map {
-        case module if module.name == "twirl-api" && tlIsScala3.value =>
-          module.cross(CrossVersion.for3Use2_13)
-        case module => module
-      }
-    },
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .enablePlugins(SbtTwirl)
-  .dependsOn(core.jvm, testing.jvm % "test->test")
-
-lazy val scalatags = http4sProject("scalatags")
-  .settings(
-    description := "Scalatags template support for http4s",
-    startYear := Some(2018),
-    libraryDependencies ++= Seq(
-      if (tlIsScala3.value)
-        scalatagsApi.cross(CrossVersion.for3Use2_13)
-      else
-        scalatagsApi
-    ),
-    publish / skip := tlIsScala3.value,
-    skipUnusedDependenciesTestOnScala3,
-    mimaPreviousArtifacts := { if (tlIsScala3.value) Set.empty else mimaPreviousArtifacts.value },
-  )
-  .dependsOn(core.jvm, testing.jvm % "test->test")
+  .dependsOn(core, tests % Test, jawn % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
@@ -1035,11 +682,8 @@ lazy val unidocs = http4sProject("unidocs")
         (List[ProjectReference](
           bench,
           examples,
-          examplesBlaze,
           examplesDocker,
           examplesEmber,
-          exampleEmberServerH2,
-          exampleEmberClientH2,
           scalafixInternalInput,
           scalafixInternalOutput,
           scalafixInternalRules,
@@ -1074,8 +718,6 @@ lazy val docs = http4sProject("site")
     emberServer.jvm,
     emberClient.jvm,
     circe.jvm,
-    dropwizardMetrics,
-    prometheusMetrics,
   )
 
 lazy val examples = http4sProject("examples")
@@ -1087,63 +729,38 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    // todo enable when twirl supports dotty TwirlKeys.templateImports := Nil,
   )
-  .dependsOn(server.jvm, dropwizardMetrics, theDsl.jvm, circe.jvm, scalaXml /*, twirl*/ )
-// todo enable when twirl supports dotty .enablePlugins(SbtTwirl)
-
-lazy val examplesBlaze = exampleProject("examples-blaze")
-  .settings(Revolver.settings)
-  .settings(
-    description := "Examples of http4s server and clients on blaze",
-    startYear := Some(2013),
-    fork := true,
-    libraryDependencies ++= Seq(
-      circeGeneric
-    ),
-  )
-  .dependsOn(blazeServer, blazeClient)
+  .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
 lazy val examplesEmber = exampleProject("examples-ember")
   .settings(Revolver.settings)
   .settings(
-    description := "Examples of http4s server and clients on blaze",
+    description := "Examples of http4s server and clients on ember",
     startYear := Some(2020),
     fork := true,
     scalacOptions -= "-Xfatal-warnings",
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
-lazy val exampleEmberServerH2 = exampleJSProject("examples-ember-server-h2")
-  .dependsOn(emberServer.js)
-  .settings(
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
-lazy val exampleEmberClientH2 = exampleJSProject("examples-ember-client-h2")
-  .dependsOn(emberClient.js)
-  .settings(
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
 lazy val examplesDocker = http4sProject("examples-docker")
   .in(file("examples/docker"))
   .enablePlugins(JavaAppPackaging, DockerPlugin, NoPublishPlugin)
   .settings(
-    description := "Builds a docker image for a blaze-server",
+    description := "Builds a docker image for a ember-server",
     startYear := Some(2017),
-    Docker / packageName := "http4s/blaze-server",
+    Docker / packageName := "http4s/ember-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
   )
-  .dependsOn(blazeServer, theDsl.jvm)
+  .dependsOn(emberServer.jvm, theDsl.jvm)
 
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
-  .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
   .settings(
+    name := "http4s-scalafix-internal",
+    mimaPreviousArtifacts := Set.empty,
     startYear := Some(2021),
     libraryDependencies ++= Seq(
       "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
@@ -1233,16 +850,6 @@ def exampleProject(name: String) =
     .enablePlugins(NoPublishPlugin)
     .settings(libraryDependencies += logbackClassic % Runtime)
     .dependsOn(examples)
-
-def exampleJSProject(name: String) =
-  http4sProject(name)
-    .in(file(name.replace("examples-", "examples/")))
-    .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-    .settings(
-      scalaJSUseMainModuleInitializer := true,
-      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
-    )
-    .dependsOn(theDsl.js)
 
 lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(

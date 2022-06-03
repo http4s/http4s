@@ -38,9 +38,9 @@ class HSTSSuite extends Http4sSuite {
       HSTS.unsafeFromDuration(innerRoutes, 365.days).orNotFound,
       HSTS.httpRoutes.unsafeFromDuration(innerRoutes, 365.days).orNotFound,
       HSTS.httpApp.unsafeFromDuration(innerRoutes.orNotFound, 365.days),
-    ).traverse { app =>
+    ).parTraverse_ { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 
@@ -51,9 +51,9 @@ class HSTSSuite extends Http4sSuite {
       HSTS(innerRoutes, hstsHeader).orNotFound,
       HSTS.httpRoutes(innerRoutes).orNotFound,
       HSTS.httpApp(innerRoutes.orNotFound),
-    ).traverse { app =>
+    ).parTraverse_ { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 
@@ -62,9 +62,9 @@ class HSTSSuite extends Http4sSuite {
       HSTS(innerRoutes).orNotFound,
       HSTS.httpRoutes(innerRoutes).orNotFound,
       HSTS.httpApp(innerRoutes.orNotFound),
-    ).traverse { app =>
+    ).parTraverse_ { app =>
       app(req).map(_.status).assertEquals(Status.Ok) *>
-        app(req).map(_.headers.get[`Strict-Transport-Security`].isDefined).assert
+        app(req).map(_.headers.contains[`Strict-Transport-Security`]).assert
     }
   }
 

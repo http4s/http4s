@@ -18,13 +18,12 @@ package org.http4s
 package multipart
 
 import cats.effect.IO
+import cats.effect.std.Random
 import org.scalacheck.effect.PropF._
 
-import scala.util.Random
-
 class MultipartsSuite extends Http4sSuite {
-  private val random = new Random()
-  private val multiparts = Multiparts.fromScalaRandom[IO](random)
+  private val multiparts =
+    Random.scalaUtilRandom[IO].map(Multiparts.fromRandom[IO]).syncStep.unsafeRunSync().toOption.get
   private val alphabet =
     Set('A' to 'Z': _*) ++ Set('a' to 'z': _*) ++ Set('0' to '9': _*) ++ Set('_', '-')
 

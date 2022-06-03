@@ -35,11 +35,9 @@ object ScaladocApiMapping {
   def mappings(classpaths: Seq[Classpath], scalaBinaryVersion: String): Map[File, URL] =
     classpaths.flatten.foldLeft(Map.empty[File, URL]) { case (acc, value) =>
       val file: File = value.data
-      playJsonMapping(scalaBinaryVersion)(file).toMap ++
-        vaultMapping(scalaBinaryVersion)(file).toMap ++
+      vaultMapping(scalaBinaryVersion)(file).toMap ++
         catsEffectMapping(scalaBinaryVersion)(file).toMap ++
         fs2CoreMapping(scalaBinaryVersion)(file).toMap ++
-        jettyMapping(file).toMap ++
         acc
     }
 
@@ -53,13 +51,6 @@ object ScaladocApiMapping {
       s"https://javadoc.io/doc/${moduleId.organization}/${moduleId.name}${suffix}/${moduleId.revision}/"
     )
   }
-
-  private def playJsonMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
-    if (file.toString.matches(""".+/play-json_[^/]+\.jar$""")) {
-      Some(file -> javadocIOAPIUrl(Some(scalaBinaryVersion), Http4sPlugin.playJson))
-    } else {
-      None
-    }
 
   private def vaultMapping(scalaBinaryVersion: String)(file: File): Option[(File, URL)] =
     // Be a _little_ more specific, since vault is an overloaded term,
@@ -96,17 +87,4 @@ object ScaladocApiMapping {
     }
   }
 
-  private def jettyMapping(file: File): Option[(File, URL)] = {
-    val jettyMajorVersion: String =
-      Http4sPlugin.V.jetty.takeWhile(_ != '.')
-    if (file.toString.matches(""".+/jetty[^/]+\.jar$""")) {
-      Some(
-        file -> new URL(
-          s"https://www.eclipse.org/jetty/javadoc/jetty-${jettyMajorVersion}/index.html"
-        )
-      )
-    } else {
-      None
-    }
-  }
 }

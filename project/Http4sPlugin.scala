@@ -27,7 +27,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.8"
   val scala_212 = "2.12.15"
-  val scala_3 = "3.1.1"
+  val scala_3 = "3.1.2"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -97,61 +97,45 @@ object Http4sPlugin extends AutoPlugin {
     // We pull multiple modules from several projects. This is a convenient
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
-    val asyncHttpClient = "2.12.3"
     val blaze = "0.15.3"
-    val boopickle = "1.4.0"
     val caseInsensitive = "1.2.0"
     val cats = "2.7.0"
-    val catsEffect = "3.3.11"
+    val catsEffect = "3.3.12"
     val catsParse = "0.3.7"
-    val circe = "0.14.1"
-    val circe15 = "0.15.0-M1"
+    val circe = "0.14.2"
     val crypto = "0.2.3"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val dropwizardMetrics = "4.2.9"
     val fs2 = "3.2.7"
-    val ip4s = "3.1.2"
+    val ip4s = "3.1.3"
     val hpack = "1.0.3"
     val javaWebSocket = "1.5.3"
     val jawn = "1.3.2"
     val jawnFs2 = "2.2.0"
-    val jetty = "9.4.46.v20220331"
     val jnrUnixSocket = "0.38.17"
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "2.3.0"
+    val log4cats = "2.3.1"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.76.Final"
-    val okio = "2.10.0"
-    val okhttp = "4.9.3"
-    val playJson = "2.9.2"
-    val prometheusClient = "0.11.0"
-    val reactiveStreams = "1.0.3"
+    val netty = "4.1.77.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
     val scalacheckEffect = "1.0.4"
-    val scalaJavaLocales = "1.3.0"
+    val scalaJavaLocales = "1.4.0"
     val scalaJavaTime = "2.3.0"
-    val scalatags = "0.10.0"
-    val scalaXml = "2.1.0"
     val scodecBits = "1.1.31"
-    val servlet = "3.1.0"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
-    val twirl = "1.4.2"
     val twitterHpack = "1.0.2"
     val vault = "3.1.0"
   }
 
-  lazy val asyncHttpClient = "org.asynchttpclient" % "async-http-client" % V.asyncHttpClient
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
   lazy val blazeHttp = "org.http4s" %% "blaze-http" % V.blaze
-  lazy val boopickle = Def.setting("io.suzaku" %%% "boopickle" % V.boopickle)
   lazy val caseInsensitive = Def.setting("org.typelevel" %%% "case-insensitive" % V.caseInsensitive)
   lazy val caseInsensitiveTesting =
     Def.setting("org.typelevel" %%% "case-insensitive-testing" % V.caseInsensitive)
@@ -165,29 +149,20 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeCore = Def.setting("io.circe" %%% "circe-core" % V.circe)
   lazy val circeGeneric = "io.circe" %% "circe-generic" % V.circe
   lazy val circeJawn = Def.setting("io.circe" %%% "circe-jawn" % V.circe)
-  lazy val circeJawn15 = Def.setting("io.circe" %%% "circe-jawn" % V.circe15)
   lazy val circeLiteral = "io.circe" %% "circe-literal" % V.circe
   lazy val circeParser = "io.circe" %% "circe-parser" % V.circe
   lazy val circeTesting = Def.setting("io.circe" %%% "circe-testing" % V.circe)
   lazy val crypto = Def.setting("org.http4s" %%% "http4s-crypto" % V.crypto)
   lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
   lazy val disciplineCore = Def.setting("org.typelevel" %%% "discipline-core" % V.disciplineCore)
-  lazy val dropwizardMetricsCore = "io.dropwizard.metrics" % "metrics-core" % V.dropwizardMetrics
-  lazy val dropwizardMetricsJson = "io.dropwizard.metrics" % "metrics-json" % V.dropwizardMetrics
   lazy val fs2Core = Def.setting("co.fs2" %%% "fs2-core" % V.fs2)
   lazy val fs2Io = Def.setting("co.fs2" %%% "fs2-io" % V.fs2)
-  lazy val fs2ReactiveStreams = "co.fs2" %% "fs2-reactive-streams" % V.fs2
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)
   lazy val ip4sTestKit = Def.setting("com.comcast" %%% "ip4s-test-kit" % V.ip4s)
   lazy val hpack = Def.setting("org.http4s" %%% "hpack" % V.hpack)
-  lazy val javaxServletApi = "javax.servlet" % "javax.servlet-api" % V.servlet
   lazy val jawnFs2 = Def.setting("org.typelevel" %%% "jawn-fs2" % V.jawnFs2)
   lazy val javaWebSocket = "org.java-websocket" % "Java-WebSocket" % V.javaWebSocket
   lazy val jawnParser = Def.setting("org.typelevel" %%% "jawn-parser" % V.jawn)
-  lazy val jawnPlay = "org.typelevel" %% "jawn-play" % V.jawn
-  lazy val jettyClient = "org.eclipse.jetty" % "jetty-client" % V.jetty
-  lazy val jettyHttp = "org.eclipse.jetty" % "jetty-http" % V.jetty
-  lazy val jettyUtil = "org.eclipse.jetty" % "jetty-util" % V.jetty
   lazy val jnrUnixSocket = "com.github.jnr" % "jnr-unixsocket" % V.jnrUnixSocket
   lazy val keypool = Def.setting("org.typelevel" %%% "keypool" % V.keypool)
   lazy val literally = Def.setting("org.typelevel" %%% "literally" % V.literally)
@@ -203,13 +178,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val munitDiscipline = Def.setting("org.typelevel" %%% "discipline-munit" % V.munitDiscipline)
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
-  lazy val okio = "com.squareup.okio" % "okio" % V.okio
-  lazy val okhttp = "com.squareup.okhttp3" % "okhttp" % V.okhttp
-  lazy val playJson = "com.typesafe.play" %% "play-json" % V.playJson
-  lazy val prometheusClient = "io.prometheus" % "simpleclient" % V.prometheusClient
-  lazy val prometheusCommon = "io.prometheus" % "simpleclient_common" % V.prometheusClient
-  lazy val prometheusHotspot = "io.prometheus" % "simpleclient_hotspot" % V.prometheusClient
-  lazy val reactiveStreams = "org.reactivestreams" % "reactive-streams" % V.reactiveStreams
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
@@ -219,15 +187,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalaJavaLocalesEnUS =
     Def.setting("io.github.cquiroz" %%% "locales-minimal-en_us-db" % V.scalaJavaLocales)
   lazy val scalaJavaTime = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
-  lazy val scalaJavaTimeTzdb =
-    Def.setting("io.github.cquiroz" %%% "scala-java-time-tzdb" % V.scalaJavaTime)
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
-  lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
-  lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = Def.setting("org.scodec" %%% "scodec-bits" % V.scodecBits)
   lazy val slf4jApi = "org.slf4j" % "slf4j-api" % V.slf4j
   lazy val treeHugger = "com.eed3si9n" %% "treehugger" % V.treehugger
-  lazy val twirlApi = "com.typesafe.play" %% "twirl-api" % V.twirl
   lazy val twitterHpack = "com.twitter" % "hpack" % V.twitterHpack
   lazy val vault = Def.setting("org.typelevel" %%% "vault" % V.vault)
 }

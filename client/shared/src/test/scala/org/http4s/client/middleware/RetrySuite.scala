@@ -87,7 +87,7 @@ class RetrySuite extends Http4sSuite {
       (ServiceUnavailable, 2),
       (GatewayTimeout, 2),
       (HttpVersionNotSupported, 1),
-    ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
+    ).parTraverse_ { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
   }
 
   test("default retriable should not retry non-idempotent methods") {

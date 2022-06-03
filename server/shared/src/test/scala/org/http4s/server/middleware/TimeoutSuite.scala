@@ -24,42 +24,81 @@ import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class TimeoutSuite extends Http4sSuite {
   // To distinguish from the inherited cats-effect-testing Timeout
   import org.http4s.server.middleware.{Timeout => TimeoutMiddleware}
 
-  private val routes = HttpRoutes.of[IO] {
+  private val defaultRoutes = HttpRoutes.of[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
 
     case _ -> Root / "never" =>
       IO.never[Response[IO]]
-  }
 
-  private val app = TimeoutMiddleware(5.milliseconds)(routes).orNotFound
+    case _ -> Root / "uncancelable" =>
+      IO.uncancelable(_ => IO.sleep(1100.milliseconds)) *> Ok("uncancelable")
+  }
 
   private val fastReq = Request[IO](GET, uri"/fast")
   private val neverReq = Request[IO](GET, uri"/never")
+  private val uncancelableReq = Request[IO](GET, uri"/uncancelable")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
-    IO.race(IO.sleep(3.seconds), resp.map(_.status)).assertEquals(Right(status))
+    resp.map(_.status).timeout(1.seconds).assertEquals(status)
+
+  def testMiddleware(timeout: FiniteDuration, routes: HttpRoutes[IO] = defaultRoutes)(
+      test: Http[IO, IO] => IO[Unit]
+  ) =
+    for {
+      _ <- test(TimeoutMiddleware(timeout)(routes).orNotFound)
+      _ <- test(TimeoutMiddleware.httpRoutes(timeout)(routes).orNotFound)
+      _ <- test(TimeoutMiddleware.httpApp(timeout)(routes.orNotFound))
+    } yield ()
+
+  def testMiddlewareWithResponse(
+      timeout: FiniteDuration,
+      response: Response[IO],
+      routes: HttpRoutes[IO] = defaultRoutes,
+  )(test: Http[IO, IO] => IO[Unit]) =
+    for {
+      _ <- test(TimeoutMiddleware(timeout, OptionT.pure[IO](response))(routes).orNotFound)
+      _ <- test(TimeoutMiddleware.httpRoutes(timeout, IO.pure(response))(routes).orNotFound)
+      _ <- test(TimeoutMiddleware.httpApp(timeout, IO.pure(response))(routes.orNotFound))
+    } yield ()
 
   test("have no effect if the response is timely") {
-    val app = TimeoutMiddleware(365.days)(routes).orNotFound
-    checkStatus(app(fastReq), Status.Ok)
+    testMiddleware(365.days) { app =>
+      checkStatus(app(fastReq), Status.Ok)
+    }
   }
 
   test("return a 503 error if the result takes too long") {
-    checkStatus(app(neverReq), Status.ServiceUnavailable)
+    testMiddleware(5.milliseconds) { app =>
+      checkStatus(app(neverReq), Status.ServiceUnavailable)
+    }
+  }
+
+  test(
+    "return a 503 error if the result takes too long and execute underlying uncancelable effect"
+  ) {
+    testMiddleware(5.milliseconds) { app =>
+      for {
+        _ <- app(uncancelableReq).map(_.status).assertEquals(Status.ServiceUnavailable)
+        _ <- checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
+          .intercept[TimeoutException]
+      } yield ()
+    }
   }
 
   test("return the provided response if the result takes too long") {
     val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
-    val altTimeoutService =
-      TimeoutMiddleware(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
-    checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
+
+    testMiddlewareWithResponse(1.nanosecond, customTimeout) { app =>
+      checkStatus(app(neverReq), customTimeout.status)
+    }
   }
 
   test("cancel the loser") {
@@ -67,9 +106,11 @@ class TimeoutSuite extends Http4sSuite {
     val routes = HttpRoutes.of[IO] { case _ =>
       IO.never.guarantee(IO(canceled.set(true)))
     }
-    val app = TimeoutMiddleware(1.millis)(routes).orNotFound
-    checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
-      // Give the losing response enough time to finish
-      IO.sleep(100.milliseconds) *> IO(canceled.get)
+
+    testMiddleware(1.millisecond, routes) { app =>
+      checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
+        // Give the losing response enough time to finish
+        IO.sleep(100.milliseconds) *> IO(canceled.get).map(_ => ())
+    }
   }
 }

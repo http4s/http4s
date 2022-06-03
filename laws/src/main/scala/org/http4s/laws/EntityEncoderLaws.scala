@@ -37,10 +37,10 @@ trait EntityEncoderLaws[F[_], A] {
     } yield contentLength.fold(true)(_ === bodyLength)) <-> F.pure(true)
 
   def noContentLengthInStaticHeaders: Boolean =
-    encoder.headers.get[`Content-Length`].isEmpty
+    !encoder.headers.contains[`Content-Length`]
 
   def noTransferEncodingInStaticHeaders: Boolean =
-    encoder.headers.get[`Transfer-Encoding`].isEmpty
+    !encoder.headers.contains[`Transfer-Encoding`]
 }
 
 object EntityEncoderLaws {

@@ -149,7 +149,7 @@ object StaticFile {
   def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
     f =>
       Files[F]
-        .getBasicFileAttributes(f)
+        .getBasicFileAttributes(f, followLinks = true)
         .map(attr =>
           if (attr.isRegularFile)
             s"${attr.lastModifiedTime.toMillis.toHexString}-${attr.size.toHexString}"
@@ -212,7 +212,7 @@ object StaticFile {
       etagCalculator: Path => F[String],
   ): OptionT[F, Response[F]] =
     OptionT
-      .liftF(Files[F].getBasicFileAttributes(f).map(_.size))
+      .liftF(Files[F].getBasicFileAttributes(f, followLinks = true).map(_.size))
       .flatMap { size =>
         fromPath(f, 0, size, buffsize, req, etagCalculator)
       }
@@ -256,7 +256,7 @@ object StaticFile {
         if (isFile) {
           if (start >= 0 && end >= start && buffsize > 0) {
             Files[F]
-              .getBasicFileAttributes(f)
+              .getBasicFileAttributes(f, followLinks = true)
               .flatMap { attr =>
                 val lastModified =
                   HttpDate.fromEpochSecond(attr.lastModifiedTime.toSeconds).toOption
