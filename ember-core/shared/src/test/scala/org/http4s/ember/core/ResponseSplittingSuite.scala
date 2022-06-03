@@ -34,7 +34,7 @@ class ResponseSplittingSuite extends Http4sSuite {
         .compile
         .to(Array)
       result <- Parser.Response.parser[F](1024)(respBytes, F.pure(None))
-    } yield (result._1)
+    } yield result._1
 
   test("Prevent response splitting attacks on status reason phrase") {
     @nowarn("cat=deprecation")

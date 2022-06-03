@@ -244,7 +244,7 @@ object DigestAuth {
           case NonceKeeper.StaleReply => F.pure(StaleNonce)
           case NonceKeeper.BadNCReply => F.pure(BadNC)
           case NonceKeeper.OKReply =>
-            (store match {
+            store match {
               case authStore: PlainTextAuthStore[F, A] =>
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
@@ -285,7 +285,7 @@ object DigestAuth {
                         else WrongResponse
                       }
                 }
-            })
+            }
         }
       }
     }
