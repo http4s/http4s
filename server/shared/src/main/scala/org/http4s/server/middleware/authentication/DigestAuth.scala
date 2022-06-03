@@ -145,7 +145,7 @@ object DigestAuth {
       (data, nc) => F.delay(nonceKeeper.receiveNonce(data, nc)),
     )
 
-  /** Similar to [[apply]], but exposing the underlying [[challenge]]
+  /** Similar to [[apply]], but exposing the underlying [[challenge[F[_],A](realm:String,store:org*]]
     * [[cats.data.Kleisli]] instead of an entire [[AuthMiddleware]]
     *
     * Side-effect of running the returned task: If req contains a valid
