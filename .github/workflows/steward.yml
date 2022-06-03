@@ -24,7 +24,7 @@ jobs:
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           branches: series/0.23,main
-          author-email: ${{ secrets.STEWARD_APP_ID }}+typelevel-steward[bot]@users.noreply.github.com
+          author-email: 106827141+typelevel-steward[bot]@users.noreply.github.com
           author-name: typelevel-steward[bot]
           github-app-id: ${{ secrets.STEWARD_APP_ID }}
           github-app-key: ${{ secrets.STEWARD_PRIVATE_KEY }}
