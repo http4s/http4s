@@ -20,9 +20,9 @@ package ember.core
 import cats.effect.Concurrent
 import cats.effect.IO
 import cats.syntax.all._
+import fs2._
 import org.http4s.headers.`Content-Length`
 import org.http4s.syntax.literals._
-import fs2._
 
 class EncoderSuite extends Http4sSuite {
   private object Helpers {
