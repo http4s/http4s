@@ -30,7 +30,8 @@ private[ember] object Encoder {
 
   private val SPACE = " "
   private val CRLF = "\r\n"
-  val chunkedTansferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  val zeroContentLengthRaw = "Content-Length: 0"
 
   def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
@@ -63,8 +64,12 @@ private[ember] object Encoder {
           ()
         }
       }
-      if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
-        stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+      if (!appliedContentLength && resp.body == EmptyBody && resp.status.isEntityAllowed) {
+        stringBuilder.append(zeroContentLengthRaw).append(CRLF)
+        chunked = false
+        ()
+      } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
+        stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
         ()
       }
@@ -135,7 +140,7 @@ private[ember] object Encoder {
         }
 
         if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
-          stringBuilder.append(chunkedTansferEncodingHeaderRaw).append(CRLF)
+          stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
           ()
         }

@@ -20,6 +20,7 @@ package ember.core
 import cats.effect.Concurrent
 import cats.effect.IO
 import cats.syntax.all._
+import fs2._
 import org.http4s.headers.`Content-Length`
 import org.http4s.syntax.literals._
 
@@ -119,6 +120,32 @@ class EncoderSuite extends Http4sSuite {
     val expected =
       """HTTP/1.1 200 OK
       |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("respToBytes should encode a no body response correctly with no header") {
+    val resp = Response[IO](Status.Ok)
+
+    val expected =
+      """HTTP/1.1 200 OK
+      |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("respToBytes should encode a no body response correctly with stream") {
+    val resp = Response[IO](Status.Ok, body = Stream.chunk(Chunk.empty))
+
+    val expected =
+      """HTTP/1.1 200 OK
+      |Transfer-Encoding: chunked
+      |
+      |0
       |
       |""".stripMargin
 
