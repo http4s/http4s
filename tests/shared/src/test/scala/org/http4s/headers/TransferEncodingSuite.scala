@@ -56,7 +56,7 @@ class TransferEncodingSuite extends HeaderLaws {
 
   test("hasChunked should detect chunked") {
     forAll { (t: `Transfer-Encoding`) =>
-      assertEquals(t.hasChunked, (t.values.contains_(TransferCoding.chunked)))
+      assertEquals(t.hasChunked, t.values.contains_(TransferCoding.chunked))
     }
   }
 }

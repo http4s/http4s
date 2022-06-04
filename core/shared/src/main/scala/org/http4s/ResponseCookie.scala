@@ -190,8 +190,8 @@ object ResponseCookie {
      * Anything but "strict" or "lax" is "none"
      */
     val samesiteValue =
-      (ignoreCase("strict")
-        .as(SameSite.Strict))
+      ignoreCase("strict")
+        .as(SameSite.Strict)
         .orElse(ignoreCase("lax").as(SameSite.Lax))
         .orElse(avOctet.rep0.as(SameSite.None))
 
