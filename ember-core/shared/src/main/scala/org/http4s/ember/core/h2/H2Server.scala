@@ -164,7 +164,7 @@ private[ember] object H2Server {
   // This is the full h2 management of a socket
   // AFTER the connection preface.
   // allowing delegation
-  def fromSocket[F[_]: Async](
+  def fromSocket[F[_]](
       socket: Socket[F],
       httpApp: HttpApp[F],
       localSettings: H2Frame.Settings.ConnectionSettings,
@@ -172,8 +172,12 @@ private[ember] object H2Server {
       // Only Used for http1 upgrade where remote settings are provided prior to escalation
       initialRemoteSettings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       initialRequest: Option[Request[fs2.Pure]] = None,
-  ): Resource[F, Unit] = {
+  )(implicit F: Async[F]): Resource[F, Unit] = {
     import cats.effect.kernel.instances.spawn._
+
+    def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
+      F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
+
     for {
       address <- Resource.eval(socket.remoteAddress)
       (remotehost, remoteport) = (address.host, address.port)
@@ -339,16 +343,7 @@ private[ember] object H2Server {
       _ <- Resource.eval(
         stateRef.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
-
-      s = {
-        def go: Pull[F, INothing, Unit] =
-          Pull.eval(Temporal[F].sleep(1.seconds)) >>
-            Pull
-              .eval(stateRef.get.map(_.closed))
-              .ifM(Pull.done, go)
-        go.stream
-      }
-      _ <- s.compile.resource.drain
+      _ <- Resource.eval(holdWhileOpen(stateRef))
     } yield ()
   }
 }
