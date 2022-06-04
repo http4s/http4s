@@ -201,7 +201,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
             v <- getArbitrary[Option[String]]
           } yield (k, v)
         },
-        2 -> const(("foo" -> Some("bar"))), // Want some repeats
+        2 -> const("foo" -> Some("bar")), // Want some repeats
       )
     }
 
@@ -1086,7 +1086,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       quotedStringEquivWithoutQuotes =
         genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
-    } yield (extName -> extValue)
+    } yield extName -> extValue
 
     for {
       timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))

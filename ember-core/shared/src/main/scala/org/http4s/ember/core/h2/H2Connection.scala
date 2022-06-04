@@ -475,7 +475,7 @@ private[h2] class H2Connection[F[_]](
                 st <- state.get
                 newSize = st.readWindow - d.data.size.toInt
 
-                needsWindowUpdate = (newSize <= (localSettings.initialWindowSize.windowSize / 2))
+                needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
                 _ <- state.update(s =>
                   s.copy(readWindow =
                     if (needsWindowUpdate) localSettings.initialWindowSize.windowSize

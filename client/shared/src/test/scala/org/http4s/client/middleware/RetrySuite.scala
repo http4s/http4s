@@ -178,11 +178,9 @@ class RetrySuite extends Http4sSuite {
       .flatMap { semaphore =>
         val client = Retry[IO](
           RetryPolicy(
-            (
-                att =>
-                  if (att < 100) Some(Duration.Zero)
-                  else None
-            ),
+            att =>
+              if (att < 100) Some(Duration.Zero)
+              else None,
             RetryPolicy.defaultRetriable[IO],
           )
         )(

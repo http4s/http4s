@@ -35,11 +35,11 @@ class ProxyAuthenticateHeaderSuite
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication") {
-    assertEquals(parseOnly(str), (`Proxy-Authenticate`(c)))
+    assertEquals(parseOnly(str), `Proxy-Authenticate`(c))
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication with params") {
-    assertEquals(parseOnly(wparams.renderString), (`Proxy-Authenticate`(wparams)))
+    assertEquals(parseOnly(wparams.renderString), `Proxy-Authenticate`(wparams))
   }
 
   test("Proxy-Authenticate Header parser shouldParse multiple concatenated authentications") {

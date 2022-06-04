@@ -77,7 +77,7 @@ object MultipartParser {
           case (None, PartStart(headers)) =>
             F.pure((Some(Part(headers, Stream.empty)), None))
           // Shouldn't happen if the `parseToEventsStream` contract holds.
-          case (None, (_: PartChunk | PartEnd)) =>
+          case (None, _: PartChunk | PartEnd) =>
             F.raiseError(bug("Missing PartStart"))
           case (Some(acc0), PartChunk(chunk)) =>
             F.pure((Some(acc0.copy(body = acc0.body ++ Stream.chunk(chunk))), None))
@@ -690,7 +690,7 @@ object MultipartParser {
         val newAcc = Acc(None, Stream.empty, 0)
         F.pure((Some((headers, newAcc)), None))
       // Shouldn't happen if the `parseToEventsStream` contract holds.
-      case (None, (_: PartChunk | PartEnd)) =>
+      case (None, _: PartChunk | PartEnd) =>
         F.raiseError(bug("Missing PartStart"))
       case (Some((headers, oldAcc)), PartChunk(chunk)) =>
         stepPartChunk(oldAcc, chunk).map { newAcc =>

@@ -124,7 +124,7 @@ class StatusSpec extends StatusDeprecatedSpec {
   def isSanitized(s: Status): Boolean =
     s.renderString
       .getBytes(StandardCharsets.ISO_8859_1)
-      .forall(b => (b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) >= 0x80)))
+      .forall(b => b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) >= 0x80))
 
   test("rendering sanitizes statuses") {
     forAll((s: Status) => isSanitized(s))
