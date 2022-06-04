@@ -286,7 +286,7 @@
 //       size = 17
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@7d16df8b
+//    = org.typelevel.vault.Vault@2adcd22f
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -310,7 +310,7 @@
 //       size = 16
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@4e79b85c
+//    = org.typelevel.vault.Vault@20f91481
 // )</span></code></pre>
         
         <h2 id="encoding-case-classes-as-json" class="section">Encoding case classes as JSON<a class="anchor-link right" href="#encoding-case-classes-as-json"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -329,7 +329,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@5c95917c
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@5e7da20b
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -353,7 +353,7 @@
 //       size = 17
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@651e4fcc
+//    = org.typelevel.vault.Vault@4dd2e94a
 // )
 </span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
 </span><span class="comment">// res6: Request[IO] = (
@@ -374,7 +374,7 @@
 //       size = 14
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@2e3f2e63
+//    = org.typelevel.vault.Vault@1d31775
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -404,7 +404,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@2d07d8a0
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@696646d2
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
@@ -466,7 +466,7 @@
         <p>We start a server resource in the background.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
 </span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$21499/413032161@5d69b20d,
+//   body = cats.effect.IO$$Lambda$21448/1859202529@5ab8dc0f,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
