@@ -544,10 +544,10 @@ object MultipartParser {
             Pull.output1(event) >> go(rest, partsCounter + 1)
           } else if (failOnLimit) {
             Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
-          } else Pull.pure(())
+          } else Pull.done
         case Some((event, rest)) =>
           Pull.output1(event) >> go(rest, partsCounter)
-        case None => Pull.pure(())
+        case None => Pull.done
       }
 
     go(_, 0).stream
