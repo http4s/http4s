@@ -12,23 +12,11 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
-ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
-ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
-
-ThisBuild / githubWorkflowBuild ++= Seq(
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "scalafixAll --check"),
-    name = Some("Check Scalafix rules"),
-    cond = Some(s"matrix.scala != '$scala_3'"),
-  )
-)
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(

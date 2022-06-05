@@ -134,9 +134,9 @@ jobs:
         if: matrix.java == 'temurin@8'
         run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' doc
 
-      - name: Check Scalafix rules
-        if: matrix.scala != '3.1.2'
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' '${{ matrix.ci }}' 'scalafixAll --check'
+      - name: Check scalafix lints
+        if: matrix.java == 'temurin@8' && !startsWith(matrix.scala, '3.')
+        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'scalafixAll --check'
 
       - name: Check unused compile dependencies
         if: matrix.java == 'temurin@8'
