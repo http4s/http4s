@@ -16,7 +16,7 @@ pull_request_rules:
 
 - name: label http4s-steward's PRs
   conditions:
-  - author=http4s-steward
+  - author=http4s-steward[bot]
   actions:
     label:
       add: [dependencies]
