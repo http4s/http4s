@@ -12,6 +12,8 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
+ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
+
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
