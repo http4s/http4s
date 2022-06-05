@@ -44,6 +44,8 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 ```
 
+Note: Under some setup options (we saw this in Scala 3.1.2 but not in 3.1.0), running `import io.circe._` might give you an error of `-- [E008] Not Found Error: value circe is not a member of io`. This means that `io` is set from some other package, and you can run `import _root_.io.circe._`.
+
 Then the actual code:
 
 ```scala mdoc
