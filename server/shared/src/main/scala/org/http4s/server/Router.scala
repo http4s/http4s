@@ -76,12 +76,14 @@ object Router {
     mappings.sortBy(_._1.length).foldLeft(default) { case (acc, (prefix, routes)) =>
       val prefixPath = Uri.Path.unsafeFromString(prefix)
 
-      Kleisli { req =>
-        if (req.pathInfo.startsWith(prefixPath))
-          routes(translate(prefixPath)(req)).orElse(acc(req))
-        else
-          acc(req)
-      }
+      if (prefixPath.isEmpty) routes <+> acc
+      else
+        Kleisli { req =>
+          if (req.pathInfo.startsWith(prefixPath))
+            routes(translate(prefixPath)(req)).orElse(acc(req))
+          else
+            acc(req)
+        }
     }
 
   def of[F[_]: Monad](mappings: Routable[F]*): HttpRoutes[F] =
