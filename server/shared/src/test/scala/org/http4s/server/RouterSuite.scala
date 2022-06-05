@@ -80,6 +80,14 @@ class RouterSuite extends Http4sSuite {
     "/routable" -> routable,
   )
 
+  private val emptyAttributeTestRoutes = {
+    import org.http4s.dsl.io._
+    HttpRoutes.of[IO] { case r @ GET -> Root / "foo" =>
+      assert(r.attributes.isEmpty, "Requests attributes should be empty")
+      Ok()
+    }
+  }
+
   test("routable") {
     service
       .orNotFound(Request[IO](GET, uri"/routable/1"))
@@ -173,5 +181,13 @@ class RouterSuite extends Http4sSuite {
       .orNotFound(Request[IO](uri = uri"/foo"))
       .map(_.status == Status.Ok)
       .assert
+  }
+
+  test("A router shouldn't add any attributes to requests in the empty path case") {
+    val router = Router("" -> emptyAttributeTestRoutes)
+    router
+      .orNotFound(Request[IO](uri = uri"/foo"))
+      .map(_.status)
+      .assertEquals(Status.Ok)
   }
 }
