@@ -34,7 +34,6 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     id = "coverage",
     name = "Generate coverage report",
-    cond = Some("github.event_name != 'pull_request'"),
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
     steps = List(WorkflowStep.Checkout) ++
@@ -47,7 +46,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
             "codecov",
             "codecov-action",
             "v2",
-          )
+          ),
+          cond = Some("github.event_name != 'pull_request'"),
         ),
       ),
   ),
