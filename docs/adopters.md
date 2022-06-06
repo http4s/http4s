@@ -48,6 +48,9 @@
 [Wegtam GmbH](https://www.wegtam.com)
 : Uses http4s to implement service and microservice architectures as well as web applications for customers.
 
+[Wide Angle Analytics](https://wideangle.co)
+: Wide Angle Analytics uses http4s for a fast and scalable event capture platform. Http4s combined with Scala's type safety results in lean, safe, and efficient service.
+
 [Wolt](https://wolt.com/)
 : Uses http4s for some API services.
 
