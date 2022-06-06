@@ -69,10 +69,10 @@ private[ember] object ChunkedEncoding {
           expect match {
             case Left(header) =>
               val nh = header ++ bv
-              val endOfHeader = nh.indexOfSlice(`\r\n`)
+              val endOfHeader = nh.indexOfSlice(crlf)
               if (endOfHeader == 0)
                 // strip any leading crlf on header, as this starts with /r/n
-                go(expect, nh.drop(`\r\n`.size))
+                go(expect, nh.drop(crlf.size))
               else if (endOfHeader < 0 && nh.size > maxChunkHeaderSize)
                 Pull.raiseError[F](
                   EmberException.ChunkedEncodingError(
@@ -81,8 +81,8 @@ private[ember] object ChunkedEncoding {
                 )
               else if (endOfHeader < 0) go(Left(nh), ByteVector.empty)
               else {
-                val (hdr, rem) = nh.splitAt(endOfHeader + `\r\n`.size)
-                readChunkedHeader(hdr.dropRight(`\r\n`.size)) match {
+                val (hdr, rem) = nh.splitAt(endOfHeader + crlf.size)
+                readChunkedHeader(hdr.dropRight(crlf.size)) match {
                   case None =>
                     Pull.raiseError[F](
                       EmberException.ChunkedEncodingError(
@@ -120,8 +120,8 @@ private[ember] object ChunkedEncoding {
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
-    if (buffer.startsWith(Shared.`\r\n`.toArray)) {
-      Trailers(Headers.empty, buffer.drop(`\r\n`.size.toInt)).pure[F]
+    if (buffer.startsWith(Shared.crlf.toArray)) {
+      Trailers(Headers.empty, buffer.drop(crlf.size.toInt)).pure[F]
     } else if (buffer.length < 2) {
       read.flatMap {
         case None =>
@@ -138,7 +138,7 @@ private[ember] object ChunkedEncoding {
     }
 
   private val lastChunk: Chunk[Byte] =
-    Chunk.byteVector((ByteVector('0') ++ `\r\n` ++ `\r\n`).compact)
+    Chunk.byteVector((ByteVector('0') ++ crlf ++ crlf).compact)
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
@@ -147,7 +147,7 @@ private[ember] object ChunkedEncoding {
       if (bv.isEmpty) Chunk.empty
       else
         Chunk.byteVector(
-          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ `\r\n` ++ bv ++ `\r\n`
+          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
         )
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)
