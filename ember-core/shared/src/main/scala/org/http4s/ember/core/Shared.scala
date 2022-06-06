@@ -21,6 +21,6 @@ import scodec.bits.ByteVector
 private[core] object Shared {
   val `\n` : ByteVector = ByteVector('\n')
   val `\r` : ByteVector = ByteVector('\r')
-  val crlf : ByteVector = ByteVector('\r', '\n')
+  val crlf: ByteVector = ByteVector('\r', '\n')
   val `\r\n\r\n` : ByteVector = (crlf ++ crlf).compact
 }
