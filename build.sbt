@@ -30,7 +30,27 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     ),
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-  )
+  ),
+  WorkflowJob(
+    id = "coverage",
+    name = "Generate coverage report",
+    cond = Some("github.event_name != 'pull_request'"),
+    scalas = List(scala_213),
+    javas = List(JavaSpec.temurin("8")),
+    steps = List(WorkflowStep.Checkout) ++
+      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
+      githubWorkflowGeneratedCacheSteps.value ++
+      List(
+        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
+        WorkflowStep.Use(
+          UseRef.Public(
+            "codecov",
+            "codecov-action",
+            "v2",
+          )
+        ),
+      ),
+  ),
 )
 
 ThisBuild / jsEnv := {
@@ -633,6 +653,7 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
+    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
@@ -684,6 +705,7 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate): _*
       ),
+    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -716,6 +738,7 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
+    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -726,6 +749,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     scalacOptions -= "-Xfatal-warnings",
+    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -739,6 +763,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
+    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
