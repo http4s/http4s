@@ -408,7 +408,6 @@ jobs:
 
   coverage:
     name: Generate coverage report
-    if: github.event_name != 'pull_request'
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -449,7 +448,8 @@ jobs:
 
       - run: sbt '++${{ matrix.scala }}' coverage rootJVM/test coverageAggregate
 
-      - uses: codecov/codecov-action@v2
+      - if: github.event_name != 'pull_request'
+        uses: codecov/codecov-action@v2
 
   site:
     name: Generate Site
