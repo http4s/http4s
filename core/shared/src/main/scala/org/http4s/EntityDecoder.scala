@@ -209,8 +209,8 @@ object EntityDecoder {
       case Entity.Default(body, _) =>
         body.chunks.compile.to(Chunk).map(_.flatten)
 
-      case Entity.Strict(c) =>
-        Applicative[F].pure(c)
+      case Entity.Strict(b) =>
+        Applicative[F].pure(Chunk.byteVector(b))
 
       case Entity.Empty =>
         Applicative[F].pure(Chunk.empty[Byte])
@@ -225,8 +225,8 @@ object EntityDecoder {
       case Entity.Default(body, _) =>
         body.compile.to(ByteVector)
 
-      case Entity.Strict(c) =>
-        Applicative[F].pure(c.to(ByteVector))
+      case Entity.Strict(b) =>
+        Applicative[F].pure(b)
 
       case Entity.Empty =>
         Applicative[F].pure(ByteVector.empty)

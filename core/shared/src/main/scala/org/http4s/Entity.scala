@@ -22,6 +22,7 @@ import cats.~>
 import fs2.Chunk
 import fs2.Pure
 import fs2.Stream
+import scodec.bits.ByteVector
 
 sealed trait Entity[+F[_]] {
   def body: EntityBody[F]
@@ -36,12 +37,12 @@ object Entity {
 
   // The type parameter aids type inference in Message constructors.
   def empty[F[_]]: Entity[F] = Empty
-  def strict(chunk: Chunk[Byte]): Entity[Pure] = Strict(chunk)
+  def strict(bytes: ByteVector): Entity[Pure] = Strict(bytes)
 
   final case class Default[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
     def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1] = that match {
       case d: Default[F1] => Default(body ++ d.body, (length, d.length).mapN(_ + _))
-      case Strict(chunk) => Default(body ++ Stream.chunk(chunk), length.map(_ + chunk.size))
+      case strict @ Strict(bytes) => Default(body ++ strict.body, length.map(_ + bytes.size))
       case Empty => this
     }
 
@@ -56,21 +57,21 @@ object Entity {
     }
   }
 
-  final case class Strict(chunk: Chunk[Byte]) extends Entity[Pure] {
-    val body: EntityBody[Pure] = Stream.chunk(chunk)
+  final case class Strict(bytes: ByteVector) extends Entity[Pure] {
+    def body: EntityBody[Pure] = Stream.chunk(Chunk.byteVector(bytes))
 
-    val length: Option[Long] = Some(chunk.size.toLong)
+    val length: Option[Long] = Some(bytes.size)
 
     def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that match {
-      case d: Default[F1] => Default(body ++ d.body, d.length.map(chunk.size + _))
-      case Strict(chunk2) => Strict(chunk ++ chunk2)
+      case d: Default[F1] => Default(body ++ d.body, d.length.map(bytes.size + _))
+      case Strict(bytes2) => Strict(bytes ++ bytes2)
       case Empty => this
     }
 
     def translate[F1[x] >: Pure[x], G[_]](fk: F1 ~> G): Entity[G] = this
 
     override def toString: String =
-      s"Entity.Strict(${chunk.size} bytes total)"
+      s"Entity.Strict(${bytes.size} bytes total)"
   }
 
   case object Empty extends Entity[Pure] {

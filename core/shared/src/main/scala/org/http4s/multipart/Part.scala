@@ -25,10 +25,10 @@ import fs2.io.file.Path
 import fs2.io.readInputStream
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 import java.io.InputStream
 import java.net.URL
-import java.nio.charset.StandardCharsets.UTF_8
 
 final case class Part[+F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
@@ -44,7 +44,7 @@ object Part {
   def formData(name: String, value: String, headers: Header.ToRaw*): Part[fs2.Pure] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Entity.Strict(Chunk.array(value.getBytes(UTF_8))),
+      Entity.Strict(ByteVector.encodeUtf8(value).toOption.get),
     )
 
   def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
