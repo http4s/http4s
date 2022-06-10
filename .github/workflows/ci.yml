@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.2, 2.12.15, 2.13.8]
+        scala: [3.1.2, 2.12.16, 2.13.8]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM]
         exclude:
@@ -37,9 +37,9 @@ jobs:
             java: temurin@11
           - scala: 3.1.2
             java: temurin@17
-          - scala: 2.12.15
+          - scala: 2.12.16
             java: temurin@11
-          - scala: 2.12.15
+          - scala: 2.12.16
             java: temurin@17
           - project: rootJS
             java: temurin@11
