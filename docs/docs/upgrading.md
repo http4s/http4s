@@ -14,7 +14,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.28")
 
 Run
 ```sh
-$ sbt ";scalafixEnable; scalafix github:http4s/http4s/v0_22"
+$ sbt ";scalafixEnable; scalafix github:http4s/http4s/v0_22?sha=series/0.22"
 ```
 
 The compiler errors should help you in showing what's left to upgrade.
