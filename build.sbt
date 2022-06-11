@@ -38,7 +38,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
           cond = Some("github.event_name != 'pull_request'"),
         ),
       ),
-  ),
+  )
 )
 
 ThisBuild / jsEnv := {
