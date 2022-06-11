@@ -39,7 +39,7 @@ private[http4s] trait ClientRequest extends js.Object with Writable {
   protected[nodejs] def once[E](
       eventName: String,
       listener: js.Function1[E, Unit],
-      dummy: Unit = (),
+      dummy: Unit,
   ): ClientRequest =
     js.native
 
@@ -80,7 +80,7 @@ private[http4s] object ClientRequest {
 
       val error = F.async[Unit] { cb =>
         val fn: js.Function1[js.Error, Unit] = e => cb(Left(js.JavaScriptException(e)))
-        F.delay(clientRequest.once[js.Error]("error", fn))
+        F.delay(clientRequest.once[js.Error]("error", fn, ()))
           .as(Some(F.delay {
             clientRequest.removeListener("error", fn)
             ()
