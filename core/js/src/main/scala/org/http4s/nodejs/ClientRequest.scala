@@ -36,7 +36,11 @@ private[http4s] trait ClientRequest extends js.Object with Writable {
 
   protected[nodejs] def getHeader(name: String): js.UndefOr[js.Array[String]] = js.native
 
-  protected[nodejs] def once[E](eventName: String, listener: js.Function1[E, Unit]): ClientRequest =
+  protected[nodejs] def once[E](
+      eventName: String,
+      listener: js.Function1[E, Unit],
+      dummy: Unit,
+  ): ClientRequest =
     js.native
 
   protected[nodejs] def removeListener(
@@ -76,7 +80,7 @@ private[http4s] object ClientRequest {
 
       val error = F.async[Unit] { cb =>
         val fn: js.Function1[js.Error, Unit] = e => cb(Left(js.JavaScriptException(e)))
-        F.delay(clientRequest.once[js.Error]("error", fn))
+        F.delay(clientRequest.once[js.Error]("error", fn, ()))
           .as(Some(F.delay {
             clientRequest.removeListener("error", fn)
             ()
