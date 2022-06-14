@@ -20,18 +20,6 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
-    "scalafix",
-    "Scalafix",
-    githubWorkflowJobSetup.value.toList ::: List(
-      WorkflowStep.Run(
-        List("cd scalafix", "sbt ci"),
-        name = Some("Scalafix tests"),
-      )
-    ),
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-  ),
-  WorkflowJob(
     id = "coverage",
     name = "Generate coverage report",
     scalas = List(scala_213),
@@ -50,7 +38,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
           cond = Some("github.event_name != 'pull_request'"),
         ),
       ),
-  ),
+  )
 )
 
 ThisBuild / jsEnv := {
