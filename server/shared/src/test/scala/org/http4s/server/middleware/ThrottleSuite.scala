@@ -16,8 +16,9 @@
 
 package org.http4s.server.middleware
 
-import cats.effect.IO
-import cats.effect.testkit.TestContext
+import cats.Id
+import cats.effect.{IO, Outcome}
+import cats.effect.testkit.TestControl
 import cats.implicits._
 import org.http4s.Http
 import org.http4s.Http4sSuite
@@ -29,106 +30,134 @@ import org.http4s.Status
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.Throttle._
 import org.http4s.syntax.all._
+import org.http4s.laws.discipline.arbitrary.genFiniteDuration
+import org.scalacheck.effect.PropF.forAllF
 
 import scala.concurrent.duration._
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
-    val someRefillTime = 1234.milliseconds
-    val capacity = 5
-    val createBucket =
-      TokenBucket.local[IO](capacity, someRefillTime)
+    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
 
-    createBucket.flatMap { testee =>
-      val takeFiveTokens: IO[List[TokenAvailability]] =
-        (1 to 5).toList.traverse(_ => testee.takeToken)
-      val checkTokensUpToCapacity =
-        takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
-      (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
-        .mapN(_ && _)
-    }.assert
+      val capacity = 5
+      val createBucket =
+        TokenBucket.local[IO](capacity, someRefillTime)
+
+      val prog = createBucket.flatMap { testee =>
+        val takeFiveTokens: IO[List[TokenAvailability]] =
+          (1 to 5).toList.traverse(_ => testee.takeToken)
+        val checkTokensUpToCapacity =
+          takeFiveTokens.map(tokens => tokens.contains(TokenAvailable))
+        (checkTokensUpToCapacity, testee.takeToken.map(_.isInstanceOf[TokenUnavailable]))
+          .mapN(_ && _)
+      }.assert
+
+      TestControl.executeEmbed(prog)
+    }
   }
 
   test("LocalTokenBucket should add another token at specified interval when not at capacity") {
-    val ctx = TestContext()
+    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
 
-    val capacity = 1
-    val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)
+      val exceeded = someRefillTime + 1.millisecond
 
-    val takeTokenAfterRefill = createBucket.flatMap { testee =>
-      testee.takeToken *> IO.sleep(101.milliseconds) *>
-        testee.takeToken
-    }
+      val capacity = 1
+      val createBucket =
+        TokenBucket.local[IO](capacity, someRefillTime)
 
-    takeTokenAfterRefill
-      .map { result =>
-        ctx.advanceAndTick(101.milliseconds)
-        result
+      val takeTokenAfterRefill = createBucket.flatMap { testee =>
+        testee.takeToken *> IO.sleep(exceeded) *>
+          testee.takeToken
       }
-      .assertEquals(TokenAvailable)
+
+      TestControl.execute(takeTokenAfterRefill) flatMap { control =>
+        for {
+          _ <- control.results.assertEquals(None)
+          _ <- control.tick
+          _ <- control.results.assertEquals(None)
+          interval <- control.nextInterval
+          _ <- control.advanceAndTick(interval)
+          _ <- control.results.assertEquals(Option(Outcome.succeeded[Id,Throwable,TokenAvailability](TokenAvailable.pure[Id])))
+        } yield ()
+      }
+    }
   }
 
   test("LocalTokenBucket should not add another token at specified interval when at capacity") {
-    val ctx = TestContext()
-    val capacity = 5
-    val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)
+    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
+      val capacity = 5
+      val createBucket =
+        TokenBucket.local[IO](capacity, someRefillTime)
 
-    val takeExtraToken = createBucket.flatMap { testee =>
-      val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse { _ =>
-        testee.takeToken
+      val takeExtraToken = createBucket.flatMap { testee =>
+        val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse { _ =>
+          testee.takeToken
+        }
+        takeFiveTokens >> IO.sleep(300.milliseconds) >> testee.takeToken
       }
-      IO.sleep(300.milliseconds) >> takeFiveTokens >> testee.takeToken
+
+      TestControl.execute(takeExtraToken) flatMap { control =>
+        for {
+          _ <- control.results.assertEquals(None)
+          _ <- control.tick
+          _ <- control.results.assertEquals(None)
+          interval <- control.nextInterval
+          _ <- control.advanceAndTick(interval)
+          _ <- control.results.map(_.exists { case Outcome.Succeeded(TokenUnavailable(Some(_))) => true }).assert
+        } yield ()
+      }
     }
-
-    takeExtraToken
-      .map { result =>
-        ctx.advanceAndTick(300.milliseconds)
-        result
-      }
-      .map(_.isInstanceOf[TokenUnavailable])
-      .assert
   }
 
-  test(
-    "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests"
-  ) {
-    val capacity = 1
-    val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)
+ test(
+     "LocalTokenBucket should only return a single token when only one token available and there are multiple concurrent requests"
+   ) {
+     val capacity = 1
+     val createBucket =
+       TokenBucket.local[IO](capacity, 1.milliseconds)
 
-    val takeTokensSimultaneously = createBucket.flatMap { testee =>
-      (1 to 5).toList.parTraverse(_ => testee.takeToken)
-    }
+     val takeTokensSimultaneously = createBucket.flatMap { testee =>
+       (1 to 5).toList.parTraverse(_ => testee.takeToken)
+     }
 
-    takeTokensSimultaneously
-      .map { result =>
-        result.count(_ == TokenAvailable)
+     val prog = takeTokensSimultaneously
+       .map { result =>
+         result.count(_ == TokenAvailable)
+       }
+
+       TestControl.executeEmbed(prog).assertEquals(1)
+   }
+
+  val localGen = for {
+    fd1 <- genFiniteDuration
+    fd2 <- genFiniteDuration.suchThat(_ < fd1)
+  } yield fd1 -> fd2
+
+    test(
+      "LocalTokenBucket should return the time until the next token is available when no token is available"
+    ) {
+      forAllF(localGen) { case (fd1, fd2) =>
+        val capacity = 1
+        val createBucket =
+          TokenBucket.local[IO](capacity, fd1)
+
+        val takeTwoTokens = createBucket.flatMap { testee =>
+          testee.takeToken *> IO.sleep(fd2) *> testee.takeToken
+        }
+
+
+        TestControl.execute(takeTwoTokens) flatMap { control =>
+          for {
+            _ <- control.results.assertEquals(None)
+            _ <- control.tick
+            _ <- control.advanceAndTick(fd2)
+            _ <- control.results.map(_.collect {
+              case Outcome.Succeeded(TokenUnavailable(Some(interval))) => interval
+            }).map(_.exists(_ == (fd1 - fd2))).assert
+          } yield ()
+        }
       }
-      .assertEquals(1)
-  }
-
-  test(
-    "LocalTokenBucket should return the time until the next token is available when no token is available".flaky
-  ) {
-    val ctx = TestContext()
-    val capacity = 1
-    val createBucket =
-      TokenBucket.local[IO](capacity, 100.milliseconds)
-
-    val takeTwoTokens = createBucket.flatMap { testee =>
-      testee.takeToken *> IO.sleep(75.milliseconds) *> testee.takeToken
     }
-
-    takeTwoTokens.map { result =>
-      ctx.advanceAndTick(75.milliseconds)
-      result match {
-        case TokenUnavailable(t) => t.exists(_ <= 25.milliseconds)
-        case _ => false
-      }
-    }.assert
-  }
 
   private val alwaysOkApp = HttpApp[IO] { _ =>
     Ok()
@@ -156,7 +185,7 @@ class ThrottleSuite extends Http4sSuite {
       val testee = middleware(limitNotReachedBucket, defaultResponse[IO] _)
       val req = Request[IO](uri = uri"/")
 
-      testee(req).map(_.status).assertEquals(Status.Ok)
+      TestControl.executeEmbed(testee(req).map(_.status)).assertEquals(Status.Ok)
     }
   }
 
@@ -169,7 +198,7 @@ class ThrottleSuite extends Http4sSuite {
       val testee = middleware(limitReachedBucket, defaultResponse[IO] _)
       val req = Request[IO](uri = uri"/")
 
-      testee(req).map(_.status).assertEquals(Status.TooManyRequests)
+      TestControl.executeEmbed(testee(req).map(_.status)).assertEquals(Status.TooManyRequests)
     }
   }
 
@@ -184,6 +213,6 @@ class ThrottleSuite extends Http4sSuite {
       Throttle.httpRoutes(limitReachedBucket, defaultResponse[IO] _)(alwaysOkRootRoute).orNotFound
     val req = Request[IO](uri = uri"/nonexistent")
 
-    testee(req).map(_.status).assertEquals(Status.TooManyRequests)
+    TestControl.executeEmbed(testee(req).map(_.status)).assertEquals(Status.TooManyRequests)
   }
 }
