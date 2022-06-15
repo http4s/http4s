@@ -72,7 +72,7 @@ class TimeoutSuite extends Http4sSuite {
     } yield ()
 
   test("have no effect if the response is timely") {
-    forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       val prog = testMiddleware(timeOut) { app =>
         checkStatus(app(fastReq), Status.Ok)
       }
@@ -82,7 +82,7 @@ class TimeoutSuite extends Http4sSuite {
   }
 
   test("fail with a timeout error if the response takes longer than the timeout duration") {
-    forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       val prog = testMiddleware(timeOut) { app =>
         checkStatus(app(neverReq), Status.ServiceUnavailable)
       }
@@ -94,7 +94,7 @@ class TimeoutSuite extends Http4sSuite {
   test(
     "return a 503 error if the result takes too long and execute the underlying uncancelable effect anyway"
   ) {
-    forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       val fixed = timeOut.min(1099.milliseconds)
       val prog = testMiddleware(fixed) { app =>
         checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
@@ -106,7 +106,7 @@ class TimeoutSuite extends Http4sSuite {
   }
 
   test("return the provided response if the result takes too long") {
-    forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
 
       val prog = testMiddlewareWithResponse(timeOut, customTimeout) { app =>
@@ -118,7 +118,7 @@ class TimeoutSuite extends Http4sSuite {
   }
 
   test("cancel the loser") {
-    forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       val canceled = new AtomicBoolean(false)
       val routes = HttpRoutes.of[IO] { case _ =>
         IO.never.guarantee(IO(canceled.set(true)))

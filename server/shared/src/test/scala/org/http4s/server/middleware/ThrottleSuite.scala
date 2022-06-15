@@ -38,7 +38,7 @@ import scala.concurrent.duration._
 
 class ThrottleSuite extends Http4sSuite {
   test("LocalTokenBucket should contain initial number of tokens equal to specified capacity") {
-    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
+    forAllF(genFiniteDuration) { (someRefillTime: FiniteDuration) =>
       val capacity = 5
       val createBucket =
         TokenBucket.local[IO](capacity, someRefillTime)
@@ -57,7 +57,7 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test("LocalTokenBucket should add another token at specified interval when not at capacity") {
-    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
+    forAllF(genFiniteDuration) { (someRefillTime: FiniteDuration) =>
       val exceeded = someRefillTime + 1.millisecond
 
       val capacity = 1
@@ -85,7 +85,7 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   test("LocalTokenBucket should not add another token at specified interval when at capacity") {
-    forAllF(genFiniteDuration) { someRefillTime: FiniteDuration =>
+    forAllF(genFiniteDuration) { (someRefillTime: FiniteDuration) =>
       val capacity = 5
       val createBucket =
         TokenBucket.local[IO](capacity, someRefillTime)
