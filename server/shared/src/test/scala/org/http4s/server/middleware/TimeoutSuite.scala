@@ -22,12 +22,12 @@ import cats.data.OptionT
 import cats.effect._
 import cats.effect.testkit.TestControl
 import org.http4s.dsl.io._
-import org.http4s.syntax.all._
 import org.http4s.laws.discipline.arbitrary.genFiniteDuration
+import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF.forAllF
 
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration._
-import org.scalacheck.effect.PropF.forAllF
 
 class TimeoutSuite extends Http4sSuite {
   // To distinguish from the inherited cats-effect-testing Timeout
@@ -73,7 +73,6 @@ class TimeoutSuite extends Http4sSuite {
 
   test("have no effect if the response is timely") {
     forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
-
       val prog = testMiddleware(timeOut) { app =>
         checkStatus(app(fastReq), Status.Ok)
       }
@@ -84,7 +83,6 @@ class TimeoutSuite extends Http4sSuite {
 
   test("fail with a timeout error if the response takes longer than the timeout duration") {
     forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
-
       val prog = testMiddleware(timeOut) { app =>
         checkStatus(app(neverReq), Status.ServiceUnavailable)
       }
@@ -97,7 +95,6 @@ class TimeoutSuite extends Http4sSuite {
     "return a 503 error if the result takes too long and execute the underlying uncancelable effect anyway"
   ) {
     forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
-
       val fixed = timeOut.min(1099.milliseconds)
       val prog = testMiddleware(fixed) { app =>
         checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
@@ -110,7 +107,6 @@ class TimeoutSuite extends Http4sSuite {
 
   test("return the provided response if the result takes too long") {
     forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
-
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
 
       val prog = testMiddlewareWithResponse(timeOut, customTimeout) { app =>
@@ -123,7 +119,6 @@ class TimeoutSuite extends Http4sSuite {
 
   test("cancel the loser") {
     forAllF(genFiniteDuration) { timeOut: FiniteDuration =>
-
       val canceled = new AtomicBoolean(false)
       val routes = HttpRoutes.of[IO] { case _ =>
         IO.never.guarantee(IO(canceled.set(true)))
