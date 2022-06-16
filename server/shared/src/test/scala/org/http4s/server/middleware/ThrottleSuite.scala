@@ -16,7 +16,6 @@
 
 package org.http4s.server.middleware
 
-import cats.Id
 import cats.effect.IO
 import cats.effect.Outcome
 import cats.effect.testkit.TestControl
@@ -66,7 +65,7 @@ class ThrottleSuite extends Http4sSuite {
 
       val takeTokenAfterRefill = createBucket.flatMap { testee =>
         testee.takeToken *> IO.sleep(exceeded) *>
-          (IO.realTime, testee.takeToken).mapN((_, _))
+          (IO.realTime, testee.takeToken).parMapN((_, _))
       }
 
       TestControl.executeEmbed(takeTokenAfterRefill).assertEquals((exceeded, TokenAvailable))
