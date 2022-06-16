@@ -19,6 +19,7 @@ package org.http4s.server.middleware
 import cats.Applicative
 import cats.effect.Ref
 import cats.effect._
+import cats.effect.testkit.TestControl
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -45,7 +46,7 @@ class ResponseTimingSuite extends Http4sSuite {
 
     val header = res
       .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
-    header.map(_.map(_.value.toInt) === Some(artificialDelay)).assert
+    TestControl.executeEmbed(header.map(_.map(_.value.toInt) === Some(artificialDelay))).assert
   }
 }
 
