@@ -17,7 +17,6 @@
 package org.http4s.server.middleware
 
 import cats.effect.IO
-import cats.effect.Outcome
 import cats.effect.testkit.TestControl
 import cats.implicits._
 import org.http4s.Http
@@ -87,24 +86,16 @@ class ThrottleSuite extends Http4sSuite {
         val takeFiveTokens: IO[List[TokenAvailability]] = (1 to 5).toList.traverse { _ =>
           testee.takeToken
         }
-        takeFiveTokens >> IO.sleep(300.milliseconds) >> testee.takeToken
+        takeFiveTokens >> IO.sleep(someRefillTime - 1.milliseconds) >> testee.takeToken
       }
 
-      TestControl.execute(takeExtraToken).flatMap { control =>
-        for {
-          _ <- control.results.assertEquals(None)
-          _ <- control.tick
-          _ <- control.results.assertEquals(None)
-          interval <- control.nextInterval
-          _ <- control.advanceAndTick(interval)
-          _ <- control.results
-            .map(_.exists {
-              case Outcome.Succeeded(TokenUnavailable(Some(_))) => true
-              case _ => false
-            })
-            .assert
-        } yield ()
-      }
+      TestControl
+        .executeEmbed(takeExtraToken)
+        .map {
+          case TokenUnavailable(Some(_)) => true
+          case _ => false
+        }
+        .assert
     }
   }
 
