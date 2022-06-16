@@ -57,18 +57,23 @@ class ThrottleSuite extends Http4sSuite {
 
   test("LocalTokenBucket should add another token at specified interval when not at capacity") {
     forAllF(genFiniteDuration) { (someRefillTime: FiniteDuration) =>
-      val exceeded = someRefillTime + 1.millisecond
-
       val capacity = 1
       val createBucket =
         TokenBucket.local[IO](capacity, someRefillTime)
 
       val takeTokenAfterRefill = createBucket.flatMap { testee =>
-        testee.takeToken *> IO.sleep(exceeded) *>
-          (IO.realTime, testee.takeToken).parMapN((_, _))
+        for {
+          _ <- testee.takeToken
+          unavailable <- testee.takeToken
+          _ <- IO.sleep(someRefillTime)
+          available <- testee.takeToken
+        } yield unavailable -> available
       }
 
-      TestControl.executeEmbed(takeTokenAfterRefill).assertEquals((exceeded, TokenAvailable))
+      TestControl
+        .executeEmbed(takeTokenAfterRefill)
+        .map { case (a, b) => a.isInstanceOf[TokenUnavailable] && b == TokenAvailable }
+        .assert
     }
   }
 
