@@ -66,21 +66,10 @@ class ThrottleSuite extends Http4sSuite {
 
       val takeTokenAfterRefill = createBucket.flatMap { testee =>
         testee.takeToken *> IO.sleep(exceeded) *>
-          testee.takeToken
+          (IO.realTime, testee.takeToken).mapN((_, _))
       }
 
-      TestControl.execute(takeTokenAfterRefill).flatMap { control =>
-        for {
-          _ <- control.results.assertEquals(None)
-          _ <- control.tick
-          _ <- control.results.assertEquals(None)
-          interval <- control.nextInterval
-          _ <- control.advanceAndTick(interval)
-          _ <- control.results.assertEquals(
-            Option(Outcome.succeeded[Id, Throwable, TokenAvailability](TokenAvailable.pure[Id]))
-          )
-        } yield ()
-      }
+      TestControl.executeEmbed(takeTokenAfterRefill).assertEquals((exceeded, TokenAvailable))
     }
   }
 
