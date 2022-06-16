@@ -144,19 +144,7 @@ class ThrottleSuite extends Http4sSuite {
         testee.takeToken *> IO.sleep(fd2) *> testee.takeToken
       }
 
-      TestControl.execute(takeTwoTokens).flatMap { control =>
-        for {
-          _ <- control.results.assertEquals(None)
-          _ <- control.tick
-          _ <- control.advanceAndTick(fd2)
-          _ <- control.results
-            .map(_.collect { case Outcome.Succeeded(TokenUnavailable(Some(interval))) =>
-              interval
-            })
-            .map(_.exists(_ == (fd1 - fd2)))
-            .assert
-        } yield ()
-      }
+      TestControl.executeEmbed(takeTwoTokens).assertEquals(TokenUnavailable(Some(fd1 - fd2)))
     }
   }
 
