@@ -252,7 +252,7 @@
     </span><span class="type-name">Ok</span><span>()
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$20756/669644483@33df2a22
+//   run = org.http4s.HttpRoutes$$$Lambda$20686/1300019781@e83ba99
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -262,7 +262,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@c6c3fe6
+//    = org.typelevel.vault.Vault@7be124dd
 // )
 </span><span>
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -271,13 +271,13 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@f2fd14c
+//    = org.typelevel.vault.Vault@54a7a59e
 // )</span></code></pre>
         <p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">corsService</span><span> = </span><span class="type-name">CORS</span><span>.</span><span class="identifier">policy</span><span>.</span><span class="identifier">withAllowOriginAll</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// corsService: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22051/801745459@18a3fc3d
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22036/864016008@1608c39a
 // )
 </span><span>
 </span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -286,7 +286,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@52675b31
+//    = org.typelevel.vault.Vault@54ce4b0
 // )</span></code></pre>
         <p>So far, there was no change. That&#39;s because an <code>Origin</code> header is required
         in the requests and it must include a scheme. This, of course, is the responsibility of the caller.</p>
@@ -297,7 +297,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://somewhere.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@c6c3fe6
+//    = org.typelevel.vault.Vault@7be124dd
 // )
 </span><span>
 </span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">corsRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -306,7 +306,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@3f19dd94
+//    = org.typelevel.vault.Vault@7779ef08
 // )</span></code></pre>
         <p>Notice how the response has the CORS headers added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -326,7 +326,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://google.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@4e4dce8a
+//    = org.typelevel.vault.Vault@1e1b2f2c
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">yahooPut</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">PUT</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://yahoo.com&quot;</span><span>))
@@ -336,7 +336,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://yahoo.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@4988816a
+//    = org.typelevel.vault.Vault@4e5f2b66
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">duckPost</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://duckduckgo.com&quot;</span><span>))
@@ -346,7 +346,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://duckduckgo.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@21dee5b9
+//    = org.typelevel.vault.Vault@2c542f79
 // )</span></code></pre>
         <p>Now, we&#39;ll create a configuration that limits the allowed methods to <code>GET</code>
         and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it out on our requests.</p>
@@ -358,7 +358,7 @@
   .</span><span class="identifier">withMaxAge</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">day</span><span>)
   .</span><span class="identifier">apply</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// corsMethodSvc: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22051/801745459@50da796b
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22036/864016008@146d8454
 // )
 </span><span>
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">googleGet</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -367,7 +367,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@7043d464
+//    = org.typelevel.vault.Vault@53c8abba
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res4: Response[IO[A]] = (
@@ -375,7 +375,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@7dcd98d7
+//    = org.typelevel.vault.Vault@647baebe
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[IO[A]] = (
@@ -383,7 +383,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@2b6859fa
+//    = org.typelevel.vault.Vault@69d96aaf
 // )</span></code></pre>
         <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
         Next, we&#39;ll create a configuration that limits the origins to &quot;yahoo.com&quot; and
@@ -400,7 +400,7 @@
   .</span><span class="identifier">withMaxAge</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">day</span><span>)
   .</span><span class="identifier">apply</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// corsOriginSvc: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22051/801745459@28fa7cdd
+//   run = org.http4s.server.middleware.CORSPolicy$$Lambda$22036/864016008@11ee1ce4
 // )
 </span><span>
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">googleGet</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -409,7 +409,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@46f46d52
+//    = org.typelevel.vault.Vault@7ede018
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[IO[A]] = (
@@ -417,7 +417,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@576e5e7b
+//    = org.typelevel.vault.Vault@3e5ab005
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res8: Response[IO[A]] = (
@@ -425,7 +425,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@3e207ae5
+//    = org.typelevel.vault.Vault@1cf43973
 // )</span></code></pre>
         <p>Again, the results are as expected. You can, of course, create a configuration that
         combines limits on HTTP method, origin, and headers.</p>

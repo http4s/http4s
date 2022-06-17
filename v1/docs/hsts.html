@@ -242,7 +242,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>)
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$20756/669644483@604d0e41
+//   run = org.http4s.HttpRoutes$$$Lambda$20686/1300019781@7f907a47
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -252,7 +252,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@15ae6821
+//    = org.typelevel.vault.Vault@1b385cd6
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -264,7 +264,7 @@
 //    = Strict(
 //     chunk = ArraySlice(values = Array(111, 107), offset = 0, length = 2)
 //   ),
-//    = org.typelevel.vault.Vault@ee0a33b
+//    = org.typelevel.vault.Vault@754425c5
 // )
 </span><span class="identifier">responseOk</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res0: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2)</span></code></pre>
@@ -272,7 +272,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">hstsService</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// hstsService: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$22435/959716945@6e72c525
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$22420/1397944269@6ab1432c
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -284,7 +284,7 @@
 //    = Strict(
 //     chunk = ArraySlice(values = Array(111, 107), offset = 0, length = 2)
 //   ),
-//    = org.typelevel.vault.Vault@6645e1ac
+//    = org.typelevel.vault.Vault@160f5e7f
 // )
 </span><span class="identifier">responseHSTS</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res1: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains)</span></code></pre>
@@ -308,7 +308,7 @@
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">hstsServiceCustom</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>, </span><span class="identifier">hstsHeader</span><span>)
 </span><span class="comment">// hstsServiceCustom: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$22435/959716945@4c7225
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$22420/1397944269@4f086e84
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -320,7 +320,7 @@
 //    = Strict(
 //     chunk = ArraySlice(values = Array(111, 107), offset = 0, length = 2)
 //   ),
-//    = org.typelevel.vault.Vault@bbef06c
+//    = org.typelevel.vault.Vault@1bb610ad
 // )
 </span><span class="identifier">responseCustom</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload)</span></code></pre>
