@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.foldable._
+import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 import org.scalacheck.Prop.forAll
