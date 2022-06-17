@@ -36,6 +36,10 @@ object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
+  val extraSafeChars = List(
+    '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~',
+  )
+
   private[http4s] val parser = {
     sealed trait ValueChar
     case class AsciiChar(c: Char) extends ValueChar
@@ -43,7 +47,7 @@ object `Content-Disposition` {
 
     val attrChar = Rfc3986.alpha
       .orElse(Rfc3986.digit)
-      .orElse(Parser.charIn('!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'))
+      .orElse(Parser.charIn(extraSafeChars))
       .map { (a: Char) =>
         AsciiChar(a)
       }
@@ -57,17 +61,15 @@ object `Content-Disposition` {
       CharPredicate.All -- '"'
     ) <* Rfc5234.dquote) | (charset ~ (Parser.string("'") *> language.? <* Parser.string(
       "'"
-    )) ~ valueChars).map { case ((charset, _), values) =>
-      values
-        .map {
+    )) ~ valueChars)
+      .map { case ((charset, _), values) =>
+        val xs = values.map {
           case EncodedChar(a: Char, b: Char) =>
-            val charByte = (Character.digit(a, 16) << 4) + Character.digit(b, 16)
-            new String(Array(charByte.toByte), charset)
-          case AsciiChar(a) => a.toString
-        }
-        .toList
-        .mkString
-    }
+            ((Character.digit(a, 16) << 4) + Character.digit(b, 16)).toByte
+          case AsciiChar(a) => a.toByte
+        }.toList
+        new String(xs.toArray, charset)
+      }
 
     val value = Rfc7230.token | Rfc7230.quotedString
 
@@ -106,7 +108,10 @@ object `Content-Disposition` {
                 writer << "; " << k << '=' << '"'
                 writer.eligibleOnly(v, keep = safeChars, placeholder = '?') << '"'
               case (k @ ci"${_}*", v) =>
-                writer << "; " << k << '=' << "UTF-8''" << Uri.encode(v)
+                writer << "; " << k << '=' << "UTF-8''" << Uri.encode(
+                  toEncode = v,
+                  toSkip = CharPredicate.AlphaNum ++ extraSafeChars,
+                )
               case (k, v) => writer << "; " << k << "=\"" << v << '"'
             }
             writer

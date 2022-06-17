@@ -19,6 +19,9 @@ package parser
 
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.syntax.header._
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.Prop
 import org.typelevel.ci._
 
 class ContentDispositionHeaderSuite extends Http4sSuite {
@@ -41,4 +44,29 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
     )
   }
 
+  property("ContentDisposition filename encoding roundtrip") {
+    // To be sure both kind of string will be checked
+    Prop.forAll(
+      Gen.stringOf(Gen.oneOf(arbitrary[Char], Gen.asciiChar).suchThat(_ != '\u0000'))
+    ) { filename =>
+      val header = `Content-Disposition`(
+        "form-data",
+        Map(ci"filename" -> filename),
+      )
+
+      def check(actual0: `Content-Disposition`): Prop = {
+        val actual = actual0.parameters
+          .get(ci"filename*")
+          .orElse(actual0.parameters.get(ci"filename"))
+          .getOrElse("")
+
+        assertEquals(actual, filename)
+      }
+
+      parse(header.value).fold[Prop](
+        e => Prop(false) :| e.toString,
+        check,
+      )
+    }
+  }
 }
