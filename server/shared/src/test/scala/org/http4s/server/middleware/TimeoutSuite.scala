@@ -95,9 +95,8 @@ class TimeoutSuite extends Http4sSuite {
     "return a 503 error if the result takes too long and execute the underlying uncancelable effect anyway"
   ) {
     forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
-      val fixed = timeOut.min(
-        1099.milliseconds
-      ) // 1100 millis is the hard coded response time of uncancelableReq
+      // 1100 millis is the hard coded response time of uncancelableReq
+      val fixed = timeOut.min(1099.milliseconds) 
       val prog = testMiddleware(fixed) { app =>
         checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
       }
