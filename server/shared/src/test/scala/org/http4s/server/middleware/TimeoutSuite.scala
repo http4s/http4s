@@ -96,7 +96,7 @@ class TimeoutSuite extends Http4sSuite {
   ) {
     forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
       // 1100 millis is the hard coded response time of uncancelableReq
-      val fixed = timeOut.min(1099.milliseconds) 
+      val fixed = timeOut.min(1099.milliseconds)
       val prog = testMiddleware(fixed) { app =>
         checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
       }

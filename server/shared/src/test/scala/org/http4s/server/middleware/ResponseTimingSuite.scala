@@ -21,26 +21,29 @@ import cats.effect.testkit.TestControl
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.laws.discipline.arbitrary.genFiniteDuration
 import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF.forAllF
 import org.typelevel.ci._
 
 import scala.concurrent.duration._
 
 class ResponseTimingSuite extends Http4sSuite {
-  private val artificialDelay = 10
-
-  private val thisService = HttpApp[IO] { case GET -> Root / "request" =>
-    IO.sleep(artificialDelay.milliseconds) *>
-      Ok("request response")
-  }
-
   test("add a custom header with timing info") {
-    val req = Request[IO](uri = uri"/request")
-    val app = ResponseTiming(thisService)
-    val res = app(req)
+    forAllF(genFiniteDuration) { (artificialDelay: FiniteDuration) =>
+      val thisService = HttpApp[IO] { case GET -> Root / "request" =>
+        IO.sleep(artificialDelay) *>
+          Ok("request response")
+      }
+      val req = Request[IO](uri = uri"/request")
+      val app = ResponseTiming(thisService)
+      val res = app(req)
 
-    val header = res
-      .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
-    TestControl.executeEmbed(header.map(_.map(_.value.toInt) === Some(artificialDelay))).assert
+      val header = res
+        .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
+      TestControl
+        .executeEmbed(header.map(_.map(_.value.toInt.milliseconds) === Some(artificialDelay)))
+        .assert
+    }
   }
 }
