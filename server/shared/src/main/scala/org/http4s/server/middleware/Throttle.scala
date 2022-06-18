@@ -80,7 +80,7 @@ object Throttle {
       override def takeToken: F[TokenAvailability] =
         for {
           values <- counter.access
-          previousTokens -> previousTime -> setter = values
+          ((previousTokens, previousTime), setter) = values
           currentTime <- getTime
           token <- {
             val timeDifference = currentTime - previousTime
