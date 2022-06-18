@@ -119,8 +119,10 @@ class ThrottleSuite extends Http4sSuite {
   }
 
   val localGen = for {
+    // guarantee a refill time > 0
     fd1 <- genFiniteDuration
-    fd2 <- genFiniteDuration.suchThat(_ < fd1)
+    // guarantee some wait time < refill time
+    fd2 <- genFiniteDuration.map(i => if (i < fd1) i else fd1 - 1.millisecond)
   } yield fd1 -> fd2
 
   test(
