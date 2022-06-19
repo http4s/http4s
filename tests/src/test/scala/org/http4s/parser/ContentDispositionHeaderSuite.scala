@@ -25,8 +25,7 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
   def parse(value: String): ParseResult[`Content-Disposition`] =
     `Content-Disposition`.parse(value)
 
-  test("ContentDisposition Header should render the correct values") {
-
+  test("Content-Disposition header should render the correct values") {
     val wrongEncoding = `Content-Disposition`("form-data", Map(ci"filename" -> "http4s łł"))
     val correctOrder =
       `Content-Disposition`("form-data", Map(ci"filename*" -> "value1", ci"filename" -> "value2"))
@@ -41,4 +40,11 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
     )
   }
 
+  test("Content-Disposition header should pick 'filename*' parameter and ignore 'filename'") {
+    val headerValue = """form-data; filename="filename"; filename*=UTF-8''http4s%20filename"""
+    val parsedHeader = `Content-Disposition`.parse(headerValue)
+    val header = `Content-Disposition`("form-data", Map(CIString("filename") -> "http4s filename"))
+
+    assertEquals(parsedHeader, Right(header))
+  }
 }
