@@ -22,9 +22,6 @@ import org.http4s.syntax.header._
 import org.typelevel.ci._
 
 class ContentDispositionHeaderSuite extends Http4sSuite {
-  def parse(value: String): ParseResult[`Content-Disposition`] =
-    `Content-Disposition`.parse(value)
-
   test("Content-Disposition header should render the correct values") {
     val wrongEncoding = `Content-Disposition`("form-data", Map(ci"filename" -> "http4s łł"))
     val correctOrder =
