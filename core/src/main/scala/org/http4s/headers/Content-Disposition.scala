@@ -76,9 +76,16 @@ object `Content-Disposition` {
       v <- if (tok.endsWith("*")) extValue else value
     } yield (CIString(tok), v)
 
-    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
-      case (token: String, params: List[(CIString, String)]) =>
-        `Content-Disposition`(token, params.toMap)
+    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map { case (token, p) =>
+      val params = p.toMap
+
+      // https://datatracker.ietf.org/doc/html/rfc6266#section-4.3
+      val preparedParams =
+        params
+          .get(CIString("filename*"))
+          .fold(params)(ext => params - CIString("filename*") + (CIString("filename") -> ext))
+
+      `Content-Disposition`(token, preparedParams)
     }
   }
 
