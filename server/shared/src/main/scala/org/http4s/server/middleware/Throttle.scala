@@ -56,9 +56,6 @@ object Throttle {
       def takeToken: G[TokenAvailability] = fk(t.takeToken)
     }
 
-    private def getTime[F[_]: Temporal] =
-      Temporal[F].monotonic.map(_.toNanos)
-
     /** Creates an in-memory [[TokenBucket]].
       *
       * @param capacity    the number of tokens the bucket can hold and starts with.
@@ -67,39 +64,42 @@ object Throttle {
       */
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
         F: Temporal[F]
-    ): F[TokenBucket[F]] = for {
-      // toNanos throws if called on an infinite duration
-      nanoValue <- F.catchNonFatal(refillEvery.toNanos)
-      // make sure that refillEvery is positive
-      _ <- F.raiseUnless(nanoValue > 0L)(
-        new IllegalArgumentException("refillEvery should be > 0 nano")
-      )
-      creationTime <- getTime
-      counter <- F.ref((capacity.toDouble, creationTime))
-    } yield new TokenBucket[F] {
-      override def takeToken: F[TokenAvailability] =
-        for {
-          values <- counter.access
-          ((previousTokens, previousTime), setter) = values
-          currentTime <- getTime
-          token <- {
-            val timeDifference = currentTime - previousTime
-            val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
-            val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
+    ): F[TokenBucket[F]] = {
+      val getNanoTime = Temporal[F].monotonic.map(_.toNanos)
+      for {
+        nanoValue <- refillEvery.toNanos.pure[F]
+        // make sure that refillEvery is positive
+        _ <- F.raiseUnless(nanoValue > 0L)(
+          new IllegalArgumentException("refillEvery should be > 0 nano")
+        )
+        creationTime <- getNanoTime
+        counter <- F.ref((capacity.toDouble, creationTime))
 
-            // If setter fails (yields the value false), then retry with recursive call
-            if (newTokenTotal >= 1)
-              setter((newTokenTotal - 1, currentTime))
-                .ifM(F.pure(TokenAvailable: TokenAvailability), takeToken)
-            else {
-              lazy val unavailable: TokenAvailability = {
-                val timeToNextToken = refillEvery.toNanos - timeDifference
-                TokenUnavailable(timeToNextToken.nanos.some)
+      } yield new TokenBucket[F] {
+        override def takeToken: F[TokenAvailability] =
+          for {
+            values <- counter.access
+            ((previousTokens, previousTime), setter) = values
+            currentTime <- getNanoTime
+            token <- {
+              val timeDifference = currentTime - previousTime
+              val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
+              val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
+
+              // If setter fails (yields the value false), then retry with recursive call
+              if (newTokenTotal >= 1)
+                setter((newTokenTotal - 1, currentTime))
+                  .ifM(F.pure(TokenAvailable: TokenAvailability), takeToken)
+              else {
+                def unavailable: TokenAvailability = {
+                  val timeToNextToken = refillEvery.toNanos - timeDifference
+                  TokenUnavailable(timeToNextToken.nanos.some)
+                }
+                setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
               }
-              setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
             }
-          }
-        } yield token
+          } yield token
+      }
     }
   }
 

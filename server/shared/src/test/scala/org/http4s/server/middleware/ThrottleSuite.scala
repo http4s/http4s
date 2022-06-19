@@ -120,24 +120,26 @@ class ThrottleSuite extends Http4sSuite {
 
   val localGen = for {
     // guarantee a refill time > 0
-    fd1 <- genFiniteDuration
+    refillTime <- genFiniteDuration
     // guarantee some wait time < refill time
-    fd2 <- genFiniteDuration.map(i => if (i < fd1) i else fd1 - 1.millisecond)
-  } yield fd1 -> fd2
+    waitTime <- genFiniteDuration.map(i => if (i < refillTime) i else refillTime - 1.millisecond)
+  } yield refillTime -> waitTime
 
   test(
     "LocalTokenBucket should return the time until the next token is available when no token is available"
   ) {
-    forAllF(localGen) { case (fd1, fd2) =>
+    forAllF(localGen) { case (refillTime, waitTime) =>
       val capacity = 1
       val createBucket =
-        TokenBucket.local[IO](capacity, fd1)
+        TokenBucket.local[IO](capacity, refillTime)
 
       val takeTwoTokens = createBucket.flatMap { testee =>
-        testee.takeToken *> IO.sleep(fd2) *> testee.takeToken
+        testee.takeToken *> IO.sleep(waitTime) *> testee.takeToken
       }
 
-      TestControl.executeEmbed(takeTwoTokens).assertEquals(TokenUnavailable(Some(fd1 - fd2)))
+      TestControl
+        .executeEmbed(takeTwoTokens)
+        .assertEquals(TokenUnavailable(Some(refillTime - waitTime)))
     }
   }
 
