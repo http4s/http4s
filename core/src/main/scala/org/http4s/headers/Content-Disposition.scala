@@ -36,7 +36,7 @@ object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
-  val extraSafeChars = List(
+  private val extraSafeChars = List(
     '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~',
   )
 
