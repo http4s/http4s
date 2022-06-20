@@ -83,7 +83,7 @@ object Throttle {
             currentTime <- getNanoTime
             token <- {
               val timeDifference = currentTime - previousTime
-              val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
+              val tokensToAdd = timeDifference.toDouble / nanoValue.toDouble
               val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
 
               // If setter fails (yields the value false), then retry with recursive call
@@ -92,7 +92,7 @@ object Throttle {
                   .ifM(F.pure(TokenAvailable: TokenAvailability), takeToken)
               else {
                 def unavailable: TokenAvailability = {
-                  val timeToNextToken = refillEvery.toNanos - timeDifference
+                  val timeToNextToken = nanoValue - timeDifference
                   TokenUnavailable(timeToNextToken.nanos.some)
                 }
                 setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
