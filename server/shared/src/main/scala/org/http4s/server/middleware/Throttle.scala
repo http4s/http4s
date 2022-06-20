@@ -66,8 +66,8 @@ object Throttle {
         F: Temporal[F]
     ): F[TokenBucket[F]] = {
       val getNanoTime = Temporal[F].monotonic.map(_.toNanos)
+      val refillEveryNanos = refillEvery.toNanos
       for {
-        nanoValue <- refillEvery.toNanos.pure[F]
         // make sure that refillEvery is positive
         _ <- F.raiseUnless(nanoValue > 0L)(
           new IllegalArgumentException("refillEvery should be > 0 nano")
