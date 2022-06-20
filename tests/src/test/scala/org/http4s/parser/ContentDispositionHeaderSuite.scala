@@ -44,6 +44,29 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
     )
   }
 
+  test("ContentDisposition Header should parse the correct values") {
+    val utf8Encoded =
+      """form-data; filename="http4s ??"; filename*=UTF-8''http4s%20%C5%82%C5%82"""
+    val pureEncoded = """form-data; filename="some value""""
+
+    assertEquals(
+      parse(utf8Encoded),
+      Right(
+        `Content-Disposition`(
+          "form-data",
+          Map(ci"filename" -> "http4s ??", ci"filename*" -> "http4s łł"),
+        )
+      ),
+    )
+
+    assertEquals(
+      parse(pureEncoded),
+      Right(
+        `Content-Disposition`("form-data", Map(ci"filename" -> "some value"))
+      ),
+    )
+  }
+
   property("ContentDisposition filename encoding roundtrip") {
     // To be sure both kind of string will be checked
     Prop.forAll(

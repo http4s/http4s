@@ -36,7 +36,9 @@ object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
-  private val extraSafeChars = List(
+  // Extra safe chars mentioned in rfc8187
+  // https://datatracker.ietf.org/doc/html/rfc8187#section-3.2.1
+  private val attrExtraSafeChars = List(
     '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~',
   )
 
@@ -47,7 +49,7 @@ object `Content-Disposition` {
 
     val attrChar = Rfc3986.alpha
       .orElse(Rfc3986.digit)
-      .orElse(Parser.charIn(extraSafeChars))
+      .orElse(Parser.charIn(attrExtraSafeChars))
       .map { (a: Char) =>
         AsciiChar(a)
       }
@@ -89,6 +91,9 @@ object `Content-Disposition` {
       ci"Content-Disposition",
       v =>
         new Renderable {
+          // https://datatracker.ietf.org/doc/html/rfc8187#section-3.2.1
+          private val attrChar = CharPredicate.AlphaNum ++ attrExtraSafeChars
+
           // Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/scaladsl/model/headers/headers.scala#L468-L492
           def render(writer: Writer): writer.type = {
             val renderExtFilename =
@@ -110,7 +115,7 @@ object `Content-Disposition` {
               case (k @ ci"${_}*", v) =>
                 writer << "; " << k << '=' << "UTF-8''" << Uri.encode(
                   toEncode = v,
-                  toSkip = CharPredicate.AlphaNum ++ extraSafeChars,
+                  toSkip = attrChar,
                 )
               case (k, v) => writer << "; " << k << "=\"" << v << '"'
             }
