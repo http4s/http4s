@@ -27,14 +27,16 @@ class PathSuite extends Http4sSuite {
 
   test("equals should be consistent with equality") {
     forAll { (a: Path, b: Path) =>
-      if (a == b) (a.segments == b.segments) && (a.absolute == b.absolute) && (a.endsWithSlash == b.endsWithSlash)
-      else (a.segments != b.segments) || (a.absolute != b.absolute) || (a.endsWithSlash != b.endsWithSlash)
+      if (a == b)
+        (a.segments == b.segments) && (a.absolute == b.absolute) && (a.endsWithSlash == b.endsWithSlash)
+      else
+        (a.segments != b.segments) || (a.absolute != b.absolute) || (a.endsWithSlash != b.endsWithSlash)
     }
   }
 
   test("hashcode should be consistent with equality") {
     forAll { (a: Path, b: Path) =>
-      if (a == b) (a.## == b.##)
+      if (a == b) a.## == b.##
       else a.## != b.##
     }
   }
