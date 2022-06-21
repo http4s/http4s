@@ -9,8 +9,13 @@ name: Clean
 
 on: push
 
+permissions:
+  contents: read
+
 jobs:
   delete-artifacts:
+    permissions:
+      contents: none
     name: Delete Artifacts
     runs-on: ubuntu-latest
     env:
