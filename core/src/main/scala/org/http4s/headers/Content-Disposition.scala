@@ -127,4 +127,13 @@ object `Content-Disposition` {
 }
 
 // see https://datatracker.ietf.org/doc/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String])
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String]) {
+
+  /** Returns the `filename*` parameter if present, or else the
+    * `filename` parameter if present, or else none.
+    *
+    * @see [[https://datatracker.ietf.org/doc/html/rfc6266#section-4.3 RFC6266, Section 4.3]]
+    */
+  def filename: Option[String] =
+    parameters.get(ci"filename*").orElse(parameters.get(ci"filename"))
+}
