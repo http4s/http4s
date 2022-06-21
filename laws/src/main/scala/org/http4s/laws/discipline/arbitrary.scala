@@ -783,10 +783,10 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
     val genSegment = listOf(genPChar).map(_.mkString)
     val genPathEmpty = const("")
-    val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString)
-    val genPathRootless = genSegmentNz |+| genPathAbEmpty
-    val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
-    val genPathAbsolute = const("/") |+| opt(genPathRootless)
+    val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString) |+| opt("/")
+    val genPathRootless = genSegmentNz |+| genPathAbEmpty |+| opt("/")
+    val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty |+| opt("/")
+    val genPathAbsolute = const("/") |+| opt(genPathRootless) |+| opt("/")
 
     oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
       Uri.Path.unsafeFromString

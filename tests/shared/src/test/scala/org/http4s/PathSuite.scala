@@ -19,8 +19,21 @@ package org.http4s
 import cats.kernel.laws.discipline._
 import org.http4s.Uri.Path
 import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Prop._
 
 class PathSuite extends Http4sSuite {
   checkAll("Order[Path]", OrderTests[Path].order)
   checkAll("Semigroup[Path]", SemigroupTests[Path].semigroup)
+
+  test("equals should be consistent with equals") {
+    forAll { (a: Path, b: Path) =>
+      (a == b) == (a.segments == b.segments) == (a.absolute == b.absolute) == (a.endsWithSlash == b.endsWithSlash)
+    }
+  }
+
+  test("hashcode should be consistent with equality") {
+    forAll { (a: Path, b: Path) =>
+      (a == b) ==> (a.## == b.##)
+    }
+  }
 }
