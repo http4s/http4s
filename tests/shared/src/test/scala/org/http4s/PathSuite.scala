@@ -40,4 +40,20 @@ class PathSuite extends Http4sSuite {
       else a.## != b.##
     }
   }
+
+  test("merge should be producing a new Path according to rfc3986 5.2.3") {
+    forAll { (a: Path, b: Path) =>
+      if (a.endsWithSlash)
+        assertEquals(a.merge(b), Path(a.segments ++ b.segments, a.absolute, b.endsWithSlash))
+      else
+        assertEquals(
+          a.merge(b),
+          Path(
+            (if (a.segments.nonEmpty) a.segments.init else Vector.empty) ++ b.segments,
+            a.absolute,
+            b.endsWithSlash,
+          ),
+        )
+    }
+  }
 }
