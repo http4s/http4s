@@ -6,13 +6,12 @@ ordered chronologically, so each release contains all changes described below it
 
 # v0.22.14 (2022-06-21)
 
-This release is binary compatible with 0.22.x series. 
-Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community. 
-All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
+This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
 
 ## What's Changed
 ### http4s-core
 * Fix Content-Disposition filename encoding by @leoniv in https://github.com/http4s/http4s/pull/6473
+* Add filename property to Content-Disposition by @rossabaker in https://github.com/http4s/http4s/pull/6485
 ### Documentation
 * Point upgrade docs at scalafix published in series/0.22 by @armanbilge in https://github.com/http4s/http4s/pull/6464
 ### Behind the scenes
