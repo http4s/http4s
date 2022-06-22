@@ -92,4 +92,32 @@ class ContentDispositionHeaderSuite extends Http4sSuite {
       )
     }
   }
+
+  test("Content-Disposition header should pick 'filename*' parameter and ignore 'filename'") {
+    val headerValue = """attachment; filename="http4s"; filename*=UTF-8''http4s%20%F0%9F%98%8A"""
+    val parsedHeader = `Content-Disposition`.parse(headerValue)
+    val header = `Content-Disposition`(
+      "attachment",
+      Map(ci"filename" -> "http4s", ci"filename*" -> "http4s 😊"),
+    )
+    assertEquals(parsedHeader, Right(header))
+  }
+
+  test("filename property should prefer `filename*` over `filename` parameter") {
+    val headerValue = """attachment; filename="http4s"; filename*=UTF-8''http4s%20%F0%9F%98%8A"""
+    val parsedHeader = `Content-Disposition`.parse(headerValue)
+    assertEquals(parsedHeader.map(_.filename), Right(Some("http4s 😊")))
+  }
+
+  test("filename property should fall back to `filename` in absence of `filename*` parameter") {
+    val headerValue = """attachment; filename="http4s""""
+    val parsedHeader = `Content-Disposition`.parse(headerValue)
+    assertEquals(parsedHeader.map(_.filename), Right(Some("http4s")))
+  }
+
+  test("filename property should be none in absence of `filename` and `filename*` parameters") {
+    val headerValue = """attachment"""
+    val parsedHeader = `Content-Disposition`.parse(headerValue)
+    assertEquals(parsedHeader.map(_.filename), Right(None))
+  }
 }
