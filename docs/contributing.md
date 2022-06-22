@@ -194,10 +194,15 @@ Apache License 2.0.
   testing.
 * For assertions in tests using `assertEquals(a, b)` is preferable to `assert(a == b)`. 
   It brings nice diffs on assertions failures. For more details, see the [MUnit docs].
+* For time sensitive tests, where the passing of time is a factor in the logic that the
+  test is checking on, and that operates in the `IO` context,  consider using the mock 
+  runtime provided by `cats.effect.testkit.TestControl`. For more details check out the
+  docs on [TestControl from cats.effect.testkit]
 
 [MUnit]: https://scalameta.org/munit/
 [ScalaCheck]: https://www.scalacheck.org/
 [MUnit docs]: https://scalameta.org/munit/docs/assertions.html#assertequals
+[TestControl from cats.effect.testkit]: https://typelevel.org/cats-effect/docs/core/test-runtime
 
 ## Documentation
 

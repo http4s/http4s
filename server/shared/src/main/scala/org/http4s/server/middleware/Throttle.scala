@@ -35,7 +35,9 @@ import scala.concurrent.duration._
   */
 object Throttle {
   sealed abstract class TokenAvailability extends Product with Serializable
+
   case object TokenAvailable extends TokenAvailability
+
   final case class TokenUnavailable(retryAfter: Option[FiniteDuration]) extends TokenAvailability
 
   /** A token bucket for use with the [[Throttle]] middleware.  Consumers can take tokens which will be refilled over time.
@@ -45,6 +47,7 @@ object Throttle {
     */
   trait TokenBucket[F[_]] {
     def takeToken: F[TokenAvailability]
+
     def mapK[G[_]](fk: F ~> G): TokenBucket[G] = new TokenBucket.Translated[F, G](this, fk)
   }
 
@@ -55,37 +58,47 @@ object Throttle {
 
     /** Creates an in-memory [[TokenBucket]].
       *
-      * @param capacity the number of tokens the bucket can hold and starts with.
+      * @param capacity    the number of tokens the bucket can hold and starts with.
       * @param refillEvery the frequency with which to add another token if there is capacity spare.
       * @return A task to create the [[TokenBucket]].
       */
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
         F: Temporal[F]
     ): F[TokenBucket[F]] = {
-      def getTime = F.monotonic.map(_.toNanos)
-      val bucket = getTime.flatMap(time => F.ref((capacity.toDouble, time)))
+      val getNanoTime = Temporal[F].monotonic.map(_.toNanos)
+      val refillEveryNanos = refillEvery.toNanos
+      for {
+        // make sure that refillEvery is positive
+        _ <- F.raiseUnless(refillEveryNanos > 0L)(
+          new IllegalArgumentException("refillEvery should be > 0 nano")
+        )
+        creationTime <- getNanoTime
+        counter <- F.ref((capacity.toDouble, creationTime))
 
-      bucket.map { counter =>
-        new TokenBucket[F] {
-          override def takeToken: F[TokenAvailability] =
-            counter.access.flatMap { case ((previousTokens, previousTime), setter) =>
-              getTime.flatMap { currentTime =>
-                val timeDifference = currentTime - previousTime
-                val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
-                val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
-                def unavailable = {
-                  val timeToNextToken = refillEvery.toNanos - timeDifference
+      } yield new TokenBucket[F] {
+        override def takeToken: F[TokenAvailability] =
+          for {
+            values <- counter.access
+            ((previousTokens, previousTime), setter) = values
+            currentTime <- getNanoTime
+            token <- {
+              val timeDifference = currentTime - previousTime
+              val tokensToAdd = timeDifference.toDouble / refillEveryNanos.toDouble
+              val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
+
+              // If setter fails (yields the value false), then retry with recursive call
+              if (newTokenTotal >= 1)
+                setter((newTokenTotal - 1, currentTime))
+                  .ifM(F.pure(TokenAvailable: TokenAvailability), takeToken)
+              else {
+                def unavailable: TokenAvailability = {
+                  val timeToNextToken = refillEveryNanos - timeDifference
                   TokenUnavailable(timeToNextToken.nanos.some)
                 }
-
-                // If setter fails (yields the value false), then retry with recursive call
-                if (newTokenTotal >= 1)
-                  setter((newTokenTotal - 1, currentTime)).ifM(F.pure(TokenAvailable), takeToken)
-                else
-                  setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
+                setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
               }
             }
-        }
+          } yield token
       }
     }
   }
@@ -98,8 +111,8 @@ object Throttle {
   /** Limits the supplied service to a given rate of calls using an in-memory [[TokenBucket]]
     *
     * @param amount the number of calls to the service to permit within the given time period.
-    * @param per the time period over which a given number of calls is permitted.
-    * @param http the service to transform.
+    * @param per    the time period over which a given number of calls is permitted.
+    * @param http   the service to transform.
     * @return a task containing the transformed service.
     */
   def apply[F[_], G[_]](amount: Int, per: FiniteDuration)(
@@ -128,9 +141,9 @@ object Throttle {
 
   /** Limits the supplied service using a provided [[TokenBucket]]
     *
-    * @param bucket a [[TokenBucket]] to use to track the rate of incoming requests.
+    * @param bucket           a [[TokenBucket]] to use to track the rate of incoming requests.
     * @param throttleResponse a function that defines the response when throttled, may be supplied a suggested retry time depending on bucket implementation.
-    * @param http the service to transform.
+    * @param http             the service to transform.
     * @return a task containing the transformed service.
     */
   def apply[F[_], G[_]](

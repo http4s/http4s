@@ -20,11 +20,13 @@ package middleware
 
 import cats.data.OptionT
 import cats.effect._
+import cats.effect.testkit.TestControl
 import org.http4s.dsl.io._
+import org.http4s.laws.discipline.arbitrary.genFiniteDuration
 import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF.forAllF
 
 import java.util.concurrent.atomic.AtomicBoolean
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class TimeoutSuite extends Http4sSuite {
@@ -47,7 +49,7 @@ class TimeoutSuite extends Http4sSuite {
   private val uncancelableReq = Request[IO](GET, uri"/uncancelable")
 
   def checkStatus(resp: IO[Response[IO]], status: Status): IO[Unit] =
-    resp.map(_.status).timeout(1.seconds).assertEquals(status)
+    resp.map(_.status).assertEquals(status)
 
   def testMiddleware(timeout: FiniteDuration, routes: HttpRoutes[IO] = defaultRoutes)(
       test: Http[IO, IO] => IO[Unit]
@@ -70,47 +72,66 @@ class TimeoutSuite extends Http4sSuite {
     } yield ()
 
   test("have no effect if the response is timely") {
-    testMiddleware(365.days) { app =>
-      checkStatus(app(fastReq), Status.Ok)
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
+      val prog = testMiddleware(timeOut) { app =>
+        checkStatus(app(fastReq), Status.Ok)
+      }
+
+      TestControl.executeEmbed(prog)
     }
   }
 
-  test("return a 503 error if the result takes too long") {
-    testMiddleware(5.milliseconds) { app =>
-      checkStatus(app(neverReq), Status.ServiceUnavailable)
+  test("fail with a timeout error if the response takes longer than the timeout duration") {
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
+      val prog = testMiddleware(timeOut) { app =>
+        checkStatus(app(neverReq), Status.ServiceUnavailable)
+      }
+
+      TestControl.executeEmbed(prog)
     }
   }
 
   test(
-    "return a 503 error if the result takes too long and execute underlying uncancelable effect"
+    "return a 503 error if the result takes too long and execute the underlying uncancelable effect anyway"
   ) {
-    testMiddleware(5.milliseconds) { app =>
-      for {
-        _ <- app(uncancelableReq).map(_.status).assertEquals(Status.ServiceUnavailable)
-        _ <- checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
-          .intercept[TimeoutException]
-      } yield ()
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
+      // 1100 millis is the hard coded response time of uncancelableReq
+      val fixed = timeOut.min(1099.milliseconds)
+      val prog = testMiddleware(fixed) { app =>
+        checkStatus(app(uncancelableReq), Status.ServiceUnavailable)
+      }
+
+      TestControl.executeEmbed(prog)
+
     }
   }
 
   test("return the provided response if the result takes too long") {
-    val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
+      val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
 
-    testMiddlewareWithResponse(1.nanosecond, customTimeout) { app =>
-      checkStatus(app(neverReq), customTimeout.status)
+      val prog = testMiddlewareWithResponse(timeOut, customTimeout) { app =>
+        checkStatus(app(neverReq), customTimeout.status)
+      }
+
+      TestControl.executeEmbed(prog)
     }
   }
 
   test("cancel the loser") {
-    val canceled = new AtomicBoolean(false)
-    val routes = HttpRoutes.of[IO] { case _ =>
-      IO.never.guarantee(IO(canceled.set(true)))
-    }
+    forAllF(genFiniteDuration) { (timeOut: FiniteDuration) =>
+      val canceled = new AtomicBoolean(false)
+      val routes = HttpRoutes.of[IO] { case _ =>
+        IO.never.guarantee(IO(canceled.set(true)))
+      }
 
-    testMiddleware(1.millisecond, routes) { app =>
-      checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
-        // Give the losing response enough time to finish
-        IO.sleep(100.milliseconds) *> IO(canceled.get).map(_ => ())
+      val prog = testMiddleware(timeOut, routes) { app =>
+        checkStatus(app(Request[IO]()), Status.ServiceUnavailable) *>
+          // Give the losing response enough time to finish
+          IO.sleep(100.milliseconds) *> IO(canceled.get).map(_ => ())
+      }
+
+      TestControl.executeEmbed(prog)
     }
   }
 }
