@@ -180,6 +180,10 @@ object MediaRange {
       def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
       Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
     }
+
+  implicit val http4sOrderingForMediaRange: Ordering[MediaRange] =
+    http4sOrderForMediaRange.toOrdering
+
   implicit val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
     new HttpCodec[MediaRange] {
       override def parse(s: String): ParseResult[MediaRange] =

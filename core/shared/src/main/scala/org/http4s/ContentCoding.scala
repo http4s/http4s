@@ -15,7 +15,7 @@
  */
 
 /*
- * Copyright 2013-2020 http4s.org
+ * Copyright 2013-2022 http4s.org
  *
  * SPDX-License-Identifier: Apache-2.0
  *
