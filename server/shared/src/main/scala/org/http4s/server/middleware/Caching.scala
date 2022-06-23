@@ -16,7 +16,9 @@
 
 package org.http4s.server.middleware
 
-import cats.{Functor, Monad, MonadThrow}
+import cats.Functor
+import cats.Monad
+import cats.MonadThrow
 import cats.data._
 import cats.effect._
 import cats.syntax.all._
