@@ -127,7 +127,7 @@ object WebSocketHelpers {
             .through(receiveSend)
             .foreach(writeFrame) -> onClose
         case WebSocketSeparatePipe(send, receive, onClose) =>
-          val closeFrame: F[List[WebSocketFrame]] = close.get.flatMap {
+          val sendClosingFrame: F[Unit] = close.get.flatMap {
             case Open =>
               for {
                 frame <- F.fromEither(WebSocketFrame.Close(1000))
@@ -135,11 +135,12 @@ object WebSocketHelpers {
                   case Open => EndpointClosed
                   case _ => BothClosed
                 }
-              } yield List(frame)
-            case _ => F.pure(Nil)
+                _ <- writeFrame(frame)
+              } yield ()
+            case _ => F.unit
           }
 
-          val writer = (send ++ Stream.evalSeq(closeFrame)).foreach(writeFrame)
+          val writer: Stream[F, Nothing] = send.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
 
           val reader = incoming
             .through(decodeFrames[F])
