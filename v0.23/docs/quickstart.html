@@ -266,7 +266,8 @@ $ find src/main -name &#39;*.scala&#39;
         <pre><code>[io-compute-1] INFO  o.h.e.s.EmberServerBuilderCompanionPlatform - Ember-Server service bound to address: [::]:8080</code></pre>
         <p>This indicates that ember is running our service on port 8080. Let&#39;s try out the
         hello world service with curl:</p>
-        <pre class="keep-together pdf epub"><code class="sh">HTTP/1.1 200 OK
+        <pre class="keep-together pdf epub"><code class="sh">$ curl -i http://localhost:8080/hello/world
+HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Sun, 28 Jun 2020 16:23:31 GMT
 Content-Length: 26
