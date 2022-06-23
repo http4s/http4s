@@ -4,6 +4,25 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.22.14 (2022-06-21)
+
+This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
+
+## What's Changed
+### http4s-core
+* Fix Content-Disposition filename encoding by @leoniv in https://github.com/http4s/http4s/pull/6473
+* Add filename property to Content-Disposition by @rossabaker in https://github.com/http4s/http4s/pull/6485
+### Documentation
+* Point upgrade docs at scalafix published in series/0.22 by @armanbilge in https://github.com/http4s/http4s/pull/6464
+### Behind the scenes
+* Delete hard-coded Scaladoc url by @armanbilge in https://github.com/http4s/http4s/pull/6402
+* Update to sbt-http4s-org 0.13.4 by @armanbilge in https://github.com/http4s/http4s/pull/6428
+
+## New Contributors
+* @leoniv made their first contribution in https://github.com/http4s/http4s/pull/6473
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.13...v0.22.14
+
 # v0.22.13 (2022-05-20)
 
 This release is binary compatible with 0.22.x series. 
