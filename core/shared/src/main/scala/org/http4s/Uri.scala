@@ -657,13 +657,24 @@ object Uri extends UriPlatform {
       * the underlying IP protocol version of the given address, either IPv4
       * or IPv6.
       */
-    def fromIpAddress(value: ip4s.IpAddress): Host =
+    @inline def fromIpAddress(value: ip4s.IpAddress): Host =
       value match {
         case value: ip4s.Ipv4Address =>
           Ipv4Address(value)
         case value: ip4s.Ipv6Address =>
           Ipv6Address(value)
       }
+
+    /** Create a [[Host]] value from a [[com.comcast.ip4s.Host]].
+      */
+    def fromIp4sHost(value: ip4s.Host): Host = value match {
+      case address: ip4s.IpAddress =>
+        fromIpAddress(address)
+      case hostname: ip4s.Hostname =>
+        RegName.fromHostname(hostname)
+      case idn: ip4s.IDN =>
+        RegName.fromHostname(idn.hostname)
+    }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
       new Hash[Host] with Order[Host] with Show[Host] {
