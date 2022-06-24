@@ -53,7 +53,7 @@ object Caching {
   def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
     new PartiallyAppliedNoStoreCache[G] {
       def apply[F[_]](resp: Response[F])(implicit G1: Functor[G], G2: Clock[G]): G[Response[F]] =
-        HttpDate.current[G].map(now => resp.putHeaders(HDate(now), noStoreStaticHeaders))
+        HttpDate.current[G].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
     }
 
   // These never change, so don't recreate them each time.
