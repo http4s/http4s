@@ -4,6 +4,78 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.13 (2022-06-25)
+
+This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.
+
+## What's Changed
+### http4s-core
+* Add `EntityDecoder[EventStream]` by @armanbilge in https://github.com/http4s/http4s/pull/6413
+* Update to Vault 3.2.1 by @armanbilge in https://github.com/http4s/http4s/pull/6431
+* Update scala-java-time to 2.4.0 by @typelevel-steward in https://github.com/http4s/http4s/pull/6434
+* Update scodec-bits to 1.1.33 by @typelevel-steward in https://github.com/http4s/http4s/pull/6436
+* Update scodec-bits to 1.1.34 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6455
+* Update fs2-core, fs2-io to 3.2.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6461
+* Update cats-core, cats-laws to 2.8.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6471
+* Add Ordering for MediaRange by @FrancescoSerra in https://github.com/http4s/http4s/pull/6486
+* Add `Host#fromIp4sHost` method by @danicheg in https://github.com/http4s/http4s/pull/6489
+* Make Uri.Path.merge compliant by @FrancescoSerra in https://github.com/http4s/http4s/pull/6481
+### http4s-server
+* Backport of `Router#define` test by @danicheg in https://github.com/http4s/http4s/pull/6451
+* Compose multiple subsequent `Message#putHeaders` calls by @danicheg in https://github.com/http4s/http4s/pull/6459
+### http4s-ember-core
+* Encoding of response with empty body by @christiankjaer in https://github.com/http4s/http4s/pull/6444
+* Update log4cats-core, log4cats-noop, ... to 2.3.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6478
+### http4s-ember-client
+* Ember-Client: no Alternative by @diesalbla in https://github.com/http4s/http4s/pull/6426
+### Documentation
+* Added note on possible circe import error in docs by @cgoldammer in https://github.com/http4s/http4s/pull/6450
+* Add Wide Angle Analytics in adopters by @jrozanski in https://github.com/http4s/http4s/pull/6454
+* Add sample curl command to quickstart.md by @ajelden in https://github.com/http4s/http4s/pull/6488
+### Behind the scenes
+* Cleanup unnecessary projects by @armanbilge in https://github.com/http4s/http4s/pull/6410
+* Update http4s-circe, http4s-ember-client to 0.23.12 in series/0.23 by @scala-steward in https://github.com/http4s/http4s/pull/6414
+* Ember-Core - H2Client - Rewrite without alternative. by @diesalbla in https://github.com/http4s/http4s/pull/6422
+* Merge 0.22 -> 0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6429
+* Enable Scaladoc Linking Warnings by @isomarcte in https://github.com/http4s/http4s/pull/4027
+* Add a Scala Steward workflow by @rossabaker in https://github.com/http4s/http4s/pull/6432
+* Delete steward.yml by @rossabaker in https://github.com/http4s/http4s/pull/6438
+* Update .mergify.yml by @armanbilge in https://github.com/http4s/http4s/pull/6439
+* Update scalafmt-core to 3.5.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6442
+* Workflow to update flake weekly by @rossabaker in https://github.com/http4s/http4s/pull/6437
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6445
+* Server Metrics Middleware by @diesalbla in https://github.com/http4s/http4s/pull/6246
+* Ember-Core H2Server: replace pull with a recursive function by @diesalbla in https://github.com/http4s/http4s/pull/6424
+* Throttle Server middleware: use recursion by @diesalbla in https://github.com/http4s/http4s/pull/6267
+* Fix steward name in mergify config by @armanbilge in https://github.com/http4s/http4s/pull/6448
+* Update sbt-http4s-org to 0.14.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6447
+* MultipartParser: use `Pull.done` instead of Pull.pure. by @diesalbla in https://github.com/http4s/http4s/pull/6449
+* Ember-Core H2Server: extract method to send initial request by @diesalbla in https://github.com/http4s/http4s/pull/6425
+* Update sbt-http4s-org to 0.14.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6452
+* Setup scoverage by @armanbilge in https://github.com/http4s/http4s/pull/6456
+* Run coverage job for PRs, but don't upload results by @armanbilge in https://github.com/http4s/http4s/pull/6457
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6458
+* Update sbt-http4s-org to 0.14.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6463
+* series/0.22 -> series/0.23 by @armanbilge in https://github.com/http4s/http4s/pull/6465
+* Remove scalafix migrations, plugin cleanup by @http4s-steward in https://github.com/http4s/http4s/pull/6460
+* Update scala-library, scala-reflect to 2.12.16 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6462
+* Update netty-buffer, netty-codec-http to 4.1.78.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6468
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6466
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6480
+* Update scala3-library, ... to 3.1.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6482
+* Test control on time based tests by @FrancescoSerra in https://github.com/http4s/http4s/pull/6469
+* Merge 0.22.14 -> 0.23 by @rossabaker in https://github.com/http4s/http4s/pull/6487
+
+## New Contributors
+* @christiankjaer made their first contribution in https://github.com/http4s/http4s/pull/6444
+* @cgoldammer made their first contribution in https://github.com/http4s/http4s/pull/6450
+* @jrozanski made their first contribution in https://github.com/http4s/http4s/pull/6454
+* @leoniv made their first contribution in https://github.com/http4s/http4s/pull/6473
+* @FrancescoSerra made their first contribution in https://github.com/http4s/http4s/pull/6469
+* @ajelden made their first contribution in https://github.com/http4s/http4s/pull/6488
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.12...v0.23.13
+
 # v0.22.14 (2022-06-23)
 
 This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).
