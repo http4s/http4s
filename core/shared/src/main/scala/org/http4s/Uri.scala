@@ -657,7 +657,7 @@ object Uri extends UriPlatform {
       * the underlying IP protocol version of the given address, either IPv4
       * or IPv6.
       */
-    @inline def fromIpAddress(value: ip4s.IpAddress): Host =
+    def fromIpAddress(value: ip4s.IpAddress): Host =
       value match {
         case value: ip4s.Ipv4Address =>
           Ipv4Address(value)
