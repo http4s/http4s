@@ -242,7 +242,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>)
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19776/1113082041@774188a2
+//   run = org.http4s.HttpRoutes$$$Lambda$19701/989436279@57db4db7
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -252,7 +252,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@32bbc4b2
+//    = org.typelevel.vault.Vault@595266ed
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -262,7 +262,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@6161bc75
+//    = org.typelevel.vault.Vault@360a3af1
 // )
 </span><span class="identifier">responseOk</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res0: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2)</span></code></pre>
@@ -270,7 +270,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">hstsService</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// hstsService: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$21546/1562543203@73a7cebf
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$21488/1129509679@6f608c07
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -280,7 +280,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@8585cf1
+//    = org.typelevel.vault.Vault@625bc2a9
 // )
 </span><span class="identifier">responseHSTS</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res1: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains)</span></code></pre>
@@ -304,7 +304,7 @@
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">hstsServiceCustom</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>, </span><span class="identifier">hstsHeader</span><span>)
 </span><span class="comment">// hstsServiceCustom: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$21546/1562543203@642a871c
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$21488/1129509679@28f4b501
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -314,7 +314,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@8c41df8
+//    = org.typelevel.vault.Vault@4fcedf5c
 // )
 </span><span class="identifier">responseCustom</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload)</span></code></pre>
