@@ -52,8 +52,8 @@ object Caching {
     */
   def `no-store-response`[G[_]]: PartiallyAppliedNoStoreCache[G] =
     new PartiallyAppliedNoStoreCache[G] {
-      def apply[F[_]](resp: Response[F])(implicit F: Functor[G], C: Clock[G]): G[Response[F]] =
-        HttpDate.current[G].map(now => resp.putHeaders(HDate(now)).putHeaders(noStoreStaticHeaders))
+      def apply[F[_]](resp: Response[F])(implicit G1: Functor[G], G2: Clock[G]): G[Response[F]] =
+        HttpDate.current[G].map(now => resp.putHeaders(HDate(now), noStoreStaticHeaders))
     }
 
   // These never change, so don't recreate them each time.
@@ -188,7 +188,7 @@ object Caching {
 
       override def apply[F[_]](
           resp: Response[F]
-      )(implicit M: MonadThrow[G], C: Clock[G]): G[Response[F]] =
+      )(implicit G1: MonadThrow[G], G2: Clock[G]): G[Response[F]] =
         for {
           now <- HttpDate.current[G]
           eps = now.epochSecond + actualLifetime.toSeconds
@@ -197,10 +197,12 @@ object Caching {
     }
 
   trait PartiallyAppliedCache[G[_]] {
-    def apply[F[_]](resp: Response[F])(implicit M: MonadThrow[G], C: Clock[G]): G[Response[F]]
+    def apply[F[_]](
+        resp: Response[F]
+    )(implicit G1: MonadThrow[G], G2: Clock[G]): G[Response[F]]
   }
 
   trait PartiallyAppliedNoStoreCache[G[_]] {
-    def apply[F[_]](resp: Response[F])(implicit F: Functor[G], C: Clock[G]): G[Response[F]]
+    def apply[F[_]](resp: Response[F])(implicit G1: Functor[G], G2: Clock[G]): G[Response[F]]
   }
 }

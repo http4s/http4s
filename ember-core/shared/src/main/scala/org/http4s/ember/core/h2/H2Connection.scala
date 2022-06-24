@@ -44,7 +44,7 @@ private[h2] class H2Connection[F[_]](
     acc: ByteVector, // Any Bytes Already Read
     socket: Socket[F],
     logger: Logger[F],
-)(implicit F: Temporal[F]) {
+)(implicit F: Concurrent[F]) {
 
   def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
