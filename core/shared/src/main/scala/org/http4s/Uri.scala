@@ -374,7 +374,7 @@ object Uri extends UriPlatform {
 
     /* Merge paths per RFC 3986 5.2.3 */
     def merge(path: Path): Path = {
-      val merge = if (isEmpty) segments else segments.init
+      val merge = if (isEmpty || endsWithSlash) segments else segments.init
       Path(merge ++ path.segments, absolute = absolute, endsWithSlash = path.endsWithSlash)
     }
 
