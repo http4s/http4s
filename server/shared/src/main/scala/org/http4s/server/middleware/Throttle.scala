@@ -60,7 +60,7 @@ object Throttle {
       * @return A task to create the [[TokenBucket]].
       */
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
-        F: Temporal[F],
+        F: Temporal[F]
     ): F[TokenBucket[F]] = {
       val getNanoTime = F.monotonic.map(_.toNanos)
       val refillEveryNanos = refillEvery.toNanos
