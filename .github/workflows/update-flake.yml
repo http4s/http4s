@@ -24,3 +24,4 @@ jobs:
         uses: DeterminateSystems/update-flake-lock@v8
         with:
           token: ${{ steps.generate-token.outputs.token }}
+          branch: update/flake-lock-${{ github.run_number }}
