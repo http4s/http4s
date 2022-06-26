@@ -22,7 +22,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.Checkout) ++
+    steps = List(WorkflowStep.CheckoutFull) ++
       WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
       githubWorkflowGeneratedCacheSteps.value ++
       List(

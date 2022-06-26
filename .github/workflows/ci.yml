@@ -312,8 +312,10 @@ jobs:
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (fast)
+      - name: Checkout current branch (full)
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Download Java (temurin@8)
         id: download-java-temurin-8
