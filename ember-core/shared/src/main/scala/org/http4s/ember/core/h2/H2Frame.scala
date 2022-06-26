@@ -202,7 +202,7 @@ private[ember] object H2Frame {
         .getOrElse(data.data)
       val flags: Byte = {
         val init: Int = 0x0
-        val endStreamBitSet: Int = if (data.endStream) (init | (1 << 0)) else init
+        val endStreamBitSet: Int = if (data.endStream) init | (1 << 0) else init
         val paddedSet: Int = if (data.pad.isDefined) endStreamBitSet | (1 << 3) else endStreamBitSet
         paddedSet.toByte
       }

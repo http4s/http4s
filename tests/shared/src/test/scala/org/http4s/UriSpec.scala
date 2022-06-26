@@ -250,7 +250,7 @@ class UriSpec extends Http4sSuite {
         l <- 0 to 6 - h
         f = List.fill(h)("1ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
-      } yield (f + "::" + b))
+      } yield f + "::" + b)
 
       variants.foreach { s =>
         assertEquals(
@@ -611,7 +611,7 @@ class UriSpec extends Http4sSuite {
     test("Uri parameters should parse many parameter without value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-        (Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil)),
+        Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil),
       )
     }
   }
@@ -658,12 +658,12 @@ class UriSpec extends Http4sSuite {
 
   {
     test("Uri.params.iterate should work on an URI without a query") {
-      (Uri(query = Query.empty).params.toSeq).foreach { i =>
+      Uri(query = Query.empty).params.toSeq.foreach { i =>
         fail(s"should not have $i") // should not happen
       }
     }
     test("Uri.params.iterate should work on empty list") {
-      (Uri(query = Query.unsafeFromString("")).params.toSeq).foreach { case (k, v) =>
+      Uri(query = Query.unsafeFromString("")).params.toSeq.foreach { case (k, v) =>
         assertEquals(k, "")
         assertEquals(v, "")
       }

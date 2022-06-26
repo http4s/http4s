@@ -32,7 +32,7 @@ object `Access-Control-Max-Age` {
   /** A value of -1 of the age parameter will disable caching. */
   case object NoCaching extends `Access-Control-Max-Age`
 
-  /** The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[`Access-Control-Allow-Headers`]] headers) can be cached.
+  /** The value of this field indicates how long the results of a preflight request (that is the information contained in the Access-Control-Allow-Methods and [[Access-Control-Allow-Headers]] headers) can be cached.
     *
     * @param age age of the response (in seconds)
     */

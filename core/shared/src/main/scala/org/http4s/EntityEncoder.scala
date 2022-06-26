@@ -57,7 +57,7 @@ trait EntityEncoder[+F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
+  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]],
     * if defined the headers
     */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]

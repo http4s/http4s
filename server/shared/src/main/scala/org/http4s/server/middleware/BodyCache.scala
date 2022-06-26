@@ -26,7 +26,7 @@ import org.http4s._
 
 /** Middleware for caching the request body for multiple compilations
   *
-  * As the body of the request is the [[Stream]] of bytes,
+  * As the body of the request is the [[fs2.Stream]] of bytes,
   * compiling it several times (e.g. with middlewares) is unsafe.
   * This middleware forbids such behaviour, compiling the body only once.
   * It does so only for the "inner" middlewares:

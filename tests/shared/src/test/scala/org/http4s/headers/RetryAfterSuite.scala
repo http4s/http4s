@@ -62,6 +62,6 @@ class RetryAfterSuite extends HeaderLaws {
     )
   }
   test("parse should accept duration on seconds") {
-    assertEquals(`Retry-After`.parse("120").map(_.retry), (Right(Right(120L))))
+    assertEquals(`Retry-After`.parse("120").map(_.retry), Right(Right(120L)))
   }
 }

@@ -32,7 +32,7 @@ class AcceptEncodingSuite extends HeaderLaws {
 
   test("is not satisfied by a content coding if the q value is 0") {
     forAll { (h: `Accept-Encoding`, cc: ContentCoding) =>
-      !(`Accept-Encoding`(h.values.map(_.withQValue(QValue.Zero))).satisfiedBy(cc))
+      !`Accept-Encoding`(h.values.map(_.withQValue(QValue.Zero))).satisfiedBy(cc)
     }
   }
 

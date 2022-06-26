@@ -80,6 +80,7 @@ This indicates that ember is running our service on port 8080. Let's try out the
 hello world service with curl:
 
 ```sh
+$ curl -i http://localhost:8080/hello/world
 HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Sun, 28 Jun 2020 16:23:31 GMT
