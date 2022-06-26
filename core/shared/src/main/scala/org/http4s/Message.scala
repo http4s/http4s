@@ -106,7 +106,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     change(entity = entity)
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
-    * or `Content-Length`. Most use cases are better served by [[withEntity]],
+    * or `Content-Length`. Most use cases are better served by [[[[withEntity[F1[x]](entity*]]]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     *
     * WARNING: this method does not modify the headers of the message, and as
@@ -503,7 +503,7 @@ final class Request[+F[_]] private (
   /** Checks whether the [[Entity]] of the [[Message]] is pure in the sense of
     * indicating that the entity body can be re-run without side effects.
     *
-    * @return the [[Boolean]] value:
+    * @return the `Boolean` value:
     *         'true' if entity is empty or already loaded into memory;
     *         'false' if entity is streamed.
     */
