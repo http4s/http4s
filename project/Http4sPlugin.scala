@@ -125,7 +125,7 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
     val scalacheckEffect = "1.0.4"
-    val scalaJavaLocales = "1.4.0"
+    val scalaJavaLocales = "1.4.1"
     val scalaJavaTime = "2.4.0"
     val scodecBits = "1.1.34"
     val slf4j = "1.7.36"
