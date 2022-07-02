@@ -35,7 +35,9 @@ import scala.concurrent.duration._
   */
 object Throttle {
   sealed abstract class TokenAvailability extends Product with Serializable
+
   case object TokenAvailable extends TokenAvailability
+
   final case class TokenUnavailable(retryAfter: Option[FiniteDuration]) extends TokenAvailability
 
   /** A token bucket for use with the [[Throttle]] middleware.  Consumers can take tokens which will be refilled over time.
@@ -45,6 +47,7 @@ object Throttle {
     */
   trait TokenBucket[F[_]] {
     def takeToken: F[TokenAvailability]
+
     def mapK[G[_]](fk: F ~> G): TokenBucket[G] = new TokenBucket.Translated[F, G](this, fk)
   }
 
@@ -55,48 +58,47 @@ object Throttle {
 
     /** Creates an in-memory [[TokenBucket]].
       *
-      * @param capacity the number of tokens the bucket can hold and starts with.
+      * @param capacity    the number of tokens the bucket can hold and starts with.
       * @param refillEvery the frequency with which to add another token if there is capacity spare.
       * @return A task to create the [[TokenBucket]].
       */
     def local[F[_]](capacity: Int, refillEvery: FiniteDuration)(implicit
         F: Temporal[F]
     ): F[TokenBucket[F]] = {
-      def getTime = F.monotonic.map(_.toNanos)
-      val bucket = getTime.flatMap(time => F.ref((capacity.toDouble, time)))
+      val getNanoTime = Temporal[F].monotonic.map(_.toNanos)
+      val refillEveryNanos = refillEvery.toNanos
+      for {
+        // make sure that refillEvery is positive
+        _ <- F.raiseUnless(refillEveryNanos > 0L)(
+          new IllegalArgumentException("refillEvery should be > 0 nano")
+        )
+        creationTime <- getNanoTime
+        counter <- F.ref((capacity.toDouble, creationTime))
 
-      bucket.map { counter =>
-        new TokenBucket[F] {
-          override def takeToken: F[TokenAvailability] = {
-            val attemptUpdate = counter.access.flatMap {
-              case ((previousTokens, previousTime), setter) =>
-                getTime.flatMap { currentTime =>
-                  val timeDifference = currentTime - previousTime
-                  val tokensToAdd = timeDifference.toDouble / refillEvery.toNanos.toDouble
-                  val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
+      } yield new TokenBucket[F] {
+        override def takeToken: F[TokenAvailability] =
+          for {
+            values <- counter.access
+            ((previousTokens, previousTime), setter) = values
+            currentTime <- getNanoTime
+            token <- {
+              val timeDifference = currentTime - previousTime
+              val tokensToAdd = timeDifference.toDouble / refillEveryNanos.toDouble
+              val newTokenTotal = Math.min(previousTokens + tokensToAdd, capacity.toDouble)
 
-                  val attemptSet: F[Option[TokenAvailability]] =
-                    if (newTokenTotal >= 1)
-                      setter((newTokenTotal - 1, currentTime))
-                        .map(if (_) Some(TokenAvailable) else None)
-                    else {
-                      val timeToNextToken = refillEvery.toNanos - timeDifference
-                      val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
-                      setter((newTokenTotal, currentTime))
-                        .map(if (_) Some(successResponse) else None)
-                    }
-
-                  attemptSet
+              // If setter fails (yields the value false), then retry with recursive call
+              if (newTokenTotal >= 1)
+                setter((newTokenTotal - 1, currentTime))
+                  .ifM(F.pure(TokenAvailable: TokenAvailability), takeToken)
+              else {
+                def unavailable: TokenAvailability = {
+                  val timeToNextToken = refillEveryNanos - timeDifference
+                  TokenUnavailable(timeToNextToken.nanos.some)
                 }
-            }
-
-            def loop: F[TokenAvailability] =
-              attemptUpdate.flatMap { attempt =>
-                attempt.fold(loop)(token => token.pure[F])
+                setter((newTokenTotal, currentTime)).ifM(F.pure(unavailable), takeToken)
               }
-            loop
-          }
-        }
+            }
+          } yield token
       }
     }
   }

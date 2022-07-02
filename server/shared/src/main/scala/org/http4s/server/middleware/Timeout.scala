@@ -68,23 +68,23 @@ object Timeout {
   ): Kleisli[F, A, Response[G]] =
     apply(timeout, Response.timeout[G].pure[F])(http)
 
-  /** This is the same as [[apply]], but for HttpRoutes */
+  /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)*]], but for HttpRoutes */
   def httpRoutes[F[_]: Temporal](timeout: FiniteDuration)(
       httpRoutes: HttpRoutes[F]
   ): HttpRoutes[F] =
     apply(timeout)(httpRoutes)
 
-  /** This is the same as [[apply]], but for HttpRoutes */
+  /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse*]], but for HttpRoutes */
   def httpRoutes[F[_]: Temporal](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
       httpRoutes: HttpRoutes[F]
   ): HttpRoutes[F] =
     apply(timeout, OptionT.liftF(timeoutResponse))(httpRoutes)
 
-  /** This is the same as [[apply]], but for HttpApp */
+  /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)*]], but for HttpApp */
   def httpApp[F[_]: Temporal](timeout: FiniteDuration)(httpApp: HttpApp[F]): HttpApp[F] =
     apply(timeout)(httpApp)
 
-  /** This is the same as [[apply]], but for HttpApp */
+  /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse*]], but for HttpApp */
   def httpApp[F[_]: Temporal](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
       httpApp: HttpApp[F]
   ): HttpApp[F] =

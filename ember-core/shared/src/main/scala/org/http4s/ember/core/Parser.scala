@@ -95,7 +95,7 @@ private[ember] object Parser {
             start = idx + 1 // advance past colon for next start
 
             // TODO: This if clause may not be necessary since the header value parser trims
-            if ((message.size > idx + 1 && message(idx + 1) == space)) {
+            if (message.size > idx + 1 && message(idx + 1) == space) {
               start += 1 // if colon is followed by space advance again
               idx += 1 // double advance index here to skip the space
             }
@@ -139,7 +139,7 @@ private[ember] object Parser {
       } else if (!complete) {
         ().asLeft.pure[F]
       } else {
-        (HeaderP(Headers(headers.toList), chunked, contentLength, idx)).asRight.pure[F]
+        HeaderP(Headers(headers.toList), chunked, contentLength, idx).asRight.pure[F]
       }
     }
 
@@ -229,7 +229,7 @@ private[ember] object Parser {
         else if (method == null || uri == null || httpVersion == null)
           ().asLeft.pure[F]
         else
-          (ReqPrelude(method, uri, httpVersion, idx)).asRight.pure[F]
+          ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
       }
 
       final case class ParsePreludeError(

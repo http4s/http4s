@@ -189,9 +189,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
     val userAgentHeader: Option[`User-Agent`] = req.headers.get[`User-Agent`].orElse(userAgent)
     for {
       date <- req.headers.get[Date].fold(HttpDate.current[F].map(Date(_)))(_.pure[F])
-    } yield req
-      .putHeaders(date, connection)
-      .putHeaders(userAgentHeader)
+    } yield req.putHeaders(date, connection, userAgentHeader)
   }
 
   private[ember] def postProcessResponse[F[_]](

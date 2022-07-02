@@ -35,9 +35,9 @@ import scala.concurrent.duration.FiniteDuration
 trait Renderer[T] {
 
   /** Renders the object to the writer
-    * @param writer [[Writer]] to render to
+    * @param writer [[org.http4s.util.Writer]] to render to
     * @param t object to render
-    * @return the same [[Writer]] provided
+    * @return the same [[org.http4s.util.Writer]] provided
     */
   def render(writer: Writer, t: T): writer.type
 }

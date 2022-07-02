@@ -95,7 +95,7 @@ private[ember] class H2Client[F[_]: Async](
               val current = map.get(key)
               val newMap = current.fold(map.+((key, tup)))(_ => map)
               val out = current.fold(
-                Either.left[H2Connection[F], (H2Connection[F], F[Unit])]((tup._1))
+                Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
               )(r => Either.right((r._1, tup._2)))
               (newMap, out)
             }

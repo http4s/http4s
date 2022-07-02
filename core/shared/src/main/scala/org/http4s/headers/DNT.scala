@@ -36,7 +36,7 @@ object DNT {
     val nullParser = string("null").as(NoPreference)
     val allowTrackingParser = char('0').as(AllowTracking)
     val disallowTrackingParser = char('1').as(DisallowTracking)
-    (allowTrackingParser | disallowTrackingParser | nullParser)
+    allowTrackingParser | disallowTrackingParser | nullParser
   }
 
   def parse(s: String): ParseResult[DNT] =
