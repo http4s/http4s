@@ -32,7 +32,7 @@ class AcceptCharsetSuite extends HeaderLaws {
 
   test("AcceptCharset is not satisfied by a charset if the q value is 0") {
     forAll { (h: `Accept-Charset`, cs: Charset) =>
-      !(h.map(_.withQValue(QValue.Zero)).satisfiedBy(cs))
+      !h.map(_.withQValue(QValue.Zero)).satisfiedBy(cs)
     }
   }
 

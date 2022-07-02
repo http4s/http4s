@@ -32,6 +32,7 @@ import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.ember.core.h2.H2Client
+import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
@@ -253,20 +254,16 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
-      optH2 <- (Alternative[Option].guard(enableHttp2) >> tlsContextOptWithDefault).traverse(
-        context =>
-          H2Client.impl[F](
-            pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
-            context,
-            logger,
-            if (pushPromiseSupport.isDefined) default
-            else {
-              default.copy(enablePush =
-                org.http4s.ember.core.h2.H2Frame.Settings.SettingsEnablePush(false)
-              )
-            },
-          )
-      )
+      optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
+        H2Client.impl[F](
+          pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+          context,
+          logger,
+          if (pushPromiseSupport.isDefined) default
+          else
+            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+        )
+      }
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {

@@ -144,7 +144,7 @@ private[http4s] object Rfc3986 {
     val shortIpv6 = for {
       lefts <- h16.repSep0(0, 7, colon).with1 <* doubleColon
       rights <-
-        if (6 - lefts.size > 0)(h16.repSep0(0, 6 - lefts.size, colon)) else Parser.pure(Nil)
+        if (6 - lefts.size > 0) h16.repSep0(0, 6 - lefts.size, colon) else Parser.pure(Nil)
     } yield toIpv6(lefts, rights)
 
     fullIpv6WihtOptionalIpv4.backtrack.orElse(shortIpv6WithIpv4.backtrack).orElse(shortIpv6)

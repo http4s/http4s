@@ -178,7 +178,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
-        val handler: Stream[F, fs2.INothing] = shutdown.trackConnection >>
+        val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
             .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
             .flatMap {

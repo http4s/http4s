@@ -98,11 +98,11 @@ final case class Uri(
   def addSegment[A: Uri.Path.SegmentEncoder](newSegment: A): Uri =
     copy(path = path / newSegment)
 
-  /** This is an alias to [[addSegment]]
+  /** This is an alias to [[addSegment(*]]
     */
   def /(newSegment: String): Uri = addSegment[String](newSegment)
 
-  /** This is an alias to [[addSegment]]
+  /** This is an alias to [[addSegment[*]]]
     */
   def /[A: Uri.Path.SegmentEncoder](newSegment: A): Uri = addSegment[A](newSegment)
 
@@ -352,11 +352,11 @@ object Uri extends UriPlatform {
     override val renderString: String = super.renderString
     override def toString: String = renderString
 
-    /** This is an alias to [[addSegment]]
+    /** This is an alias to [[addSegment(*]]
       */
     def /(segment: Path.Segment): Path = addSegment(segment)
 
-    /** This is an alias to [[addSegment]]
+    /** This is an alias to [[addSegment[*]]
       */
     def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
 
@@ -371,7 +371,7 @@ object Uri extends UriPlatform {
 
     /* Merge paths per RFC 3986 5.2.3 */
     def merge(path: Path): Path = {
-      val merge = if (isEmpty) segments else segments.init
+      val merge = if (isEmpty || endsWithSlash) segments else segments.init
       Path(merge ++ path.segments, absolute = absolute, endsWithSlash = path.endsWithSlash)
     }
 
@@ -661,6 +661,17 @@ object Uri extends UriPlatform {
         case value: ip4s.Ipv6Address =>
           Ipv6Address(value)
       }
+
+    /** Create a [[Host]] value from a [[com.comcast.ip4s.Host]].
+      */
+    def fromIp4sHost(value: ip4s.Host): Host = value match {
+      case address: ip4s.IpAddress =>
+        fromIpAddress(address)
+      case hostname: ip4s.Hostname =>
+        RegName.fromHostname(hostname)
+      case idn: ip4s.IDN =>
+        RegName.fromHostname(idn.hostname)
+    }
 
     implicit val catsInstancesForHttp4sUriHost: Hash[Host] with Order[Host] with Show[Host] =
       new Hash[Host] with Order[Host] with Show[Host] {

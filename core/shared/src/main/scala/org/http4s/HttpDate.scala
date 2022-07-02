@@ -288,7 +288,7 @@ object HttpDate {
     val rfc850Date =
       ((dayNameL <* string(", ")) ~ (date2 <* sp) ~ (timeOfDay <* string(" GMT"))).mapFilter {
         case ((_, ((day, month), year)), ((hour, min), sec)) =>
-          val wrapYear = if (year < 70) (year + 2000) else (year + 1900)
+          val wrapYear = if (year < 70) year + 2000 else year + 1900
           mkHttpDate(wrapYear, month, day, hour, min, sec)
       }
 

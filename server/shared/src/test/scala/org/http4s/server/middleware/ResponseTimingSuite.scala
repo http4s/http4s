@@ -16,51 +16,34 @@
 
 package org.http4s.server.middleware
 
-import cats.Applicative
-import cats.effect.Ref
 import cats.effect._
+import cats.effect.testkit.TestControl
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.laws.discipline.arbitrary.genFiniteDuration
 import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF.forAllF
 import org.typelevel.ci._
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 class ResponseTimingSuite extends Http4sSuite {
-  import Sys.clock
-
-  private val artificialDelay = 10
-
-  private val thisService = HttpApp[IO] { case GET -> Root / "request" =>
-    List.fill(artificialDelay)(Sys.tick()).sequence_ *>
-      Ok("request response")
-  }
-
   test("add a custom header with timing info") {
-    val req = Request[IO](uri = uri"/request")
-    val app = ResponseTiming(thisService)
-    val res = app(req)
+    forAllF(genFiniteDuration) { (artificialDelay: FiniteDuration) =>
+      val thisService = HttpApp[IO] { case GET -> Root / "request" =>
+        IO.sleep(artificialDelay) *>
+          Ok("request response")
+      }
+      val req = Request[IO](uri = uri"/request")
+      val app = ResponseTiming(thisService)
+      val res = app(req)
 
-    val header = res
-      .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
-    header.map(_.map(_.value.toInt) === Some(artificialDelay)).assert
-  }
-}
-
-object Sys {
-  private val currentTime: Ref[IO, Long] = Ref.unsafe[IO, Long](0L)
-
-  def tick(): IO[Long] = currentTime.modify(l => (l + 1L, l))
-
-  implicit val clock: Clock[IO] = new Clock[IO] {
-    override def applicative: Applicative[IO] = Applicative[IO]
-
-    override def realTime: IO[FiniteDuration] =
-      currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
-
-    override def monotonic: IO[FiniteDuration] =
-      currentTime.get.map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
+      val header = res
+        .map(_.headers.headers.find(_.name == ci"X-Response-Time"))
+      TestControl
+        .executeEmbed(header.map(_.map(_.value.toInt.milliseconds) === Some(artificialDelay)))
+        .assert
+    }
   }
 }

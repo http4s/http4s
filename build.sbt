@@ -1,7 +1,6 @@
 import com.typesafe.tools.mima.core._
 import explicitdeps.ExplicitDepsPlugin.autoImport.moduleFilterRemoveValue
 import org.http4s.sbt.Http4sPlugin._
-import org.http4s.sbt.ScaladocApiMapping
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_213)
@@ -11,36 +10,32 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("main")
 ThisBuild / tlSitePublishBranch := Some("main")
 
-ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
-ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value)
-ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0"
 
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowBuild ++= Seq(
-  WorkflowStep.Sbt(
-    List("${{ matrix.ci }}", "scalafixAll --check"),
-    name = Some("Check Scalafix rules"),
-    cond = Some(s"matrix.scala != '$scala_3'"),
-  )
-)
-
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
-    "scalafix",
-    "Scalafix",
-    githubWorkflowJobSetup.value.toList ::: List(
-      WorkflowStep.Run(
-        List("cd scalafix", "sbt ci"),
-        name = Some("Scalafix tests"),
-      )
-    ),
+    id = "coverage",
+    name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
+    steps = List(WorkflowStep.CheckoutFull) ++
+      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
+      githubWorkflowGeneratedCacheSteps.value ++
+      List(
+        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
+        WorkflowStep.Use(
+          UseRef.Public(
+            "codecov",
+            "codecov-action",
+            "v2",
+          ),
+          cond = Some("github.event_name != 'pull_request'"),
+        ),
+      ),
   )
 )
 
@@ -324,6 +319,7 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
+    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
@@ -375,12 +371,7 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate): _*
       ),
-    apiMappings ++= {
-      ScaladocApiMapping.mappings(
-        (ScalaUnidoc / unidoc / unidocAllClasspaths).value,
-        scalaBinaryVersion.value,
-      )
-    },
+    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -413,6 +404,7 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
+    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -423,6 +415,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     scalacOptions -= "-Xfatal-warnings",
+    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -436,6 +429,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
+    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
@@ -536,12 +530,11 @@ def exampleProject(name: String) =
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(
-  Compile / doc / scalacOptions += "-no-link-warnings",
   libraryDependencies ++= Seq(
     catsLaws.value,
     logbackClassic,
     scalacheck.value,
-  ).map(_ % Test),
+  ).map(_ % Test)
 )
 
 lazy val skipUnusedDependenciesTestOnScala3 = Seq(

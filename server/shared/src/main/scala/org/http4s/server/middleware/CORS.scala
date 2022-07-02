@@ -582,7 +582,7 @@ sealed class CORSPolicy(
 
   /** Allow requests from any origin host whose case-insensitive
     * rendering matches predicate `p`.  A concession to the fact
-    * that constructing [[Origin.Host]] values is verbose.
+    * that constructing [[org.http4s.headers.Origin.Host]] values is verbose.
     *
     * @see [[withAllowOriginHost]]
     */

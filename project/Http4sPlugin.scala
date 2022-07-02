@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.8"
-  val scala_3 = "3.1.2"
+  val scala_3 = "3.1.3"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -95,14 +95,14 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
     val caseInsensitive = "1.2.0"
-    val cats = "2.7.0"
+    val cats = "2.8.0"
     val catsEffect = "3.3.12"
     val catsParse = "0.3.7"
     val circe = "0.14.2"
     val crypto = "0.2.3"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val fs2 = "3.2.7"
+    val fs2 = "3.2.8"
     val ip4s = "3.1.3"
     val hpack = "1.0.3"
     val javaWebSocket = "1.5.3"
@@ -112,22 +112,22 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.7"
     val literally = "1.0.2"
     val logback = "1.2.6"
-    val log4cats = "2.3.1"
+    val log4cats = "2.3.2"
     val log4s = "1.10.0"
     val munit = "0.7.29"
     val munitCatsEffect = "1.0.7"
     val munitDiscipline = "1.0.9"
-    val netty = "4.1.77.Final"
+    val netty = "4.1.78.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
     val scalacheckEffect = "1.0.4"
     val scalaJavaLocales = "1.4.0"
-    val scalaJavaTime = "2.3.0"
-    val scodecBits = "1.1.31"
+    val scalaJavaTime = "2.4.0"
+    val scodecBits = "1.1.34"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.1.0"
+    val vault = "3.2.1"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze

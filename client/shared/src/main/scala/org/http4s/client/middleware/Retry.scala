@@ -173,7 +173,7 @@ object RetryPolicy {
     *
     * The request is retriable if either:
     * - its method is idempotent and its request entity is pure
-    * - it has an [[`Idempotency-Key`]] header
+    * - it has an [[org.http4s.headers.Idempotency-Key]] header
     *
     * The response effect is retriable if:
     * - it raised an error

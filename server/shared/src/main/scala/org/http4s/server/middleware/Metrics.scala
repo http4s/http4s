@@ -22,6 +22,7 @@ import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
@@ -38,7 +39,7 @@ import org.http4s.metrics.TerminationType.Error
   */
 object Metrics {
 
-  private[this] final case class MetricsRequestContext(
+  private[this] final case class MetricsEntry(
       method: Method,
       startTime: Long,
       classifier: Option[String],
@@ -80,72 +81,67 @@ object Metrics {
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => F[Option[String]],
-  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
-    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsRequestContext, Status] {
-      (request: Request[F]) =>
-        classifierF(request).flatMap { classifier =>
-          ops.increaseActiveRequests(classifier) *>
-            F.monotonic
-              .map(startTime =>
-                ContextRequest(
-                  MetricsRequestContext(request.method, startTime.toNanos, classifier),
-                  request,
-                )
-              )
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] = {
+    def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
+      for {
+        classifier <- classifierF(request)
+        _ <- ops.increaseActiveRequests(classifier)
+        startTime <- F.monotonic
+      } yield ContextRequest(MetricsEntry(request.method, startTime.toNanos, classifier), request)
+
+    def stopMetrics(metrics: MetricsEntry): F[Long] =
+      // Decrease active requests _first_ in case any of the other effects triggers an error.
+      // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
+      // This may have caused the bugs that reported the active requests counter to have drifted.
+      for {
+        _ <- ops.decreaseActiveRequests(metrics.classifier)
+        endTime <- F.monotonic
+      } yield endTime.toNanos - metrics.startTime
+
+    def metricHeaders(metrics: MetricsEntry, resp: Response[F]): F[ContextResponse[F, Status]] =
+      for {
+        now <- F.monotonic
+        headerTime = now.toNanos - metrics.startTime
+        _ <- ops.recordHeadersTime(metrics.method, headerTime, metrics.classifier)
+      } yield ContextResponse(resp.status, resp)
+
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
+      startMetrics
+    } { case (metrics, maybeStatus, outcome) =>
+      stopMetrics(metrics).flatMap { totalTime =>
+        def recordTotal(status: Status): F[Unit] =
+          ops.recordTotalTime(metrics.method, status, totalTime, metrics.classifier)
+
+        def recordAbnormal(term: TerminationType): F[Unit] =
+          ops.recordAbnormalTermination(totalTime, term, metrics.classifier)
+
+        (outcome, maybeStatus) match {
+          case (Outcome.Succeeded(_), None) => emptyResponseHandler.traverse_(recordTotal)
+
+          case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
+
+          case (Outcome.Errored(e), None) =>
+            // If an error occurred, and the status is empty, this means
+            // the error occurred before the routes could generate a response.
+            ops.recordHeadersTime(metrics.method, totalTime, metrics.classifier) *>
+              recordAbnormal(Error(e)) *>
+              errorResponseHandler(e).traverse_(recordTotal)
+
+          case (Outcome.Errored(e), Some(status)) =>
+            // If an error occurred, but the status is non-empty, this means
+            // the error occurred during the stream processing of the response body.
+            // In which case recordHeadersTime was invoked in the normal manner,
+            // so we do not need to invoke it here.
+            recordAbnormal(Abnormal(e)) *> recordTotal(status)
+
+          case (Outcome.Canceled(), _) => recordAbnormal(Canceled)
         }
-    } { case (context, maybeStatus, outcome) =>
-      // Decrease active requests _first_ in case any of the other effects
-      // trigger an error. This differs from the < 0.21.14 semantics, which
-      // decreased it _after_ the other effects. This may have been the
-      // reason the active requests counter was reported to have drifted.
-      ops.decreaseActiveRequests(context.classifier) *>
-        F.monotonic
-          .map(endTime => endTime.toNanos - context.startTime)
-          .flatMap(totalTime =>
-            outcome match {
-              case Outcome.Succeeded(_) =>
-                (maybeStatus <+> emptyResponseHandler).traverse_(status =>
-                  ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-                )
-              case Outcome.Errored(e) =>
-                maybeStatus.fold {
-                  // If an error occurred, and the status is empty, this means
-                  // that an error occurred before the routes could generate a
-                  // response.
-                  ops.recordHeadersTime(context.method, totalTime, context.classifier) *>
-                    ops.recordAbnormalTermination(totalTime, Error(e), context.classifier) *>
-                    errorResponseHandler(e).traverse_(status =>
-                      ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-                    )
-                }(status =>
-                  // If an error occurred, but the status is non-empty, this
-                  // means the error occurred during the stream processing of
-                  // the response body. In this case recordHeadersTime would
-                  // have been invoked in the normal manner so we do not need
-                  // to invoke it here.
-                  ops.recordAbnormalTermination(totalTime, Abnormal(e), context.classifier) *>
-                    ops.recordTotalTime(context.method, status, totalTime, context.classifier)
-                )
-              case Outcome.Canceled() =>
-                ops.recordAbnormalTermination(totalTime, Canceled, context.classifier)
-            }
-          )
+      }
     }(C)(
-      Kleisli((contextRequest: ContextRequest[F, MetricsRequestContext]) =>
-        routes
-          .run(contextRequest.req)
-          .semiflatMap(response =>
-            F.monotonic
-              .map(now => now.toNanos - contextRequest.context.startTime)
-              .flatTap(headerTime =>
-                ops.recordHeadersTime(
-                  contextRequest.context.method,
-                  headerTime,
-                  contextRequest.context.classifier,
-                )
-              ) *> C.pure(ContextResponse(response.status, response))
-          )
-      )
+      Kleisli { case ContextRequest(metrics, req) =>
+        routes(req).semiflatMap(metricHeaders(metrics, _))
+      }
     )
+  }
 
 }

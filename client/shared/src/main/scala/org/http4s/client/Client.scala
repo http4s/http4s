@@ -54,7 +54,7 @@ trait Client[F[_]] {
     * of callers of this service to run the response body to release
     * the underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  [[run]], [[fetchAs]] and
+    * This is intended for use in proxy servers.  [[run]], [[fetchAs[A](req:org\.http4s\.Request[F])*]],
     * [[toKleisli]] are safer alternatives, as their
     * signatures guarantee release of the HTTP connection.
     */

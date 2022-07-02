@@ -77,7 +77,7 @@ object MultipartParser {
           case (None, PartStart(headers)) =>
             F.pure((Some(Part(headers, Entity.empty)), None))
           // Shouldn't happen if the `parseToEventsStream` contract holds.
-          case (None, (_: PartChunk | PartEnd)) =>
+          case (None, _: PartChunk | PartEnd) =>
             F.raiseError(bug("Missing PartStart"))
           case (Some(acc0), PartChunk(chunk)) =>
             F.pure((Some(acc0.copy(entity = Entity(acc0.body ++ Stream.chunk(chunk)))), None))
@@ -544,10 +544,10 @@ object MultipartParser {
             Pull.output1(event) >> go(rest, partsCounter + 1)
           } else if (failOnLimit) {
             Pull.raiseError[F](MalformedMessageBodyFailure("Parts limit exceeded"))
-          } else Pull.pure(())
+          } else Pull.done
         case Some((event, rest)) =>
           Pull.output1(event) >> go(rest, partsCounter)
-        case None => Pull.pure(())
+        case None => Pull.done
       }
 
     go(_, 0).stream
@@ -690,7 +690,7 @@ object MultipartParser {
         val newAcc = Acc(None, Stream.empty, 0)
         F.pure((Some((headers, newAcc)), None))
       // Shouldn't happen if the `parseToEventsStream` contract holds.
-      case (None, (_: PartChunk | PartEnd)) =>
+      case (None, _: PartChunk | PartEnd) =>
         F.raiseError(bug("Missing PartStart"))
       case (Some((headers, oldAcc)), PartChunk(chunk)) =>
         stepPartChunk(oldAcc, chunk).map { newAcc =>
