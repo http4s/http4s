@@ -210,13 +210,16 @@
         <p class="header"><a href="#">Changelog</a></p>
 
         <ul class="nav-list">
-          <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
+          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
           <li class="level2"><a href="#what-s-changed-1">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-1">New Contributors</a></li>
-          <li class="level1"><a href="#v0-23-12-2022-05-24">v0.23.12 (2022-05-24)</a></li>
-          <li class="level2"><a href="#the-great-schism">The Great Schism</a></li>
+          <li class="level1"><a href="#v0-22-14-2022-06-23">v0.22.14 (2022-06-23)</a></li>
           <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-2">New Contributors</a></li>
+          <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#new-contributors-3">New Contributors</a></li>
+          <li class="level2"><a href="#new-contributors-4">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-13-2022-05-20">v0.22.13 (2022-05-20)</a></li>
           <li class="level1"><a href="#v0-21-33-2022-03-18">v0.21.33 (2022-03-18)</a></li>
           <li class="level1"><a href="#v1-0-0-m32-2022-03-18">v1.0.0-M32 (2022-03-18)</a></li>
@@ -507,14 +510,111 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
+        <h1 id="v0-23-13-2022-06-25" class="section">v0.23.13 (2022-06-25)<a class="anchor-link right" href="#v0-23-13-2022-06-25"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.</p>
+        
+        <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-1" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Add <code>EntityDecoder[EventStream]</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6413">https://github.com/http4s/http4s/pull/6413</a></li>
+          <li>Update to Vault 3.2.1 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6431">https://github.com/http4s/http4s/pull/6431</a></li>
+          <li>Update scala-java-time to 2.4.0 by @typelevel-steward in <a href="https://github.com/http4s/http4s/pull/6434">https://github.com/http4s/http4s/pull/6434</a></li>
+          <li>Update scodec-bits to 1.1.34 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6455">https://github.com/http4s/http4s/pull/6455</a></li>
+          <li>Update fs2-core, fs2-io to 3.2.8 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6461">https://github.com/http4s/http4s/pull/6461</a></li>
+          <li>Update cats-core, cats-laws to 2.8.0 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6471">https://github.com/http4s/http4s/pull/6471</a></li>
+          <li>Add Ordering for MediaRange by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6486">https://github.com/http4s/http4s/pull/6486</a></li>
+          <li>Add <code>Host#fromIp4sHost</code> method by @danicheg in <a href="https://github.com/http4s/http4s/pull/6489">https://github.com/http4s/http4s/pull/6489</a></li>
+          <li>Make Uri.Path.merge compliant by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6481">https://github.com/http4s/http4s/pull/6481</a>
+          ### http4s-server</li>
+          <li>Compose multiple subsequent <code>Message#putHeaders</code> calls by @danicheg in <a href="https://github.com/http4s/http4s/pull/6459">https://github.com/http4s/http4s/pull/6459</a>
+          ### http4s-ember-core</li>
+          <li>Encoding of response with empty body by @christiankjaer in <a href="https://github.com/http4s/http4s/pull/6444">https://github.com/http4s/http4s/pull/6444</a></li>
+          <li>Update log4cats-core, log4cats-noop, ... to 2.3.2 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6478">https://github.com/http4s/http4s/pull/6478</a>
+          ### Documentation</li>
+          <li>Added note on possible circe import error in docs by @cgoldammer in <a href="https://github.com/http4s/http4s/pull/6450">https://github.com/http4s/http4s/pull/6450</a></li>
+          <li>Add Wide Angle Analytics in adopters by @jrozanski in <a href="https://github.com/http4s/http4s/pull/6454">https://github.com/http4s/http4s/pull/6454</a></li>
+          <li>Add sample curl command to quickstart.md by @ajelden in <a href="https://github.com/http4s/http4s/pull/6488">https://github.com/http4s/http4s/pull/6488</a></li>
+          <li>Release v0.23.13 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6492">https://github.com/http4s/http4s/pull/6492</a>
+          ### Behind the scenes</li>
+          <li>Cleanup unnecessary projects by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6410">https://github.com/http4s/http4s/pull/6410</a></li>
+          <li>Update http4s-circe, http4s-ember-client to 0.23.12 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6414">https://github.com/http4s/http4s/pull/6414</a></li>
+          <li>Ember-Core - H2Client - Rewrite without alternative. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6422">https://github.com/http4s/http4s/pull/6422</a></li>
+          <li>Merge 0.22 -&gt; 0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6429">https://github.com/http4s/http4s/pull/6429</a></li>
+          <li>Enable Scaladoc Linking Warnings by @isomarcte in <a href="https://github.com/http4s/http4s/pull/4027">https://github.com/http4s/http4s/pull/4027</a></li>
+          <li>Add a Scala Steward workflow by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6432">https://github.com/http4s/http4s/pull/6432</a></li>
+          <li>Delete steward.yml by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6438">https://github.com/http4s/http4s/pull/6438</a></li>
+          <li>Update .mergify.yml by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6439">https://github.com/http4s/http4s/pull/6439</a></li>
+          <li>Update scodec-bits to 1.1.33 by @typelevel-steward in <a href="https://github.com/http4s/http4s/pull/6436">https://github.com/http4s/http4s/pull/6436</a></li>
+          <li>Update scalafmt-core to 3.5.8 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6442">https://github.com/http4s/http4s/pull/6442</a></li>
+          <li>Workflow to update flake weekly by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6437">https://github.com/http4s/http4s/pull/6437</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6445">https://github.com/http4s/http4s/pull/6445</a></li>
+          <li>Server Metrics Middleware by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6246">https://github.com/http4s/http4s/pull/6246</a></li>
+          <li>Ember-Core H2Server: replace pull with a recursive function by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6424">https://github.com/http4s/http4s/pull/6424</a></li>
+          <li>Throttle Server middleware: use recursion by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6267">https://github.com/http4s/http4s/pull/6267</a></li>
+          <li>Fix steward name in mergify config by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6448">https://github.com/http4s/http4s/pull/6448</a></li>
+          <li>Update sbt-http4s-org to 0.14.1 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6447">https://github.com/http4s/http4s/pull/6447</a></li>
+          <li>MultipartParser: use <code>Pull.done</code> instead of Pull.pure. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6449">https://github.com/http4s/http4s/pull/6449</a></li>
+          <li>Ember-Core H2Server: extract method to send initial request by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6425">https://github.com/http4s/http4s/pull/6425</a></li>
+          <li>Ember-Client: no Alternative by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6426">https://github.com/http4s/http4s/pull/6426</a></li>
+          <li>Backport of <code>Router#define</code> test by @danicheg in <a href="https://github.com/http4s/http4s/pull/6451">https://github.com/http4s/http4s/pull/6451</a></li>
+          <li>Update sbt-http4s-org to 0.14.2 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6452">https://github.com/http4s/http4s/pull/6452</a></li>
+          <li>Setup scoverage by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6456">https://github.com/http4s/http4s/pull/6456</a></li>
+          <li>Run coverage job for PRs, but don&#39;t upload results by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6457">https://github.com/http4s/http4s/pull/6457</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6458">https://github.com/http4s/http4s/pull/6458</a></li>
+          <li>Update sbt-http4s-org to 0.14.3 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6463">https://github.com/http4s/http4s/pull/6463</a></li>
+          <li>series/0.22 -&gt; series/0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6465">https://github.com/http4s/http4s/pull/6465</a></li>
+          <li>Remove scalafix migrations, plugin cleanup by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6460">https://github.com/http4s/http4s/pull/6460</a></li>
+          <li>Update scala-library, scala-reflect to 2.12.16 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6462">https://github.com/http4s/http4s/pull/6462</a></li>
+          <li>Update netty-buffer, netty-codec-http to 4.1.78.Final in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6468">https://github.com/http4s/http4s/pull/6468</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6466">https://github.com/http4s/http4s/pull/6466</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6480">https://github.com/http4s/http4s/pull/6480</a></li>
+          <li>Update scala3-library, ... to 3.1.3 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6482">https://github.com/http4s/http4s/pull/6482</a></li>
+          <li>Test control on time based tests by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6469">https://github.com/http4s/http4s/pull/6469</a></li>
+          <li>Merge 0.22.14 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6487">https://github.com/http4s/http4s/pull/6487</a></li>
+        </ul>
+        
+        <h2 id="new-contributors-1" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <ul>
+          <li>@christiankjaer made their first contribution in <a href="https://github.com/http4s/http4s/pull/6444">https://github.com/http4s/http4s/pull/6444</a></li>
+          <li>@cgoldammer made their first contribution in <a href="https://github.com/http4s/http4s/pull/6450">https://github.com/http4s/http4s/pull/6450</a></li>
+          <li>@jrozanski made their first contribution in <a href="https://github.com/http4s/http4s/pull/6454">https://github.com/http4s/http4s/pull/6454</a></li>
+          <li>@leoniv made their first contribution in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
+          <li>@FrancescoSerra made their first contribution in <a href="https://github.com/http4s/http4s/pull/6469">https://github.com/http4s/http4s/pull/6469</a></li>
+          <li>@ajelden made their first contribution in <a href="https://github.com/http4s/http4s/pull/6488">https://github.com/http4s/http4s/pull/6488</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.23.12...v0.23.13">https://github.com/http4s/http4s/compare/v0.23.12...v0.23.13</a></p>
+        
+        <h1 id="v0-22-14-2022-06-23" class="section">v0.22.14 (2022-06-23)<a class="anchor-link right" href="#v0-22-14-2022-06-23"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we&#39;ll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).</p>
+        
+        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Fix Content-Disposition filename encoding by @leoniv in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
+          <li>Add filename property to Content-Disposition by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6485">https://github.com/http4s/http4s/pull/6485</a>
+          ### Documentation</li>
+          <li>Point upgrade docs at scalafix published in series/0.22 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6464">https://github.com/http4s/http4s/pull/6464</a>
+          ### Behind the scenes</li>
+          <li>Delete hard-coded Scaladoc url by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6402">https://github.com/http4s/http4s/pull/6402</a></li>
+          <li>Update to sbt-http4s-org 0.13.4 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6428">https://github.com/http4s/http4s/pull/6428</a></li>
+        </ul>
+        
+        <h2 id="new-contributors-2" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <ul>
+          <li>@leoniv made their first contribution in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.22.13...v0.22.14">https://github.com/http4s/http4s/compare/v0.22.13...v0.22.14</a></p>
+        
         <h1 id="v1-0-0-m33-2022-05-25" class="section">v1.0.0-M33 (2022-05-25)<a class="anchor-link right" href="#v1-0-0-m33-2022-05-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This is the latest milestone in the 1.x series.  It is binary incompatible with http4s-1.0.0-M32.</p>
         <p>This is the first 1.x release after &quot;The Great Schism&quot;, described in v0.23.12.  Because 1.0 isn&#39;t stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the &quot;Maintainers wanted!&quot; issue in the repository of interest.</p>
         <p>Additional to the below, this release includes all changes in v0.23.12.</p>
         
-        <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-1" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Remove deprecated things by @danicheg in <a href="https://github.com/http4s/http4s/pull/6156">https://github.com/http4s/http4s/pull/6156</a></li>
           <li>Override <code>toString</code> for <code>Entity</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6168">https://github.com/http4s/http4s/pull/6168</a></li>
@@ -570,7 +670,7 @@
           <li>Merge 0.23.12 to main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6416">https://github.com/http4s/http4s/pull/6416</a></li>
         </ul>
         
-        <h2 id="new-contributors-1" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-3" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-3"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
           <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>
@@ -579,139 +679,49 @@
           <li>@CharlesAHunt made their first contribution in <a href="https://github.com/http4s/http4s/pull/6036">https://github.com/http4s/http4s/pull/6036</a></li>
           <li>@OnAirEntertainment-Scala made their first contribution in <a href="https://github.com/http4s/http4s/pull/6385">https://github.com/http4s/http4s/pull/6385</a></li>
         </ul>
-        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33">https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33</a></p>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33">https://github.com/http4s/http4s/compare/v1.0.0-M32...v1.0.0-M33</a>
+        * Ignore <code>java-websocket</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6275">https://github.com/http4s/http4s/pull/6275</a>
+        * Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6278">https://github.com/http4s/http4s/pull/6278</a>
+        * Spin off servlet, jetty-server, and tomcat modules by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6240">https://github.com/http4s/http4s/pull/6240</a>
+        * Update scalacheck to 1.16.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6264">https://github.com/http4s/http4s/pull/6264</a>
+        * Update discipline-core to 1.5.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6303">https://github.com/http4s/http4s/pull/6303</a>
+        * Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6310">https://github.com/http4s/http4s/pull/6310</a>
+        * Tweak unused args suppressing by @danicheg in <a href="https://github.com/http4s/http4s/pull/6300">https://github.com/http4s/http4s/pull/6300</a>
+        * Remove update ignorings in Scala Steward conf for the 0.23 by @danicheg in <a href="https://github.com/http4s/http4s/pull/6333">https://github.com/http4s/http4s/pull/6333</a>
+        * Update log4cats-core, log4cats-noop, ... to 2.3.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6340">https://github.com/http4s/http4s/pull/6340</a>
+        * Merge 0.22 -&gt; 0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6343">https://github.com/http4s/http4s/pull/6343</a>
+        * Update scalacheck-effect, ... to 1.0.4 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6345">https://github.com/http4s/http4s/pull/6345</a>
+        * Update scodec-bits to 1.1.31 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6330">https://github.com/http4s/http4s/pull/6330</a>
+        * Server - ContextRouter - Simpler Code  by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6241">https://github.com/http4s/http4s/pull/6241</a>
+        * Fix test name by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6351">https://github.com/http4s/http4s/pull/6351</a>
+        * Use UTC for JS tests, remove tzdb test dep by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6350">https://github.com/http4s/http4s/pull/6350</a>
+        * Delete servlet and jetty-server srcs by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6354">https://github.com/http4s/http4s/pull/6354</a>
+        * Bye-bye boopickle by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6353">https://github.com/http4s/http4s/pull/6353</a>
+        * Actually delete boopickle srcs by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6359">https://github.com/http4s/http4s/pull/6359</a>
+        * Update log4cats-core, log4cats-noop, ... to 2.3.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6362">https://github.com/http4s/http4s/pull/6362</a>
+        * Only create scalafix job for 2.13 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6361">https://github.com/http4s/http4s/pull/6361</a>
+        * Update scala3-library, ... to 3.1.2 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6291">https://github.com/http4s/http4s/pull/6291</a>
+        * Update netty-buffer, netty-codec-http to 4.1.77.Final in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6364">https://github.com/http4s/http4s/pull/6364</a>
+        * Ember-Core: merge evalMap blocks in writeLoop by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6162">https://github.com/http4s/http4s/pull/6162</a>
+        * Ember-Core microptimisation: avoid lists by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6161">https://github.com/http4s/http4s/pull/6161</a>
+        * Publish internal scalafixes by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6268">https://github.com/http4s/http4s/pull/6268</a>
+        * Bye-bye scala-xml by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6352">https://github.com/http4s/http4s/pull/6352</a>
+        * Parallelize some requests in <code>RetrySuite</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6380">https://github.com/http4s/http4s/pull/6380</a>
+        * Update ip4s-core, ip4s-test-kit to 3.1.3 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6382">https://github.com/http4s/http4s/pull/6382</a>
+        * Promote using of <code>Headers#contains</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6386">https://github.com/http4s/http4s/pull/6386</a>
+        * Use <code>GenTemporal</code> for proceeding with timeouts by @danicheg in <a href="https://github.com/http4s/http4s/pull/6391">https://github.com/http4s/http4s/pull/6391</a>
+        * JS refactoring in preparation for client backend schism by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6390">https://github.com/http4s/http4s/pull/6390</a>
+        * Use <code>parTraverse</code> in tests by @danicheg in <a href="https://github.com/http4s/http4s/pull/6393">https://github.com/http4s/http4s/pull/6393</a>
+        * Update locales-minimal-en_us-db to 1.4.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6399">https://github.com/http4s/http4s/pull/6399</a>
+        * Update circe-core, circe-generic, ... to 0.14.2 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6398">https://github.com/http4s/http4s/pull/6398</a>
+        * Publish <code>http4s-client-testkit</code> module by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6394">https://github.com/http4s/http4s/pull/6394</a>
+        * Make Node.js interop APIs private by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6404">https://github.com/http4s/http4s/pull/6404</a>
+        * Update cats-effect, cats-effect-laws, ... to 3.3.12 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6406">https://github.com/http4s/http4s/pull/6406</a>
+        * Ember Core: write readLoop without Streams. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6163">https://github.com/http4s/http4s/pull/6163</a>
+        ### http4s-circe
+        * Update to circe 0.14.2 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6401">https://github.com/http4s/http4s/pull/6401</a></p>
         
-        <h1 id="v0-23-12-2022-05-24" class="section">v0.23.12 (2022-05-24)<a class="anchor-link right" href="#v0-23-12-2022-05-24"><i class="icofont-laika">&#xef71;</i></a></h1>
-        <p>This release is binary compatible with the 0.23.x series.</p>
-        
-        <h2 id="the-great-schism" class="section">The Great Schism<a class="anchor-link right" href="#the-great-schism"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>It is the first release after &quot;The Great Schism&quot;, where several integrations are published separately.  These include:</p>
-        <ul>
-          <li><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
-          <li><a href="https://github.com/http4s/blaze">http4s-blaze-client</a></li>
-          <li><a href="https://github.com/http4s/blaze">http4s-blaze-server</a></li>
-          <li><a href="https://github.com/http4s/http4s-boopickle">http4s-boopickle</a></li>
-          <li><a href="https://github.com/http4s/http4s-dropwizard-metrics">http4s-dropwizard-metrics</a></li>
-          <li><a href="https://github.com/http4s/http4s-jetty">http4s-jetty-client</a></li>
-          <li><a href="https://github.com/http4s/http4s-jetty">http4s-jetty-server</a></li>
-          <li><a href="https://github.com/http4s/http4s-okhttp-client">http4s-okhttp-client</a></li>
-          <li><a href="https://github.com/http4s/http4s-play-json">http4s-play-json</a></li>
-          <li><a href="https://github.com/http4s/http4s-prometheus-metrics">http4s-prometheus-metrics</a></li>
-          <li><a href="https://github.com/http4s/http4s-scala-xml">http4s-scala-xml</a></li>
-          <li><a href="https://github.com/http4s/http4s-scalatags">http4s-scalatags</a></li>
-          <li><a href="https://github.com/http4s/http4s-servlet">http4s-servlet</a></li>
-          <li><a href="https://github.com/http4s/http4s-tomcat">http4s-tomcat</a></li>
-          <li><a href="https://github.com/http4s/http4s-twirl">http4s-twirl</a></li>
-        </ul>
-        <p>Be aware that versions of these modules will be untethered from the core version they depend on.
-        * These modules may not be republished with each core patch release, but will still work on the latest 0.23 core.
-        * Some of these modules will see breaking releases to upgrade their integrated dependencies, based on the 0.23 core.  These upgrades could previously not be undertaken without a breaking change of the entire http4s ecosystem.
-        * All modules will continue to adhere to <a href="https://www.scala-lang.org/blog/2021/02/16/preventing-version-conflicts-with-versionscheme.html#early-semver-and-sbt-version-policy">early semver</a>.
-        * We recommend <a href="https://github.com/rtimush/sbt-updates">sbt-updates</a> or <a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> for all your dependencies, and heeding SBT&#39;s eviction warnings.
-        * We would like to welcome new maintainers to help out on each of these modules.  Look for the &quot;help wanted&quot; label in these repos.</p>
-        
-        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
-        
-        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <ul>
-          <li>Make MimeDB go away on JS by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6211">https://github.com/http4s/http4s/pull/6211</a></li>
-          <li>Update sbt-scalajs, scalajs-compiler, ... to 1.10.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6245">https://github.com/http4s/http4s/pull/6245</a></li>
-          <li>Use thread unsafe &quot;lazy val&quot;s to avoid deadlocks initializing MimeDB by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6248">https://github.com/http4s/http4s/pull/6248</a></li>
-          <li>Move <code>withContentLength</code> from Message to  Headers by @bplommer in <a href="https://github.com/http4s/http4s/pull/6285">https://github.com/http4s/http4s/pull/6285</a></li>
-          <li>Follow links when accessing file attributes in <code>StaticFile</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6368">https://github.com/http4s/http4s/pull/6368</a></li>
-          <li>Use <code>ce.std.Random</code> for <code>Multiparts</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6283">https://github.com/http4s/http4s/pull/6283</a></li>
-          <li>Add max bytes handling to <code>Message#toStrict</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6316">https://github.com/http4s/http4s/pull/6316</a>
-          ### http4s-server</li>
-          <li>Relax ContextRouter&#39;s constraints by @danicheg in <a href="https://github.com/http4s/http4s/pull/6164">https://github.com/http4s/http4s/pull/6164</a></li>
-          <li>Use CE <code>Random.javaSecuritySecureRandom</code> instead of Java <code>SecureRandom</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6252">https://github.com/http4s/http4s/pull/6252</a></li>
-          <li>httpRoutes and httpApp shortcuts for Timeout middleware by @voidcontext in <a href="https://github.com/http4s/http4s/pull/6366">https://github.com/http4s/http4s/pull/6366</a></li>
-          <li>httpRoutes and httpApp shortcuts for Throttle middleware by @voidcontext in <a href="https://github.com/http4s/http4s/pull/6365">https://github.com/http4s/http4s/pull/6365</a></li>
-          <li>Highlight the uncancelable behavior in <code>Timeout</code> middleware scaladoc by @danicheg in <a href="https://github.com/http4s/http4s/pull/6407">https://github.com/http4s/http4s/pull/6407</a></li>
-          <li>Tweak <code>Timeout</code> middleware scaladoc by @danicheg in <a href="https://github.com/http4s/http4s/pull/6409">https://github.com/http4s/http4s/pull/6409</a>
-          ### http4s-client</li>
-          <li>Fix <code>Client#translate</code> and relax constraints by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6139">https://github.com/http4s/http4s/pull/6139</a></li>
-          <li>Add AttemptCountKey - Allow other middlewares access to what retry count we are on. by @ChristopherDavenport in <a href="https://github.com/http4s/http4s/pull/6367">https://github.com/http4s/http4s/pull/6367</a></li>
-          <li>Drain response body in <code>DefaultClient#defaultOnError</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6376">https://github.com/http4s/http4s/pull/6376</a>
-          ### http4s-ember-core</li>
-          <li>Avoid array copies when splitting chunks in ember chunked decoder by @wemrysi in <a href="https://github.com/http4s/http4s/pull/6210">https://github.com/http4s/http4s/pull/6210</a>
-          ### http4s-ember-server</li>
-          <li>Resolve broken filterPingPongs using WebSocketBuild2 with Ember by @CharlesAHunt in <a href="https://github.com/http4s/http4s/pull/6036">https://github.com/http4s/http4s/pull/6036</a>
-          ### Documentation</li>
-          <li>Fixed Dead Links in further-reading.md by @dragonfly-ai in <a href="https://github.com/http4s/http4s/pull/6203">https://github.com/http4s/http4s/pull/6203</a></li>
-          <li>Tweak badges in the readme by @danicheg in <a href="https://github.com/http4s/http4s/pull/6280">https://github.com/http4s/http4s/pull/6280</a></li>
-          <li>Mark the 0.22 version as EOL at the website by @danicheg in <a href="https://github.com/http4s/http4s/pull/6334">https://github.com/http4s/http4s/pull/6334</a></li>
-          <li>Tweak the contributing guide by @danicheg in <a href="https://github.com/http4s/http4s/pull/6338">https://github.com/http4s/http4s/pull/6338</a></li>
-          <li>Add On Air Entertainment to list of adopters. by @OnAirEntertainment-Scala in <a href="https://github.com/http4s/http4s/pull/6385">https://github.com/http4s/http4s/pull/6385</a>
-          ### Behind the scenes</li>
-          <li>Use parasitic EC in the blaze for Scala 2.13 by @danicheg in <a href="https://github.com/http4s/http4s/pull/6145">https://github.com/http4s/http4s/pull/6145</a></li>
-          <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6143">https://github.com/http4s/http4s/pull/6143</a></li>
-          <li>Release v0.21.33 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6147">https://github.com/http4s/http4s/pull/6147</a></li>
-          <li>Merge 0.22 to 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6154">https://github.com/http4s/http4s/pull/6154</a></li>
-          <li>Update cats-effect, cats-effect-laws, ... to 3.3.8 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6157">https://github.com/http4s/http4s/pull/6157</a></li>
-          <li>Remove sbt-scalajs-crossproject dependency by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6174">https://github.com/http4s/http4s/pull/6174</a></li>
-          <li>Move WebSocketHandshake to blaze-core by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6183">https://github.com/http4s/http4s/pull/6183</a></li>
-          <li>Update cats-effect, cats-effect-laws, ... to 3.3.9 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6185">https://github.com/http4s/http4s/pull/6185</a></li>
-          <li>Merge 0.22 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6178">https://github.com/http4s/http4s/pull/6178</a></li>
-          <li>Get sbt-doctest from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6194">https://github.com/http4s/http4s/pull/6194</a></li>
-          <li>Merge 0.22 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6192">https://github.com/http4s/http4s/pull/6192</a></li>
-          <li>Merge 0.22 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6196">https://github.com/http4s/http4s/pull/6196</a></li>
-          <li>Update fs2-core, fs2-io, ... to 3.2.7 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6209">https://github.com/http4s/http4s/pull/6209</a></li>
-          <li>Update http4s-crypto to 0.2.3 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6216">https://github.com/http4s/http4s/pull/6216</a></li>
-          <li>Update cats-parse from 0.22 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6226">https://github.com/http4s/http4s/pull/6226</a></li>
-          <li>Tweak <code>async</code> usage in <code>Http1Connection</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6208">https://github.com/http4s/http4s/pull/6208</a></li>
-          <li>Merge 0.22 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6227">https://github.com/http4s/http4s/pull/6227</a></li>
-          <li>Update cats-effect, cats-effect-laws, ... to 3.3.10 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6231">https://github.com/http4s/http4s/pull/6231</a></li>
-          <li>Ignore <code>scala-xml</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6236">https://github.com/http4s/http4s/pull/6236</a></li>
-          <li>Remove war example by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6238">https://github.com/http4s/http4s/pull/6238</a></li>
-          <li>Update cats-effect, cats-effect-laws, ... to 3.3.11 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6251">https://github.com/http4s/http4s/pull/6251</a></li>
-          <li>Move JS size-test-app to Test scope, fix flaky CI OOMs? by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6255">https://github.com/http4s/http4s/pull/6255</a></li>
-          <li>Server - Chunk Aggregator Middleware: code and docs by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6258">https://github.com/http4s/http4s/pull/6258</a></li>
-          <li>Server - JsonP Middleware - extract auxiliary function. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6244">https://github.com/http4s/http4s/pull/6244</a></li>
-          <li>Move <code>SegmentEncoderSuite</code> to correct location by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6265">https://github.com/http4s/http4s/pull/6265</a></li>
-          <li>Avoid Alternative-Guard by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6259">https://github.com/http4s/http4s/pull/6259</a></li>
-          <li>Ignore <code>java-websocket</code> updates by @danicheg in <a href="https://github.com/http4s/http4s/pull/6275">https://github.com/http4s/http4s/pull/6275</a></li>
-          <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6278">https://github.com/http4s/http4s/pull/6278</a></li>
-          <li>Spin off servlet, jetty-server, and tomcat modules by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6240">https://github.com/http4s/http4s/pull/6240</a></li>
-          <li>Update scalacheck to 1.16.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6264">https://github.com/http4s/http4s/pull/6264</a></li>
-          <li>Update discipline-core to 1.5.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6303">https://github.com/http4s/http4s/pull/6303</a></li>
-          <li>Merge <code>series/0.22</code> into <code>series/0.23</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6310">https://github.com/http4s/http4s/pull/6310</a></li>
-          <li>Tweak unused args suppressing by @danicheg in <a href="https://github.com/http4s/http4s/pull/6300">https://github.com/http4s/http4s/pull/6300</a></li>
-          <li>Remove update ignorings in Scala Steward conf for the 0.23 by @danicheg in <a href="https://github.com/http4s/http4s/pull/6333">https://github.com/http4s/http4s/pull/6333</a></li>
-          <li>Update log4cats-core, log4cats-noop, ... to 2.3.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6340">https://github.com/http4s/http4s/pull/6340</a></li>
-          <li>Merge 0.22 -&gt; 0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6343">https://github.com/http4s/http4s/pull/6343</a></li>
-          <li>Update scalacheck-effect, ... to 1.0.4 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6345">https://github.com/http4s/http4s/pull/6345</a></li>
-          <li>Update scodec-bits to 1.1.31 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6330">https://github.com/http4s/http4s/pull/6330</a></li>
-          <li>Server - ContextRouter - Simpler Code  by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6241">https://github.com/http4s/http4s/pull/6241</a></li>
-          <li>Fix test name by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6351">https://github.com/http4s/http4s/pull/6351</a></li>
-          <li>Use UTC for JS tests, remove tzdb test dep by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6350">https://github.com/http4s/http4s/pull/6350</a></li>
-          <li>Delete servlet and jetty-server srcs by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6354">https://github.com/http4s/http4s/pull/6354</a></li>
-          <li>Bye-bye boopickle by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6353">https://github.com/http4s/http4s/pull/6353</a></li>
-          <li>Actually delete boopickle srcs by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6359">https://github.com/http4s/http4s/pull/6359</a></li>
-          <li>Update log4cats-core, log4cats-noop, ... to 2.3.1 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6362">https://github.com/http4s/http4s/pull/6362</a></li>
-          <li>Only create scalafix job for 2.13 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6361">https://github.com/http4s/http4s/pull/6361</a></li>
-          <li>Update scala3-library, ... to 3.1.2 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6291">https://github.com/http4s/http4s/pull/6291</a></li>
-          <li>Update netty-buffer, netty-codec-http to 4.1.77.Final in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6364">https://github.com/http4s/http4s/pull/6364</a></li>
-          <li>Ember-Core: merge evalMap blocks in writeLoop by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6162">https://github.com/http4s/http4s/pull/6162</a></li>
-          <li>Ember-Core microptimisation: avoid lists by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6161">https://github.com/http4s/http4s/pull/6161</a></li>
-          <li>Publish internal scalafixes by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6268">https://github.com/http4s/http4s/pull/6268</a></li>
-          <li>Bye-bye scala-xml by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6352">https://github.com/http4s/http4s/pull/6352</a></li>
-          <li>Parallelize some requests in <code>RetrySuite</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6380">https://github.com/http4s/http4s/pull/6380</a></li>
-          <li>Update ip4s-core, ip4s-test-kit to 3.1.3 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6382">https://github.com/http4s/http4s/pull/6382</a></li>
-          <li>Promote using of <code>Headers#contains</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6386">https://github.com/http4s/http4s/pull/6386</a></li>
-          <li>Use <code>GenTemporal</code> for proceeding with timeouts by @danicheg in <a href="https://github.com/http4s/http4s/pull/6391">https://github.com/http4s/http4s/pull/6391</a></li>
-          <li>JS refactoring in preparation for client backend schism by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6390">https://github.com/http4s/http4s/pull/6390</a></li>
-          <li>Use <code>parTraverse</code> in tests by @danicheg in <a href="https://github.com/http4s/http4s/pull/6393">https://github.com/http4s/http4s/pull/6393</a></li>
-          <li>Update locales-minimal-en_us-db to 1.4.0 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6399">https://github.com/http4s/http4s/pull/6399</a></li>
-          <li>Update circe-core, circe-generic, ... to 0.14.2 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6398">https://github.com/http4s/http4s/pull/6398</a></li>
-          <li>Publish <code>http4s-client-testkit</code> module by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6394">https://github.com/http4s/http4s/pull/6394</a></li>
-          <li>Make Node.js interop APIs private by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6404">https://github.com/http4s/http4s/pull/6404</a></li>
-          <li>Update cats-effect, cats-effect-laws, ... to 3.3.12 in series/0.23 by @scala-steward in <a href="https://github.com/http4s/http4s/pull/6406">https://github.com/http4s/http4s/pull/6406</a></li>
-          <li>Ember Core: write readLoop without Streams. by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6163">https://github.com/http4s/http4s/pull/6163</a>
-          ### http4s-circe</li>
-          <li>Update to circe 0.14.2 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6401">https://github.com/http4s/http4s/pull/6401</a></li>
-        </ul>
-        
-        <h2 id="new-contributors-2" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-4" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-4"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
           <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>

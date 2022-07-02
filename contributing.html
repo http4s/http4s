@@ -381,6 +381,10 @@ def fromLong(l: Long): ParseResult[Foo] =
           testing.</li>
           <li>For assertions in tests using <code>assertEquals(a, b)</code> is preferable to <code>assert(a == b)</code>. 
           It brings nice diffs on assertions failures. For more details, see the <a href="https://scalameta.org/munit/docs/assertions.html#assertequals">MUnit docs</a>.</li>
+          <li>For time sensitive tests, where the passing of time is a factor in the logic that the
+          test is checking on, and that operates in the <code>IO</code> context,  consider using the mock 
+          runtime provided by <code>cats.effect.testkit.TestControl</code>. For more details check out the
+          docs on <a href="https://typelevel.org/cats-effect/docs/core/test-runtime">TestControl from cats.effect.testkit</a></li>
         </ul>
         
         <h2 id="documentation" class="section">Documentation<a class="anchor-link right" href="#documentation"><i class="icofont-laika">&#xef71;</i></a></h2>
