@@ -1,6 +1,9 @@
 # #1359 Introduce scalafmt
 958753a3acdff6160ff65b3e74e62a1b585af568
 
+# #1176 Update scalafmt-core to 3.5.8
+fdfc49e2f284e147a969ca131fbc89b44a86169d
+
 # #5534 update scalafmt
 c303c258f8c79dd1b2e179c1843c39ad3f3fb9f3
 4b5d166c9a50ea627578d3d1dd260e5edf9e2551
