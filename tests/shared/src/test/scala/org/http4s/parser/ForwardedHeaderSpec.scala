@@ -113,8 +113,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
   }
 
   test("FORWARDED should fail to parseunknown parameter") {
-
-    val values = Seq(
+    val values = List(
       "bye=1.2.3.4",
       "four=_foobar",
       "ghost=foo.bar",
@@ -127,11 +126,11 @@ class ForwardedHeaderSpec extends Http4sSuite {
         case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
-
   }
+
   test("FORWARDED should fail to parseunquoted non-token") {
     val values =
-      Seq(
+      List(
         "by=[1:2:3::4:5:6]",
         "for=_abra:_kadabra",
         "host=foo.bar:123",
