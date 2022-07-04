@@ -145,10 +145,8 @@ class UrlFormSpec extends Http4sSuite {
     test("UrlForm should construct consistently from kv-pairs or and Map[String, Chain[String]]") {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
-        val flattened = for {
-          (k, vs) <- map.toSeq
-          v <- vs.toList
-        } yield k -> v
+        val flattened =
+          map.toList.flatMap(x => x._2.toList.fproductLeft(_ => x._1))
         UrlForm(flattened: _*) == UrlForm(
           CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
         )
@@ -160,12 +158,8 @@ class UrlFormSpec extends Http4sSuite {
     ) {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
-        val flattened = for {
-          kv <- Chain.fromSeq(map.toSeq)
-          k = kv._1
-          vs = kv._2
-          v <- Chain.fromSeq(vs.toList)
-        } yield k -> v
+        val flattened =
+          Chain.fromSeq(map.toList.flatMap(x => x._2.toList.fproductLeft(_ => x._1)))
         UrlForm.fromChain(flattened) == UrlForm(
           CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
         )

@@ -26,13 +26,13 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
   private def hparse(value: String) = Authorization.parse(value)
 
   test("Authorization header should Parse a valid OAuth2 header") {
-    val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/".toSeq).mkString
+    val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/").mkString
     val h = Authorization(Credentials.Token(AuthScheme.Bearer, token + "="))
     assertEquals(hparse(h.value), Right(h))
   }
 
   test("Authorization header should Reject an invalid OAuth2 header") {
-    val invalidTokens = Seq("f!@", "=abc", "abc d")
+    val invalidTokens = List("f!@", "=abc", "abc d")
     invalidTokens.foreach { token =>
       val h = Authorization(Credentials.Token(AuthScheme.Bearer, token))
       val Left(_) = hparse(h.value)

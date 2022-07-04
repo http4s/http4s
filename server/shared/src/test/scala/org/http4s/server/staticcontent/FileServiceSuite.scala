@@ -257,7 +257,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
   }
 
   test("Return a 416 RangeNotSatisfiable on invalid range") {
-    val ranges = Seq(
+    val ranges = List(
       headers.Range(2, -1),
       headers.Range(2, 1),
       headers.Range(200),
@@ -266,7 +266,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
     )
     Files[IO].size(Path(defaultSystemPath) / "testresource.txt").flatMap { size =>
       val reqs = ranges.map(r => Request[IO](uri = uri"/testresource.txt").withHeaders(r))
-      reqs.toList.parTraverse_ { req =>
+      reqs.parTraverse_ { req =>
         routes.orNotFound(req).map(_.status).assertEquals(Status.RangeNotSatisfiable) *>
           routes
             .orNotFound(req)

@@ -275,7 +275,7 @@ package object oauth1 {
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
       F: MonadThrow[F],
       W: EntityDecoder[F, UrlForm],
-  ): F[(Request[F], immutable.Seq[(String, String)])] = {
+  ): F[(Request[F], Vector[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
