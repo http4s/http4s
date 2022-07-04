@@ -38,6 +38,7 @@ import org.scalacheck.Prop._
 import org.typelevel.ci._
 
 import java.nio.file.Paths
+import scala.collection.immutable.Seq
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSuite {
