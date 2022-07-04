@@ -65,10 +65,10 @@ class MultipartParserSuite extends Http4sSuite {
     if (str.isEmpty)
       Stream.empty
     else if (str.length <= limit)
-      Stream.emits(str.getBytes(charset).toSeq)
+      Stream.emits(str.getBytes(charset).toList)
     else {
       val (front, back) = str.splitAt(limit)
-      Stream.emits(front.getBytes(charset).toSeq) ++ unspool(back, limit, charset)
+      Stream.emits(front.getBytes(charset).toList) ++ unspool(back, limit, charset)
     }
 
   def multipartParserTests(
