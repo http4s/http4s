@@ -126,7 +126,7 @@ class UriSpec extends Http4sSuite {
           Left(
             ParseFailure(
               "Invalid URI",
-              "Error(20,NonEmptyList(EndOfString(20,25)))",
+              "Error(20, NonEmptyList(EndOfString(20,25)))",
             )
           ),
         )
