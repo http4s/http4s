@@ -210,14 +210,16 @@
         <p class="header"><a href="#">Changelog</a></p>
 
         <ul class="nav-list">
-          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
+          <li class="level1"><a href="#v1-0-0-m34-2022-07-05">v1.0.0-M34 (2022-07-05)</a></li>
           <li class="level2"><a href="#what-s-changed-1">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-1">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-14-2022-06-23">v0.22.14 (2022-06-23)</a></li>
-          <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-2">New Contributors</a></li>
           <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
-          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#what-s-changed-4">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-3">New Contributors</a></li>
           <li class="level2"><a href="#new-contributors-4">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-13-2022-05-20">v0.22.13 (2022-05-20)</a></li>
@@ -510,12 +512,34 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
-        <h1 id="v0-23-13-2022-06-25" class="section">v0.23.13 (2022-06-25)<a class="anchor-link right" href="#v0-23-13-2022-06-25"><i class="icofont-laika">&#xef71;</i></a></h1>
-        <p>This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.</p>
+        <h1 id="v1-0-0-m34-2022-07-05" class="section">v1.0.0-M34 (2022-07-05)<a class="anchor-link right" href="#v1-0-0-m34-2022-07-05"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.13.</p>
         
         <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-1" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Remove <code>CollectionCompat</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6508">https://github.com/http4s/http4s/pull/6508</a>
+          ### http4s-server</li>
+          <li>Address the entity model in the server&#39;s <code>RequestLogger</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6323">https://github.com/http4s/http4s/pull/6323</a></li>
+          <li>Fix regression of <code>Router#define</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6371">https://github.com/http4s/http4s/pull/6371</a></li>
+          <li>Relax <code>server.middleware.Caching</code> constraints by @danicheg in <a href="https://github.com/http4s/http4s/pull/6490">https://github.com/http4s/http4s/pull/6490</a>
+          ### http4s-client</li>
+          <li>Take into account the <code>Entity</code> model in the <code>ResponseLogger</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6319">https://github.com/http4s/http4s/pull/6319</a>
+          ### Behind the scenes</li>
+          <li>Merge 0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6430">https://github.com/http4s/http4s/pull/6430</a></li>
+          <li>vault, scala-java-time updates via 0.23 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6443">https://github.com/http4s/http4s/pull/6443</a></li>
+          <li>Ignore cats updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6472">https://github.com/http4s/http4s/pull/6472</a></li>
+          <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6499">https://github.com/http4s/http4s/pull/6499</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M33...v1.0.0-M34">https://github.com/http4s/http4s/compare/v1.0.0-M33...v1.0.0-M34</a></p>
+        
+        <h1 id="v0-23-13-2022-06-25" class="section">v0.23.13 (2022-06-25)<a class="anchor-link right" href="#v0-23-13-2022-06-25"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.</p>
+        
+        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Add <code>EntityDecoder[EventStream]</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6413">https://github.com/http4s/http4s/pull/6413</a></li>
           <li>Update to Vault 3.2.1 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6431">https://github.com/http4s/http4s/pull/6431</a></li>
@@ -588,9 +612,9 @@
         <h1 id="v0-22-14-2022-06-23" class="section">v0.22.14 (2022-06-23)<a class="anchor-link right" href="#v0-22-14-2022-06-23"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we&#39;ll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).</p>
         
-        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Fix Content-Disposition filename encoding by @leoniv in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
           <li>Add filename property to Content-Disposition by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6485">https://github.com/http4s/http4s/pull/6485</a>
@@ -612,9 +636,9 @@
         <p>This is the first 1.x release after &quot;The Great Schism&quot;, described in v0.23.12.  Because 1.0 isn&#39;t stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the &quot;Maintainers wanted!&quot; issue in the repository of interest.</p>
         <p>Additional to the below, this release includes all changes in v0.23.12.</p>
         
-        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-4" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-4"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-4" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Remove deprecated things by @danicheg in <a href="https://github.com/http4s/http4s/pull/6156">https://github.com/http4s/http4s/pull/6156</a></li>
           <li>Override <code>toString</code> for <code>Entity</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6168">https://github.com/http4s/http4s/pull/6168</a></li>
