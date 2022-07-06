@@ -146,7 +146,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
   lazy val params: Map[String, String] =
     multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
-  /** Map[String, Seq[String]] representation of the [[Query]]
+  /** `Map[String, Seq[String]` representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
