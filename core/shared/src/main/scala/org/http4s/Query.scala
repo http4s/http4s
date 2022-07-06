@@ -146,7 +146,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
   lazy val params: Map[String, String] =
     multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
-  /** Map[String, Seq[String]] representation of the [[Query]]
+  /** `Map[String, Seq[String]]` representation of the [[Query]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
@@ -158,7 +158,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-      m.toMap.view.mapValues(_.toList).toMap
+      m.view.mapValues(_.toList).toMap
     }
 
   override def equals(that: Any): Boolean =
