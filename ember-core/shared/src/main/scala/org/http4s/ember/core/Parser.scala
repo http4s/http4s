@@ -27,7 +27,6 @@ import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
 import scala.annotation.switch
-import scala.collection.mutable
 
 private[ember] object Parser {
 
@@ -43,7 +42,7 @@ private[ember] object Parser {
           else {
             read.flatMap {
               case Some(chunk) =>
-                val nextBuffer = combineArrays(currentBuffer, chunk.toArray)
+                val nextBuffer = appendByteArrays(currentBuffer, chunk)
                 recurseFind(nextBuffer, read, maxHeaderSize)(f)(idx)
               case None if currentBuffer.length > 0 =>
                 F.raiseError(EmberException.ReachedEndOfStream())
@@ -512,11 +511,11 @@ private[ember] object Parser {
     }
   }
 
-  private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
-    val buff = mutable.ArrayBuffer[A]()
-    buff.++=(a1)
-    buff.++=(a2)
-    buff.toArray
+  private[this] def appendByteArrays(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] = {
+    val res = new Array[Byte](a1.length + a2.size)
+    System.arraycopy(a1, 0, res, 0, a1.length)
+    a2.copyToArray(res, a1.length)
+    res
   }
 
   private[this] val space = ' '.toByte
