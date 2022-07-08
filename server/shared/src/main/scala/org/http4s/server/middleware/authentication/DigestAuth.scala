@@ -72,7 +72,7 @@ object DigestAuth {
         realm: String,
         password: String,
     ): F[String] =
-      DigestUtil.computeHa1(username, realm, password)
+      org.http4s.internal.DigestUtil.computeHa1(username, realm, password)
   }
   final class Md5HashedAuthStore[F[_], A](val func: String => F[Option[(A, String)]])
       extends AuthStore[F, A]
@@ -172,7 +172,7 @@ object DigestAuth {
   ): F[Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]]] =
     NonceKeeperF[F](nonceStaleTime, nonceCleanupInterval, nonceBits)
       .map { nonceKeeper =>
-        challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce _)
+        challengeInterop[F, A](realm, store, nonceKeeper.newNonce(), nonceKeeper.receiveNonce)
       }
 
   private[this] def challengeInterop[F[_], A](
@@ -249,7 +249,7 @@ object DigestAuth {
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, password)) =>
-                    DigestUtil
+                    org.http4s.internal.DigestUtil
                       .computeResponse(
                         method,
                         params("username"),
@@ -270,7 +270,7 @@ object DigestAuth {
                 authStore.func(params("username")).flatMap {
                   case None => F.pure(UserUnknown)
                   case Some((authInfo, ha1Hash)) =>
-                    DigestUtil
+                    org.http4s.internal.DigestUtil
                       .computeHashedResponse(
                         method,
                         ha1Hash,
