@@ -64,7 +64,7 @@ Connection
     PushPromise - Special Case only after Open or Half-closed(remote)
 
  */
-private[ember] class H2Client[F[_]: Async](
+private[ember] class H2Client[F[_]](
     sg: SocketGroup[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
@@ -77,7 +77,7 @@ private[ember] class H2Client[F[_]: Async](
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
     logger: Logger[F],
-) {
+)(implicit F: Async[F]) {
   import org.http4s._
   import H2Client._
 
@@ -164,37 +164,35 @@ private[ember] class H2Client[F[_]: Async](
       acc: ByteVector,
       socket: Socket[F],
       key: RequestKey,
-  ): Resource[F, H2Connection[F]] =
-    for {
-      socketAdd <- Resource.eval(RequestKey.getAddress(key))
-      _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
-      ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-      initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-      stateRef <- Resource.eval(
-        Concurrent[F].ref(
-          H2Connection.State(
-            defaultSettings,
-            defaultSettings.initialWindowSize.windowSize,
-            initialWriteBlock,
-            localSettings.initialWindowSize.windowSize,
-            0,
-            0,
-            false,
-            None,
-            None,
+  ): Resource[F, H2Connection[F]] = {
+    def createH2Connection: F[H2Connection[F]] =
+      for {
+        socketAdd <- RequestKey.getAddress(key)
+        _ <- socket.write(Chunk.byteVector(Preface.clientBV))
+        ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
+        initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
+        stateRef <-
+          Concurrent[F].ref(
+            H2Connection.State(
+              defaultSettings,
+              defaultSettings.initialWindowSize.windowSize,
+              initialWriteBlock,
+              localSettings.initialWindowSize.windowSize,
+              0,
+              0,
+              false,
+              None,
+              None,
+            )
           )
-        )
-      )
-      queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-      hpack <- Resource.eval(Hpack.create[F])
-      settingsAck <- Resource.eval(
-        Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      )
-      streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
-      // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      h2 = new H2Connection(
+        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+        hpack <- Hpack.create[F]
+        settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+        streamCreationLock <- cats.effect.std.Semaphore[F](1)
+        // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
+        created <- cats.effect.std.Queue.unbounded[F, Int]
+        closed <- cats.effect.std.Queue.unbounded[F, Int]
+      } yield new H2Connection(
         socketAdd.host,
         socketAdd.port,
         H2Connection.ConnectionType.Client,
@@ -211,61 +209,68 @@ private[ember] class H2Client[F[_]: Async](
         socket,
         logger,
       )
+
+    def clearClosed(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.closedStreams)
+        .repeat
+        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
+        .compile
+        .drain
+
+    def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
+      def processStream(i: Int): F[Unit] =
+        (for {
+          stream <- h2.mapRef.get.flatMap { streamMap =>
+            streamMap.get(i).liftTo(new ProtocolException("Stream missing for push promise"))
+          } // FOLD
+          // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
+          req <- stream.getRequest
+          resp = stream.getResponse.map(_.covary[F].withBodyStream(stream.readBody))
+          // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
+          outE <- onPushPromise(req, resp).flatMap {
+            case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Succeeded(f) => f
+          }.attempt
+          _ <- h2.mapRef.update(_ - i)
+          out <- outE.liftTo[F]
+        } yield out)
+          .onError { case e => logger.warn(e)(s"Error Handling Push Promise") }
+          .attempt
+          .void
+
+      Stream
+        .fromQueueUnterminated(h2.createdStreams)
+        .parEvalMap(10)(i => if (i % 2 == 0) processStream(i) else F.unit)
+        .compile
+        .drain
+        .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
+    }
+
+    def processSettings(h2: H2Connection[F]): F[Unit] = {
+      val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+      for {
+        _ <- h2.outgoing.offer(Chunk.singleton(localSetts))
+        settings <- h2.settingsAck.get.rethrow
+        _ <- h2.state.update(s =>
+          s.copy(
+            remoteSettings = settings,
+            writeWindow = s.remoteSettings.initialWindowSize.windowSize,
+          )
+        )
+      } yield ()
+    }
+
+    for {
+      h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
-      _ <-
-        Stream
-          .fromQueueUnterminated(closed)
-          .repeat
-          .evalMap { i =>
-            if (i % 2 != 0) ref.update(m => m - i)
-            else Applicative[F].unit
-          }
-          .compile
-          .drain
-          .background
-      _ <-
-        Stream
-          .fromQueueUnterminated(created)
-          .parEvalMap(10) { i =>
-            val f = if (i % 2 == 0) {
-              val x = for {
-                //
-                stream <- ref.get
-                  .map(_.get(i))
-                  .flatMap(
-                    _.liftTo(new ProtocolException("Stream missing for push promise"))
-                  ) // FOLD
-                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
-                req <- stream.getRequest
-
-                resp = stream.getResponse.map(
-                  _.covary[F].withBodyStream(stream.readBody)
-                )
-                // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
-                outE <- onPushPromise(req, resp).flatMap {
-                  case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Succeeded(f) => f
-                }.attempt
-                _ <- ref.update(_ - i)
-                out <- outE.liftTo[F]
-              } yield out
-              x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
-            } else Applicative[F].unit
-            f
-          }
-          .compile
-          .drain
-          .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
-          .background
-
-      _ <- Resource.eval(
-        h2.outgoing.offer(
-          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
-        )
-      )
+      _ <- clearClosed(h2).background
+      _ <- pullCreatedStreams(h2).background
+      _ <- Resource.eval(processSettings(h2))
     } yield h2
+  }
 
   def runHttp2Only(req: Request[F]): Resource[F, Response[F]] = {
     // Host And Port are required
