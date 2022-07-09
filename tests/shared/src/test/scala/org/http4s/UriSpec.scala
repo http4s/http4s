@@ -636,8 +636,8 @@ class UriSpec extends Http4sSuite {
       assertEquals(i, Map("param" -> Seq("value1", "value2")))
     }
     test("Uri.params.+ should replace an existing parameter with empty value") {
-      val i = Uri(query = Query.unsafeFromString("param=value")).params + (("param", Seq()))
-      assertEquals(i, Map("param" -> Seq()))
+      val i = Uri(query = Query.unsafeFromString("param=value")).params + (("param", List()))
+      assertEquals(i, Map("param" -> List()))
     }
   }
 
@@ -696,55 +696,55 @@ class UriSpec extends Http4sSuite {
       )
       assertEquals(
         u.multiParams,
-        Map("param1" -> Seq("value1", "value2", "value3"), "param2" -> Seq("value4", "value5")),
+        Map("param1" -> List("value1", "value2", "value3"), "param2" -> List("value4", "value5")),
       )
     }
     test("Uri.multiParams should find parameter with empty key and a value") {
       val u = Uri(query = Query.unsafeFromString("param1=&=value-of-empty-key&param2=value"))
       assertEquals(
         u.multiParams,
-        Map("" -> Seq("value-of-empty-key"), "param1" -> Seq(""), "param2" -> Seq("value")),
+        Map("" -> List("value-of-empty-key"), "param1" -> List(""), "param2" -> List("value")),
       )
     }
     test("Uri.multiParams should find first value of parameter with empty key") {
       assertEquals(
         Uri(query = Query.unsafeFromString("=value1&=value2")).multiParams,
-        Map("" -> Seq("value1", "value2")),
+        Map("" -> List("value1", "value2")),
       )
       assertEquals(
         Uri(query = Query.unsafeFromString("&=value1&=value2")).multiParams,
-        Map("" -> Seq("value1", "value2")),
+        Map("" -> List("value1", "value2")),
       )
       assertEquals(
         Uri(query = Query.unsafeFromString("&&&=value1&&&=value2&=&")).multiParams,
-        Map("" -> Seq("value1", "value2", "")),
+        Map("" -> List("value1", "value2", "")),
       )
     }
     test("Uri.multiParams should find parameter with empty key and without value") {
-      assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq()))
-      assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq()))
-      assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq()))
+      assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> List()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> List()))
+      assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> List()))
     }
     test("Uri.multiParams should find parameter with an empty value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=")).multiParams,
-        Map("param1" -> Seq("")),
+        Map("param1" -> List("")),
       )
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=&param2=")).multiParams,
-        Map("param1" -> Seq(""), "param2" -> Seq("")),
+        Map("param1" -> List(""), "param2" -> List("")),
       )
     }
     test("Uri.multiParams should find parameter with single value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1=value1&param2=value2")).multiParams,
-        Map("param1" -> Seq("value1"), "param2" -> Seq("value2")),
+        Map("param1" -> List("value1"), "param2" -> List("value2")),
       )
     }
     test("Uri.multiParams should find parameter without value") {
       assertEquals(
         Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-        Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
+        Map("param1" -> List(), "param2" -> List(), "param3" -> List()),
       )
     }
   }

@@ -401,23 +401,23 @@ final class Request[+F[_]] private (
   /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
+    * list will be empty. If the value is empty the the list contains an
     * empty string.
     *
     * =====Examples=====
     * <table>
     * <tr><th>Query String</th><th>Map</th></tr>
-    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
-    * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
-    * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
-    * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> List("v"))</code></td></tr>
+    * <tr><td><code>?param=</code></td><td><code>Map("param" -> List(""))</code></td></tr>
+    * <tr><td><code>?param</code></td><td><code>Map("param" -> List())</code></td></tr>
+    * <tr><td><code>?=value</code></td><td><code>Map("" -> List("value"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> List("v1","v2"), "p2" -> List("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  def multiParams: Map[String, Seq[String]] = uri.multiParams
+  def multiParams: Map[String, List[String]] = uri.multiParams
 
   /** View of the head elements of the URI parameters in query string.
     *
