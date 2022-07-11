@@ -39,6 +39,7 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -864,7 +865,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
     val strictEntityGen =
       http4sTestingGenForPureByteStream
-        .map(body => Entity.strict(body.compile.to(fs2.Chunk)))
+        .map(body => Entity.strict(body.compile.to(ByteVector)))
 
     val chunkedEntityGen =
       http4sTestingGenForPureByteStream

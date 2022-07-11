@@ -24,6 +24,7 @@ import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 import scala.annotation.switch
 import scala.collection.mutable
@@ -433,10 +434,10 @@ private[ember] object Parser {
       if (contentLength > 0) {
         if (buffer.length == contentLength) {
           val drain: Drain[F] = F.pure(Some(Array.emptyByteArray): Option[Array[Byte]])
-          F.pure(Entity.strict(Chunk.array(buffer)) -> drain)
+          F.pure(Entity.strict(ByteVector.view(buffer)) -> drain)
         } else if (buffer.length > contentLength) {
           val drain: Drain[F] = F.pure(Some(buffer.drop(contentLength.toInt)): Option[Array[Byte]])
-          F.pure(Entity.strict(Chunk.array(buffer, 0, contentLength.toInt)) -> drain)
+          F.pure(Entity.strict(ByteVector.view(buffer, 0, contentLength.toInt)) -> drain)
         } else {
           val unread = contentLength - buffer.length
           Ref.of[F, Option[Array[Byte]]](None).map { state =>
