@@ -19,8 +19,10 @@ package client
 package middleware
 
 import cats.effect._
+import cats.effect.std.Queue
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
+import org.scalacheck.effect.PropF.forAllF
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
@@ -63,6 +65,27 @@ class LoggerSuite extends Http4sSuite {
     val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
     val res = requestLoggerClient.expect[String](req)
     res.assertEquals(expectedBody)
+  }
+
+  private val configurableRequestLoggerClient =
+    (logBody: Boolean, logAction: Option[String => IO[Unit]]) =>
+      RequestLogger.apply[IO](true, logBody, _ => false, logAction)(
+        Client.fromHttpApp(testApp)
+      )
+
+  test("RequestLogger should log a Get for all values of logBody") {
+    forAllF { (logBody: Boolean) =>
+      val req = Request[IO](uri = uri"/request")
+      val message = "HTTP/1.1 GET /request Headers(Accept: text/*)"
+
+      for {
+        logger <- Queue.unbounded[IO, String]
+        _ <- logger.offer(message)
+        logAction = Some((actualMessage: String) => assertIO(logger.tryTake, Some(actualMessage)))
+        _ <- configurableRequestLoggerClient(logBody, logAction).successful(req)
+        remaining <- logger.tryTake
+      } yield assert(remaining.isEmpty, "logAction not called")
+    }
   }
 
   private val loggerApp =
