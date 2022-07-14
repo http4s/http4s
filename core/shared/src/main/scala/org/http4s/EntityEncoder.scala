@@ -147,14 +147,14 @@ object EntityEncoder {
   ): EntityEncoder.Pure[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
+  implicit val byteVectorEncoder: EntityEncoder.Pure[ByteVector] =
+    simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
+
   implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
     byteVectorEncoder.contramap(_.toByteVector)
 
   implicit val byteArrayEncoder: EntityEncoder.Pure[Array[Byte]] =
     byteVectorEncoder.contramap(ByteVector.view)
-
-  implicit def byteVectorEncoder[F[_]]: EntityEncoder[F, ByteVector] =
-    simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know
