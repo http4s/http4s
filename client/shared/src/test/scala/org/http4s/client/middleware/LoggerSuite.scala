@@ -76,7 +76,7 @@ class LoggerSuite extends Http4sSuite {
   test("RequestLogger should log a Get for all values of logBody") {
     forAllF { (logBody: Boolean) =>
       val req = Request[IO](uri = uri"/request")
-      val message = "HTTP/1.1 GET /request Headers(Accept: text/*)"
+      val message = "HTTP/1.1 GET /request Headers()"
 
       for {
         logger <- Queue.unbounded[IO, String]

@@ -90,9 +90,10 @@ object RequestLogger {
             // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
             val logPipe: Pipe[F, Byte, Byte] =
               _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                .onFinalizeWeak(logAtEnd)
 
-            client.run(req.pipeBodyThrough(logPipe))
+            val resp = client.run(req.pipeBodyThrough(logPipe))
+
+            resp.onFinalize(logAtEnd)
           }
         }
     }
