@@ -86,8 +86,7 @@ class LoggerSuite extends Http4sSuite {
       for {
         logger <- Queue.unbounded[IO, String]
         _ <- logger.offer(message)
-        _ <- configurableRequestLoggerClient(logBody, Some(logAction(logger)))
-          .successful(req)
+        _ <- configurableRequestLoggerClient(logBody, Some(logAction(logger))).successful(req)
         remaining <- logger.tryTake
       } yield assert(remaining.isEmpty, "logAction not called")
     }
