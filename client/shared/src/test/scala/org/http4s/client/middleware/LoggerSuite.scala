@@ -69,7 +69,7 @@ class LoggerSuite extends Http4sSuite {
 
   private val configurableRequestLoggerClient =
     (logBody: Boolean, logAction: Option[String => IO[Unit]]) =>
-      RequestLogger.apply[IO](true, logBody, _ => false, logAction)(
+      RequestLogger.apply[IO](true, logBody, logAction = logAction)(
         Client.fromHttpApp(testApp)
       )
 
