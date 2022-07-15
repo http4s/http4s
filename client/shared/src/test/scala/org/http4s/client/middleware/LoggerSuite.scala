@@ -76,13 +76,17 @@ class LoggerSuite extends Http4sSuite {
   test("RequestLogger should log a Get for all values of logBody") {
     forAllF { (logBody: Boolean) =>
       val req = Request[IO](uri = uri"/request")
-      val message = "HTTP/1.1 GET /request Headers()"
+      val message = "GET /request"
+      val logAction = (q: Queue[IO, String]) =>
+        (actualMessage: String) =>
+          q.tryTake.map(expectedSubstring =>
+            assert(expectedSubstring.exists(actualMessage.contains), "unexpected message logged")
+          )
 
       for {
         logger <- Queue.unbounded[IO, String]
         _ <- logger.offer(message)
-        logAction = Some((actualMessage: String) => assertIO(logger.tryTake, Some(actualMessage)))
-        _ <- configurableRequestLoggerClient(logBody, logAction).successful(req)
+        _ <- configurableRequestLoggerClient(logBody, Some(logAction(logger))).successful(req)
         remaining <- logger.tryTake
       } yield assert(remaining.isEmpty, "logAction not called")
     }
