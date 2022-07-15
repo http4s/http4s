@@ -19,7 +19,6 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.std.Queue
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF.forAllF
@@ -75,18 +74,22 @@ class LoggerSuite extends Http4sSuite {
   test("RequestLogger should log a Get for all values of logBody") {
     forAllF { (logBody: Boolean) =>
       val req = Request[IO](uri = uri"/request")
-      val message = "GET /request"
-      def logAction(q: Queue[IO, String])(actualMessage: String) =
-        q.tryTake.map(expectedSubstring =>
-          assert(expectedSubstring.exists(actualMessage.contains), "unexpected message logged")
-        )
+      val expectedMessageSubstring = "GET /request"
+      def logAction(logger: Deferred[IO, String])(actualMessage: String) =
+        logger
+          .complete(actualMessage)
+          .map(isFirstCompletion => assert(isFirstCompletion, "message was logged more than once"))
 
       for {
-        logger <- Queue.unbounded[IO, String]
-        _ <- logger.offer(message)
+        logger <- IO.deferred[String]
         _ <- configurableRequestLoggerClient(logBody, Some(logAction(logger))).successful(req)
-        remaining <- logger.tryTake
-      } yield assert(remaining.isEmpty, "logAction not called")
+        actualMessage <- logger.tryGet
+      } yield actualMessage.fold(fail("Nothing was logged"))(m =>
+        assert(
+          m.contains(expectedMessageSubstring),
+          s"$m did not contain $expectedMessageSubstring",
+        )
+      )
     }
   }
 
