@@ -18,7 +18,6 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Ref
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -79,31 +78,30 @@ object RequestLogger {
         Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
-          (Deferred.apply[F, Unit], Ref[F].of(Vector.empty[Chunk[Byte]])).mapN {
-            case (shouldLog, vec) =>
-              val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+          (F.deferred[Unit], F.ref(Vector.empty[Chunk[Byte]])).mapN { case (shouldLog, vec) =>
+            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-              val logOnceAtEnd: F[Unit] = shouldLog.complete(()).flatMap {
-                case true =>
-                  logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                    F.delay(logger.error(t)("Error logging request body"))
-                  }
-                case _ => F.unit
-              }
+            val logOnceAtEnd: F[Unit] = shouldLog.complete(()).flatMap {
+              case true =>
+                logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                  F.delay(logger.error(t)("Error logging request body"))
+                }
+              case _ => F.unit
+            }
 
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-              val logPipe: Pipe[F, Byte, Byte] =
-                _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                  .onFinalizeWeak(logOnceAtEnd)
+            // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+            val logPipe: Pipe[F, Byte, Byte] =
+              _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                .onFinalizeWeak(logOnceAtEnd)
 
-              val resp = client.run(req.pipeBodyThrough(logPipe))
+            val resp = client.run(req.pipeBodyThrough(logPipe))
 
-              // If the request body was not consumed (ex: bodiless GET)
-              // the second best we can do is log on the response body finalizer
-              // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
-              resp
-                .map[Response[F]](r => r.withBodyStream(r.body.onFinalizeWeak(logOnceAtEnd)))
-                .onFinalize(logOnceAtEnd)
+            // If the request body was not consumed (ex: bodiless GET)
+            // the second best we can do is log on the response body finalizer
+            // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
+            resp
+              .map[Response[F]](r => r.withBodyStream(r.body.onFinalizeWeak(logOnceAtEnd)))
+              .onFinalize(logOnceAtEnd)
           }
         }
     }
