@@ -79,21 +79,31 @@ object RequestLogger {
         Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
-          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+          (Deferred.apply[F, Unit], Ref[F].of(Vector.empty[Chunk[Byte]])).mapN {
+            case (shouldLog, vec) =>
+              val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-            val logAtEnd: F[Unit] =
-              logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                F.delay(logger.error(t)("Error logging request body"))
+              val logOnceAtEnd: F[Unit] = shouldLog.complete(()).flatMap {
+                case true =>
+                  logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                    F.delay(logger.error(t)("Error logging request body"))
+                  }
+                case _ => F.unit
               }
 
-            // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-            val logPipe: Pipe[F, Byte, Byte] =
-              _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+              val logPipe: Pipe[F, Byte, Byte] =
+                _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
+                  .onFinalizeWeak(logOnceAtEnd)
 
-            val resp = client.run(req.pipeBodyThrough(logPipe))
+              val resp = client.run(req.pipeBodyThrough(logPipe))
 
-            resp.onFinalize(logAtEnd)
+              // If the request body was not consumed (ex: bodiless GET)
+              // the second best we can do is log on the response body finalizer
+              // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
+              resp
+                .map[Response[F]](r => r.withBodyStream(r.body.onFinalizeWeak(logOnceAtEnd)))
+                .onFinalize(logOnceAtEnd)
           }
         }
     }
