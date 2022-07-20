@@ -54,7 +54,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
     }
   }
   test("Node fromString should fail to parse invalid node definitions") {
-    val invalidNodes = Seq(
+    val invalidNodes = List(
       "1.2.3", // incorrect IPv4
       "1.2.3.4.5", // incorrect IPv4
       "1.2.3.4.", // dot after IPv4
@@ -183,7 +183,7 @@ class ForwardedSuite extends munit.ScalaCheckSuite with ForwardedAuxiliaryGenera
     }
   }
   test("Host fromUri should fail to parse invalid host definitions") {
-    val invalidHosts = Seq(
+    val invalidHosts = List(
       "aaa.bbb:12:34", // two colons
       "aaa.bbb:65536", // port number exceeds the maximum
       "aaa.bbb:a12", // port is not a number
