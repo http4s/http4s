@@ -68,7 +68,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
     }
 
   test("handle an empty body") {
-    checkRoutesResponse(httpRoutes(Stream.empty[Nothing], Nil)) { response =>
+    checkRoutesResponse(httpRoutes(Stream.empty, Nil)) { response =>
       response.body.compile.toVector.map(_.isEmpty && response.contentLength.isEmpty)
     }.assert
   }
