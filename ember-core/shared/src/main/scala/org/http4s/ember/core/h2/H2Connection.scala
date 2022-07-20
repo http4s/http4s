@@ -18,7 +18,6 @@ package org.http4s.ember.core.h2
 
 import cats._
 import cats.effect._
-import cats.effect.kernel.Outcome
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
@@ -192,35 +191,48 @@ private[h2] class H2Connection[F[_]](
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
-  def readLoop: F[Unit] = {
-    def connectionTerminated: String = s"Connection $host:$port readLoop Terminated"
-    val readFromSocket: F[Option[Chunk[Byte]]] =
-      socket.read(localSettings.initialWindowSize.windowSize)
-
-    def readNextFrame(acc: ByteVector): F[Option[(H2Frame, ByteVector)]] =
+  def readLoop: Stream[F, Nothing] = {
+    def p(acc: ByteVector): Pull[F, H2Frame, Unit] =
       if (acc.isEmpty) {
-        readFromSocket.flatMap {
-          case Some(chunk) => readNextFrame(chunk.toByteVector)
+        Pull.eval(socket.read(localSettings.initialWindowSize.windowSize)).flatMap {
+          case Some(chunk) => p(chunk.toByteVector)
           case None =>
-            logger.debug(s"$connectionTerminated with empty").as(None)
+            Pull.eval(
+              logger.debug(s"Connection $host:$port readLoop Terminated with empty")
+            ) >> Pull.done
         }
-      } else
+      } else {
         H2Frame.RawFrame.fromByteVector(acc) match {
           case Some((raw, leftover)) =>
             H2Frame.fromRaw(raw) match {
-              case Right(frame) => F.pure(Some((frame, leftover)))
+              case Right(frame) =>
+                Pull.output1(frame) >>
+                  p(leftover)
               case Left(e) =>
-                logger.warn(s"$connectionTerminated invalid Raw to Frame $e") >>
-                  goAway(e) >> F.pure(None)
+                Pull.eval(
+                  logger.warn(s"Connection $host:$port readLoop Terminated invalid Raw to Frame $e")
+                ) >>
+                  Pull.eval(goAway(e)) >>
+                  Pull.done
             }
           case None =>
-            readFromSocket.flatMap {
-              case Some(chunk) => readNextFrame(acc ++ chunk.toByteVector)
-              case None => logger.debug(s"$connectionTerminated with $acc").as(None)
+            Pull.eval(socket.read(localSettings.initialWindowSize.windowSize)).flatMap {
+              case Some(chunk) =>
+                p(acc ++ chunk.toByteVector)
+              case None =>
+                //
+                Pull.eval(
+                  logger.debug(s"Connection $host:$port readLoop Terminated with $acc")
+                ) >> Pull.done
             }
-        }
 
-    def processFrame(frame: H2Frame, s: H2Connection.State[F]): F[Unit] = (frame, s) match {
+        }
+      }
+    p(acc).stream
+  }
+    .evalTapChunk(frame => logger.debug(s"$host:$port Read - $frame"))
+    .evalMapChunk(f => state.get.map(s => (f, s)))
+    .evalTapChunk {
       // Headers and Continuation Frames are Stateful
       // Headers if not closed MUST
       case (
@@ -518,28 +530,18 @@ private[h2] class H2Connection[F[_]](
         else Applicative[F].unit // We Do Nothing with these presently
       case (H2Frame.Unknown(_), _) => Applicative[F].unit // Ignore Unknown Frames
     }
-
-    def readLoopAux(acc: ByteVector): F[Unit] =
-      readNextFrame(acc).flatMap {
-        case Some((frame, nacc)) =>
-          logger.debug(s"$host:$port Read - $frame") >>
-            state.get.flatMap(processFrame(frame, _)) >>
-            readLoopAux(nacc)
-        case None => F.unit
-      }
-
-    F.guaranteeCase(readLoopAux(acc)) {
-      case Outcome.Errored(H2Connection.KillWithoutMessage()) =>
+    .drain
+    .onFinalizeCase[F] {
+      case Resource.ExitCase.Errored(H2Connection.KillWithoutMessage()) =>
         logger.debug(s"ReadLoop has received that is should kill") >>
           state.update(s => s.copy(closed = true))
-      case Outcome.Errored(e) =>
+      case Resource.ExitCase.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
           goAway(H2Error.InternalError) >>
           state.update(s => s.copy(closed = true))
 
       case _ => state.update(s => s.copy(closed = true))
     }
-  }
 
 }
 
