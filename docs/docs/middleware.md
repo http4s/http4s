@@ -5,7 +5,7 @@ the `Request` sent to service, and/or the `Response` returned by the service. In
 some cases, such as [Authentication], middleware may even prevent the service
 from being called.
 
-At its most basic, middleware is simply a function that takes one service
+At its most basic, middleware is a function that takes one service
 and returns another. The middleware function can take any additional parameters 
 it needs to perform its task. Let's look at a simple example.
 
@@ -110,8 +110,8 @@ newService.orNotFound(badRequest).unsafeRunSync()
 
 Let's consider Authentication middleware as an example. Authentication
 middleware is a function that takes `AuthedRoutes[F]` 
-(an alias for `Kleisli[OptionT[F, *], AuthedRequest[F, T], Response[F]]`) 
-and returns `HttpRoutes[F]` (an alias for `Kleisli[OptionT[F, *], Request[F], Response[F]]`). 
+(that translates to `AuthedRequest[F, T] => F[Option[Response[F]]]`) 
+and returns `HttpRoutes[F]` (that translates to `Request[F, T] => F[Option[Response[F]]]`). 
 There is a type defined for this in the `http4s.server` package:
 
 ```scala
