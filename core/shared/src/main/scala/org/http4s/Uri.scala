@@ -55,6 +55,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => JCharset}
 import scala.collection.immutable
 import scala.math.Ordered
+import scala.util.hashing.MurmurHash3
 
 /** Representation of the [[Request]] URI
   *
@@ -342,11 +343,15 @@ object Uri extends UriPlatform {
     override def hashCode(): Int =
       // this prevents hashcode clashing when two Paths have `absolute` and `endWithSlash`
       // asymmetric values, i.e. path1 (absolute = true, endWithSlash = false), path2 (absolute = false, endWithSlash = true)
-      31 * (
-        31 * (
-          31 * endsWithSlash.##
-        ) + absolute.##
-      ) + segments.##
+      {
+        var hash =
+          MurmurHash3.mix(MurmurHash3.productSeed, "Uri.Path".##)
+
+        hash = MurmurHash3.mix(hash, segments.##)
+        hash = MurmurHash3.mix(hash, absolute.##)
+        hash = MurmurHash3.mix(hash, endsWithSlash.##)
+        MurmurHash3.finalizeHash(hash, 3)
+      }
 
     def render(writer: Writer): writer.type = {
       val start = if (absolute) "/" else ""
