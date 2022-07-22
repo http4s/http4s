@@ -339,12 +339,14 @@ object Uri extends UriPlatform {
     private def doEquals(path: Path): Boolean =
       this.segments == path.segments && path.absolute == this.absolute && path.endsWithSlash == this.endsWithSlash
 
-    override def hashCode(): Int = {
-      var hash = segments.hashCode()
-      hash += 31 * absolute.hashCode()
-      hash += 31 * endsWithSlash.hashCode()
-      hash
-    }
+    override def hashCode(): Int =
+      // this prevents hashcode clashing when two Paths have `absolute` and `endWithSlash`
+      // asymmetric values, i.e. path1 (absolute = true, endWithSlash = false), path2 (absolute = false, endWithSlash = true)
+      31 * (
+        31 * (
+          31 * endsWithSlash.##
+        ) + absolute.##
+      ) + segments.##
 
     def render(writer: Writer): writer.type = {
       val start = if (absolute) "/" else ""
