@@ -45,5 +45,9 @@ private[http4s] trait BackendBuilder[F[_], A] {
     * [[cats.effect.Resource]] or [[fs2.Stream]] is not tenable.
     * [[resource]] or [[stream]] is recommended wherever possible.
     */
+  @deprecated(
+    "Use manually called '.resource.allocated' instead. Will be removed from public API in 1.0.",
+    "0.23.14",
+  )
   def allocated: F[(A, F[Unit])] = resource.allocated
 }
