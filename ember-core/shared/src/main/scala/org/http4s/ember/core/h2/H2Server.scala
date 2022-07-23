@@ -244,8 +244,6 @@ private[ember] object H2Server {
         queue.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
       )
       _ <- h2.readLoop.background
-
-      _ <- Resource.eval(h2.settingsAck.get.rethrow)
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> created.offer(1))
