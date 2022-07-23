@@ -126,7 +126,7 @@ class UriSpec extends Http4sSuite {
           Left(
             ParseFailure(
               "Invalid URI",
-              "Error(20,NonEmptyList(EndOfString(20,25)))",
+              "Error(20, NonEmptyList(EndOfString(20,25)))",
             )
           ),
         )
@@ -519,7 +519,7 @@ class UriSpec extends Http4sSuite {
        * URI.fromString fails for:
        * - "//example.org/scheme-relative/URI/with/absolute/path/to/resource.txt",
        */
-      val examples = Seq(
+      val examples = List(
         "http://de.wikipedia.org/wiki/Uniform_Resource_Identifier",
         "ftp://ftp.is.co.za/rfc/rfc1808.txt",
         "geo:48.33,14.122;u=22.5",
@@ -630,14 +630,14 @@ class UriSpec extends Http4sSuite {
         Uri(query = Query.unsafeFromString("param=value")).params + (
           (
             "param",
-            Seq("value1", "value2"),
+            List("value1", "value2"),
           ),
         )
-      assertEquals(i, Map("param" -> Seq("value1", "value2")))
+      assertEquals(i, Map("param" -> List("value1", "value2")))
     }
     test("Uri.params.+ should replace an existing parameter with empty value") {
-      val i = Uri(query = Query.unsafeFromString("param=value")).params + (("param", Seq()))
-      assertEquals(i, Map("param" -> Seq()))
+      val i = Uri(query = Query.unsafeFromString("param=value")).params + (("param", List.empty))
+      assertEquals(i, Map("param" -> List.empty))
     }
   }
 
@@ -658,12 +658,12 @@ class UriSpec extends Http4sSuite {
 
   {
     test("Uri.params.iterate should work on an URI without a query") {
-      Uri(query = Query.empty).params.toSeq.foreach { i =>
+      Uri(query = Query.empty).params.toList.foreach { i =>
         fail(s"should not have $i") // should not happen
       }
     }
     test("Uri.params.iterate should work on empty list") {
-      Uri(query = Query.unsafeFromString("")).params.toSeq.foreach { case (k, v) =>
+      Uri(query = Query.unsafeFromString("")).params.toList.foreach { case (k, v) =>
         assertEquals(k, "")
         assertEquals(v, "")
       }
@@ -831,11 +831,11 @@ class UriSpec extends Http4sSuite {
       assertEquals(u, Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")))
     }
     test("Uri parameter convenience methods should add a parameter with many values") {
-      val u = Uri() ++? ("param1" -> Seq("value1", "value2"))
+      val u = Uri() ++? ("param1" -> List("value1", "value2"))
       assertEquals(u, Uri(query = Query.unsafeFromString("param1=value1&param1=value2")))
     }
     test("Uri parameter convenience methods should add a parameter with many long values") {
-      val u = Uri() ++? ("param1" -> Seq(1L, -1L))
+      val u = Uri() ++? ("param1" -> List(1L, -1L))
       assertEquals(u, Uri(query = Query.unsafeFromString(s"param1=1&param1=-1")))
     }
     test(
@@ -980,7 +980,7 @@ class UriSpec extends Http4sSuite {
     }
     test("Uri parameter convenience methods should replace the same parameter") {
       val u = Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")) ++?
-        ("param1" -> Seq("value1", "value2"))
+        ("param1" -> List("value1", "value2"))
       assertEquals(
         u.multiParams,
         Uri(query = Query.unsafeFromString("param1=value1&param1=value2&param2")).multiParams,
