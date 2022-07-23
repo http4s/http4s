@@ -111,7 +111,7 @@ newService.orNotFound(badRequest).unsafeRunSync()
 Let's consider Authentication middleware as an example. Authentication
 middleware is a function that takes `AuthedRoutes[F]` 
 (that translates to `AuthedRequest[F, T] => F[Option[Response[F]]]`) 
-and returns `HttpRoutes[F]` (that translates to `Request[F, T] => F[Option[Response[F]]]`). 
+and returns `HttpRoutes[F]` (that translates to `Request[F] => F[Option[Response[F]]]`). 
 There is a type defined for this in the `http4s.server` package:
 
 ```scala
