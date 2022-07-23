@@ -149,8 +149,8 @@
         <li class="level2 active"><a href="#">Testing</a></li>
         <li class="level2"><a href="uri.html">URI Handling</a></li>
         <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
         <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -222,9 +222,9 @@
 
         <h1 id="testing" class="title">Testing</h1>
         <p>This document implements a simple <code>org.http4s.HttpRoutes</code> and then
-        walk through the results of applying inputs, i.e. <code>org.http4s.Request</code>, to the service, i.e. <code>org.http4s.HttpService</code>.</p>
+        walks through the results (i.e. <code>org.http4s.Response</code>) of applying inputs (i.e. <code>org.http4s.Request</code>) to it.</p>
         <p>After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.</p>
-        <p>Now, let&#39;s define an <code>org.http4s.HttpService</code>.</p>
+        <p>Now, let&#39;s define an <code>org.http4s.HttpRoutes</code>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">_</span><span>
@@ -239,13 +239,13 @@
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">User</span><span>(</span><span class="identifier">name</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">age</span><span>: </span><span class="type-name">Int</span><span>)
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="type-name">UserEncoder</span><span>: </span><span class="type-name">Encoder</span><span>[</span><span class="type-name">User</span><span>] = </span><span class="identifier">deriveEncoder</span><span>[</span><span class="type-name">User</span><span>]
-</span><span class="comment">// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@de3202
+</span><span class="comment">// UserEncoder: Encoder[User] = io.circe.generic.encoding.DerivedAsObjectEncoder$$anon$1@3a4c5c5f
 </span><span>
 </span><span class="keyword">trait</span><span> </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]] {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">find</span><span>(</span><span class="identifier">userId</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">F</span><span>[</span><span class="type-name">Option</span><span>[</span><span class="type-name">User</span><span>]]
 }
 
-</span><span class="keyword">def</span><span> </span><span class="declaration-name">service</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]](</span><span class="identifier">repo</span><span>: </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">F</span><span>])(
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">httpRoutes</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]](</span><span class="identifier">repo</span><span>: </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">F</span><span>])(
       </span><span class="keyword">implicit</span><span> </span><span class="type-name">F</span><span>: </span><span class="type-name">Async</span><span>[</span><span class="type-name">F</span><span>]
 ): </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">F</span><span>] = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">F</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;user&quot;</span><span> / </span><span class="identifier">id</span><span> =&gt;
@@ -274,18 +274,18 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">success</span><span>: </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="keyword">new</span><span> </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">find</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Option</span><span>[</span><span class="type-name">User</span><span>]] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">pure</span><span>(</span><span class="type-name">Some</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;johndoe&quot;</span><span>, </span><span class="number-literal">42</span><span>)))
 }
-</span><span class="comment">// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@692a17b0
+</span><span class="comment">// success: UserRepo[IO] = repl.MdocSession$App$$anon$2@fbab2f7
 </span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">response</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">service</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">success</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
+</span><span class="keyword">val</span><span> </span><span class="identifier">response</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">success</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
   </span><span class="type-name">Request</span><span>(</span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/user/not-used&quot;</span><span> )
 )
 </span><span class="comment">// response: IO[Response[IO]] = Map(
 //   ioe = FlatMap(
 //     ioe = Pure(value = ()),
-//     f = cats.syntax.FlatMapOps$$$Lambda$20170/65408113@607d1cbe,
+//     f = cats.syntax.FlatMapOps$$$Lambda$21155/985988890@54a8e2eb,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.data.OptionT$$Lambda$20590/1084814546@3bdc46ce,
+//   f = cats.data.OptionT$$Lambda$21582/1103040442@45737794,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span>
@@ -301,18 +301,18 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">foundNone</span><span>: </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="keyword">new</span><span> </span><span class="type-name">UserRepo</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">find</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Option</span><span>[</span><span class="type-name">User</span><span>]] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">pure</span><span>(</span><span class="type-name">None</span><span>)
 }
-</span><span class="comment">// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@4a632d95
+</span><span class="comment">// foundNone: UserRepo[IO] = repl.MdocSession$App$$anon$3@1d8575c1
 </span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">respFoundNone</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">service</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">foundNone</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
+</span><span class="keyword">val</span><span> </span><span class="identifier">respFoundNone</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">foundNone</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
   </span><span class="type-name">Request</span><span>(</span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/user/not-used&quot;</span><span> )
 )
 </span><span class="comment">// respFoundNone: IO[Response[IO]] = Map(
 //   ioe = FlatMap(
 //     ioe = Pure(value = ()),
-//     f = cats.syntax.FlatMapOps$$$Lambda$20170/65408113@734d34fe,
+//     f = cats.syntax.FlatMapOps$$$Lambda$21155/985988890@47f2518c,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.data.OptionT$$Lambda$20590/1084814546@7bdd4ec5,
+//   f = cats.data.OptionT$$Lambda$21582/1103040442@54de5c23,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span>
@@ -323,18 +323,18 @@
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">find</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Option</span><span>[</span><span class="type-name">User</span><span>]] =
     </span><span class="type-name">IO</span><span>.</span><span class="identifier">raiseError</span><span>(</span><span class="keyword">new</span><span> </span><span class="type-name">RuntimeException</span><span>(</span><span class="string-literal">&quot;Should not get called!&quot;</span><span>))
 }
-</span><span class="comment">// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@22ee9d46
+</span><span class="comment">// doesNotMatter: UserRepo[IO] = repl.MdocSession$App$$anon$4@acf5efb
 </span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">respNotFound</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">service</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">doesNotMatter</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
+</span><span class="keyword">val</span><span> </span><span class="identifier">respNotFound</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">doesNotMatter</span><span>).</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(
   </span><span class="type-name">Request</span><span>(</span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/not-a-matching-path&quot;</span><span> )
 )
 </span><span class="comment">// respNotFound: IO[Response[IO]] = Map(
 //   ioe = FlatMap(
 //     ioe = Pure(value = ()),
-//     f = cats.syntax.FlatMapOps$$$Lambda$20170/65408113@7132030b,
+//     f = cats.syntax.FlatMapOps$$$Lambda$21155/985988890@3cd2091e,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.data.OptionT$$Lambda$20590/1084814546@6bc22317,
+//   f = cats.data.OptionT$$Lambda$21582/1103040442@69794139,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span>
@@ -343,9 +343,9 @@
         
         <h2 id="using-client" class="section">Using client<a class="anchor-link right" href="#using-client"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>Having HttpApp you can build a client for testing purposes. Following the example above we could define our HttpApp like this:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">httpApp</span><span>: </span><span class="type-name">HttpApp</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="identifier">service</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">success</span><span>).</span><span class="identifier">orNotFound</span><span>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">httpApp</span><span>: </span><span class="type-name">HttpApp</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">success</span><span>).</span><span class="identifier">orNotFound</span><span>
 </span><span class="comment">// httpApp: HttpApp[IO] = Kleisli(
-//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$19915/2939784@7af8e3cc
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$20900/45632709@4f602771
 // )</span></code></pre>
         <p>From this, we can obtain the <code>Client</code> instance using <code>Client.fromHttpApp</code> and then use it to test our sever/app.</p>
         <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">Client</span><span>
@@ -363,28 +363,28 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@2c2a5578
+//    = org.typelevel.vault.Vault@3f2880e0
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span>: </span><span class="type-name">Client</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">httpApp</span><span>)
-</span><span class="comment">// client: Client[IO] = org.http4s.client.Client$$anon$3@4de121ad
+</span><span class="comment">// client: Client[IO] = org.http4s.client.Client$$anon$3@131ef4e2
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">resp</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Json</span><span>]     = </span><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Json</span><span>](</span><span class="identifier">request</span><span>)
 </span><span class="comment">// resp: IO[Json] = FlatMap(
 //   ioe = Map(
 //     ioe = Delay(
-//       thunk = cats.effect.IO$$$Lambda$20053/88033602@3741799d,
+//       thunk = cats.effect.IO$$$Lambda$21038/283368939@304d0f31,
 //       event = cats.effect.tracing.TracingEvent$StackTrace
 //     ),
-//     f = org.http4s.client.Client$$$Lambda$21704/72989520@a9a0a3a,
+//     f = org.http4s.client.Client$$$Lambda$22684/1841327139@7ed8fde6,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$20367/714896324@74650f84,
+//   f = cats.effect.kernel.Resource$$Lambda$21360/151472889@50c4d5d,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span class="identifier">assert</span><span>(</span><span class="identifier">resp</span><span>.</span><span class="identifier">unsafeRunSync</span><span>() == </span><span class="identifier">expectedJson</span><span>)</span></code></pre>
         
         <h2 id="conclusion" class="section">Conclusion<a class="anchor-link right" href="#conclusion"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>The above documentation demonstrated how to define an <code>HttpService[F]</code>, pass <code>Request</code>&#39;s, and then
+        <p>The above documentation demonstrated how to define an <code>HttpRoutes[F]</code>, pass <code>Request</code>&#39;s, and then
         test the expected <code>Response</code>.</p>
         <p>To add unit tests in your chosen Scala Testing Framework, please follow the above examples.</p>
         
