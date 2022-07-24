@@ -222,14 +222,13 @@
       <main class="content">
 
         <h1 id="middleware" class="title">Middleware</h1>
-        <p>A middleware is a wrapper around a <a href="service.html">service</a> that provides a means of manipulating
+        <p>A middleware is an abstraction around a <a href="service.html">service</a> that provides a means of manipulating
         the <code>Request</code> sent to service, and/or the <code>Response</code> returned by the service. In
         some cases, such as <a href="auth.html">Authentication</a>, middleware may even prevent the service
         from being called.</p>
-        <p>At its most basic, middleware is simply a function that takes one <code>Service</code> as a
-        parameter and returns another <code>Service</code>. In addition to the <code>Service</code>, the middleware
-        function can take any additional parameters it needs to perform its task. Let&#39;s look
-        at a simple example.</p>
+        <p>At its most basic, middleware is a function that takes one service
+        and returns another. The middleware function can take any additional parameters 
+        it needs to perform its task. Let&#39;s look at a simple example.</p>
         <p>For this, we&#39;ll need a dependency on the http4s <a href="dsl.html">dsl</a>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
@@ -245,7 +244,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
         <p>Then, we can create a middleware that adds a header to successful responses from
-        the wrapped service like this.</p>
+        the underlying <code>HttpRoutes</code> like this.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">myMiddle</span><span>(</span><span class="identifier">service</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="identifier">header</span><span>: </span><span class="type-name">Header</span><span>.</span><span class="type-name">ToRaw</span><span>): </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Kleisli</span><span> { (</span><span class="identifier">req</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
   </span><span class="identifier">service</span><span>(</span><span class="identifier">req</span><span>).</span><span class="identifier">map</span><span> {
     </span><span class="keyword">case</span><span> </span><span class="type-name">Status</span><span>.</span><span class="type-name">Successful</span><span>(</span><span class="identifier">resp</span><span>) =&gt;
@@ -258,10 +257,12 @@
         which returns an <code>F[Response]</code>. So, we use <code>map</code> to get the request out of the task,
         add the header if the response is a success, and then pass the response on. We could
         just as easily modify the request before we passed it to the service.</p>
-        <p>Now, let&#39;s create a simple service. As mentioned between <a href="service.html">service</a> and <a href="dsl.html">dsl</a>, because <code>Service</code>
+        <p>Now, let&#39;s create a simple service. As mentioned between <a href="service.html">service</a> and <a href="dsl.html">dsl</a>, because <code>HttpRoutes</code>
         is implemented as a <a href="https://typelevel.org/cats/datatypes/kleisli.html"><code>Kleisli</code></a>, which is just a function at heart, we can test a
-        service without a server. Because an <code>HttpService[F]</code> returns a <code>F[Response[F]]</code>,
-        we need to call <code>unsafeRunSync</code> on the result of the function to extract the <code>Response[F]</code>.</p>
+        service without a server. Due to an <code>HttpRoutes[F]</code> returns a <code>F[Response[F]]</code>,
+        we need to call <code>unsafeRunSync</code> on the result of the function to extract the <code>Response[F]</code>.
+        Note that basically, you shouldn&#39;t use <code>unsafeRunSync</code> in your application. 
+        Here we use it for demo reasons only.</p>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;bad&quot;</span><span> =&gt;
     </span><span class="type-name">BadRequest</span><span>()
@@ -269,7 +270,7 @@
     </span><span class="type-name">Ok</span><span>()
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19724/1633663496@50093b61
+//   run = org.http4s.HttpRoutes$$$Lambda$19632/509665635@5276b64b
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">goodRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -279,7 +280,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@7e6e974
+//    = org.typelevel.vault.Vault@4c6852cb
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">badRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/bad&quot;</span><span>)
 </span><span class="comment">// badRequest: Request[IO] = (
@@ -294,7 +295,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@6fcbf6c9
+//    = org.typelevel.vault.Vault@3d5fea00
 // )
 </span><span>
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -303,7 +304,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@4e76a82b
+//    = org.typelevel.vault.Vault@6422e6bf
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[IO[A]] = (
@@ -311,30 +312,15 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@57bd50b7
+//    = org.typelevel.vault.Vault@381d09e
 // )</span></code></pre>
-        <p>Now, we&#39;ll wrap the service in our middleware to create a new service, and try it out.</p>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">wrappedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);
-</span><span class="comment">// wrappedService: HttpRoutes[IO] = Kleisli(run = &lt;function1&gt;);
-</span><span>
-</span><span class="identifier">wrappedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res2: Response[IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, SomeKey: SomeValue),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@6720ae7d
-// )
-</span><span class="identifier">wrappedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res3: Response[IO[A]] = (
-//    = Status(code = 400),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@576d71ee
-// )</span></code></pre>
+        <p>Now, we&#39;ll apply the service to our middleware function to create a new service, and try it out.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">modifiedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);
+
+</span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
-        <p>If you intend to use you middleware in multiple places,  you may want to implement
+        <p>If you intend to use you middleware in multiple places, you may want to implement
         it as an <code>object</code> and use the <code>apply</code> method.</p>
         <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">MyMiddle</span><span> {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">addHeader</span><span>(</span><span class="identifier">resp</span><span>: </span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="identifier">header</span><span>: </span><span class="type-name">Header</span><span>.</span><span class="type-name">ToRaw</span><span>) =
@@ -349,7 +335,7 @@
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">newService</span><span> = </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)
 </span><span class="comment">// newService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = scala.Function1$$Lambda$19802/87102003@2c21acd8
+//   run = scala.Function1$$Lambda$19710/1748238360@d71342f
 // )
 </span><span>
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -358,7 +344,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@11246903
+//    = org.typelevel.vault.Vault@4fbcc06b
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[IO[A]] = (
@@ -366,30 +352,40 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@73956e1c
+//    = org.typelevel.vault.Vault@3c58c03d
 // )</span></code></pre>
-        <p>It is possible for the wrapped <code>Service</code> to have different <code>Request</code> and <code>Response</code>
-        types than the middleware. Authentication is, again, a good example. Authentication
-        middleware is an <code>HttpService</code> (an alias for <code>Service[Request, Response]</code>) that wraps an <code>AuthedService</code> (an alias for <code>Service[AuthedRequest[T], Response]</code>. There is a type
-        defined for this in the <code>http4s.server</code> package:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">type</span><span> </span><span class="type-name">AuthMiddleware</span><span>[</span><span class="type-name">F</span><span>, </span><span class="type-name">T</span><span>] = </span><span class="type-name">Middleware</span><span>[</span><span class="type-name">AuthedRequest</span><span>[</span><span class="type-name">F</span><span>, </span><span class="type-name">T</span><span>], </span><span class="type-name">Response</span><span>[</span><span class="type-name">F</span><span>], </span><span class="type-name">Request</span><span>[</span><span class="type-name">F</span><span>], </span><span class="type-name">Response</span><span>[</span><span class="type-name">F</span><span>]]</span></code></pre>
+        <p>Let&#39;s consider Authentication middleware as an example. Authentication
+        middleware is a function that takes <code>AuthedRoutes[F]</code> 
+        (that translates to <code>AuthedRequest[F, T] =&gt; F[Option[Response[F]]]</code>) 
+        and returns <code>HttpRoutes[F]</code> (that translates to <code>Request[F] =&gt; F[Option[Response[F]]]</code>). 
+        There is a type defined for this in the <code>http4s.server</code> package:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">type</span><span> </span><span class="type-name">AuthMiddleware</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>], </span><span class="type-name">T</span><span>] = </span><span class="type-name">Middleware</span><span>[</span><span class="type-name">OptionT</span><span>[</span><span class="type-name">F</span><span>, *], </span><span class="type-name">AuthedRequest</span><span>[</span><span class="type-name">F</span><span>, </span><span class="type-name">T</span><span>], </span><span class="type-name">Response</span><span>[</span><span class="type-name">F</span><span>], </span><span class="type-name">Request</span><span>[</span><span class="type-name">F</span><span>], </span><span class="type-name">Response</span><span>[</span><span class="type-name">F</span><span>]]</span></code></pre>
         <p>See the <a href="auth.html">Authentication</a> documentation for more details.</p>
         
         <h2 id="composing-services-with-middleware" class="section">Composing Services with Middleware<a class="anchor-link right" href="#composing-services-with-middleware"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>Because middleware returns a <code>Service</code>, you can compose services wrapped in
-        middleware with other, unwrapped, services, or services wrapped in other middleware.
-        You can also wrap a single service in multiple layers of middleware. For example:</p>
+        <p>Since middleware returns a <a href="https://typelevel.org/cats/datatypes/kleisli.html"><code>Kleisli</code></a>, you can compose it with another middleware.
+        Additionally, you can compose services before applying the middleware function, 
+        and/or compose services with the service obtained by applying some middleware function. 
+        For example:</p>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">apiService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;api&quot;</span><span> =&gt;
     </span><span class="type-name">Ok</span><span>()
 }
 </span><span class="comment">// apiService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19724/1633663496@4fcb8381
+//   run = org.http4s.HttpRoutes$$$Lambda$19632/509665635@31d0f208
 // )
 </span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">aggregateService</span><span> = </span><span class="identifier">apiService</span><span> &lt;+&gt; </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">anotherService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;another&quot;</span><span> =&gt;
+    </span><span class="type-name">Ok</span><span>()
+}
+</span><span class="comment">// anotherService: HttpRoutes[IO] = Kleisli(
+//   run = org.http4s.HttpRoutes$$$Lambda$19632/509665635@35046851
+// )
+</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">aggregateService</span><span> = </span><span class="identifier">apiService</span><span> &lt;+&gt; </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span> &lt;+&gt; </span><span class="identifier">anotherService</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)
 </span><span class="comment">// aggregateService: Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   run = cats.data.KleisliSemigroupK$$Lambda$19725/1372194750@6e2db1cc
+//   run = cats.data.KleisliSemigroupK$$Lambda$19633/1654513282@1c124902
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">apiRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/api&quot;</span><span>)
@@ -405,7 +401,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@5cf3a17b
+//    = org.typelevel.vault.Vault@66312b95
 // )
 </span><span>
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -414,7 +410,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@4ced177
+//    = org.typelevel.vault.Vault@50c7c5e9
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[IO[A]] = (
@@ -422,7 +418,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@178a8de4
+//    = org.typelevel.vault.Vault@46976940
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
@@ -467,20 +463,20 @@
         extracted from the header, or the generated request id.</p>
         <pre><code class="nohighlight"><span class="comment">// generated request id can be correlated with logs
 </span><span class="keyword">val</span><span> </span><span class="identifier">resp</span><span> = </span><span class="identifier">responseIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// request received, cid=803f6c47-4acd-4674-89a5-94220162595d
+</span><span class="comment">// request received, cid=06d19d37-6408-4765-8f2a-2e6aa5b10fb4
 // resp: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, X-Request-ID: 803f6c47-4acd-4674-89a5-94220162595d),
+//    = Headers(Content-Length: 0, X-Request-ID: 06d19d37-6408-4765-8f2a-2e6aa5b10fb4),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@142aed08
+//    = org.typelevel.vault.Vault@48c362c9
 // )
 // X-Request-ID header added to response
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 803f6c47-4acd-4674-89a5-94220162595d)
+</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 06d19d37-6408-4765-8f2a-2e6aa5b10fb4)
 // the request id is also available using attributes
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)
-</span><span class="comment">// res9: Option[String] = Some(value = &quot;803f6c47-4acd-4674-89a5-94220162595d&quot;)</span></code></pre>
+</span><span class="comment">// res9: Option[String] = Some(value = &quot;06d19d37-6408-4765-8f2a-2e6aa5b10fb4&quot;)</span></code></pre>
 
         <hr style="margin-top: 30px"/>
         <footer style="font-size: 90%; text-align: center">
