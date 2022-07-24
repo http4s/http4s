@@ -363,9 +363,13 @@ object Uri extends UriPlatform {
       */
     def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
 
-    def addSegment(segment: Path.Segment): Path = addSegments(List(segment))
+    def addSegment(segment: Path.Segment): Path = {
+      val segments = this.segments :+ segment
+      Path(segments = segments, absolute = absolute || this.segments.isEmpty)
+    }
+
     def addSegment[A](segment: A)(implicit encoder: Path.SegmentEncoder[A]): Path =
-      addSegments(List(encoder.toSegment(segment)))
+      addSegment(encoder.toSegment(segment))
 
     def addSegments(value: Seq[Path.Segment]): Path =
       Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
