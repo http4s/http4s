@@ -365,7 +365,12 @@ object Uri extends UriPlatform {
 
     def addSegment(segment: Path.Segment): Path = {
       val segments = this.segments :+ segment
-      Path(segments = segments, absolute = absolute || this.segments.isEmpty)
+      val endsWithSlash = if (segment.isEmpty) this.endsWithSlash else false
+      Path(
+        segments = segments,
+        absolute = absolute || this.segments.isEmpty,
+        endsWithSlash = endsWithSlash,
+      )
     }
 
     def addSegment[A](segment: A)(implicit encoder: Path.SegmentEncoder[A]): Path =
