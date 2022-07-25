@@ -58,6 +58,12 @@ class UriSpec extends Http4sSuite {
     assert(
       uri"/test//".addSegment(Path.Segment.empty).path.endsWithSlash
     )
+    assert(
+      uri"/test//".path.addSegments(Seq.empty).endsWithSlash
+    )
+    assert(
+      uri"/test//".path.addSegments(Seq(Path.Segment.empty)).endsWithSlash
+    )
   }
 
   test("Uri fromString should Not UrlDecode the query String") {

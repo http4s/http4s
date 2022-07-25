@@ -377,7 +377,22 @@ object Uri extends UriPlatform {
       addSegment(encoder.toSegment(segment))
 
     def addSegments(value: Seq[Path.Segment]): Path =
-      Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
+      if (value.isEmpty) this
+      else {
+        val segments = this.segments ++ value
+        val endsWithSlash = value match {
+          case Nil | Seq(Path.Segment.empty) =>
+            this.endsWithSlash
+          case _ =>
+            false
+        }
+
+        Path(
+          segments = segments,
+          absolute = absolute || this.segments.isEmpty,
+          endsWithSlash = endsWithSlash,
+        )
+      }
 
     def normalize: Path = Path(segments.filterNot(_.isEmpty))
 
