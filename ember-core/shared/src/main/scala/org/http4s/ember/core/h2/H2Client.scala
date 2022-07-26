@@ -265,15 +265,6 @@ private[ember] class H2Client[F[_]: Async](
           Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
         )
       )
-      settings <- Resource.eval(h2.settingsAck.get.rethrow)
-      _ <- Resource.eval(
-        stateRef.update(s =>
-          s.copy(
-            remoteSettings = settings,
-            writeWindow = s.remoteSettings.initialWindowSize.windowSize,
-          )
-        )
-      )
     } yield h2
 
   def runHttp2Only(req: Request[F]): Resource[F, Response[F]] = {
