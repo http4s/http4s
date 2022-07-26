@@ -344,9 +344,7 @@ object Uri extends UriPlatform {
       // this prevents hashcode clashing when two Paths have `absolute` and `endWithSlash`
       // asymmetric values, i.e. path1 (absolute = true, endWithSlash = false), path2 (absolute = false, endWithSlash = true)
       {
-        var hash =
-          MurmurHash3.mix(MurmurHash3.productSeed, "Uri.Path".##)
-
+        var hash = Path.hashSeed
         hash = MurmurHash3.mix(hash, segments.##)
         hash = MurmurHash3.mix(hash, absolute.##)
         hash = MurmurHash3.mix(hash, endsWithSlash.##)
@@ -439,6 +437,9 @@ object Uri extends UriPlatform {
     val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = true)
     lazy val Asterisk: Path =
       new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+
+    private val hashSeed: Int =
+      MurmurHash3.mix(MurmurHash3.productSeed, "Uri.Path".##)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
