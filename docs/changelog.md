@@ -3,6 +3,24 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M35 (2022-07-25)
+
+This release is the latest milestone in the 1.x series, and is _not_ binary compatible with previous 1.0 milestones. It also includes the changes from v0.23.13 and updates fs2 to v3.2.11 which includes a security patch for [GHSA-2cpx-6pqp-wf35](https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35).
+
+## What's Changed
+
+### http4s-core
+* Remove redundant collection converting in `Query#multiParams` by @danicheg in https://github.com/http4s/http4s/pull/6514
+* Remove `BackendBuilder#allocate` by @danicheg in https://github.com/http4s/http4s/pull/6540
+
+### Behind the scenes
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6551
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6563
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6565
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6567
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M34...v1.0.0-M35
+
 # v0.23.14 (2022-07-25)
 
 This release is binary compatible with 0.23.x and updates fs2 to v3.2.11 which includes a security patch for [GHSA-2cpx-6pqp-wf35](https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35).
