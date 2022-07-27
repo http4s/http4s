@@ -28,9 +28,13 @@ class PathSuite extends Http4sSuite {
   test("equals should be consistent with equality") {
     forAll { (a: Path, b: Path) =>
       if (a == b)
-        (a.segments == b.segments) && (a.absolute == b.absolute) && (a.endsWithSlash == b.endsWithSlash)
+        assert(
+          (a.segments == b.segments) && (a.absolute == b.absolute) && (a.endsWithSlash == b.endsWithSlash)
+        )
       else
-        (a.segments != b.segments) || (a.absolute != b.absolute) || (a.endsWithSlash != b.endsWithSlash)
+        assert(
+          (a.segments != b.segments) || (a.absolute != b.absolute) || (a.endsWithSlash != b.endsWithSlash)
+        )
     }
   }
 
@@ -38,6 +42,21 @@ class PathSuite extends Http4sSuite {
     forAll { (a: Path, b: Path) =>
       if (a == b) a.## == b.##
       else a.## != b.##
+    }
+  }
+
+  // test devised based on the issue raised at https://github.com/http4s/http4s/issues/6538
+  test(
+    "hashcode should be consistent with equality even when two Paths with identical non-empty segments have `absolute` and `endWithSlash` asymmetric values"
+  ) {
+    val nonEmptySegmentsPathGen =
+      http4sTestingAbitraryForPath.arbitrary.suchThat(_.segments.nonEmpty)
+
+    forAll(nonEmptySegmentsPathGen) { (path0: Path) =>
+      val a = Path(path0.segments, true, false)
+      val b = Path(path0.segments, false, true)
+
+      assert(a.## != b.##)
     }
   }
 
