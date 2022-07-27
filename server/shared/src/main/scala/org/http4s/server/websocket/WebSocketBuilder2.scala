@@ -18,6 +18,7 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
+import cats.effect.kernel.Unique
 import cats.syntax.all._
 import cats.~>
 import fs2.Pipe
@@ -46,6 +47,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
+
+  private[http4s] val wsKey: Key[WebSocketContext[F]] = webSocketKey
 
   private def copy(
       headers: Headers = this.headers,
@@ -177,7 +180,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 }
 
 object WebSocketBuilder2 {
-  private[http4s] def apply[F[_]: Applicative](
+  def apply[F[_]: Applicative](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     impl(
@@ -190,6 +193,9 @@ object WebSocketBuilder2 {
       filterPingPongs = true,
       webSocketKey = webSocketKey,
     )
+
+  def apply[F[_]: Applicative: Unique]: F[WebSocketBuilder2[F]] =
+    Key.newKey[F, WebSocketContext[F]].map(apply[F])
 
   private def impl[F[_]: Applicative](
       headers: Headers,
