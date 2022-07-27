@@ -44,7 +44,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
     filterPingPongs: Boolean,
-    private[http4s] val webSocketKey: Key[WebSocketContext[F]]
+    private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
 
