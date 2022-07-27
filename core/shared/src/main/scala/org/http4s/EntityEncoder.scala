@@ -139,7 +139,7 @@ object EntityEncoder {
 
   implicit def stringEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple(hdr)(ByteVector.encodeString(_)(charset.nioCharset).toOption.get)
+    simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder(implicit
