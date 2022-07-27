@@ -510,7 +510,7 @@ private[ember] object Parser {
   }
 
   private def combineArrays[A: scala.reflect.ClassTag](a1: Array[A], a2: Array[A]): Array[A] = {
-    val buff = mutable.ArrayBuffer[A]()
+    val buff = new mutable.ArrayBuffer[A](a1.size + a2.size)
     buff.++=(a1)
     buff.++=(a2)
     buff.toArray
