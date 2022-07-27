@@ -180,7 +180,19 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 }
 
 object WebSocketBuilder2 {
+  @deprecated(
+    "Only used by the deprecated WebSocketBuilder. Use the other constructor if you need an instance for testing.",
+    "0.23.15",
+  )
   def apply[F[_]: Applicative](
+      webSocketKey: Key[WebSocketContext[F]]
+  ): WebSocketBuilder2[F] =
+    withKey(webSocketKey)
+
+  def apply[F[_]: Applicative: Unique]: F[WebSocketBuilder2[F]] =
+    Key.newKey[F, WebSocketContext[F]].map(withKey[F])
+
+  private def withKey[F[_]: Applicative](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     impl(
@@ -193,9 +205,6 @@ object WebSocketBuilder2 {
       filterPingPongs = true,
       webSocketKey = webSocketKey,
     )
-
-  def apply[F[_]: Applicative: Unique]: F[WebSocketBuilder2[F]] =
-    Key.newKey[F, WebSocketContext[F]].map(apply[F])
 
   private def impl[F[_]: Applicative](
       headers: Headers,
