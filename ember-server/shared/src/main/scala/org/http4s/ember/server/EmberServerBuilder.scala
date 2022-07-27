@@ -197,7 +197,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsBuilder.wsKey,
+              wsBuilder.webSocketKey,
               enableHttp2,
             )
             .compile
@@ -222,7 +222,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsBuilder.wsKey,
+            wsBuilder.webSocketKey,
             enableHttp2,
           )
           .compile
