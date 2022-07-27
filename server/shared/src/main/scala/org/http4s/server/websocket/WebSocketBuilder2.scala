@@ -179,10 +179,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 
 object WebSocketBuilder2 {
   @deprecated(
-    "Only used by the deprecated WebSocketBuilder. Use the other constructor if you need an instance for testing.",
+    "Use the arg-less constructor to create a `WebSocketBuilder2` and access its key with the webSocketKey method",
     "0.23.15",
   )
-  def apply[F[_]: Applicative](
+  private[http4s] def apply[F[_]: Applicative](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     withKey(webSocketKey)
