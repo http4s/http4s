@@ -29,7 +29,7 @@ import scala.annotation.tailrec
 private[core] trait UtilPlatform {
 
   @nowarn("msg=never used")
-  def mkTLSParameters(
+  def mkClientTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean,
   ): TLSParameters =

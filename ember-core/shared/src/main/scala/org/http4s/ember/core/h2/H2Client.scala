@@ -138,7 +138,7 @@ private[ember] class H2Client[F[_]: Async](
             .clientBuilder(baseSocket)
             .withParameters(
               // TODO `enableEndpointValidation`
-              H2TLS.transform(Util.mkTLSParameters(address.some, true))
+              H2TLS.transform(Util.mkClientTLSParameters(address.some, true))
             )
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
