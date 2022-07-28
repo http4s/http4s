@@ -159,10 +159,8 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      // Method SP URI SP HttpVersion CRLF - REST
-      def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
-          F: MonadThrow[F]
-      ): F[Either[Unit, ReqPrelude]] = {
+      class ReqPreludeParser[F[_]] {
+
         var idx = 0
         var state: Byte = 0
         var complete = false
@@ -171,66 +169,144 @@ private[ember] object Parser {
         var method: Method = null
         var uri: Uri = null
         var httpVersion: HttpVersion = null
-        val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
         var start = 0
-        while (!complete && idx <= upperBound) {
-          val value = message(idx)
-          (state: @switch) match {
-            case 0 =>
-              if (value == space) {
-                Method.fromString(new String(message, start, idx - start)) match {
-                  case Left(e) =>
-                    throwable = e
-                    complete = true
-                  case Right(m) =>
-                    method = m
-                }
-                start = idx + 1
-                state = 1
-              }
-            case 1 =>
-              if (value == space) {
-                Uri.fromString(new String(message, start, idx - start)) match {
-                  case Left(e) =>
-                    throwable = e
-                    complete = true
-                  case Right(u) =>
-                    uri = u
-                }
-                start = idx + 1
-                state = 2
-              }
-            case 2 =>
-              if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
-                HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
-                  case Left(e) =>
-                    throwable = e
-                    complete = true
-                  case Right(h) =>
-                    httpVersion = h
-                }
-                complete = true
-              }
-          }
-          idx += 1
-        }
 
-        if (throwable != null)
-          F.raiseError(
-            ParsePreludeError(
-              throwable.getMessage(),
-              Option(throwable),
-              Option(method),
-              Option(uri),
-              Option(httpVersion),
+        def parse(message: Array[Byte], maxHeaderSize: Int)(implicit
+            F: MonadThrow[F]
+        ): F[Either[Unit, ReqPrelude]] = {
+          val upperBound = Math.min(message.size - 1, maxHeaderSize)
+          while (!complete && idx <= upperBound) {
+            val value = message(idx)
+            (state: @switch) match {
+              case 0 =>
+                if (value == space) {
+                  Method.fromString(new String(message, start, idx - start)) match {
+                    case Left(e) =>
+                      throwable = e
+                      complete = true
+                    case Right(m) =>
+                      method = m
+                  }
+                  start = idx + 1
+                  state = 1
+                }
+              case 1 =>
+                if (value == space) {
+                  Uri.fromString(new String(message, start, idx - start)) match {
+                    case Left(e) =>
+                      throwable = e
+                      complete = true
+                    case Right(u) =>
+                      uri = u
+                  }
+                  start = idx + 1
+                  state = 2
+                }
+              case 2 =>
+                if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
+                  HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
+                    case Left(e) =>
+                      throwable = e
+                      complete = true
+                    case Right(h) =>
+                      httpVersion = h
+                  }
+                  complete = true
+                }
+            }
+            idx += 1
+          }
+
+          if (throwable != null)
+            F.raiseError(
+              ParsePreludeError(
+                throwable.getMessage(),
+                Option(throwable),
+                Option(method),
+                Option(uri),
+                Option(httpVersion),
+              )
             )
-          )
-        else if (method == null || uri == null || httpVersion == null)
-          ().asLeft.pure[F]
-        else
-          ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
+          else if (method == null || uri == null || httpVersion == null)
+            ().asLeft.pure[F]
+          else
+            ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
+        }
       }
+
+      // // Method SP URI SP HttpVersion CRLF - REST
+      // def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
+      //     F: MonadThrow[F]
+      // ): F[Either[Unit, ReqPrelude]] = {
+      //   var idx = 0
+      //   var state: Byte = 0
+      //   var complete = false
+
+      //   var throwable: Throwable = null
+      //   var method: Method = null
+      //   var uri: Uri = null
+      //   var httpVersion: HttpVersion = null
+      //   val upperBound = Math.min(message.size - 1, maxHeaderSize)
+
+      //   var start = 0
+      //   while (!complete && idx <= upperBound) {
+      //     val value = message(idx)
+      //     (state: @switch) match {
+      //       case 0 =>
+      //         if (value == space) {
+      //           Method.fromString(new String(message, start, idx - start)) match {
+      //             case Left(e) =>
+      //               throwable = e
+      //               complete = true
+      //             case Right(m) =>
+      //               method = m
+      //           }
+      //           start = idx + 1
+      //           state = 1
+      //         }
+      //       case 1 =>
+      //         if (value == space) {
+      //           Uri.fromString(new String(message, start, idx - start)) match {
+      //             case Left(e) =>
+      //               throwable = e
+      //               complete = true
+      //             case Right(u) =>
+      //               uri = u
+      //           }
+      //           start = idx + 1
+      //           state = 2
+      //         }
+      //       case 2 =>
+      //         if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
+      //           HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
+      //             case Left(e) =>
+      //               throwable = e
+      //               complete = true
+      //             case Right(h) =>
+      //               httpVersion = h
+      //           }
+      //           complete = true
+      //         }
+      //     }
+      //     idx += 1
+      //   }
+
+      //   if (throwable != null)
+      //     F.raiseError(
+      //       ParsePreludeError(
+      //         throwable.getMessage(),
+      //         Option(throwable),
+      //         Option(method),
+      //         Option(uri),
+      //         Option(httpVersion),
+      //       )
+      //     )
+      //   else if (method == null || uri == null || httpVersion == null)
+      //     ().asLeft.pure[F]
+      //   else
+      //     ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
+      // }
 
       final case class ParsePreludeError(
           message: String,
@@ -247,10 +323,11 @@ private[ember] object Parser {
     def parser[F[_]](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F],
-    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
+    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] = {
+      val parser = new ReqPrelude.ReqPreludeParser[F]()
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
-          EitherT(ReqPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
+          EitherT(parser.parse(ibuffer, maxHeaderSize))
             .flatMap(prelude =>
               EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
                 .tupleLeft(prelude)
@@ -287,6 +364,7 @@ private[ember] object Parser {
             }
           }
       } yield request
+    }
   }
 
   object Response {
