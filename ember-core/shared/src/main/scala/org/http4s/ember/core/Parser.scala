@@ -172,6 +172,7 @@ private[ember] object Parser {
 
         var start = 0
 
+        // Method SP URI SP HttpVersion CRLF - REST
         def parse(message: Array[Byte], maxHeaderSize: Int)(implicit
             F: MonadThrow[F]
         ): F[Either[Unit, ReqPrelude]] = {
@@ -379,9 +380,11 @@ private[ember] object Parser {
           status == Status.NotModified ||
           status.responseClass == Status.Informational
 
+      val parser = new RespPrelude.RespPreludeParser[F]()
+
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
-          EitherT(RespPrelude.parsePrelude[F](ibuffer, maxHeaderSize))
+          EitherT(parser.parse(ibuffer, maxHeaderSize))
             .flatMap(prelude =>
               EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
                 .tupleLeft(prelude)
@@ -425,6 +428,78 @@ private[ember] object Parser {
     object RespPrelude {
 
       final case class RespPrelude(version: HttpVersion, status: Status, nextIndex: Int)
+
+      final class RespPreludeParser[F[_]] {
+
+        var complete = false
+        var idx = 0
+        var throwable: Throwable = null
+        var httpVersion: HttpVersion = null
+
+        var codeS: String = null
+        // val reason: String = null
+        var status: Status = null
+        var start = 0
+        var state = 0 // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
+
+        // HTTP/1.1 200 OK
+        // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+        def parse(buffer: Array[Byte], maxHeaderSize: Int)(implicit
+            F: MonadThrow[F]
+        ): F[Either[Unit, RespPrelude]] = {
+          val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
+
+          while (!complete && idx <= upperBound) {
+            val value = buffer(idx)
+            (state: @switch) match {
+              case 0 =>
+                if (value == space) {
+                  val s = new String(buffer, start, idx - start)
+                  HttpVersion.fromString(s) match {
+                    case Left(e) =>
+                      throwable = e
+                      complete = true
+                    case Right(h) =>
+                      httpVersion = h
+                  }
+                  start = idx + 1
+                  state = 1
+                }
+              case 1 =>
+                if (value == space) {
+                  codeS = new String(buffer, start, idx - start)
+                  state = 2
+                  start = idx + 1
+                }
+              case 2 =>
+                if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
+                  try {
+                    val codeInt = codeS.toInt
+                    Status.fromInt(codeInt) match {
+                      case Left(e) =>
+                        throw e
+                      case Right(s) =>
+                        status = s
+                        complete = true
+                    }
+                  } catch {
+                    case scala.util.control.NonFatal(e) =>
+                      throwable = e
+                      complete = true
+                  }
+                }
+            }
+            idx += 1
+          }
+
+          if (throwable != null)
+            F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
+          else if (httpVersion == null || status == null)
+            ().asLeft.pure[F]
+          else
+            RespPrelude(httpVersion, status, idx).asRight.pure[F]
+        }
+      }
 
       // HTTP/1.1 200 OK
       // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
