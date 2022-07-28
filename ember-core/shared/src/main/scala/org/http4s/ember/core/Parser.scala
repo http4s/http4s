@@ -16,7 +16,6 @@
 
 package org.http4s.ember.core
 import cats._
-import cats.data.EitherT
 import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
@@ -32,18 +31,23 @@ private[ember] object Parser {
 
   object MessageP {
 
-    def recurseFind[F[_], A](currentBuffer: Array[Byte], read: Read[F], maxHeaderSize: Int)(
-        f: Array[Byte] => F[Either[Unit, A]]
+    def recurseFind[F[_], S, A](
+        currentBuffer: Array[Byte],
+        read: Read[F],
+        maxHeaderSize: Int,
+        state: S,
+    )(
+        f: (S, Array[Byte]) => F[Either[S, A]]
     )(idx: A => Int)(implicit F: MonadThrow[F]): F[(A, Array[Byte])] =
-      f(currentBuffer).flatMap {
-        case Left(_) =>
+      f(state, currentBuffer).flatMap {
+        case Left(s) =>
           if (currentBuffer.length > maxHeaderSize)
             F.raiseError(EmberException.MessageTooLong(maxHeaderSize))
           else {
             read.flatMap {
               case Some(chunk) =>
                 val nextBuffer = appendByteArrays(currentBuffer, chunk)
-                recurseFind(nextBuffer, read, maxHeaderSize)(f)(idx)
+                recurseFind(nextBuffer, read, maxHeaderSize, s)(f)(idx)
               case None if currentBuffer.length > 0 =>
                 F.raiseError(EmberException.ReachedEndOfStream())
               case _ => F.raiseError(EmberException.EmptyStream())
@@ -63,106 +67,54 @@ private[ember] object Parser {
   )
 
   object HeaderP {
+    import scala.collection.mutable.ListBuffer
 
     private[this] val colon: Byte = ':'.toByte
     private[this] val contentLengthS = "Content-Length"
     private[this] val transferEncodingS = "Transfer-Encoding"
     private[this] val chunkedS = "chunked"
 
-    final class Parser[F[_]] {
-      import scala.collection.mutable.ListBuffer
-      var idx: Int = 0
-      var state = false
-      var throwable: Throwable = null
-      var complete = false
-      var chunked: Boolean = false
-      var contentLength: Option[Long] = None
+    final case class ParserState(
+        idx: Int,
+        state: Boolean,
+        throwable: Throwable,
+        complete: Boolean,
+        chunked: Boolean,
+        contentLength: Option[Long],
+        headers: ListBuffer[Header.Raw],
+        name: String,
+        start: Int,
+    )
 
-      val headers: ListBuffer[Header.Raw] = ListBuffer()
-      var name: String = null
-      var start: Int = 0
-
-      def parse(message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
-          F: MonadThrow[F]
-      ): F[Either[Unit, HeaderP]] = {
-        val upperBound = Math.min(message.size - 1, maxHeaderSize)
-        start = initIndex
-        while (!complete && idx <= upperBound) {
-          if (!state) {
-            val current = message(idx)
-            // if current index is colon our name is complete
-            if (current == colon) {
-              state = true // set state to check for header value
-              name = new String(message, start, idx - start) // extract name string
-              start = idx + 1 // advance past colon for next start
-
-              // TODO: This if clause may not be necessary since the header value parser trims
-              if (message.size > idx + 1 && message(idx + 1) == space) {
-                start += 1 // if colon is followed by space advance again
-                idx += 1 // double advance index here to skip the space
-              }
-              // double CRLF condition - Termination of headers
-            } else if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
-              complete = true // completed terminate loop
-            }
-          } else {
-            val current = message(idx)
-            // If crlf is next we have completed the header value
-            if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
-              // extract header value, trim leading and trailing whitespace
-              val hValue = new String(message, start, idx - start - 1).trim
-
-              val hName = name // copy var to val
-              name = null // set name back to null
-              val newHeader = Header.Raw(CIString(hName), hValue) // create header
-              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
-                try contentLength = hValue.toLong.some
-                catch {
-                  case scala.util.control.NonFatal(e) =>
-                    throwable = e
-                    complete = true
-                }
-              } else if (
-                hName
-                  .equalsIgnoreCase(transferEncodingS)
-              ) { // Check if this is Transfer-encoding
-                chunked = hValue.contains(chunkedS)
-              }
-              start = idx + 1 // Next Start is after the CRLF
-              headers += newHeader // Add Header
-              state = false // Go back to Looking for HeaderName or Termination
-            }
-          }
-          idx += 1 // Single Advance Every Iteration
-        }
-
-        if (throwable != null) {
-          F.raiseError(ParseHeadersError(throwable))
-        } else if (!complete) {
-          ().asLeft.pure[F]
-        } else {
-          HeaderP(Headers(headers.toList), chunked, contentLength, idx).asRight.pure[F]
-        }
-      }
-
+    object ParserState {
+      def initial: ParserState = ParserState(
+        idx = 0,
+        state = false,
+        throwable = null,
+        complete = false,
+        chunked = false,
+        contentLength = None,
+        headers = ListBuffer.empty,
+        name = null,
+        start = 0,
+      )
     }
 
-    def parseHeaders[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
-        F: MonadThrow[F]
-    ): F[Either[Unit, HeaderP]] = {
-      import scala.collection.mutable.ListBuffer
-      var idx = initIndex
-      var state = false
-      var throwable: Throwable = null
-      var complete = false
-      var chunked: Boolean = false
-      var contentLength: Option[Long] = None
+    def parse[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int, s: ParserState)(
+        implicit F: MonadThrow[F]
+    ): F[Either[ParserState, HeaderP]] = {
+      var idx: Int = s.idx
+      var state = s.state
+      var throwable: Throwable = s.throwable
+      var complete = s.complete
+      var chunked: Boolean = s.chunked
+      var contentLength: Option[Long] = s.contentLength
 
-      val headers: ListBuffer[Header.Raw] = ListBuffer()
-      var name: String = null
-      var start = initIndex
+      val headers: ListBuffer[Header.Raw] = s.headers
+      var name: String = s.name
+      var start: Int = s.start
       val upperBound = Math.min(message.size - 1, maxHeaderSize)
-
+      start = initIndex
       while (!complete && idx <= upperBound) {
         if (!state) {
           val current = message(idx)
@@ -215,7 +167,17 @@ private[ember] object Parser {
       if (throwable != null) {
         F.raiseError(ParseHeadersError(throwable))
       } else if (!complete) {
-        ().asLeft.pure[F]
+        ParserState(
+          idx,
+          state,
+          throwable,
+          complete,
+          chunked,
+          contentLength,
+          headers,
+          name,
+          start,
+        ).asLeft.pure[F]
       } else {
         HeaderP(Headers(headers.toList), chunked, contentLength, idx).asRight.pure[F]
       }
@@ -237,81 +199,101 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      class Parser[F[_]] {
+      final case class ParserState(
+          idx: Int,
+          state: Byte,
+          complete: Boolean,
+          throwable: Throwable,
+          method: Method,
+          uri: Uri,
+          httpVersion: HttpVersion,
+          start: Int,
+      )
 
-        var idx = 0
-        var state: Byte = 0
-        var complete = false
+      object ParserState {
+        def initial: ParserState = ParserState(
+          idx = 0,
+          state = 0,
+          complete = false,
+          throwable = null,
+          method = null,
+          httpVersion = null,
+          uri = null,
+          start = 0,
+        )
+      }
 
-        var throwable: Throwable = null
-        var method: Method = null
-        var uri: Uri = null
-        var httpVersion: HttpVersion = null
+      def parse[F[_]](message: Array[Byte], maxHeaderSize: Int, s: ParserState)(implicit
+          F: MonadThrow[F]
+      ): F[Either[ParserState, ReqPrelude]] = {
+        var idx = s.idx
+        var state: Byte = s.state
+        var complete = s.complete
+
+        var throwable: Throwable = s.throwable
+        var method: Method = s.method
+        var uri: Uri = s.uri
+        var httpVersion: HttpVersion = s.httpVersion
 
         var start = 0
-
-        // Method SP URI SP HttpVersion CRLF - REST
-        def parse(message: Array[Byte], maxHeaderSize: Int)(implicit
-            F: MonadThrow[F]
-        ): F[Either[Unit, ReqPrelude]] = {
-          val upperBound = Math.min(message.size - 1, maxHeaderSize)
-          while (!complete && idx <= upperBound) {
-            val value = message(idx)
-            (state: @switch) match {
-              case 0 =>
-                if (value == space) {
-                  Method.fromString(new String(message, start, idx - start)) match {
-                    case Left(e) =>
-                      throwable = e
-                      complete = true
-                    case Right(m) =>
-                      method = m
-                  }
-                  start = idx + 1
-                  state = 1
+        val upperBound = Math.min(message.size - 1, maxHeaderSize)
+        while (!complete && idx <= upperBound) {
+          val value = message(idx)
+          (state: @switch) match {
+            case 0 =>
+              if (value == space) {
+                Method.fromString(new String(message, start, idx - start)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(m) =>
+                    method = m
                 }
-              case 1 =>
-                if (value == space) {
-                  Uri.fromString(new String(message, start, idx - start)) match {
-                    case Left(e) =>
-                      throwable = e
-                      complete = true
-                    case Right(u) =>
-                      uri = u
-                  }
-                  start = idx + 1
-                  state = 2
+                start = idx + 1
+                state = 1
+              }
+            case 1 =>
+              if (value == space) {
+                Uri.fromString(new String(message, start, idx - start)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(u) =>
+                    uri = u
                 }
-              case 2 =>
-                if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
-                  HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
-                    case Left(e) =>
-                      throwable = e
-                      complete = true
-                    case Right(h) =>
-                      httpVersion = h
-                  }
-                  complete = true
+                start = idx + 1
+                state = 2
+              }
+            case 2 =>
+              if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
+                HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(h) =>
+                    httpVersion = h
                 }
-            }
-            idx += 1
+                complete = true
+              }
           }
-
-          if (throwable != null)
-            F.raiseError(
-              ParsePreludeError(
-                throwable.getMessage(),
-                Option(throwable),
-                Option(method),
-                Option(uri),
-                Option(httpVersion),
-              )
-            )
-          else if (method == null || uri == null || httpVersion == null)
-            ().asLeft.pure[F]
-          else
-            ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
+          idx += 1
         }
+
+        if (throwable != null)
+          F.raiseError(
+            ParsePreludeError(
+              throwable.getMessage(),
+              Option(throwable),
+              Option(method),
+              Option(uri),
+              Option(httpVersion),
+            )
+          )
+        else if (method == null || uri == null || httpVersion == null)
+          ParserState(idx, state, complete, throwable, method, uri, httpVersion, start).asLeft
+            .pure[F]
+        else
+          ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
       }
 
       final case class ParsePreludeError(
@@ -329,18 +311,16 @@ private[ember] object Parser {
     def parser[F[_]](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F],
-    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] = {
-      val parser = new ReqPrelude.Parser[F]()
+    )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] =
       for {
-        t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
-          EitherT(parser.parse(ibuffer, maxHeaderSize))
-            .flatMap(prelude =>
-              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
-                .tupleLeft(prelude)
-            )
-            .value
-        ) { case (_, headerP) => headerP.idx }
-        ((prelude, headerP), finalBuffer) = t
+        x <- MessageP.recurseFind(buffer, read, maxHeaderSize, ReqPrelude.ParserState.initial)(
+          (state, ibuffer) => ReqPrelude.parse(ibuffer, maxHeaderSize, state)
+        )(_.nextIndex)
+        (prelude, buffer2) = x
+        y <- MessageP.recurseFind(buffer2, read, maxHeaderSize, HeaderP.ParserState.initial)(
+          (state, ibuffer) => HeaderP.parse(ibuffer, prelude.nextIndex, maxHeaderSize, state)
+        )(_.idx)
+        (headerP, finalBuffer) = y
 
         baseReq = org.http4s.Request[F](
           method = prelude.method,
@@ -370,7 +350,6 @@ private[ember] object Parser {
             }
           }
       } yield request
-    }
   }
 
   object Response {
@@ -385,18 +364,15 @@ private[ember] object Parser {
           status == Status.NotModified ||
           status.responseClass == Status.Informational
 
-      val parser = new RespPrelude.Parser[F]()
-
       for {
-        t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
-          EitherT(parser.parse(ibuffer, maxHeaderSize))
-            .flatMap(prelude =>
-              EitherT(HeaderP.parseHeaders(ibuffer, prelude.nextIndex, maxHeaderSize))
-                .tupleLeft(prelude)
-            )
-            .value
-        ) { case (_, headerP) => headerP.idx }
-        ((prelude, headerP), finalBuffer) = t
+        x <- MessageP.recurseFind(buffer, read, maxHeaderSize, RespPrelude.ParserState.initial)(
+          (state, ibuffer) => RespPrelude.parse(ibuffer, maxHeaderSize, state)
+        )(_.nextIndex)
+        (prelude, buffer2) = x
+        y <- MessageP.recurseFind(buffer, read, maxHeaderSize, HeaderP.ParserState.initial)(
+          (state, ibuffer) => HeaderP.parse(ibuffer, prelude.nextIndex, maxHeaderSize, state)
+        )(_.idx)
+        (headerP, finalBuffer) = y
 
         baseResp = org.http4s.Response[F](
           httpVersion = prelude.version,
@@ -434,76 +410,97 @@ private[ember] object Parser {
 
       final case class RespPrelude(version: HttpVersion, status: Status, nextIndex: Int)
 
-      final class Parser[F[_]] {
+      final case class ParserState(
+          idx: Int,
+          state: Byte,
+          complete: Boolean,
+          throwable: Throwable,
+          httpVersion: HttpVersion,
+          codeS: String,
+          status: Status,
+          start: Int,
+      )
 
-        var complete = false
-        var idx = 0
-        var throwable: Throwable = null
-        var httpVersion: HttpVersion = null
+      object ParserState {
+        def initial: ParserState = ParserState(
+          idx = 0,
+          state = 0,
+          complete = false,
+          throwable = null,
+          httpVersion = null,
+          codeS = null,
+          status = null,
+          start = 0,
+        )
+      }
 
-        var codeS: String = null
+      // HTTP/1.1 200 OK
+      // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
+      def parse[F[_]](buffer: Array[Byte], maxHeaderSize: Int, s: ParserState)(implicit
+          F: MonadThrow[F]
+      ): F[Either[ParserState, RespPrelude]] = {
+        var complete = s.complete
+        var idx = s.idx
+        var throwable: Throwable = s.throwable
+        var httpVersion: HttpVersion = s.httpVersion
+
+        var codeS: String = s.codeS
         // val reason: String = null
-        var status: Status = null
-        var start = 0
-        var state = 0 // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
+        var status: Status = s.status
+        var start = s.start
+        var state = s.state // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
+        val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
 
-        // HTTP/1.1 200 OK
-        // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-        def parse(buffer: Array[Byte], maxHeaderSize: Int)(implicit
-            F: MonadThrow[F]
-        ): F[Either[Unit, RespPrelude]] = {
-          val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
-
-          while (!complete && idx <= upperBound) {
-            val value = buffer(idx)
-            (state: @switch) match {
-              case 0 =>
-                if (value == space) {
-                  val s = new String(buffer, start, idx - start)
-                  HttpVersion.fromString(s) match {
+        while (!complete && idx <= upperBound) {
+          val value = buffer(idx)
+          (state: @switch) match {
+            case 0 =>
+              if (value == space) {
+                val s = new String(buffer, start, idx - start)
+                HttpVersion.fromString(s) match {
+                  case Left(e) =>
+                    throwable = e
+                    complete = true
+                  case Right(h) =>
+                    httpVersion = h
+                }
+                start = idx + 1
+                state = 1
+              }
+            case 1 =>
+              if (value == space) {
+                codeS = new String(buffer, start, idx - start)
+                state = 2
+                start = idx + 1
+              }
+            case 2 =>
+              if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
+                try {
+                  val codeInt = codeS.toInt
+                  Status.fromInt(codeInt) match {
                     case Left(e) =>
-                      throwable = e
-                      complete = true
-                    case Right(h) =>
-                      httpVersion = h
-                  }
-                  start = idx + 1
-                  state = 1
-                }
-              case 1 =>
-                if (value == space) {
-                  codeS = new String(buffer, start, idx - start)
-                  state = 2
-                  start = idx + 1
-                }
-              case 2 =>
-                if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                  try {
-                    val codeInt = codeS.toInt
-                    Status.fromInt(codeInt) match {
-                      case Left(e) =>
-                        throw e
-                      case Right(s) =>
-                        status = s
-                        complete = true
-                    }
-                  } catch {
-                    case scala.util.control.NonFatal(e) =>
-                      throwable = e
+                      throw e
+                    case Right(s) =>
+                      status = s
                       complete = true
                   }
+                } catch {
+                  case scala.util.control.NonFatal(e) =>
+                    throwable = e
+                    complete = true
                 }
-            }
-            idx += 1
+              }
           }
-
-          if (throwable != null)
-            F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
-          else if (httpVersion == null || status == null)
-            ().asLeft.pure[F]
-          else
-            RespPrelude(httpVersion, status, idx).asRight.pure[F]
+          idx += 1
         }
+
+        if (throwable != null)
+          F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
+        else if (httpVersion == null || status == null)
+          ParserState(idx, state, complete, throwable, httpVersion, codeS, status, start).asLeft
+            .pure[F]
+        else
+          RespPrelude(httpVersion, status, idx).asRight.pure[F]
       }
 
       final case class RespPreludeError(message: String, cause: Option[Throwable])

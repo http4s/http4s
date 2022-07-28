@@ -130,9 +130,10 @@ private[ember] object ChunkedEncoding {
           parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
       }
     } else {
-      val parser = new Parser.HeaderP.Parser[F]()
       Parser.MessageP
-        .recurseFind(buffer, read, maxHeaderSize)(buffer => parser.parse(buffer, 0, maxHeaderSize))(
+        .recurseFind(buffer, read, maxHeaderSize, Parser.HeaderP.ParserState.initial)(
+          (state, buffer) => Parser.HeaderP.parse(buffer, 0, maxHeaderSize, state)
+        )(
           _.idx
         )
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }

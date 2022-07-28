@@ -392,7 +392,7 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    Parser.HeaderP.parseHeaders[IO](bv, 0, 4096).map {
+    Parser.HeaderP.parse[IO](bv, 0, 4096, Parser.HeaderP.ParserState.initial).map {
       case Right(headerP) =>
         assertEquals(
           headerP.headers.headers,
@@ -450,13 +450,15 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
 
-    new Parser.Request.ReqPrelude.Parser[IO]().parse(bv, 4096).map {
-      case Right(prelude) =>
-        assertEquals(prelude.method, Method.GET)
-        assertEquals(prelude.uri, uri"/")
-        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
-      case Left(_) => fail("Prelude was not right")
-    }
+    Parser.Request.ReqPrelude
+      .parse[IO](bv, 4096, Parser.Request.ReqPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.method, Method.GET)
+          assertEquals(prelude.uri, uri"/")
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+        case Left(_) => fail("Prelude was not right")
+      }
   }
 
   test("Response Prelude should parse an expected value") {
@@ -465,12 +467,14 @@ class ParsingSuite extends Http4sSuite {
         |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
-    new Parser.Response.RespPrelude.Parser[IO].parse(bv, 4096).map {
-      case Right(prelude) =>
-        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
-        assertEquals(prelude.status, Status.Ok)
-      case Left(_) => fail("Prelude was not right")
-    }
+    Parser.Response.RespPrelude
+      .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+          assertEquals(prelude.status, Status.Ok)
+        case Left(_) => fail("Prelude was not right")
+      }
   }
 
   test("Parser.Response.parser should parse two responses in a row") {
