@@ -122,7 +122,7 @@ private[client] object ClientHelpers {
           } { tlsContext =>
             tlsContext
               .clientBuilder(iSocket)
-              .withParameters(Util.mkTLSParameters(optionNames, enableEndpointValidation))
+              .withParameters(Util.mkClientTLSParameters(optionNames, enableEndpointValidation))
               .build
               .widen[Socket[F]]
           }
