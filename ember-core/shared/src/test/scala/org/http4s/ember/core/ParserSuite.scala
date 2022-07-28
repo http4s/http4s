@@ -45,6 +45,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
+        .rechunkRandomly(0.1, 0.5)
 
       taking(byteStream).flatMap { read =>
         Parser.Request.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
@@ -56,6 +57,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
+        .rechunkRandomly(0.1, 0.5)
 
       Resource.eval(
         taking(byteStream).flatMap { read =>
