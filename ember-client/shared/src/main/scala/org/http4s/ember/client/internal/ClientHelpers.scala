@@ -40,6 +40,7 @@ import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Util
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
@@ -49,7 +50,7 @@ import org.typelevel.keypool._
 import java.io.IOException
 import scala.concurrent.duration._
 
-private[client] object ClientHelpers extends ClientHelpersPlatform {
+private[client] object ClientHelpers {
   def requestToSocketWithKey[F[_]: Sync](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
@@ -121,7 +122,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
           } { tlsContext =>
             tlsContext
               .clientBuilder(iSocket)
-              .withParameters(mkTLSParameters(optionNames, enableEndpointValidation))
+              .withParameters(Util.mkTLSParameters(optionNames, enableEndpointValidation))
               .build
               .widen[Socket[F]]
           }

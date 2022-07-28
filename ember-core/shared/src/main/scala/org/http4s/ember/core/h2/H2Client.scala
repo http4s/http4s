@@ -27,6 +27,7 @@ import fs2.io.net.tls._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
+import org.http4s.ember.core.Util
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -136,7 +137,8 @@ private[ember] class H2Client[F[_]: Async](
           tlsSocket <- tls
             .clientBuilder(baseSocket)
             .withParameters(
-              H2TLS.transform(TLSParameters.Default)
+              // TODO `enableEndpointValidation`
+              H2TLS.transform(Util.mkTLSParameters(address.some, true))
             )
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))

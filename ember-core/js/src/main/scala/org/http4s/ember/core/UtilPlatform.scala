@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.client.internal
+package org.http4s.ember.core
 
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Hostname
@@ -26,10 +26,10 @@ import fs2.io.net.tls.TLSParameters
 import scala.annotation.nowarn
 import scala.annotation.tailrec
 
-private[internal] trait ClientHelpersPlatform {
+private[core] trait UtilPlatform {
 
   @nowarn("msg=never used")
-  private[internal] def mkTLSParameters(
+  def mkTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean,
   ): TLSParameters =
