@@ -69,6 +69,84 @@ private[ember] object Parser {
     private[this] val transferEncodingS = "Transfer-Encoding"
     private[this] val chunkedS = "chunked"
 
+    final class Parser[F[_]] {
+      import scala.collection.mutable.ListBuffer
+      var idx: Int = 0
+      var state = false
+      var throwable: Throwable = null
+      var complete = false
+      var chunked: Boolean = false
+      var contentLength: Option[Long] = None
+
+      val headers: ListBuffer[Header.Raw] = ListBuffer()
+      var name: String = null
+      var start: Int = 0
+
+      def parse(message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
+          F: MonadThrow[F]
+      ): F[Either[Unit, HeaderP]] = {
+        val upperBound = Math.min(message.size - 1, maxHeaderSize)
+        start = initIndex
+        while (!complete && idx <= upperBound) {
+          if (!state) {
+            val current = message(idx)
+            // if current index is colon our name is complete
+            if (current == colon) {
+              state = true // set state to check for header value
+              name = new String(message, start, idx - start) // extract name string
+              start = idx + 1 // advance past colon for next start
+
+              // TODO: This if clause may not be necessary since the header value parser trims
+              if (message.size > idx + 1 && message(idx + 1) == space) {
+                start += 1 // if colon is followed by space advance again
+                idx += 1 // double advance index here to skip the space
+              }
+              // double CRLF condition - Termination of headers
+            } else if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
+              complete = true // completed terminate loop
+            }
+          } else {
+            val current = message(idx)
+            // If crlf is next we have completed the header value
+            if (current == lf && (idx > 0 && message(idx - 1) == cr)) {
+              // extract header value, trim leading and trailing whitespace
+              val hValue = new String(message, start, idx - start - 1).trim
+
+              val hName = name // copy var to val
+              name = null // set name back to null
+              val newHeader = Header.Raw(CIString(hName), hValue) // create header
+              if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
+                try contentLength = hValue.toLong.some
+                catch {
+                  case scala.util.control.NonFatal(e) =>
+                    throwable = e
+                    complete = true
+                }
+              } else if (
+                hName
+                  .equalsIgnoreCase(transferEncodingS)
+              ) { // Check if this is Transfer-encoding
+                chunked = hValue.contains(chunkedS)
+              }
+              start = idx + 1 // Next Start is after the CRLF
+              headers += newHeader // Add Header
+              state = false // Go back to Looking for HeaderName or Termination
+            }
+          }
+          idx += 1 // Single Advance Every Iteration
+        }
+
+        if (throwable != null) {
+          F.raiseError(ParseHeadersError(throwable))
+        } else if (!complete) {
+          ().asLeft.pure[F]
+        } else {
+          HeaderP(Headers(headers.toList), chunked, contentLength, idx).asRight.pure[F]
+        }
+      }
+
+    }
+
     def parseHeaders[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int)(implicit
         F: MonadThrow[F]
     ): F[Either[Unit, HeaderP]] = {
