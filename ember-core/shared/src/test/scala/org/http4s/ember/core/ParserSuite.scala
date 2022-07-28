@@ -448,7 +448,7 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
 
-    new Parser.Request.ReqPrelude.ReqPreludeParser[IO]().parse(bv, 4096).map {
+    new Parser.Request.ReqPrelude.Parser[IO]().parse(bv, 4096).map {
       case Right(prelude) =>
         assertEquals(prelude.method, Method.GET)
         assertEquals(prelude.uri, uri"/")
@@ -463,7 +463,7 @@ class ParsingSuite extends Http4sSuite {
         |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
-    Parser.Response.RespPrelude.parsePrelude[IO](bv, 4096).map {
+    new Parser.Response.RespPrelude.Parser[IO].parse(bv, 4096).map {
       case Right(prelude) =>
         assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
         assertEquals(prelude.status, Status.Ok)

@@ -159,7 +159,7 @@ private[ember] object Parser {
 
     object ReqPrelude {
 
-      class ReqPreludeParser[F[_]] {
+      class Parser[F[_]] {
 
         var idx = 0
         var state: Byte = 0
@@ -236,79 +236,6 @@ private[ember] object Parser {
         }
       }
 
-      // // Method SP URI SP HttpVersion CRLF - REST
-      // def parsePrelude[F[_]](message: Array[Byte], maxHeaderSize: Int)(implicit
-      //     F: MonadThrow[F]
-      // ): F[Either[Unit, ReqPrelude]] = {
-      //   var idx = 0
-      //   var state: Byte = 0
-      //   var complete = false
-
-      //   var throwable: Throwable = null
-      //   var method: Method = null
-      //   var uri: Uri = null
-      //   var httpVersion: HttpVersion = null
-      //   val upperBound = Math.min(message.size - 1, maxHeaderSize)
-
-      //   var start = 0
-      //   while (!complete && idx <= upperBound) {
-      //     val value = message(idx)
-      //     (state: @switch) match {
-      //       case 0 =>
-      //         if (value == space) {
-      //           Method.fromString(new String(message, start, idx - start)) match {
-      //             case Left(e) =>
-      //               throwable = e
-      //               complete = true
-      //             case Right(m) =>
-      //               method = m
-      //           }
-      //           start = idx + 1
-      //           state = 1
-      //         }
-      //       case 1 =>
-      //         if (value == space) {
-      //           Uri.fromString(new String(message, start, idx - start)) match {
-      //             case Left(e) =>
-      //               throwable = e
-      //               complete = true
-      //             case Right(u) =>
-      //               uri = u
-      //           }
-      //           start = idx + 1
-      //           state = 2
-      //         }
-      //       case 2 =>
-      //         if (value == lf && (idx > 0 && message(idx - 1) == cr)) {
-      //           HttpVersion.fromString(new String(message, start, idx - start - 1)) match {
-      //             case Left(e) =>
-      //               throwable = e
-      //               complete = true
-      //             case Right(h) =>
-      //               httpVersion = h
-      //           }
-      //           complete = true
-      //         }
-      //     }
-      //     idx += 1
-      //   }
-
-      //   if (throwable != null)
-      //     F.raiseError(
-      //       ParsePreludeError(
-      //         throwable.getMessage(),
-      //         Option(throwable),
-      //         Option(method),
-      //         Option(uri),
-      //         Option(httpVersion),
-      //       )
-      //     )
-      //   else if (method == null || uri == null || httpVersion == null)
-      //     ().asLeft.pure[F]
-      //   else
-      //     ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
-      // }
-
       final case class ParsePreludeError(
           message: String,
           caused: Option[Throwable],
@@ -325,7 +252,7 @@ private[ember] object Parser {
         buffer: Array[Byte],
         read: Read[F],
     )(implicit F: Concurrent[F]): F[(Request[F], Drain[F])] = {
-      val parser = new ReqPrelude.ReqPreludeParser[F]()
+      val parser = new ReqPrelude.Parser[F]()
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
           EitherT(parser.parse(ibuffer, maxHeaderSize))
@@ -380,7 +307,7 @@ private[ember] object Parser {
           status == Status.NotModified ||
           status.responseClass == Status.Informational
 
-      val parser = new RespPrelude.RespPreludeParser[F]()
+      val parser = new RespPrelude.Parser[F]()
 
       for {
         t <- MessageP.recurseFind(buffer, read, maxHeaderSize)(ibuffer =>
@@ -429,7 +356,7 @@ private[ember] object Parser {
 
       final case class RespPrelude(version: HttpVersion, status: Status, nextIndex: Int)
 
-      final class RespPreludeParser[F[_]] {
+      final class Parser[F[_]] {
 
         var complete = false
         var idx = 0
@@ -501,75 +428,7 @@ private[ember] object Parser {
         }
       }
 
-      // HTTP/1.1 200 OK
-      // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-      def parsePrelude[F[_]](buffer: Array[Byte], maxHeaderSize: Int)(implicit
-          F: MonadThrow[F]
-      ): F[Either[Unit, RespPrelude]] = {
-        var complete = false
-        var idx = 0
-        var throwable: Throwable = null
-        var httpVersion: HttpVersion = null
-
-        var codeS: String = null
-        // val reason: String = null
-        var status: Status = null
-        var start = 0
-        var state = 0 // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
-        val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
-
-        while (!complete && idx <= upperBound) {
-          val value = buffer(idx)
-          (state: @switch) match {
-            case 0 =>
-              if (value == space) {
-                val s = new String(buffer, start, idx - start)
-                HttpVersion.fromString(s) match {
-                  case Left(e) =>
-                    throwable = e
-                    complete = true
-                  case Right(h) =>
-                    httpVersion = h
-                }
-                start = idx + 1
-                state = 1
-              }
-            case 1 =>
-              if (value == space) {
-                codeS = new String(buffer, start, idx - start)
-                state = 2
-                start = idx + 1
-              }
-            case 2 =>
-              if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                try {
-                  val codeInt = codeS.toInt
-                  Status.fromInt(codeInt) match {
-                    case Left(e) =>
-                      throw e
-                    case Right(s) =>
-                      status = s
-                      complete = true
-                  }
-                } catch {
-                  case scala.util.control.NonFatal(e) =>
-                    throwable = e
-                    complete = true
-                }
-              }
-          }
-          idx += 1
-        }
-
-        if (throwable != null)
-          F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
-        else if (httpVersion == null || status == null)
-          ().asLeft.pure[F]
-        else
-          RespPrelude(httpVersion, status, idx).asRight.pure[F]
-      }
-
-      case class RespPreludeError(message: String, cause: Option[Throwable])
+      final case class RespPreludeError(message: String, cause: Option[Throwable])
           extends Exception(
             s"Received Error while parsing prelude - Message: $message - ${cause.map(_.getMessage)}",
             cause.orNull,
