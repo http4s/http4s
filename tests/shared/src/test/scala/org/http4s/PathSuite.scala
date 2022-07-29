@@ -25,7 +25,7 @@ import org.scalacheck.Prop._
 class PathSuite extends Http4sSuite {
   checkAll("Order[Path]", OrderTests[Path].order)
   checkAll("Semigroup[Path]", SemigroupTests[Path].semigroup)
-  checkAll("Hash[Path]", HashTests[Path](Hash.fromHashing).hash)
+  checkAll("Hash[Path]", HashTests[Path].hash)
   checkAll("Eq[Path]", EqTests[Path].eqv)
 
   test("merge should be producing a new Path according to rfc3986 5.2.3") {

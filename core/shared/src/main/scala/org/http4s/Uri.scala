@@ -428,7 +428,14 @@ object Uri extends UriPlatform {
     def toRelative: Path = copy(absolute = false)
   }
 
-  object Path {
+  private[Uri] trait LowPriorityImplicitsForPath {
+    implicit val pathHash: Hash[Path] = new Hash[Path] {
+      override def hash(x: Path): Int = x.##
+      override def eqv(x: Path, y: Path): Boolean = x == y
+    }
+  }
+
+  object Path extends LowPriorityImplicitsForPath {
     val empty: Path = new Path(Vector.empty, absolute = false, endsWithSlash = false)
     val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = true)
     lazy val Asterisk: Path =
