@@ -142,7 +142,6 @@ private[ember] object Parser {
 
             val hName = name // copy var to val
             name = null // set name back to null
-            println(s"header name is $hName, value is $hValue")
             val newHeader = Header.Raw(CIString(hName), hValue) // create header
             if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
               try contentLength = hValue.toLong.some
@@ -374,7 +373,7 @@ private[ember] object Parser {
         )(_.nextIndex)
         (prelude, buffer2) = x
         y <- MessageP.recurseFind(
-          buffer,
+          buffer2,
           read,
           maxHeaderSize,
           HeaderP.ParserState.initial,
