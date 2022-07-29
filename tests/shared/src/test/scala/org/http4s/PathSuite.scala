@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.Hash
 import cats.kernel.laws.discipline._
 import org.http4s.Uri.Path
 import org.http4s.laws.discipline.arbitrary._
@@ -24,30 +25,8 @@ import org.scalacheck.Prop._
 class PathSuite extends Http4sSuite {
   checkAll("Order[Path]", OrderTests[Path].order)
   checkAll("Semigroup[Path]", SemigroupTests[Path].semigroup)
-
-  test("equals should be consistent with equality") {
-    forAll { (a: Path, b: Path) =>
-      if (a == b)
-        assert(
-          (a.segments == b.segments) && (a.absolute == b.absolute) && (a.endsWithSlash == b.endsWithSlash)
-        )
-      else
-        assert(
-          (a.segments != b.segments) || (a.absolute != b.absolute) || (a.endsWithSlash != b.endsWithSlash)
-        )
-    }
-  }
-
-  test("hashcode should be consistent with equality") {
-    forAll { (a: Path, b: Path) =>
-      assert(
-        if (a.## != b.##)
-          a != b // if the hashCodes are different, then the Paths should be different by equality
-        else
-          (a == b) && (a.## == b.##) // if the Paths are equal, then the hashcodes should be the same
-      )
-    }
-  }
+  checkAll("Hash[Path]", HashTests[Path](Hash.fromHashing).hash)
+  checkAll("Eq[Path]", EqTests[Path].eqv)
 
   test("merge should be producing a new Path according to rfc3986 5.2.3") {
     forAll { (a: Path, b: Path) =>

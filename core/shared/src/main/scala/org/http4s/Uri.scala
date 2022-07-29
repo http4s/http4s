@@ -54,7 +54,6 @@ import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => JCharset}
 import scala.collection.immutable
-import scala.math.Ordered
 import scala.util.hashing.MurmurHash3
 
 /** Representation of the [[Request]] URI
