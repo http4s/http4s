@@ -553,7 +553,7 @@ object Uri extends UriPlatform {
           )
       }
 
-    def http4sInstancesForPath: : Order[Path] with Semigroup[Path] = http4sInstancesForPathBinCompat
+    def http4sInstancesForPath: Order[Path] with Semigroup[Path] = http4sInstancesForPathBinCompat
     implicit val http4sInstancesForPathBinCompat: Order[Path] with Semigroup[Path] with Hash[Path] =
       new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
