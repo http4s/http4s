@@ -262,6 +262,7 @@ final class EmberClientBuilder[F[_]: Async] private (
           if (pushPromiseSupport.isDefined) default
           else
             default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+          checkEndpointIdentification,
         )
       }
     } yield {

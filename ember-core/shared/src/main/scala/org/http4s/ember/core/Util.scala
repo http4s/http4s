@@ -31,7 +31,7 @@ import java.time.Instant
 import java.util.Locale
 import scala.concurrent.duration._
 
-private[ember] object Util {
+private[ember] object Util extends UtilPlatform {
 
   private[this] val closeCi = ci"close"
   private[this] val keepAliveCi = ci"keep-alive"

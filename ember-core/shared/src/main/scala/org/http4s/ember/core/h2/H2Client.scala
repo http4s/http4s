@@ -27,6 +27,7 @@ import fs2.io.net.tls._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
+import org.http4s.ember.core.Util
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -85,28 +86,28 @@ private[ember] class H2Client[F[_]: Async](
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): F[H2Connection[F]] =
     connections.get.map(_.get(key).map(_._1)).flatMap {
       case Some(connection) => Applicative[F].pure(connection)
       case None =>
-        createConnection(key, useTLS, priorKnowledge).allocated.flatMap(tup =>
-          connections
-            .modify { map =>
-              val current = map.get(key)
-              val newMap = current.fold(map.+((key, tup)))(_ => map)
-              val out = current.fold(
-                Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
-              )(r => Either.right((r._1, tup._2)))
-              (newMap, out)
-            }
-            .flatMap {
-              case Right((connection, shutdown)) =>
-                // println("Using Reused Connection")
-                shutdown.map(_ => connection)
-              case Left(connection) =>
-                // println("Using Created Connection")
-                connection.pure[F]
-            }
+        createConnection(key, useTLS, priorKnowledge, enableEndpointValidation).allocated.flatMap(
+          tup =>
+            connections
+              .modify { map =>
+                val current = map.get(key)
+                val newMap = current.fold(map.+((key, tup)))(_ => map)
+                val out = current.fold(
+                  Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
+                )(r => Either.right((r._1, tup._2)))
+                (newMap, out)
+              }
+              .flatMap {
+                case Right((connection, shutdown)) =>
+                  shutdown.map(_ => connection)
+                case Left(connection) =>
+                  connection.pure[F]
+              }
         )
     }
 
@@ -115,8 +116,9 @@ private[ember] class H2Client[F[_]: Async](
       key: H2Client.RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): Resource[F, H2Connection[F]] =
-    createSocket(key, useTLS, priorKnowledge).flatMap {
+    createSocket(key, useTLS, priorKnowledge, enableEndpointValidation).flatMap {
       case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
       case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
     }
@@ -127,6 +129,7 @@ private[ember] class H2Client[F[_]: Async](
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- sg.client(address)
@@ -136,7 +139,7 @@ private[ember] class H2Client[F[_]: Async](
           tlsSocket <- tls
             .clientBuilder(baseSocket)
             .withParameters(
-              H2TLS.transform(TLSParameters.Default)
+              H2TLS.transform(Util.mkClientTLSParameters(address.some, enableEndpointValidation))
             )
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
@@ -267,7 +270,7 @@ private[ember] class H2Client[F[_]: Async](
       )
     } yield h2
 
-  def runHttp2Only(req: Request[F]): Resource[F, Response[F]] = {
+  def runHttp2Only(req: Request[F], enableEndpointValidation: Boolean): Resource[F, Response[F]] = {
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
     val useTLS = req.uri.scheme.map(_.value) match {
@@ -282,7 +285,9 @@ private[ember] class H2Client[F[_]: Async](
     val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
     val trailers = req.attributes.lookup(Message.Keys.TrailerHeaders[F])
     for {
-      connection <- Resource.eval(getOrCreate(key, useTLS, priorKnowledge))
+      connection <- Resource.eval(
+        getOrCreate(key, useTLS, priorKnowledge, enableEndpointValidation)
+      )
       // Stream Order Must Be Correct, so we must grab the global lock
       stream <- Resource.make(
         connection.streamCreateAndHeaders.use(_ =>
@@ -322,6 +327,7 @@ private[ember] object H2Client {
       tlsContext: TLSContext[F],
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
+      enableEndpointValidation: Boolean,
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
 
@@ -354,11 +360,11 @@ private[ember] object H2Client {
       val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
       val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
-        case Some(Http2) => h2.runHttp2Only(req)
+        case Some(Http2) => h2.runHttp2Only(req, enableEndpointValidation)
         case Some(Http1) => http1Client(req)
         case None =>
           (
-            h2.runHttp2Only(req) <*
+            h2.runHttp2Only(req, enableEndpointValidation) <*
               Resource.eval(socketMap.update(s => s + (key -> Http2)))
           ).handleErrorWith[org.http4s.Response[F], Throwable] {
             case InvalidSocketType() | MissingHost() | MissingPort() =>
