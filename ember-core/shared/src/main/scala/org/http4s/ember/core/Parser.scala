@@ -87,8 +87,8 @@ private[ember] object Parser {
     )
 
     object ParserState {
-      def initial(idx: Int): ParserState = ParserState(
-        idx = idx,
+      def initial: ParserState = ParserState(
+        idx = 0,
         state = false,
         throwable = null,
         complete = false,
@@ -96,7 +96,7 @@ private[ember] object Parser {
         contentLength = None,
         headers = ListBuffer.empty,
         name = null,
-        start = idx,
+        start = 0,
       )
     }
 
@@ -142,6 +142,7 @@ private[ember] object Parser {
 
             val hName = name // copy var to val
             name = null // set name back to null
+            println(s"header name is $hName, value is $hValue")
             val newHeader = Header.Raw(CIString(hName), hValue) // create header
             if (hName.equalsIgnoreCase(contentLengthS)) { // Check if this is content-length.
               try contentLength = hValue.toLong.some
@@ -321,7 +322,7 @@ private[ember] object Parser {
           buffer2,
           read,
           maxHeaderSize,
-          HeaderP.ParserState.initial(prelude.nextIndex),
+          HeaderP.ParserState.initial,
         )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
         (headerP, finalBuffer) = y
 
@@ -376,7 +377,7 @@ private[ember] object Parser {
           buffer,
           read,
           maxHeaderSize,
-          HeaderP.ParserState.initial(prelude.nextIndex),
+          HeaderP.ParserState.initial,
         )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
         (headerP, finalBuffer) = y
 

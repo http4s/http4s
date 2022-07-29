@@ -97,33 +97,33 @@ class ParsingSuite extends Http4sSuite {
     }
   }
 
-  test("Parser.Request.parser should Parse a request with no body correctly") {
-    val raw =
-      """GET / HTTP/1.1
-      |Host: www.google.com
-      |
-      |""".stripMargin
-    val expected = Request[IO](
-      Method.GET,
-      uri"www.google.com",
-      headers = Headers(org.http4s.headers.Host("www.google.com")),
-    )
+  // test("Parser.Request.parser should Parse a request with no body correctly") {
+  //   val raw =
+  //     """GET / HTTP/1.1
+  //     |Host: www.google.com
+  //     |
+  //     |""".stripMargin
+  //   val expected = Request[IO](
+  //     Method.GET,
+  //     uri"www.google.com",
+  //     headers = Headers(org.http4s.headers.Host("www.google.com")),
+  //   )
 
-    val result = Helpers.parseRequestRig[IO](raw)
+  //   val result = Helpers.parseRequestRig[IO](raw)
 
-    result.map(_.method).assertEquals(expected.method)
-    result.map(_.uri.scheme).assertEquals(expected.uri.scheme)
-    // result.map(_.uri.authority).assertEquals(expected.uri.authority)
-    // result.map(_.uri.path).assertEquals(expected.uri.path)
-    // result.map(_.uri.query).assertEquals(expected.uri.query)
-    result.map(_.uri.fragment).assertEquals(expected.uri.fragment)
-    result.map(_.headers).assertEquals(expected.headers)
-    for {
-      r <- result
-      a <- r.body.compile.toVector
-      b <- expected.body.compile.toVector
-    } yield assertEquals(a, b)
-  }
+  //   result.map(_.method).assertEquals(expected.method)
+  //   result.map(_.uri.scheme).assertEquals(expected.uri.scheme)
+  //   // result.map(_.uri.authority).assertEquals(expected.uri.authority)
+  //   // result.map(_.uri.path).assertEquals(expected.uri.path)
+  //   // result.map(_.uri.query).assertEquals(expected.uri.query)
+  //   result.map(_.uri.fragment).assertEquals(expected.uri.fragment)
+  //   result.map(_.headers).assertEquals(expected.headers)
+  //   for {
+  //     r <- result
+  //     a <- r.body.compile.toVector
+  //     b <- expected.body.compile.toVector
+  //   } yield assertEquals(a, b)
+  // }
 
   test("Parser.Request.parser should Parse a request with a body correctly") {
     val raw =
@@ -392,7 +392,7 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    Parser.HeaderP.parse[IO](bv, 4096, Parser.HeaderP.ParserState.initial(0)).map {
+    Parser.HeaderP.parse[IO](bv, 4096, Parser.HeaderP.ParserState.initial).map {
       case Right(headerP) =>
         assertEquals(
           headerP.headers.headers,
