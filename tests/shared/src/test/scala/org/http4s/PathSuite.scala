@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import cats.Hash
 import cats.kernel.laws.discipline._
 import org.http4s.Uri.Path
 import org.http4s.laws.discipline.arbitrary._

@@ -428,14 +428,7 @@ object Uri extends UriPlatform {
     def toRelative: Path = copy(absolute = false)
   }
 
-  private[Uri] trait LowPriorityImplicitsForPath {
-    implicit val pathHash: Hash[Path] = new Hash[Path] {
-      override def hash(x: Path): Int = x.##
-      override def eqv(x: Path, y: Path): Boolean = x == y
-    }
-  }
-
-  object Path extends LowPriorityImplicitsForPath {
+  object Path {
     val empty: Path = new Path(Vector.empty, absolute = false, endsWithSlash = false)
     val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = true)
     lazy val Asterisk: Path =
@@ -560,8 +553,8 @@ object Uri extends UriPlatform {
           )
       }
 
-    implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] =
-      new Order[Path] with Semigroup[Path] {
+    implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] with Hash[Path] =
+      new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
           def comparePaths[A: Order](focus: Path => A): Int =
             compareField(x, y, focus)
@@ -573,6 +566,8 @@ object Uri extends UriPlatform {
         }
 
         def combine(x: Path, y: Path): Path = x.concat(y)
+
+        def hash(x: Path): Int = x.##
       }
 
   }
