@@ -392,7 +392,7 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    Parser.HeaderP.parse[IO](bv, 0, 4096, Parser.HeaderP.ParserState.initial).map {
+    Parser.HeaderP.parse[IO](bv, 4096, Parser.HeaderP.ParserState.initial(0)).map {
       case Right(headerP) =>
         assertEquals(
           headerP.headers.headers,

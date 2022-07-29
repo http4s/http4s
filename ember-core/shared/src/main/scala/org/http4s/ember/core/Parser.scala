@@ -87,8 +87,8 @@ private[ember] object Parser {
     )
 
     object ParserState {
-      def initial: ParserState = ParserState(
-        idx = 0,
+      def initial(idx: Int): ParserState = ParserState(
+        idx = idx,
         state = false,
         throwable = null,
         complete = false,
@@ -96,12 +96,12 @@ private[ember] object Parser {
         contentLength = None,
         headers = ListBuffer.empty,
         name = null,
-        start = 0,
+        start = idx,
       )
     }
 
-    def parse[F[_]](message: Array[Byte], initIndex: Int, maxHeaderSize: Int, s: ParserState)(
-        implicit F: MonadThrow[F]
+    def parse[F[_]](message: Array[Byte], maxHeaderSize: Int, s: ParserState)(implicit
+        F: MonadThrow[F]
     ): F[Either[ParserState, HeaderP]] = {
       var idx: Int = s.idx
       var state = s.state
@@ -114,7 +114,7 @@ private[ember] object Parser {
       var name: String = s.name
       var start: Int = s.start
       val upperBound = Math.min(message.size - 1, maxHeaderSize)
-      start = initIndex
+
       while (!complete && idx <= upperBound) {
         if (!state) {
           val current = message(idx)
@@ -235,7 +235,7 @@ private[ember] object Parser {
         var uri: Uri = s.uri
         var httpVersion: HttpVersion = s.httpVersion
 
-        var start = 0
+        var start = s.start
         val upperBound = Math.min(message.size - 1, maxHeaderSize)
         while (!complete && idx <= upperBound) {
           val value = message(idx)
@@ -317,9 +317,12 @@ private[ember] object Parser {
           (state, ibuffer) => ReqPrelude.parse(ibuffer, maxHeaderSize, state)
         )(_.nextIndex)
         (prelude, buffer2) = x
-        y <- MessageP.recurseFind(buffer2, read, maxHeaderSize, HeaderP.ParserState.initial)(
-          (state, ibuffer) => HeaderP.parse(ibuffer, prelude.nextIndex, maxHeaderSize, state)
-        )(_.idx)
+        y <- MessageP.recurseFind(
+          buffer2,
+          read,
+          maxHeaderSize,
+          HeaderP.ParserState.initial(prelude.nextIndex),
+        )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
         (headerP, finalBuffer) = y
 
         baseReq = org.http4s.Request[F](
@@ -369,9 +372,12 @@ private[ember] object Parser {
           (state, ibuffer) => RespPrelude.parse(ibuffer, maxHeaderSize, state)
         )(_.nextIndex)
         (prelude, buffer2) = x
-        y <- MessageP.recurseFind(buffer, read, maxHeaderSize, HeaderP.ParserState.initial)(
-          (state, ibuffer) => HeaderP.parse(ibuffer, prelude.nextIndex, maxHeaderSize, state)
-        )(_.idx)
+        y <- MessageP.recurseFind(
+          buffer,
+          read,
+          maxHeaderSize,
+          HeaderP.ParserState.initial(prelude.nextIndex),
+        )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
         (headerP, finalBuffer) = y
 
         baseResp = org.http4s.Response[F](
