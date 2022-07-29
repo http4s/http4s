@@ -141,7 +141,6 @@ private[ember] class H2Client[F[_]: Async](
           tlsSocket <- tls
             .clientBuilder(baseSocket)
             .withParameters(
-              // TODO `enableEndpointValidation`
               H2TLS.transform(Util.mkClientTLSParameters(address.some, enableEndpointValidation))
             )
             .build
