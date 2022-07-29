@@ -317,12 +317,17 @@ private[ember] object Parser {
           (state, ibuffer) => ReqPrelude.parse(ibuffer, maxHeaderSize, state)
         )(_.nextIndex)
         (prelude, buffer2) = x
-        y <- MessageP.recurseFind(
-          buffer2,
-          read,
-          maxHeaderSize,
-          HeaderP.ParserState.initial,
-        )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
+        y <- MessageP
+          .recurseFind(
+            buffer2,
+            read,
+            maxHeaderSize,
+            HeaderP.ParserState.initial,
+          )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
+          //We've already consumed data to parse the prelude so empty actually means end of stream
+          .adaptError { case _: EmberException.EmptyStream =>
+            EmberException.ReachedEndOfStream()
+          }
         (headerP, finalBuffer) = y
 
         baseReq = org.http4s.Request[F](
@@ -372,12 +377,18 @@ private[ember] object Parser {
           (state, ibuffer) => RespPrelude.parse(ibuffer, maxHeaderSize, state)
         )(_.nextIndex)
         (prelude, buffer2) = x
-        y <- MessageP.recurseFind(
-          buffer2,
-          read,
-          maxHeaderSize,
-          HeaderP.ParserState.initial,
-        )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
+        y <- MessageP
+          .recurseFind(
+            buffer2,
+            read,
+            maxHeaderSize,
+            HeaderP.ParserState.initial,
+          )((state, ibuffer) => HeaderP.parse(ibuffer, maxHeaderSize, state))(_.idx)
+          //We've already consumed data to parse the prelude so empty actually means end of stream
+          .adaptError { case _: EmberException.EmptyStream =>
+            EmberException.ReachedEndOfStream()
+          }
+
         (headerP, finalBuffer) = y
 
         baseResp = org.http4s.Response[F](
