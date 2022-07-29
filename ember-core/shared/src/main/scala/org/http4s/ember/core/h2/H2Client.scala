@@ -104,10 +104,8 @@ private[ember] class H2Client[F[_]: Async](
               }
               .flatMap {
                 case Right((connection, shutdown)) =>
-                  // println("Using Reused Connection")
                   shutdown.map(_ => connection)
                 case Left(connection) =>
-                  // println("Using Created Connection")
                   connection.pure[F]
               }
         )
