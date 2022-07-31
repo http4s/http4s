@@ -48,8 +48,8 @@ import scodec.bits.ByteVector
 
 import java.io.IOException
 import java.nio.ByteBuffer
-import scala.concurrent.duration.Duration
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.duration.Duration
 
 object WebSocketHelpers {
 
