@@ -204,7 +204,7 @@ object WebSocketHelpers {
               val frames = ArrayBuffer.empty[WebSocketFrame]
               var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
               while (frame != null) {
-                frames.addOne(frame)
+                frames += frame
                 // We need to slice b/c `bufferToFrame` does absolute reads.
                 byteBuffer = byteBuffer.slice()
                 frame = nonClientTranscoder.bufferToFrame(byteBuffer)
