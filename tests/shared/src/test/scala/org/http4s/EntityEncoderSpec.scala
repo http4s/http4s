@@ -106,7 +106,7 @@ class EntityEncoderSpec extends Http4sSuite {
 
     test("EntityEncoder should render readers") {
       val reader = new StringReader("string reader")
-      writeToString(IO(reader))(EntityEncoder.readerEncoder)
+      writeToString(IO(reader))(EntityEncoder.readerEncoder())
         .assertEquals("string reader")
     }
 
@@ -115,14 +115,14 @@ class EntityEncoderSpec extends Http4sSuite {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder)
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder())
         .assertEquals(longString)
     }
 
     test("EntityEncoder should render readers with UTF chars") {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder)
+      writeToString[IO[Reader]](IO(reader))(EntityEncoder.readerEncoder())
         .assertEquals(utfString)
     }
 
