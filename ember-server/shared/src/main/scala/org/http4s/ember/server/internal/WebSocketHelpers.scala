@@ -49,6 +49,7 @@ import scodec.bits.ByteVector
 import java.io.IOException
 import java.nio.ByteBuffer
 import scala.concurrent.duration.Duration
+import scala.collection.mutable.ArrayBuffer
 
 object WebSocketHelpers {
 
@@ -193,15 +194,29 @@ object WebSocketHelpers {
       rest.pull.uncons.flatMap {
         case Some((chunk, next)) =>
           val buffer = acc ++ chunk.toArray[Byte]
-          val byteBuffer = ByteBuffer.wrap(buffer)
+          var byteBuffer = ByteBuffer.wrap(buffer)
           Pull
-            .eval(F.delay(nonClientTranscoder.bufferToFrame(byteBuffer)))
-            .flatMap { value =>
+            .eval(F.delay {
+              // A single chunk might contain multiple frames
+              // but `bufferToFrame` decodes at most one, so
+              // we call it repeatedly until all frames in the
+              // buffer are decoded.
+              val frames = ArrayBuffer.empty[WebSocketFrame]
+              var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+              while (frame != null) {
+                frames.addOne(frame)
+                // We need to slice b/c `bufferToFrame` does absolute reads.
+                byteBuffer = byteBuffer.slice()
+                frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+              }
+              Chunk.array(frames.toArray)
+            })
+            .flatMap { frames =>
               // TODO followup: improve this buffering
-              if (value != null) {
+              if (frames.nonEmpty) {
                 val remaining = new Array[Byte](byteBuffer.remaining())
                 byteBuffer.get(remaining)
-                Pull.output1(value) >> go(next, remaining)
+                Pull.output(frames) >> go(next, remaining)
               } else {
                 go(next, buffer)
               }
