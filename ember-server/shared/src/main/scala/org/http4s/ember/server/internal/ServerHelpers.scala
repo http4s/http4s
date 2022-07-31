@@ -356,13 +356,16 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   ): F[Unit] = {
     val sendResponse =
       resp.entity match {
-        case Entity.Strict(chunk) =>
+        case Entity.Strict(bytes) =>
           val (initSection, chunked) = Encoder.initSection(resp)
           if (chunked) {
-            val encodedChunk = ChunkedEncoding.encodeChunk(chunk)
+            val encodedChunk = ChunkedEncoding.encodeChunk(Chunk.byteVector(bytes))
             timeoutMaybe(socket.write(Chunk.array(initSection) ++ encodedChunk), idleTimeout)
           } else {
-            timeoutMaybe(socket.write(Chunk.array(initSection) ++ chunk), idleTimeout)
+            timeoutMaybe(
+              socket.write(Chunk.array(initSection) ++ Chunk.byteVector(bytes)),
+              idleTimeout,
+            )
           }
         case Entity.Empty =>
           val (initSection, _) = Encoder.initSection(resp)

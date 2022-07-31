@@ -122,7 +122,7 @@ private[ember] object H2Server {
                 req.uri,
                 HttpVersion.`HTTP/2`,
                 req.headers,
-                Entity.Strict(Chunk.byteVector(bv)),
+                Entity.Strict(bv),
                 req.attributes,
               )
               upgradeResponse.withAttribute(H2Keys.H2cUpgrade, (settings, newReq))

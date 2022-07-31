@@ -26,6 +26,7 @@ import org.http4s.Method._
 import org.http4s.Status._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.syntax.all._
+import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
 
@@ -35,7 +36,8 @@ class EntityLimiterSuite extends Http4sSuite {
   }
 
   private val defaultEntity = Entity(chunk(Chunk.array("hello".getBytes(StandardCharsets.UTF_8))))
-  private val strictEntity = Entity.strict(Chunk.array("hello".getBytes(StandardCharsets.UTF_8)))
+  private val strictEntity =
+    Entity.strict(ByteVector.view("hello".getBytes(StandardCharsets.UTF_8)))
 
   test("Allow reasonable default entity") {
     EntityLimiter(routes, 100)

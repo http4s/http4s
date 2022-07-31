@@ -28,6 +28,7 @@ import org.http4s.circe._
 import org.http4s.client._
 import org.http4s.implicits._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
+import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
@@ -69,7 +70,7 @@ object EmberClientSimpleExample extends IOApp {
 
   def getRequestBufferedBody[F[_]: Async](client: Client[F], req: Request[F]): F[Response[Pure]] = {
     def buffer(resp: Response[F]): F[Response[Pure]] =
-      resp.body.compile.to(Chunk).map(bv => resp.copy(entity = Entity.Strict(bv)))
+      resp.body.compile.to(ByteVector).map(bv => resp.copy(entity = Entity.Strict(bv)))
 
     client.run(req).use(buffer)
   }
