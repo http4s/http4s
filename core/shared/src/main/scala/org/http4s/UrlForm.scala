@@ -21,7 +21,6 @@ import cats.Monoid
 import cats.data.Chain
 import cats.effect.Concurrent
 import cats.syntax.all._
-import org.http4s.Charset.`UTF-8`
 import org.http4s.headers._
 import org.http4s.parser._
 
@@ -86,7 +85,7 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
     updateFormFields(key, vals)
 }
 
-object UrlForm {
+object UrlForm extends Utf8UrlFormEncoder {
   val empty: UrlForm = new UrlForm(Map.empty)
 
   def apply(values: Map[String, Chain[String]]): UrlForm =
@@ -100,14 +99,15 @@ object UrlForm {
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
 
-  implicit def entityEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[UrlForm] =
-    EntityEncoder.stringEncoder
+  def entityEncoder(charset: Charset = Charset.`UTF-8`): EntityEncoder.Pure[UrlForm] =
+    EntityEncoder
+      .stringEncoder(charset)
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](implicit
       F: Concurrent[F],
-      defaultCharset: Charset = `UTF-8`,
+      defaultCharset: Charset = Charset.`UTF-8`,
   ): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
@@ -163,3 +163,10 @@ object UrlForm {
     sb.result()
   }
 }
+
+trait Utf8UrlFormEncoder {
+  implicit val utf8EntityEncoder: EntityEncoder.Pure[UrlForm] =
+    UrlForm.entityEncoder(Charset.`UTF-8`)
+}
+
+object Utf8UrlFormEncoder

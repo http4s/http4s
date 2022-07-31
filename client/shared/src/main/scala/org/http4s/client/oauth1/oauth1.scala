@@ -230,7 +230,7 @@ package object oauth1 {
           val bodyparams = urlform.values.toSeq
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.toList.map((k, _)) }
 
-          implicit val charset: Charset = req.charset.getOrElse(Charset.`UTF-8`)
+          implicit val entityEncoder = UrlForm.entityEncoder(req.charset.getOrElse(Charset.`UTF-8`))
           req.withEntity(urlform) -> (qparams ++ bodyparams)
         }
 
