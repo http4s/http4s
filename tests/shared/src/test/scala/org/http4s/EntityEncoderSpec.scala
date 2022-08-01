@@ -28,6 +28,7 @@ import fs2.io.file.Files
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary
+import scodec.bits.ByteVector
 
 import java.io._
 import java.nio.charset.StandardCharsets
@@ -142,9 +143,9 @@ class EntityEncoderSpec extends Http4sSuite {
       sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[IO, ModelA] =
-        EntityEncoder.simple[ModelA]()(_ => Chunk.array("A".getBytes))
+        EntityEncoder.simple[ModelA]()(_ => ByteVector.view("A".getBytes))
       implicit val w2: EntityEncoder[IO, ModelB] =
-        EntityEncoder.simple[ModelB]()(_ => Chunk.array("B".getBytes))
+        EntityEncoder.simple[ModelB]()(_ => ByteVector.view("B".getBytes))
 
       assertEquals(EntityEncoder[IO, ModelA], w1)
       assertEquals(EntityEncoder[IO, ModelB], w2)

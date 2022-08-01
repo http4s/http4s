@@ -26,7 +26,6 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.Chunk
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
@@ -39,6 +38,7 @@ import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
+import scodec.bits.ByteVector
 
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -274,20 +274,20 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     entity match {
       case Entity.Empty =>
         F.pure(self.withEntity(Entity.Empty))
-      case entity @ Entity.Strict(chunk) =>
+      case entity @ Entity.Strict(bytes) =>
         F.pure(
           self
             .withEntity(entity)
             .transformHeaders(
-              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+              _.withContentLength(`Content-Length`.unsafeFromLong(bytes.size))
             )
         )
       case Entity.Default(body, _) =>
-        withLimit(body).covary[F1].compile.to(Chunk).map { chunk =>
+        withLimit(body).covary[F1].compile.to(ByteVector).map { byteVector =>
           self
-            .withEntity(Entity.strict(chunk))
+            .withEntity(Entity.strict(byteVector))
             .transformHeaders(
-              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+              _.withContentLength(`Content-Length`.unsafeFromLong(byteVector.size))
             )
         }
     }
@@ -768,7 +768,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity.Strict(Chunk.array("Not found".getBytes(StandardCharsets.UTF_8))),
+      entity = Entity.Strict(ByteVector.view("Not found".getBytes(StandardCharsets.UTF_8))), // TODO
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

@@ -70,9 +70,9 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
 
     // Go through all of them
     {
-      val samples = MediaRange.standard.values.map(MediaRangeAndQValue(_))
-      samples.sliding(4).toArray.foreach { sample =>
-        val h = Accept(sample.head, sample.tail.toSeq: _*)
+      val samples = MediaRange.standard.values.map(MediaRangeAndQValue(_)).toList
+      samples.sliding(4).foreach { sample =>
+        val h = Accept(sample.head, sample.tail: _*)
         assertEquals(roundTrip(h), h)
       }
     }
@@ -80,9 +80,9 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
     // Go through all of them with q and extensions
     {
       val samples =
-        MediaRange.standard.values.map(_.withExtensions(ext).withQValue(qValue"0.2"))
-      samples.sliding(4).toArray.foreach { sample =>
-        val h = Accept(sample.head, sample.tail.toSeq: _*)
+        MediaRange.standard.values.map(_.withExtensions(ext).withQValue(qValue"0.2")).toList
+      samples.sliding(4).foreach { sample =>
+        val h = Accept(sample.head, sample.tail: _*)
         assertEquals(roundTrip(h), h)
       }
     }
@@ -94,9 +94,9 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
     assertEquals(roundTrip(accept), accept)
 
     // Go through all of them
-    val samples = MediaType.all.values.map(MediaRangeAndQValue(_))
-    samples.sliding(4).toArray.foreach { sample =>
-      val h = Accept(sample.head, sample.tail.toSeq: _*)
+    val samples = MediaType.all.values.map(MediaRangeAndQValue(_)).toList
+    samples.sliding(4).foreach { sample =>
+      val h = Accept(sample.head, sample.tail: _*)
       assertEquals(roundTrip(h), h)
     }
   }
@@ -113,9 +113,9 @@ class AcceptHeaderSpec extends Http4sSuite with HeaderParserHelper[Accept] {
     )
 
     // Go through all of them
-    val samples = MediaType.all.values.map(_.withExtensions(ext).withQValue(qValue"0.2"))
-    samples.sliding(4).toArray.foreach { sample =>
-      val h = Accept(sample.head, sample.tail.toSeq: _*)
+    val samples = MediaType.all.values.map(_.withExtensions(ext).withQValue(qValue"0.2")).toList
+    samples.sliding(4).foreach { sample =>
+      val h = Accept(sample.head, sample.tail: _*)
       assertEquals(roundTrip(h), h)
     }
   }
