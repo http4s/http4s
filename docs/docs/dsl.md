@@ -359,7 +359,7 @@ Alice!" to `GET /hello/Alice`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name => Ok(s"Hello ${name}!")
+  case GET -> Root / "hello" / name => Ok(s"Hello, ${name}!")
 }
 ```
 
