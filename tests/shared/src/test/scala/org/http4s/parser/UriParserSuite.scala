@@ -23,8 +23,6 @@ import org.http4s._
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 
-import scala.collection.immutable
-
 class UriParserSuite extends Http4sSuite {
   private def checkRequestTarget(items: Seq[(String, Uri)]) =
     items.foreach { case (str, uri) =>
@@ -150,10 +148,10 @@ class UriParserSuite extends Http4sSuite {
 
   private val q = Query.unsafeFromString("param1=3&param2=2&param2=foo")
   private val u = Uri(query = q)
-  test("Uri.requestTarget should represent query as multiParams as a Map[String,Seq[String]]") {
+  test("Uri.requestTarget should represent query as multiParams as a Map[String,List[String]]") {
     assertEquals(
       u.multiParams,
-      Map("param1" -> immutable.Seq("3"), "param2" -> immutable.Seq("2", "foo")),
+      Map("param1" -> List("3"), "param2" -> List("2", "foo")),
     )
   }
 
