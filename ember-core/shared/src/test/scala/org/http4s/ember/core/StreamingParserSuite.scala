@@ -195,24 +195,9 @@ class StreamingParserSuite extends Http4sSuite {
 
   // https://github.com/http4s/http4s/issues/6580
   test("raise end of stream for request with EOF after request line") {
-    // segments is equivalent to
-    // List(
-    //   "POST /foo HTTP/1.1\r\n",
-    //   "Content-Type: text/plain\r\n",
-    //   "Content-Length: 5\r\n\r\n",
-    //   "hello",
-    // )
-    // but as bytes and repartitioned so that the end of the request line is at the end of the
-    // second chunk
-    val segments: List[List[Byte]] = List(
-      List(80),
-      List(79, 83, 84, 32, 47, 102, 111, 111, 32, 72, 84, 84, 80, 47, 49, 46, 49, 13, 10),
-      List(67, 111, 110, 116, 101, 110, 116, 45, 84, 121, 112, 101, 58, 32, 116, 101, 120, 116, 47,
-        112, 108, 97, 105, 110, 13, 10, 67, 111, 110, 116, 101, 110, 116, 45, 76, 101, 110, 103,
-        116, 104, 58, 32, 53, 13, 10, 13, 10, 104, 101, 108, 108, 111),
-    )
+    val segments = Fixtures.toBytes(List("POST /foo HTTP/1.1\r\n"))
     (for {
-      read <- Helpers.taking[IO, Byte](segments.dropRight(1))
+      read <- Helpers.taking[IO, Byte](List(segments))
       result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
       _ <- result._1.body.compile.drain
       _ <- result._2
