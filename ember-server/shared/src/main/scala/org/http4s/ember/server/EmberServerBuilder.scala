@@ -34,8 +34,6 @@ import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Ip4sServer
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
 
 import scala.concurrent.duration._
 
@@ -178,7 +176,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
+      wsBuilder <- Resource.eval(WebSocketBuilder2[F])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -187,7 +185,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp(WebSocketBuilder2(wsKey)),
+              httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -199,7 +197,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsKey,
+              wsBuilder.webSocketKey,
               enableHttp2,
             )
             .compile
@@ -212,7 +210,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp(WebSocketBuilder2(wsKey)),
+            httpApp(wsBuilder),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -224,7 +222,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey,
+            wsBuilder.webSocketKey,
             enableHttp2,
           )
           .compile
