@@ -8,16 +8,14 @@ import org.http4s.headers.Date
 
 object History {
 
-  // TO DO - use a Vector instead of a List for better performance on .take call
-  def apply[F[_]: MonadCancelThrow: Clock](client: Client[F], history: Ref[F, List[(HttpDate, Method, Uri)]], maxSize: Int): Client[F] = Client[F]{
+  def apply[F[_]: MonadCancelThrow: Clock](client: Client[F], history: Ref[F, Vector[(HttpDate, Method, Uri)]], maxSize: Int): Client[F] = Client[F]{
     req: Request[F] =>
       Resource.eval(req.headers.get[Date].fold(HttpDate.current[F])(d => d.date.pure[F])).flatMap( date => {
         val method = req.method
         val uri = req.uri
 
-        Resource.eval(history.update(l => ((date, method, uri) :: l).take(maxSize)))
+        Resource.eval(history.update(l => ((date, method, uri) +: l).take(maxSize)))
         client.run(req)
       })
   }
-
 }
