@@ -16,11 +16,12 @@
 
 package org.http4s.ember.server.internal
 
+import cats.ApplicativeThrow
 import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
-import cats.effect.Temporal
 import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -50,9 +51,8 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
-import cats.ApplicativeThrow
 
-object WebSocketHelpers {
+private[internal] object WebSocketHelpers {
 
   private[this] val supportedWebSocketVersion = 13L
 

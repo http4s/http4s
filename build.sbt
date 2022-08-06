@@ -527,6 +527,9 @@ lazy val emberServer = libraryCrossProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.server.internal.ServerHelpers.runConnection"
       ),
+      ProblemFilters.exclude[Problem](
+        "org.http4s.ember.server.internal.WebSocketHelpers"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
