@@ -167,11 +167,11 @@ object WebSocketHelpers {
     frame match {
       case ping @ WebSocketFrame.Ping(data) =>
         writeFrame(WebSocketFrame.Pong(data)).as(ping.some)
-      case frame @ WebSocketFrame.Close(_) =>
+      case WebSocketFrame.Close(_) =>
         closeState.get.flatMap {
           case Open =>
             for {
-              frame <- F.fromEither(WebSocketFrame.Close(frame.closeCode))
+              frame <- F.fromEither(WebSocketFrame.Close(1000))
               _ <- writeFrame(frame)
               _ <- closeState.set(BothClosed)
             } yield None
