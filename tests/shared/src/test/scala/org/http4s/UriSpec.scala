@@ -134,7 +134,10 @@ class UriSpec extends Http4sSuite {
       Left(
         ParseFailure(
           "Invalid URI",
-          "Error(20, NonEmptyList(EndOfString(20,25)))",
+          """http://example.org/a file
+            |                    ^
+            |expectation:
+            |* must end the string""".stripMargin,
         )
       ),
     )
