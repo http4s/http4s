@@ -18,8 +18,8 @@ package org.http4s.ember.server.internal
 
 import cats.MonadThrow
 import cats.data.NonEmptyList
-import cats.effect.Async
 import cats.effect.Concurrent
+import cats.effect.Temporal
 import cats.effect.Ref
 import cats.syntax.all._
 import fs2.Chunk
@@ -50,6 +50,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
+import cats.ApplicativeThrow
 
 object WebSocketHelpers {
 
@@ -71,7 +72,7 @@ object WebSocketHelpers {
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       errorHandler: Throwable => F[Response[F]],
       logger: Logger[F],
-  )(implicit F: Async[F]): F[Unit] = {
+  )(implicit F: Temporal[F]): F[Unit] = {
     val wsResponse = clientHandshake(req) match {
       case Right(key) =>
         serverHandshake(key)
@@ -111,7 +112,7 @@ object WebSocketHelpers {
       buffer: Array[Byte],
       receiveBufferSize: Int,
       idleTimeout: Duration,
-  )(implicit F: Async[F]): F[Unit] = {
+  )(implicit F: Temporal[F]): F[Unit] = {
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
     def writeFrame(frame: WebSocketFrame): F[Unit] =
       frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
@@ -189,45 +190,38 @@ object WebSocketHelpers {
       Chunk.array(bytes)
     }
 
-  private def decodeFrames[F[_]](implicit F: Async[F]): Pipe[F, Byte, WebSocketFrame] = stream => {
-    def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
-      rest.pull.uncons.flatMap {
-        case Some((chunk, next)) =>
-          val buffer = acc ++ chunk.toArray[Byte]
-          var byteBuffer = ByteBuffer.wrap(buffer)
-          Pull
-            .eval(F.delay {
-              // A single chunk might contain multiple frames
-              // but `bufferToFrame` decodes at most one, so
-              // we call it repeatedly until all frames in the
-              // buffer are decoded.
-              val frames = ArrayBuffer.empty[WebSocketFrame]
-              var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
-              while (frame != null) {
-                frames += frame
-                // We need to slice b/c `bufferToFrame` does absolute reads.
-                byteBuffer = byteBuffer.slice()
-                frame = nonClientTranscoder.bufferToFrame(byteBuffer)
-              }
-              Chunk.array(frames.toArray)
-            })
-            .flatMap { frames =>
-              // TODO followup: improve this buffering
-              if (frames.nonEmpty) {
-                val remaining = new Array[Byte](byteBuffer.remaining())
-                byteBuffer.get(remaining)
-                Pull.output(frames) >> go(next, remaining)
-              } else {
-                go(next, buffer)
-              }
+  private def decodeFrames[F[_]](implicit F: ApplicativeThrow[F]): Pipe[F, Byte, WebSocketFrame] =
+    stream => {
+      def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
+        rest.pull.uncons.flatMap {
+          case Some((chunk, next)) =>
+            val buffer = acc ++ chunk.toArray[Byte]
+            // A single chunk might contain multiple frames
+            // but `bufferToFrame` decodes at most one, so we
+            // call it repeatedly until all frames in the buffer are decoded.
+            val frames = ArrayBuffer.empty[WebSocketFrame]
+            var byteBuffer = ByteBuffer.wrap(buffer)
+            var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+            while (frame != null) {
+              frames += frame
+              // We need to slice b/c `bufferToFrame` does absolute reads.
+              byteBuffer = byteBuffer.slice()
+              frame = nonClientTranscoder.bufferToFrame(byteBuffer)
             }
-        case None =>
-          // TODO followup: sometimes the peer closes connection before stream can interrupt itself
-          Pull.raiseError(EndOfStreamError())
-      }
+            if (frames.nonEmpty) {
+              val remaining = new Array[Byte](byteBuffer.remaining())
+              byteBuffer.get(remaining)
+              Pull.output(Chunk.array(frames.toArray)) >> go(next, remaining)
+            } else {
+              go(next, buffer)
+            }
+          case None =>
+            // TODO followup: sometimes the peer closes connection before stream can interrupt itself
+            Pull.raiseError(EndOfStreamError())
+        }
 
-    go(stream, Array.emptyByteArray).void.stream
-  }
+      go(stream, Array.emptyByteArray).void.stream
+    }
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
     val connection = req.headers.get[Connection] match {
