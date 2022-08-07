@@ -91,7 +91,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
-      remoteCloseCode: Deferred[IO, Int],
+      closeCode: Deferred[IO, Int],
       client: WebSocketClient,
   ) {
     def connect: IO[Unit] =
@@ -113,7 +113,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       queue <- Queue.unbounded[IO, String]
       pongQueue <- Queue.unbounded[IO, String]
       remoteClosed <- Deferred[IO, Unit]
-      remoteCloseCode <- Deferred[IO, Int]
+      closeCode <- Deferred[IO, Int]
       client = new WebSocketClient(target) {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
           val fa = waitOpen.complete(None)
@@ -123,7 +123,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         override def onClose(code: Int, reason: String, remote: Boolean): Unit = {
           val fa = waitOpen
             .complete(Some(new Throwable(s"closed: code: $code, reason: $reason")))
-            .attempt >> remoteCloseCode.complete(code) >> waitClose.complete(None)
+            .attempt >> closeCode.complete(code) >> waitClose.complete(None)
           dispatcher.unsafeRunSync(fa)
           ()
         }
@@ -143,7 +143,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, remoteCloseCode, client)
+    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
 
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
@@ -192,7 +192,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         _ <- client.connect
         _ <- client.messages.take
         _ <- client.remoteClosed.get
-        code <- client.remoteCloseCode.get
+        code <- client.closeCode.get
       } yield assertEquals(code, CloseFrame.NORMAL)
   }
 
