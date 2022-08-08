@@ -166,7 +166,7 @@ private[h2] object PseudoHeaders {
     }.toOption
       .flatten
 
-  val connectionHeadersFields = Set(
+  val connectionHeadersFields: Set[CIString] = Set(
     org.http4s.headers.`Transfer-Encoding`.headerInstance.name,
     org.http4s.headers.Connection.headerInstance.name,
     org.http4s.headers.Upgrade.headerInstance.name,
