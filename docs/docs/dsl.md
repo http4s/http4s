@@ -375,7 +375,7 @@ HttpRoutes.of[IO] {
 }
 ```
 
-**Please note:** You cannot mix left- and right-associative matchers in a path! So something like `case GET -> "hello" / "world" /: rest => ???` will **not compile**.
+**Please note:** You cannot mix left- and right-associative matchers in a path! So something like `case GET -> "hello" / "world" /: rest => ???` will not compile.
 
 Imagining some path parameter extractors you could still do something like this:
 
