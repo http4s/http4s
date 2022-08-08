@@ -47,7 +47,11 @@ private[h2] object PseudoHeaders {
       (SCHEME, req.uri.scheme.map(_.value).getOrElse("https"), false) ::
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
-        req.headers.headers.map(raw =>
+        (
+          withTransferEncoding(req.headers) ++
+            req.headers.headers
+              .filterNot(p => p.name == org.http4s.headers.`Transfer-Encoding`.headerInstance.name)
+        ).map(raw =>
           (
             raw.name.toString.toLowerCase(),
             raw.value,
@@ -122,7 +126,11 @@ private[h2] object PseudoHeaders {
   def responseToHeaders[F[_]](response: Response[F]): NonEmptyList[(String, String, Boolean)] =
     NonEmptyList(
       (STATUS, response.status.code.toString, false),
-      response.headers.headers
+      (
+        withTransferEncoding(response.headers) ++
+          response.headers.headers
+            .filterNot(p => p.name == org.http4s.headers.`Transfer-Encoding`.headerInstance.name)
+      )
         .map(raw =>
           (
             raw.name.toString.toLowerCase,
@@ -162,4 +170,20 @@ private[h2] object PseudoHeaders {
     }.toOption
       .flatten
 
+  def withTransferEncoding(headers: Headers): List[Header.Raw] = {
+    import org.http4s.headers.`Transfer-Encoding`.{headerInstance => TE}
+    headers
+      .get(TE.name)
+      .flatMap(nel =>
+        nel.toList
+          .traverse(raw =>
+            TE.parse(raw.value)
+              .toOption
+              .flatMap(_.filter(_ != TransferCoding.chunked))
+          )
+      )
+      .toList
+      .flatten
+      .map(te => Header.Raw(TE.name, TE.value(te)))
+  }
 }
