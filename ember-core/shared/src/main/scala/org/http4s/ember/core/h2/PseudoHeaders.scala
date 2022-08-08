@@ -20,6 +20,7 @@ import cats._
 import cats.data._
 import cats.syntax.all._
 import org.http4s._
+import org.typelevel.ci.CIString
 
 /** HTTP/2 pseudo headers */
 private[h2] object PseudoHeaders {
@@ -47,17 +48,15 @@ private[h2] object PseudoHeaders {
       (SCHEME, req.uri.scheme.map(_.value).getOrElse("https"), false) ::
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
-        (
-          withTransferEncoding(req.headers) ++
-            req.headers.headers
-              .filterNot(p => p.name == org.http4s.headers.`Transfer-Encoding`.headerInstance.name)
-        ).map(raw =>
-          (
-            raw.name.toString.toLowerCase(),
-            raw.value,
-            org.http4s.Headers.SensitiveHeaders.contains(raw.name),
-          )
-        ): _*
+        req.headers.headers
+          .filterNot(p => connectionHeadersFields.contains(p.name))
+          .map(raw =>
+            (
+              raw.name.toString.toLowerCase(),
+              raw.value,
+              org.http4s.Headers.SensitiveHeaders.contains(raw.name),
+            )
+          ): _*
     )
     l
   }
@@ -126,11 +125,8 @@ private[h2] object PseudoHeaders {
   def responseToHeaders[F[_]](response: Response[F]): NonEmptyList[(String, String, Boolean)] =
     NonEmptyList(
       (STATUS, response.status.code.toString, false),
-      (
-        withTransferEncoding(response.headers) ++
-          response.headers.headers
-            .filterNot(p => p.name == org.http4s.headers.`Transfer-Encoding`.headerInstance.name)
-      )
+      response.headers.headers
+        .filterNot(p => connectionHeadersFields.contains(p.name))
         .map(raw =>
           (
             raw.name.toString.toLowerCase,
@@ -170,20 +166,12 @@ private[h2] object PseudoHeaders {
     }.toOption
       .flatten
 
-  def withTransferEncoding(headers: Headers): List[Header.Raw] = {
-    import org.http4s.headers.`Transfer-Encoding`.{headerInstance => TE}
-    headers
-      .get(TE.name)
-      .flatMap(nel =>
-        nel.toList
-          .traverse(raw =>
-            TE.parse(raw.value)
-              .toOption
-              .flatMap(_.filter(_ != TransferCoding.chunked))
-          )
-      )
-      .toList
-      .flatten
-      .map(te => Header.Raw(TE.name, TE.value(te)))
-  }
+  val connectionHeadersFields = Set(
+    org.http4s.headers.`Transfer-Encoding`.headerInstance.name,
+    org.http4s.headers.Connection.headerInstance.name,
+    org.http4s.headers.Upgrade.headerInstance.name,
+    org.http4s.headers.`Keep-Alive`.headerInstance.name,
+    org.http4s.headers.Upgrade.headerInstance.name,
+    CIString("Proxy-Connection"),
+  )
 }
