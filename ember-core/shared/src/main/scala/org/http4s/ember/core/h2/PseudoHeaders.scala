@@ -171,7 +171,6 @@ private[h2] object PseudoHeaders {
     org.http4s.headers.Connection.headerInstance.name,
     org.http4s.headers.Upgrade.headerInstance.name,
     org.http4s.headers.`Keep-Alive`.headerInstance.name,
-    org.http4s.headers.Upgrade.headerInstance.name,
     CIString("Proxy-Connection"),
   )
 }
