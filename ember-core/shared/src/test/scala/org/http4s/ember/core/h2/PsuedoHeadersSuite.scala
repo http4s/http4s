@@ -47,7 +47,7 @@ class PsuedoHeadersSuite extends Http4sSuite {
 
   }
   test("responseToHeaders should remove Connection Headers") {
-    val response = Response(Status.Ok)
+    val response = Response[fs2.Pure](Status.Ok)
       .putHeaders(connectionHeaders: _*)
 
     val test = PseudoHeaders.responseToHeaders(response)
