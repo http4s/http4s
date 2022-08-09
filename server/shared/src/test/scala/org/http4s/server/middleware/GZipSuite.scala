@@ -21,6 +21,8 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
+import fs2.compression._
+import fs2.io.compression._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
@@ -28,9 +30,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
 
-import java.io.ByteArrayInputStream
 import java.util.Arrays
-import java.util.zip.GZIPInputStream
 
 class GZipSuite extends Http4sSuite {
   test("fall through if the route doesn't match") {
@@ -61,11 +61,16 @@ class GZipSuite extends Http4sSuite {
     val actual: IO[Array[Byte]] =
       gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-    actual.map { bytes =>
-      val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
-      val decoded = new Array[Byte](response.length)
-      gzipStream.read(decoded)
-      Arrays.equals(response.getBytes(), decoded)
+    actual.flatMap { bytes =>
+      Stream
+        .emits(bytes)
+        .through(Compression[IO].gunzip())
+        .flatMap(_.content)
+        .compile
+        .to(Chunk)
+        .map { decoded =>
+          Arrays.equals(response.getBytes(), decoded.toArray)
+        }
     }.assert
   }
 
@@ -99,11 +104,16 @@ class GZipSuite extends Http4sSuite {
       val actual: IO[Array[Byte]] =
         gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
-      actual.map { bytes =>
-        val gzipStream = new GZIPInputStream(new ByteArrayInputStream(bytes))
-        val decoded = new Array[Byte](vector.map(_.length).sum)
-        gzipStream.read(decoded)
-        Arrays.equals(Array.concat(vector: _*), decoded)
+      actual.flatMap { bytes =>
+        Stream
+          .emits(bytes)
+          .through(Compression[IO].gunzip())
+          .flatMap(_.content)
+          .compile
+          .to(Chunk)
+          .map { decoded =>
+            Arrays.equals(Array.concat(vector: _*), decoded.toArray)
+          }
       }.assert
     }
   }
