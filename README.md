@@ -13,12 +13,6 @@ val http = HttpRoutes.of {
 
 Learn more at [http4s.org](https://http4s.org/).
 
-If you run into any difficulties on Scala 2.12 please enable partial unification in your `build.sbt` (not needed for Scala 2.13 and beyond, because they enable partial unification by default)
-
-```scala
-scalacOptions ++= Seq("-Ypartial-unification")
-```
-
 ## Requirements
 
 Running the **blaze** backend requires a modern, supported version of the JVM to build and run, as it relies on server
