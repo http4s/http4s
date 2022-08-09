@@ -24,7 +24,7 @@ import fs2.compression._
 private[middleware] trait GZipPlatform { this: GZip.type =>
 
   @deprecated("Use overload with Compression constraint", "0.23.15")
-  def apply[F[_]: Functor, G[_]: Sync](
+  def apply[F[_], G[_]](
       http: Http[F, G],
       bufferSize: Int,
       level: DeflateParams.Level,
