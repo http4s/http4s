@@ -1,9 +1,5 @@
 # Quick Start
 
-**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`
-is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
-This feature is enabled by default starting in Scala 2.13.
-
 
 Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
