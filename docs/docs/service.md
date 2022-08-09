@@ -6,7 +6,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.8" // Also supports 2.12.x and 3.x
+scalaVersion := "2.13.8" // Also supports 3.x
 
 val http4sVersion = "@VERSION@"
 
@@ -19,8 +19,6 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 
-// Uncomment if you're using Scala 2.12.x
-// scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [mdoc].  Each page
