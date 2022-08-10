@@ -177,7 +177,7 @@ private[ember] object Parser {
           start,
         ).asLeft.pure[F]
       } else {
-        HeaderP(Headers(headers.toList), chunked, contentLength, idx).asRight.pure[F]
+        HeaderP(Headers(headers.reverse), chunked, contentLength, idx).asRight.pure[F]
       }
     }
 
