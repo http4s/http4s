@@ -286,13 +286,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@44a36866,
+//         at = scodec.bits.ByteVector$AtArray@49dc6334,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@73d8b1a3
+//    = org.typelevel.vault.Vault@2e54173c
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -312,13 +312,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@3c9775e2,
+//         at = scodec.bits.ByteVector$AtArray@2f00a7af,
 //         offset = 0L,
 //         size = 16L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@4cf19da6
+//    = org.typelevel.vault.Vault@334366f2
 // )</span></code></pre>
         
         <h2 id="encoding-case-classes-as-json" class="section">Encoding case classes as JSON<a class="anchor-link right" href="#encoding-case-classes-as-json"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -337,7 +337,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@13ce2c06
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@19ac766d
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -357,13 +357,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@252dc275,
+//         at = scodec.bits.ByteVector$AtArray@174f7f93,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@22129b57
+//    = org.typelevel.vault.Vault@3d588f0a
 // )
 </span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
 </span><span class="comment">// res6: Request[IO] = (
@@ -380,13 +380,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@62ce2e1e,
+//         at = scodec.bits.ByteVector$AtArray@15841aa5,
 //         offset = 0L,
 //         size = 14L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@82805d
+//    = org.typelevel.vault.Vault@6f611966
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -416,7 +416,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@4bf7d452
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@33e50fe
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
@@ -478,7 +478,7 @@
         <p>We start a server resource in the background.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
 </span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$20501/1025975736@7d893658,
+//   body = cats.effect.IO$$Lambda$20373/1604098838@7a67af4c,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
