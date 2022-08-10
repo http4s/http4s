@@ -75,12 +75,12 @@ private[ember] object Parser {
     final case class ParserState(
         idx: Int,
         state: Boolean,
-        throwable: Throwable,
+        throwable: Option[Throwable],
         complete: Boolean,
         chunked: Boolean,
         contentLength: Option[Long],
         headers: List[Header.Raw],
-        name: String,
+        name: Option[String],
         start: Int,
     )
 
@@ -88,12 +88,12 @@ private[ember] object Parser {
       def initial: ParserState = ParserState(
         idx = 0,
         state = false,
-        throwable = null,
+        throwable = None,
         complete = false,
         chunked = false,
         contentLength = None,
         headers = List.empty,
-        name = null,
+        name = None,
         start = 0,
       )
     }
@@ -103,13 +103,13 @@ private[ember] object Parser {
     ): F[Either[ParserState, HeaderP]] = {
       var idx: Int = s.idx
       var state = s.state
-      var throwable: Throwable = s.throwable
+      var throwable: Throwable = s.throwable.orNull
       var complete = s.complete
       var chunked: Boolean = s.chunked
       var contentLength: Option[Long] = s.contentLength
 
       var headers: List[Header.Raw] = s.headers
-      var name: String = s.name
+      var name: String = s.name.orNull
       var start: Int = s.start
       val upperBound = Math.min(message.size - 1, maxHeaderSize)
 
@@ -168,12 +168,12 @@ private[ember] object Parser {
         ParserState(
           idx,
           state,
-          throwable,
+          Option(throwable),
           complete,
           chunked,
           contentLength,
           headers,
-          name,
+          Option(name),
           start,
         ).asLeft.pure[F]
       } else {
@@ -201,10 +201,10 @@ private[ember] object Parser {
           idx: Int,
           state: Byte,
           complete: Boolean,
-          throwable: Throwable,
-          method: Method,
-          uri: Uri,
-          httpVersion: HttpVersion,
+          throwable: Option[Throwable],
+          method: Option[Method],
+          uri: Option[Uri],
+          httpVersion: Option[HttpVersion],
           start: Int,
       )
 
@@ -213,10 +213,10 @@ private[ember] object Parser {
           idx = 0,
           state = 0,
           complete = false,
-          throwable = null,
-          method = null,
-          httpVersion = null,
-          uri = null,
+          throwable = None,
+          method = None,
+          httpVersion = None,
+          uri = None,
           start = 0,
         )
       }
@@ -228,10 +228,10 @@ private[ember] object Parser {
         var state: Byte = s.state
         var complete = s.complete
 
-        var throwable: Throwable = s.throwable
-        var method: Method = s.method
-        var uri: Uri = s.uri
-        var httpVersion: HttpVersion = s.httpVersion
+        var throwable: Throwable = s.throwable.orNull
+        var method: Method = s.method.orNull
+        var uri: Uri = s.uri.orNull
+        var httpVersion: HttpVersion = s.httpVersion.orNull
 
         var start = s.start
         val upperBound = Math.min(message.size - 1, maxHeaderSize)
@@ -288,7 +288,16 @@ private[ember] object Parser {
             )
           )
         else if (method == null || uri == null || httpVersion == null)
-          ParserState(idx, state, complete, throwable, method, uri, httpVersion, start).asLeft
+          ParserState(
+            idx,
+            state,
+            complete,
+            Option(throwable),
+            Option(method),
+            Option(uri),
+            Option(httpVersion),
+            start,
+          ).asLeft
             .pure[F]
         else
           ReqPrelude(method, uri, httpVersion, idx).asRight.pure[F]
@@ -429,10 +438,10 @@ private[ember] object Parser {
           idx: Int,
           state: Byte,
           complete: Boolean,
-          throwable: Throwable,
-          httpVersion: HttpVersion,
-          codeS: String,
-          status: Status,
+          throwable: Option[Throwable],
+          httpVersion: Option[HttpVersion],
+          codeS: Option[String],
+          status: Option[Status],
           start: Int,
       )
 
@@ -441,10 +450,10 @@ private[ember] object Parser {
           idx = 0,
           state = 0,
           complete = false,
-          throwable = null,
-          httpVersion = null,
-          codeS = null,
-          status = null,
+          throwable = None,
+          httpVersion = None,
+          codeS = None,
+          status = None,
           start = 0,
         )
       }
@@ -456,12 +465,12 @@ private[ember] object Parser {
       ): F[Either[ParserState, RespPrelude]] = {
         var complete = s.complete
         var idx = s.idx
-        var throwable: Throwable = s.throwable
-        var httpVersion: HttpVersion = s.httpVersion
+        var throwable: Throwable = s.throwable.orNull
+        var httpVersion: HttpVersion = s.httpVersion.orNull
 
-        var codeS: String = s.codeS
+        var codeS: String = s.codeS.orNull
         // val reason: String = null
-        var status: Status = s.status
+        var status: Status = s.status.orNull
         var start = s.start
         var state = s.state // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
         val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
@@ -512,7 +521,16 @@ private[ember] object Parser {
         if (throwable != null)
           F.raiseError(RespPreludeError("Encountered Error parsing", Option(throwable)))
         else if (httpVersion == null || status == null)
-          ParserState(idx, state, complete, throwable, httpVersion, codeS, status, start).asLeft
+          ParserState(
+            idx,
+            state,
+            complete,
+            Option(throwable),
+            Option(httpVersion),
+            Option(codeS),
+            Option(status),
+            start,
+          ).asLeft
             .pure[F]
         else
           RespPrelude(httpVersion, status, idx).asRight.pure[F]
