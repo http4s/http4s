@@ -17,8 +17,8 @@
 package org.http4s.ember.server.internal
 
 import cats.effect.Concurrent
-import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.concurrent.Signal
