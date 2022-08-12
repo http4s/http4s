@@ -195,26 +195,35 @@ private[internal] object WebSocketHelpers {
       def go(rest: Stream[F, Byte], acc: Array[Byte]): Pull[F, WebSocketFrame, Unit] =
         rest.pull.uncons.flatMap {
           case Some((chunk, next)) =>
-            val buffer = acc ++ chunk.toArray[Byte]
-            // A single chunk might contain multiple frames
-            // but `bufferToFrame` decodes at most one, so we
-            // call it repeatedly until all frames in the buffer are decoded.
-            val frames = ArrayBuffer.empty[WebSocketFrame]
-            var byteBuffer = ByteBuffer.wrap(buffer)
-            var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
-            while (frame != null) {
-              frames += frame
-              // We need to slice b/c `bufferToFrame` does absolute reads.
-              byteBuffer = byteBuffer.slice()
-              frame = nonClientTranscoder.bufferToFrame(byteBuffer)
-            }
-            if (frames.nonEmpty) {
-              val remaining = new Array[Byte](byteBuffer.remaining())
-              byteBuffer.get(remaining)
-              Pull.output(Chunk.array(frames.toArray)) >> go(next, remaining)
-            } else {
-              go(next, buffer)
-            }
+            ApplicativeThrow[Pull[F, WebSocketFrame, *]]
+              .catchNonFatal { // `bufferToFrame` might throw
+                val buffer = acc ++ chunk.toArray[Byte]
+                // A single chunk might contain multiple frames
+                // but `bufferToFrame` decodes at most one, so we
+                // call it repeatedly until all frames in the buffer are decoded.
+                val frames = ArrayBuffer.empty[WebSocketFrame]
+                var byteBuffer = ByteBuffer.wrap(buffer)
+                var frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+                while (frame != null) {
+                  frames += frame
+                  // We need to slice b/c `bufferToFrame` does absolute reads.
+                  byteBuffer = byteBuffer.slice()
+                  frame = nonClientTranscoder.bufferToFrame(byteBuffer)
+                }
+                if (frames.nonEmpty) {
+                  val remaining = new Array[Byte](byteBuffer.remaining())
+                  byteBuffer.get(remaining)
+                  (Some(Chunk.array(frames.toArray)), remaining)
+                } else {
+                  (None, buffer)
+                }
+              }
+              .flatMap {
+                case (Some(frames), remaining) =>
+                  Pull.output(frames) >> go(next, remaining)
+                case (None, remaining) =>
+                  go(next, remaining)
+              }
           case None =>
             // TODO followup: sometimes the peer closes connection before stream can interrupt itself
             Pull.raiseError(EndOfStreamError())
