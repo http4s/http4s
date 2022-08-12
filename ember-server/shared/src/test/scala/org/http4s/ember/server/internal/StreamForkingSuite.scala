@@ -74,4 +74,19 @@ class StreamForkingSuite extends CatsEffectSuite {
       .intercept[RuntimeException]
   }
 
+  test("inner stream cancels") {
+    IO.ref(false)
+      .flatMap { ref =>
+        val stream = Stream(
+          Stream.eval(IO.canceled),
+          Stream.eval(ref.set(true)),
+        )
+
+        // canceled stream should still return semaphore permit
+        // and allow second eval to run
+        forking(stream, 1).compile.drain >> ref.get
+      }
+      .assertEquals(true)
+  }
+
 }

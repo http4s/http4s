@@ -17,6 +17,7 @@
 package org.http4s.ember.server.internal
 
 import cats.effect.Concurrent
+import cats.effect.syntax.all._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import fs2.Stream
@@ -60,7 +61,8 @@ private[internal] object StreamForking {
           .interruptWhen(stopSignal)
           .compile
           .drain
-          .handleErrorWith(stopFailed) >> available.release >> decrementRunning
+          .handleErrorWith(stopFailed)
+          .guarantee(available.release >> decrementRunning)
 
         available.acquire >> incrementRunning >> F.start(fa).void
       }
