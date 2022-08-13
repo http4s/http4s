@@ -14,6 +14,13 @@ import org.http4s.dsl.io._
 import org.http4s.server._
 ```
 
+We will also require the `Ykind-projector` scalac flag, which you can add into your `build.sbt` using
+```scala mdoc:silent
+scalacOptions ++= Seq(
+  "-Ykind-projector"
+)
+```
+
 To add authentication to a service, we need some kind of `User` object which identifies the user
 who sent the request. We represent that with `AuthedRequest[F, User]`, which allows you to reference
 such object, and is the equivalent to `(User, Request[F])`. _http4s_ provides you with `AuthedRequest`,
@@ -31,7 +38,8 @@ would be the equivalent to `Request[F] => OptionT[F, Response[F]]` - in other wo
 
 With that we can represent a service that requires authentication, but to actually construct it we need
 to define how to extract the authentication information from the request. For that, we need a function
-with the following signature: `Request[F] => OptionT[F, User]`. Here is an example of how to define it:
+with the following signature: `Request[F] => OptionT[F, User]`. Here is an example of how to define it 
+(note that this requires the `Ykind-projector` scalac flag):
 
 ```scala mdoc:silent
 val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
