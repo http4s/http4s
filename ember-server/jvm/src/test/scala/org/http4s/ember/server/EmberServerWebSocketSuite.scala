@@ -208,4 +208,19 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield ()
   }
 
+  fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
+    val n = 10
+    val messages = List.tabulate(n)(i => s"${i + 1}")
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- messages.traverse_(client.send)
+      messagesReceived <- client.messages.take.replicateA(n)
+      _ <- client.close
+    } yield assertEquals(messagesReceived, messages)
+  }
+
 }
