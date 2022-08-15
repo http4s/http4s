@@ -193,15 +193,19 @@ lazy val core = libraryCrossProject("core")
   )
   .jvmSettings(
     libraryDependencies ++= {
+      Seq(log4catsSlf4j)
+    },
+    libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
         Seq(
           slf4jApi // residual dependency from macros
         )
-    }
+    },
   )
   .jsSettings(
     libraryDependencies ++= Seq(
+      log4catsNoop.value,
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
     ),
