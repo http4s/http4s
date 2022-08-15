@@ -238,6 +238,19 @@ private[ember] object H2Server {
       )
     } yield (h2, streamCreationLock)
 
+    def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.closedStreams)
+        .map(i =>
+          Stream.eval(
+            // Max Time After Close We Will Still Accept Messages
+            (Temporal[F].sleep(1.seconds) >>
+              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+          )
+        )
+        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .compile
+        .drain
 
     for {
       pair <- Resource.eval(initH2Connection)
@@ -252,20 +265,7 @@ private[ember] object H2Server {
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
-      _ <-
-        Stream
-          .fromQueueUnterminated(h2.closedStreams)
-          .map(i =>
-            Stream.eval(
-              // Max Time After Close We Will Still Accept Messages
-              (Temporal[F].sleep(1.seconds) >>
-                h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
-            )
-          )
-          .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
-          .compile
-          .drain
-          .background
+      _ <- clearClosedStreams(h2).background
 
       _ <-
         Stream
