@@ -78,7 +78,7 @@ object EmberServerH2Example extends IOApp {
         .withTLS(tlsContext, TLSParameters.Default)
         .withHttp2
         .withHost(ipv4"0.0.0.0")
-        .withPort(port"8080")
+        .withPort(port"8081")
         .withHttpApp(simpleApp)
         .build
     } yield ()
@@ -97,9 +97,10 @@ object EmberServerH2Example extends IOApp {
 
   implicit val C: Console[IO] = Console.make[IO]
   def run(args: List[String]): IO[ExitCode] =
-    ServerTest
-      .testCleartext[IO]
-      .use(_ => IO.never)
+    (
+      ServerTest.testCleartext[IO],
+      ServerTest.testALPN[IO],
+    ).tupled.useForever
       .as(ExitCode.Success)
 
 }

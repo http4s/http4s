@@ -20,18 +20,17 @@ package middleware
 
 import cats.Functor
 import cats.data.Kleisli
-import cats.effect.Sync
 import cats.syntax.all._
 import fs2.compression._
 import org.http4s.headers._
 import org.log4s.getLogger
 
-object GZip {
+object GZip extends GZipPlatform {
   private[this] val logger = getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor, G[_]: Sync](
+  def apply[F[_]: Functor, G[_]: Compression](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
@@ -50,7 +49,7 @@ object GZip {
     !resp.headers.contains[`Content-Encoding`] &&
     resp.status.isEntityAllowed &&
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
-      (contentType.get.mediaType eq MediaType.application.`octet-stream`))
+      (contentType.get.mediaType == MediaType.application.`octet-stream`))
   }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
@@ -58,7 +57,7 @@ object GZip {
       ContentCoding.`x-gzip`
     )
 
-  private def zipOrPass[F[_]: Sync](
+  private def zipOrPass[F[_]: Compression](
       response: Response[F],
       bufferSize: Int,
       level: DeflateParams.Level,
@@ -69,7 +68,7 @@ object GZip {
       case resp => resp // Don't touch it, Content-Encoding already set
     }
 
-  private def zipResponse[F[_]: Sync](
+  private def zipResponse[F[_]: Compression](
       bufferSize: Int,
       level: DeflateParams.Level,
       resp: Response[F],

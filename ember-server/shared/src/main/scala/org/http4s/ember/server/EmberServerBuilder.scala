@@ -173,7 +173,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
+      wsBuilder <- Resource.eval(WebSocketBuilder[F])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -182,7 +182,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp(WebSocketBuilder(wsKey)),
+              httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -194,7 +194,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsKey,
+              wsBuilder.webSocketKey,
               enableHttp2,
             )
             .compile
@@ -207,7 +207,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp(WebSocketBuilder(wsKey)),
+            httpApp(wsBuilder),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -219,7 +219,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey,
+            wsBuilder.webSocketKey,
             enableHttp2,
           )
           .compile

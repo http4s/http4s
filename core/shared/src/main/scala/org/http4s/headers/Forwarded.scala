@@ -22,6 +22,7 @@ import cats.parse.Parser0
 import cats.parse.Rfc5234
 import cats.parse.{Parser => P}
 import cats.syntax.either._
+import cats.syntax.show._
 import com.comcast.ip4s.Ipv4Address
 import com.comcast.ip4s.Ipv6Address
 import org.http4s.Header
@@ -111,7 +112,7 @@ object Forwarded extends ForwardedRenderers {
 
       def fromString(s: String): ParseResult[Obfuscated] =
         parser.parseAll(s).left.map { e =>
-          ParseFailure(s"invalid obfuscated value '$s'", e.toString)
+          ParseFailure(s"invalid obfuscated value '$s'", e.show)
         }
 
       /** Unsafe constructor for internal use only. */
@@ -120,7 +121,7 @@ object Forwarded extends ForwardedRenderers {
 
     def fromString(s: String): ParseResult[Node] =
       parser.parseAll(s).left.map { e =>
-        ParseFailure(s"invalid node '$s'", e.toString)
+        ParseFailure(s"invalid node '$s'", e.show)
       }
 
     val parser: P[Node] = {
@@ -192,7 +193,7 @@ object Forwarded extends ForwardedRenderers {
       */
     def fromString(s: String): ParseResult[Host] =
       parser.parseAll(s).left.map { e =>
-        ParseFailure(s"invalid host '$s'", e.toString)
+        ParseFailure(s"invalid host '$s'", e.show)
       }
 
     val parser: Parser0[Host] = {
