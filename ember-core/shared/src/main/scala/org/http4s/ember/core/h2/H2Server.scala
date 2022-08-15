@@ -241,21 +241,21 @@ private[ember] object H2Server {
       )
       _ <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(
-        queue.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
+        h2.outgoing.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
       )
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
-        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> created.offer(1))
+        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
       _ <-
         Stream
-          .fromQueueUnterminated(closed)
+          .fromQueueUnterminated(h2.closedStreams)
           .map(i =>
             Stream.eval(
               // Max Time After Close We Will Still Accept Messages
               (Temporal[F].sleep(1.seconds) >>
-                ref.update(m => m - i)).timeout(15.seconds).attempt.start
+                h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
             )
           )
           .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
@@ -265,16 +265,16 @@ private[ember] object H2Server {
 
       _ <-
         Stream
-          .fromQueueUnterminated(created)
+          .fromQueueUnterminated(h2.createdStreams)
           .map { i =>
             val x: F[Unit] = for {
-              stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
+              stream <- h2.mapRef.get.map(_.get(i)).map(_.get) // FOLD
               req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
               resp <- httpApp(req)
               _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
               // Push Promises
               pp = resp.attributes.lookup(H2Keys.PushPromises)
-              pushEnabled <- stateRef.get.map(_.remoteSettings.enablePush.isEnabled)
+              pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
               streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
                 Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
               ) { l =>
@@ -336,9 +336,9 @@ private[ember] object H2Server {
           .background
 
       _ <- Resource.eval(
-        stateRef.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
+        h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
-      _ <- Resource.eval(holdWhileOpen(stateRef))
+      _ <- Resource.eval(holdWhileOpen(h2.state))
     } yield ()
   }
 }
