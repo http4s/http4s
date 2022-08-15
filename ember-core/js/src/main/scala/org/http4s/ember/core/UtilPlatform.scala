@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.client.internal
+package org.http4s.ember.core
 
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Hostname
@@ -23,24 +23,24 @@ import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.SocketAddress
 import fs2.io.net.tls.TLSParameters
 
-import javax.net.ssl.SNIHostName
+import scala.annotation.nowarn
 import scala.annotation.tailrec
 
-private[internal] trait ClientHelpersPlatform {
+private[core] trait UtilPlatform {
 
-  private[internal] def mkTLSParameters(
+  @nowarn("msg=never used")
+  def mkClientTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean,
   ): TLSParameters =
     TLSParameters(
-      serverNames = address.map(a => List(extractHostname(a.host))),
-      endpointIdentificationAlgorithm = if (enableEndpointValidation) Some("HTTPS") else None,
-    )
+      servername = address.map(a => extractHostname(a.host))
+    ) // TODO how to enable endpoint validation?
 
   @tailrec
-  private def extractHostname(from: Host): SNIHostName = from match {
-    case hostname: Hostname => new SNIHostName(hostname.normalized.toString)
-    case address: IpAddress => new SNIHostName(address.toString)
+  private def extractHostname(from: Host): String = from match {
+    case hostname: Hostname => hostname.normalized.toString
+    case address: IpAddress => address.toString
     case idn: IDN => extractHostname(idn.hostname)
   }
 }
