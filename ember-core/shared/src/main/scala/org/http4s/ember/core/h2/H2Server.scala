@@ -193,12 +193,12 @@ private[ember] object H2Server {
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
-    def initH2Connection: Resource[F, (H2Connection[F], Semaphore[F])] = for {
-      address <- Resource.eval(socket.remoteAddress)
+    def initH2Connection: F[(H2Connection[F], Semaphore[F])] = for {
+      address <- socket.remoteAddress
       (remotehost, remoteport) = (address.host, address.port)
-      ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-      initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-      stateRef <- Resource.eval(
+      ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
+      initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
+      stateRef <-
         Concurrent[F].ref(
           H2Connection.State(
             initialRemoteSettings,
@@ -212,16 +212,13 @@ private[ember] object H2Server {
             None,
           )
         )
-      )
-      queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-      hpack <- Resource.eval(Hpack.create[F])
-      settingsAck <- Resource.eval(
-        Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      )
-      streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
+      queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+      hpack <- Hpack.create[F]
+      settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+      streamCreationLock <- Semaphore[F](1)
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
+      created <- cats.effect.std.Queue.unbounded[F, Int]
+      closed <- cats.effect.std.Queue.unbounded[F, Int]
       h2 = new H2Connection(
         remotehost,
         remoteport,
@@ -243,7 +240,7 @@ private[ember] object H2Server {
 
 
     for {
-      pair <- initH2Connection
+      pair <- Resource.eval(initH2Connection)
       h2 = pair._1
       streamCreationLock = pair._2
       _ <- h2.writeLoop.compile.drain.background
