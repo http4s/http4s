@@ -18,7 +18,6 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Ref
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -79,20 +78,31 @@ object RequestLogger {
         Resource.eval(logMessage(req)) *> client.run(req)
       else
         Resource.suspend {
-          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+          (F.ref(false), F.ref(Vector.empty[Chunk[Byte]])).mapN { case (hasLogged, vec) =>
             val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-            val logAtEnd: F[Unit] =
-              logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                F.delay(logger.error(t)("Error logging request body"))
-              }
+            val logOnceAtEnd: F[Unit] = hasLogged
+              .getAndSet(true)
+              .ifM(
+                F.unit,
+                logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                  F.delay(logger.error(t)("Error logging request body"))
+                },
+              )
 
             // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
             val logPipe: Pipe[F, Byte, Byte] =
               _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                .onFinalizeWeak(logAtEnd)
+                .onFinalizeWeak(logOnceAtEnd)
 
-            client.run(req.pipeBodyThrough(logPipe))
+            val resp = client.run(req.pipeBodyThrough(logPipe))
+
+            // If the request body was not consumed (ex: bodiless GET)
+            // the second best we can do is log on the response body finalizer
+            // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
+            resp
+              .map[Response[F]](_.pipeBodyThrough(_.onFinalizeWeak(logOnceAtEnd)))
+              .onFinalize(logOnceAtEnd)
           }
         }
     }
