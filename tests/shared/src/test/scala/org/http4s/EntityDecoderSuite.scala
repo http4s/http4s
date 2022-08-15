@@ -25,6 +25,7 @@ import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
 import java.util.Arrays
@@ -455,7 +456,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("binary EntityDecoder should concat Chunks") {
     val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
-    val body = Chunk.array(d1) ++ Chunk.array(d2)
+    val body = ByteVector.view(d1) ++ ByteVector.view(d2)
     val msg = Request[IO](entity = Entity.Strict(body))
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
     EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
@@ -484,7 +485,7 @@ class EntityDecoderSuite extends Http4sSuite {
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
     EntityEncoder.simple[ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.array(json.value.getBytes())
+      ByteVector.view(json.value.getBytes())
     )
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]

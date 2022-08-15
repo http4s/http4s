@@ -31,6 +31,7 @@ import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF
+import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
 
@@ -185,7 +186,7 @@ class RetrySuite extends Http4sSuite {
     val emptyEntity = Entity.Empty
 
     val strictEntity =
-      Entity.strict(fs2.Chunk.array("OK".getBytes))
+      Entity.strict(ByteVector.view("OK".getBytes))
 
     (emptyEntity, strictEntity).parTraverse_(entity =>
       resubmit(method = PUT, entity = Some(entity))(RetryPolicy.defaultRetriable)

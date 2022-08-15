@@ -26,21 +26,22 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.testing.fs2Arbitraries._
+import org.scalacheck.Gen._
 import org.scalacheck._
 import org.scalacheck.effect.PropF
 
 class ChunkAggregatorSuite extends Http4sSuite {
-  val transferCodingGen: Gen[collection.Seq[TransferCoding]] =
-    Gen.someOf(
-      collection.Seq(
+  val transferCodingGen: Gen[List[TransferCoding]] =
+    choose(0, 4).map(i =>
+      List(
         TransferCoding.compress,
         TransferCoding.deflate,
         TransferCoding.gzip,
         TransferCoding.identity,
-      )
+      ).take(i)
     )
   implicit val transferCodingArbitrary: Arbitrary[List[TransferCoding]] = Arbitrary(
-    transferCodingGen.map(_.toList)
+    transferCodingGen
   )
 
   private def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
@@ -67,7 +68,7 @@ class ChunkAggregatorSuite extends Http4sSuite {
     }
 
   test("handle an empty body") {
-    checkRoutesResponse(httpRoutes(Stream.empty[Nothing], Nil)) { response =>
+    checkRoutesResponse(httpRoutes(Stream.empty, Nil)) { response =>
       response.body.compile.toVector.map(_.isEmpty && response.contentLength.isEmpty)
     }.assert
   }

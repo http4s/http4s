@@ -26,7 +26,6 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.Chunk
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
@@ -39,6 +38,7 @@ import org.http4s.syntax.KleisliSyntax
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
+import scodec.bits.ByteVector
 
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -274,20 +274,20 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     entity match {
       case Entity.Empty =>
         F.pure(self.withEntity(Entity.Empty))
-      case entity @ Entity.Strict(chunk) =>
+      case entity @ Entity.Strict(bytes) =>
         F.pure(
           self
             .withEntity(entity)
             .transformHeaders(
-              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+              _.withContentLength(`Content-Length`.unsafeFromLong(bytes.size))
             )
         )
       case Entity.Default(body, _) =>
-        withLimit(body).covary[F1].compile.to(Chunk).map { chunk =>
+        withLimit(body).covary[F1].compile.to(ByteVector).map { byteVector =>
           self
-            .withEntity(Entity.strict(chunk))
+            .withEntity(Entity.strict(byteVector))
             .transformHeaders(
-              _.withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+              _.withContentLength(`Content-Length`.unsafeFromLong(byteVector.size))
             )
         }
     }
@@ -401,23 +401,23 @@ final class Request[+F[_]] private (
   /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
+    * list will be empty. If the value is empty the the list contains an
     * empty string.
     *
     * =====Examples=====
     * <table>
     * <tr><th>Query String</th><th>Map</th></tr>
-    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
-    * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
-    * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
-    * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> List("v"))</code></td></tr>
+    * <tr><td><code>?param=</code></td><td><code>Map("param" -> List(""))</code></td></tr>
+    * <tr><td><code>?param</code></td><td><code>Map("param" -> List())</code></td></tr>
+    * <tr><td><code>?=value</code></td><td><code>Map("" -> List("value"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> List("v1","v2"), "p2" -> List("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  def multiParams: Map[String, Seq[String]] = uri.multiParams
+  def multiParams: Map[String, List[String]] = uri.multiParams
 
   /** View of the head elements of the URI parameters in query string.
     *
@@ -768,7 +768,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity.Strict(Chunk.array("Not found".getBytes(StandardCharsets.UTF_8))),
+      entity = Entity.Strict(ByteVector.view("Not found".getBytes(StandardCharsets.UTF_8))), // TODO
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

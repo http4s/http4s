@@ -129,6 +129,11 @@ object Throttle {
       Throttle.httpRoutes(bucket, defaultResponse[F] _)(httpRoutes)
     )
 
+  @deprecated("Use httpApp instead.", "0.23.14")
+  def httpAapp[F[_]](amount: Int, per: FiniteDuration)(httpApp: HttpApp[F])(implicit
+      F: Temporal[F]
+  ): F[HttpApp[F]] = this.httpApp(amount, per)(httpApp)
+
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpApp[F]
     */
   def httpAapp[F[_]: Temporal](amount: Int, per: FiniteDuration)(

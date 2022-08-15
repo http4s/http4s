@@ -18,13 +18,13 @@ package org.http4s
 package multipart
 
 import cats.effect.Sync
-import fs2.Chunk
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
 import fs2.io.readInputStream
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 import java.io.InputStream
 import java.net.URL
@@ -44,7 +44,7 @@ object Part {
   def formData(name: String, value: String, headers: Header.ToRaw*): Part[fs2.Pure] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Entity.Strict(Chunk.array(value.getBytes(UTF_8))),
+      Entity.Strict(ByteVector.view(value.getBytes(UTF_8))),
     )
 
   def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =

@@ -29,6 +29,7 @@ import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault._
+import scodec.bits.ByteVector
 
 class MessageSuite extends Http4sSuite {
   private val local = SocketAddress(ipv4"127.0.0.1", port"8080")
@@ -209,7 +210,10 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should correctly print a request with a strict entity") {
     val req =
-      Request(method = Method.POST, entity = Entity.strict(Chunk(Byte.MinValue, Byte.MaxValue)))
+      Request(
+        method = Method.POST,
+        entity = Entity.strict(ByteVector(Byte.MinValue, Byte.MaxValue)),
+      )
     assertEquals(
       req.toString,
       "Request(method=POST, uri=/, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Strict(2 bytes total))",
@@ -357,7 +361,7 @@ class MessageSuite extends Http4sSuite {
   }
 
   test("toString should correctly print a response with a strict entity") {
-    val resp = Response(entity = Entity.strict(Chunk(Byte.MinValue, Byte.MaxValue)))
+    val resp = Response(entity = Entity.strict(ByteVector(Byte.MinValue, Byte.MaxValue)))
     assertEquals(
       resp.toString,
       "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(), entity=Entity.Strict(2 bytes total))",

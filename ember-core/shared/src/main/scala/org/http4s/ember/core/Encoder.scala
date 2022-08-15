@@ -158,8 +158,8 @@ private[ember] object Encoder {
             (Stream.chunk(initSectionChunk) ++ body)
               .chunkMin(writeBufferSize)
               .flatMap(Stream.chunk)
-          case Entity.Strict(chunk) =>
-            Stream.chunk(initSectionChunk ++ chunk)
+          case Entity.Strict(bytes) =>
+            Stream.chunk(initSectionChunk ++ Chunk.byteVector(bytes))
           case Entity.Empty =>
             Stream.chunk(initSectionChunk)
         }

@@ -20,8 +20,8 @@ package staticcontent
 
 import cats.effect.Concurrent
 import cats.syntax.functor._
-import fs2.Chunk
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -55,9 +55,9 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
       F: Concurrent[F]
   ): F[Response[F]] =
     resp
-      .as[Chunk[Byte]]
-      .map { chunk =>
-        val newResponse: Response[F] = resp.copy(entity = Entity.Strict(chunk))
+      .as[ByteVector]
+      .map { bv =>
+        val newResponse: Response[F] = resp.copy(entity = Entity.Strict(bv))
         cacheMap.put(path, newResponse)
         newResponse
       }

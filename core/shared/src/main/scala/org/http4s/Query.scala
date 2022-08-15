@@ -31,7 +31,6 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
 import java.nio.charset.StandardCharsets
-import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -146,11 +145,11 @@ final class Query private (value: Either[Vector[KeyValue], String])
   lazy val params: Map[String, String] =
     multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
 
-  /** Map[String, Seq[String]] representation of the [[Query]]
+  /** `Map[String, List[String]]` representation of the [[Query]]
     *
-    * Params are represented as a `Seq[String]` and may be empty.
+    * Params are represented as a `List[String]` and may be empty.
     */
-  lazy val multiParams: Map[String, immutable.Seq[String]] =
+  lazy val multiParams: Map[String, List[String]] =
     if (toVector.isEmpty) Map.empty
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
@@ -158,7 +157,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
         case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
         case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
-      m.toMap.view.mapValues(_.toList).toMap
+      m.view.mapValues(_.toList).toMap
     }
 
   override def equals(that: Any): Boolean =
