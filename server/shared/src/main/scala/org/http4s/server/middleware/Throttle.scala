@@ -136,7 +136,7 @@ object Throttle {
 
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpApp[F]
     */
-  def httpAapp[F[_]: Temporal](amount: Int, per: FiniteDuration)(
+  def httpApp[F[_]: Temporal](amount: Int, per: FiniteDuration)(
       httpApp: HttpApp[F]
   ): F[HttpApp[F]] =
     apply(amount, per)(httpApp)
