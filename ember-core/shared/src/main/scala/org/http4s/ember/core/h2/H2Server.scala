@@ -18,6 +18,7 @@ package org.http4s.ember.core.h2
 
 import cats._
 import cats.effect._
+import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
@@ -192,7 +193,7 @@ private[ember] object H2Server {
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
-    for {
+    def initH2Connection: Resource[F, (H2Connection[F], Semaphore[F])] = for {
       address <- Resource.eval(socket.remoteAddress)
       (remotehost, remoteport) = (address.host, address.port)
       ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
@@ -221,7 +222,6 @@ private[ember] object H2Server {
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
       created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
       closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-
       h2 = new H2Connection(
         remotehost,
         remoteport,
@@ -239,6 +239,13 @@ private[ember] object H2Server {
         socket,
         logger,
       )
+    } yield (h2, streamCreationLock)
+
+
+    for {
+      pair <- initH2Connection
+      h2 = pair._1
+      streamCreationLock = pair._2
       _ <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(
         h2.outgoing.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
