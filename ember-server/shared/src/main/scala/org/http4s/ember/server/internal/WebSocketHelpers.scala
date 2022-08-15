@@ -17,7 +17,6 @@
 package org.http4s.ember.server.internal
 
 import cats.ApplicativeThrow
-import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Concurrent

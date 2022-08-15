@@ -33,8 +33,6 @@ import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
 
 import scala.concurrent.duration._
 
