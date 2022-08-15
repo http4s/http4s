@@ -25,7 +25,7 @@ import fs2.compression._
 import org.http4s.headers._
 import org.log4s.getLogger
 
-object GZip extends GZipPlatform {
+object GZip {
   private[this] val logger = getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
