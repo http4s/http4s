@@ -166,6 +166,10 @@ private[h2] object PseudoHeaders {
     }.toOption
       .flatten
 
+  // Connection Specific Headers should be removed when doing h2
+  // This is because connection mechanisms are handled by h2
+  // rather than request/response cycle.
+  // https://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2.2
   val connectionHeadersFields: Set[CIString] = Set(
     org.http4s.headers.`Transfer-Encoding`.headerInstance.name,
     org.http4s.headers.Connection.headerInstance.name,
