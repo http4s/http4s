@@ -332,7 +332,9 @@ private[ember] object H2Server {
       streamCreationLock = pair._2
       _ <- h2.writeLoop.compile.drain.background
       _ <- Resource.eval(
-        h2.outgoing.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
+        h2.outgoing.offer(
+          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
+        )
       )
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
