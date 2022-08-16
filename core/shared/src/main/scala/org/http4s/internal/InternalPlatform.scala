@@ -20,6 +20,8 @@ import cats.effect.kernel.Sync
 import org.log4s
 
 private[internal] trait InternalPlatform {
+
+  @deprecated("log4s will be removed from http4s-core in 1.0", "0.23.15")
   private[http4s] def loggingAsyncCallback[F[_], A](
       logger: log4s.Logger
   )(attempt: Either[Throwable, A])(implicit F: Sync[F]): F[Unit] =
