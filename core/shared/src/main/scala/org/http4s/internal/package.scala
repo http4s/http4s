@@ -27,7 +27,6 @@ import fs2.Pipe
 import fs2.Pull
 import fs2.RaiseThrowable
 import fs2.Stream
-import org.log4s.Logger
 
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -39,15 +38,7 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
-package object internal {
-
-  private[http4s] def loggingAsyncCallback[F[_], A](
-      logger: Logger
-  )(attempt: Either[Throwable, A])(implicit F: Sync[F]): F[Unit] =
-    attempt match {
-      case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback"))
-      case Right(_) => F.unit
-    }
+package object internal extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   private val Digits: Array[Char] =

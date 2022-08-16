@@ -23,7 +23,6 @@ import cats.data.OptionT
 import cats.effect.Async
 import cats.syntax.all._
 import org.http4s.server.middleware.TranslateUri
-import org.log4s.getLogger
 
 import java.nio.file.Paths
 import scala.util.Failure
@@ -48,7 +47,7 @@ class ResourceServiceBuilder[F[_]] private (
     preferGzipped: Boolean,
     classLoader: Option[ClassLoader],
 ) {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   private def copy(
       basePath: String = basePath,
@@ -118,9 +117,11 @@ class ResourceServiceBuilder[F[_]] private (
         })
 
       case Failure(e) =>
-        logger.error(e)(
-          s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail."
-        )
+        logger
+          .error(e)(
+            s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail."
+          )
+          .unsafeRunSync()
         Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
     }
   }
@@ -139,7 +140,7 @@ object ResourceServiceBuilder {
 }
 
 object ResourceService {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
@@ -194,9 +195,11 @@ object ResourceService {
         })
 
       case Failure(e) =>
-        logger.error(e)(
-          s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail."
-        )
+        logger
+          .error(e)(
+            s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail."
+          )
+          .unsafeRunSync()
         Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
     }
   }

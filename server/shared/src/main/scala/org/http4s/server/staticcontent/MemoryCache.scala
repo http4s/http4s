@@ -22,7 +22,6 @@ import cats.effect.Concurrent
 import cats.syntax.functor._
 import fs2.Chunk
 import fs2.Stream
-import org.log4s.getLogger
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
   * to avoid disk access.
   */
 class MemoryCache[F[_]] extends CacheStrategy[F] {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
   private val cacheMap = new ConcurrentHashMap[Uri.Path, Response[F]]()
 
   override def cache(uriPath: Uri.Path, resp: Response[F])(implicit
@@ -41,11 +40,11 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
     if (resp.status == Status.Ok)
       Option(cacheMap.get(uriPath)) match {
         case Some(r) if r.headers.headers == resp.headers.headers =>
-          logger.debug(s"Cache hit: $resp")
+          logger.debug(s"Cache hit: $resp").unsafeRunSync()
           F.pure(r)
 
         case _ =>
-          logger.debug(s"Cache miss: $resp")
+          logger.debug(s"Cache miss: $resp").unsafeRunSync()
           collectResource(uriPath, resp) /* otherwise cache the response */
       }
     else F.pure(resp)

@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.internal
 
-import cats.effect.SyncIO
-import org.typelevel.log4cats
-
-private[http4s] object Platform {
-  final val isJvm = false
-  final val isJs = true
-
-  lazy val loggerFactory = log4cats.noop.NoOpFactory[SyncIO]
-}
+private[internal] trait InternalPlatform

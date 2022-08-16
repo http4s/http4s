@@ -16,7 +16,12 @@
 
 package org.http4s
 
+import cats.effect.SyncIO
+import org.typelevel.log4cats
+
 private[http4s] object Platform {
   final val isJvm = true
   final val isJs = false
+
+  lazy val loggerFactory = log4cats.slf4j.loggerFactoryforSync[SyncIO]
 }

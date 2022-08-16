@@ -33,14 +33,13 @@ import fs2.io.file.Path
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.log4s.getLogger
 import org.typelevel.vault._
 
 import java.io._
 import java.net.URL
 
 object StaticFile {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   val DefaultBufferSize = 10240
 
@@ -281,7 +280,7 @@ object StaticFile {
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 
-                  logger.trace(s"Static file generated response: $r")
+                  logger.trace(s"Static file generated response: $r").unsafeRunSync()
                   r.some
                 })
               }

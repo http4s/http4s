@@ -29,7 +29,6 @@ import fs2.io.file.Path
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
-import org.log4s.getLogger
 import org.typelevel.ci._
 
 import java.io.File
@@ -37,7 +36,7 @@ import scala.annotation.nowarn
 import scala.util.control.NoStackTrace
 
 object FileService {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   @deprecated("use FileService.Fs2PathCollector", "0.23.8")
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
@@ -278,21 +277,25 @@ object FileService {
     }
 
     val readPath: F[Path] = Files[F].realPath(Path(config.systemPath))
-    val inner: F[HttpRoutes[F]] = readPath.attempt.map {
+    val inner: F[HttpRoutes[F]] = readPath.attempt.flatMap {
       case Right(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli(withPath(rootPath)))
+        TranslateUri(config.pathPrefix)(Kleisli(withPath(rootPath))).pure
 
       case Left(_: NoSuchFileException) =>
-        logger.error(
-          s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
-        )
-        HttpRoutes.empty
+        logger
+          .error(
+            s"Could not find root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will return none."
+          )
+          .to[F]
+          .as(HttpRoutes.empty)
 
       case Left(e) =>
-        logger.error(e)(
-          s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
-        )
-        HttpRoutes.pure(Response(Status.InternalServerError))
+        logger
+          .error(e)(
+            s"Could not resolve root path from FileService config: systemPath = ${config.systemPath}, pathPrefix = ${config.pathPrefix}. All requests will fail with a 500."
+          )
+          .to[F]
+          .as(HttpRoutes.pure(Response(Status.InternalServerError)))
     }
 
     Kleisli((_: Any) => OptionT.liftF(inner)).flatten

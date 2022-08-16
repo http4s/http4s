@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.http4s
+package org.http4s.internal
 
-import cats.effect.SyncIO
-import org.typelevel.log4cats
+import cats.effect.kernel.Sync
+import org.log4s
 
-private[http4s] object Platform {
-  final val isJvm = false
-  final val isJs = true
+private[internal] trait InternalPlatform {
+  private[http4s] def loggingAsyncCallback[F[_], A](
+      logger: log4s.Logger
+  )(attempt: Either[Throwable, A])(implicit F: Sync[F]): F[Unit] =
+    attempt match {
+      case Left(e) => F.delay(logger.error(e)("Error in asynchronous callback"))
+      case Right(_) => F.unit
+    }
 
-  lazy val loggerFactory = log4cats.noop.NoOpFactory[SyncIO]
 }

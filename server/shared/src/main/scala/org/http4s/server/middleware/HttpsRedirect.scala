@@ -30,7 +30,6 @@ import org.http4s.headers.Host
 import org.http4s.headers.Location
 import org.http4s.headers.`Content-Type`
 import org.http4s.syntax.header._
-import org.log4s.getLogger
 import org.typelevel.ci._
 
 /** [[Middleware]] to redirect http traffic to https.
@@ -40,14 +39,14 @@ import org.typelevel.ci._
   * which does not support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
-  private[HttpsRedirect] val logger = getLogger
+  private[HttpsRedirect] val logger = Platform.loggerFactory.getLogger
 
   def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
     Kleisli { req =>
       (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
         case (Some(NonEmptyList(proto, _)), Some(host))
             if Scheme.fromString(proto.value).contains(Scheme.http) =>
-          logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host")
+          logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host").unsafeRunSync()
           val authority = Authority(host = RegName(host.value))
           val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
           val headers = Headers(Location(location), `Content-Type`(MediaType.text.xml))

@@ -24,20 +24,18 @@ import cats.data.OptionT
 import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
 import cats.effect.kernel.Outcome
-import cats.effect.kernel.Sync
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import cats.~>
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   def apply[G[_], F[_], A](
       logHeaders: Boolean,
@@ -59,7 +57,7 @@ object ResponseLogger {
   )(
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] = {
-    val fallback: String => F[Unit] = s => Sync[F].delay(logger.info(s))
+    val fallback: String => F[Unit] = s => logger.info(s).to[F]
     val log = logAction.fold(fallback)(identity)
 
     def logMessage(resp: Response[F]): F[Unit] =
