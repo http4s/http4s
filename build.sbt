@@ -187,9 +187,6 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.core.Parser#MessageP.recurseFind"
-          ),
         )
       else Seq.empty
     },
@@ -441,6 +438,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#MessageP.recurseFind"
       ),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
