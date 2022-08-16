@@ -187,6 +187,9 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.Parser#MessageP.recurseFind"
+          ),
         )
       else Seq.empty
     },
