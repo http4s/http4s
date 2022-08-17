@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
 import cats.Semigroup
@@ -25,7 +26,6 @@ import cats.effect.Sync
 import cats.effect.SyncIO
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io._
 import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status.NotModified
@@ -36,7 +36,8 @@ import org.typelevel.vault._
 
 import java.io._
 import java.net.URL
-import cats.Functor
+
+import fs2.io._
 
 object StaticFile {
   private[this] val logger = getLogger
