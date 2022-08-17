@@ -222,36 +222,30 @@ private[ember] class H2Client[F[_]](
         .drain
 
     def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
+      def processStream(i: Int): F[Unit] =
+        (for {
+          stream <- h2.mapRef.get.flatMap { streamMap =>
+            streamMap.get(i).liftTo(new ProtocolException("Stream missing for push promise"))
+          } // FOLD
+          // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
+          req <- stream.getRequest
+          resp = stream.getResponse.map(_.covary[F].withBodyStream(stream.readBody))
+          // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
+          outE <- onPushPromise(req, resp).flatMap {
+            case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Succeeded(f) => f
+          }.attempt
+          _ <- h2.mapRef.update(_ - i)
+          out <- outE.liftTo[F]
+        } yield out)
+          .onError { case e => logger.warn(e)(s"Error Handling Push Promise") }
+          .attempt
+          .void
+
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .parEvalMap(10) { i =>
-          val f = if (i % 2 == 0) {
-            val x = for {
-              //
-              stream <- h2.mapRef.get
-              .map(_.get(i))
-              .flatMap(
-                _.liftTo(new ProtocolException("Stream missing for push promise"))
-              ) // FOLD
-                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
-              req <- stream.getRequest
-
-              resp = stream.getResponse.map(
-                _.covary[F].withBodyStream(stream.readBody)
-              )
-              // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
-              outE <- onPushPromise(req, resp).flatMap {
-                case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
-                case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
-                case Outcome.Succeeded(f) => f
-              }.attempt
-              _ <- h2.mapRef.update(_ - i)
-              out <- outE.liftTo[F]
-            } yield out
-            x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
-          } else Applicative[F].unit
-          f
-        }
+        .parEvalMap(10)(i => if (i % 2 == 0) processStream(i) else F.unit)
         .compile
         .drain
         .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
