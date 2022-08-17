@@ -1,20 +1,101 @@
-
 pull_request_rules:
-  - name: automatically merge scala-steward's PRs
-    conditions:
-      - author=scala-steward
-      - body~=labels:.*semver-patch.*
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 2.12.13, adopt@1.16)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 2.13.6, adopt@1.16)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.8)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.11)
-      - status-success=Build and Test (ubuntu-latest, 3.0.0, adopt@1.16)
-      - status-success=Build website (ubuntu-latest, 2.12.13, adopt@1.8)
-      - status-success=Build docs (ubuntu-latest, 2.12.13, adopt@1.8)
-    actions:
-      merge:
-        method: merge
+
+- name: label series/0.22 PRs
+  conditions:
+  - base=series/0.22
+  actions:
+    label:
+      add: ['series/0.22']
+
+- name: label series/0.23 PRs
+  conditions:
+  - base=series/0.23
+  actions:
+    label:
+      add: ['series/0.23']
+
+- name: label http4s-steward's PRs
+  conditions:
+  - author=http4s-steward[bot]
+  actions:
+    label:
+      add: [dependencies]
+
+- name: label core PRs
+  conditions:
+  - files~=^core/
+  actions:
+    label:
+      add: ['module:core']
+
+- name: label dsl PRs
+  conditions:
+  - files~=^dsl/
+  actions:
+    label:
+      add: ['module:dsl']
+
+- name: label laws PRs
+  conditions:
+  - files~=^laws/
+  actions:
+    label:
+      add: ['module:laws']
+
+- name: label server PRs
+  conditions:
+  - files~=^server/
+  actions:
+    label:
+      add: ['module:server']
+
+- name: label client PRs
+  conditions:
+  - files~=^client/
+  actions:
+    label:
+      add: ['module:client']
+
+- name: label ember-core PRs
+  conditions:
+  - files~=^ember-core/
+  actions:
+    label:
+      add: ['module:ember-core']
+
+- name: label ember-server PRs
+  conditions:
+  - files~=^ember-server/
+  actions:
+    label:
+      add: ['module:ember-server']
+
+- name: label ember-client PRs
+  conditions:
+  - files~=^ember-client/
+  actions:
+    label:
+      add: ['module:ember-client']
+
+- name: label jawn PRs
+  conditions:
+  - files~=^jawn/
+  actions:
+    label:
+      add: ['module:jawn']
+
+- name: label circe PRs
+  conditions:
+  - files~=^circe/
+  actions:
+    label:
+      add: ['module:circe']
+
+- name: label docs PRs
+  conditions:
+  - or:
+    - files~=^docs/
+    - files~=^website/
+  actions:
+    label:
+      add: ['docs']

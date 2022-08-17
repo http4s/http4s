@@ -25,8 +25,8 @@ import org.typelevel.ci._
 // TODO migrate to a proper mdoc. This is to keep it compiling.
 
 object HeaderExamples {
-  ///// test for construction
-  case class Foo(v: String)
+  // /// test for construction
+  final case class Foo(v: String)
   object Foo {
     implicit def headerFoo: Header[Foo, Header.Single] = new Header[Foo, Header.Single] {
       def name = ci"foo"
@@ -35,15 +35,15 @@ object HeaderExamples {
     }
 
   }
-  def baz = Header.Raw(ci"baz", "bbb")
+  def baz: Header.Raw = Header.Raw(ci"baz", "bbb")
 
-  val myHeaders = Headers(
+  val myHeaders: Headers = Headers(
     Foo("hello"),
     "my" -> "header",
-    baz
+    baz,
   )
-  ////// test for selection
-  case class Bar(v: NonEmptyList[String])
+  // //// test for selection
+  final case class Bar(v: NonEmptyList[String])
   object Bar {
     implicit val headerBar: Header[Bar, Header.Recurring] with Semigroup[Bar] =
       new Header[Bar, Header.Recurring] with Semigroup[Bar] {
@@ -54,7 +54,7 @@ object HeaderExamples {
       }
   }
 
-  case class SetCookie(name: String, value: String)
+  final case class SetCookie(name: String, value: String)
   object SetCookie {
     implicit val headerCookie: Header[SetCookie, Header.Recurring] =
       new Header[SetCookie, Header.Recurring] {
@@ -68,17 +68,17 @@ object HeaderExamples {
       }
   }
 
-  val hs = Headers(
+  val hs: Headers = Headers(
     Bar(NonEmptyList.one("one")),
     Foo("two"),
     SetCookie("cookie1", "a cookie"),
     Bar(NonEmptyList.one("three")),
-    SetCookie("cookie2", "another cookie")
+    SetCookie("cookie2", "another cookie"),
   )
 
-  val a = hs.get[Foo]
-  val b = hs.get[Bar]
-  val c = hs.get[SetCookie]
+  val a: Option[Foo] = hs.get[Foo]
+  val b: Option[Bar] = hs.get[Bar]
+  val c: Option[NonEmptyList[SetCookie]] = hs.get[SetCookie]
 
   // scala> Examples.a
   // val res0: Option[Foo] = Some(Foo(two))
@@ -89,7 +89,7 @@ object HeaderExamples {
   // scala> Examples.c
   // val res2: Option[NonEmptyList[SetCookie]] = Some(NonEmptyList(SetCookie(cookie1,a cookie), SetCookie(cookie2,another cookie)))
 
-  val hs2 = Headers(
+  val hs2: Headers = Headers(
     Bar(NonEmptyList.one("one")),
     Foo("two"),
     SetCookie("cookie1", "a cookie"),
@@ -98,7 +98,7 @@ object HeaderExamples {
     "a" -> "b",
     Option("a" -> "c"),
     List("a" -> "c"),
-    List(SetCookie("cookie3", "cookie three"))
+    List(SetCookie("cookie3", "cookie three")),
     // ,
     // Option(List("a" -> "c")) // correctly fails to compile
   )

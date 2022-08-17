@@ -18,11 +18,13 @@ package org.http4s
 package dsl
 package impl
 
-import cats.{Applicative, Monad}
-import org.http4s.headers._
-import ResponseGenerator.addEntityLength
+import cats.Applicative
+import cats.Monad
 import cats.arrow.FunctionK
 import cats.syntax.all._
+import org.http4s.headers._
+
+import ResponseGenerator.addEntityLength
 
 trait ResponseGenerator extends Any {
   def status: Status
@@ -46,7 +48,8 @@ trait EmptyResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply()(implicit F: Applicative[F]): F[Response[G]] = F.pure(Response[G](status))
 
   def headers(header: Header.ToRaw, _headers: Header.ToRaw*)(implicit
-      F: Applicative[F]): F[Response[G]] =
+      F: Applicative[F]
+  ): F[Response[G]] =
     F.pure(Response[G](status, headers = Headers(header :: _headers.toList)))
 }
 
@@ -67,21 +70,25 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
     F.pure(Response[G](status, headers = Headers(List(`Content-Length`.zero))))
 
   def headers(header: Header.ToRaw, _headers: Header.ToRaw*)(implicit
-      F: Applicative[F]): F[Response[G]] =
+      F: Applicative[F]
+  ): F[Response[G]] =
     F.pure(
       Response[G](
         status,
-        headers = Headers(`Content-Length`.zero) ++ Headers(header :: _headers.toList)))
+        headers = Headers(`Content-Length`.zero) ++ Headers(header :: _headers.toList),
+      )
+    )
 
   def apply[A](body: G[A])(implicit F: Monad[F], w: EntityEncoder[G, A]): F[Response[G]] =
     F.flatMap(liftG(body))(apply[A](_))
 
   def apply[A](body: A, headers: Header.ToRaw*)(implicit
       F: Applicative[F],
-      w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers |+| Headers(headers.toList)
+      w: EntityEncoder[G, A],
+  ): F[Response[G]] = {
+    val h = w.headers |+| Headers(headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -92,19 +99,16 @@ trait EntityResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   * distinguishes this from other `EntityResponseGenerator`s.
   */
 trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGenerator[F, G] {
-  @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
-  def apply(uri: Uri)(implicit F: Applicative[F]): F[Response[G]] =
-    apply(Location(uri))
-
   def apply(location: Location)(implicit F: Applicative[F]): F[Response[G]] =
     F.pure(Response[G](status = status, headers = Headers(`Content-Length`.zero, location)))
 
   def apply[A](location: Location, body: A, headers: Header.ToRaw*)(implicit
       F: Applicative[F],
-      w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers |+| Headers(location, headers.toList)
+      w: EntityEncoder[G, A],
+  ): F[Response[G]] = {
+    val h = w.headers |+| Headers(location, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -115,26 +119,20 @@ trait LocationResponseGenerator[F[_], G[_]] extends Any with EntityResponseGener
   * distinguishes this from other `ResponseGenerator`s.
   */
 trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  @deprecated("Use ``apply(`WWW-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit
-      F: Applicative[F]): F[Response[G]] =
-    F.pure(
-      Response[G](
-        status = status,
-        headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
-      ))
-
   def apply(authenticate: `WWW-Authenticate`, headers: Header.ToRaw*)(implicit
-      F: Applicative[F]): F[Response[G]] =
+      F: Applicative[F]
+  ): F[Response[G]] =
     F.pure(
-      Response[G](status, headers = Headers(`Content-Length`.zero, authenticate, headers.toList)))
+      Response[G](status, headers = Headers(`Content-Length`.zero, authenticate, headers))
+    )
 
   def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header.ToRaw*)(implicit
       F: Applicative[F],
-      w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers |+| Headers(authenticate, headers.toList)
+      w: EntityEncoder[G, A],
+  ): F[Response[G]] = {
+    val h = w.headers |+| Headers(authenticate, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -146,14 +144,15 @@ trait WwwAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGene
   */
 trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   def apply(allow: Allow, headers: Header.ToRaw*)(implicit F: Applicative[F]): F[Response[G]] =
-    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero, allow, headers.toList)))
+    F.pure(Response[G](status, headers = Headers(`Content-Length`.zero, allow, headers)))
 
   def apply[A](allow: Allow, body: A, headers: Header.ToRaw*)(implicit
       F: Applicative[F],
-      w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers |+| Headers(allow, headers.toList)
+      w: EntityEncoder[G, A],
+  ): F[Response[G]] = {
+    val h = w.headers |+| Headers(allow, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
 
@@ -164,25 +163,19 @@ trait AllowResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
   * distinguishes this from other `EntityResponseGenerator`s.
   */
 trait ProxyAuthenticateResponseGenerator[F[_], G[_]] extends Any with ResponseGenerator {
-  @deprecated("Use ``apply(`Proxy-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit
-      F: Applicative[F]): F[Response[G]] =
-    F.pure(
-      Response[G](
-        status = status,
-        headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
-      ))
-
   def apply(authenticate: `Proxy-Authenticate`, headers: Header.ToRaw*)(implicit
-      F: Applicative[F]): F[Response[G]] =
+      F: Applicative[F]
+  ): F[Response[G]] =
     F.pure(
-      Response[G](status, headers = Headers(`Content-Length`.zero, authenticate, headers.toList)))
+      Response[G](status, headers = Headers(`Content-Length`.zero, authenticate, headers))
+    )
 
   def apply[A](authenticate: `Proxy-Authenticate`, body: A, headers: Header.ToRaw*)(implicit
       F: Applicative[F],
-      w: EntityEncoder[G, A]): F[Response[G]] = {
-    val h = w.headers |+| Headers(authenticate, headers.toList)
+      w: EntityEncoder[G, A],
+  ): F[Response[G]] = {
+    val h = w.headers |+| Headers(authenticate, headers)
     val entity = w.toEntity(body)
-    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), body = entity.body))
+    F.pure(Response[G](status = status, headers = addEntityLength(entity, h), entity = entity))
   }
 }
