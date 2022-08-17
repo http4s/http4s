@@ -135,24 +135,14 @@ private[ember] class H2Client[F[_]](
     baseSocket <- sg.client(address)
     socket <- {
       if (useTLS) {
+        val tlsParams = Util.mkClientTLSParameters(address.some, enableEndpointValidation)
         for {
           tlsSocket <- tls
             .clientBuilder(baseSocket)
-            .withParameters(
-              H2TLS.transform(Util.mkClientTLSParameters(address.some, enableEndpointValidation))
-            )
+            .withParameters(H2TLS.transform(tlsParams))
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-          protocol <- Resource.eval(H2TLS.protocol(tlsSocket))
-          socketType <- protocol match {
-            case Some("h2") => Resource.pure[F, SocketType](Http2)
-            case Some("http/1.1") => Resource.pure[F, SocketType](Http1)
-            case Some(_) =>
-              Resource.raiseError[F, SocketType, Throwable](
-                new ProtocolException("Unknown protocol")
-              )
-            case None => Resource.pure[F, SocketType](Http1)
-          }
+          socketType <- Resource.eval(parseSocketType(tlsSocket))
         } yield (tlsSocket, socketType)
       } else {
         val socketType = if (priorKnowledge) Http2 else Http1
@@ -161,6 +151,14 @@ private[ember] class H2Client[F[_]](
       }
     }
   } yield socket
+
+  private def parseSocketType(tlsSocket: TLSSocket[F]): F[SocketType] =
+    H2TLS.protocol(tlsSocket).flatMap {
+      case Some("h2") => F.pure(Http2)
+      case Some("http/1.1") => F.pure(Http1)
+      case Some(_) => F.raiseError(new ProtocolException("Unknown protocol"))
+      case None => F.pure(Http1)
+    }
 
   // This Socket Becomes an Http2 Socket
   def fromSocket(
