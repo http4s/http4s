@@ -168,13 +168,13 @@ private[ember] class H2Client[F[_]: Async](
       socket: Socket[F],
       key: RequestKey,
   ): Resource[F, H2Connection[F]] = {
-    def createH2Connection: Resource[F, H2Connection[F]] =
+    def createH2Connection: F[H2Connection[F]] =
       for {
-        socketAdd <- Resource.eval(RequestKey.getAddress(key))
-        _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
-        ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-        initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-        stateRef <- Resource.eval(
+        socketAdd <- RequestKey.getAddress(key)
+        _ <- socket.write(Chunk.byteVector(Preface.clientBV))
+        ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
+        initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
+        stateRef <-
           Concurrent[F].ref(
             H2Connection.State(
               defaultSettings,
@@ -188,16 +188,13 @@ private[ember] class H2Client[F[_]: Async](
               None,
             )
           )
-        )
-        queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-        hpack <- Resource.eval(Hpack.create[F])
-        settingsAck <- Resource.eval(
-          Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-        )
-        streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
+        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+        hpack <- Hpack.create[F]
+        settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+        streamCreationLock <- cats.effect.std.Semaphore[F](1)
         // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-        created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-        closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
+        created <- cats.effect.std.Queue.unbounded[F, Int]
+        closed <- cats.effect.std.Queue.unbounded[F, Int]
       } yield new H2Connection(
         socketAdd.host,
         socketAdd.port,
@@ -217,7 +214,7 @@ private[ember] class H2Client[F[_]: Async](
       )
 
     for {
-      h2 <- createH2Connection
+      h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <-
