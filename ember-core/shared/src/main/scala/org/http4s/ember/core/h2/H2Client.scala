@@ -251,18 +251,18 @@ private[ember] class H2Client[F[_]](
         .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
     }
 
+    def processSettings(h2: H2Connection[F]): F[Unit] = {
+      val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+      h2.outgoing.offer(Chunk.singleton(localSetts))
+    }
+
     for {
       h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <- clearClosed(h2).background
       _ <- pullCreatedStreams(h2).background
-
-      _ <- Resource.eval(
-        h2.outgoing.offer(
-          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
-        )
-      )
+      _ <- Resource.eval(processSettings(h2))
     } yield h2
   }
 
