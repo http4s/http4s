@@ -218,10 +218,10 @@ private[ember] class H2Client[F[_]: Async](
       _ <- h2.writeLoop.compile.drain.background
       _ <-
         Stream
-          .fromQueueUnterminated(closed)
+          .fromQueueUnterminated(h2.closedStreams)
           .repeat
           .evalMap { i =>
-            if (i % 2 != 0) ref.update(m => m - i)
+            if (i % 2 != 0) h2.mapRef.update(m => m - i)
             else Applicative[F].unit
           }
           .compile
@@ -229,12 +229,12 @@ private[ember] class H2Client[F[_]: Async](
           .background
       _ <-
         Stream
-          .fromQueueUnterminated(created)
+          .fromQueueUnterminated(h2.createdStreams)
           .parEvalMap(10) { i =>
             val f = if (i % 2 == 0) {
               val x = for {
                 //
-                stream <- ref.get
+                stream <- h2.mapRef.get
                   .map(_.get(i))
                   .flatMap(
                     _.liftTo(new ProtocolException("Stream missing for push promise"))
@@ -251,7 +251,7 @@ private[ember] class H2Client[F[_]: Async](
                   case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
                   case Outcome.Succeeded(f) => f
                 }.attempt
-                _ <- ref.update(_ - i)
+                _ <- h2.mapRef.update(_ - i)
                 out <- outE.liftTo[F]
               } yield out
               x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
