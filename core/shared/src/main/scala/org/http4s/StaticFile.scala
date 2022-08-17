@@ -16,18 +16,16 @@
 
 package org.http4s
 
+import cats.ApplicativeThrow
 import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
 import cats.Semigroup
 import cats.data.NonEmptyList
 import cats.data.OptionT
-import cats.effect.Sync
 import cats.effect.SyncIO
-import cats.syntax.all._
 import fs2.Stream
 import fs2.io._
-import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status.NotModified
 import org.http4s.headers._
@@ -37,6 +35,10 @@ import org.typelevel.vault._
 
 import java.io._
 import java.net.URL
+
+import cats.effect.Sync
+import cats.syntax.all._
+import fs2.io.file.Files
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -162,7 +164,7 @@ object StaticFile {
     } yield ETag(s"$lastModified-$contentLength")
   }
 
-  def calculateETag[F[_]: Files: Functor]: Path => F[String] =
+  def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
     f =>
       Files[F]
         .getBasicFileAttributes(f, followLinks = true)
