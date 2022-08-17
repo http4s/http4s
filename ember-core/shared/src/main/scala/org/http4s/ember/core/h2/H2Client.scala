@@ -221,46 +221,48 @@ private[ember] class H2Client[F[_]](
         .compile
         .drain
 
+    def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
+      Stream
+        .fromQueueUnterminated(h2.createdStreams)
+        .parEvalMap(10) { i =>
+          val f = if (i % 2 == 0) {
+            val x = for {
+              //
+              stream <- h2.mapRef.get
+              .map(_.get(i))
+              .flatMap(
+                _.liftTo(new ProtocolException("Stream missing for push promise"))
+              ) // FOLD
+                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
+              req <- stream.getRequest
+
+              resp = stream.getResponse.map(
+                _.covary[F].withBodyStream(stream.readBody)
+              )
+              // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
+              outE <- onPushPromise(req, resp).flatMap {
+                case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
+                case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
+                case Outcome.Succeeded(f) => f
+              }.attempt
+              _ <- h2.mapRef.update(_ - i)
+              out <- outE.liftTo[F]
+            } yield out
+            x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
+          } else Applicative[F].unit
+          f
+        }
+        .compile
+        .drain
+        .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
+    }
+
     for {
       h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <- clearClosed(h2).background
-      _ <-
-        Stream
-          .fromQueueUnterminated(h2.createdStreams)
-          .parEvalMap(10) { i =>
-            val f = if (i % 2 == 0) {
-              val x = for {
-                //
-                stream <- h2.mapRef.get
-                  .map(_.get(i))
-                  .flatMap(
-                    _.liftTo(new ProtocolException("Stream missing for push promise"))
-                  ) // FOLD
-                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
-                req <- stream.getRequest
-
-                resp = stream.getResponse.map(
-                  _.covary[F].withBodyStream(stream.readBody)
-                )
-                // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
-                outE <- onPushPromise(req, resp).flatMap {
-                  case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Succeeded(f) => f
-                }.attempt
-                _ <- h2.mapRef.update(_ - i)
-                out <- outE.liftTo[F]
-              } yield out
-              x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
-            } else Applicative[F].unit
-            f
-          }
-          .compile
-          .drain
-          .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
-          .background
+      _ <- pullCreatedStreams(h2).background
 
       _ <- Resource.eval(
         h2.outgoing.offer(
