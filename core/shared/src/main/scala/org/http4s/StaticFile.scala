@@ -92,7 +92,11 @@ object StaticFile {
   def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
 
-  def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag]): OptionT[F, Response[F]] = {
+  def fromURL[F[_]: Sync](
+      url: URL,
+      req: Option[Request[F]],
+      etagCalculator: URL => F[ETag],
+  ): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(Sync[F].defer {
@@ -113,9 +117,10 @@ object StaticFile {
               nameToContentType(url.getPath),
               etag,
               if (len >= 0) `Content-Length`.unsafeFromLong(len)
-              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
             )
-            Sync[F].blocking(urlConn.getInputStream)
+            Sync[F]
+              .blocking(urlConn.getInputStream)
               .redeem(
                 recover = {
                   case _: FileNotFoundException => None
@@ -125,13 +130,16 @@ object StaticFile {
                   Some(
                     Response(
                       headers = headers,
-                      entity = Entity(readInputStream[F](Sync[F].pure(inputStream), DefaultBufferSize))
-                    ))
-                }
+                      entity =
+                        Entity(readInputStream[F](Sync[F].pure(inputStream), DefaultBufferSize)),
+                    )
+                  )
+                },
               )
           }
         } else
-          Sync[F].blocking(urlConn.getInputStream.close())
+          Sync[F]
+            .blocking(urlConn.getInputStream.close())
             .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
@@ -145,7 +153,7 @@ object StaticFile {
       contentLength <- F.blocking(urlConn.getContentLengthLong.toHexString)
     } yield ETag(s"$lastModified-$contentLength")
   }
-  
+
   def calculateETag[F[_]: Files: Functor]: Path => F[String] =
     f =>
       Files[F]
