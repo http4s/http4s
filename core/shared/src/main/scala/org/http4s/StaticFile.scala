@@ -16,7 +16,6 @@
 
 package org.http4s
 
-import cats.ApplicativeThrow
 import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
@@ -90,14 +89,19 @@ object StaticFile {
       )
   }
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit
-      F: Sync[F]
+  def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+    fromURL(url, req, calcETagURL[F])
+
+  def fromURL[F[_]: Sync](
+      url: URL,
+      req: Option[Request[F]],
+      etagCalculator: URL => F[ETag],
   ): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
-    OptionT.apply(F.defer {
+    OptionT.apply(Sync[F].defer {
       if (url.getProtocol === "file" && file.isDirectory())
-        F.pure(none[Response[F]])
+        Sync[F].pure(none[Response[F]])
       else {
         val urlConn = url.openConnection
         val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -106,31 +110,36 @@ object StaticFile {
         val expired = (ifModifiedSince, lastmod).mapN(_.date < _).getOrElse(true)
 
         if (expired) {
-          val len = urlConn.getContentLengthLong
-          val headers = Headers(
-            lastmod.map(`Last-Modified`(_)),
-            nameToContentType(url.getPath),
-            if (len >= 0) `Content-Length`.unsafeFromLong(len)
-            else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
-          )
-
-          F.blocking(urlConn.getInputStream)
-            .redeem(
-              recover = {
-                case _: FileNotFoundException => None
-                case other => throw other
-              },
-              f = { inputStream =>
-                Some(
-                  Response(
-                    headers = headers,
-                    body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
-                  )
-                )
-              },
+          etagCalculator(url).flatMap { etag =>
+            val len = urlConn.getContentLengthLong
+            val headers = Headers(
+              lastmod.map(`Last-Modified`(_)),
+              nameToContentType(url.getPath),
+              etag,
+              if (len >= 0) `Content-Length`.unsafeFromLong(len)
+              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
             )
+            Sync[F]
+              .blocking(urlConn.getInputStream)
+              .redeem(
+                recover = {
+                  case _: FileNotFoundException => None
+                  case other => throw other
+                },
+                f = { inputStream =>
+                  Some(
+                    Response(
+                      headers = headers,
+                      body =
+                        readInputStream[F](Sync[F].pure(inputStream), DefaultBufferSize)
+                    )
+                  )
+                },
+              )
+          }
         } else
-          F.blocking(urlConn.getInputStream.close())
+          Sync[F]
+            .blocking(urlConn.getInputStream.close())
             .handleError(_ => ())
             .as(Some(Response(NotModified)))
       }
@@ -146,7 +155,15 @@ object StaticFile {
           if (isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else ""
         )
 
-  def calculateETag[F[_]: Files: ApplicativeThrow]: Path => F[String] =
+  private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[ETag] = url => {
+    val urlConn = url.openConnection
+    for {
+      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
+      contentLength <- F.blocking(urlConn.getContentLengthLong.toHexString)
+    } yield ETag(s"$lastModified-$contentLength")
+  }
+
+  def calculateETag[F[_]: Files: Functor]: Path => F[String] =
     f =>
       Files[F]
         .getBasicFileAttributes(f, followLinks = true)
