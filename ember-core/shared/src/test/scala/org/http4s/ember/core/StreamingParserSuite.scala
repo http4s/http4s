@@ -193,6 +193,17 @@ class StreamingParserSuite extends Http4sSuite {
     }
   }
 
+  // https://github.com/http4s/http4s/issues/6580
+  test("raise end of stream for request with EOF after request line") {
+    val segments = Fixtures.toBytes(List("POST /foo HTTP/1.1\r\n"))
+    (for {
+      read <- Helpers.taking[IO, Byte](List(segments))
+      result <- Parser.Request.parser(Int.MaxValue)(Array.emptyByteArray, read)
+      _ <- result._1.body.compile.drain
+      _ <- result._2
+    } yield ()).intercept[EmberException.ReachedEndOfStream].void
+  }
+
   test("raise end of stream for response") {
     PropF.forAllNoShrinkF(Fixtures.genResponse(min = 3)) { segments =>
       (for {

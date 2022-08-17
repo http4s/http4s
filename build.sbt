@@ -439,6 +439,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#MessageP.recurseFind"
+      ),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
