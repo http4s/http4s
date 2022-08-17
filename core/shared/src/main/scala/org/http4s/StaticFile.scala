@@ -130,8 +130,7 @@ object StaticFile {
                   Some(
                     Response(
                       headers = headers,
-                      body =
-                        readInputStream[F](Sync[F].pure(inputStream), DefaultBufferSize)
+                      body = readInputStream[F](Sync[F].pure(inputStream), DefaultBufferSize),
                     )
                   )
                 },
