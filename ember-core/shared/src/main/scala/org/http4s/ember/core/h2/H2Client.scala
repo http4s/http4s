@@ -65,7 +65,7 @@ Connection
     PushPromise - Special Case only after Open or Half-closed(remote)
 
  */
-private[ember] class H2Client[F[_]: Async](
+private[ember] class H2Client[F[_]](
     sg: SocketGroup[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
@@ -78,7 +78,7 @@ private[ember] class H2Client[F[_]: Async](
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
     logger: Logger[F],
-) {
+)(implicit F: Async[F]) {
   import org.http4s._
   import H2Client._
 
@@ -213,21 +213,19 @@ private[ember] class H2Client[F[_]: Async](
         logger,
       )
 
+    def clearClosed(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.closedStreams)
+        .repeat
+        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
+        .compile
+        .drain
+
     for {
       h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
-      _ <-
-        Stream
-          .fromQueueUnterminated(h2.closedStreams)
-          .repeat
-          .evalMap { i =>
-            if (i % 2 != 0) h2.mapRef.update(m => m - i)
-            else Applicative[F].unit
-          }
-          .compile
-          .drain
-          .background
+      _ <- clearClosed(h2).background
       _ <-
         Stream
           .fromQueueUnterminated(h2.createdStreams)
