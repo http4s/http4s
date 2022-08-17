@@ -9,10 +9,10 @@ Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-#for Scala 2.X
+# for Scala 2.x
 $ sbt new http4s/http4s.g8 --branch 0.23
 
-#for Scala 3.X
+# for Scala 3
 $ sbt new http4s/http4s.g8 --branch 0.23-scala3
 ```
 
