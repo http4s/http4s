@@ -167,37 +167,38 @@ private[ember] class H2Client[F[_]: Async](
       acc: ByteVector,
       socket: Socket[F],
       key: RequestKey,
-  ): Resource[F, H2Connection[F]] =
-    for {
-      socketAdd <- Resource.eval(RequestKey.getAddress(key))
-      _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
-      ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-      initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-      stateRef <- Resource.eval(
-        Concurrent[F].ref(
-          H2Connection.State(
-            defaultSettings,
-            defaultSettings.initialWindowSize.windowSize,
-            initialWriteBlock,
-            localSettings.initialWindowSize.windowSize,
-            0,
-            0,
-            false,
-            None,
-            None,
+  ): Resource[F, H2Connection[F]] = {
+    def createH2Connection: Resource[F, H2Connection[F]] =
+      for {
+        socketAdd <- Resource.eval(RequestKey.getAddress(key))
+        _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
+        ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
+        initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
+        stateRef <- Resource.eval(
+          Concurrent[F].ref(
+            H2Connection.State(
+              defaultSettings,
+              defaultSettings.initialWindowSize.windowSize,
+              initialWriteBlock,
+              localSettings.initialWindowSize.windowSize,
+              0,
+              0,
+              false,
+              None,
+              None,
+            )
           )
         )
-      )
-      queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-      hpack <- Resource.eval(Hpack.create[F])
-      settingsAck <- Resource.eval(
-        Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      )
-      streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
-      // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      h2 = new H2Connection(
+        queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
+        hpack <- Resource.eval(Hpack.create[F])
+        settingsAck <- Resource.eval(
+          Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+        )
+        streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
+        // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
+        created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
+        closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
+      } yield new H2Connection(
         socketAdd.host,
         socketAdd.port,
         H2Connection.ConnectionType.Client,
@@ -214,6 +215,9 @@ private[ember] class H2Client[F[_]: Async](
         socket,
         logger,
       )
+
+    for {
+      h2 <- createH2Connection
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
       _ <-
@@ -269,6 +273,7 @@ private[ember] class H2Client[F[_]: Async](
         )
       )
     } yield h2
+  }
 
   def runHttp2Only(req: Request[F], enableEndpointValidation: Boolean): Resource[F, Response[F]] = {
     // Host And Port are required
