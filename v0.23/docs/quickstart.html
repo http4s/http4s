@@ -223,7 +223,11 @@
         This feature is enabled by default starting in Scala 2.13.</p>
         <p>Getting started with http4s is easy.  Let&#39;s materialize an http4s
         skeleton project from its <a href="https://github.com/http4s/http4s.g8">giter8 template</a>:</p>
-        <pre class="keep-together pdf epub"><code class="sbt">$ sbt new http4s/http4s.g8 --branch 0.23</code></pre>
+        <pre class="keep-together pdf epub"><code class="sbt"># for Scala 2.x
+$ sbt new http4s/http4s.g8 --branch 0.23
+
+# for Scala 3
+$ sbt new http4s/http4s.g8 --branch 0.23-scala3</code></pre>
         <p>Follow the prompts.  For every step along the way, a default value is
         provided in brackets.</p>
         <p><code>name</code>
