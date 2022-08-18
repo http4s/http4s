@@ -93,7 +93,7 @@ object StaticFile {
   def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag])(implicit
+  def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[Option[ETag]])(implicit
       F: Sync[F]
   ): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
@@ -142,12 +142,15 @@ object StaticFile {
     })
   }
 
-  private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[ETag] = url => {
-    val urlConn = url.openConnection
+  private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[Option[ETag]] = url => {
     for {
-      lastModified <- F.blocking(urlConn.getLastModified.toHexString)
-      contentLength <- F.blocking(urlConn.getContentLengthLong.toHexString)
-    } yield ETag(s"$lastModified-$contentLength")
+      urlConn <- F.delay(url.openConnection)
+      lastModified <- F.blocking(urlConn.getLastModified)
+      contentLength <- F.blocking(urlConn.getContentLengthLong)
+    } yield {
+      if (lastModified == 0 && contentLength == 0) None
+      else Some(ETag(s"${lastModified.toHexString}-${contentLength.toHexString}"))
+    }
   }
 
   @deprecated("Use calculateETag", "0.23.5")
@@ -169,6 +172,7 @@ object StaticFile {
           else ""
         )
 
+  @deprecated("Use fromPath", "0.23.5")
   def fromFile[F[_]: Files: MonadThrow](
       f: File,
       req: Option[Request[F]] = None,
