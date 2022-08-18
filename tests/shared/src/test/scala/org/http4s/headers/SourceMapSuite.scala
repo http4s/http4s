@@ -33,7 +33,10 @@ class SourceMapSuite extends HeaderLaws {
   }
 
   test("render format a relative url up") {
-    assertEquals(SourceMap(getUri("../../index.js.map")).renderString, "SourceMap: ../../index.js.map")
+    assertEquals(
+      SourceMap(getUri("../../index.js.map")).renderString,
+      "SourceMap: ../../index.js.map",
+    )
   }
 
   test("render format a relative url") {
@@ -48,7 +51,10 @@ class SourceMapSuite extends HeaderLaws {
   }
 
   test("parser should accept relative url") {
-    assertEquals(SourceMap.parse("../../index.js.map").map(_.uri), Right(getUri("../../index.js.map")))
+    assertEquals(
+      SourceMap.parse("../../index.js.map").map(_.uri),
+      Right(getUri("../../index.js.map")),
+    )
   }
 
   test("should be extractable") {
