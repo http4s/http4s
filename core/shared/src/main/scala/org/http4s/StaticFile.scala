@@ -90,13 +90,12 @@ object StaticFile {
       )
   }
 
-  def fromURL[F[_]: Sync](
-      url: URL,
-      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromURL[F[_]: Sync](url: URL, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromURL(url, req, calcETagURL[F])
 
   def fromURL[F[_]](url: URL, req: Option[Request[F]], etagCalculator: URL => F[ETag])(implicit
-      F: Sync[F]): OptionT[F, Response[F]] = {
+      F: Sync[F]
+  ): OptionT[F, Response[F]] = {
     val fileUrl = url.getFile()
     val file = new File(fileUrl)
     OptionT.apply(F.defer {
@@ -117,7 +116,7 @@ object StaticFile {
               nameToContentType(url.getPath),
               etag,
               if (len >= 0) `Content-Length`.unsafeFromLong(len)
-              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])
+              else `Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList]),
             )
             F.blocking(urlConn.getInputStream)
               .redeem(
@@ -129,9 +128,10 @@ object StaticFile {
                   Some(
                     Response(
                       headers = headers,
-                      body = readInputStream[F](F.pure(inputStream), DefaultBufferSize)
-                    ))
-                }
+                      body = readInputStream[F](F.pure(inputStream), DefaultBufferSize),
+                    )
+                  )
+                },
               )
           }
         } else
