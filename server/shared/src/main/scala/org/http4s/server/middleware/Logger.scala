@@ -43,9 +43,10 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
-    ResponseLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(
-      RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
-    )
+    ResponseLogger(logHeaders, redactHeadersWhen, log.pure[Option])
+      .logBody(logBody)(fk)(
+        RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
+      )
   }
 
   def logBodyText[G[_], F[_]](
@@ -58,9 +59,12 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
-    ResponseLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
-      RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(http)
-    )
+    ResponseLogger(logHeaders, redactHeadersWhen, log.pure[Option])
+      .logBodyWith(logBody)(fk)(
+        RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
+          http
+        )
+      )
   }
 
   def httpApp[F[_]: Async](
