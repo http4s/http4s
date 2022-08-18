@@ -142,7 +142,6 @@ object StaticFile {
     })
   }
 
-  @deprecated("Use calculateETag", "0.23.5")
   private def calcETagURL[F[_]](implicit F: Sync[F]): URL => F[ETag] = url => {
     val urlConn = url.openConnection
     for {
