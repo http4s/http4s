@@ -43,8 +43,9 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
-    ResponseLogger(logHeaders, redactHeadersWhen, log.pure[Option])
-      .logBody(logBody)(fk)(
+    ResponseLogger(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogAction(log)(fk)(
         RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
       )
   }
@@ -59,11 +60,13 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
-    ResponseLogger(logHeaders, redactHeadersWhen, log.pure[Option])
-      .logBodyWith(logBody)(fk)(
-        RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
-          http
-        )
+    ResponseLogger(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogAction(log)(fk)(
+        RequestLogger
+          .impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
+            http
+          )
       )
   }
 

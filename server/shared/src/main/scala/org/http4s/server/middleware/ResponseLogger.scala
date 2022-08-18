@@ -45,6 +45,12 @@ sealed abstract class ResponseLogger[F[_]] {
       http: Kleisli[G, A, Response[F]]
   )(implicit lift: Lift[F, G], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
     apply(lift.fk)(http)
+
+  def withRedactHeadersWhen(f: CIString => Boolean): ResponseLogger[F]
+
+  def withLogAction(f: String => F[Unit]): ResponseLogger[F]
+  def withLogActionOpt(of: Option[String => F[Unit]]): ResponseLogger[F] =
+    of.fold(this)(withLogAction)
 }
 
 /** Simple middleware for logging responses as they are processed
@@ -54,8 +60,8 @@ object ResponseLogger {
   private[middleware] final case class Impl[F[_]](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
-      redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
   )(implicit F: Async[F])
       extends ResponseLogger[F] {
     override def apply[G[_], A](fk: F ~> G)(
@@ -111,76 +117,68 @@ object ResponseLogger {
           }
       }
     }
+
+    override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLogger[F] =
+      copy(redactHeadersWhen = f)
+
+    override def withLogAction(f: String => F[Unit]): ResponseLogger[F] = copy(logAction = Some(f))
   }
 
   def apply[F[_]: Async](
       logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
-  ): PartiallyApplied[F] =
-    new PartiallyApplied[F](logHeaders, redactHeadersWhen, logAction)
+      logBody: Boolean,
+  ): ResponseLogger[F] = Impl(logHeaders, Left(logBody))
 
-  private[middleware] final class PartiallyApplied[F[_]: Async](
+  def apply[F[_]: Async](
       logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]],
-  ) {
-    def logBody(b: Boolean): ResponseLogger[F] =
-      Impl(logHeaders, Left(b), redactHeadersWhen, logAction)
-
-    def logBodyWith(f: Stream[F, Byte] => Option[F[String]]): ResponseLogger[F] =
-      Impl(logHeaders, Right(f), redactHeadersWhen, logAction)
-  }
+      logBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): ResponseLogger[F] = Impl(logHeaders, Right(logBodyWith))
 
   private[this] val logger = getLogger
 
-  @deprecated(
-    "Use ResponseLogger(logHeaders, redactHeadersWhen, logAction).logBody(logBody)(httpApp)",
-    "1.0.0-M???",
-  )
+  @deprecated("Use the DSL beginning with ResponseLogger(logHeaders, logBody)", "1.0.0-M???")
   def httpApp[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-    apply(logHeaders, redactHeadersWhen, logAction).logBody(logBody)(httpApp)
+    apply(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
-  @deprecated(
-    "Use ResponseLogger(logHeaders, redactHeadersWhen, logAction).logBodyWith(logBody)(httpApp)",
-    "1.0.0-M???",
-  )
+  @deprecated("Use the DSL beginning with ResponseLogger(logHeaders, logBody)", "1.0.0-M???")
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-    apply(logHeaders, redactHeadersWhen, logAction).logBodyWith(logBody)(httpApp)
+    apply(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
-  @deprecated(
-    "Use ResponseLogger(logHeaders, redactHeadersWhen, logAction).logBody(logBody)(httpRoutes)",
-    "1.0.0-M???",
-  )
+  @deprecated("Use the DSL beginning with ResponseLogger(logHeaders, logBody)", "1.0.0-M???")
   def httpRoutes[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
-    apply(logHeaders, redactHeadersWhen, logAction).logBody(logBody)(httpRoutes)
+    apply(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 
-  @deprecated(
-    "Use ResponseLogger(logHeaders, redactHeadersWhen, logAction).logBodyWith(logBody)(httpRoutes)",
-    "1.0.0-M???",
-  )
+  @deprecated("Use the DSL beginning with ResponseLogger(logHeaders, logBody)", "1.0.0-M???")
   def httpRoutesLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
-    apply(logHeaders, redactHeadersWhen, logAction).logBodyWith(logBody)(httpRoutes)
+    apply(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 
   sealed abstract class Lift[F[_], G[_]] {
     def fk: F ~> G
