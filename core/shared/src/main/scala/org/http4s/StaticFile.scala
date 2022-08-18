@@ -150,6 +150,7 @@ object StaticFile {
     } yield ETag(s"$lastModified-$contentLength")
   }
 
+  @deprecated("Use calculateETag", "0.23.5")
   def calcETag[F[_]: Files: Functor]: File => F[String] =
     f =>
       Files[F]
