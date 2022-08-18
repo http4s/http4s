@@ -151,7 +151,7 @@ object StaticFile {
       lastModified <- F.blocking(urlConn.getLastModified)
       contentLength <- F.blocking(urlConn.getContentLengthLong)
     } yield
-      if (lastModified == 0 && contentLength == 0) None
+      if (lastModified == 0 || contentLength == -1) None
       else Some(ETag(s"${lastModified.toHexString}-${contentLength.toHexString}"))
 
   @deprecated("Use calculateETag", "0.23.5")
