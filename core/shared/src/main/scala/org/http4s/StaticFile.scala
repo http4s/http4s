@@ -49,13 +49,13 @@ object StaticFile {
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
     fromPath(Path(url), req)
-  
+
   def fromResource[F[_]: Sync](
       name: String,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
-      classloader: Option[ClassLoader] = None
-  ): OptionT[F, Response[F]] = 
+      classloader: Option[ClassLoader] = None,
+  ): OptionT[F, Response[F]] =
     fromResource(name, req, preferGzipped, classloader, calcETagURL)
 
   def fromResource[F[_]: Sync](
@@ -63,7 +63,7 @@ object StaticFile {
       req: Option[Request[F]],
       preferGzipped: Boolean,
       classloader: Option[ClassLoader],
-      etagCalculator: URL => F[Option[ETag]]
+      etagCalculator: URL => F[Option[ETag]],
   ): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
