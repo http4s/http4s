@@ -49,12 +49,21 @@ object StaticFile {
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
     fromPath(Path(url), req)
-
+  
   def fromResource[F[_]: Sync](
       name: String,
       req: Option[Request[F]] = None,
       preferGzipped: Boolean = false,
-      classloader: Option[ClassLoader] = None,
+      classloader: Option[ClassLoader] = None
+  ): OptionT[F, Response[F]] = 
+    fromResource(name, req, preferGzipped, classloader, calcETagURL)
+
+  def fromResource[F[_]: Sync](
+      name: String,
+      req: Option[Request[F]],
+      preferGzipped: Boolean,
+      classloader: Option[ClassLoader],
+      etagCalculator: URL => F[Option[ETag]]
   ): OptionT[F, Response[F]] = {
     val loader = classloader.getOrElse(getClass.getClassLoader)
 
@@ -76,7 +85,7 @@ object StaticFile {
 
     gzUrl
       .flatMap { url =>
-        fromURL(url, req).map {
+        fromURL(url, req, etagCalculator).map {
           _.removeHeader[`Content-Type`]
             .putHeaders(
               `Content-Encoding`(ContentCoding.gzip),
@@ -86,7 +95,7 @@ object StaticFile {
       }
       .orElse(
         getResource(normalizedName)
-          .flatMap(fromURL(_, req))
+          .flatMap(fromURL(_, req, etagCalculator))
       )
   }
 
