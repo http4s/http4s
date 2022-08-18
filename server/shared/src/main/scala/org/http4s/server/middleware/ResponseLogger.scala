@@ -18,6 +18,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.Functor
 import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
@@ -27,7 +28,7 @@ import cats.effect.kernel.Outcome
 import cats.effect.kernel.Sync
 import cats.effect.syntax.all._
 import cats.syntax.all._
-import cats.{Functor, ~>}
+import cats.~>
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
@@ -49,25 +50,6 @@ sealed abstract class ResponseLogger[F[_]] {
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
-  sealed abstract class Lift[F[_], G[_]] {
-    def fk: F ~> G
-  }
-  object Lift {
-    implicit def liftId[F[_]]: Lift[F, F] = new Lift[F, F] {
-      def fk: F ~> F = FunctionK.id[F]
-    }
-
-    implicit def liftOptionT[F[_]: Functor]: Lift[F, OptionT[F, *]] = new Lift[F, OptionT[F, *]] {
-      override def fk: F ~> OptionT[F, *] = OptionT.liftK[F]
-    }
-  }
-
-  def apply[F[_]: Async](
-      logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
-  ): PartiallyApplied[F] =
-    new PartiallyApplied[F](logHeaders, redactHeadersWhen, logAction)
 
   private[middleware] final case class Impl[F[_]](
       logHeaders: Boolean,
@@ -131,6 +113,13 @@ object ResponseLogger {
     }
   }
 
+  def apply[F[_]: Async](
+      logHeaders: Boolean,
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  ): PartiallyApplied[F] =
+    new PartiallyApplied[F](logHeaders, redactHeadersWhen, logAction)
+
   private[middleware] final class PartiallyApplied[F[_]: Async](
       logHeaders: Boolean,
       redactHeadersWhen: CIString => Boolean,
@@ -192,4 +181,18 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, redactHeadersWhen, logAction).logBodyWith(logBody)(httpRoutes)
+
+  sealed abstract class Lift[F[_], G[_]] {
+    def fk: F ~> G
+  }
+
+  object Lift {
+    implicit def liftId[F[_]]: Lift[F, F] = new Lift[F, F] {
+      def fk: F ~> F = FunctionK.id[F]
+    }
+
+    implicit def liftOptionT[F[_]: Functor]: Lift[F, OptionT[F, *]] = new Lift[F, OptionT[F, *]] {
+      override def fk: F ~> OptionT[F, *] = OptionT.liftK[F]
+    }
+  }
 }
