@@ -257,46 +257,52 @@ private[ember] object H2Server {
         streamCreationLock: Semaphore[F],
         streamIx: Int,
     ): F[Unit] = {
+      def fulfillPushPromises(resp: Response[F]): F[Unit] = {
+        val pp = resp.attributes.lookup(H2Keys.PushPromises)
+        for {
+          // Push Promises
+          pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
+          streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
+            Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
+          ) { l =>
+            l.traverse { req =>
+              streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
+                h2.initiateLocalStream.flatMap { stream =>
+                  stream
+                    .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+                    .map(_ => (req, stream))
+                }
+              )
+            }
+          }
+          // _ <- Console.make[F].println("Writing Streams Commpleted")
+          responses <- streams.parTraverse { case (req, stream) =>
+            for {
+              resp <- httpApp(req.covary[F])
+              // _ <- Console.make[F].println("Push Promise Response Completed")
+              _ <- stream.sendHeaders(
+                PseudoHeaders.responseToHeaders(resp),
+                false,
+              ) // PP Response
+            } yield (resp.body, stream)
+          }
+
+          _ <- responses.parTraverse { case (_, stream) =>
+            resp.body.chunks
+              .evalMap(c => stream.sendData(c.toByteVector, false))
+              .compile
+              .drain >> // PP Resp Body
+            stream.sendData(ByteVector.empty, true)
+          }
+        } yield ()
+      }
+
       for {
         stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
         req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
         resp <- httpApp(req)
         _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
-        // Push Promises
-        pp = resp.attributes.lookup(H2Keys.PushPromises)
-        pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
-        streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-          Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-        ) { l =>
-          l.traverse { req =>
-            streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
-              h2.initiateLocalStream.flatMap { stream =>
-                stream
-                  .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
-                  .map(_ => (req, stream))
-              }
-            )
-          }
-        }
-        // _ <- Console.make[F].println("Writing Streams Commpleted")
-        responses <- streams.parTraverse { case (req, stream) =>
-          for {
-            resp <- httpApp(req.covary[F])
-            // _ <- Console.make[F].println("Push Promise Response Completed")
-            _ <- stream.sendHeaders(
-              PseudoHeaders.responseToHeaders(resp),
-              false,
-            ) // PP Response
-          } yield (resp.body, stream)
-        }
-
-        _ <- responses.parTraverse { case (_, stream) =>
-          resp.body.chunks
-            .evalMap(c => stream.sendData(c.toByteVector, false))
-            .compile
-            .drain >> // PP Resp Body
-            stream.sendData(ByteVector.empty, true)
-        }
+        _ <- fulfillPushPromises(resp)
         trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
         _ <- resp.body.chunks.noneTerminate.zipWithNext
           .evalMap {
