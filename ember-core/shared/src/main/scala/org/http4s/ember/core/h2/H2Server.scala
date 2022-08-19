@@ -258,7 +258,7 @@ private[ember] object H2Server {
         streamIx: Int,
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
-        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] = 
+        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
           streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
             h2.initiateLocalStream.flatMap { stream =>
               stream
@@ -267,13 +267,20 @@ private[ember] object H2Server {
             }
           )
 
+        def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
+          resp.body.chunks
+            .evalMap(c => stream.sendData(c.toByteVector, false))
+            .compile
+            .drain >> // PP Resp Body
+            stream.sendData(ByteVector.empty, true)
+
         val pp = resp.attributes.lookup(H2Keys.PushPromises)
         for {
           // Push Promises
           pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
           streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
             Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-          ) { l => l.traverse(sender) }
+          )(l => l.traverse(sender))
           // _ <- Console.make[F].println("Writing Streams Commpleted")
           responses <- streams.parTraverse { case (req, stream) =>
             for {
@@ -286,13 +293,7 @@ private[ember] object H2Server {
             } yield (resp.body, stream)
           }
 
-          _ <- responses.parTraverse { case (_, stream) =>
-            resp.body.chunks
-              .evalMap(c => stream.sendData(c.toByteVector, false))
-              .compile
-              .drain >> // PP Resp Body
-            stream.sendData(ByteVector.empty, true)
-          }
+          _ <- responses.parTraverse { case (_, stream) => sendData(resp, stream) }
         } yield ()
       }
 
