@@ -51,12 +51,27 @@ class StaticFileSuite extends Http4sSuite {
   }
 
   if (Platform.isJvm)
-    test("verify etag on known resource") {
-      val resp = StaticFile.fromResource[IO]("/Animated_PNG_example_bouncing_beach_ball.png").value
+    test("verify custom etag") {
+      val etagCalculator: URL => IO[Option[ETag]] = _ => Some(ETag("42")).pure[IO]
+      val resp = StaticFile
+        .fromResource[IO](
+          "/Animated_PNG_example_bouncing_beach_ball.png",
+          None,
+          true,
+          None,
+          etagCalculator = etagCalculator,
+        )
+        .value
       val headers = Nested(resp).map(_.headers)
       val etagHeader = headers.map(_.get[ETag]).value.map(_.flatten)
-      etagHeader.assertEquals(ETag(s"182aeb4e0bd-10015").some)
+      etagHeader.assertEquals(ETag(s"42").some)
     }
+  test("verify etag on known resource") {
+    val resp = StaticFile.fromResource[IO]("/Animated_PNG_example_bouncing_beach_ball.png").value
+    val headers = Nested(resp).map(_.headers)
+    val etagHeader = headers.map(_.get[ETag]).value.map(_.flatten)
+    etagHeader.assertEquals(ETag(s"182aeb4e0bd-10015").some)
+  }
 
   if (Platform.isJvm)
     test("verify etag absent on unknown resource") {
