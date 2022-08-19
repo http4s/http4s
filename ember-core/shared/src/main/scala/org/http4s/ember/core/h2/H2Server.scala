@@ -255,10 +255,10 @@ private[ember] object H2Server {
     def processCreatedStream(
         h2: H2Connection[F],
         streamCreationLock: Semaphore[F],
-        i: Int,
-    ): F[Unit] =
+        streamIx: Int,
+    ): F[Unit] = {
       for {
-        stream <- h2.mapRef.get.map(_.get(i)).map(_.get) // FOLD
+        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
         req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
         resp <- httpApp(req)
         _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
@@ -272,7 +272,7 @@ private[ember] object H2Server {
             streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
               h2.initiateLocalStream.flatMap { stream =>
                 stream
-                  .sendPushPromise(i, PseudoHeaders.requestToHeaders(req))
+                  .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
                   .map(_ => (req, stream))
               }
             )
@@ -316,6 +316,7 @@ private[ember] object H2Server {
         )
         _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
       } yield ()
+    }
 
     def processCreatedStreams(h2: H2Connection[F], streamCreationLock: Semaphore[F]): F[Unit] =
       Stream
