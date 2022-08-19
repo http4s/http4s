@@ -258,23 +258,22 @@ private[ember] object H2Server {
         streamIx: Int,
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
+        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] = 
+          streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
+            h2.initiateLocalStream.flatMap { stream =>
+              stream
+                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+                .map(_ => (req, stream))
+            }
+          )
+
         val pp = resp.attributes.lookup(H2Keys.PushPromises)
         for {
           // Push Promises
           pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
           streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
             Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-          ) { l =>
-            l.traverse { req =>
-              streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
-                h2.initiateLocalStream.flatMap { stream =>
-                  stream
-                    .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
-                    .map(_ => (req, stream))
-                }
-              )
-            }
-          }
+          ) { l => l.traverse(sender) }
           // _ <- Console.make[F].println("Writing Streams Commpleted")
           responses <- streams.parTraverse { case (req, stream) =>
             for {
