@@ -18,6 +18,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.Functor
 import cats.arrow.FunctionK
 import cats.data.OptionT
 import cats.effect.kernel.Async
@@ -109,4 +110,18 @@ object Logger {
   )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
+
+  sealed abstract class Lift[F[_], G[_]] {
+    def fk: F ~> G
+  }
+
+  object Lift {
+    implicit def liftId[F[_]]: Lift[F, F] = new Lift[F, F] {
+      def fk: F ~> F = FunctionK.id[F]
+    }
+
+    implicit def liftOptionT[F[_]: Functor]: Lift[F, OptionT[F, *]] = new Lift[F, OptionT[F, *]] {
+      override def fk: F ~> OptionT[F, *] = OptionT.liftK[F]
+    }
+  }
 }

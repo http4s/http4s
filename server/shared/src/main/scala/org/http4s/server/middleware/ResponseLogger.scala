@@ -18,8 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.Functor
-import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.kernel.Async
@@ -32,26 +30,10 @@ import cats.~>
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
-import org.http4s.server.middleware.ResponseLogger.Lift
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class ResponseLogger[F[_]] {
-  def apply[G[_], A](fk: F ~> G)(
-      http: Kleisli[G, A, Response[F]]
-  )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
-
-  def apply[G[_], A](
-      http: Kleisli[G, A, Response[F]]
-  )(implicit lift: Lift[F, G], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
-    apply(lift.fk)(http)
-
-  def withRedactHeadersWhen(f: CIString => Boolean): ResponseLogger[F]
-
-  def withLogAction(f: String => F[Unit]): ResponseLogger[F]
-  def withLogActionOpt(of: Option[String => F[Unit]]): ResponseLogger[F] =
-    of.fold(this)(withLogAction)
-}
+sealed abstract class ResponseLogger[F[_]] extends internal.Logger[F, ResponseLogger[F]]
 
 /** Simple middleware for logging responses as they are processed
   */
@@ -179,18 +161,4 @@ object ResponseLogger {
     apply(logHeaders, logBody)
       .withRedactHeadersWhen(redactHeadersWhen)
       .withLogActionOpt(logAction)(httpRoutes)
-
-  sealed abstract class Lift[F[_], G[_]] {
-    def fk: F ~> G
-  }
-
-  object Lift {
-    implicit def liftId[F[_]]: Lift[F, F] = new Lift[F, F] {
-      def fk: F ~> F = FunctionK.id[F]
-    }
-
-    implicit def liftOptionT[F[_]: Functor]: Lift[F, OptionT[F, *]] = new Lift[F, OptionT[F, *]] {
-      override def fk: F ~> OptionT[F, *] = OptionT.liftK[F]
-    }
-  }
 }
