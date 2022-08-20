@@ -66,7 +66,7 @@ class StaticFileSuite extends Http4sSuite {
       val etagHeader = headers.map(_.get[ETag]).value.map(_.flatten)
       etagHeader.assertEquals(ETag(s"42").some)
     }
-  
+
   if (Platform.isJvm)
     test("verify etag on known resource") {
       val resp = StaticFile.fromResource[IO]("/Animated_PNG_example_bouncing_beach_ball.png").value
