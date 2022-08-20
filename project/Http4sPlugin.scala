@@ -128,7 +128,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalaJavaLocales = "1.4.1"
     val scalaJavaTime = "2.4.0"
     val scodecBits = "1.1.34"
-    val slf4j = "1.7.36"
+    val slf4j = "2.0.0"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
     val vault = "3.2.1"
