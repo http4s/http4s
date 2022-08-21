@@ -50,10 +50,17 @@ class SourceMapSuite extends HeaderLaws {
     )
   }
 
-  test("parser should accept relative url") {
+  test("parser should accept relative url up") {
     assertEquals(
       SourceMap.parse("../../index.js.map").map(_.uri),
       Right(getUri("../../index.js.map")),
+    )
+  }
+
+  test("parser should accept relative url") {
+    assertEquals(
+      SourceMap.parse("/index.js.map").map(_.uri),
+      Right(getUri("/index.js.map")),
     )
   }
 
