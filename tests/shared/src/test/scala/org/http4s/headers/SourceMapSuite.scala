@@ -18,56 +18,51 @@ package org.http4s
 package headers
 
 import cats.effect.IO
-import org.http4s.syntax.header._
+import org.http4s.syntax.all._
 
 class SourceMapSuite extends HeaderLaws {
 
-  def getUri(uri: String): Uri =
-    Uri
-      .fromString(uri)
-      .fold(_ => throw new IllegalArgumentException(s"Failure on uri: $uri"), identity)
-
   test("render format an absolute url") {
     assertEquals(
-      SourceMap(getUri("http://localhost:8080/index.js.map")).renderString,
+      SourceMap(uri"http://localhost:8080/index.js.map").renderString,
       "SourceMap: http://localhost:8080/index.js.map",
     )
   }
 
   test("render format a relative url up") {
     assertEquals(
-      SourceMap(getUri("../../index.js.map")).renderString,
+      SourceMap(uri"../../index.js.map").renderString,
       "SourceMap: ../../index.js.map",
     )
   }
 
   test("render format a relative url") {
-    assertEquals(SourceMap(getUri("/index.js.map")).renderString, "SourceMap: /index.js.map")
+    assertEquals(SourceMap(uri"/index.js.map").renderString, "SourceMap: /index.js.map")
   }
 
   test("parser should accept absolute url") {
     assertEquals(
       SourceMap.parse("http://localhost:8080/index.js.map").map(_.uri),
-      Right(getUri("http://localhost:8080/index.js.map")),
+      Right(uri"http://localhost:8080/index.js.map"),
     )
   }
 
   test("parser should accept relative url up") {
     assertEquals(
       SourceMap.parse("../../index.js.map").map(_.uri),
-      Right(getUri("../../index.js.map")),
+      Right(uri"../../index.js.map"),
     )
   }
 
   test("parser should accept relative url") {
     assertEquals(
       SourceMap.parse("/index.js.map").map(_.uri),
-      Right(getUri("/index.js.map")),
+      Right(uri"/index.js.map"),
     )
   }
 
   test("should be extractable") {
-    val sourceMap = SourceMap(getUri("http://localhost:8080/index.js.map"))
+    val sourceMap = SourceMap(uri"http://localhost:8080/index.js.map")
     val request = Request[IO](headers = Headers(sourceMap))
 
     val extracted = request.headers.get[SourceMap]
