@@ -1148,7 +1148,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val arbitraryAcceptCH: Arbitrary[`Accept-CH`] = Arbitrary {
     for {
-      tokens <- listOf(genToken)
+      tokens <- listOf(genToken.map(CIString(_)))
     } yield headers.`Accept-CH`(tokens)
   }
 }
