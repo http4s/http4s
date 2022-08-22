@@ -37,11 +37,15 @@ sealed abstract class ResponseLoggerBuilder[F[_]]
     extends internal.Logger[F, ResponseLoggerBuilder[F]] {
   def apply[G[_], A](fk: F ~> G)(
       http: Kleisli[G, A, Response[F]]
-  )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
+  )(implicit F: Async[F], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
 
   def apply[G[_], A](
       http: Kleisli[G, A, Response[F]]
-  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
+  )(implicit
+      lift: Logger.Lift[F, G],
+      F: Async[F],
+      G: MonadCancelThrow[G],
+  ): Kleisli[G, A, Response[F]] =
     apply(lift.fk)(http)
 }
 
@@ -55,11 +59,10 @@ object ResponseLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(implicit F: Async[F])
-      extends ResponseLoggerBuilder[F] {
+  ) extends ResponseLoggerBuilder[F] {
     override def apply[G[_], A](fk: F ~> G)(
         http: Kleisli[G, A, Response[F]]
-    )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
+    )(implicit F: Async[F], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
       impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
     override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLoggerBuilder[F] =
       copy(redactHeadersWhen = f)
@@ -68,12 +71,12 @@ object ResponseLogger {
       copy(logAction = Some(f))
   }
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
   ): ResponseLoggerBuilder[F] = Impl(logHeaders, Left(logBody))
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
   ): ResponseLoggerBuilder[F] = Impl(logHeaders, Right(renderBodyWith))

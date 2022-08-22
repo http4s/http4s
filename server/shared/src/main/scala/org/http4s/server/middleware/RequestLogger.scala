@@ -38,11 +38,11 @@ sealed abstract class RequestLoggerBuilder[F[_]]
     extends internal.Logger[F, RequestLoggerBuilder[F]] {
   def apply[G[_]](fk: F ~> G)(
       http: Http[G, F]
-  )(implicit G: MonadCancelThrow[G]): Http[G, F]
+  )(implicit F: Async[F], G: MonadCancelThrow[G]): Http[G, F]
 
   def apply[G[_]](
       http: Http[G, F]
-  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Http[G, F] =
+  )(implicit lift: Logger.Lift[F, G], F: Async[F], G: MonadCancelThrow[G]): Http[G, F] =
     apply(lift.fk)(http)
 }
 
@@ -56,12 +56,11 @@ object RequestLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(implicit F: Async[F])
-      extends RequestLoggerBuilder[F] {
+  ) extends RequestLoggerBuilder[F] {
 
     override def apply[G[_]](fk: F ~> G)(
         http: Http[G, F]
-    )(implicit G: MonadCancelThrow[G]): Http[G, F] =
+    )(implicit F: Async[F], G: MonadCancelThrow[G]): Http[G, F] =
       impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
 
     override def withRedactHeadersWhen(f: CIString => Boolean): RequestLoggerBuilder[F] =
@@ -71,12 +70,12 @@ object RequestLogger {
       copy(logAction = Some(f))
   }
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
   ): RequestLoggerBuilder[F] = Impl(logHeaders, Left(logBody))
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
   ): RequestLoggerBuilder[F] = Impl(logHeaders, Right(renderBodyWith))

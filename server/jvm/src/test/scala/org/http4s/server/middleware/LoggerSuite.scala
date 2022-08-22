@@ -47,7 +47,7 @@ class LoggerSuite extends Http4sSuite {
   private val expectedBody: String =
     AutoCloseableResource.resource(Source.fromInputStream(testResource))(_.mkString)
 
-  private val respApp = ResponseLogger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
+  private val respApp = ResponseLogger.builder(logHeaders = true, logBody = true)(testApp)
 
   test("response should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -65,7 +65,7 @@ class LoggerSuite extends Http4sSuite {
     }.assert
   }
 
-  private val reqApp = RequestLogger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
+  private val reqApp = RequestLogger.builder(logHeaders = true, logBody = true)(testApp)
 
   test("request should not affect a Get") {
     val req = Request[IO](uri = uri"/request")
@@ -79,7 +79,7 @@ class LoggerSuite extends Http4sSuite {
     }.assert
   }
 
-  private val loggerApp = Logger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
+  private val loggerApp = Logger.builder(logHeaders = true, logBody = true)(testApp)
 
   test("logger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

@@ -21,33 +21,26 @@ package middleware
 import cats.Functor
 import cats.arrow.FunctionK
 import cats.data.OptionT
-import cats.effect.Sync
 import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
 import cats.~>
 import fs2.Stream
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 sealed abstract class LoggerBuilder[F[_]] extends internal.Logger[F, LoggerBuilder[F]] {
   def apply[G[_]](fk: F ~> G)(
       http: Http[G, F]
-  )(implicit G: MonadCancelThrow[G]): Http[G, F]
+  )(implicit F: Async[F], G: MonadCancelThrow[G]): Http[G, F]
 
   def apply[G[_]](
       http: Http[G, F]
-  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Http[G, F] =
+  )(implicit lift: Logger.Lift[F, G], F: Async[F], G: MonadCancelThrow[G]): Http[G, F] =
     apply(lift.fk)(http)
 }
 
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  private[this] val logger = getLogger
-
-  private[this] def defaultLogAction[F[_]: Sync]: String => F[Unit] = s =>
-    Sync[F].delay(logger.info(s))
-
   private[middleware] final case class Impl[F[_]](
       responseLogger: ResponseLoggerBuilder[F],
       requestLogger: RequestLoggerBuilder[F],
@@ -55,7 +48,8 @@ object Logger {
 
     override def apply[G[_]](fk: F ~> G)(
         http: Http[G, F]
-    )(implicit G: MonadCancelThrow[G]): Http[G, F] = responseLogger(fk)(requestLogger(fk)(http))
+    )(implicit F: Async[F], G: MonadCancelThrow[G]): Http[G, F] =
+      responseLogger(fk)(requestLogger(fk)(http))
 
     override def withRedactHeadersWhen(f: CIString => Boolean): LoggerBuilder[F] =
       copy(
@@ -69,21 +63,21 @@ object Logger {
     )
   }
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
   ): LoggerBuilder[F] =
     Impl(
-      ResponseLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
-      RequestLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
+      ResponseLogger.builder(logHeaders, logBody),
+      RequestLogger.builder(logHeaders, logBody),
     )
 
-  def builder[F[_]: Async](
+  def builder[F[_]](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
   ): LoggerBuilder[F] = Impl(
-    ResponseLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
-    RequestLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
+    ResponseLogger.builder(logHeaders, renderBodyWith),
+    RequestLogger.builder(logHeaders, renderBodyWith),
   )
 
   @deprecated("Use Logger.builder", "0.23.15")
