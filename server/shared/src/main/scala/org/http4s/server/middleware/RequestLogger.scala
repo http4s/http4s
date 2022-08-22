@@ -71,7 +71,7 @@ object RequestLogger {
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText(r)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBodyText[F, Request[F]](r)(logHeaders, f, redactHeadersWhen)(log(_))
       }
 
     val logBody: Boolean = logBodyText match {

@@ -56,7 +56,7 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText(response)(
+      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -117,10 +117,10 @@ object ResponseLogger {
       val prelude = s"${response.httpVersion} ${response.status}"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders(response)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody(response)(logBody) match {
+        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

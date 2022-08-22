@@ -55,7 +55,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
     org.http4s.internal.Logger
-      .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
+      .logMessage[F, A](message)(logHeaders, logBody, redactHeadersWhen)(log)
 
   def colored[F[_]: Async](
       logHeaders: Boolean,
