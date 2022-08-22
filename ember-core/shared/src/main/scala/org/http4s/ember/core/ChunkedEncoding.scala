@@ -131,9 +131,11 @@ private[ember] object ChunkedEncoding {
       }
     } else {
       Parser.MessageP
-        .recurseFind(buffer, read, maxHeaderSize)(buffer =>
-          Parser.HeaderP.parseHeaders(buffer, 0, maxHeaderSize)
-        )(_.idx)
+        .recurseFind(buffer, read, maxHeaderSize, Parser.HeaderP.ParserState.initial)(
+          (state, buffer) => Parser.HeaderP.parse(buffer, maxHeaderSize, state)
+        )(
+          _.idx
+        )
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 

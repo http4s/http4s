@@ -45,6 +45,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
+        .rechunkRandomly(0.1, 0.5)
 
       taking(byteStream).flatMap { read =>
         Parser.Request.parser[F](Int.MaxValue)(Array.emptyByteArray, read).map(_._1)
@@ -56,6 +57,7 @@ class ParsingSuite extends Http4sSuite {
         .emit(s)
         .map(httpifyString)
         .through(fs2.text.utf8.encode[F])
+        .rechunkRandomly(0.1, 0.5)
 
       Resource.eval(
         taking(byteStream).flatMap { read =>
@@ -195,6 +197,7 @@ class ParsingSuite extends Http4sSuite {
           .flatMap { case (resp, _) =>
             resp.body.through(text.utf8.decode).compile.string
           }
+      _ <- IO.println(s"Parsed: $parsed")
     } yield parsed == "{}").assert
   }
 
@@ -390,7 +393,7 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(base)
     val bv = asHttp.getBytes()
 
-    Parser.HeaderP.parseHeaders[IO](bv, 0, 4096).map {
+    Parser.HeaderP.parse[IO](bv, 4096, Parser.HeaderP.ParserState.initial).map {
       case Right(headerP) =>
         assertEquals(
           headerP.headers.headers,
@@ -448,13 +451,15 @@ class ParsingSuite extends Http4sSuite {
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
 
-    Parser.Request.ReqPrelude.parsePrelude[IO](bv, 4096).map {
-      case Right(prelude) =>
-        assertEquals(prelude.method, Method.GET)
-        assertEquals(prelude.uri, uri"/")
-        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
-      case Left(_) => fail("Prelude was not right")
-    }
+    Parser.Request.ReqPrelude
+      .parse[IO](bv, 4096, Parser.Request.ReqPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.method, Method.GET)
+          assertEquals(prelude.uri, uri"/")
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+        case Left(_) => fail("Prelude was not right")
+      }
   }
 
   test("Response Prelude should parse an expected value") {
@@ -463,12 +468,14 @@ class ParsingSuite extends Http4sSuite {
         |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
-    Parser.Response.RespPrelude.parsePrelude[IO](bv, 4096).map {
-      case Right(prelude) =>
-        assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
-        assertEquals(prelude.status, Status.Ok)
-      case Left(_) => fail("Prelude was not right")
-    }
+    Parser.Response.RespPrelude
+      .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+          assertEquals(prelude.status, Status.Ok)
+        case Left(_) => fail("Prelude was not right")
+      }
   }
 
   test("Parser.Response.parser should parse two responses in a row") {
