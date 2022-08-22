@@ -65,7 +65,7 @@ class LoggerSuite extends Http4sSuite {
     }.assert
   }
 
-  private val reqApp = RequestLogger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val reqApp = RequestLogger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
 
   test("request should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

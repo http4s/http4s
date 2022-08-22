@@ -34,11 +34,52 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
+sealed abstract class RequestLogger[F[_]] extends internal.Logger[F, RequestLogger[F]] {
+  def apply[G[_]](fk: F ~> G)(
+      http: Http[G, F]
+  )(implicit G: MonadCancelThrow[G]): Http[G, F]
+
+  def apply[G[_]](
+      http: Http[G, F]
+  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Http[G, F] =
+    apply(lift.fk)(http)
+}
+
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
   private[this] val logger = getLogger
 
+  private[middleware] final case class Impl[F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(implicit F: Async[F])
+      extends RequestLogger[F] {
+
+    override def apply[G[_]](fk: F ~> G)(
+        http: Http[G, F]
+    )(implicit G: MonadCancelThrow[G]): Http[G, F] =
+      impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
+
+    override def withRedactHeadersWhen(f: CIString => Boolean): RequestLogger[F] =
+      copy(redactHeadersWhen = f)
+
+    override def withLogAction(f: String => F[Unit]): RequestLogger[F] = copy(logAction = Some(f))
+  }
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Boolean,
+  ): RequestLogger[F] = Impl(logHeaders, Left(logBody))
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): RequestLogger[F] = Impl(logHeaders, Right(logBodyWith))
+
+  @deprecated("Use RequestLogger.builder", "0.23.15")
   def apply[G[_], F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -111,6 +152,7 @@ object RequestLogger {
     }
   }
 
+  @deprecated("Use RequestLogger.builder", "0.23.15")
   def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -119,6 +161,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  @deprecated("Use RequestLogger.builder", "0.23.15")
   def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -135,6 +178,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  @deprecated("Use RequestLogger.builder", "0.23.15")
   def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],

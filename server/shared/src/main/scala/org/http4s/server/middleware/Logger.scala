@@ -47,7 +47,10 @@ object Logger {
       .builder(logHeaders, logBody)
       .withRedactHeadersWhen(redactHeadersWhen)
       .withLogAction(log)(fk)(
-        RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
+        RequestLogger
+          .builder(logHeaders, logBody)
+          .withRedactHeadersWhen(redactHeadersWhen)
+          .withLogAction(log)(fk)(http)
       )
   }
 

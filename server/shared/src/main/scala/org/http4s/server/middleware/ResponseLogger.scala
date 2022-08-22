@@ -34,7 +34,16 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class ResponseLogger[F[_]] extends internal.Logger[F, ResponseLogger[F]]
+sealed abstract class ResponseLogger[F[_]] extends internal.Logger[F, ResponseLogger[F]] {
+  def apply[G[_], A](fk: F ~> G)(
+      http: Kleisli[G, A, Response[F]]
+  )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
+
+  def apply[G[_], A](
+      http: Kleisli[G, A, Response[F]]
+  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
+    apply(lift.fk)(http)
+}
 
 /** Simple middleware for logging responses as they are processed
   */
