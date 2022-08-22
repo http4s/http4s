@@ -23,7 +23,9 @@ import org.http4s.syntax.header._
 class SourceMapSuite extends HeaderLaws {
 
   def getUri(uri: String): Uri =
-    Uri.fromString(uri).fold(_ => throw new IllegalArgumentException(s"Failure on uri: $uri"), identity)
+    Uri
+      .fromString(uri)
+      .fold(_ => throw new IllegalArgumentException(s"Failure on uri: $uri"), identity)
 
   test("render format an absolute url") {
     assertEquals(
