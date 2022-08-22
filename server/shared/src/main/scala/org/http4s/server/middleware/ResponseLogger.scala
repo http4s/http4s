@@ -18,7 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.kernel.Async
@@ -34,7 +33,7 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class ResponseLogger[F[_]] extends internal.Logger[F, ResponseLogger[F]] {
+sealed abstract class ResponseLoggerBuilder[F[_]] extends internal.Logger[F, ResponseLoggerBuilder[F]] {
   def apply[G[_], A](fk: F ~> G)(
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
@@ -56,26 +55,26 @@ object ResponseLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(implicit F: Async[F])
-      extends ResponseLogger[F] {
+      extends ResponseLoggerBuilder[F] {
     override def apply[G[_], A](fk: F ~> G)(
         http: Kleisli[G, A, Response[F]]
     )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
       impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
-    override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLogger[F] =
+    override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLoggerBuilder[F] =
       copy(redactHeadersWhen = f)
 
-    override def withLogAction(f: String => F[Unit]): ResponseLogger[F] = copy(logAction = Some(f))
+    override def withLogAction(f: String => F[Unit]): ResponseLoggerBuilder[F] = copy(logAction = Some(f))
   }
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-  ): ResponseLogger[F] = Impl(logHeaders, Left(logBody))
+  ): ResponseLoggerBuilder[F] = Impl(logHeaders, Left(logBody))
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
-  ): ResponseLogger[F] = Impl(logHeaders, Right(renderBodyWith))
+  ): ResponseLoggerBuilder[F] = Impl(logHeaders, Right(renderBodyWith))
 
   @deprecated("Use ResponseLogger.builder", "0.23.15")
   def apply[G[_], F[_], A](

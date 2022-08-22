@@ -34,7 +34,7 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class RequestLogger[F[_]] extends internal.Logger[F, RequestLogger[F]] {
+sealed abstract class RequestLoggerBuilder[F[_]] extends internal.Logger[F, RequestLoggerBuilder[F]] {
   def apply[G[_]](fk: F ~> G)(
       http: Http[G, F]
   )(implicit G: MonadCancelThrow[G]): Http[G, F]
@@ -56,28 +56,28 @@ object RequestLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(implicit F: Async[F])
-      extends RequestLogger[F] {
+      extends RequestLoggerBuilder[F] {
 
     override def apply[G[_]](fk: F ~> G)(
         http: Http[G, F]
     )(implicit G: MonadCancelThrow[G]): Http[G, F] =
       impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
 
-    override def withRedactHeadersWhen(f: CIString => Boolean): RequestLogger[F] =
+    override def withRedactHeadersWhen(f: CIString => Boolean): RequestLoggerBuilder[F] =
       copy(redactHeadersWhen = f)
 
-    override def withLogAction(f: String => F[Unit]): RequestLogger[F] = copy(logAction = Some(f))
+    override def withLogAction(f: String => F[Unit]): RequestLoggerBuilder[F] = copy(logAction = Some(f))
   }
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-  ): RequestLogger[F] = Impl(logHeaders, Left(logBody))
+  ): RequestLoggerBuilder[F] = Impl(logHeaders, Left(logBody))
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
-  ): RequestLogger[F] = Impl(logHeaders, Right(renderBodyWith))
+  ): RequestLoggerBuilder[F] = Impl(logHeaders, Right(renderBodyWith))
 
   @deprecated("Use RequestLogger.builder", "0.23.15")
   def apply[G[_], F[_]](

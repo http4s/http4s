@@ -29,7 +29,7 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class Logger[F[_]] extends internal.Logger[F, Logger[F]] {
+sealed abstract class LoggerBuilder[F[_]] extends internal.Logger[F, LoggerBuilder[F]] {
   def apply[G[_]](fk: F ~> G)(
       http: Http[G, F]
   )(implicit G: MonadCancelThrow[G]): Http[G, F]
@@ -49,21 +49,21 @@ object Logger {
     Sync[F].delay(logger.info(s))
 
   private[middleware] final case class Impl[F[_]](
-      responseLogger: ResponseLogger[F],
-      requestLogger: RequestLogger[F],
-  ) extends Logger[F] {
+      responseLogger: ResponseLoggerBuilder[F],
+      requestLogger: RequestLoggerBuilder[F],
+  ) extends LoggerBuilder[F] {
 
     override def apply[G[_]](fk: F ~> G)(
         http: Http[G, F]
     )(implicit G: MonadCancelThrow[G]): Http[G, F] = responseLogger(fk)(requestLogger(fk)(http))
 
-    override def withRedactHeadersWhen(f: CIString => Boolean): Logger[F] =
+    override def withRedactHeadersWhen(f: CIString => Boolean): LoggerBuilder[F] =
       copy(
         responseLogger = responseLogger.withRedactHeadersWhen(f),
         requestLogger = requestLogger.withRedactHeadersWhen(f),
       )
 
-    override def withLogAction(f: String => F[Unit]): Logger[F] = copy(
+    override def withLogAction(f: String => F[Unit]): LoggerBuilder[F] = copy(
       responseLogger = responseLogger.withLogAction(f),
       requestLogger = requestLogger.withLogAction(f),
     )
@@ -72,7 +72,7 @@ object Logger {
   def builder[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
-  ): Logger[F] =
+  ): LoggerBuilder[F] =
     Impl(
       ResponseLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
       RequestLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
@@ -81,7 +81,7 @@ object Logger {
   def builder[F[_]: Async](
       logHeaders: Boolean,
       renderBodyWith: Stream[F, Byte] => Option[F[String]],
-  ): Logger[F] = Impl(
+  ): LoggerBuilder[F] = Impl(
     ResponseLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
     RequestLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
   )
