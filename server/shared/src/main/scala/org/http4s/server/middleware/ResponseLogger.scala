@@ -33,7 +33,8 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
-sealed abstract class ResponseLoggerBuilder[F[_]] extends internal.Logger[F, ResponseLoggerBuilder[F]] {
+sealed abstract class ResponseLoggerBuilder[F[_]]
+    extends internal.Logger[F, ResponseLoggerBuilder[F]] {
   def apply[G[_], A](fk: F ~> G)(
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
@@ -63,7 +64,8 @@ object ResponseLogger {
     override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLoggerBuilder[F] =
       copy(redactHeadersWhen = f)
 
-    override def withLogAction(f: String => F[Unit]): ResponseLoggerBuilder[F] = copy(logAction = Some(f))
+    override def withLogAction(f: String => F[Unit]): ResponseLoggerBuilder[F] =
+      copy(logAction = Some(f))
   }
 
   def builder[F[_]: Async](
