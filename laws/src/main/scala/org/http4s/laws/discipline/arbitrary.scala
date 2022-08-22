@@ -1145,4 +1145,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
     )
   )
+
+  implicit val arbitraryAcceptCH: Arbitrary[`Accept-CH`] = Arbitrary {
+    for {
+      tokens <- listOf(genToken)
+    } yield headers.`Accept-CH`(tokens)
+  }
 }
