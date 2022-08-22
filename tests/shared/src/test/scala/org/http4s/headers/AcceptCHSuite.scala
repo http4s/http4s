@@ -34,4 +34,7 @@ class AcceptCHSuite extends HeaderLaws {
   test("parse should succeed with multiple headers and no whitespace") {
     assert(`Accept-CH`.parse("Viewport-Width,Width").isRight)
   }
+  test("parse should succeed with no headers") {
+    assert(`Accept-CH`.parse("").isRight)
+  }
 }
