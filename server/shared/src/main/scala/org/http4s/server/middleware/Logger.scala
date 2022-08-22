@@ -142,6 +142,7 @@ object Logger {
       .withRedactHeadersWhen(redactHeadersWhen)
       .withLogActionOpt(logAction)(httpRoutes)
 
+  @deprecated("Use Logger.builder", "0.23.15")
   def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
