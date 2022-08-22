@@ -34,10 +34,39 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
+sealed abstract class ResponseLogger[F[_]] extends internal.Logger[F, ResponseLogger[F]]
+
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
   private[this] val logger = getLogger
+
+  private[middleware] final case class Impl[F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(implicit F: Async[F])
+      extends ResponseLogger[F] {
+    override def apply[G[_], A](fk: F ~> G)(
+        http: Kleisli[G, A, Response[F]]
+    )(implicit G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
+      impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
+    override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLogger[F] =
+      copy(redactHeadersWhen = f)
+
+    override def withLogAction(f: String => F[Unit]): ResponseLogger[F] = copy(logAction = Some(f))
+  }
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Boolean,
+  ): ResponseLogger[F] = Impl(logHeaders, Left(logBody))
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): ResponseLogger[F] = Impl(logHeaders, Right(logBodyWith))
 
   def apply[G[_], F[_], A](
       logHeaders: Boolean,
