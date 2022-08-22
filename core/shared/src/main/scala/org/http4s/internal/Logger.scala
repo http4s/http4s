@@ -30,7 +30,7 @@ import org.typelevel.ci.CIString
 
 object Logger {
 
-  def defaultLogHeaders[F[_], A <: Message[F]](message: A)(
+  def defaultLogHeaders[F[_]](message: Message[F])(
       logHeaders: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): String =
@@ -38,8 +38,8 @@ object Logger {
       message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
     else ""
 
-  def defaultLogBody[F[_]: Concurrent, A <: Message[F]](
-      message: A
+  def defaultLogBody[F[_]: Concurrent](
+      message: Message[F]
   )(logBody: Boolean): Option[F[String]] =
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -54,17 +54,17 @@ object Logger {
       Some(bodyStream.compile.string)
     } else None
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
-    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
+    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody(message)(logBody)
 
-    logMessageWithBodyText[F, A](message)(logHeaders, logBodyText, redactHeadersWhen)(log)
+    logMessageWithBodyText(message)(logHeaders, logBodyText, redactHeadersWhen)(log)
   }
 
-  def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
+  def logMessageWithBodyText[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -75,7 +75,7 @@ object Logger {
         case resp: Response[_] => s"${resp.httpVersion} ${resp.status}"
       }
 
-    val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)
+    val headers: String = defaultLogHeaders(message)(logHeaders, redactHeadersWhen)
 
     val bodyText: F[String] =
       logBodyText(message.body) match {
