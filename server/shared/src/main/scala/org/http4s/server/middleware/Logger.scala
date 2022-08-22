@@ -43,9 +43,12 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       F.delay(logger.info(s))
     }
-    ResponseLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(
-      RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
-    )
+    ResponseLogger
+      .builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogAction(log)(fk)(
+        RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
+      )
   }
 
   def logBodyText[G[_], F[_]](

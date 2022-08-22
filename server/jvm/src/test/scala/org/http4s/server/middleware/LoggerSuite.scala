@@ -47,7 +47,7 @@ class LoggerSuite extends Http4sSuite {
   private val expectedBody: String =
     AutoCloseableResource.resource(Source.fromInputStream(testResource))(_.mkString)
 
-  private val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val respApp = ResponseLogger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
 
   test("response should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

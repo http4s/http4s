@@ -68,6 +68,7 @@ object ResponseLogger {
       logBodyWith: Stream[F, Byte] => Option[F[String]],
   ): ResponseLogger[F] = Impl(logHeaders, Right(logBodyWith))
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def apply[G[_], F[_], A](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -131,6 +132,7 @@ object ResponseLogger {
     }
   }
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpApp[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -139,6 +141,7 @@ object ResponseLogger {
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
@@ -149,6 +152,7 @@ object ResponseLogger {
       httpApp
     )
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpRoutes[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -157,6 +161,7 @@ object ResponseLogger {
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpRoutesLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
