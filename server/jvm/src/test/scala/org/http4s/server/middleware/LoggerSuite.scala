@@ -79,7 +79,7 @@ class LoggerSuite extends Http4sSuite {
     }.assert
   }
 
-  private val loggerApp = Logger.httpApp(logHeaders = true, logBody = true)(testApp)
+  private val loggerApp = Logger.builder[IO](logHeaders = true, logBody = true).apply(testApp)
 
   test("logger should not affect a Get") {
     val req = Request[IO](uri = uri"/request")

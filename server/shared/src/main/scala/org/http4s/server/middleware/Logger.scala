@@ -20,78 +20,127 @@ package middleware
 
 import cats.arrow.FunctionK
 import cats.data.OptionT
+import cats.effect.Sync
 import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
-import cats.syntax.all._
 import cats.{Functor, ~>}
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
+
+sealed abstract class Logger[F[_]] extends internal.Logger[F, Logger[F]] {
+  def apply[G[_]](fk: F ~> G)(
+      http: Http[G, F]
+  )(implicit G: MonadCancelThrow[G]): Http[G, F]
+
+  def apply[G[_]](
+      http: Http[G, F]
+  )(implicit lift: Logger.Lift[F, G], G: MonadCancelThrow[G]): Http[G, F] =
+    apply(lift.fk)(http)
+}
 
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
   private[this] val logger = getLogger
 
+  private[this] def defaultLogAction[F[_]: Sync]: String => F[Unit] = s =>
+    Sync[F].delay(logger.info(s))
+
+  private[middleware] final case class Impl[F[_]](
+      responseLogger: ResponseLogger[F],
+      requestLogger: RequestLogger[F],
+  ) extends Logger[F] {
+
+    override def apply[G[_]](fk: F ~> G)(
+        http: Http[G, F]
+    )(implicit G: MonadCancelThrow[G]): Http[G, F] = responseLogger(fk)(requestLogger(fk)(http))
+
+    override def withRedactHeadersWhen(f: CIString => Boolean): Logger[F] =
+      copy(
+        responseLogger = responseLogger.withRedactHeadersWhen(f),
+        requestLogger = requestLogger.withRedactHeadersWhen(f),
+      )
+
+    override def withLogAction(f: String => F[Unit]): Logger[F] = copy(
+      responseLogger = responseLogger.withLogAction(f),
+      requestLogger = requestLogger.withLogAction(f),
+    )
+  }
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Boolean,
+  ): Logger[F] =
+    Impl(
+      ResponseLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
+      RequestLogger.builder(logHeaders, logBody).withLogAction(defaultLogAction),
+    )
+
+  def builder[F[_]: Async](
+      logHeaders: Boolean,
+      logBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): Logger[F] = Impl(
+    ResponseLogger.builder(logHeaders, logBodyWith).withLogAction(defaultLogAction),
+    RequestLogger.builder(logHeaders, logBodyWith).withLogAction(defaultLogAction),
+  )
+
+  @deprecated("Use Logger.builder", "0.23.15")
   def apply[G[_], F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
-    val log: String => F[Unit] = logAction.getOrElse { s =>
-      F.delay(logger.info(s))
-    }
-    ResponseLogger
-      .builder(logHeaders, logBody)
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] =
+    builder(logHeaders, logBody)
       .withRedactHeadersWhen(redactHeadersWhen)
-      .withLogAction(log)(fk)(
-        RequestLogger
-          .builder(logHeaders, logBody)
-          .withRedactHeadersWhen(redactHeadersWhen)
-          .withLogAction(log)(fk)(http)
-      )
-  }
+      .withLogActionOpt(logAction)(fk)(http)
 
+  @deprecated("Use Logger.builder", "0.23.15")
   def logBodyText[G[_], F[_]](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
-    val log: String => F[Unit] = logAction.getOrElse { s =>
-      F.delay(logger.info(s))
-    }
-    ResponseLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
-      RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(http)
-    )
-  }
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] =
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(fk)(http)
 
+  @deprecated("Use Logger.builder", "0.23.15")
   def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
-    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
+  @deprecated("Use Logger.builder", "0.23.15")
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
-    logBodyText(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
+  @deprecated("Use Logger.builder", "0.23.15")
   def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 
   def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
@@ -99,7 +148,9 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    logBodyText(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
