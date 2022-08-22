@@ -18,12 +18,13 @@ package org.http4s
 package server
 package middleware
 
+import cats.Functor
 import cats.arrow.FunctionK
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
-import cats.{Functor, ~>}
+import cats.~>
 import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
