@@ -80,10 +80,10 @@ object Logger {
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
-      logBodyWith: Stream[F, Byte] => Option[F[String]],
+      renderBodyWith: Stream[F, Byte] => Option[F[String]],
   ): Logger[F] = Impl(
-    ResponseLogger.builder(logHeaders, logBodyWith).withLogAction(defaultLogAction),
-    RequestLogger.builder(logHeaders, logBodyWith).withLogAction(defaultLogAction),
+    ResponseLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
+    RequestLogger.builder(logHeaders, renderBodyWith).withLogAction(defaultLogAction),
   )
 
   @deprecated("Use Logger.builder", "0.23.15")

@@ -74,8 +74,8 @@ object ResponseLogger {
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
-      logBodyWith: Stream[F, Byte] => Option[F[String]],
-  ): ResponseLogger[F] = Impl(logHeaders, Right(logBodyWith))
+      renderBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): ResponseLogger[F] = Impl(logHeaders, Right(renderBodyWith))
 
   @deprecated("Use ResponseLogger.builder", "0.23.15")
   def apply[G[_], F[_], A](

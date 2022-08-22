@@ -76,8 +76,8 @@ object RequestLogger {
 
   def builder[F[_]: Async](
       logHeaders: Boolean,
-      logBodyWith: Stream[F, Byte] => Option[F[String]],
-  ): RequestLogger[F] = Impl(logHeaders, Right(logBodyWith))
+      renderBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): RequestLogger[F] = Impl(logHeaders, Right(renderBodyWith))
 
   @deprecated("Use RequestLogger.builder", "0.23.15")
   def apply[G[_], F[_]](
