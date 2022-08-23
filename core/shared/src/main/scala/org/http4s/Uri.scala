@@ -51,6 +51,7 @@ import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => JCharset}
 import scala.math.Ordered
+import scala.util.hashing.MurmurHash3
 
 /** Representation of the [[Request]] URI
   *
@@ -336,10 +337,11 @@ object Uri extends UriPlatform {
       this.segments == path.segments && path.absolute == this.absolute && path.endsWithSlash == this.endsWithSlash
 
     override def hashCode(): Int = {
-      var hash = segments.hashCode()
-      hash += 31 * absolute.hashCode()
-      hash += 31 * endsWithSlash.hashCode()
-      hash
+      var hash = Path.hashSeed
+      hash = MurmurHash3.mix(hash, segments.##)
+      hash = MurmurHash3.mix(hash, absolute.##)
+      hash = MurmurHash3.mix(hash, endsWithSlash.##)
+      MurmurHash3.finalizeHash(hash, 3)
     }
 
     def render(writer: Writer): writer.type = {
@@ -452,6 +454,9 @@ object Uri extends UriPlatform {
     val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = true)
     lazy val Asterisk: Path =
       new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+
+    private val hashSeed: Int =
+      MurmurHash3.mix(MurmurHash3.productSeed, "Uri.Path".##)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
@@ -569,8 +574,9 @@ object Uri extends UriPlatform {
           )
       }
 
-    implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] =
-      new Order[Path] with Semigroup[Path] {
+    def http4sInstancesForPath: Order[Path] with Semigroup[Path] = http4sInstancesForPathBinCompat
+    implicit val http4sInstancesForPathBinCompat: Order[Path] with Semigroup[Path] with Hash[Path] =
+      new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
           def comparePaths[A: Order](focus: Path => A): Int =
             compareField(x, y, focus)
@@ -582,6 +588,8 @@ object Uri extends UriPlatform {
         }
 
         def combine(x: Path, y: Path): Path = x.concat(y)
+
+        def hash(x: Path): Int = x.##
       }
 
   }
