@@ -3,6 +3,41 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M36 (2022-08-23)
+
+This release is the latest milestone in the 1.x series, and is _not_ binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.15.
+
+## What's Changed
+
+### http4s-core
+
+* Use `scodec.bits.ByteVector` for `Entity.Strict` by @armanbilge in https://github.com/http4s/http4s/pull/6528
+* Smite `Seq` in `Message#multiParams`, `Uri#multiParams`, `Query#multiParams` by @danicheg in https://github.com/http4s/http4s/pull/6524
+
+### http4s-server
+
+* Spring cleaning: Remove unneeded temporal constraints and make some cosmetic changes by @FrancescoSerra in https://github.com/http4s/http4s/pull/6491
+
+### Documentation
+
+* Remove references to Scala 2.12 in docs by @danicheg in https://github.com/http4s/http4s/pull/6604
+* Fix 1.0 version table compatibility with 2.12 & 2.13 by @JackTreble in https://github.com/http4s/http4s/pull/6607
+* Tweak the http4s.g8 example on the quick start page by @danicheg in https://github.com/http4s/http4s/pull/6608
+
+### Behind the scenes
+
+* Release v1.0.0-M35 by @armanbilge in https://github.com/http4s/http4s/pull/6569
+* Pick Sbt Scoverage from 0.23 by @danicheg in https://github.com/http4s/http4s/pull/6574
+* Ignore literally updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6584
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6612
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6631
+
+## New Contributors
+
+* @JackTreble made their first contribution in https://github.com/http4s/http4s/pull/6607
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M35...v1.0.0-M36
+
 # v0.23.15 (2022-08-22)
 
 This release is binary compatible with the 0.23.x series.
