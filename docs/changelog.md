@@ -16,6 +16,7 @@ This release is binary compatible with the 0.23.x series.
 * Simplify type signature for internal logger by @bplommer in https://github.com/http4s/http4s/pull/6628
 * Update fs2-core, fs2-io to 3.2.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6603
 * Update literally to 1.1.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6583
+* Add SourceMap header by @cobr123 in https://github.com/http4s/http4s/pull/6622
 
 ### http4s-server
 
@@ -66,6 +67,7 @@ This release is binary compatible with the 0.23.x series.
 * @dzanot made their first contribution in https://github.com/http4s/http4s/pull/6535
 * @TimWSpence made their first contribution in https://github.com/http4s/http4s/pull/6578
 * @dsusviela made their first contribution in https://github.com/http4s/http4s/pull/6620
+* @cobr123 made their first contribution in https://github.com/http4s/http4s/pull/6622
 
 **Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.14...v0.23.15
 
