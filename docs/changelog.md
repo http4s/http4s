@@ -14,9 +14,9 @@ This release is binary compatible with the 0.23.x series.
 * Prettify error messages when parsing by @danicheg in https://github.com/http4s/http4s/pull/6541
 * Rewrite hashcode computation for `Uri.Path` by @FrancescoSerra in https://github.com/http4s/http4s/pull/6555
 * Simplify type signature for internal logger by @bplommer in https://github.com/http4s/http4s/pull/6628
+* Add SourceMap header by @cobr123 in https://github.com/http4s/http4s/pull/6622
 * Update fs2-core, fs2-io to 3.2.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6603
 * Update literally to 1.1.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6583
-* Add SourceMap header by @cobr123 in https://github.com/http4s/http4s/pull/6622
 
 ### http4s-server
 
@@ -34,6 +34,7 @@ This release is binary compatible with the 0.23.x series.
 * Ember H2 - Do not respond to WindowUpdate with Ping by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6593
 * Ember H2 Connection Header Compliance by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6600
 * Don't backtrack in request/response prelude parsing by @TimWSpence in https://github.com/http4s/http4s/pull/6578
+* Ember Core - H2Server - Split for comprehension by @diesalbla in https://github.com/http4s/http4s/pull/6613
 
 ### http4s-ember-server
 
@@ -42,13 +43,13 @@ This release is binary compatible with the 0.23.x series.
 
 ### Documentation
 
-* Release v0.23.14 by @armanbilge in https://github.com/http4s/http4s/pull/6568
 * Fix typo: Add missing comma by @mikela in https://github.com/http4s/http4s/pull/6589
 * Tweak client page by @danicheg in https://github.com/http4s/http4s/pull/6605
 * Update quickstart guide to include Scala 3 branch by @dsusviela in https://github.com/http4s/http4s/pull/6620
 
 ### Behind the scenes
 
+* Release v0.23.14 by @armanbilge in https://github.com/http4s/http4s/pull/6568
 * Update http4s-circe, http4s-ember-client, ... to 0.23.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6570
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6571
 * Update sbt-scoverage to 2.0.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6573
@@ -58,7 +59,6 @@ This release is binary compatible with the 0.23.x series.
 * Update scalafmt-core to 3.5.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6609
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6615
 * Update sbt-native-packager to 1.9.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6616
-* Ember Core - H2Server - Split for comprehension by @diesalbla in https://github.com/http4s/http4s/pull/6613
 
 ## New Contributors
 
