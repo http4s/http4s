@@ -48,7 +48,7 @@ object `X-DNS-Prefetch-Control`
     createRendered(_.value)
 }
 
-/** A Response header that _ controls DNS prefetching, a feature by which browsers proactively
+/** A Response header that _controls DNS prefetching, a feature by which browsers proactively
   * perform domain name resolution on both links that the user may choose to follow as well
   * as URLs for items referenced by the document, including images, CSS, JavaScript, and so forth_.
   *
