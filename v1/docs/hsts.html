@@ -242,7 +242,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>)
 }
 </span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$20665/2051697185@5142f622
+//   run = org.http4s.HttpRoutes$$$Lambda$19967/615964574@7a65a378
 // )
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
@@ -252,7 +252,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@3152c4ec
+//    = org.typelevel.vault.Vault@418994f1
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -264,13 +264,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@692d3a1a,
+//         at = scodec.bits.ByteVector$AtArray@488cf433,
 //         offset = 0L,
 //         size = 2L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@2580e8ae
+//    = org.typelevel.vault.Vault@5015332f
 // )
 </span><span class="identifier">responseOk</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res0: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2)</span></code></pre>
@@ -278,7 +278,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">hstsService</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>)
 </span><span class="comment">// hstsService: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$22355/686920632@6335e9da
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$21659/1776409383@73c3436
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -290,13 +290,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@44e724f4,
+//         at = scodec.bits.ByteVector$AtArray@a1f163c,
 //         offset = 0L,
 //         size = 2L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@449a3b98
+//    = org.typelevel.vault.Vault@259d4620
 // )
 </span><span class="identifier">responseHSTS</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res1: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains)</span></code></pre>
@@ -320,7 +320,7 @@
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">hstsServiceCustom</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>, </span><span class="identifier">hstsHeader</span><span>)
 </span><span class="comment">// hstsServiceCustom: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$22355/686920632@66fd7e3d
+//   run = org.http4s.server.middleware.HSTS$$$Lambda$21659/1776409383@5c6885f7
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
@@ -332,13 +332,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@2aca3001,
+//         at = scodec.bits.ByteVector$AtArray@3a9397c8,
 //         offset = 0L,
 //         size = 2L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@57777128
+//    = org.typelevel.vault.Vault@484fc850
 // )
 </span><span class="identifier">responseCustom</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload)</span></code></pre>

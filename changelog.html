@@ -210,23 +210,29 @@
         <p class="header"><a href="#">Changelog</a></p>
 
         <ul class="nav-list">
-          <li class="level1"><a href="#v1-0-0-m35-2022-07-25">v1.0.0-M35 (2022-07-25)</a></li>
+          <li class="level1"><a href="#v1-0-0-m36-2022-08-23">v1.0.0-M36 (2022-08-23)</a></li>
           <li class="level2"><a href="#what-s-changed-1">What&#39;s Changed</a></li>
-          <li class="level1"><a href="#v0-23-14-2022-07-25">v0.23.14 (2022-07-25)</a></li>
-          <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-1">New Contributors</a></li>
-          <li class="level1"><a href="#v1-0-0-m34-2022-07-05">v1.0.0-M34 (2022-07-05)</a></li>
-          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
-          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
-          <li class="level2"><a href="#what-s-changed-4">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-15-2022-08-22">v0.23.15 (2022-08-22)</a></li>
+          <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-2">New Contributors</a></li>
-          <li class="level1"><a href="#v0-22-14-2022-06-23">v0.22.14 (2022-06-23)</a></li>
-          <li class="level2"><a href="#what-s-changed-5">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v1-0-0-m35-2022-07-25">v1.0.0-M35 (2022-07-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-14-2022-07-25">v0.23.14 (2022-07-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-4">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-3">New Contributors</a></li>
-          <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
+          <li class="level1"><a href="#v1-0-0-m34-2022-07-05">v1.0.0-M34 (2022-07-05)</a></li>
+          <li class="level2"><a href="#what-s-changed-5">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
           <li class="level2"><a href="#what-s-changed-6">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-4">New Contributors</a></li>
+          <li class="level1"><a href="#v0-22-14-2022-06-23">v0.22.14 (2022-06-23)</a></li>
+          <li class="level2"><a href="#what-s-changed-7">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-5">New Contributors</a></li>
+          <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-8">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#new-contributors-6">New Contributors</a></li>
+          <li class="level2"><a href="#new-contributors-7">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-13-2022-05-20">v0.22.13 (2022-05-20)</a></li>
           <li class="level1"><a href="#v0-21-33-2022-03-18">v0.21.33 (2022-03-18)</a></li>
           <li class="level1"><a href="#v1-0-0-m32-2022-03-18">v1.0.0-M32 (2022-03-18)</a></li>
@@ -517,18 +523,130 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
-        <h1 id="v1-0-0-m35-2022-07-25" class="section">v1.0.0-M35 (2022-07-25)<a class="anchor-link right" href="#v1-0-0-m35-2022-07-25"><i class="icofont-laika">&#xef71;</i></a></h1>
-        <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones. It also includes the changes from v0.23.13 and updates fs2 to v3.2.11 which includes a security patch for <a href="https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35">GHSA-2cpx-6pqp-wf35</a>.</p>
+        <h1 id="v1-0-0-m36-2022-08-23" class="section">v1.0.0-M36 (2022-08-23)<a class="anchor-link right" href="#v1-0-0-m36-2022-08-23"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.15.</p>
         
         <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-1" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
+          <li>Use <code>scodec.bits.ByteVector</code> for <code>Entity.Strict</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6528">https://github.com/http4s/http4s/pull/6528</a></li>
+          <li>Smite <code>Seq</code> in <code>Message#multiParams</code>, <code>Uri#multiParams</code>, <code>Query#multiParams</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6524">https://github.com/http4s/http4s/pull/6524</a></li>
+        </ul>
+        
+        <h3 id="http4s-server-1" class="section">http4s-server<a class="anchor-link right" href="#http4s-server-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Spring cleaning: Remove unneeded temporal constraints and make some cosmetic changes by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6491">https://github.com/http4s/http4s/pull/6491</a></li>
+        </ul>
+        
+        <h3 id="documentation-1" class="section">Documentation<a class="anchor-link right" href="#documentation-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Remove references to Scala 2.12 in docs by @danicheg in <a href="https://github.com/http4s/http4s/pull/6604">https://github.com/http4s/http4s/pull/6604</a></li>
+          <li>Fix 1.0 version table compatibility with 2.12 &amp; 2.13 by @JackTreble in <a href="https://github.com/http4s/http4s/pull/6607">https://github.com/http4s/http4s/pull/6607</a></li>
+          <li>Tweak the http4s.g8 example on the quick start page by @danicheg in <a href="https://github.com/http4s/http4s/pull/6608">https://github.com/http4s/http4s/pull/6608</a></li>
+        </ul>
+        
+        <h3 id="behind-the-scenes-1" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Release v1.0.0-M35 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6569">https://github.com/http4s/http4s/pull/6569</a></li>
+          <li>Pick Sbt Scoverage from 0.23 by @danicheg in <a href="https://github.com/http4s/http4s/pull/6574">https://github.com/http4s/http4s/pull/6574</a></li>
+          <li>Ignore literally updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6584">https://github.com/http4s/http4s/pull/6584</a></li>
+          <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6612">https://github.com/http4s/http4s/pull/6612</a></li>
+          <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6631">https://github.com/http4s/http4s/pull/6631</a></li>
+        </ul>
+        
+        <h2 id="new-contributors-1" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <ul>
+          <li>@JackTreble made their first contribution in <a href="https://github.com/http4s/http4s/pull/6607">https://github.com/http4s/http4s/pull/6607</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M35...v1.0.0-M36">https://github.com/http4s/http4s/compare/v1.0.0-M35...v1.0.0-M36</a></p>
+        
+        <h1 id="v0-23-15-2022-08-22" class="section">v0.23.15 (2022-08-22)<a class="anchor-link right" href="#v0-23-15-2022-08-22"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is binary compatible with the 0.23.x series.</p>
+        
+        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Prettify error messages when parsing by @danicheg in <a href="https://github.com/http4s/http4s/pull/6541">https://github.com/http4s/http4s/pull/6541</a></li>
+          <li>Rewrite hashcode computation for <code>Uri.Path</code> by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6555">https://github.com/http4s/http4s/pull/6555</a></li>
+          <li>Simplify type signature for internal logger by @bplommer in <a href="https://github.com/http4s/http4s/pull/6628">https://github.com/http4s/http4s/pull/6628</a></li>
+          <li>Add SourceMap header by @cobr123 in <a href="https://github.com/http4s/http4s/pull/6622">https://github.com/http4s/http4s/pull/6622</a></li>
+          <li>Update fs2-core, fs2-io to 3.2.12 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6603">https://github.com/http4s/http4s/pull/6603</a></li>
+          <li>Update literally to 1.1.0 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6583">https://github.com/http4s/http4s/pull/6583</a></li>
+        </ul>
+        
+        <h3 id="http4s-server-2" class="section">http4s-server<a class="anchor-link right" href="#http4s-server-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>WebSocketBuilder2: make constructor public by @gvolpe in <a href="https://github.com/http4s/http4s/pull/6575">https://github.com/http4s/http4s/pull/6575</a></li>
+          <li>Cross-compile <code>GZip</code> middlewares for JS by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6606">https://github.com/http4s/http4s/pull/6606</a></li>
+        </ul>
+        
+        <h3 id="http4s-client" class="section">http4s-client<a class="anchor-link right" href="#http4s-client"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Fix request logger to log in the case of no request body, when <code>logBody=true</code> by @dzanot in <a href="https://github.com/http4s/http4s/pull/6535">https://github.com/http4s/http4s/pull/6535</a></li>
+          <li>Cross-compile <code>GZip</code> middlewares for JS by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6606">https://github.com/http4s/http4s/pull/6606</a></li>
+        </ul>
+        
+        <h3 id="http4s-ember-core-1" class="section">http4s-ember-core<a class="anchor-link right" href="#http4s-ember-core-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Set <code>serverNames</code> TLS parameter for ember h2 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6579">https://github.com/http4s/http4s/pull/6579</a></li>
+          <li>Ember H2 - Do not respond to WindowUpdate with Ping by @ChristopherDavenport in <a href="https://github.com/http4s/http4s/pull/6593">https://github.com/http4s/http4s/pull/6593</a></li>
+          <li>Ember H2 Connection Header Compliance by @ChristopherDavenport in <a href="https://github.com/http4s/http4s/pull/6600">https://github.com/http4s/http4s/pull/6600</a></li>
+          <li>Don&#39;t backtrack in request/response prelude parsing by @TimWSpence in <a href="https://github.com/http4s/http4s/pull/6578">https://github.com/http4s/http4s/pull/6578</a></li>
+          <li>Ember Core - H2Server - Split for comprehension by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6613">https://github.com/http4s/http4s/pull/6613</a></li>
+        </ul>
+        
+        <h3 id="http4s-ember-server-1" class="section">http4s-ember-server<a class="anchor-link right" href="#http4s-ember-server-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Always respond to client close frame with 1000 &quot;normal closure&quot; by @yurique in <a href="https://github.com/http4s/http4s/pull/6594">https://github.com/http4s/http4s/pull/6594</a></li>
+          <li>Parse all WebSocket frames in a <code>Chunk</code> in ember-server by @buntec in <a href="https://github.com/http4s/http4s/pull/6587">https://github.com/http4s/http4s/pull/6587</a></li>
+        </ul>
+        
+        <h3 id="documentation-2" class="section">Documentation<a class="anchor-link right" href="#documentation-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Fix typo: Add missing comma by @mikela in <a href="https://github.com/http4s/http4s/pull/6589">https://github.com/http4s/http4s/pull/6589</a></li>
+          <li>Tweak client page by @danicheg in <a href="https://github.com/http4s/http4s/pull/6605">https://github.com/http4s/http4s/pull/6605</a></li>
+          <li>Update quickstart guide to include Scala 3 branch by @dsusviela in <a href="https://github.com/http4s/http4s/pull/6620">https://github.com/http4s/http4s/pull/6620</a></li>
+        </ul>
+        
+        <h3 id="behind-the-scenes-2" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Release v0.23.14 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6568">https://github.com/http4s/http4s/pull/6568</a></li>
+          <li>Update http4s-circe, http4s-ember-client, ... to 0.23.14 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6570">https://github.com/http4s/http4s/pull/6570</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6571">https://github.com/http4s/http4s/pull/6571</a></li>
+          <li>Update sbt-scoverage to 2.0.1 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6573">https://github.com/http4s/http4s/pull/6573</a></li>
+          <li>Update sbt-native-packager to 1.9.10 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6599">https://github.com/http4s/http4s/pull/6599</a></li>
+          <li>Update sbt-scoverage to 2.0.2 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6601">https://github.com/http4s/http4s/pull/6601</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6602">https://github.com/http4s/http4s/pull/6602</a></li>
+          <li>Update scalafmt-core to 3.5.9 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6609">https://github.com/http4s/http4s/pull/6609</a></li>
+          <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6615">https://github.com/http4s/http4s/pull/6615</a></li>
+          <li>Update sbt-native-packager to 1.9.11 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6616">https://github.com/http4s/http4s/pull/6616</a></li>
+        </ul>
+        
+        <h2 id="new-contributors-2" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <ul>
+          <li>@mikela made their first contribution in <a href="https://github.com/http4s/http4s/pull/6589">https://github.com/http4s/http4s/pull/6589</a></li>
+          <li>@buntec made their first contribution in <a href="https://github.com/http4s/http4s/pull/6587">https://github.com/http4s/http4s/pull/6587</a></li>
+          <li>@dzanot made their first contribution in <a href="https://github.com/http4s/http4s/pull/6535">https://github.com/http4s/http4s/pull/6535</a></li>
+          <li>@TimWSpence made their first contribution in <a href="https://github.com/http4s/http4s/pull/6578">https://github.com/http4s/http4s/pull/6578</a></li>
+          <li>@dsusviela made their first contribution in <a href="https://github.com/http4s/http4s/pull/6620">https://github.com/http4s/http4s/pull/6620</a></li>
+          <li>@cobr123 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6622">https://github.com/http4s/http4s/pull/6622</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v0.23.14...v0.23.15">https://github.com/http4s/http4s/compare/v0.23.14...v0.23.15</a></p>
+        
+        <h1 id="v1-0-0-m35-2022-07-25" class="section">v1.0.0-M35 (2022-07-25)<a class="anchor-link right" href="#v1-0-0-m35-2022-07-25"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones. It also includes the changes from v0.23.13 and updates fs2 to v3.2.11 which includes a security patch for <a href="https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35">GHSA-2cpx-6pqp-wf35</a>.</p>
+        
+        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
           <li>Remove redundant collection converting in <code>Query#multiParams</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6514">https://github.com/http4s/http4s/pull/6514</a></li>
           <li>Remove <code>BackendBuilder#allocate</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6540">https://github.com/http4s/http4s/pull/6540</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-1" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-3" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6551">https://github.com/http4s/http4s/pull/6551</a></li>
           <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6563">https://github.com/http4s/http4s/pull/6563</a></li>
@@ -540,9 +658,9 @@
         <h1 id="v0-23-14-2022-07-25" class="section">v0.23.14 (2022-07-25)<a class="anchor-link right" href="#v0-23-14-2022-07-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.23.x and updates fs2 to v3.2.11 which includes a security patch for <a href="https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35">GHSA-2cpx-6pqp-wf35</a>.</p>
         
-        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-4" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-4"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-4" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Deprecate <code>BackendBuilder#allocate</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6556">https://github.com/http4s/http4s/pull/6556</a></li>
           <li>Don&#39;t instantiate redundant <code>List</code> in <code>Path#addSegment</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6557">https://github.com/http4s/http4s/pull/6557</a></li>
@@ -550,23 +668,23 @@
           <li>Update to fs2 3.2.11 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6566">https://github.com/http4s/http4s/pull/6566</a></li>
         </ul>
         
-        <h3 id="http4s-server" class="section">http4s-server<a class="anchor-link right" href="#http4s-server"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-server-3" class="section">http4s-server<a class="anchor-link right" href="#http4s-server-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>fix typo in <code>Throttle</code> middleware <code>httpAapp-&gt;httpApp</code> by @jbwheatley in <a href="https://github.com/http4s/http4s/pull/6501">https://github.com/http4s/http4s/pull/6501</a></li>
         </ul>
         
-        <h3 id="http4s-ember-core" class="section">http4s-ember-core<a class="anchor-link right" href="#http4s-ember-core"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-ember-core-2" class="section">http4s-ember-core<a class="anchor-link right" href="#http4s-ember-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Ember-Core: reimplement &quot;combineArrays&quot; by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6518">https://github.com/http4s/http4s/pull/6518</a></li>
           <li>H2 Settings Acknowledgments do not need to block progress by @ChristopherDavenport in <a href="https://github.com/http4s/http4s/pull/6553">https://github.com/http4s/http4s/pull/6553</a></li>
         </ul>
         
-        <h3 id="http4s-ember-server" class="section">http4s-ember-server<a class="anchor-link right" href="#http4s-ember-server"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-ember-server-2" class="section">http4s-ember-server<a class="anchor-link right" href="#http4s-ember-server-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Ember-Server: WebSocketHelper rewrite / optimisation by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6388">https://github.com/http4s/http4s/pull/6388</a></li>
         </ul>
         
-        <h3 id="documentation" class="section">Documentation<a class="anchor-link right" href="#documentation"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="documentation-3" class="section">Documentation<a class="anchor-link right" href="#documentation-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Release note tweaks for v0.23.13 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6494">https://github.com/http4s/http4s/pull/6494</a></li>
           <li>Don&#39;t use <code>Stream</code> in JSON client example by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6511">https://github.com/http4s/http4s/pull/6511</a></li>
@@ -576,7 +694,7 @@
           <li>Freshen up <code>Middleware</code> docs by @danicheg in <a href="https://github.com/http4s/http4s/pull/6554">https://github.com/http4s/http4s/pull/6554</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-2" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-4" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Update http4s-circe, http4s-ember-client, ... to 0.23.13 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6493">https://github.com/http4s/http4s/pull/6493</a></li>
           <li>Update sbt-scoverage to 2.0.0 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6495">https://github.com/http4s/http4s/pull/6495</a></li>
@@ -601,7 +719,7 @@
           <li>flake.lock: Update by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6546">https://github.com/http4s/http4s/pull/6546</a></li>
         </ul>
         
-        <h2 id="new-contributors-1" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-3" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-3"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@jbwheatley made their first contribution in <a href="https://github.com/http4s/http4s/pull/6501">https://github.com/http4s/http4s/pull/6501</a></li>
         </ul>
@@ -610,9 +728,9 @@
         <h1 id="v1-0-0-m34-2022-07-05" class="section">v1.0.0-M34 (2022-07-05)<a class="anchor-link right" href="#v1-0-0-m34-2022-07-05"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.13.</p>
         
-        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-5" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-5"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-5" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-5"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Remove <code>CollectionCompat</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6508">https://github.com/http4s/http4s/pull/6508</a>
           ### http4s-server</li>
@@ -632,9 +750,9 @@
         <h1 id="v0-23-13-2022-06-25" class="section">v0.23.13 (2022-06-25)<a class="anchor-link right" href="#v0-23-13-2022-06-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.</p>
         
-        <h2 id="what-s-changed-4" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-4"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-6" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-6"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-4" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-4"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-6" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-6"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Add <code>EntityDecoder[EventStream]</code> by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6413">https://github.com/http4s/http4s/pull/6413</a></li>
           <li>Update to Vault 3.2.1 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6431">https://github.com/http4s/http4s/pull/6431</a></li>
@@ -693,7 +811,7 @@
           <li>Merge 0.22.14 -&gt; 0.23 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6487">https://github.com/http4s/http4s/pull/6487</a></li>
         </ul>
         
-        <h2 id="new-contributors-2" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-4" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-4"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@christiankjaer made their first contribution in <a href="https://github.com/http4s/http4s/pull/6444">https://github.com/http4s/http4s/pull/6444</a></li>
           <li>@cgoldammer made their first contribution in <a href="https://github.com/http4s/http4s/pull/6450">https://github.com/http4s/http4s/pull/6450</a></li>
@@ -707,9 +825,9 @@
         <h1 id="v0-22-14-2022-06-23" class="section">v0.22.14 (2022-06-23)<a class="anchor-link right" href="#v0-22-14-2022-06-23"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we&#39;ll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).</p>
         
-        <h2 id="what-s-changed-5" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-5"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-7" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-7"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-5" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-5"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-7" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-7"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Fix Content-Disposition filename encoding by @leoniv in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
           <li>Add filename property to Content-Disposition by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6485">https://github.com/http4s/http4s/pull/6485</a>
@@ -720,7 +838,7 @@
           <li>Update to sbt-http4s-org 0.13.4 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6428">https://github.com/http4s/http4s/pull/6428</a></li>
         </ul>
         
-        <h2 id="new-contributors-3" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-3"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-5" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-5"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@leoniv made their first contribution in <a href="https://github.com/http4s/http4s/pull/6473">https://github.com/http4s/http4s/pull/6473</a></li>
         </ul>
@@ -731,9 +849,9 @@
         <p>This is the first 1.x release after &quot;The Great Schism&quot;, described in v0.23.12.  Because 1.0 isn&#39;t stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the &quot;Maintainers wanted!&quot; issue in the repository of interest.</p>
         <p>Additional to the below, this release includes all changes in v0.23.12.</p>
         
-        <h2 id="what-s-changed-6" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-6"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-8" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-8"><i class="icofont-laika">&#xef71;</i></a></h2>
         
-        <h3 id="http4s-core-6" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-6"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="http4s-core-8" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-8"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Remove deprecated things by @danicheg in <a href="https://github.com/http4s/http4s/pull/6156">https://github.com/http4s/http4s/pull/6156</a></li>
           <li>Override <code>toString</code> for <code>Entity</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6168">https://github.com/http4s/http4s/pull/6168</a></li>
@@ -789,7 +907,7 @@
           <li>Merge 0.23.12 to main by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6416">https://github.com/http4s/http4s/pull/6416</a></li>
         </ul>
         
-        <h2 id="new-contributors-4" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-4"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-6" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-6"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
           <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>
@@ -840,7 +958,7 @@
         ### http4s-circe
         * Update to circe 0.14.2 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6401">https://github.com/http4s/http4s/pull/6401</a></p>
         
-        <h2 id="new-contributors-5" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-5"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="new-contributors-7" class="section">New Contributors<a class="anchor-link right" href="#new-contributors-7"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>@teigen made their first contribution in <a href="https://github.com/http4s/http4s/pull/6057">https://github.com/http4s/http4s/pull/6057</a></li>
           <li>@takapi327 made their first contribution in <a href="https://github.com/http4s/http4s/pull/6166">https://github.com/http4s/http4s/pull/6166</a></li>
