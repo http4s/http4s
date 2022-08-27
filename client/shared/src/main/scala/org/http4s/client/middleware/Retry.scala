@@ -25,7 +25,6 @@ import cats.syntax.all._
 import org.http4s.Status._
 import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`Retry-After`
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault.Key
 
@@ -37,7 +36,7 @@ import scala.math.pow
 import scala.math.random
 
 object Retry {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   /** This key tracks the attempt count, the retry middleware starts the very
     * first request with 1 as the first request, even with no retries
@@ -103,9 +102,11 @@ object Retry {
               policy(req, Right(response), attempts) match {
                 case Some(duration) =>
                   if (logRetries)
-                    logger.info(
-                      s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
-                    )
+                    logger
+                      .info(
+                        s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                      )
+                      .unsafeRunSync()
                   nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
                 case None =>
                   F.pure(response)
@@ -116,15 +117,19 @@ object Retry {
                 case Some(duration) =>
                   // info instead of error(e), because e is not discarded
                   if (logRetries)
-                    logger.info(e)(
-                      s"Request threw an exception on attempt #$attempts. Retrying after $duration"
-                    )
+                    logger
+                      .info(e)(
+                        s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                      )
+                      .unsafeRunSync()
                   nextAttempt(req, attempts, duration, None, hotswap)
                 case None =>
                   if (logRetries)
-                    logger.info(e)(
-                      s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-                    )
+                    logger
+                      .info(e)(
+                        s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+                      )
+                      .unsafeRunSync()
                   F.raiseError(e)
               }
           }

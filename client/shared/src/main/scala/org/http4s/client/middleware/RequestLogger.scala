@@ -22,15 +22,14 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
-  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
+  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = logger.info(s).to[F]
 
   def apply[F[_]: Async](
       logHeaders: Boolean,
@@ -88,7 +87,7 @@ object RequestLogger {
                   .ifM(
                     F.unit,
                     logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                      F.delay(logger.error(t)("Error logging request body"))
+                      logger.error(t)("Error logging request body").to[F]
                     },
                   )
 
@@ -110,7 +109,7 @@ object RequestLogger {
             case Entity.Strict(_) | Entity.Empty =>
               logMessage(req)
                 .handleErrorWith { t =>
-                  F.delay(logger.error(t)("Error logging request body"))
+                  logger.error(t)("Error logging request body").to[F]
                 }
                 .as(client.run(req))
           }
