@@ -275,7 +275,7 @@
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">.&quot;</span><span>)
 }
 </span><span class="comment">// helloWorldService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19766/584588045@69e842d3
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/821202341@12e41055
 // )</span></code></pre>
         
         <h3 id="returning-content-in-the-response" class="section">Returning Content in the Response<a class="anchor-link right" href="#returning-content-in-the-response"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -303,7 +303,7 @@
     </span><span class="identifier">getTweet</span><span>(</span><span class="identifier">tweetId</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
 }
 </span><span class="comment">// tweetService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19766/584588045@7baca5a3
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/821202341@478ea7cc
 // )</span></code></pre>
         
         <h3 id="running-your-service" class="section">Running Your Service<a class="anchor-link right" href="#running-your-service"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -325,11 +325,11 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">services</span><span> = </span><span class="identifier">tweetService</span><span> &lt;+&gt; </span><span class="identifier">helloWorldService</span><span>
 </span><span class="comment">// services: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO]] = Kleisli(
-//   run = cats.data.KleisliSemigroupK$$Lambda$19767/1480351368@28eab1c5
+//   run = cats.data.KleisliSemigroupK$$Lambda$19838/505399829@305bead6
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">httpApp</span><span> = </span><span class="type-name">Router</span><span>(</span><span class="string-literal">&quot;/&quot;</span><span> -&gt; </span><span class="identifier">helloWorldService</span><span>, </span><span class="string-literal">&quot;/api&quot;</span><span> -&gt; </span><span class="identifier">services</span><span>).</span><span class="identifier">orNotFound</span><span>
 </span><span class="comment">// httpApp: cats.data.Kleisli[IO[A], Request[IO[A]], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$20042/1737576913@50d7defe
+//   run = org.http4s.syntax.KleisliResponseOps$$Lambda$20113/1678368482@39f8b863
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">server</span><span> = </span><span class="type-name">EmberServerBuilder</span><span>
   .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
@@ -338,14 +338,14 @@
   .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">httpApp</span><span>)
   .</span><span class="identifier">build</span><span>
 </span><span class="comment">// server: Resource[IO, org.http4s.server.Server] = Bind(
-//   source = Pure(a = fs2.io.net.NetworkCompanionPlatform$$anon$1@7b82e0ed),
-//   fs = org.http4s.ember.server.EmberServerBuilder$$Lambda$20171/2028944674@659dd383
+//   source = Pure(a = fs2.io.net.NetworkCompanionPlatform$$anon$1@b2c61b1),
+//   fs = org.http4s.ember.server.EmberServerBuilder$$Lambda$20242/1750506245@39ae07df
 // )</span></code></pre>
         <p>The <code>withHttpApp</code> call associates the specified routes with this http server instance.</p>
         <p>We start a server resource in the background.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
 </span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$20487/1019566015@1884326c,
+//   body = cats.effect.IO$$Lambda$20579/336950045@564c4766,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         <p>Use curl, or your favorite HTTP client, to see your service in action:</p>
