@@ -21,6 +21,7 @@ import com.comcast.ip4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
+import org.typelevel.log4cats.slf4j._
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =

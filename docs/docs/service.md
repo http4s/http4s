@@ -16,7 +16,8 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
   "org.http4s" %% "http4s-ember-server" % http4sVersion,
-  "org.http4s" %% "http4s-ember-client" % http4sVersion
+  "org.http4s" %% "http4s-ember-client" % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 
 ```
@@ -123,6 +124,7 @@ import org.http4s.ember.server._
 import org.http4s.implicits._
 import org.http4s.server.Router
 import scala.concurrent.duration._
+import org.typelevel.log4cats.slf4j._
 ```
 
 ```scala mdoc
@@ -173,6 +175,7 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.ember.server._
+import org.typelevel.log4cats.slf4j._
 ```
 
 ```scala mdoc:silent

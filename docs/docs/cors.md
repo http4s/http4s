@@ -18,7 +18,8 @@ Examples in this document have the following dependencies.
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-server" % http4sVersion
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 ```
 
@@ -29,6 +30,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.typelevel.log4cats.slf4j._
 ```
 
 If you're in a REPL, we also need a runtime:
@@ -58,7 +60,7 @@ import org.http4s.server.middleware._
 ```
 
 ```scala mdoc
-val corsService = CORS.policy.withAllowOriginAll(service)
+val corsService = CORS.policy.withAllowOriginAll(service).unsafeRunSync()
 
 corsService.orNotFound(request).unsafeRunSync()
 ```
@@ -107,6 +109,7 @@ val corsMethodSvc = CORS.policy
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+  .unsafeRunSync()
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
@@ -129,6 +132,7 @@ val corsOriginSvc = CORS.policy
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+  .unsafeRunSync()
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()

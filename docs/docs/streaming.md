@@ -83,6 +83,7 @@ import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
+import org.typelevel.log4cats.slf4j._
 
 class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want

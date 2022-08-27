@@ -8,7 +8,8 @@ Examples in this document have the following dependencies.
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-server" % http4sVersion
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 ```
 
@@ -19,6 +20,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.typelevel.log4cats.slf4j._
 ```
 
 If you're in a REPL, we also need a runtime:

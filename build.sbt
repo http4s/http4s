@@ -359,6 +359,7 @@ lazy val docs = http4sProject("site")
       circeGeneric,
       circeLiteral,
       cryptobits,
+      log4catsSlf4j,
     ),
     description := "Documentation for http4s",
     tlFatalWarningsInCi := false,
