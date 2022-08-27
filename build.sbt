@@ -109,8 +109,7 @@ lazy val core = libraryCrossProject("core")
       if (tlIsScala3.value) Seq.empty
       else
         Seq(
-          slf4jApi, // residual dependency from macros
-          scalaReflect(scalaVersion.value) % Provided,
+          scalaReflect(scalaVersion.value) % Provided
         )
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
