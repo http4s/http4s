@@ -42,7 +42,7 @@ object ErrorHandling {
     }
 
   def httpRoutes[F[_]: MonadThrow: LoggerFactory](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
-    implicit val factory = LoggerFactory[F].mapK(OptionT.liftK)
+    implicit val factory: LoggerFactory[OptionT[F, *]] = LoggerFactory[F].mapK(OptionT.liftK)
     apply(httpRoutes)
   }
 

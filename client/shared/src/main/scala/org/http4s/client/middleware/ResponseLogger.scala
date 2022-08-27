@@ -39,7 +39,7 @@ object ResponseLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody) { response =>
       Logger.logMessage(response)(
         logHeaders,
@@ -55,7 +55,7 @@ object ResponseLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody = true) { response =>
       InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
@@ -70,7 +70,7 @@ object ResponseLogger {
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None,
   )(responseToText: Response[F] => F[String]): Client[F] = {
-    implicit val logger = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody) { response =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       responseToText(response).flatMap(log)

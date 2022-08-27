@@ -31,6 +31,7 @@ import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats
 import org.typelevel.log4cats.LoggerFactory
 
 /** Simple middleware for logging responses as they are processed
@@ -57,7 +58,7 @@ object ResponseLogger {
   )(
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
-    implicit val logger = LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = LoggerFactory[F].getLogger
     val fallback: String => F[Unit] = s => logger.info(s)
     val log = logAction.fold(fallback)(identity)
 

@@ -174,7 +174,7 @@ object StaticFile {
         OptionT.none
       }
 
-  def fromPath[F[_]: Files: LoggerFactory](
+  def fromPath[F[_]: Files](
       f: Path,
       start: Long,
       end: Long,
@@ -182,9 +182,11 @@ object StaticFile {
       req: Option[Request[F]],
       etagCalculator: Path => F[String],
   )(implicit
-      F: MonadError[F, Throwable]
+      F: MonadError[F, Throwable],
+      factory: LoggerFactory[F],
   ): OptionT[F, Response[F]] = {
-    implicit val logger = LoggerFactory[F].getLogger
+    implicit val logger: Logger[F] = factory.getLogger
+
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- Files[F].isRegularFile(f).flatMap[Option[Response[F]]] { isFile =>

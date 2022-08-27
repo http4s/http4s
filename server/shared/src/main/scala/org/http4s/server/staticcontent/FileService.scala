@@ -31,6 +31,7 @@ import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import org.http4s.server.middleware.TranslateUri
 import org.typelevel.ci._
+import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
 
 import scala.util.control.NoStackTrace
@@ -71,7 +72,7 @@ object FileService {
   private[staticcontent] def apply[F[_]: Files: LoggerFactory](
       config: Config[F]
   )(implicit F: Concurrent[F]): HttpRoutes[F] = {
-    implicit val logger = LoggerFactory[F].getLogger
+    implicit val logger: Logger[F] = LoggerFactory[F].getLogger
     object BadTraversal extends Exception with NoStackTrace
     def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
       val resolvePath: F[Path] =
