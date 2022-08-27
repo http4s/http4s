@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.OptionT
 import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all._
@@ -23,6 +24,8 @@ import fs2._
 import fs2.text.utf8
 import munit._
 import org.scalacheck.Prop
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.noop.NoOpFactory
 
 /** Common stack for http4s' munit based tests
   */
@@ -63,5 +66,9 @@ trait Http4sSuite
       .compile
       .last
       .map(_.getOrElse(""))
+
+  implicit val loggerFactory: LoggerFactory[IO] = NoOpFactory[IO]
+  implicit val optionTLoggerFactory: LoggerFactory[OptionT[IO, *]] =
+    loggerFactory.mapK(OptionT.liftK)
 
 }

@@ -23,6 +23,7 @@ import cats.data.OptionT
 import cats.effect.Async
 import cats.syntax.all._
 import org.http4s.server.middleware.TranslateUri
+import org.typelevel.log4cats.LoggerFactory
 
 import java.nio.file.Paths
 import scala.util.Failure
@@ -39,7 +40,7 @@ import scala.util.control.NoStackTrace
   * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
   * @param classLoader optional classloader for extracting the resources
   */
-class ResourceServiceBuilder[F[_]] private (
+class ResourceServiceBuilder[F[_]: LoggerFactory] private (
     basePath: String,
     pathPrefix: String,
     bufferSize: Int,
@@ -47,7 +48,7 @@ class ResourceServiceBuilder[F[_]] private (
     preferGzipped: Boolean,
     classLoader: Option[ClassLoader],
 ) {
-  private[this] val logger = Platform.loggerFactory.getLogger
+  private[this] val logger = LoggerFactory[F].getLogger
 
   private def copy(
       basePath: String = basePath,
@@ -81,13 +82,13 @@ class ResourceServiceBuilder[F[_]] private (
 
   def withBufferSize(bufferSize: Int): ResourceServiceBuilder[F] = copy(bufferSize = bufferSize)
 
-  def toRoutes(implicit F: Async[F]): HttpRoutes[F] = {
+  def toRoutes(implicit F: Async[F]): F[HttpRoutes[F]] = {
     val basePath = if (this.basePath.isEmpty) "/" else this.basePath
     object BadTraversal extends Exception with NoStackTrace
 
     Try(Paths.get(basePath)) match {
       case Success(rootPath) =>
-        TranslateUri(pathPrefix)(Kleisli {
+        TranslateUri(pathPrefix)(HttpRoutes[F] {
           case request if request.pathInfo.nonEmpty =>
             val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
             OptionT
@@ -114,21 +115,21 @@ class ResourceServiceBuilder[F[_]] private (
                 OptionT.some(Response(Status.BadRequest))
               }
           case _ => OptionT.none
-        })
+        }).pure[F]
 
       case Failure(e) =>
         logger
           .error(e)(
             s"Could not get root path from ResourceService config: basePath = $basePath, pathPrefix = $pathPrefix. All requests will fail."
           )
-          .unsafeRunSync()
-        Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
+          .as(Kleisli(_ => OptionT.pure(Response(Status.InternalServerError))))
+
     }
   }
 }
 
 object ResourceServiceBuilder {
-  def apply[F[_]](basePath: String): ResourceServiceBuilder[F] =
+  def apply[F[_]: LoggerFactory](basePath: String): ResourceServiceBuilder[F] =
     new ResourceServiceBuilder[F](
       basePath = basePath,
       pathPrefix = "",
@@ -140,7 +141,6 @@ object ResourceServiceBuilder {
 }
 
 object ResourceService {
-  private[this] val logger = Platform.loggerFactory.getLogger
 
   /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
@@ -158,49 +158,4 @@ object ResourceService {
       preferGzipped: Boolean = false,
   )
 
-  /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  @deprecated("use ResourceServiceBuilder", "1.0.0-M1")
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
-    val basePath = if (config.basePath.isEmpty) "/" else config.basePath
-    object BadTraversal extends Exception with NoStackTrace
-
-    Try(Paths.get(basePath)) match {
-      case Success(rootPath) =>
-        TranslateUri(config.pathPrefix)(Kleisli {
-          case request if request.pathInfo.nonEmpty =>
-            val segments = request.pathInfo.segments.map(_.decoded(plusIsSpace = true))
-            OptionT
-              .liftF(F.catchNonFatal {
-                segments.foldLeft(rootPath) {
-                  case (_, "" | "." | "..") => throw BadTraversal
-                  case (path, segment) =>
-                    path.resolve(segment)
-                }
-              })
-              .collect {
-                case path if path.startsWith(rootPath) => path
-              }
-              .flatMap { path =>
-                StaticFile.fromResource(
-                  path.toString,
-                  Some(request),
-                  preferGzipped = config.preferGzipped,
-                )
-              }
-              .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
-              .recoverWith { case BadTraversal =>
-                OptionT.some(Response(Status.BadRequest))
-              }
-          case _ => OptionT.none
-        })
-
-      case Failure(e) =>
-        logger
-          .error(e)(
-            s"Could not get root path from ResourceService config: basePath = ${config.basePath}, pathPrefix = ${config.pathPrefix}. All requests will fail."
-          )
-          .unsafeRunSync()
-        Kleisli(_ => OptionT.pure(Response(Status.InternalServerError)))
-    }
-  }
 }

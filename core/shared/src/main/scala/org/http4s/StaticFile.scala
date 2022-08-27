@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.Applicative
 import cats.ApplicativeThrow
 import cats.MonadError
 import cats.MonadThrow
@@ -32,17 +33,17 @@ import fs2.io.file.Path
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.http4s.syntax.header._
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.vault._
 
 import java.io._
 import java.net.URL
 
 object StaticFile {
-  private[this] val logger = Platform.loggerFactory.getLogger
-
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Files: MonadThrow](
+  def fromString[F[_]: Files: MonadThrow: LoggerFactory](
       url: String,
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
@@ -145,20 +146,20 @@ object StaticFile {
           else ""
         )
 
-  def fromPath[F[_]: Files: MonadThrow](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
       f: Path,
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
-  def fromPath[F[_]: Files: MonadThrow](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
       f: Path,
       req: Option[Request[F]],
       etagCalculator: Path => F[String],
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromPath[F[_]: Files: MonadThrow](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
       f: Path,
       buffsize: Int,
       req: Option[Request[F]],
@@ -173,7 +174,7 @@ object StaticFile {
         OptionT.none
       }
 
-  def fromPath[F[_]: Files](
+  def fromPath[F[_]: Files: LoggerFactory](
       f: Path,
       start: Long,
       end: Long,
@@ -182,7 +183,8 @@ object StaticFile {
       etagCalculator: Path => F[String],
   )(implicit
       F: MonadError[F, Throwable]
-  ): OptionT[F, Response[F]] =
+  ): OptionT[F, Response[F]] = {
+    implicit val logger = LoggerFactory[F].getLogger
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- Files[F].isRegularFile(f).flatMap[Option[Response[F]]] { isFile =>
@@ -194,7 +196,7 @@ object StaticFile {
                 val lastModified =
                   HttpDate.fromEpochSecond(attr.lastModifiedTime.toSeconds).toOption
 
-                F.pure(notModified(req, etagCalc, lastModified).orElse {
+                OptionT(notModified(req, etagCalc, lastModified)).orElseF {
                   val (body, contentLength) =
                     if (attr.size < end) (Stream.empty, 0L)
                     else (fileToBody[F](f, start, end), end - start)
@@ -214,9 +216,10 @@ object StaticFile {
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 
-                  logger.trace(s"Static file generated response: $r").unsafeRunSync()
-                  r.some
-                })
+                  logger
+                    .trace(s"Static file generated response: $r")
+                    .as(r.some)
+                }.value
               }
           } else {
             F.raiseError[Option[Response[F]]](
@@ -232,41 +235,47 @@ object StaticFile {
 
       }
     } yield res)
+  }
 
-  private def notModified[F[_]](
+  private def notModified[F[_]: Applicative: Logger](
       req: Option[Request[F]],
       etagCalc: ETag,
       lastModified: Option[HttpDate],
-  ): Option[Response[F]] = {
+  ): F[Option[Response[F]]] = {
     implicit val conjunction: Semigroup[Boolean] = new Semigroup[Boolean] {
       def combine(x: Boolean, y: Boolean): Boolean = x && y
     }
 
-    List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).combineAll
-      .filter(identity)
-      .map(_ => Response[F](NotModified))
+    List(etagMatch(req, etagCalc), notModifiedSince(req, lastModified)).sequence.map(
+      _.combineAll
+        .filter(identity)
+        .map(_ => Response[F](NotModified))
+    )
   }
 
-  private def etagMatch[F[_]](req: Option[Request[F]], etagCalc: ETag) =
-    for {
+  private def etagMatch[F[_]: Applicative: Logger](req: Option[Request[F]], etagCalc: ETag) =
+    (for {
       r <- req
       etagHeader <- r.headers.get[`If-None-Match`]
       etagMatch = etagHeader.tags.exists(_.exists(_ == etagCalc.tag))
-      _ = logger.trace(
+      log = Logger[F].trace(
         s"Matches `If-None-Match`: $etagMatch Previous ETag: ${etagHeader.value}, New ETag: $etagCalc"
       )
-    } yield etagMatch
+    } yield log.as(etagMatch)).sequence
 
-  private def notModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
-    for {
+  private def notModifiedSince[F[_]: Applicative: Logger](
+      req: Option[Request[F]],
+      lastModified: Option[HttpDate],
+  ) =
+    (for {
       r <- req
       h <- r.headers.get[`If-Modified-Since`]
       lm <- lastModified
       notModified = h.date >= lm
-      _ = logger.trace(
+      log = Logger[F].trace(
         s"Matches `If-Modified-Since`: $notModified. Request age: ${h.date}, Modified: $lm"
       )
-    } yield notModified
+    } yield log.as(notModified)).sequence
 
   private def fileToBody[F[_]: Files](f: Path, start: Long, end: Long): EntityBody[F] =
     Files[F].readRange(f, DefaultBufferSize, start, end)

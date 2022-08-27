@@ -17,6 +17,7 @@
 package org.http4s
 
 import cats.Applicative
+import cats.Functor
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.OptionT
@@ -25,6 +26,7 @@ import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
+import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -149,20 +151,20 @@ package object server {
         }
   }
 
-  private[this] val messageFailureLogger =
-    Platform.loggerFactory.getLoggerFromName("org.http4s.server.message-failures")
-  private[this] val serviceErrorLogger =
-    Platform.loggerFactory.getLoggerFromName("org.http4s.server.service-errors")
+  private[this] def messageFailureLogger[F[_]: LoggerFactory] =
+    LoggerFactory[F].getLoggerFromName("org.http4s.server.message-failures")
+  private[this] def serviceErrorLogger[F[_]: LoggerFactory] =
+    LoggerFactory[F].getLoggerFromName("org.http4s.server.service-errors")
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
-  def DefaultServiceErrorHandler[F[_]](implicit
-      F: Monad[F]
+  def DefaultServiceErrorHandler[F[_]: LoggerFactory](implicit
+      F: Functor[F]
   ): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
-  def inDefaultServiceErrorHandler[F[_], G[_]](implicit
-      F: Monad[F]
+  def inDefaultServiceErrorHandler[F[_]: LoggerFactory, G[_]](implicit
+      F: Functor[F]
   ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
@@ -171,24 +173,22 @@ package object server {
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}"""
           )
-          .unsafeRunSync()
-        mf.toHttpResponse[G](req.httpVersion).pure[F]
+          .as(mf.toHttpResponse[G](req.httpVersion))
       case NonFatal(t) =>
         serviceErrorLogger
           .error(t)(
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                 .getOrElse("<unknown>")}"""
           )
-          .unsafeRunSync()
-        F.pure(
-          Response(
-            Status.InternalServerError,
-            req.httpVersion,
-            Headers(
-              Connection.close,
-              `Content-Length`.zero,
-            ),
+          .as(
+            Response(
+              Status.InternalServerError,
+              req.httpVersion,
+              Headers(
+                Connection.close,
+                `Content-Length`.zero,
+              ),
+            )
           )
-        )
     }
 }

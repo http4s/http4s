@@ -85,21 +85,11 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     val entity = w.toEntity(b)
 
     val hsBase = headers ++ w.headers
-    val cl: Option[`Content-Length`] = entity.length match {
-      case Some(l) =>
-        `Content-Length`
-          .fromLong(l)
-          .fold(
-            _ => {
-              Message.logger
-                .warn(s"Attempt to provide a negative content length of $l")
-                .unsafeRunSync()
-              None
-            },
-            Some(_),
-          )
-      case None => None
-    }
+    val cl: Option[`Content-Length`] = entity.length.flatMap(
+      `Content-Length`
+        .fromLong(_)
+        .toOption
+    )
     change(entity = entity, headers = cl.fold(hsBase)(hsBase.withContentLength))
   }
 
@@ -303,7 +293,6 @@ object Message {
       EntityStreamException(s"Entity stream has exceeded the maximum of $maxBytes bytes")
   }
 
-  private[http4s] val logger = Platform.loggerFactory.getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]

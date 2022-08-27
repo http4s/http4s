@@ -33,6 +33,7 @@ import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
+import org.typelevel.log4cats.LoggerFactory
 
 import scala.concurrent.duration._
 
@@ -233,8 +234,8 @@ final class EmberServerBuilder[F[_]: Async] private (
     }
 }
 
-object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
-  def default[F[_]: Async]: EmberServerBuilder[F] =
+object EmberServerBuilder {
+  def default[F[_]: Async: LoggerFactory]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -250,7 +251,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = defaultLogger[F],
+      logger = LoggerFactory[F].getLogger,
       None,
       false,
     )

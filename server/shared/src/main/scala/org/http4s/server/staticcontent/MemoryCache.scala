@@ -19,7 +19,8 @@ package server
 package staticcontent
 
 import cats.effect.Concurrent
-import cats.syntax.functor._
+import cats.syntax.all._
+import org.typelevel.log4cats.LoggerFactory
 import scodec.bits.ByteVector
 
 import java.util.concurrent.ConcurrentHashMap
@@ -29,8 +30,8 @@ import java.util.concurrent.ConcurrentHashMap
   * This is useful when serving a very limited amount of static content and want
   * to avoid disk access.
   */
-class MemoryCache[F[_]] extends CacheStrategy[F] {
-  private[this] val logger = Platform.loggerFactory.getLogger
+class MemoryCache[F[_]: LoggerFactory] extends CacheStrategy[F] {
+  private[this] val logger = LoggerFactory[F].getLogger
   private val cacheMap = new ConcurrentHashMap[Uri.Path, Response[F]]()
 
   override def cache(uriPath: Uri.Path, resp: Response[F])(implicit
@@ -39,12 +40,10 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
     if (resp.status == Status.Ok)
       Option(cacheMap.get(uriPath)) match {
         case Some(r) if r.headers.headers == resp.headers.headers =>
-          logger.debug(s"Cache hit: $resp").unsafeRunSync()
-          F.pure(r)
-
+          logger.debug(s"Cache hit: $resp").as(r)
         case _ =>
-          logger.debug(s"Cache miss: $resp").unsafeRunSync()
-          collectResource(uriPath, resp) /* otherwise cache the response */
+          logger.debug(s"Cache miss: $resp") *>
+            collectResource(uriPath, resp) /* otherwise cache the response */
       }
     else F.pure(resp)
 
@@ -63,5 +62,5 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
 }
 
 object MemoryCache {
-  def apply[F[_]](): MemoryCache[F] = new MemoryCache[F]
+  def apply[F[_]: LoggerFactory](): MemoryCache[F] = new MemoryCache[F]
 }

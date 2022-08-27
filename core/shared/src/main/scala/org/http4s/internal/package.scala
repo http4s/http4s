@@ -38,7 +38,7 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
-package object internal extends InternalPlatform {
+package object internal {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   private val Digits: Array[Char] =

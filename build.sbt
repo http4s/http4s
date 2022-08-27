@@ -100,7 +100,7 @@ lazy val core = libraryCrossProject("core")
       fs2Io.value,
       ip4sCore.value,
       literally.value,
-      log4s.value,
+      log4catsCore.value,
       munit.value % Test,
       scodecBits.value,
       vault.value,
@@ -115,21 +115,8 @@ lazy val core = libraryCrossProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
-  .jvmSettings(
-    libraryDependencies ++= {
-      Seq(log4catsSlf4j)
-    },
-    libraryDependencies ++= {
-      if (tlIsScala3.value) Seq.empty
-      else
-        Seq(
-          slf4jApi // residual dependency from macros
-        )
-    },
-  )
   .jsSettings(
     libraryDependencies ++= Seq(
-      log4catsNoop.value,
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
     )
@@ -164,6 +151,7 @@ lazy val tests = libraryCrossProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
+      log4catsNoop.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
@@ -208,6 +196,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
+      log4catsNoop.value,
       munit.value,
       munitCatsEffect.value,
     ),
@@ -217,6 +206,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     libraryDependencies ++= Seq(
       nettyBuffer,
       nettyCodecHttp,
+      log4catsSlf4j,
     )
   )
   .dependsOn(client, theDsl)
@@ -247,14 +237,8 @@ lazy val emberServer = libraryCrossProject("ember-server")
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      log4catsSlf4j,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
-    )
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      log4catsNoop.value
     )
   )
   .dependsOn(
@@ -263,23 +247,13 @@ lazy val emberServer = libraryCrossProject("ember-server")
     emberClient % "test->compile",
   )
 
-lazy val emberClient = libraryCrossProject("ember-client")
+lazy val emberClient = libraryCrossProject("ember-client", CrossType.Pure)
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
       keypool.value
     ),
-  )
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      log4catsSlf4j
-    )
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      log4catsNoop.value
-    )
   )
   .dependsOn(emberCore % "compile;test->test", client, clientTestkit % Test)
 
@@ -429,6 +403,7 @@ lazy val examplesDocker = http4sProject("examples-docker")
   .settings(
     description := "Builds a docker image for a ember-server",
     startYear := Some(2017),
+    libraryDependencies += log4catsSlf4j,
     Docker / packageName := "http4s/ember-server",
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
@@ -530,7 +505,7 @@ def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(NoPublishPlugin)
-    .settings(libraryDependencies += logbackClassic % Runtime)
+    .settings(libraryDependencies ++= Seq(log4catsSlf4j, logbackClassic % Runtime))
     .dependsOn(examples)
 
 lazy val commonSettings = Seq(

@@ -21,7 +21,7 @@ package middleware
 import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
-import cats.effect.kernel.Async
+import cats.effect.kernel.Concurrent
 import cats.effect.kernel.MonadCancelThrow
 import cats.effect.kernel.Outcome
 import cats.effect.syntax.all._
@@ -31,13 +31,13 @@ import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats.LoggerFactory
 
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
-  private[this] val logger = Platform.loggerFactory.getLogger
 
-  def apply[G[_], F[_], A](
+  def apply[G[_], F[_]: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
@@ -45,10 +45,10 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(
       http: Kleisli[G, A, Response[F]]
-  )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] =
+  )(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] =
     impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
-  private[server] def impl[G[_], F[_], A](
+  private[server] def impl[G[_], F[_]: LoggerFactory, A](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
@@ -56,8 +56,9 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]],
   )(
       http: Kleisli[G, A, Response[F]]
-  )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] = {
-    val fallback: String => F[Unit] = s => logger.info(s).to[F]
+  )(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
+    implicit val logger = LoggerFactory[F].getLogger
+    val fallback: String => F[Unit] = s => logger.info(s)
     val log = logAction.fold(fallback)(identity)
 
     def logMessage(resp: Response[F]): F[Unit] =
@@ -107,7 +108,7 @@ object ResponseLogger {
     }
   }
 
-  def httpApp[F[_]: Async, A](
+  def httpApp[F[_]: Concurrent: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -115,7 +116,7 @@ object ResponseLogger {
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpAppLogBodyText[F[_]: Async, A](
+  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -125,7 +126,7 @@ object ResponseLogger {
       httpApp
     )
 
-  def httpRoutes[F[_]: Async, A](
+  def httpRoutes[F[_]: Concurrent: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -133,7 +134,7 @@ object ResponseLogger {
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpRoutesLogBodyText[F[_]: Async, A](
+  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

@@ -28,6 +28,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
+import org.typelevel.log4cats.slf4j._
 
 import scala.concurrent.duration._
 

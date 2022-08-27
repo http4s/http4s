@@ -24,6 +24,7 @@ import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.h2._
 import org.http4s.implicits._
+import org.typelevel.log4cats.slf4j._
 
 object EmberClientH2Example extends IOApp {
 

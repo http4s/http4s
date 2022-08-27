@@ -22,6 +22,8 @@ import cats.Applicative
 import cats.Monad
 import cats.data.Kleisli
 import cats.data.NonEmptyList
+import cats.data.OptionT
+import cats.syntax.all._
 import org.http4s.Status.MovedPermanently
 import org.http4s.Uri.Authority
 import org.http4s.Uri.RegName
@@ -31,6 +33,7 @@ import org.http4s.headers.Location
 import org.http4s.headers.`Content-Type`
 import org.http4s.syntax.header._
 import org.typelevel.ci._
+import org.typelevel.log4cats.LoggerFactory
 
 /** [[Middleware]] to redirect http traffic to https.
   * Inspects `X-Forwarded-Proto` header and if it is set to `http`,
@@ -39,28 +42,29 @@ import org.typelevel.ci._
   * which does not support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
-  private[HttpsRedirect] val logger = Platform.loggerFactory.getLogger
-
-  def apply[F[_], G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] =
+  def apply[F[_]: LoggerFactory, G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] = {
+    implicit val logger = LoggerFactory[F].getLogger
     Kleisli { req =>
       (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
         case (Some(NonEmptyList(proto, _)), Some(host))
             if Scheme.fromString(proto.value).contains(Scheme.http) =>
-          logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host").unsafeRunSync()
-          val authority = Authority(host = RegName(host.value))
-          val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
-          val headers = Headers(Location(location), `Content-Type`(MediaType.text.xml))
-          val response = Response[G](status = MovedPermanently, headers = headers)
-          F.pure(response)
-
+          logger.debug(s"Redirecting ${req.method} ${req.uri} to https on $host").as {
+            val authority = Authority(host = RegName(host.value))
+            val location = req.uri.copy(scheme = Some(Scheme.https), authority = Some(authority))
+            val headers = Headers(Location(location), `Content-Type`(MediaType.text.xml))
+            Response[G](status = MovedPermanently, headers = headers)
+          }
         case _ =>
           http(req)
       }
     }
+  }
 
-  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Monad: LoggerFactory](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
+    implicit val factory = LoggerFactory[F].mapK(OptionT.liftK)
     apply(httpRoutes)
+  }
 
-  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Applicative: LoggerFactory](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 }

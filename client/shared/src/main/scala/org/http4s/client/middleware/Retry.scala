@@ -26,6 +26,7 @@ import org.http4s.Status._
 import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`Retry-After`
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.vault.Key
 
 import java.time.Instant
@@ -36,7 +37,6 @@ import scala.math.pow
 import scala.math.random
 
 object Retry {
-  private[this] val logger = Platform.loggerFactory.getLogger
 
   /** This key tracks the attempt count, the retry middleware starts the very
     * first request with 1 as the first request, even with no retries
@@ -46,17 +46,19 @@ object Retry {
     */
   val AttemptCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
-  def apply[F[_]](
+  def apply[F[_]: LoggerFactory](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
     create[F](policy, redactHeaderWhen)(client)
 
-  def create[F[_]](
+  def create[F[_]: LoggerFactory](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logRetries: Boolean = true,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
+    val logger = LoggerFactory[F].getLogger
+
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
       val uri = request.uri.renderString
@@ -101,13 +103,18 @@ object Retry {
             case Right(response) =>
               policy(req, Right(response), attempts) match {
                 case Some(duration) =>
-                  if (logRetries)
-                    logger
-                      .info(
-                        s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
-                      )
-                      .unsafeRunSync()
-                  nextAttempt(req, attempts, duration, response.headers.get[`Retry-After`], hotswap)
+                  logger
+                    .info(
+                      s"Request ${showRequest(req, redactHeaderWhen)} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}."
+                    )
+                    .whenA(logRetries) *>
+                    nextAttempt(
+                      req,
+                      attempts,
+                      duration,
+                      response.headers.get[`Retry-After`],
+                      hotswap,
+                    )
                 case None =>
                   F.pure(response)
               }
@@ -116,21 +123,19 @@ object Retry {
               policy(req, Left(e), attempts) match {
                 case Some(duration) =>
                   // info instead of error(e), because e is not discarded
-                  if (logRetries)
-                    logger
-                      .info(e)(
-                        s"Request threw an exception on attempt #$attempts. Retrying after $duration"
-                      )
-                      .unsafeRunSync()
-                  nextAttempt(req, attempts, duration, None, hotswap)
+                  logger
+                    .info(e)(
+                      s"Request threw an exception on attempt #$attempts. Retrying after $duration"
+                    )
+                    .whenA(logRetries) *>
+                    nextAttempt(req, attempts, duration, None, hotswap)
                 case None =>
-                  if (logRetries)
-                    logger
-                      .info(e)(
-                        s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
-                      )
-                      .unsafeRunSync()
-                  F.raiseError(e)
+                  logger
+                    .info(e)(
+                      s"Request ${showRequest(req, redactHeaderWhen)} threw an exception on attempt #$attempts. Giving up."
+                    )
+                    .whenA(logRetries) *>
+                    F.raiseError(e)
               }
           }
 

@@ -22,6 +22,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server._
+import org.typelevel.log4cats.slf4j._
 
 object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =

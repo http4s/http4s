@@ -19,18 +19,20 @@ package middleware
 
 import cats._
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.headers._
 import org.typelevel.ci._
+import org.typelevel.log4cats.LoggerFactory
 
 object ErrorHandling {
-  def apply[F[_], G[_]](
+  def apply[F[_]: LoggerFactory, G[_]](
       k: Kleisli[F, Request[G], Response[G]]
   )(implicit F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
       val pf: PartialFunction[Throwable, F[Response[G]]] =
-        inDefaultServiceErrorHandler[F, G](F)(req)
+        inDefaultServiceErrorHandler[F, G].apply(req)
       k.run(req).handleErrorWith { e =>
         pf.lift(e) match {
           case Some(resp) => resp
@@ -39,10 +41,12 @@ object ErrorHandling {
       }
     }
 
-  def httpRoutes[F[_]: MonadThrow](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: MonadThrow: LoggerFactory](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
+    implicit val factory = LoggerFactory[F].mapK(OptionT.liftK)
     apply(httpRoutes)
+  }
 
-  def httpApp[F[_]: MonadThrow](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: MonadThrow: LoggerFactory](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 
   object Custom {
