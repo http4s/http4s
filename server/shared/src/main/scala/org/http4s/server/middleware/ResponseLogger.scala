@@ -18,7 +18,6 @@ package org.http4s
 package server
 package middleware
 
-import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.kernel.Async
@@ -34,11 +33,55 @@ import fs2.Stream
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
+sealed abstract class ResponseLoggerBuilder[F[_]]
+    extends internal.Logger[F, ResponseLoggerBuilder[F]] {
+  def apply[G[_], A](fk: F ~> G)(
+      http: Kleisli[G, A, Response[F]]
+  )(implicit F: Async[F], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]]
+
+  def apply[G[_], A](
+      http: Kleisli[G, A, Response[F]]
+  )(implicit
+      lift: Logger.Lift[F, G],
+      F: Async[F],
+      G: MonadCancelThrow[G],
+  ): Kleisli[G, A, Response[F]] =
+    apply(lift.fk)(http)
+}
+
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
   private[this] val logger = getLogger
 
+  private[middleware] final case class Impl[F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  ) extends ResponseLoggerBuilder[F] {
+    override def apply[G[_], A](fk: F ~> G)(
+        http: Kleisli[G, A, Response[F]]
+    )(implicit F: Async[F], G: MonadCancelThrow[G]): Kleisli[G, A, Response[F]] =
+      impl(logHeaders, logBodyText, fk, redactHeadersWhen, logAction)(http)
+    override def withRedactHeadersWhen(f: CIString => Boolean): ResponseLoggerBuilder[F] =
+      copy(redactHeadersWhen = f)
+
+    override def withLogAction(f: String => F[Unit]): ResponseLoggerBuilder[F] =
+      copy(logAction = Some(f))
+  }
+
+  def builder[F[_]](
+      logHeaders: Boolean,
+      logBody: Boolean,
+  ): ResponseLoggerBuilder[F] = Impl(logHeaders, Left(logBody))
+
+  def builder[F[_]](
+      logHeaders: Boolean,
+      renderBodyWith: Stream[F, Byte] => Option[F[String]],
+  ): ResponseLoggerBuilder[F] = Impl(logHeaders, Right(renderBodyWith))
+
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def apply[G[_], F[_], A](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -48,7 +91,9 @@ object ResponseLogger {
   )(
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] =
-    impl[G, F, A](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(fk)(http)
 
   private[server] def impl[G[_], F[_], A](
       logHeaders: Boolean,
@@ -102,43 +147,47 @@ object ResponseLogger {
     }
   }
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpApp[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-    apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-    impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
-      httpApp
-    )
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpApp)
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpRoutes[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
-    apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 
+  @deprecated("Use ResponseLogger.builder", "0.23.15")
   def httpRoutesLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
-    impl[OptionT[F, *], F, A](
-      logHeaders,
-      Right(logBody),
-      OptionT.liftK[F],
-      redactHeadersWhen,
-      logAction,
-    )(httpRoutes)
+    builder(logHeaders, logBody)
+      .withRedactHeadersWhen(redactHeadersWhen)
+      .withLogActionOpt(logAction)(httpRoutes)
 }
