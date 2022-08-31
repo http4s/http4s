@@ -375,6 +375,16 @@ HttpRoutes.of[IO] {
 }
 ```
 
+**Please note:** You cannot mix left- and right-associative matchers in a path! So something like `case GET -> "hello" / "world" /: rest => ???` will not compile.
+
+Imagining some path parameter extractors you could still do something like this:
+
+```scala mdoc:silent
+HttpRoutes.of[IO] {
+  case GET -> IntVar(anInt) /: UUIDVar(anId) /: rest => Ok(s"""Hello $anInt / $anId, ${rest.segments.mkString(" and ")}!""")
+}
+```
+
 To match a file extension on a segment, use the `~` extractor:
 
 ```scala mdoc:silent
