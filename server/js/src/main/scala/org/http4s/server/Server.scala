@@ -18,10 +18,9 @@ package org.http4s
 package server
 
 import com.comcast.ip4s
-import org.log4s.getLogger
 
 abstract class Server {
-  private[server] val logger = getLogger
+  private[server] val logger = Platform.loggerFactory.getLogger
 
   def address: ip4s.SocketAddress[ip4s.IpAddress]
   final def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] = address

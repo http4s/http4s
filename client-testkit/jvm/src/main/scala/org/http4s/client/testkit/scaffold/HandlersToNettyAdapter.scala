@@ -25,7 +25,6 @@ import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
-import org.log4s.getLogger
 
 import java.net.URI
 
@@ -47,7 +46,7 @@ private[http4s] class HandlersToNettyAdapter private (
     fallbackHandler: Handler,
 ) extends SimpleChannelInboundHandler[HttpObject] {
 
-  private val logger = getLogger(this.getClass)
+  private val logger = org.http4s.Platform.loggerFactory.getLoggerFromClass(this.getClass)
 
   private var currentRequest: HttpRequest = null
   private var currentHandler: Handler = null
@@ -56,9 +55,11 @@ private[http4s] class HandlersToNettyAdapter private (
 
     msg match {
       case request: HttpRequest =>
-        logger.trace(
-          s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}]."
-        )
+        logger
+          .trace(
+            s"Recieved [${request.method()}] [${request.uri()}] request from [${ctx.channel.remoteAddress()}]."
+          )
+          .unsafeRunSync()
         if (HttpUtil.is100ContinueExpected(request)) {
           ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
         } else {
@@ -74,14 +75,14 @@ private[http4s] class HandlersToNettyAdapter private (
 
     msg match {
       case content: HttpContent =>
-        logger.trace("Recieved content.")
+        logger.trace("Recieved content.").unsafeRunSync()
         currentHandler.onContent(ctx, currentRequest, content)
       case _ =>
     }
 
     msg match {
       case _: LastHttpContent =>
-        logger.trace("Request finished.")
+        logger.trace("Request finished.").unsafeRunSync()
         currentHandler.onRequestEnd(ctx, currentRequest)
         currentRequest = null
         currentHandler = null
@@ -95,7 +96,7 @@ private[http4s] class HandlersToNettyAdapter private (
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
-    logger.warn(cause)("")
+    logger.warn(cause)("").unsafeRunSync()
     ctx.close()
     ()
   }

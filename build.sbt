@@ -187,21 +187,26 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Message.logger"),
         )
       else Seq.empty
     },
   )
   .jvmSettings(
     libraryDependencies ++= {
+      Seq(log4catsSlf4j)
+    },
+    libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
         Seq(
           slf4jApi // residual dependency from macros
         )
-    }
+    },
   )
   .jsSettings(
     libraryDependencies ++= Seq(
+      log4catsNoop.value,
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
     ),
@@ -301,6 +306,18 @@ lazy val server = libraryCrossProject("server")
           ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.server.middleware.authentication.Nonce.random"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.package.messageFailureLogger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.package.serviceErrorLogger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.CORS.logger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.HttpsRedirect.logger"
           ),
         )
       else Nil

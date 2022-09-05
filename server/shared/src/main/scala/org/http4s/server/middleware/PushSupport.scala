@@ -22,12 +22,11 @@ import cats.Monad
 import cats.data.Kleisli
 import cats.effect.SyncIO
 import cats.syntax.all._
-import org.log4s.getLogger
 import org.typelevel.vault._
 
 @deprecated("Obsolete. Not implemented by any backends.", "0.23.12")
 object PushSupport {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   implicit def http4sPushOps[F[_]](response: Response[F]): PushOps[F] =
     new PushOps[F](response)
@@ -43,7 +42,7 @@ object PushSupport {
         } else url
       }
 
-      logger.trace(s"Adding push resource: $newUrl")
+      logger.trace(s"Adding push resource: $newUrl").unsafeRunSync()
 
       val newPushResouces = response.attributes
         .lookup(pushLocationKey)

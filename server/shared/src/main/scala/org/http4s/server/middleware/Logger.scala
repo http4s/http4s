@@ -25,13 +25,12 @@ import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import cats.~>
 import fs2.Stream
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   def defaultRedactHeadersWhen(name: CIString): Boolean =
     Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
@@ -44,7 +43,7 @@ object Logger {
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
-      F.delay(logger.info(s))
+      logger.info(s).to[F]
     }
     ResponseLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(
       RequestLogger(logHeaders, logBody, fk, redactHeadersWhen, log.pure[Option])(http)
@@ -59,7 +58,7 @@ object Logger {
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
     val log: String => F[Unit] = logAction.getOrElse { s =>
-      F.delay(logger.info(s))
+      logger.info(s).to[F]
     }
     ResponseLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
       RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(http)

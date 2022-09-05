@@ -18,14 +18,13 @@ package org.http4s
 package server
 
 import com.comcast.ip4s
-import org.log4s.getLogger
 
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetSocketAddress
 
 abstract class Server {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   def address: InetSocketAddress
   def addressIp4s: ip4s.SocketAddress[ip4s.IpAddress] =
@@ -44,7 +43,7 @@ abstract class Server {
             case ipv6: Inet6Address =>
               Uri.Ipv6Address(ip4s.Ipv6Address.fromInet6Address(ipv6))
             case weird =>
-              logger.warn(s"Unexpected address type ${weird.getClass}: $weird")
+              logger.warn(s"Unexpected address type ${weird.getClass}: $weird").unsafeRunSync()
               Uri.RegName(weird.getHostAddress)
           },
           port = Some(address.getPort),
