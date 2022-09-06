@@ -147,13 +147,13 @@ private[http4s] object QueryParser {
   /** Defines the characters that are allowed unquoted within a query string as
     * defined in RFC 3986
     */
-  val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
+  val QChars: BitSet = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
 
   /** PHP also includes square brackets ([ and ]) with query strings. This goes
     * against the spec but due to PHP's widespread adoption it is necessary to
     * support this extension.
     */
-  val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
+  val ExtendedQChars: BitSet = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved = "-._~".toSet ++ AlphaNum
   private def SubDelims = "!$&'()*+,;=".toSet

@@ -292,9 +292,9 @@ object Forwarded extends ForwardedRenderers {
       Some(Failures.invalidPortNum(portNum))
 
   private object Failures {
-    def invalidPortNum(num: Int) =
+    def invalidPortNum(num: Int): ParseFailure =
       ParseFailure("invalid port number", s"port $num is not in range $PortMin..$PortMax")
-    def missingHost(uri: Uri) =
+    def missingHost(uri: Uri): ParseFailure =
       ParseFailure("missing host", s"no host defined in the URI '$uri'")
   }
 
@@ -372,7 +372,7 @@ object Forwarded extends ForwardedRenderers {
       .map(Forwarded.apply)
   }
 
-  val name = ci"Forwarded"
+  val name: CIString = ci"Forwarded"
 
   implicit val headerInstance: Header[Forwarded, Header.Recurring] =
     Header.createRendered(

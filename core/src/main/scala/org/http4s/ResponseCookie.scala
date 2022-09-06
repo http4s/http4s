@@ -12,9 +12,9 @@ package org.http4s
 
 import cats.parse.Parser
 import cats.parse.Rfc5234
+import org.http4s.internal.parsing.RelaxedCookies
 import org.http4s.internal.parsing.Rfc1034
 import org.http4s.internal.parsing.Rfc2616
-import org.http4s.internal.parsing.Rfc6265
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
@@ -49,7 +49,7 @@ final case class ResponseCookie(
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
     sameSite.foreach(writer.append("; SameSite=").append(_))
-    if (secure || sameSite.exists(_ == SameSite.None)) writer.append("; Secure")
+    if (secure || sameSite.contains(SameSite.None)) writer.append("; Secure")
     if (httpOnly) writer.append("; HttpOnly")
     extension.foreach(writer.append("; ").append(_))
     writer
@@ -88,7 +88,7 @@ object ResponseCookie {
     import Parser.{char, charIn, failWith, ignoreCase, pure}
     import Rfc2616.Rfc1123Date
     import Rfc5234.digit
-    import Rfc6265.{cookieName, cookieValue}
+    import RelaxedCookies.{cookieName, cookieValue}
 
     /* cookie-pair       = cookie-name "=" cookie-value */
     val cookiePair = (cookieName <* char('=')) ~ cookieValue

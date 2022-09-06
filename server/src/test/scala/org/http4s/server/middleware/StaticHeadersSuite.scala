@@ -23,7 +23,7 @@ import org.http4s.headers.`Cache-Control`
 import org.http4s.syntax.all._
 
 class StaticHeadersSuite extends Http4sSuite {
-  val testService = HttpRoutes.of[IO] {
+  private val testService = HttpRoutes.of[IO] {
     case GET -> Root / "request" =>
       Ok("request response")
     case req @ POST -> Root / "post" =>

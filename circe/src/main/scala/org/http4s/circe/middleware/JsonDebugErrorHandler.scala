@@ -48,7 +48,7 @@ object JsonDebugErrorHandler {
           case mf: MessageFailure =>
             messageFailureLogger.debug(mf)(
               s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
+                  .getOrElse("<unknown>")}"""
             )
             val firstResp = mf.toHttpResponse[G](req.httpVersion)
             Response[G](
@@ -59,14 +59,12 @@ object JsonDebugErrorHandler {
           case t =>
             serviceErrorLogger.error(t)(
               s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
+                  .getOrElse("<unknown>")}"""
             )
             Response[G](
               Status.InternalServerError,
               req.httpVersion,
-              Headers(
-                Connection(ci"close")
-              ),
+              Headers(Connection.close),
             )
               .withEntity(JsonErrorHandlerResponse[G](req, t))
               .pure[F]

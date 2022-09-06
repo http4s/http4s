@@ -26,6 +26,7 @@ import cats.effect.ConcurrentEffect
 import cats.effect.ContextShift
 import cats.effect.Effect
 import cats.effect.IO
+import cats.effect.Sync
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2.Chunk
@@ -44,6 +45,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 import scala.util.control.NoStackTrace
 
 package object internal {
@@ -294,7 +296,7 @@ package object internal {
     *
     * The intended use case for this function is to reduce the amount of code
     * needed to write an `Order` instance for Product types. One can use
-    * [[#compareField]] to generate a comparison for each field in a product
+    * [[compareField]] to generate a comparison for each field in a product
     * type, then apply this function to get a ordering for the entire Product
     * type.
     *
@@ -325,7 +327,7 @@ package object internal {
       .getOrElse(0)
   }
 
-  /** Similar to [[#reduceComparisons_]] but with the `F` type forced to `Eval`
+  /** Similar to [[reduceComparisons_]] but with the `F` type forced to `Eval`
     * for every comparison other than the first one. This encodes the commonly
     * desired use case of only evaluating the minimum number of comparisons
     * required to determine the ordering.
@@ -346,4 +348,13 @@ package object internal {
       }
     }
   }
+
+  private[http4s] def javaMajorVersion[F[_]](implicit F: Sync[F]): F[Option[Int]] =
+    F.delay(sys.props.get("java.version")).map(_.flatMap(parseJavaMajorVersion))
+
+  private[internal] def parseJavaMajorVersion(javaVersion: String): Option[Int] =
+    if (javaVersion.startsWith("1."))
+      Try(javaVersion.split("\\.")(1).toInt).toOption
+    else
+      Try(javaVersion.split("\\.")(0).toInt).toOption
 }

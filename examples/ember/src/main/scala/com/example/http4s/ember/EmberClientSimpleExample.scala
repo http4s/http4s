@@ -28,6 +28,7 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.client._
 import org.http4s.implicits._
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import scodec.bits.ByteVector
 
 import java.util.concurrent.TimeUnit
@@ -35,13 +36,13 @@ import scala.concurrent.duration._
 
 object EmberClientSimpleExample extends IOApp {
 
-  val githubReq = Request[IO](Method.GET, uri"http://christopherdavenport.github.io/")
-  val dadJokeReq = Request[IO](Method.GET, uri"https://icanhazdadjoke.com/")
-  val googleReq = Request[IO](Method.GET, uri"https://www.google.com/")
-  val httpBinGet = Request[IO](Method.GET, uri"https://httpbin.org/get")
-  val httpBinPng = Request[IO](Method.GET, uri"https://httpbin.org/image/png")
+  val githubReq: Request[IO] = Request[IO](Method.GET, uri"http://christopherdavenport.github.io/")
+  val dadJokeReq: Request[IO] = Request[IO](Method.GET, uri"https://icanhazdadjoke.com/")
+  val googleReq: Request[IO] = Request[IO](Method.GET, uri"https://www.google.com/")
+  val httpBinGet: Request[IO] = Request[IO](Method.GET, uri"https://httpbin.org/get")
+  val httpBinPng: Request[IO] = Request[IO](Method.GET, uri"https://httpbin.org/image/png")
 
-  val logger = Slf4jLogger.getLogger[IO]
+  val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   def run(args: List[String]): IO[ExitCode] =
     EmberClientBuilder

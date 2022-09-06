@@ -195,7 +195,7 @@ trait QueryParamEncoder[T] { outer =>
   /** QueryParamEncoder is a contravariant functor. */
   def contramap[U](f: U => T): QueryParamEncoder[U] =
     new QueryParamEncoder[U] {
-      override def encode(value: U) =
+      override def encode(value: U): QueryParameterValue =
         outer.encode(f(value))
     }
 }
@@ -210,7 +210,7 @@ object QueryParamEncoder {
   /** QueryParamEncoder is a contravariant functor. */
   implicit val ContravariantQueryParamEncoder: Contravariant[QueryParamEncoder] =
     new Contravariant[QueryParamEncoder] {
-      override def contramap[A, B](fa: QueryParamEncoder[A])(f: B => A) =
+      override def contramap[A, B](fa: QueryParamEncoder[A])(f: B => A): QueryParamEncoder[B] =
         fa.contramap(f)
     }
 
@@ -238,7 +238,7 @@ object QueryParamEncoder {
 
   implicit lazy val stringQueryParamEncoder: QueryParamEncoder[String] =
     new QueryParamEncoder[String] {
-      override def encode(value: String) =
+      override def encode(value: String): QueryParameterValue =
         QueryParameterValue(value)
     }
 
@@ -315,14 +315,14 @@ trait QueryParamDecoder[T] { outer =>
   /** QueryParamDecoder is a covariant functor. */
   def map[U](f: T => U): QueryParamDecoder[U] =
     new QueryParamDecoder[U] {
-      override def decode(value: QueryParameterValue) =
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, U] =
         outer.decode(value).map(f)
     }
 
   /** Use another decoder if this one fails. */
   def orElse[U >: T](qpd: QueryParamDecoder[U]): QueryParamDecoder[U] =
     new QueryParamDecoder[U] {
-      override def decode(value: QueryParameterValue) =
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, U] =
         outer.decode(value).orElse(qpd.decode(value))
     }
 
@@ -333,7 +333,7 @@ trait QueryParamDecoder[T] { outer =>
   /** Validate the currently parsed value using a function to ValidatedNel[ParseFailure, *]. */
   def emapValidatedNel[U](f: T => ValidatedNel[ParseFailure, U]): QueryParamDecoder[U] =
     new QueryParamDecoder[U] {
-      override def decode(value: QueryParameterValue) =
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, U] =
         outer.decode(value).andThen(f)
     }
 }
@@ -357,16 +357,16 @@ object QueryParamDecoder {
   /** QueryParamDecoder is a covariant functor. */
   implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
     new Functor[QueryParamDecoder] {
-      override def map[A, B](fa: QueryParamDecoder[A])(f: A => B) =
+      override def map[A, B](fa: QueryParamDecoder[A])(f: A => B): QueryParamDecoder[B] =
         fa.map(f)
     }
 
   /** QueryParamDecoder is a MonoidK. */
   implicit val PlusEmptyQueryParamDecoder: MonoidK[QueryParamDecoder] =
     new MonoidK[QueryParamDecoder] {
-      def empty[A] =
+      def empty[A]: QueryParamDecoder[A] =
         fail[A]("Decoding failed.", "Empty decoder (always fails).")
-      def combineK[A](a: QueryParamDecoder[A], b: QueryParamDecoder[A]) =
+      def combineK[A](a: QueryParamDecoder[A], b: QueryParamDecoder[A]): QueryParamDecoder[A] =
         a.orElse(b)
     }
 
@@ -383,7 +383,7 @@ object QueryParamDecoder {
   /** A decoder that always fails. */
   def fail[A](sanitized: String, detail: String): QueryParamDecoder[A] =
     new QueryParamDecoder[A] {
-      override def decode(value: QueryParameterValue) =
+      override def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, A] =
         ParseFailure(sanitized, detail).invalidNel
     }
 

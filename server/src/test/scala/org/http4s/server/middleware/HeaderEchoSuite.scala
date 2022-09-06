@@ -25,11 +25,11 @@ import org.http4s.syntax.all._
 import org.typelevel.ci._
 
 class HeaderEchoSuite extends Http4sSuite {
-  val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
+  private val testService = HttpRoutes.of[IO] { case GET -> Root / "request" =>
     Ok("request response")
   }
 
-  def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
+  private def testSingleHeader[F[_]: Functor, G[_]](testee: Http[F, G]) = {
     val requestMatchingSingleHeaderKey =
       Request[G](
         uri = uri"/request",
@@ -41,7 +41,7 @@ class HeaderEchoSuite extends Http4sSuite {
       .map(_.headers)
       .map { responseHeaders =>
         responseHeaders.headers.exists(_.value === "someheadervalue") &&
-        responseHeaders.headers.toList.length === 3
+        responseHeaders.headers.length === 3
       }
   }
 
@@ -69,7 +69,7 @@ class HeaderEchoSuite extends Http4sSuite {
 
         responseHeaders.headers.exists(_.value === "someheadervalue") &&
         responseHeaders.headers.exists(_.value === "anotherheadervalue") &&
-        responseHeaders.headers.toList.length === 4
+        responseHeaders.headers.length === 4
       }
       .assert
   }
@@ -88,7 +88,7 @@ class HeaderEchoSuite extends Http4sSuite {
         val responseHeaders = r.headers
 
         !responseHeaders.headers.exists(_.value === "someunmatchedvalue") &&
-        responseHeaders.headers.toList.length === 2
+        responseHeaders.headers.length === 2
       }
       .assert
   }

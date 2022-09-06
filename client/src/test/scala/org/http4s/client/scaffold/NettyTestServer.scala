@@ -31,7 +31,6 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
-import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Uri
@@ -47,7 +46,7 @@ trait TestServer[F[_]] {
   def establishedConnections: F[Long]
   def resetEstablishedConnections: F[Unit]
   def secure: Boolean
-  def uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
+  def uri: Uri = Uri.unsafeFromString(s"${if (secure) "https" else "http"}://$localAddress")
 }
 
 class NettyTestServer[F[_]](
@@ -75,7 +74,7 @@ object NettyTestServer {
       .channelFactory(new ChannelFactory[NioServerSocketChannel] {
         override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
       })
-      .handler(new LoggingHandler(LogLevel.INFO))
+      .handler(new LoggingHandler())
       .childHandler(new ChannelInitializer[NioSocketChannel]() {
         def initChannel(ch: NioSocketChannel): Unit = {
           logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].")
@@ -106,7 +105,7 @@ object NettyTestServer {
       F: Async[F]
   ): Resource[F, Channel] =
     Resource.make[F, Channel](
-      F.delay(bootstrap.bind(InetAddress.getLocalHost(), port)).liftToFWithChannel
+      F.delay(bootstrap.bind(InetAddress.getLoopbackAddress(), port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
   private def toSocketAddress(

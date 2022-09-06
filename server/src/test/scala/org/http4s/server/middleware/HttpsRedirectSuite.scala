@@ -29,12 +29,12 @@ import org.http4s.headers._
 import org.http4s.syntax.all._
 
 class HttpsRedirectSuite extends Http4sSuite {
-  val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
+  private val innerRoutes = HttpRoutes.of[IO] { case GET -> Root =>
     Ok("pong")
   }
 
-  val reqHeaders = Headers("X-Forwarded-Proto" -> "http", Host("example.com"))
-  val req = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root), headers = reqHeaders)
+  private val reqHeaders = Headers("X-Forwarded-Proto" -> "http", Host("example.com"))
+  private val req = Request[IO](method = GET, uri = Uri(path = Uri.Path.Root), headers = reqHeaders)
 
   test("redirect to https when 'X-Forwarded-Proto' is http") {
     List(

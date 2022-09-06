@@ -18,7 +18,8 @@ package org.http4s
 package client
 
 import cats.effect.IO
+import cats.effect.Resource
 
 class JavaNetClientSuite extends ClientRouteTestBattery("JavaNetClient") {
-  def clientResource = JavaNetClientBuilder[IO](testBlocker).resource
+  def clientResource: Resource[IO, Client[IO]] = JavaNetClientBuilder[IO](testBlocker).resource
 }

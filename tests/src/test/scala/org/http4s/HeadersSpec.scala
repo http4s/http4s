@@ -25,10 +25,10 @@ import org.http4s.syntax.header._
 import org.typelevel.ci._
 
 class HeadersSpec extends Http4sSuite {
-  val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(ci"raw-header", "Raw value")
+  private val clength = `Content-Length`.unsafeFromLong(10)
+  private val raw = Header.Raw(ci"raw-header", "Raw value")
 
-  val base = Headers(clength, raw)
+  private val base = Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
     assertEquals(base.get[`Content-Type`], None)
@@ -37,6 +37,11 @@ class HeadersSpec extends Http4sSuite {
   test("Headers should Find an existing header and return its parsed form") {
     assertEquals(base.get[`Content-Length`], Some(clength))
     assertEquals(base.get(ci"raw-header"), Some(NonEmptyList.of(raw)))
+  }
+
+  test("contains") {
+    assert(base.contains[`Content-Length`])
+    assert(!base.contains[`Content-Type`])
   }
 
   test("Headers should Replaces headers") {
@@ -66,7 +71,7 @@ class HeadersSpec extends Http4sSuite {
     val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
     val hs = Headers(clength) ++ Headers(h1, h2)
     assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
-    assertEquals(hs.headers.exists(_ == clength.toRaw1), true)
+    assertEquals(hs.headers.contains(clength.toRaw1), true)
   }
 
   // TODO this isn't really "raw headers" anymore

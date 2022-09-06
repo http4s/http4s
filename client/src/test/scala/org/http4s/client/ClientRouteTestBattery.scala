@@ -25,7 +25,7 @@ import org.http4s.client.scaffold.ServerScaffold
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.multipart.Multipart
+import org.http4s.multipart.Multiparts
 import org.http4s.multipart.Part
 import org.typelevel.ci._
 
@@ -34,7 +34,7 @@ import java.util.Locale
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Http4sClientDsl[IO] {
-  val timeout = 20.seconds
+  val timeout: FiniteDuration = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]
 
@@ -42,14 +42,14 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   // This is only required for JettyClient
   implicit val contextShift: ContextShift[IO] = Http4sSuite.TestContextShift
 
-  val testHandler = HttpRoutes.of[IO] {
+  val testHandler: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case req @ (Method.GET -> Root / "request-splitting") =>
       if (req.headers.get(ci"Evil").isDefined)
         InternalServerError()
       else
         Ok()
     case _ @(Method.GET -> path) =>
-      GetRoutes.getPaths.get(path.toString).getOrElse(NotFound())
+      GetRoutes.getPaths.getOrElse(path.toString, NotFound())
     case req @ (Method.POST -> _) =>
       Ok(req.body)
   }
@@ -101,10 +101,16 @@ abstract class ClientRouteTestBattery(name: String) extends Http4sSuite with Htt
   test(s"$name POST a multipart body") {
     val address = server().addresses.head
     val uri = Uri.fromString(s"http://${address.host}:${address.port}/echo").yolo
-    val multipart = Multipart[IO](Vector(Part.formData("text", "This is text.")))
-    val req = POST(multipart, uri).withHeaders(multipart.headers)
-    val body = client().expect[String](req)
-    body.map(_.contains("This is text.")).assert
+    Multiparts
+      .forSync[IO]
+      .flatMap { multiparts =>
+        multiparts.multipart(Vector(Part.formData("text", "This is text."))).flatMap { multipart =>
+          val req = POST(multipart, uri).withHeaders(multipart.headers)
+          val body = client().expect[String](req)
+          body.map(_.contains("This is text."))
+        }
+      }
+      .assert
   }
 
   test(s"$name Execute GET") {

@@ -20,11 +20,20 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import fs2.io.tcp.SocketGroup
+import io.netty.channel.ChannelHandlerContext
+import io.netty.handler.codec.http.HttpMethod
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus
 import org.http4s.client.ConnectionFailure
 import org.http4s.client.RequestKey
+import org.http4s.client.scaffold.Handler
+import org.http4s.client.scaffold.HandlerHelpers
+import org.http4s.client.scaffold.HandlersToNettyAdapter
+import org.http4s.client.scaffold.ServerScaffold
 import org.http4s.syntax.all._
 
 import java.net.InetSocketAddress
@@ -135,7 +144,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.port
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        builder(1, requestTimeout = 2.seconds).resource.use { client =>
+        builder(1, requestTimeout = 60.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,
@@ -159,7 +168,7 @@ class BlazeClientSuite extends BlazeClientBase {
     val port = address.port
     Deferred[IO, Unit]
       .flatMap { reqClosed =>
-        builder(1, requestTimeout = 2.seconds).resource.use { client =>
+        builder(1, requestTimeout = 60.seconds).resource.use { client =>
           val body = Stream(0.toByte).repeat.onFinalizeWeak(reqClosed.complete(()))
           val req = Request[IO](
             method = Method.POST,
@@ -298,6 +307,77 @@ class BlazeClientSuite extends BlazeClientBase {
         _ <- state.allocated.map(_.get(RequestKey.fromRequest(req))).assertEquals(Some(1))
         _ <- done.complete(())
       } yield ()
+    }
+  }
+
+  test("retries idempotent requests") {
+    Ref.of[IO, Int](0).flatMap { attempts =>
+      val handlers = Map((HttpMethod.GET, "/close-without-response") -> new Handler {
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          attempts.update(_ + 1).unsafeRunSync()
+          ctx.channel.close()
+          ()
+        }
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      })
+      ServerScaffold[IO](1, false, HandlersToNettyAdapter[IO](handlers)).use { server =>
+        val address = server.addresses.head
+        val name = address.host
+        val port = address.port
+        val uri = Uri.fromString(s"http://$name:$port/close-without-response").yolo
+        val req = Request[IO](method = Method.GET, uri = uri)
+        val key = RequestKey.fromRequest(req)
+        builder(1, retries = 3).resourceWithState
+          .use { case (client, state) =>
+            client.status(req).attempt *> attempts.get.assertEquals(4) *>
+              state.allocated.map(_.get(key)).assertEquals(None)
+          }
+      }
+    }
+  }
+
+  test("does not retry non-idempotent requests") {
+    Ref.of[IO, Int](0).flatMap { attempts =>
+      val handlers = Map((HttpMethod.POST, "/close-without-response") -> new Handler {
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          attempts.update(_ + 1).unsafeRunSync()
+          ctx.channel.close()
+          ()
+        }
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      })
+      ServerScaffold[IO](1, false, HandlersToNettyAdapter[IO](handlers)).use { server =>
+        val address = server.addresses.head
+        val name = address.host
+        val port = address.port
+        val uri = Uri.fromString(s"http://$name:$port/close-without-response").yolo
+        val req = Request[IO](method = Method.POST, uri = uri)
+        builder(1, retries = 3).resource
+          .use(client => client.status(req).attempt *> attempts.get.assertEquals(1))
+      }
+    }
+  }
+
+  test("does not retry requests that fail without a SocketException") {
+    Ref.of[IO, Int](0).flatMap { attempts =>
+      val handlers = Map((HttpMethod.GET, "/500") -> new Handler {
+        override def onRequestStart(ctx: ChannelHandlerContext, request: HttpRequest): Unit = {
+          attempts.update(_ + 1).unsafeRunSync()
+          HandlerHelpers
+            .sendResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, closeConnection = true)
+          ()
+        }
+        override def onRequestEnd(ctx: ChannelHandlerContext, request: HttpRequest): Unit = ()
+      })
+      ServerScaffold[IO](1, false, HandlersToNettyAdapter[IO](handlers)).use { server =>
+        val address = server.addresses.head
+        val name = address.host
+        val port = address.port
+        val uri = Uri.fromString(s"http://$name:$port/500").yolo
+        val req = Request[IO](method = Method.GET, uri = uri)
+        builder(1, retries = 3).resource
+          .use(client => client.status(req).attempt *> attempts.get.assertEquals(1))
+      }
     }
   }
 }

@@ -39,7 +39,7 @@ import javax.net.ssl.SSLContext
 import scala.concurrent.duration._
 
 trait BlazeClientBase extends Http4sSuite {
-  val tickWheel = new TickWheelExecutor(tick = 50.millis)
+  val tickWheel: TickWheelExecutor = new TickWheelExecutor(tick = 50.millis)
 
   def builder(
       maxConnectionsPerRequestKey: Int,
@@ -48,7 +48,8 @@ trait BlazeClientBase extends Http4sSuite {
       requestTimeout: Duration = 45.seconds,
       chunkBufferMaxSize: Int = 1024,
       sslContextOption: Option[SSLContext] = Some(bits.TrustingSslContext),
-  ) = {
+      retries: Int = 0,
+  ): BlazeClientBuilder[IO] = {
     val builder: BlazeClientBuilder[IO] =
       BlazeClientBuilder[IO](munitExecutionContext)
         .withCheckEndpointAuthentication(false)
@@ -58,6 +59,7 @@ trait BlazeClientBase extends Http4sSuite {
         .withMaxConnectionsPerRequestKey(Function.const(maxConnectionsPerRequestKey))
         .withChunkBufferMaxSize(chunkBufferMaxSize)
         .withScheduler(scheduler = tickWheel)
+        .withRetries(retries)
 
     sslContextOption.fold[BlazeClientBuilder[IO]](builder.withoutSslContext)(builder.withSslContext)
   }
@@ -115,6 +117,7 @@ trait BlazeClientBase extends Http4sSuite {
       },
     )
 
-  val server = resourceSuiteFixture("http", makeScaffold(2, false))
-  val secureServer = resourceSuiteFixture("https", makeScaffold(1, true))
+  val server: Fixture[ServerScaffold[IO]] = resourceSuiteFixture("http", makeScaffold(2, false))
+  val secureServer: Fixture[ServerScaffold[IO]] =
+    resourceSuiteFixture("https", makeScaffold(1, true))
 }

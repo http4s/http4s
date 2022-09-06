@@ -27,6 +27,7 @@ import org.http4s.client.ClientRouteTestBattery
 import org.http4s.client.DefaultClient
 import org.http4s.client.defaults
 
+@deprecated("Upstream client is deprecated", "0.22.12")
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") with Http4sSuite {
 
   def clientResource: Resource[IO, Client[IO]] = AsyncHttpClient.resource[IO]()

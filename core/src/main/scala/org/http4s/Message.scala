@@ -28,13 +28,16 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import fs2.Chunk
 import fs2.Pure
 import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.headers._
+import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.http4s.syntax.KleisliSyntaxBinCompat0
 import org.http4s.syntax.KleisliSyntaxBinCompat1
+import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
@@ -210,12 +213,61 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def isChunked: Boolean =
     headers.get[`Transfer-Encoding`].exists(_.values.contains_(TransferCoding.chunked))
 
+  /** Puts a `Content-Length` header, replacing any existing.  Removes
+    * any existing `chunked` value from the `Transfer-Encoding`
+    * header.  It is critical that the supplied content length
+    * accurately describe the length of the body stream.
+    *
+    * {{{
+    * scala> import org.http4s.headers._
+    * scala> val chunked = Request().withHeaders(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
+    * res0: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
+    *
+    * scala> val chunkedGzipped = Request().withHeaders(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
+    * res1: Headers = Headers(Transfer-Encoding: gzip, Content-Type: text/plain, Content-Length: 1024)
+    *
+    * scala> val const = Request().withHeaders(
+    *      |   `Content-Length`(2048),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024)).headers
+    * res1: Headers = Headers(Content-Type: text/plain, Content-Length: 1024)
+    * }}}
+    */
+  def withContentLength(contentLength: `Content-Length`): Self =
+    transformHeaders(_.transform { hs =>
+      val b = List.newBuilder[Header.Raw]
+      hs.foreach { h =>
+        h.name match {
+          case `Transfer-Encoding`.name =>
+            `Transfer-Encoding`
+              .parse(h.value)
+              .redeem(
+                _ => b += h,
+                _.filter(_ != TransferCoding.chunked)
+                  .foreach(b += _.toRaw1),
+              )
+          case `Content-Length`.name =>
+            ()
+          case _ =>
+            b += h
+        }
+      }
+      b += contentLength.toRaw1
+      b.result()
+    })
+
   // Attribute methods
 
   /** Generates a new message object with the specified key/value pair appended
-    * to the [[#attributes]].
+    * to the [[attributes]].
     *
-    * @param key [[io.chrisdavenport.vault.Key]] with which to associate the value
+    * @param key [[org.typelevel.vault.Key]] with which to associate the value
     * @param value value associated with the key
     * @tparam A type of the value to store
     * @return a new message object with the key/value pair appended
@@ -224,9 +276,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
     change(attributes = attributes.insert(key, value))
 
   /** Returns a new message object without the specified key in the
-    * [[#attributes]].
+    * [[attributes]].
     *
-    * @param key [[io.chrisdavenport.vault.Key]] to remove
+    * @param key [[org.typelevel.vault.Key]] to remove
     * @return a new message object without the key
     */
   def withoutAttribute(key: Key[_]): Self =
@@ -235,6 +287,17 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   /** Lifts this Message's body to the specified effect type.
     */
   override def covary[F2[x] >: F[x]]: SelfF[F2] = this.asInstanceOf[SelfF[F2]]
+
+  /** Compiles the body stream to a single chunk and sets it as the
+    * body.  Replaces any `Transfer-Encoding: chunked` with a
+    * `Content-Length` header.  It is the caller's responsibility to
+    * assure there is enough memory to materialize the body.
+    */
+  def toStrict(implicit F: Sync[F]): F[Self] =
+    body.compile.to(Chunk).map { chunk =>
+      withBodyStream(Stream.chunk(chunk))
+        .withContentLength(`Content-Length`.unsafeFromLong(chunk.size.toLong))
+    }
 }
 
 object Message {
@@ -317,8 +380,10 @@ final class Request[F[_]] private (
       attributes = attributes,
     )
 
-  lazy val (scriptName, pathInfo) =
-    uri.path.splitAt(caret)
+  lazy val (scriptName, pathInfo) = {
+    val (l, r) = uri.path.splitAt(caret)
+    (l.toAbsolute, r.toAbsolute)
+  }
 
   private def caret =
     attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(-1)
@@ -336,28 +401,11 @@ final class Request[F[_]] private (
 
   /** cURL representation of the request.
     *
-    * Supported cURL-Parameters are: -X, -H
+    * Supported cURL-Parameters are: --request, --url, --header.
+    * Note that `asCurl` will not print the request body.
     */
-  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String = {
-
-    /*
-     * escapes characters that are used in the curl-command, such as '
-     */
-    def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
-
-    val elements = List(
-      s"-X ${method.name}",
-      s"'${escapeQuotationMarks(uri.renderString)}'",
-      headers
-        .redactSensitive(redactHeadersWhen)
-        .headers
-        .map { header =>
-          s"""-H '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
-        }
-        .mkString(" "),
-    )
-    s"curl ${elements.filter(_.nonEmpty).mkString(" ")}"
-  }
+  def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+    CurlConverter.requestToCurlWithoutBody(this, redactHeadersWhen)
 
   /** Representation of the query string as a map
     *
@@ -372,7 +420,7 @@ final class Request[F[_]] private (
     * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
     * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
     * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v4</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing
@@ -453,6 +501,12 @@ final class Request[F[_]] private (
 
   def serverSoftware: ServerSoftware =
     attributes.lookup(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+
+  /** A request is idempotent if its method is idempotent or it contains
+    * an `Idempotency-Key` header.
+    */
+  def isIdempotent: Boolean =
+    method.isIdempotent || headers.contains[`Idempotency-Key`]
 
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(
       f: A => F[Response[F]]
@@ -575,7 +629,7 @@ object Request {
   * @param status [[Status]] code and message
   * @param headers [[Headers]] containing all response headers
   * @param body EntityBody[F] representing the possible body of the response
-  * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+  * @param attributes [[org.typelevel.vault.Vault]] containing additional
   *                   parameters which may be used by the http4s backend for
   *                   additional processing such as java.io.File object
   */
@@ -619,21 +673,21 @@ final class Response[F[_]] private (
   def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+  /** Returns a list of cookies from the [[org.http4s.headers.`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
@@ -690,7 +744,7 @@ object Response extends KleisliSyntax with KleisliSyntaxBinCompat0 with KleisliS
     * @param status [[Status]] code and message
     * @param headers [[Headers]] containing all response headers
     * @param body EntityBody[F] representing the possible body of the response
-    * @param attributes [[io.chrisdavenport.vault.Vault]] containing additional
+    * @param attributes [[org.typelevel.vault.Vault]] containing additional
     *                   parameters which may be used by the http4s backend for
     *                   additional processing such as java.io.File object
     */

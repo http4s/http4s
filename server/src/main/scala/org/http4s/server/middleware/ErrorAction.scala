@@ -44,13 +44,13 @@ object ErrorAction {
           messageFailureLogAction(
             mf,
             s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}""",
+                .getOrElse("<unknown>")}""",
           )
         case (req, e) =>
           serviceErrorLogAction(
             e,
             s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}""",
+                .getOrElse("<unknown>")}""",
           )
       },
     )

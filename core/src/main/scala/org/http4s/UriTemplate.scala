@@ -93,7 +93,7 @@ final case class UriTemplate(
   def expandQuery[T: QueryParamEncoder](name: String, values: T*): UriTemplate =
     expandQuery(name, values.toList)
 
-  override lazy val toString =
+  override lazy val toString: String =
     renderUriTemplate(this)
 
   /** If no expansion is available an `Uri` will be created otherwise the
@@ -112,7 +112,7 @@ object UriTemplate {
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
 
-  protected val unreserved =
+  protected val unreserved: Set[Char] =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') :+ '-' :+ '.' :+ '_' :+ '~').toSet
 
   //  protected val genDelims = ':' :: '/' :: '?' :: '#' :: '[' :: ']' :: '@' :: Nil
@@ -126,7 +126,7 @@ object UriTemplate {
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
-    def appendValues() =
+    def appendValues(): Unit =
       values.foreach { v =>
         acc.append(PathElm(v.value))
       }
@@ -281,7 +281,7 @@ object UriTemplate {
   protected def renderFragment(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
     val expansions = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(n) => expansions.append(n)
       case MultiFragmentExp(ns) => expansions.append(ns.mkString(","))
@@ -298,7 +298,7 @@ object UriTemplate {
 
   protected def renderFragmentIdentifier(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(_) =>
         throw new IllegalStateException("SimpleFragmentExp cannot be converted to a Uri")
@@ -314,7 +314,7 @@ object UriTemplate {
       case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
       case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
       case (elements, ParamElm(n, vs)) =>
-        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
+        vs.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }

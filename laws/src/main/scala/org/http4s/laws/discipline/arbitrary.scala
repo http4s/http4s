@@ -123,7 +123,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
 
-  val genNonTchar = frequency(
+  val genNonTchar: Gen[Char] = frequency(
     4 -> oneOf(Set(0x00.toChar to 0x7f.toChar: _*) -- tchars),
     1 -> oneOf(0x100.toChar to Char.MaxValue),
   )
@@ -169,17 +169,17 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForMethod: Cogen[Method] =
     Cogen[Int].contramap(_.##)
 
-  val genValidStatusCode =
+  val genValidStatusCode: Gen[Int] =
     choose(Status.MinCode, Status.MaxCode)
 
-  val genStandardStatus =
+  val genStandardStatus: Gen[Status] =
     oneOf(Status.registered)
 
   @deprecated(
     "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
     "0.22.6",
   )
-  val genCustomStatus = for {
+  val genCustomStatus: Gen[Status] = for {
     code <- genValidStatusCode
     reason <- genCustomStatusReason
   } yield Status.fromInt(code).yolo.withReason(reason)
@@ -316,8 +316,8 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
     Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
-  // MediaRange exepects the quoted pair without quotes
-  val http4sGenUnquotedPair = genQDText
+  // MediaRange expects the quoted pair without quotes
+  val http4sGenUnquotedPair: Gen[String] = genQDText
 
   val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
@@ -1104,13 +1104,29 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       unsanitized,
     )
   }
-  val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
+  val dntGen: Gen[DNT] = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
+  }
+
+  val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
+  val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)
+
+  val genEntityTag: Gen[EntityTag] =
+    for {
+      tag <- Gen.oneOf(genObsText, genVcharExceptDquote.map(_.toString))
+      strength <- Gen.oneOf(EntityTag.Weak, EntityTag.Strong)
+    } yield EntityTag(tag, strength)
+
+  implicit val http4sTestingArbitraryForIfRangeLastModified: Arbitrary[`If-Range`] = Arbitrary {
+    Gen.oneOf(
+      genHttpDate.map(`If-Range`.LastModified),
+      genEntityTag.map(`If-Range`.ETag),
+    )
   }
 
   implicit val http4sTestingArbitraryTrailer: Arbitrary[Trailer] = Arbitrary(

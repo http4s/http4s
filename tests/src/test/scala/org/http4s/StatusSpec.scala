@@ -121,12 +121,19 @@ class StatusSpec extends StatusDeprecatedSpec {
     }
   }
 
+  def isSanitized(s: Status): Boolean =
+    s.renderString
+      .getBytes(StandardCharsets.ISO_8859_1)
+      .forall(b => (b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) >= 0x80)))
+
   test("rendering sanitizes statuses") {
-    forAll { (s: Status) =>
-      s.renderString
-        .getBytes(StandardCharsets.ISO_8859_1)
-        .forall(b => b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) > 0x80))
-    }
+    forAll((s: Status) => isSanitized(s))
+  }
+
+  test("#5736 regression") {
+    val reason = "椗찦铝宏ýುؽ汃붒ᷖ鯣츑䭚䩰ܨ瀏ĵꎉ쎿뎯뾥뛾틨ޡ囨"
+    val s = Status.fromInt(200).toOption.get.withReason(reason): @nowarn("cat=deprecation")
+    assert(isSanitized(s))
   }
 
   private def getStatus(code: Int) =
@@ -146,7 +153,7 @@ class StatusDeprecatedSpec extends Http4sSuite {
     assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
   }
 
-  protected def getStatus(code: Int, reason: String) =
+  protected def getStatus(code: Int, reason: String): Status =
     fromIntAndReason(code, reason) match {
       case Right(s) => s
       case Left(t) => throw t

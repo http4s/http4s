@@ -206,11 +206,11 @@ object EntityDecoder {
 
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Sync](m: Media[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(m.body.chunks.compile.toVector.map(Chunk.concatBytes))
+    DecodeResult.success(m.body.chunks.compile.to(Chunk).map(_.flatten))
 
   /** Helper method which simply gathers the body into a single ByteVector */
   private def collectByteVector[F[_]: Sync](m: Media[F]): DecodeResult[F, ByteVector] =
-    DecodeResult.success(m.body.compile.toVector.map(ByteVector(_)))
+    DecodeResult.success(m.body.compile.to(ByteVector))
 
   /** Decodes a message to a String */
   def decodeText[F[_]](
@@ -288,6 +288,6 @@ object EntityDecoder {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.compile.drain)
+      DecodeResult.success(msg.body.compile.drain)
     }
 }

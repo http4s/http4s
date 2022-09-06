@@ -42,8 +42,8 @@ object EntityCodecLaws {
       entityDecoderFA: EntityDecoder[F, A],
   ): EntityCodecLaws[F, A] =
     new EntityCodecLaws[F, A] {
-      val F = F0
-      val encoder = entityEncoderFA
-      val decoder = entityDecoderFA
+      val F: Effect[F] = F0
+      val encoder: EntityEncoder[F, A] = entityEncoderFA
+      val decoder: EntityDecoder[F, A] = entityDecoderFA
     }
 }

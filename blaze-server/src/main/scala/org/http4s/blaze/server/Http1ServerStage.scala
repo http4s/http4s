@@ -23,6 +23,7 @@ import cats.effect.Concurrent
 import cats.effect.ConcurrentEffect
 import cats.effect.IO
 import cats.effect.Sync
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import org.http4s.blaze.http.parser.BaseExceptions.BadMessage
 import org.http4s.blaze.http.parser.BaseExceptions.ParserException
@@ -43,7 +44,6 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.internal.unsafeRunAsync
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.StringWriter
-import org.typelevel.ci._
 import org.typelevel.vault._
 
 import java.nio.ByteBuffer
@@ -124,7 +124,7 @@ private[blaze] class Http1ServerStage[F[_]](
   // protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
   private[this] var isClosed = false
-  private[this] var cancelToken: Option[CancelToken[F]] = None
+  @volatile private[this] var cancelToken: Option[CancelToken[F]] = None
 
   val name = "Http4sServerStage"
 
@@ -147,7 +147,7 @@ private[blaze] class Http1ServerStage[F[_]](
     requestLoop()
   }
 
-  private def initIdleTimeout() =
+  private def initIdleTimeout(): Unit =
     idleTimeout match {
       case f: FiniteDuration =>
         val cb: Callback[TimeoutException] = {
@@ -175,13 +175,14 @@ private[blaze] class Http1ServerStage[F[_]](
     logRequest(buff)
     parser.synchronized {
       if (!isClosed)
-        try if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
-          requestLoop()
-        else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
-          requestLoop()
-        else
-          // we have enough to start the request
-          runRequest(buff)
+        try
+          if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff))
+            requestLoop()
+          else if (!parser.headersComplete() && !parser.doParseHeaders(buff))
+            requestLoop()
+          else
+            // we have enough to start the request
+            runRequest(buff)
         catch {
           case t: BadMessage =>
             badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
@@ -216,24 +217,27 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = Sync[F]
+            val action = F
               .defer(raceTimeout(req))
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+              .continual {
+                case Right(resp) => F.delay(renderResponse(req, resp, cleanup))
+                case Left(t) => F.raiseError[Unit](t)
+              }
 
             val theCancelToken = Some(
               F.runCancelable(action) {
                 case Right(()) => IO.unit
                 case Left(t) =>
-                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
-                    closeConnection()
-                  )
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *>
+                    IO.delay {
+                      cancelToken = None
+                    } *>
+                    IO(closeConnection())
               }.unsafeRunSync()
             )
 
-            parser.synchronized {
-              cancelToken = theCancelToken
-            }
+            cancelToken = theCancelToken
           }
         })
       case Left((e, protocol)) =>
@@ -266,7 +270,7 @@ private[blaze] class Http1ServerStage[F[_]](
       ) // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
-    val bodyEncoder: Http1Writer[F] = {
+    val bodyEncoder: Http1Writer[F] =
       if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
@@ -304,7 +308,6 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish,
           false,
         )
-    }
 
     unsafeRunAsync(bodyEncoder.write(rr, resp.body).recover { case EOF => true }) {
       case Right(requireClose) =>
@@ -361,7 +364,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response[F](Status.BadRequest)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
@@ -374,7 +377,7 @@ private[blaze] class Http1ServerStage[F[_]](
   ): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError)
-      .withHeaders(Connection(ci"close"), `Content-Length`.zero)
+      .withHeaders(Connection.close, `Content-Length`.zero)
     renderResponse(
       req,
       resp,
