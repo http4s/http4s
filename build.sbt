@@ -15,7 +15,6 @@ ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ =>
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
-ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
