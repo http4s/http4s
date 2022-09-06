@@ -42,6 +42,10 @@ object EmberServerH2Example extends IOApp {
           case _ -> Root / "foo" =>
             // println(req)
             Response[F](Status.Ok).withEntity("Foo Endpoint").pure[F]
+          case _ -> Root / "stream" =>
+            // println("Got stream endpoint")
+            Ok(Stream("Ok").covary[F])
+              .flatTap(Console[F].println)
           case req @ _ -> Root / "trailers" =>
             println(s"Got $req at trailers endpoint")
             req.headers
@@ -78,8 +82,13 @@ object EmberServerH2Example extends IOApp {
         .withTLS(tlsContext, TLSParameters.Default)
         .withHttp2
         .withHost(ipv4"0.0.0.0")
-        .withPort(port"8080")
+        .withPort(port"8081")
         .withHttpApp(simpleApp)
+        .withErrorHandler { case error =>
+          Console[F]
+            .println(s"Unexpected error:$error")
+            .as(Response(status = Status.InternalServerError))
+        }
         .build
     } yield ()
 
@@ -91,15 +100,21 @@ object EmberServerH2Example extends IOApp {
         .withHost(ipv4"0.0.0.0")
         .withPort(port"8080")
         .withHttpApp(simpleApp)
+        .withErrorHandler { case error =>
+          Console[F]
+            .println(s"Unexpected error:$error")
+            .as(Response(status = Status.InternalServerError))
+        }
         .build
 
   }
 
   implicit val C: Console[IO] = Console.make[IO]
   def run(args: List[String]): IO[ExitCode] =
-    ServerTest
-      .testCleartext[IO]
-      .use(_ => IO.never)
+    (
+      ServerTest.testCleartext[IO],
+      ServerTest.testALPN[IO],
+    ).tupled.useForever
       .as(ExitCode.Success)
 
 }

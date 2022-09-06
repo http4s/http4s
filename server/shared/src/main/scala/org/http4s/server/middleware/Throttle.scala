@@ -19,7 +19,7 @@ package org.http4s.server.middleware
 import cats._
 import cats.data.Kleisli
 import cats.data.OptionT
-import cats.effect.kernel.Temporal
+import cats.effect.Temporal
 import cats.implicits._
 import org.http4s.Http
 import org.http4s.HttpApp
@@ -103,7 +103,7 @@ object Throttle {
     }
   }
 
-  private def createBucket[F[_]](amount: Int, per: FiniteDuration)(implicit F: Temporal[F]) = {
+  private def createBucket[F[_]: Temporal](amount: Int, per: FiniteDuration) = {
     val refillFrequency = per / amount.toLong
     TokenBucket.local(amount, refillFrequency)
   }
@@ -115,16 +115,16 @@ object Throttle {
     * @param http   the service to transform.
     * @return a task containing the transformed service.
     */
-  def apply[F[_], G[_]](amount: Int, per: FiniteDuration)(
+  def apply[F[_]: Temporal, G[_]](amount: Int, per: FiniteDuration)(
       http: Http[F, G]
-  )(implicit F: Temporal[F]): F[Http[F, G]] =
+  ): F[Http[F, G]] =
     createBucket(amount, per).map(bucket => apply(bucket, defaultResponse[G] _)(http))
 
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpRoutes[F]
     */
-  def httpRoutes[F[_]](amount: Int, per: FiniteDuration)(
+  def httpRoutes[F[_]: Temporal](amount: Int, per: FiniteDuration)(
       httpRoutes: HttpRoutes[F]
-  )(implicit F: Temporal[F]): F[HttpRoutes[F]] =
+  ): F[HttpRoutes[F]] =
     createBucket(amount, per).map(bucket =>
       Throttle.httpRoutes(bucket, defaultResponse[F] _)(httpRoutes)
     )
@@ -136,8 +136,8 @@ object Throttle {
 
   /** As [[[apply[F[_],G[_]](amount:Int,per:scala\.concurrent\.duration\.FiniteDuration* apply(amount,per)]]], but for HttpApp[F]
     */
-  def httpApp[F[_]](amount: Int, per: FiniteDuration)(httpApp: HttpApp[F])(implicit
-      F: Temporal[F]
+  def httpApp[F[_]: Temporal](amount: Int, per: FiniteDuration)(
+      httpApp: HttpApp[F]
   ): F[HttpApp[F]] =
     apply(amount, per)(httpApp)
 

@@ -19,6 +19,7 @@ package client
 package middleware
 
 import cats.effect.IO
+import fs2.io.compression._
 import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`

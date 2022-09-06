@@ -5,7 +5,11 @@ Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-$ sbt new http4s/http4s.g8 --branch 0.23
+# for Scala 2.x
+$ sbt new http4s/http4s.g8 --branch 1.0
+
+# for Scala 3
+$ sbt new http4s/http4s.g8 --branch 1.0-scala3
 ```
 
 Follow the prompts.  For every step along the way, a default value is
