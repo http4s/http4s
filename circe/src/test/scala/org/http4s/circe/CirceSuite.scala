@@ -20,7 +20,7 @@ package circe.test // Get out of circe package so we can import custom instances
 import cats.data.EitherT
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.laws.util.TestContext
+import cats.effect.testkit.TestContext
 import cats.syntax.all._
 import fs2.Stream
 import io.circe._
@@ -207,7 +207,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator
+            """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+            128,
           ),
           Headers("content-type" -> "application/json"),
         ),
@@ -232,7 +233,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator
+          """[{"test1":"CirceSupport"},{"test2":"CirceSupport"}]""".getBytes.iterator,
+          128,
         ),
         Headers.empty,
       ),
@@ -245,7 +247,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     val result = streamJsonArrayDecoder[IO].decode(
       Media(
         Stream.fromIterator[IO](
-          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator
+          """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+          128,
         ),
         Headers("content-type" -> "application/json"),
       ),
@@ -259,7 +262,8 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       stream <- streamJsonArrayDecoder[IO].decode(
         Media(
           Stream.fromIterator[IO](
-            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator
+            """[{"test1":"CirceSupport"},{"test2":CirceSupport"}]""".getBytes.iterator,
+            128,
           ),
           Headers("content-type" -> "application/json"),
         ),
@@ -270,7 +274,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       )
     } yield list).value.attempt
       .assertEquals(
-        Left(ParseException("expected json value got 'C...' (line 1, column 36)", 35, 1, 36))
+        Left(ParseException("expected json value got 'CirceS...' (line 1, column 36)", 35, 1, 36))
       )
   }
 
@@ -315,7 +319,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     result.value.assertEquals(
       Left(
         InvalidMessageBodyFailure(
-          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor"
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Missing required field"
         )
       )
     )
@@ -346,7 +350,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     result.value.assertEquals(
       Left(
         InvalidMessageBodyFailure(
-          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Attempt to decode value on failed cursor, DecodingFailure at .b: Attempt to decode value on failed cursor"
+          "Custom Could not decode JSON: {\"bar1\":42}, errors: DecodingFailure at .a: Missing required field, DecodingFailure at .b: Missing required field"
         )
       )
     )

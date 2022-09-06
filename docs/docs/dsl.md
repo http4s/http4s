@@ -36,8 +36,13 @@ We'll need the following imports to get started:
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
-// Provided by `cats.effect.IOApp`
-implicit val timer : Timer[IO] = IO.timer(scala.concurrent.ExecutionContext.global)
+```
+
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -68,7 +73,7 @@ and experiment directly in the REPL.
 ```scala mdoc
 val getRoot = Request[IO](Method.GET, uri"/")
 
-val io = service.orNotFound.run(getRoot)
+val serviceIO = service.orNotFound.run(getRoot)
 ```
 
 Where is our `Response[F]`?  It hasn't been created yet.  We wrapped it
@@ -83,7 +88,7 @@ run it.
 But here in the REPL, it's up to us to run it:
 
 ```scala mdoc
-val response = io.unsafeRunSync()
+val response = serviceIO.unsafeRunSync()
 ```
 
 Cool.
@@ -217,12 +222,11 @@ NoContent("does not compile")
 
 #### Asynchronous Responses
 
-While http4s prefers `F[_]: Effect`, you may be working with libraries that
+While http4s prefers `F[_]: Async`, you may be working with libraries that
 use standard library `Future`s.  Some relevant imports:
 
 ```scala mdoc
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
@@ -235,20 +239,18 @@ effectful, unless we wrap it in `IO`:
 `IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
 suspended future is shifted to the correct thread pool.
 
-```scala mdoc:nest
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-
-val io = Ok(IO.fromFuture(IO(Future {
+```scala mdoc
+val ioFuture = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })))
-io.unsafeRunSync()
+ioFuture.unsafeRunSync()
 ```
 
 As good functional programmers who like to delay our side effects, we
 of course prefer to operate in `F`s:
 
-```scala mdoc:nest
+```scala mdoc
 val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
@@ -286,7 +288,7 @@ We can see it for ourselves in the REPL:
 ```scala mdoc
 val dripOutIO = drip
   .through(fs2.text.lines)
-  .through(_.evalMap(s => {IO{println(s); s}}))
+  .evalMap(s => { IO{println(s); s} })
   .compile
   .drain
 dripOutIO.unsafeRunSync()
@@ -357,7 +359,7 @@ Alice!" to `GET /hello/Alice`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name => Ok(s"Hello, $name!")
+  case GET -> Root / "hello" / name => Ok(s"Hello, ${name}!")
 }
 ```
 
@@ -420,7 +422,8 @@ def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpRoutes.of[IO] {
   case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
-    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
+    Ok(getTemperatureForecast(localDate)
+      .map(s"The temperature on $localDate will be: " + _))
 }
 
 val req = GET(uri"/weather/temperature/2016-11-05")
@@ -461,7 +464,9 @@ val greetingWithIdService = HttpRoutes.of[IO] {
     Ok(s"Hello, $first $last. Your User ID is $id.")
 }
 
-greetingWithIdService.orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting")).unsafeRunSync()
+greetingWithIdService
+  .orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting"))
+  .unsafeRunSync()
 ```
 
 ### Handling Query Parameters
@@ -479,7 +484,7 @@ then parsing them as a `String` and `java.time.Year`.
 import java.time.Year
 ```
 
-```scala mdoc
+```scala mdoc:nest
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
@@ -502,9 +507,7 @@ outputs a `QueryParamCodec[Instant]`, which offers both a `QueryParamEncoder[Ins
 ```scala mdoc:silent
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-```
 
-```scala mdoc:silent:warn
 implicit val isoInstantCodec: QueryParamCodec[Instant] =
   QueryParamCodec.instantQueryParamCodec(DateTimeFormatter.ISO_INSTANT)
 
@@ -517,19 +520,19 @@ To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can b
 
 ```scala mdoc:silent
 import java.time.Year
-import org.http4s.client.dsl.io._
 ```
 
 ```scala mdoc:nest
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
 
-object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year]("year")
+object OptionalYearQueryParamMatcher 
+  extends OptionalQueryParamDecoderMatcher[Year]("year")
 
 def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
 
-val routes2 = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
     maybeYear match {
       case None =>

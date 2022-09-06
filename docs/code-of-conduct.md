@@ -35,7 +35,6 @@ These are the policies for upholding our community’s standards of conduct. If
 you feel that a thread needs moderation, please contact anyone on the
 moderation team:
 
-- [Bryce Anderson](mailto:bryce.anderson22@gmail.com)
 - [Ross A. Baker](mailto:ross@rossabaker.com)
 - [Christopher Davenport](mailto:chris@christopherdavenport.tech)
 

@@ -16,23 +16,22 @@ being served.
 
 ```scala mdoc
 import cats.effect._
-import org.http4s.blaze.server.BlazeServerBuilder
+import com.comcast.ip4s._
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import scala.concurrent.ExecutionContext.global
 
 object SimpleHttpServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
   val app: Resource[IO, Server] =
-    for {
-      blocker <- Blocker[IO]
-      server <- BlazeServerBuilder[IO](global)
-        .bindHttp(8080)
-        .withHttpApp(fileService[IO](FileService.Config(".", blocker)).orNotFound)
-        .resource
-    } yield server
+    EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"0.0.0.0")
+      .withPort(port"8080")
+      .withHttpApp(fileService[IO](FileService.Config(".")).orNotFound)
+      .build
 }
 ```
 
@@ -41,7 +40,7 @@ Static content services can be composed into a larger application by using a `Ro
 val httpApp: HttpApp[IO] =
     Router(
       "api"    -> anotherService,
-      "assets" -> fileService(FileService.Config("./assets", blocker))
+      "assets" -> fileService(FileService.Config("./assets"))
     ).orNotFound
 ```
 
@@ -52,50 +51,18 @@ a file version. So the next time the browser requests that information, it sends
 the ETag along, and gets a 304 Not Modified back, so you don't have to send the
 data over the wire again.
 
-### Execution Context
+## Inline in a Route
 
-Static file support uses a blocking API, so we'll need a blocking execution
-context. For this reason, the helpers in `org.http4s.server.staticcontent._` takes
-an argument of type `cats.effect.Blocker`.
-You can create a `Resource[F, Blocker]` by calling `Blocker[F]`, which will handle
-creating and disposing of an underlying thread pool. You can also create your
-own by lifting an execution context or an executor service.
+For custom behaviour, `StaticFile.fromPath` can also be used directly in a route, to respond with a file:
 
-For now, we will lift an executor service, since using `Resource` in a [mdoc]
-example is not feasible.
-
-```scala mdoc:silent:nest
-import java.util.concurrent._
-
-val blockingPool = Executors.newFixedThreadPool(4)
-val blocker = Blocker.liftExecutorService(blockingPool)
-```
-
-It also needs a main thread pool to shift back to.  This is provided when
-we're in IOApp, but you'll need one if you're following along in a REPL:
-
-```scala mdoc:silent:nest
-import scala.concurrent.ExecutionContext
-
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-```
-
-In a production application, `ContextShift[IO]` will be supplied by `IOApp`
-and the blocker would be created at app startup, using the `Resource` approach.
-
-```scala mdoc:silent:nest
-val routes = fileService[IO](FileService.Config(".", blocker))
-```
-
-For custom behaviour, `StaticFile.fromFile` can also be used directly in a route, to respond with a file:
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import org.http4s._
 import org.http4s.dsl.io._
-import java.io.File
+import fs2.io.file.Path
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
-    StaticFile.fromFile(new File("relative/path/to/index.html"), blocker, Some(request))
+    StaticFile.fromPath(Path("relative/path/to/index.html"), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```
@@ -105,22 +72,22 @@ val routes = HttpRoutes.of[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
-```scala mdoc:nest
-val routes = resourceServiceBuilder[IO]("/assets", blocker).toRoutes
+```scala mdoc
+val assetsRoutes = resourceServiceBuilder[IO]("/assets").toRoutes
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
 only files matching a list of extensions are served. Append to the `List` as needed.
 
-```scala mdoc:nest
-def static(file: String, blocker: Blocker, request: Request[IO]) =
-  StaticFile.fromResource("/" + file, blocker, Some(request)).getOrElseF(NotFound())
+```scala mdoc
+def static(file: String, request: Request[IO]) =
+  StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
 val fileTypes = List(".js", ".css", ".map", ".html", ".webm")
 
-val routes = HttpRoutes.of[IO] {
+val fileRoutes = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if fileTypes.exists(path.endsWith) =>
-    static(path, blocker, request)
+    static(path, request)
 }
 ```
 
@@ -138,7 +105,6 @@ libraryDependencies ++= Seq(
 Then, mount the `WebjarService` like any other service:
 
 ```scala mdoc:silent
-import org.http4s.server.staticcontent.webjarService
 import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 ```
 
@@ -147,13 +113,9 @@ import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO](blocker = blocker)
+val webjars: HttpRoutes[IO] = webjarServiceBuilder[IO]
   .withWebjarAssetFilter(isJsAsset)
   .toRoutes
-```
-
-```scala mdoc:silent
-blockingPool.shutdown()
 ```
 
 Assuming that the service is mounted as root on port `8080`, and you included the webjar `swagger-ui-3.20.9.jar` on your classpath, you would reach the assets with the path: `http://localhost:8080/swagger-ui/3.20.9/index.html`

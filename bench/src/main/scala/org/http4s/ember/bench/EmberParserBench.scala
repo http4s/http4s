@@ -16,8 +16,8 @@
 
 package org.http4s.ember.bench
 
-import cats.effect.ContextShift
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.Chunk
 import org.http4s._
 import org.http4s.ember.core.Parser
@@ -54,8 +54,6 @@ class EmberParserBench {
  */
 
 object EmberParserBench {
-
-  implicit val CS: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
   @State(Scope.Benchmark)
   class BenchState {

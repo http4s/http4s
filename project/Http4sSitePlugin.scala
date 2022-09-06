@@ -114,7 +114,7 @@ object Http4sSitePlugin extends AutoPlugin {
 
     val v1_0: Version = version("1", "Dev")
     val v0_23: Version = version("0.23", "Stable")
-    val v0_22: Version = version("0.22", "Stable")
+    val v0_22: Version = version("0.22", "EOL")
     val v0_21: Version = Version("0.21", "v0.21", "/index.html", Some("EOL"))
     val choose: Version = Version(
       "Help me choose...",
@@ -124,7 +124,7 @@ object Http4sSitePlugin extends AutoPlugin {
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
 
-    val current: Version = v0_22
+    val current: Version = v0_23
   }
 
   object redirects {

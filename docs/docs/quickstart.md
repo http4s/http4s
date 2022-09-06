@@ -9,7 +9,11 @@ Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-$ sbt -sbt-version 1.3.12 new http4s/http4s.g8 -b 0.22
+# for Scala 2.x
+$ sbt new http4s/http4s.g8 --branch 0.23
+
+# for Scala 3
+$ sbt new http4s/http4s.g8 --branch 0.23-scala3
 ```
 
 Follow the prompts.  For every step along the way, a default value is
@@ -59,7 +63,7 @@ $ find src/main -name '*.scala'
 ```
 `Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run`
 which calls the `stream` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
-Starting blaze, http4s' native server backend.
+Starting ember, http4s' native server backend.
 
 `QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes`
 that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
@@ -73,13 +77,14 @@ download.  This is a good time to grab a beverage.  When you come
 back, you should see a line similar to this:
 
 ```
-[ioapp-compute-0] INFO  o.h.b.c.n.NIO1SocketServerGroup - Service bound to address /0:0:0:0:0:0:0:0:8080
+[io-compute-1] INFO  o.h.e.s.EmberServerBuilderCompanionPlatform - Ember-Server service bound to address: [::]:8080
 ```
 
-This indicates that blaze is running our service on port 8080. Let's try out the
+This indicates that ember is running our service on port 8080. Let's try out the
 hello world service with curl:
 
 ```sh
+$ curl -i http://localhost:8080/hello/world
 HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Sun, 28 Jun 2020 16:23:31 GMT

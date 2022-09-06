@@ -18,6 +18,7 @@ package org.http4s
 package bench
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import io.circe._
 import io.circe.parser._
 import org.http4s.circe._

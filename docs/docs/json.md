@@ -24,6 +24,13 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
 
+If you're in a REPL, we also need a runtime:
+
+```scala mdoc:silent
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+```
+
 ## Sending Raw JSON
 
 Let's create a function to produce a simple JSON greeting with circe. First, the imports:
@@ -36,6 +43,12 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 ```
+
+@:callout(info)
+
+Under some setup options (we saw this in Scala 3.1.2 but not in 3.1.0), running `import io.circe._` might give you an error of `-- [E008] Not Found Error: value circe is not a member of io`. This means that `io` is shadowed from some other package. In that case, you should run `import _root_.io.circe._`, analogously for the other `circe` imports.
+
+@:@
 
 Then the actual code:
 
@@ -93,18 +106,9 @@ To transform a value of type `A` into `Json`, circe uses an
 `io.circe.Encoder[A]`.  With circe's syntax, we can convert any value
 to JSON as long as an implicit `Encoder` is in scope:
 
-```scala mdoc:silent
-import io.circe.syntax._
-```
-
-```scala
-Hello("Alice").asJson
-```
-
-Oops!  We haven't told Circe how we want to encode our case class.
-Let's provide an encoder:
-
 ```scala mdoc
+import io.circe.syntax._
+
 implicit val HelloEncoder: Encoder[Hello] =
   Encoder.instance { (hello: Hello) =>
     json"""{"hello": ${hello.name}}"""
@@ -204,8 +208,14 @@ import org.http4s.circe.CirceEntityCodec._
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
 
-```scala mdoc:silent:reset
+```scala mdoc:invisible:reset
+import cats.effect.unsafe.implicits.global
+```
+
+```scala mdoc:silent
 import cats.effect._
+
+import com.comcast.ip4s._
 
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -213,17 +223,13 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
-import org.http4s.blaze.server._
+import org.http4s.ember.server._
 import org.http4s.implicits._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 case class User(name: String)
 case class Hello(greeting: String)
-
-// Needed by `BlazeServerBuilder`. Provided by `IOApp`.
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
-implicit val timer: Timer[IO] = IO.timer(global)
 
 implicit val decoder = jsonOf[IO, User]
 
@@ -237,12 +243,19 @@ val jsonApp = HttpRoutes.of[IO] {
     } yield (resp)
 }.orNotFound
 
-val server = BlazeServerBuilder[IO](global)
-  .bindHttp(8080)
-  .withHttpApp(jsonApp)
-  .resource
 
-val fiber = server.use(_ => IO.never).start.unsafeRunSync()
+val server = EmberServerBuilder
+  .default[IO]
+  .withHost(ipv4"0.0.0.0")
+  .withPort(port"8080")
+  .withHttpApp(jsonApp)
+  .build
+```
+
+We start a server resource in the background.
+
+```scala mdoc
+val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
 ## A Hello World Client
@@ -251,19 +264,19 @@ Now let's make a client for the service above:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import cats.effect.IO
 import io.circe.generic.auto._
-import fs2.Stream
 
-// Decode the Hello response
-def helloClient(name: String): Stream[IO, Hello] = {
+def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
-  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
+  // Note: this client is used exactly once, and discarded
+  // Ideally you should .build.use it once, and share it for multiple requests
+  EmberClientBuilder.default[IO].build.use { httpClient =>
     // Decode a Hello response
-    Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
+    httpClient.expect(req)(jsonOf[IO, Hello])
   }
 }
 ```
@@ -272,14 +285,13 @@ Finally, we post `User("Alice")` to our Hello service and expect
 `Hello("Alice")` back:
 
 ```scala mdoc
-val helloAlice = helloClient("Alice")
-helloAlice.compile.last.unsafeRunSync()
+helloClient("Alice").unsafeRunSync()
 ```
 
 Finally, shut down our example server.
 
 ```scala mdoc:silent
-fiber.cancel.unsafeRunSync()
+shutdown.unsafeRunSync()
 ```
 
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation

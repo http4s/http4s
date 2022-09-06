@@ -69,7 +69,7 @@ not authenticated by returning an empty response with status code 401 (Unauthori
 a kind of reconnaissance called "spidering", useful for white and black hat hackers to enumerate
 your api for possible unprotected points.
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 val spanishRoutes: AuthedRoutes[User, IO] =
     AuthedRoutes.of {
         case GET -> Root / "hola" as user => Ok(s"Hola, ${user.name}")
@@ -80,14 +80,14 @@ val frenchRoutes: HttpRoutes[IO] =
         case GET -> Root / "bonjour" => Ok(s"Bonjour")
     }
 
-val service: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
+val serviceSpanish: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
 ```
 
 Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:
 
 * Use a Router with unique route prefixes
-```scala mdoc:silent:nest
-val service = {
+```scala mdoc:silent
+val serviceRouter = {
   Router (
     "/spanish" -> middleware(spanishRoutes),
     "/french" -> frenchRoutes
@@ -96,16 +96,16 @@ val service = {
 ```
 
 * Allow fallthrough, using `AuthMiddleware.withFallThrough`.
-```scala mdoc:silent:nest
+```scala mdoc:silent
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
-val service: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
+val serviceSF: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
 ```
 
 * Reorder the routes so that authed routes compose last
-```scala mdoc:silent:nest
-val service: HttpRoutes[IO] =
-  middlewareWithFallThrough(spanishRoutes) <+> frenchRoutes
+```scala mdoc:silent
+val serviceFS: HttpRoutes[IO] =
+  frenchRoutes <+> middlewareWithFallThrough(spanishRoutes)
 ```
 
 Alternatively, to customize the behavior on not authenticated if you do not
@@ -124,15 +124,15 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 => F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
-```scala mdoc:silent:nest
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
+```scala mdoc:silent
+val authUserEither: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
 val onFailure: AuthedRoutes[String, IO] =
   Kleisli(req => OptionT.liftF(Forbidden(req.context)))
 
-val middleware = AuthMiddleware(authUser, onFailure)
+val authMiddleware = AuthMiddleware(authUserEither, onFailure)
 
-val service: HttpRoutes[IO] = middleware(authedRoutes)
+val serviceKleisli: HttpRoutes[IO] = authMiddleware(authedRoutes)
 ```
 
 ## Implementing authUser
@@ -183,11 +183,11 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import org.http4s.headers.Cookie
 
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUserCookie: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header  <- request.headers.get[Cookie]
                  .toRight("Cookie parsing error")
@@ -208,11 +208,11 @@ There is no inherent way to set the Authorization header, send the token in any
 way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
-```scala mdoc:silent:nest
+```scala mdoc:silent
 import org.http4s.syntax.header._
 import org.http4s.headers.Authorization
 
-val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUserHeaders: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header  <- request.headers.get[Authorization]
                  .toRight("Couldn't find an Authorization header")

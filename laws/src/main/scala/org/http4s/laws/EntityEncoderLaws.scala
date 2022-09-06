@@ -24,7 +24,7 @@ import org.http4s.headers.`Content-Length`
 import org.http4s.headers.`Transfer-Encoding`
 
 trait EntityEncoderLaws[F[_], A] {
-  implicit def F: Effect[F]
+  implicit def F: Concurrent[F]
 
   implicit def encoder: EntityEncoder[F, A]
 
@@ -37,19 +37,19 @@ trait EntityEncoderLaws[F[_], A] {
     } yield contentLength.fold(true)(_ === bodyLength)) <-> F.pure(true)
 
   def noContentLengthInStaticHeaders: Boolean =
-    encoder.headers.get[`Content-Length`].isEmpty
+    !encoder.headers.contains[`Content-Length`]
 
   def noTransferEncodingInStaticHeaders: Boolean =
-    encoder.headers.get[`Transfer-Encoding`].isEmpty
+    !encoder.headers.contains[`Transfer-Encoding`]
 }
 
 object EntityEncoderLaws {
   def apply[F[_], A](implicit
-      F0: Effect[F],
+      F0: Concurrent[F],
       entityEncoderFA: EntityEncoder[F, A],
   ): EntityEncoderLaws[F, A] =
     new EntityEncoderLaws[F, A] {
-      val F: Effect[F] = F0
+      val F: Concurrent[F] = F0
       val encoder: EntityEncoder[F, A] = entityEncoderFA
     }
 }

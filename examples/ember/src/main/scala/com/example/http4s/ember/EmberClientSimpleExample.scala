@@ -20,7 +20,6 @@ import _root_.io.circe.Json
 import _root_.org.http4s.ember.client.EmberClientBuilder
 import _root_.org.typelevel.log4cats.Logger
 import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
-import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
@@ -31,7 +30,6 @@ import org.http4s.implicits._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import scodec.bits.ByteVector
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
 object EmberClientSimpleExample extends IOApp {
@@ -70,24 +68,24 @@ object EmberClientSimpleExample extends IOApp {
       )
       .as(ExitCode.Success)
 
-  def getRequestBufferedBody[F[_]: Sync](client: Client[F], req: Request[F]): F[Response[F]] =
+  def getRequestBufferedBody[F[_]: Async](client: Client[F], req: Request[F]): F[Response[F]] =
     client
       .run(req)
       .use(resp =>
         resp.body.compile
           .to(ByteVector)
-          .map(bv => resp.copy(body = Stream.chunk(Chunk.ByteVectorChunk(bv))))
+          .map(bv => resp.copy(body = Stream.chunk(Chunk.byteVector(bv))))
       )
 
-  def logTimed[F[_]: Clock: Monad, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
+  def logTimed[F[_]: Temporal, A](logger: Logger[F], name: String, fa: F[A]): F[A] =
     timedMS(fa).flatMap { case (time, action) =>
       logger.info(s"Action $name took $time").as(action)
     }
 
-  def timedMS[F[_]: Clock: Applicative, A](fa: F[A]): F[(FiniteDuration, A)] = {
-    val nowMS = Clock[F].monotonic(TimeUnit.MILLISECONDS)
+  def timedMS[F[_]: Temporal, A](fa: F[A]): F[(FiniteDuration, A)] = {
+    val nowMS = Temporal[F].monotonic
     (nowMS, fa, nowMS).mapN { case (before, result, after) =>
-      val time = (after - before).millis
+      val time = after - before
       (time, result)
     }
   }

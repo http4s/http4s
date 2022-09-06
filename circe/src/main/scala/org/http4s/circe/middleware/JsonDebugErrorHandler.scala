@@ -27,12 +27,16 @@ import org.typelevel.ci._
 
 object JsonDebugErrorHandler {
   private[this] val messageFailureLogger =
-    org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.message-failures")
+    Platform.loggerFactory.getLoggerFromName(
+      "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
+    )
   private[this] val serviceErrorLogger =
-    org.log4s.getLogger("org.http4s.circe.middleware.jsondebugerrorhandler.service-errors")
+    Platform.loggerFactory.getLoggerFromName(
+      "org.http4s.circe.middleware.jsondebugerrorhandler.service-errors"
+    )
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]: Sync, G[_]](
+  def apply[F[_]: Concurrent, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): Kleisli[F, Request[G], Response[G]] =
@@ -46,10 +50,12 @@ object JsonDebugErrorHandler {
         .run(req)
         .handleErrorWith {
           case mf: MessageFailure =>
-            messageFailureLogger.debug(mf)(
-              s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                  .getOrElse("<unknown>")}"""
-            )
+            messageFailureLogger
+              .debug(mf)(
+                s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+                    .getOrElse("<unknown>")}"""
+              )
+              .unsafeRunSync()
             val firstResp = mf.toHttpResponse[G](req.httpVersion)
             Response[G](
               status = firstResp.status,
@@ -57,10 +63,12 @@ object JsonDebugErrorHandler {
               headers = firstResp.headers.redactSensitive(redactWhen),
             ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
           case t =>
-            serviceErrorLogger.error(t)(
-              s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                  .getOrElse("<unknown>")}"""
-            )
+            serviceErrorLogger
+              .error(t)(
+                s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+                    .getOrElse("<unknown>")}"""
+              )
+              .unsafeRunSync()
             Response[G](
               Status.InternalServerError,
               req.httpVersion,
@@ -149,7 +157,12 @@ object JsonDebugErrorHandler {
           .map(_.toList.map(encodeThrowable(_)))
           .asJson,
         "class_name" -> Option(a.getClass())
-          .flatMap(c => Option(c.getCanonicalName()))
+          .flatMap(c =>
+            if (Platform.isJvm)
+              Option(c.getCanonicalName())
+            else
+              Option(c.getName())
+          )
           .asJson,
       )
       .dropNullValues

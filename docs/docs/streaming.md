@@ -1,7 +1,5 @@
 # Streaming
 
-## Introduction
-
 Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
 is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both http4s' service support and its client support.
@@ -13,16 +11,11 @@ simplicity itself:
 
 ```scala mdoc:silent
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
 import fs2.Stream
 import org.http4s._
 import org.http4s.dsl.io._
-
-// Provided by `cats.effect.IOApp`, needed elsewhere:
-implicit val timer: Timer[IO] = IO.timer(global)
-implicit val cs: ContextShift[IO] = IO.contextShift(global)
 
 // An infinite stream of the periodic elapsed time
 val seconds = Stream.awakeEvery[IO](1.second)
@@ -78,18 +71,18 @@ Putting it all together into a small app that will print the JSON objects foreve
 
 ```scala mdoc:reset:silent
 import org.http4s._
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.client.oauth1
+import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.implicits._
 import cats.effect._
 import fs2.Stream
 import fs2.io.stdout
-import fs2.text.{lines, utf8Encode}
+import fs2.text.{lines, utf8}
 import io.circe.Json
-import jawnfs2._
-import scala.concurrent.ExecutionContext.global
+import org.typelevel.jawn.fs2._
 
-class TWStream[F[_]: ConcurrentEffect : ContextShift] {
+class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
 
@@ -99,20 +92,27 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
   def sign(consumerKey: String, consumerSecret: String,
              accessToken: String, accessSecret: String)
           (req: Request[F]): F[Request[F]] = {
-    val consumer = oauth1.Consumer(consumerKey, consumerSecret)
-    val token    = oauth1.Token(accessToken, accessSecret)
-    oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
+    val consumer = Consumer(consumerKey, consumerSecret)
+    val token    = Token(accessToken, accessSecret)
+    oauth1.signRequest(
+      req,
+      consumer,
+      Some(token),
+      realm = None,
+      timestampGenerator = Timestamp.now,
+      nonceGenerator = Nonce.now,
+      )
   }
 
   /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def jsonStream(consumerKey: String, consumerSecret: String,
-                     accessToken: String, accessSecret: String)
-                    (req: Request[F]): Stream[F, Json] =
+  def jsonStream(consumerKey: String, consumerSecret: String, 
+                   accessToken: String, accessSecret: String)
+                  (req: Request[F]): Stream[F, Json] =
     for {
-      client <- BlazeClientBuilder(global).stream
+      client <- Stream.resource(EmberClientBuilder.default[F].build)
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.stream(sr).flatMap(_.body.chunks.parseJsonStream)
     } yield res
@@ -122,19 +122,17 @@ class TWStream[F[_]: ConcurrentEffect : ContextShift] {
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  def stream(blocker: Blocker): Stream[F, Unit] = {
-    val req = Request[F](Method.GET,
+  val stream: Stream[F, Unit] = {
+    val req = Request[F](Method.GET, 
                 uri"https://stream.twitter.com/1.1/statuses/sample.json")
     val s   = jsonStream("<consumerKey>", "<consumerSecret>",
                 "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).through(stdout(blocker))
+    s.map(_.spaces2).through(lines).through(utf8.encode).through(stdout)
   }
 
   /** Compile our stream down to an effect to make it runnable */
   def run: F[Unit] =
-    Stream.resource(Blocker[F]).flatMap { blocker =>
-      stream(blocker)
-    }.compile.drain
+    stream.compile.drain
 }
 ```
 
@@ -155,6 +153,6 @@ object TWStreamApp extends IOApp {
 [ScalaSyd 2015]: https://bitbucket.org/da_terry/scalasyd-doobie-http4s
 [json]: json.md
 [jawn]: https://github.com/non/jawn
-[jawn-fs2]: https://github.com/rossabaker/jawn-fs2
+[jawn-fs2]: https://github.com/typelevel/jawn-fs2
 [Twitter's streaming APIs]: https://dev.twitter.com/streaming/overview
 [circe]: https://circe.github.io/circe/
