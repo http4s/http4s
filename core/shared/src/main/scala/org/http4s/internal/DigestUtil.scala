@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.http4s
-package server
-package middleware
-package authentication
+package org.http4s.internal
 
 import cats.Monad
 import cats.syntax.all._
+import org.http4s.Uri
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
 
-private[authentication] object DigestUtil {
+private[http4s] object DigestUtil {
 
   private def md5[F[_]: Monad: Hash](str: String): F[String] =
     Hash[F].digest(HashAlgorithm.MD5, ByteVector.view(str.getBytes())).map(_.toHex)
 
-  @deprecated("Use org.http4s.internal.DigestUtil.computeHashedResponse instead", "0.23.13")
   def computeHashedResponse[F[_]: Monad: Hash](
       method: String,
       ha1: String,
@@ -59,7 +56,6 @@ private[authentication] object DigestUtil {
     * @param qop
     * @return
     */
-  @deprecated("Use org.http4s.internal.DigestUtil.computeHashedResponse instead", "0.23.13")
   def computeHashedResponse[F[_]: Monad: Hash](
       method: String,
       ha1: String,
@@ -81,14 +77,12 @@ private[authentication] object DigestUtil {
     * @param password
     * @return The hash of the supplied fields when concatenated together
     */
-  @deprecated("Use org.http4s.internal.DigestUtil instead.computeHa1", "0.23.13")
   def computeHa1[F[_]: Monad: Hash](username: String, realm: String, password: String): F[String] =
     for {
       ha1str <- (username + ":" + realm + ":" + password).pure[F]
       ha1 <- md5(ha1str)
     } yield ha1
 
-  @deprecated("Use org.http4s.internal.DigestUtil.computeResponse instead", "0.23.13")
   def computeResponse[F[_]: Monad: Hash](
       method: String,
       username: String,
@@ -123,7 +117,6 @@ private[authentication] object DigestUtil {
     * @param qop
     * @return
     */
-  @deprecated("Use org.http4s.internal.DigestUtil instead", "0.23.13")
   def computeResponse[F[_]: Monad: Hash](
       method: String,
       username: String,

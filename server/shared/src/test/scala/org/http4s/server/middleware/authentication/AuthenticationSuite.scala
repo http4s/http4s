@@ -190,7 +190,7 @@ class AuthenticationSuite extends Http4sSuite {
       val cnonce = "abcdef"
       val nonce = challenge.params("nonce")
 
-      DigestUtil
+      org.http4s.internal.DigestUtil
         .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
         .flatMap { response =>
           val params: NonEmptyList[(String, String)] = NonEmptyList.of(
@@ -331,7 +331,7 @@ class AuthenticationSuite extends Http4sSuite {
       for {
         digestAuthMiddleware <- DigestAuth.applyF(realm, plainTextAuthStore)
         digestAuthService = digestAuthMiddleware(service)
-        response <- DigestUtil
+        response <- org.http4s.internal.DigestUtil
           .computeResponse[IO](method, username, realm, password, uri, nonce, nc, cnonce, qop)
         params = NonEmptyList.of(
           "username" -> username,
