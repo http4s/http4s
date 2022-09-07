@@ -18,13 +18,16 @@ package org.http4s
 package client
 
 import cats.data._
+import cats.effect.Ref
 import cats.effect._
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
+import cats.syntax.all._
 import cats.~>
 import fs2._
 import org.http4s.headers.Host
 
+import java.io.IOException
 import scala.util.control.NoStackTrace
 
 /** A [[Client]] submits [[Request]]s to a server and processes the [[Response]].
@@ -235,42 +238,41 @@ object Client {
     * @param app the [[HttpApp]] to respond to requests to this client
     */
   def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
-    def until[A](source: Stream[F, A]): Stream[F, A] = {
+    def untilDisposed[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
-          case Some((chunk, stream)) => Pull.output(chunk) >> go(stream)
+          case Some((chunk, stream)) =>
+            Pull.eval(disposed.get).flatMap {
+              case true => Pull.raiseError[F](new IOException("response was disposed"))
+              case false => Pull.output(chunk) >> go(stream)
+            }
+
           case None => Pull.done
         }
       go(source).stream
     }
 
-    def run(req: Request[F]): F[Resource[F, Response[F]]] = {
-      val req0 = {
-        val entity = req.entity match {
-          case Entity.Empty | Entity.Strict(_) =>
-            req
-          case Entity.Default(_, _) =>
-            req.pipeBodyThrough(until)
+    def runDefault(req: Request[F]) =
+      Resource.suspend(
+        Ref[F].of(false).map { disposed =>
+          val req0 =
+            addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(untilDisposed(disposed)))
+          Resource
+            .eval(app(req0))
+            .onFinalize(disposed.set(true))
+            .map(_.pipeBodyThrough(untilDisposed(disposed)))
         }
+      )
 
-        addHostHeaderIfUriIsAbsolute(entity)
+    def run(req: Request[F]) =
+      req.entity match {
+        case Entity.Empty | Entity.Strict(_) =>
+          Resource.eval(app(addHostHeaderIfUriIsAbsolute(req)))
+        case Entity.Default(_, _) =>
+          runDefault(req)
       }
 
-      F.pure(
-        Resource
-          .eval(app(req0))
-          .map { resp =>
-            resp.entity match {
-              case Entity.Empty | Entity.Strict(_) =>
-                resp
-              case Entity.Default(_, _) =>
-                resp.pipeBodyThrough(until)
-            }
-          }
-      )
-    }
-
-    Client((req: Request[F]) => Resource.suspend(run(req)))
+    Client((req: Request[F]) => run(req))
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types

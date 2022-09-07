@@ -40,6 +40,21 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
   }
 
+  test("mock client should fail to read body after dispose") {
+    val eventStream: EventStream[IO] =
+      fs2.Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString.some))
+    Request[IO](POST)
+      .withEntity(eventStream)
+      .pure[IO]
+      .flatMap { req =>
+        // This is bad. Don't do this.
+        client.run(req).use(IO.pure).flatMap(_.as[String])
+      }
+      .attempt
+      .map(_.left.toOption.get.getMessage)
+      .assertEquals("response was disposed")
+  }
+
   test("mock client should include a Host header in requests whose URIs are absolute") {
     val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
       Ok(r.headers.get[Host].map(_.value).getOrElse("None"))
