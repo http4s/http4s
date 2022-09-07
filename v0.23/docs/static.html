@@ -282,7 +282,7 @@
         deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">assetsRoutes</span><span> = </span><span class="identifier">resourceServiceBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="string-literal">&quot;/assets&quot;</span><span>).</span><span class="identifier">toRoutes</span><span>
 </span><span class="comment">// assetsRoutes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$21818/1648945558@2e637b51
+//   run = org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$21954/629130661@3192b079
 // )</span></code></pre>
         <p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
         only files matching a list of extensions are served. Append to the <code>List</code> as needed.</p>
@@ -297,7 +297,7 @@
     </span><span class="identifier">static</span><span>(</span><span class="identifier">path</span><span>, </span><span class="identifier">request</span><span>)
 }
 </span><span class="comment">// fileRoutes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19693/356990572@73603c55
+//   run = org.http4s.HttpRoutes$$$Lambda$19867/872079255@d5bf739
 // )</span></code></pre>
         
         <h2 id="webjars" class="section">Webjars<a class="anchor-link right" href="#webjars"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -316,7 +316,7 @@
   .</span><span class="identifier">withWebjarAssetFilter</span><span>(</span><span class="identifier">isJsAsset</span><span>)
   .</span><span class="identifier">toRoutes</span><span>
 </span><span class="comment">// webjars: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$21820/1491850472@f12f6cb
+//   run = org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$21956/814464637@8f5fa1a
 // )</span></code></pre>
         <p>Assuming that the service is mounted as root on port <code>8080</code>, and you included the webjar <code>swagger-ui-3.20.9.jar</code> on your classpath, you would reach the assets with the path: <code>http://localhost:8080/swagger-ui/3.20.9/index.html</code></p>
 
