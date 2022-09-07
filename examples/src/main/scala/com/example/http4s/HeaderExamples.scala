@@ -35,9 +35,9 @@ object HeaderExamples {
     }
 
   }
-  def baz = Header.Raw(ci"baz", "bbb")
+  def baz: Header.Raw = Header.Raw(ci"baz", "bbb")
 
-  val myHeaders = Headers(
+  val myHeaders: Headers = Headers(
     Foo("hello"),
     "my" -> "header",
     baz,
@@ -68,7 +68,7 @@ object HeaderExamples {
       }
   }
 
-  val hs = Headers(
+  val hs: Headers = Headers(
     Bar(NonEmptyList.one("one")),
     Foo("two"),
     SetCookie("cookie1", "a cookie"),
@@ -76,9 +76,9 @@ object HeaderExamples {
     SetCookie("cookie2", "another cookie"),
   )
 
-  val a = hs.get[Foo]
-  val b = hs.get[Bar]
-  val c = hs.get[SetCookie]
+  val a: Option[Foo] = hs.get[Foo]
+  val b: Option[Bar] = hs.get[Bar]
+  val c: Option[NonEmptyList[SetCookie]] = hs.get[SetCookie]
 
   // scala> Examples.a
   // val res0: Option[Foo] = Some(Foo(two))
@@ -89,7 +89,7 @@ object HeaderExamples {
   // scala> Examples.c
   // val res2: Option[NonEmptyList[SetCookie]] = Some(NonEmptyList(SetCookie(cookie1,a cookie), SetCookie(cookie2,another cookie)))
 
-  val hs2 = Headers(
+  val hs2: Headers = Headers(
     Bar(NonEmptyList.one("one")),
     Foo("two"),
     SetCookie("cookie1", "a cookie"),
