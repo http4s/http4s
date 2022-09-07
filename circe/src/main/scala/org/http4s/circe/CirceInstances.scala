@@ -18,7 +18,7 @@ package org.http4s
 package circe
 
 import cats.data.NonEmptyList
-import cats.effect.Sync
+import cats.effect.Concurrent
 import cats.syntax.either._
 import fs2.Chunk
 import fs2.Pull
@@ -28,6 +28,7 @@ import io.circe.jawn._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
+import org.typelevel.jawn.fs2.unwrapJsonArray
 
 import java.nio.ByteBuffer
 
@@ -45,13 +46,13 @@ trait CirceInstances extends JawnInstances {
   protected def jsonDecodeError: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure =
     CirceInstances.defaultJsonDecodeError
 
-  def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
+  def jsonDecoderIncremental[F[_]: Concurrent]: EntityDecoder[F, Json] =
     this.jawnDecoder[F, Json]
 
-  def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
+  def jsonDecoderByteBuffer[F[_]: Concurrent]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]: Sync](m: Media[F]): DecodeResult[F, Json] =
+  private def jsonDecoderByteBufferImpl[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining)
@@ -64,10 +65,10 @@ trait CirceInstances extends JawnInstances {
     }
 
   // default cutoff value is based on benchmarks results
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
+  implicit def jsonDecoder[F[_]: Concurrent]: EntityDecoder[F, Json] =
     jsonDecoderAdaptive(cutoff = 100000, MediaType.application.json)
 
-  def jsonDecoderAdaptive[F[_]: Sync](
+  def jsonDecoderAdaptive[F[_]: Concurrent](
       cutoff: Long,
       r1: MediaRange,
       rs: MediaRange*
@@ -80,14 +81,14 @@ trait CirceInstances extends JawnInstances {
       }
     }
 
-  def jsonOf[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] =
+  def jsonOf[F[_]: Concurrent, A: Decoder]: EntityDecoder[F, A] =
     jsonOfWithMedia(MediaType.application.json)
 
-  def jsonOfSensitive[F[_]: Sync, A: Decoder](redact: Json => String): EntityDecoder[F, A] =
+  def jsonOfSensitive[F[_]: Concurrent, A: Decoder](redact: Json => String): EntityDecoder[F, A] =
     jsonOfWithSensitiveMedia(redact, MediaType.application.json)
 
   def jsonOfWithMedia[F[_], A](r1: MediaRange, rs: MediaRange*)(implicit
-      F: Sync[F],
+      F: Concurrent[F],
       decoder: Decoder[A],
   ): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](r1, jsonDecodeError, rs: _*)
@@ -96,7 +97,7 @@ trait CirceInstances extends JawnInstances {
       redact: Json => String,
       r1: MediaRange,
       rs: MediaRange*
-  )(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  )(implicit F: Concurrent[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonOfWithMediaHelper[F, A](
       r1,
       (json, nelDecodeFailures) =>
@@ -108,7 +109,7 @@ trait CirceInstances extends JawnInstances {
       r1: MediaRange,
       decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
       rs: MediaRange*
-  )(implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  )(implicit F: Concurrent[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -123,7 +124,10 @@ trait CirceInstances extends JawnInstances {
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.
     */
-  def accumulatingJsonOf[F[_], A](implicit F: Sync[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  def accumulatingJsonOf[F[_], A](implicit
+      F: Concurrent[F],
+      decoder: Decoder[A],
+  ): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeAccumulating(json.hcursor)
@@ -152,9 +156,9 @@ trait CirceInstances extends JawnInstances {
   implicit def streamJsonArrayEncoder[F[_]]: EntityEncoder[F, Stream[F, Json]] =
     streamJsonArrayEncoderWithPrinter(defaultPrinter)
 
-  implicit def streamJsonArrayDecoder[F[_]: Sync]: EntityDecoder[F, Stream[F, Json]] =
+  implicit def streamJsonArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Stream[F, Json]] =
     EntityDecoder.decodeBy(MediaType.application.json) { media =>
-      DecodeResult.successT(media.body.chunks.through(jawnfs2.unwrapJsonArray))
+      DecodeResult.successT(media.body.chunks.through(unwrapJsonArray))
     }
 
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */
@@ -291,7 +295,7 @@ object CirceInstances {
       case None => Pull.output(emptyArray)
       case Some((hd, tl)) =>
         Pull.output(
-          Chunk.concatBytes(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
+          Chunk.concat(Vector(CirceInstances.openBrace, fromJsonToChunk(printer)(hd)))
         ) >> // Output First Json As Chunk with leading `[`
           tl.repeatPull {
             _.uncons.flatMap {
@@ -304,7 +308,7 @@ object CirceInstances {
                     bldr += CirceInstances.comma
                     bldr += fromJsonToChunk(printer)(o)
                   }
-                  Chunk.concatBytes(bldr.result())
+                  Chunk.concat(bldr.result())
                 }
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
@@ -320,7 +324,7 @@ object CirceInstances {
     Chunk.singleton(']'.toByte)
 
   private final val emptyArray: Chunk[Byte] =
-    Chunk.bytes(Array('['.toByte, ']'.toByte))
+    Chunk.array(Array('['.toByte, ']'.toByte))
 
   private final val comma: Chunk[Byte] =
     Chunk.singleton(','.toByte)
@@ -334,10 +338,10 @@ object CirceInstances {
     def asJsonDecode[A](implicit F: JsonDecoder[F], decoder: Decoder[A]): F[A] =
       F.asJsonDecode(req)
 
-    def decodeJson[A](implicit F: Sync[F], decoder: Decoder[A]): F[A] =
+    def decodeJson[A](implicit F: Concurrent[F], decoder: Decoder[A]): F[A] =
       req.as(F, jsonOf[F, A])
 
-    def json(implicit F: Sync[F]): F[Json] =
+    def json(implicit F: Concurrent[F]): F[Json] =
       req.as(F, jsonDecoder[F])
   }
 }

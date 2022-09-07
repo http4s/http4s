@@ -1,5 +1,5 @@
 http4s
-Copyright 2013-2018 http4s.org
+Copyright 2013-2021 http4s.org
 Licensed under Apache License 2.0 (see LICENSE)
 
 This software contains portions of code derived from akka-http

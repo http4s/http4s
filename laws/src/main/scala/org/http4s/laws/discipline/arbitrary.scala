@@ -21,10 +21,9 @@ package discipline
 import cats._
 import cats.data.Chain
 import cats.data.NonEmptyList
-import cats.effect.Effect
-import cats.effect.IO
-import cats.effect.laws.discipline.arbitrary._
-import cats.effect.laws.util.TestContext
+import cats.effect.Concurrent
+import cats.effect.std.Dispatcher
+import cats.effect.testkit._
 import cats.instances.order._
 import cats.laws.discipline.arbitrary.catsLawsArbitraryForChain
 import cats.syntax.all._
@@ -33,7 +32,6 @@ import com.comcast.ip4s.Arbitraries._
 import fs2.Pure
 import fs2.Stream
 import org.http4s.headers._
-import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.syntax.literals._
 import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck.Gen._
@@ -123,7 +121,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
 
-  val genNonTchar = frequency(
+  val genNonTchar: Gen[Char] = frequency(
     4 -> oneOf(Set(0x00.toChar to 0x7f.toChar: _*) -- tchars),
     1 -> oneOf(0x100.toChar to Char.MaxValue),
   )
@@ -169,17 +167,17 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForMethod: Cogen[Method] =
     Cogen[Int].contramap(_.##)
 
-  val genValidStatusCode =
+  val genValidStatusCode: Gen[Int] =
     choose(Status.MinCode, Status.MaxCode)
 
-  val genStandardStatus =
+  val genStandardStatus: Gen[Status] =
     oneOf(Status.registered)
 
   @deprecated(
     "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
     "0.22.6",
   )
-  val genCustomStatus = for {
+  val genCustomStatus: Gen[Status] = for {
     code <- genValidStatusCode
     reason <- genCustomStatusReason
   } yield Status.fromInt(code).yolo.withReason(reason)
@@ -203,7 +201,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
             v <- getArbitrary[Option[String]]
           } yield (k, v)
         },
-        2 -> const(("foo" -> Some("bar"))), // Want some repeats
+        2 -> const("foo" -> Some("bar")), // Want some repeats
       )
     }
 
@@ -231,7 +229,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit val http4sTestingArbitraryForNioCharset: Arbitrary[NioCharset] =
-    Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+    Arbitrary(oneOf(Charset.availableCharsets))
 
   implicit val http4sTestingCogenForNioCharset: Cogen[NioCharset] =
     Cogen[String].contramap(_.name)
@@ -316,8 +314,8 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
     Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
 
-  // MediaRange exepects the quoted pair without quotes
-  val http4sGenUnquotedPair = genQDText
+  // MediaRange expects the quoted pair without quotes
+  val http4sGenUnquotedPair: Gen[String] = genQDText
 
   val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
@@ -669,7 +667,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     )
   }
 
-  // https://tools.ietf.org/html/rfc2234#section-6
+  // https://datatracker.ietf.org/doc/html/rfc2234#section-6
   val genHexDigit: Gen[Char] = oneOf(
     List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
   )
@@ -785,10 +783,10 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
     val genSegment = listOf(genPChar).map(_.mkString)
     val genPathEmpty = const("")
-    val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString)
-    val genPathRootless = genSegmentNz |+| genPathAbEmpty
-    val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
-    val genPathAbsolute = const("/") |+| opt(genPathRootless)
+    val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString) |+| opt("/")
+    val genPathRootless = genSegmentNz |+| genPathAbEmpty |+| opt("/")
+    val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty |+| opt("/")
+    val genPathAbsolute = const("/") |+| opt(genPathRootless) |+| opt("/")
 
     oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty).map(
       Uri.Path.unsafeFromString
@@ -798,7 +796,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   implicit val http4sTestingCogenForPath: Cogen[Uri.Path] =
     Cogen[String].contramap(_.renderString)
 
-  /** https://tools.ietf.org/html/rfc3986 */
+  /** https://datatracker.ietf.org/doc/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
@@ -814,6 +812,22 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
+
+  /** Creates an `Gen[Url]` with checking that a URI is converting to String
+    * and back to URI safely.
+    * Use this Gen with cautions - it may lead to tests performance degradation.
+    */
+  def createGenUri: Gen[Uri] =
+    http4sTestingArbitraryForUri.arbitrary.filter { uri =>
+      // Uri.renderString encode special chars in the fragment
+      // and after converting the Uri to Json, the fragment will be encoded
+      val convertedBackToUriWithFragment =
+        (f: Uri.Fragment) => Uri.fromString(uri.withoutFragment.toString).map(_.withFragment(f))
+      val parsedUri =
+        uri.fragment.fold(Uri.fromString(uri.toString))(convertedBackToUriWithFragment)
+
+      parsedUri == Right(uri)
+    }
 
   implicit val http4sTestingArbitraryForLink: Arbitrary[LinkValue] = Arbitrary {
     for {
@@ -842,14 +856,13 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       }
     }
 
-  implicit def http4sTestingCogenForEntityBody[F[_]](implicit F: Effect[F]): Cogen[EntityBody[F]] =
-    catsEffectLawsCogenForIO[Vector[Byte]].contramap { stream =>
-      var bytes: Vector[Byte] = null
-      val readBytes = IO(bytes)
-      F.runAsync(stream.compile.toVector) {
-        case Right(bs) => IO { bytes = bs }
-        case Left(t) => IO.raiseError(t)
-      }.toIO *> readBytes
+  implicit def http4sTestingCogenForEntityBody[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
+  ): Cogen[EntityBody[F]] =
+    cogenFuture[Vector[Byte]].contramap { stream =>
+      dispatcher.unsafeToFuture(stream.compile.toVector)
     }
 
   implicit def http4sTestingArbitraryForEntity[F[_]]: Arbitrary[Entity[F]] =
@@ -857,10 +870,14 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         body <- http4sTestingGenForPureByteStream
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body.covary[F], length)
+      } yield Entity(body, length)
     })
 
-  implicit def http4sTestingCogenForEntity[F[_]](implicit F: Effect[F]): Cogen[Entity[F]] =
+  implicit def http4sTestingCogenForEntity[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
+  ): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](implicit
@@ -872,7 +889,9 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     } yield EntityEncoder.encodeBy(hs)(f))
 
   implicit def http4sTestingArbitraryForEntityDecoder[F[_], A](implicit
-      F: Effect[F],
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
       g: Arbitrary[DecodeResult[F, A]],
   ): Arbitrary[EntityDecoder[F, A]] =
     Arbitrary(for {
@@ -883,10 +902,18 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       def consumes = mrs
     })
 
-  implicit def http4sTestingCogenForMedia[F[_]](implicit F: Effect[F]): Cogen[Media[F]] =
+  implicit def http4sTestingCogenForMedia[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
+  ): Cogen[Media[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
-  implicit def http4sTestingCogenForMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
+  implicit def http4sTestingCogenForMessage[F[_]](implicit
+      F: Concurrent[F],
+      dispatcher: Dispatcher[F],
+      testContext: TestContext,
+  ): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
@@ -1059,7 +1086,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       quotedStringEquivWithoutQuotes =
         genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
-    } yield (extName -> extValue)
+    } yield extName -> extValue
 
     for {
       timeout <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
@@ -1088,7 +1115,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       unsanitized,
     )
   }
-  val dntGen = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
+  val dntGen: Gen[DNT] = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
@@ -1096,4 +1123,26 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
+  val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)
+
+  val genEntityTag: Gen[EntityTag] =
+    for {
+      tag <- Gen.oneOf(genObsText, genVcharExceptDquote.map(_.toString))
+      strength <- Gen.oneOf(EntityTag.Weak, EntityTag.Strong)
+    } yield EntityTag(tag, strength)
+
+  implicit val http4sTestingArbitraryForIfRangeLastModified: Arbitrary[`If-Range`] = Arbitrary {
+    Gen.oneOf(
+      genHttpDate.map(`If-Range`.LastModified(_)),
+      genEntityTag.map(`If-Range`.ETag(_)),
+    )
+  }
+
+  implicit val http4sTestingArbitraryTrailer: Arbitrary[Trailer] = Arbitrary(
+    nonEmptyListOf(genToken.map(CIString(_))).map(headers =>
+      Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
+    )
+  )
 }

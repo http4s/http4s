@@ -1,4 +1,20 @@
 /*
+ * Copyright 2013 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
  * Copyright 2013-2020 http4s.org
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -58,7 +74,7 @@ object ~ {
 
 object / {
   def unapply(path: Path): Option[(Path, String)] =
-    if (path.endsWithSlash)
+    if (path != Root && path.endsWithSlash)
       Some(path.dropEndsWithSlash -> "")
     else
       path.segments match {
@@ -317,6 +333,22 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
       .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
       .toOption
 }
+
+/** A param extractor with a default value. If the query param is not present, the default value is returned
+  * If the query param is present but incorrectly formatted, will return `None`
+  */
+abstract class QueryParamDecoderMatcherWithDefault[T: QueryParamDecoder](name: String, default: T) {
+  def unapply(params: Map[String, collection.Seq[String]]): Option[T] =
+    params
+      .get(name)
+      .flatMap(_.headOption)
+      .traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      .toOption
+      .map(_.getOrElse(default))
+}
+
+abstract class QueryParamMatcherWithDefault[T: QueryParamDecoder: QueryParam](default: T)
+    extends QueryParamDecoderMatcherWithDefault[T](QueryParam[T].key.value, default)
 
 /** Flag (value-less) query param extractor
   */

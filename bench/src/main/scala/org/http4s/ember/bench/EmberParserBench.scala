@@ -16,8 +16,9 @@
 
 package org.http4s.ember.bench
 
-import cats.effect.ContextShift
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import fs2.Chunk
 import org.http4s._
 import org.http4s.ember.core.Parser
 import org.openjdk.jmh.annotations._
@@ -54,16 +55,15 @@ class EmberParserBench {
 
 object EmberParserBench {
 
-  implicit val CS: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
-
   @State(Scope.Benchmark)
   class BenchState {
-    val maxHeaderSize = 256 * 1024
+    val maxHeaderSize: Int = 256 * 1024
     var req: Request[IO] = _
     var resp: Response[IO] = _
     var reqBytes: Array[Byte] = _
     var respBytes: Array[Byte] = _
-    val read = IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
+    val read: IO[Option[Chunk[Byte]]] =
+      IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
 
     @Setup(Level.Trial)
     def setup(): Unit = {
