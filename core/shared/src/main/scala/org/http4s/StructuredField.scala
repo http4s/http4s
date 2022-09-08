@@ -60,7 +60,7 @@ object StructuredField {
 
     private val MinValue: Long = -MaxValue
 
-    private[http4s] def unsafeFromLong(l: Long): SfInteger =
+    private def unsafeFromLong(l: Long): SfInteger =
       new SfInteger(l) {}
 
     def fromLong(l: Long): Option[SfInteger] =
@@ -94,7 +94,7 @@ object StructuredField {
 
     private val MinValue: BigDecimal = -MaxValue
 
-    private[http4s] def unsafeFromBigDecimal(d: BigDecimal): SfDecimal =
+    private def unsafeFromBigDecimal(d: BigDecimal): SfDecimal =
       new SfDecimal(d) {}
 
     def fromBigDecimal(d: BigDecimal): Option[SfDecimal] =
@@ -116,7 +116,7 @@ object StructuredField {
   }
 
   object SfString {
-    private[http4s] def unsafeFromString(s: String): SfString =
+    private def unsafeFromString(s: String): SfString =
       new SfString(s) {}
 
     def fromString(s: String): Option[SfString] =
@@ -151,7 +151,7 @@ object StructuredField {
   }
 
   object SfToken {
-    private[http4s] def unsafeFromString(s: String): SfToken =
+    private def unsafeFromString(s: String): SfToken =
       new SfToken(s) {}
 
     def fromString(s: String): Option[SfToken] =
@@ -211,7 +211,7 @@ object StructuredField {
   }
 
   object Key {
-    private[http4s] def unsafeFromString(s: String): Key =
+    private def unsafeFromString(s: String): Key =
       new Key(s) {}
 
     def fromString(s: String): Option[Key] =
