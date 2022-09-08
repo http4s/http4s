@@ -18,5 +18,5 @@ package org.http4s
 
 trait Http4sSuitePlatform { this: Http4sSuite =>
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.contains("CI")
+  override def munitFlakyOK: Boolean = sys.env.contains("CI")
 }
