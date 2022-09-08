@@ -1161,16 +1161,17 @@ class UriSpec extends Http4sSuite {
       lastSlash <- Gen.oneOf("", "/")
     } yield s"$firstPathSegment${pathSegments.mkString("")}$lastSlash"
 
-  test("Uri relative resolution should correctly remove dot segments in other examples") {
-    forAll(pathGen) { (input: String) =>
-      val prefix = "/this/isa/prefix/"
-      val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
-      val path = Paths.get(prefix, processed).normalize
-      assert(path.startsWith(Paths.get(prefix)))
-      assert(!processed.contains("./"))
-      assert(!processed.contains("../"))
+  if (Platform.isJvm)
+    test("Uri relative resolution should correctly remove dot segments in other examples") {
+      forAll(pathGen) { (input: String) =>
+        val prefix = "/this/isa/prefix/"
+        val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
+        val path = Paths.get(prefix, processed).normalize
+        assert(path.startsWith(Paths.get(prefix)))
+        assert(!processed.contains("./"))
+        assert(!processed.contains("../"))
+      }
     }
-  }
 
   test("Uri.addPath should add urlencoded segments to uri") {
     val uri = getUri("http://localhost/foo")
