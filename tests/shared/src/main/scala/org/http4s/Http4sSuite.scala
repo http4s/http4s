@@ -22,7 +22,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
 import munit._
-import org.scalacheck.Prop
+import munit.catseffect._
 
 /** Common stack for http4s' munit based tests
   */
@@ -32,23 +32,17 @@ trait Http4sSuite
     with munit.ScalaCheckEffectSuite
     with Http4sSuitePlatform {
 
-  private[this] val suiteFixtures = List.newBuilder[Fixture[_]]
+  private[this] val suiteFixtures = List.newBuilder[IOFixture[_]]
 
-  override def munitFixtures: Seq[Fixture[_]] = suiteFixtures.result()
+  override def munitFixtures: Seq[IOFixture[_]] = suiteFixtures.result()
 
-  // Override to remove implicit modifier
-  override def unitToProp: Unit => Prop = super.unitToProp
-
-  // Scala 3 likes this better
-  implicit def saneUnitToProp(unit: Unit): Prop = unitToProp(unit)
-
-  def registerSuiteFixture[A](fixture: Fixture[A]): Fixture[A] = {
+  def registerSuiteFixture[A](fixture: IOFixture[A]): IOFixture[A] = {
     suiteFixtures += fixture
     fixture
   }
 
-  def resourceSuiteDeferredFixture[A](name: String, resource: Resource[IO, A]): Fixture[IO[A]] =
-    registerSuiteFixture(UnsafeResourceSuiteLocalDeferredFixture(name, resource))
+  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]): IOFixture[A] =
+    registerSuiteFixture(ResourceSuiteLocalFixture(name, resource))
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
