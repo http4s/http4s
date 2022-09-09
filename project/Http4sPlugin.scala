@@ -121,7 +121,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.0.0-M6"
     val munitCatsEffect = "2.0.0-M2"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.80.Final"
+    val netty = "4.1.81.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
     val scalacheckEffect = "2.0.0-M1"
