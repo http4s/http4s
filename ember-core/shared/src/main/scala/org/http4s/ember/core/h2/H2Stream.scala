@@ -142,7 +142,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
   }
 
- 
   def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =
@@ -193,11 +192,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                     PseudoHeaders.headersToResponseNoBody(h) match {
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
-                          resp.contentLength.traverse(length =>
-                            state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
-                          ) >> {
-                            if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
-                          }
+                          checkLengthOf(resp) >>
+                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
@@ -210,11 +206,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                     PseudoHeaders.headersToRequestNoBody(h) match {
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
-                          req.contentLength.traverse(length =>
-                            state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
-                          ) >> {
-                            if (newstate == StreamState.Closed) onClosed else Applicative[F].unit
-                          }
+                          checkLengthOf(req) >>
+                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
@@ -445,7 +438,6 @@ private[h2] object H2Stream {
       val hs = Headers(rawHs.toList.map(Header.ToRaw.keyValuesToRaw): _*)
       trailers.complete(Either.right(hs))
     }
-
   }
 
   sealed trait StreamState
