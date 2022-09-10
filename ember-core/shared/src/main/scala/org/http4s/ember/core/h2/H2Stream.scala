@@ -172,9 +172,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
             (request, response) = t
             _ <- connectionType match {
               case H2Connection.ConnectionType.Client =>
-                response.tryGet
-                  .map(_.isEmpty)
-                  .ifM(
+                response.tryGet.flatMap {
+                  case x if x.isEmpty =>
                     PseudoHeaders.headersToResponseNoBody(h) match {
                       case Some(resp) =>
                         val iResp = resp.withAttribute(H2Keys.StreamIdentifier, id)
@@ -197,20 +196,19 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
-                    },
+                    }
+                  case _ =>
                     s.trailers
                       .complete(
                         Either.right(
                           org.http4s
                             .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
                         )
-                      )
-                      .void,
-                  )
+                      ).void
+                }
               case H2Connection.ConnectionType.Server =>
-                request.tryGet
-                  .map(_.isEmpty)
-                  .ifM(
+                request.tryGet.flatMap {
+                  case x if x.isEmpty =>
                     PseudoHeaders.headersToRequestNoBody(h) match {
                       case Some(req) =>
                         val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
@@ -233,7 +231,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
-                    },
+                    }
+                  case _ =>
                     s.trailers
                       .complete(
                         Either.right(
@@ -241,8 +240,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                             .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
                         )
                       )
-                      .void,
-                  )
+                      .void
+                }
             }
           } yield ()
         case StreamState.HalfClosedRemote | StreamState.Closed =>
