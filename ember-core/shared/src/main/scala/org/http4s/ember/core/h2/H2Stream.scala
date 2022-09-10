@@ -23,7 +23,8 @@ import cats.syntax.all._
 import fs2._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
-
+import org.http4s.{Header, Headers}
+import org.http4s.headers.Trailer
 import java.util.concurrent.CancellationException
 import scala.annotation.nowarn
 
@@ -94,7 +95,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
               .flatMap { state =>
                 if (state == StreamState.Closed) onClosed else Applicative[F].unit
               }
-              .void
         case _ => new IllegalStateException("Stream Was Closed").raiseError
       }
     }
@@ -178,7 +178,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         val iResp = resp.withAttribute(H2Keys.StreamIdentifier, id)
                         val outResp = resp.headers
-                          .get[org.http4s.headers.Trailer]
+                          .get[Trailer]
                           .fold(iResp)(_ =>
                             iResp.withAttribute(
                               org.http4s.Message.Keys.TrailerHeaders[F],
@@ -197,14 +197,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ =>
-                    s.trailers
-                      .complete(
-                        Either.right(
-                          org.http4s
-                            .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
-                        )
-                      ).void
+                  case _ => s.trailWith(h).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {
@@ -213,7 +206,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
                         val outReq = req.headers
-                          .get[org.http4s.headers.Trailer]
+                          .get[Trailer]
                           .fold(iReq)(_ =>
                             iReq.withAttribute(
                               org.http4s.Message.Keys.TrailerHeaders[F],
@@ -232,15 +225,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ =>
-                    s.trailers
-                      .complete(
-                        Either.right(
-                          org.http4s
-                            .Headers(h.toList.map(org.http4s.Header.ToRaw.keyValuesToRaw): _*)
-                        )
-                      )
-                      .void
+                  case _ => s.trailWith(h).void
                 }
             }
           } yield ()
@@ -460,6 +445,12 @@ private[h2] object H2Stream {
   ) {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"
+
+    private[h2] def trailWith(rawHs: NonEmptyList[(String, String)]): F[Boolean] = {
+      val hs = Headers(rawHs.toList.map(Header.ToRaw.keyValuesToRaw): _*)
+      trailers.complete(Either.right(hs))
+    }
+
   }
 
   sealed trait StreamState
