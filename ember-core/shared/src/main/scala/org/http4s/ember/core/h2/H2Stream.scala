@@ -242,18 +242,11 @@ private[h2] class H2Stream[F[_]: Concurrent](
               _ <- state.update(s => s.copy(state = StreamState.ReservedRemote))
               _ <- PseudoHeaders.headersToRequestNoBody(h) match {
                 case Some(req) =>
-                  s.request
-                    .complete(
-                      Either.right(
-                        req
-                          .withAttribute(H2Keys.StreamIdentifier, id)
-                          .withAttribute(
-                            H2Keys.PushPromiseInitialStreamIdentifier,
-                            headers.identifier,
-                          )
-                      )
-                    )
-                    .void
+                  val attributed =
+                    req
+                      .withAttribute(H2Keys.StreamIdentifier, id)
+                      .withAttribute(H2Keys.PushPromiseInitialStreamIdentifier, headers.identifier)
+                  s.request.complete(Either.right(attributed)).void
                 case None => rstStream(H2Error.ProtocolError)
               }
             } yield ()
@@ -297,14 +290,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (sizeReadOk) s.readBuffer.offer(Either.right(data.data))
             else rstStream(H2Error.ProtocolError)
 
-          _ <-
-            if (needsWindowUpdate && !isClosed && sizeReadOk)
-              enqueue.offer(
-                Chunk.singleton(
-                  H2Frame.WindowUpdate(id, localSettings.initialWindowSize.windowSize - newSize)
-                )
-              )
-            else Applicative[F].unit
+          _ <- if (needsWindowUpdate && !isClosed && sizeReadOk) {
+            val f = H2Frame.WindowUpdate(id, localSettings.initialWindowSize.windowSize - newSize)
+            enqueue.offer(Chunk.singleton(f))
+          } else Applicative[F].unit
           _ <- if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
