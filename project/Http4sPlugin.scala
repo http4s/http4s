@@ -118,13 +118,13 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.6"
     val log4cats = "2.4.0"
     val log4s = "1.10.0"
-    val munit = "0.7.29"
-    val munitCatsEffect = "1.0.7"
-    val munitDiscipline = "1.0.9"
+    val munit = "1.0.0-M6"
+    val munitCatsEffect = "2.0.0-M2"
+    val munitDiscipline = "2.0.0-M3"
     val netty = "4.1.81.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.16.0"
-    val scalacheckEffect = "1.0.4"
+    val scalacheckEffect = "2.0.0-M1"
     val scalaJavaLocales = "1.4.1"
     val scalaJavaTime = "2.4.0"
     val scodecBits = "1.1.34"
@@ -174,7 +174,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
   lazy val munit = Def.setting("org.scalameta" %%% "munit" % V.munit)
   lazy val munitCatsEffect =
-    Def.setting("org.typelevel" %%% "munit-cats-effect-3" % V.munitCatsEffect)
+    Def.setting("org.typelevel" %%% "munit-cats-effect" % V.munitCatsEffect)
   lazy val munitDiscipline = Def.setting("org.typelevel" %%% "discipline-munit" % V.munitDiscipline)
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty

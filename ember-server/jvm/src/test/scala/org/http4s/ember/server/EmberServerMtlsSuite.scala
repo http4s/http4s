@@ -106,7 +106,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
     (server(tlsParams), client(clientTlsContext)).mapN(FunFixture.map2(_, _))
 
   private def client(tlsContextResource: Resource[IO, TLSContext[IO]]) =
-    ResourceFixture(clientResource(tlsContextResource))
+    ResourceFunFixture(clientResource(tlsContextResource))
 
   private def clientResource(tlsContextResource: Resource[IO, TLSContext[IO]]) =
     for {
@@ -119,7 +119,7 @@ class EmberServerMtlsSuite extends Http4sSuite {
     } yield emberClient
 
   private def server(tlsParams: TLSParameters) =
-    ResourceFixture(serverResource(tlsParams))
+    ResourceFunFixture(serverResource(tlsParams))
 
   private def serverResource(tlsParams: TLSParameters) =
     for {
