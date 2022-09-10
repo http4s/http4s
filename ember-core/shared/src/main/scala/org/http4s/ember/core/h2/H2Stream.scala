@@ -23,7 +23,7 @@ import cats.syntax.all._
 import fs2._
 import org.typelevel.log4cats.Logger
 import scodec.bits._
-import org.http4s.{Header, Headers}
+import org.http4s.{Header, Headers, Message}
 import org.http4s.headers.Trailer
 import java.util.concurrent.CancellationException
 import scala.annotation.nowarn
@@ -142,8 +142,24 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
   }
 
-  def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] =
+ 
+  def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] = {
+
+    def checkLengthOf(mess: Message[Pure]): F[Unit] =
+      mess.contentLength.traverse_ { length =>
+        state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
+      }
+
     state.get.flatMap { s =>
+
+      def attribute(mess: Message[Pure]): mess.Self = {
+        val iMess = mess.withAttribute(H2Keys.StreamIdentifier, id)
+        if (mess.headers.get[Trailer].isDefined) {
+          val trailerF = s.trailers.get.rethrow
+          iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
+        } else iMess
+      }
+
       s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal | StreamState.Idle |
             StreamState.ReservedRemote =>
@@ -176,18 +192,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                   case x if x.isEmpty =>
                     PseudoHeaders.headersToResponseNoBody(h) match {
                       case Some(resp) =>
-                        val iResp = resp.withAttribute(H2Keys.StreamIdentifier, id)
-                        val outResp = resp.headers
-                          .get[Trailer]
-                          .fold(iResp)(_ =>
-                            iResp.withAttribute(
-                              org.http4s.Message.Keys.TrailerHeaders[F],
-                              s.trailers.get.rethrow,
-                            )
-                          )
-                        response.complete(
-                          Either.right(outResp)
-                        ) >>
+                        response.complete(Either.right(attribute(resp))) >>
                           resp.contentLength.traverse(length =>
                             state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
                           ) >> {
@@ -204,18 +209,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                   case x if x.isEmpty =>
                     PseudoHeaders.headersToRequestNoBody(h) match {
                       case Some(req) =>
-                        val iReq = req.withAttribute(H2Keys.StreamIdentifier, id)
-                        val outReq = req.headers
-                          .get[Trailer]
-                          .fold(iReq)(_ =>
-                            iReq.withAttribute(
-                              org.http4s.Message.Keys.TrailerHeaders[F],
-                              s.trailers.get.rethrow,
-                            )
-                          )
-                        request.complete(
-                          Either.right(outReq)
-                        ) >>
+                        request.complete(Either.right(attribute(req))) >>
                           req.contentLength.traverse(length =>
                             state.update(s => s.copy(contentLengthCheck = Some((length, 0))))
                           ) >> {
@@ -235,6 +229,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
           goAway(H2Error.ProtocolError)
       }
     }
+  }
 
   def receivePushPromise(
       headers: H2Frame.PushPromise,
