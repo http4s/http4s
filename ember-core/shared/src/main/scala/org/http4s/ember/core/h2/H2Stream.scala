@@ -73,10 +73,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
       s.state match {
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
-          hpack
-            .encodeHeaders(headers)
-            .map(bv => H2Frame.Headers(id, None, endStream, true, bv, None))
-            .flatMap(f => enqueue.offer(Chunk.singleton(f))) <*
+          hpack.encodeHeaders(headers).flatMap { bv =>
+            val f = H2Frame.Headers(id, None, endStream, true, bv, None)
+            enqueue.offer(Chunk.singleton(f))
+          } <*
             state
               .modify { b =>
                 val newState: StreamState = (b.state, endStream) match {
