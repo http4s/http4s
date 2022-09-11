@@ -21,10 +21,13 @@ import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import fs2._
+import org.http4s.Header
+import org.http4s.Headers
+import org.http4s.Message
+import org.http4s.headers.Trailer
 import org.typelevel.log4cats.Logger
 import scodec.bits._
-import org.http4s.{Header, Headers, Message}
-import org.http4s.headers.Trailer
+
 import java.util.concurrent.CancellationException
 import scala.annotation.nowarn
 
