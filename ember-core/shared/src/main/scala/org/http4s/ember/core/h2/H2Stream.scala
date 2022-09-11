@@ -150,7 +150,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
       }
 
     state.get.flatMap { s =>
-
       def attribute(mess: Message[Pure]): mess.Self = {
         val iMess = mess.withAttribute(H2Keys.StreamIdentifier, id)
         if (mess.headers.get[Trailer].isDefined) {
@@ -261,6 +260,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def receiveData(data: H2Frame.Data): F[Unit] = state.get.flatMap { s =>
     s.state match {
       case StreamState.Open | StreamState.HalfClosedLocal =>
+        import localSettings.initialWindowSize.windowSize
+
         val newSize = s.readWindow - data.data.size.toInt
         val newState = if (data.endStream) s.state match {
           case StreamState.Open => StreamState.HalfClosedRemote
@@ -268,19 +269,18 @@ private[h2] class H2Stream[F[_]: Concurrent](
           case s => s
         }
         else s.state
-        val sizeReadOk = if (data.endStream) {
+
+        val sizeReadOk = !data.endStream ||
           s.contentLengthCheck.forall { case (max, current) => max === (current + data.data.size) }
-        } else true
 
         val isClosed = newState == StreamState.Closed
 
-        val needsWindowUpdate = newSize <= (localSettings.initialWindowSize.windowSize / 2)
+        val needsWindowUpdate = newSize <= (windowSize / 2)
         for {
           _ <- state.update(s =>
             s.copy(
               state = newState,
-              readWindow =
-                if (needsWindowUpdate) localSettings.initialWindowSize.windowSize else newSize,
+              readWindow = if (needsWindowUpdate) windowSize else newSize,
               contentLengthCheck = s.contentLengthCheck.map { case (max, current) =>
                 (max, current + data.data.size)
               },
@@ -290,10 +290,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (sizeReadOk) s.readBuffer.offer(Either.right(data.data))
             else rstStream(H2Error.ProtocolError)
 
-          _ <- if (needsWindowUpdate && !isClosed && sizeReadOk) {
-            val f = H2Frame.WindowUpdate(id, localSettings.initialWindowSize.windowSize - newSize)
-            enqueue.offer(Chunk.singleton(f))
-          } else Applicative[F].unit
+          _ <-
+            if (needsWindowUpdate && !isClosed && sizeReadOk) {
+              enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
+            } else Applicative[F].unit
           _ <- if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
