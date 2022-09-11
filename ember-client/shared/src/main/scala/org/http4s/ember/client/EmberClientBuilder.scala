@@ -61,7 +61,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
-) { self =>
+) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
@@ -225,9 +225,11 @@ final class EmberClientBuilder[F[_]: Async] private (
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
-      tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F])
-      )
+      tlsContextOptWithDefault <-
+        tlsContextOpt
+          .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
+            _.some.pure[Resource[F, *]]
+          )
       builder =
         KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]](
@@ -309,7 +311,7 @@ final class EmberClientBuilder[F[_]: Async] private (
           address: UnixSocketAddress,
       ): Resource[F, Response[F]] =
         Resource
-          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
+          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.orElse(defaultUnixSockets).get))
           .flatMap(unixSockets =>
             Resource
               .make(
