@@ -739,7 +739,7 @@ lazy val unidocs = http4sProject("unidocs")
           scalafixInternalRules,
           scalafixInternalTests,
           docs,
-        ) ++ root.js.aggregate): _*
+        ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
     coverageEnabled := false,
   )
