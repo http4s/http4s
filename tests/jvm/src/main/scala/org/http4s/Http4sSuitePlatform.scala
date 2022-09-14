@@ -16,15 +16,7 @@
 
 package org.http4s
 
-import cats.effect.IO
-import cats.effect.Resource
-
 trait Http4sSuitePlatform { this: Http4sSuite =>
-
-  def resourceSuiteFixture[A](name: String, resource: Resource[IO, A]) = registerSuiteFixture(
-    ResourceSuiteLocalFixture(name, resource)
-  )
-
   // allow flaky tests on ci
-  override def munitFlakyOK = sys.env.contains("CI")
+  override def munitFlakyOK: Boolean = sys.env.contains("CI")
 }
