@@ -262,7 +262,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       false,
     )
 
-  @deprecated("Use the overload which accepts a Network", "0.23.14")
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
   def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
     default(async, Network.forAsync(async))
 
