@@ -237,8 +237,10 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
-    def untilDisposed[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
+  def fromHttpApp[F[_]: MonadCancelThrow: Concurrent](
+      app: HttpApp[F]
+  )(implicit F: Async[F]): Client[F] = {
+    def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
           case Some((chunk, stream)) =>
@@ -252,26 +254,38 @@ object Client {
       go(source).stream
     }
 
-    def runDefault(req: Request[F]) =
-      Resource.suspend(
-        Ref[F].of(false).map { disposed =>
-          val req0 =
-            addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(untilDisposed(disposed)))
-          Resource
-            .eval(app(req0))
-            .onFinalize(disposed.set(true))
-            .map(_.pipeBodyThrough(untilDisposed(disposed)))
+    def run(
+        message: Message[F],
+        disposedOpt: Option[Ref[F, Boolean]] = None,
+    ): Resource[F, Response[F]] = message.entity match {
+      case Entity.Empty | Entity.Strict(_) =>
+        message match {
+          case req @ Request(_, _, _, _, _, _) =>
+            val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
+            Resource.eval(app(reqAugmented)).flatMap(run(_))
+          case resp @ Response(_, _, _, _, _) => Resource.eval(F.pure(resp))
         }
-      )
-
-    def run(req: Request[F]) =
-      req.entity match {
-        case Entity.Empty | Entity.Strict(_) =>
-          Resource.eval(app(addHostHeaderIfUriIsAbsolute(req)))
-        case Entity.Default(_, _) =>
-          runDefault(req)
-      }
-
+      case Entity.Default(_, _) =>
+        val refResource = Ref[F].of(false).map { disposed =>
+          message match {
+            case req @ Request(_, _, _, _, _, _) =>
+              val reqAugmented = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+              Resource
+                .eval(app(reqAugmented))
+                .onFinalize(disposed.set(true))
+                .flatMap(run(_, Option(disposed)))
+            case resp @ Response(_, _, _, _, _) =>
+              disposedOpt.fold(
+                Resource
+                  .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
+                  .onFinalize(disposed.set(true))
+              ) { reqDisposed =>
+                Resource.eval(F.pure(resp.pipeBodyThrough(until(reqDisposed))))
+              }
+          }
+        }
+        Resource.suspend(refResource)
+    }
     Client((req: Request[F]) => run(req))
   }
 

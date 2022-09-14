@@ -41,10 +41,8 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   }
 
   test("mock client should fail to read body after dispose") {
-    val eventStream: EventStream[IO] =
-      fs2.Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString.some))
     Request[IO](POST)
-      .withEntity(eventStream)
+      .withEntity("foo")
       .pure[IO]
       .flatMap { req =>
         // This is bad. Don't do this.
