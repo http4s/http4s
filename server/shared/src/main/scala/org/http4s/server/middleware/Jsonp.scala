@@ -24,7 +24,6 @@ import cats.syntax.all._
 import fs2.Chunk
 import fs2.Stream._
 import org.http4s.headers._
-import org.log4s.getLogger
 
 import java.nio.charset.StandardCharsets
 
@@ -38,7 +37,7 @@ import java.nio.charset.StandardCharsets
   * applied.
   */
 object Jsonp {
-  private val logger = getLogger
+  private val logger = Platform.loggerFactory.getLogger
 
   // A regex to match a valid javascript function name to shield the client from some jsonp related attacks
   private val ValidCallback =
@@ -51,7 +50,9 @@ object Jsonp {
             if (hasJsonContent(response)) jsonp(response, callback) else response
           }
         case Some(invalidCallback) =>
-          logger.warn(s"Jsonp requested with invalid callback function name $invalidCallback")
+          logger
+            .warn(s"Jsonp requested with invalid callback function name $invalidCallback")
+            .unsafeRunSync()
           Response[G](Status.BadRequest).withEntity(s"Not a valid callback name.").pure[F]
         case None => http(req)
       }

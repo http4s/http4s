@@ -23,10 +23,9 @@ import cats.data.Kleisli
 import cats.syntax.all._
 import fs2.compression._
 import org.http4s.headers._
-import org.log4s.getLogger
 
 object GZip {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
@@ -84,7 +83,7 @@ object GZip {
           header = ZLibParams.Header.GZIP,
         ),
       )
-    logger.trace("GZip middleware encoding content")
+    logger.trace("GZip middleware encoding content").unsafeRunSync()
     resp
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))

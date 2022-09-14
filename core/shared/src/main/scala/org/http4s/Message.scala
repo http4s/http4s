@@ -35,7 +35,6 @@ import org.http4s.Message.EntityStreamException
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 import scodec.bits.ByteVector
@@ -92,7 +91,9 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
           .fromLong(l)
           .fold(
             _ => {
-              Message.logger.warn(s"Attempt to provide a negative content length of $l")
+              Message.logger
+                .warn(s"Attempt to provide a negative content length of $l")
+                .unsafeRunSync()
               None
             },
             Some(_),
@@ -302,7 +303,7 @@ object Message {
       EntityStreamException(s"Entity stream has exceeded the maximum of $maxBytes bytes")
   }
 
-  private[http4s] val logger = getLogger
+  private[http4s] val logger = Platform.loggerFactory.getLogger
   object Keys {
     private[this] val trailerHeaders: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
     def TrailerHeaders[F[_]]: Key[F[Headers]] = trailerHeaders.asInstanceOf[Key[F[Headers]]]

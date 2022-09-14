@@ -79,6 +79,7 @@ trait Client[F[_]] {
       d: EntityDecoder[F, A]
   ): F[A]
 
+  @deprecated("Use req.flatMap(expect(_))", "0.23.16")
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
@@ -117,12 +118,14 @@ trait Client[F[_]] {
     * The underlying HTTP connection is released at the completion of the
     * decoding.
     */
+  @deprecated("Use req.flatMap(fetchAs(_))", "0.23.16")
   def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   /** Submits a request and returns the response status */
   def status(req: Request[F]): F[Status]
 
   /** Submits a request and returns the response status */
+  @deprecated("Use req.flatMap(status(_))", "0.23.16")
   def status(req: F[Request[F]]): F[Status]
 
   /** Submits a GET request to the URI and returns the response status */
@@ -139,6 +142,7 @@ trait Client[F[_]] {
   /** Submits a request and returns true if and only if the response status is
     * successful
     */
+  @deprecated("Use req.flatMap(successful(_))", "0.23.16")
   def successful(req: F[Request[F]]): F[Boolean]
 
   /** Submits a GET request, and provides a callback to process the response.

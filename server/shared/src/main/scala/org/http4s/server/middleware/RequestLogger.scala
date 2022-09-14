@@ -25,19 +25,17 @@ import cats.effect.implicits._
 import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
 import cats.effect.kernel.Outcome
-import cats.effect.kernel.Sync
 import cats.syntax.all._
 import cats.~>
 import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
   def apply[G[_], F[_]](
       logHeaders: Boolean,
@@ -62,7 +60,7 @@ object RequestLogger {
       G: MonadCancelThrow[G],
   ): Http[G, F] = {
     val log = logAction.fold { (s: String) =>
-      Sync[F].delay(logger.info(s))
+      logger.info(s).to[F]
     }(identity)
 
     def logMessage(r: Request[F]): F[Unit] =
