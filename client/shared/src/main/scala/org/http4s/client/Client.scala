@@ -255,8 +255,7 @@ object Client {
     }
 
     def run(
-        message: Message[F],
-        disposedOpt: Option[Ref[F, Boolean]] = None,
+        message: Message[F]
     ): Resource[F, Response[F]] = message.entity match {
       case Entity.Empty | Entity.Strict(_) =>
         message match {
@@ -273,15 +272,11 @@ object Client {
               Resource
                 .eval(app(reqAugmented))
                 .onFinalize(disposed.set(true))
-                .flatMap(run(_, Option(disposed)))
+                .flatMap(run(_))
             case resp @ Response(_, _, _, _, _) =>
-              disposedOpt.fold(
-                Resource
-                  .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
-                  .onFinalize(disposed.set(true))
-              ) { reqDisposed =>
-                Resource.eval(F.pure(resp.pipeBodyThrough(until(reqDisposed))))
-              }
+              Resource
+                .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
+                .onFinalize(disposed.set(true))
           }
         }
         Resource.suspend(refResource)
