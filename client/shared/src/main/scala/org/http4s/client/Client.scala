@@ -237,9 +237,9 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](
+  def fromHttpApp[F[_]: Concurrent](
       app: HttpApp[F]
-  )(implicit F: Async[F]): Client[F] = {
+  )(implicit F: MonadCancelThrow[F]): Client[F] = {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
@@ -259,15 +259,15 @@ object Client {
     ): Resource[F, Response[F]] = message.entity match {
       case Entity.Empty | Entity.Strict(_) =>
         message match {
-          case req: Request[F]   =>
+          case req: Request[F] =>
             val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
             Resource.eval(app(reqAugmented)).flatMap(run(_))
-          case resp: Response[F]  => Resource.eval(F.pure(resp))
+          case resp: Response[F] => Resource.eval(F.pure(resp))
         }
       case Entity.Default(_, _) =>
         val refResource = Ref[F].of(false).map { disposed =>
           message match {
-            case req: Request[F]  =>
+            case req: Request[F] =>
               val reqAugmented = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
               Resource
                 .eval(app(reqAugmented))
