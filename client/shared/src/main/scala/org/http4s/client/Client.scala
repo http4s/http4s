@@ -237,9 +237,9 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]: Concurrent](
+  def fromHttpApp[F[_]](
       app: HttpApp[F]
-  )(implicit F: MonadCancelThrow[F]): Client[F] = {
+  )(implicit F: Concurrent[F]): Client[F] = {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
