@@ -37,7 +37,7 @@ import org.http4s.server.websocket.WebSocketBuilder2
 
 import scala.concurrent.duration._
 
-final class EmberServerBuilder[F[_]: Async] private (
+final class EmberServerBuilder[F[_]: Async: Network] private (
     val host: Option[Host],
     val port: Port,
     private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
@@ -239,7 +239,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 }
 
 object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
-  def default[F[_]: Async]: EmberServerBuilder[F] =
+  def default[F[_]: Async: Network]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -259,6 +259,10 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       None,
       false,
     )
+
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
+    default(async, Network.forAsync(async))
 
   private object Defaults {
     val host: String = server.defaults.IPv4Host
