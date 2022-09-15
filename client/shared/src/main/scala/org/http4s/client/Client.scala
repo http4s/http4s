@@ -237,7 +237,7 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]: MonadCancelThrow: Concurrent](
+  def fromHttpApp[F[_]](
       app: HttpApp[F]
   )(implicit F: Async[F]): Client[F] = {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
