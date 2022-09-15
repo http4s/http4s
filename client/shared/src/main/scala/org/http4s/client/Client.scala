@@ -259,21 +259,21 @@ object Client {
     ): Resource[F, Response[F]] = message.entity match {
       case Entity.Empty | Entity.Strict(_) =>
         message match {
-          case req @ Request(_, _, _, _, _, _) =>
+          case req: Request[F]   =>
             val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
             Resource.eval(app(reqAugmented)).flatMap(run(_))
-          case resp @ Response(_, _, _, _, _) => Resource.eval(F.pure(resp))
+          case resp: Response[F]  => Resource.eval(F.pure(resp))
         }
       case Entity.Default(_, _) =>
         val refResource = Ref[F].of(false).map { disposed =>
           message match {
-            case req @ Request(_, _, _, _, _, _) =>
+            case req: Request[F]  =>
               val reqAugmented = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
               Resource
                 .eval(app(reqAugmented))
                 .onFinalize(disposed.set(true))
                 .flatMap(run(_))
-            case resp @ Response(_, _, _, _, _) =>
+            case resp: Response[F] =>
               Resource
                 .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
                 .onFinalize(disposed.set(true))
