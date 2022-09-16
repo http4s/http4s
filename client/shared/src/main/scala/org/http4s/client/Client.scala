@@ -255,31 +255,43 @@ object Client {
     }
 
     def run(
-        message: Message[F]
+        message: Message[F],
+        refOp: Option[Ref[F, Boolean]] = None,
     ): Resource[F, Response[F]] = message.entity match {
       case Entity.Empty | Entity.Strict(_) =>
         message match {
           case req: Request[F] =>
             val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
             Resource.eval(app(reqAugmented)).flatMap(run(_))
-          case resp: Response[F] => Resource.eval(F.pure(resp))
+          case resp: Response[F] =>
+            Resource.eval(F.pure(resp))
         }
       case Entity.Default(_, _) =>
-        val refResource = Ref[F].of(false).map { disposed =>
-          message match {
-            case req: Request[F] =>
-              val reqAugmented = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        message match {
+          case req: Request[F] =>
+            Resource.suspend(
+              Ref[F].of(false).map { disposed =>
+                val reqAugmented =
+                  addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+                Resource
+                  .eval(app(reqAugmented))
+                  .onFinalize(disposed.set(true))
+                  .flatMap(run(_, Option(disposed)))
+              }
+            )
+          case resp: Response[F] =>
+            refOp.fold {
+              Resource.suspend(Ref[F].of(false).map { disposed =>
+                Resource
+                  .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
+                  .onFinalize(disposed.set(true))
+              })
+            } { disp =>
               Resource
-                .eval(app(reqAugmented))
-                .onFinalize(disposed.set(true))
-                .flatMap(run(_))
-            case resp: Response[F] =>
-              Resource
-                .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
-                .onFinalize(disposed.set(true))
-          }
+                .eval(F.pure(resp.pipeBodyThrough(until(disp))))
+                .onFinalize(disp.set(true))
+            }
         }
-        Resource.suspend(refResource)
     }
     Client((req: Request[F]) => run(req))
   }
