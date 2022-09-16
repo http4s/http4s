@@ -3,6 +3,75 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.16 (2022-09-15)
+
+This release is binary compatible with the 0.23.x series. This is the first release that supports the [Scala Native](https://scala-native.org/) platform. All modules were cross-built, including:
+
+* core, dsl, and laws
+* server and client, including middlewares
+    * middlewares relying on cryptography require [OpenSSL](https://www.openssl.org/)
+* ember server and client, including support for HTTP/2 and TLS
+    * requires an [I/O-integrated runtime](https://github.com/typelevel/cats-effect/discussions/3070) for Cats Effect such as [epollcat](https://github.com/armanbilge/epollcat/)
+    * requires [s2n-tls](https://github.com/aws/s2n-tls) for TLS
+* jawn and circe
+
+In addition, a new [cURL](https://curl.se/)-based client backend is developed in a satellite repo.
+
+* https://github.com/http4s/http4s-curl/
+
+## What's Changed
+
+* Scala Native by @armanbilge in https://github.com/http4s/http4s/pull/6661
+
+### http4s-core
+
+* RFC: Phase out log4s by @armanbilge in https://github.com/http4s/http4s/pull/6614
+* Update fs2-core, fs2-io to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6670
+
+### http4s-server
+
+* Default redactHeadersWhen to include any header with "token" #6186 by @Lasering in https://github.com/http4s/http4s/pull/6649
+
+### http4s-client
+
+* Deprecate some methods in `Client` by @danicheg in https://github.com/http4s/http4s/pull/6651
+* Default redactHeadersWhen to include any header with "token" #6186 by @Lasering in https://github.com/http4s/http4s/pull/6649
+
+### http4s-ember-server
+
+* Expose `Network` constraint in ember builders by @armanbilge in https://github.com/http4s/http4s/pull/6526
+
+### http4s-ember-client
+
+* Expose `Network` constraint in ember builders by @armanbilge in https://github.com/http4s/http4s/pull/6526
+
+### http4s-circe
+
+* Update circe-core, circe-generic, ... to 0.14.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6679
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.15 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6635
+* Update netty-buffer, netty-codec-http to 4.1.80.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6640
+* Update case-insensitive, ... to 1.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6642
+* Pin slf4j to 1.x and cleanup by @armanbilge in https://github.com/http4s/http4s/pull/6644
+* Pin `logback-classic` to the `1.2.x` series by @danicheg in https://github.com/http4s/http4s/pull/6647
+* Update fs2-core, fs2-io to 3.2.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6656
+* Update netty-buffer, netty-codec-http to 4.1.81.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6659
+* Update to munit 1.0.0-M6 by @armanbilge in https://github.com/http4s/http4s/pull/6657
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6662
+* Update netty-buffer, netty-codec-http to 4.1.82.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6663
+* Update munit-cats-effect to 2.0.0-M3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6667
+* Update ip4s-core, ip4s-test-kit to 3.2.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6666
+* Update scalacheck-effect, ... to 2.0.0-M2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6668
+* Update keypool to 0.4.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6673
+* Update vault to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6674
+* Update sbt-scoverage to 2.0.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6672
+* Update log4cats-core, log4cats-noop, ... to 2.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6678
+* Update jawn-fs2 to 2.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6677
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.15...v0.23.16
+
 # v0.23.15 (2022-08-22)
 
 This release is binary compatible with the 0.23.x series.
