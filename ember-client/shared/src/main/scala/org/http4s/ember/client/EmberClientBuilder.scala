@@ -311,7 +311,15 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           address: UnixSocketAddress,
       ): Resource[F, Response[F]] =
         Resource
-          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.orElse(defaultUnixSockets).get))
+          .eval(
+            unixSockets
+              .orElse(defaultUnixSockets)
+              .liftTo(
+                new RuntimeException(
+                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
+                )
+              )
+          )
           .flatMap(unixSockets =>
             Resource
               .make(
