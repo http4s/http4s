@@ -996,7 +996,7 @@ class UriSpec extends Http4sSuite {
     val ps = Map("param" -> List(1.2, 2.1))
     assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
   }
-  if (Platform.isJvm)
+  if (Platform.isJvm || Platform.isNative)
     test("Uri parameter convenience methods should set a parameter with a float values") {
       val ps = Map("param" -> List(1.2f, 2.1f))
       assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))

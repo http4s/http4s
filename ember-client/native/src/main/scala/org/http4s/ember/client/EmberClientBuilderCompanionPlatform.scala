@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 http4s.org
+ * Copyright 2019 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s.ember.client
 
-import java.io.OutputStream
+import cats.effect.Async
+import fs2.io.net.unixsocket.UnixSockets
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
 
-object NullOutStream extends OutputStream {
-  override def write(b: Int): Unit = {
-    // do nothing
-  }
+private[client] trait EmberClientBuilderPlatform {
+
+  private[client] def defaultUnixSockets[F[_]]: Option[UnixSockets[F]] =
+    None
+
+}
+
+private[client] trait EmberClientBuilderCompanionPlatform {
+
+  private[client] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
+
 }

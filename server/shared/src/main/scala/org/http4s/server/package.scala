@@ -41,12 +41,12 @@ package object server {
          |             |_|""".stripMargin.split("\n").toList
 
     val IPv4Host: String =
-      if (Platform.isJvm)
+      if (Platform.isJvm || Platform.isNative)
         InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
       else
         "127.0.0.1"
     val IPv6Host: String =
-      if (Platform.isJvm)
+      if (Platform.isJvm || Platform.isNative)
         InetAddress
           .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
           .getHostAddress
