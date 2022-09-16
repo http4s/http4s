@@ -311,7 +311,7 @@ object MediaType extends MimeDB {
   private[http4s] def getMediaType(_mainType: String, _subType: String): MediaType = {
     val mainType = _mainType.toLowerCase
     val subType = _subType.toLowerCase
-    if (Platform.isJvm)
+    if (Platform.isJvm || Platform.isNative)
       MediaType.all.getOrElse(
         (mainType, subType),
         new MediaType(mainType, subType),
