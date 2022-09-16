@@ -44,9 +44,11 @@ class QueryParamCodecSuite extends Http4sSuite with QueryParamCodecInstances {
   checkAll("LocalDate QueryParamCodec", QueryParamCodecLaws[LocalDate])
   checkAll("LocalTime QueryParamCodec", QueryParamCodecLaws[LocalTime])
   checkAll("LocalDateTime QueryParamCodec", QueryParamCodecLaws[LocalDateTime])
-  checkAll("DayOfWeek QueryParamCodec", QueryParamCodecLaws[DayOfWeek])
-  checkAll("Month QueryParamCodec", QueryParamCodecLaws[Month])
-  checkAll("MonthDay QueryParamCodec", QueryParamCodecLaws[MonthDay])
+  if (Platform.isJvm) { // enum arbitraries are implemented with reflection
+    checkAll("DayOfWeek QueryParamCodec", QueryParamCodecLaws[DayOfWeek])
+    checkAll("Month QueryParamCodec", QueryParamCodecLaws[Month])
+    checkAll("MonthDay QueryParamCodec", QueryParamCodecLaws[MonthDay])
+  }
   checkAll("Year QueryParamCodec", QueryParamCodecLaws[Year])
   checkAll("YearMonth QueryParamCodec", QueryParamCodecLaws[YearMonth])
   checkAll("ZoneOffset QueryParamCodec", QueryParamCodecLaws[ZoneOffset])
