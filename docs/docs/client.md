@@ -38,7 +38,7 @@ along in a REPL:
 
 ```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
-implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val runtime: IORuntime = IORuntime.global
 ```
 
 Finish setting up our server:
@@ -95,9 +95,6 @@ It uses blocking IO and is less suited for production, but it is
 highly useful in a REPL:
 
 ```scala mdoc:silent
-import java.util.concurrent._
-
-val blockingPool = Executors.newFixedThreadPool(5)
 val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 ```
 
@@ -257,15 +254,15 @@ If you want to implement a client using just a function (for example, to make a 
 A simple middleware, which would add a constant header to every request and response, could look like this:
 
 ```scala mdoc
-import org.typelevel.ci.CIString
+import org.typelevel.ci._
 
 def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Client[F] { req =>
   underlying
     .run(
-      req.withHeaders(Header.Raw(CIString("X-Test-Request"), "test"))
+      req.withHeaders(Header.Raw(ci"X-Test-Request", "test"))
     )
     .map(
-      _.withHeaders(Header.Raw(CIString("X-Test-Response"), "test"))
+      _.withHeaders(Header.Raw(ci"X-Test-Response", "test"))
     )
 }
 ```
@@ -327,8 +324,7 @@ import io.circe.generic.auto._
 
 case class AuthResponse(access_token: String)
 
-implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] =
-  jsonOf[IO, AuthResponse]
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = jsonOf
 
 val postRequest = POST(
   UrlForm(
@@ -379,10 +375,6 @@ Passing it to a `EntityDecoder` is safe.
 
 ```
 client.get[T]("some-url")(response => jsonOf(response.body))
-```
-
-```scala mdoc:invisible
-blockingPool.shutdown()
 ```
 
 [service]: service.md
