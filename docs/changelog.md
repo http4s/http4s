@@ -3,6 +3,28 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M37 (2022-09-20)
+
+This release is the latest milestone in the 1.x series, and is _not_ binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.16, including Scala Native support for all modules.
+
+## What's Changed
+
+### Documentation
+
+* Add doc for mixing left- and right-associative by @jan0sch in https://github.com/http4s/http4s/pull/6598
+
+### Behind the scenes
+
+* Ignore case-insensitive updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6643
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6664
+* Ignore munit-cats-effect updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6669
+* Ignore scalacheck updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6684
+* Ignore keypool updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6675
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/6692
+
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M36...v1.0.0-M37
+
 # v0.23.16 (2022-09-15)
 
 This release is binary compatible with the 0.23.x series. This is the first release that supports the [Scala Native](https://scala-native.org/) platform. All modules were cross-built, including:
