@@ -1,49 +1,76 @@
 # HTTP Client
 
-How do we know the server is running?  Let's create a client with
-http4s to try our service.
+The `Client` trait in http4s can submit `Request`s to a server and return a `Response`.
 
-A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
+```scala
+trait Client[F[_]] {
+
+  def run(req: Request[F]): Resource[F, Response[F]]
+
+  //...
+}
+```
+
+Here's a quick example app to print the response of a GET request.
+
+```scala mdoc
+import cats.effect.{IO, IOApp}
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.client.Client
+
+object Hello extends IOApp.Simple {
+
+  def printHello(client: Client[IO]): IO[Unit] =
+    client
+      .expect[String]("http://localhost:8080/hello/Ember")
+      .flatMap(IO.println)
+
+  val run: IO[Unit] = EmberClientBuilder
+    .default[IO]
+    .build
+    .use(client => printHello(client))
+
+}
+```
+
+
+## Setup
+
+In order to play with a `Client` we'll first create a http4s `Server`.
+
+Ensure you have the following dependencies in your build.sbt:
 
 ```scala
 scalaVersion := "2.13.8" // Also supports 2.12.x and 3.x
 
 val http4sVersion = "@VERSION@"
 
-// Only necessary for SNAPSHOT releases
-resolvers += Resolver.sonatypeRepo("snapshots")
-
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-ember-client" % http4sVersion,
   "org.http4s" %% "http4s-ember-server" % http4sVersion,
-  "org.http4s" %% "http4s-ember-client" % http4sVersion
+  "org.http4s" %% "http4s-dsl"          % http4sVersion,
 )
 ```
 
-Then we create the [service] again so [mdoc] picks it up:
+Because this documentation is running in [mdoc] we need an implicit `IORuntime`.
+This would be taken care of for you if you were using `IOApp` as seen above.
 
 ```scala mdoc:silent
-import cats.effect._
+import cats.effect.unsafe.IORuntime
+
+implicit val runtime: IORuntime = IORuntime.global
+```
+
+Now we can finish setting up our server:
+
+```scala mdoc:silent
 import com.comcast.ip4s._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.http4s.ember.server._
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
-import scala.concurrent.duration._
-```
 
-The following is provided by an `IOApp`, but necessary if following
-along in a REPL:
-
-```scala mdoc:silent
-import cats.effect.unsafe.IORuntime
-implicit val runtime: IORuntime = IORuntime.global
-```
-
-Finish setting up our server:
-
-```scala mdoc:silent
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -65,23 +92,23 @@ We'll start the server in the background.
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
+## Making Requests
 
 ### Creating the client
 
 A good default choice is the `EmberClientBuilder`.  The
 `EmberClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
-```scala mdoc
-import org.http4s.ember.client._
-import org.http4s.client._
-```
-
 ```scala mdoc:silent
+import org.http4s.ember.client.EmberClientBuilder
+
 EmberClientBuilder.default[IO].build.use { client =>
   // use `client` here and return an `IO`.
   // the client will be acquired and shut down
   // automatically each time the `IO` is run.
-  IO.unit
+
+  // we'll explain this shortly
+  client.expect[String]("http://localhost:8080/hello/Ember")
 }
 ```
 
@@ -92,19 +119,23 @@ any other http4s backend, it presents the exact same `Client`
 interface!
 
 It uses blocking IO and is less suited for production, but it is
-highly useful in a REPL:
+highly useful in [mdoc] documentation:
 
 ```scala mdoc:silent
+import org.http4s.client.JavaNetClientBuilder
+
+// for our mdoc use only!
 val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 ```
 
-### Describing a call
+### Describing a Request
 
 To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```scala mdoc:silent
-val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
+val helloJames: IO[String] =
+  httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
 Note that we don't have any output yet.  We have a `IO[String]`, to
@@ -122,33 +153,37 @@ Let's describe how we're going to greet a collection of people in
 parallel:
 
 ```scala mdoc:silent
-import cats._, cats.effect._, cats.implicits._
+import cats.effect.IO
+import cats.syntax.all._
 import org.http4s.Uri
-```
 
-```scala mdoc:silent
 def hello(name: String): IO[String] = {
   val target = uri"http://localhost:8080/hello/" / name
   httpClient.expect[String](target)
 }
 
-val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
+val people = List("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = people.parTraverse(hello)
+val greetingList: IO[List[String]] =
+  people.parTraverse(hello)
 ```
 
-Observe how simply we could combine a single `F[String]` returned
-by `hello` into a scatter-gather to return a `F[List[String]]`.
+Observe how `parTraverse` let us simply combine a single `IO[String]` returned
+by `hello` into a scatter-gather to return a `IO[List[String]]`.
 
-## Making the call
+### Making the call
 
-It is best to run your `F` "at the end of the world."  The "end of
+It is best to run your `IO` "at the end of the world."  The "end of
 the world" varies by context:
 
 * In a command line app, it's your main method.
-* In an `HttpApp[F]`, an `F[Response[F]]` is returned to be run by the
+* In an `HttpApp[IO]`, an `IO[Response[IO]]` is returned to be run by the
   server.
-* Here in the REPL, the last line is the end of the world.  Here we go:
+
+Here in [mdoc], we manually run the `IO` with `unsafeRunSync()`.
+You should not do this in your applications.
+Instead you should compose `IO`s together and pass them to `run` in an `IOApp` as seen in the opening example.
+But again, within [mdoc] documentation, we run them manually:
 
 ```scala mdoc
 greetingList.map(_.mkString("\n")).unsafeRunSync()
@@ -253,6 +288,7 @@ If you want to implement a client using just a function (for example, to make a 
 A simple middleware, which would add a constant header to every request and response, could look like this:
 
 ```scala mdoc
+import cats.effect.MonadCancelThrow
 import org.typelevel.ci._
 
 def addTestHeader[F[_]: MonadCancelThrow](underlying: Client[F]): Client[F] = Client[F] { req =>
