@@ -243,18 +243,18 @@ An example wrapper could look something like this:
 
 ```scala mdoc
 def mid(f: Int => String): Int => String = in => {
-  // here, `in` is the input originally passed to the function
-  // we can decide to pass it to `f`, or modify it first. We'll change it for the example.
+  // `in` is the input originally passed to the function.
+  // We can pass it to `f` directly.
+  // Or use it to construct a new value.
   val resultOfF = f(in + 1)
 
-  // Now, `resultOfF` is the result of the function applied with the modified result.
-  // We can return it verbatim or _also_ modify it first! We could even ignore it.
-  // Here, we'll use both results - the one we got from the original call (f(in)) and the customized one (f(in + 1)).
-  s"${f(in)} is the original result, but $resultOfF's input was modified!"
+  // `resultOfF` is the result of the function applied to the new input.
+  // Similarly, we can return it directly, or build a new value.
+  s"$in was incremented to yield $resultOfF"
 }
 ```
 
-If we were to wrap a simple function, say, one returning the String representation of a number:
+If we wrap a simple function, say, one returning the String representation of a number:
 
 ```scala mdoc
 val f1: Int => String = _.toString
@@ -266,10 +266,10 @@ f1(10)
 f2(10)
 ```
 
-We would see how it's changing the result of the `f1` function by giving it another input.
-
+We see how `f2` changes from `f1` by passing an incremented argument to the original function.
 This wrapper could be considered a **middleware** over functions from `Int` to `String`.
-Now consider a simplified definition of `Client[F]` - it boils down to a single abstract method:
+
+Recall our simplified definition of `Client[F]` - it boils down to a single abstract method:
 
 ```scala
 trait Client[F[_]] {
