@@ -149,7 +149,7 @@ Prefer `fromString` to `parse`.
 
 All constructors that are partial on their input should be prefixed with `unsafe`.
 
-```
+```scala
 // Good
 def fromLong(l: Long): ParseResult[Foo] =
   if (l < 0) Left(ParseFailure("l must be non-negative"))
