@@ -212,7 +212,7 @@ function.
 import org.http4s.syntax.header._
 import org.http4s.headers.Authorization
 
-val authUserHeaders: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUserHeader: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header  <- request.headers.get[Authorization]
                  .toRight("Couldn't find an Authorization header")
