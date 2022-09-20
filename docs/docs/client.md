@@ -138,19 +138,12 @@ val helloJames: IO[String] =
   httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
-Note that we don't have any output yet.  We have a `IO[String]`, to
-represent the asynchronous nature of a client request.
+We don't have any output from the server yet as we have not executed the
+request.  We have an `IO[String]` value, which is a description of a
+program that will request a `String` from the server when run.
 
-Furthermore, we haven't even executed the request yet.  A significant
-difference between a `IO` and a `scala.concurrent.Future` is that a
-`Future` starts running immediately on its implicit execution context,
-whereas a `IO` runs when it's told.  Executing a request is an
-example of a side effect.  In functional programming, we prefer to
-build a description of the program we're going to run, and defer its
-side effects to the end.
-
-Let's describe how we're going to greet a collection of people in
-parallel:
+Let's build another program that makes requests in parallel to greet a
+collection of people:
 
 ```scala mdoc:silent
 import cats.effect.IO
@@ -168,26 +161,26 @@ val greetingList: IO[List[String]] =
   people.parTraverse(hello)
 ```
 
-Observe how `parTraverse` let us simply combine a single `IO[String]` returned
-by `hello` into a scatter-gather to return a `IO[List[String]]`.
+We use `parTraverse` to apply `hello` to each person and collect the results into
+one `IO[List[String]]`. The `par` prefix on `parTraverse` indicates that this
+will happen for each person concurrently.
 
-### Making the call
+### Running a Request
 
-It is best to run your `IO` "at the end of the world."  The "end of
-the world" varies by context:
+So far we have built two programs, `helloJames` will make a request to greet James,
+and `greetingList` will make multiple concurrent requests to greet multiple people.
+In a production application we would likely compose these programs with other programs
+up until we finally pass them to `run` in `IOApp` as seen in our intro example.
 
-* In a command line app, it's your main method.
-* In an `HttpApp[IO]`, an `IO[Response[IO]]` is returned to be run by the
-  server.
-
-Here in [mdoc], we manually run the `IO` with `unsafeRunSync()`.
-You should not do this in your applications.
-Instead you should compose `IO`s together and pass them to `run` in an `IOApp` as seen in the opening example.
-But again, within [mdoc] documentation, we run them manually:
+Here in [mdoc], or in a scala REPL, we manually run the `IO` with `unsafeRunSync()`.
+Remember, you should not do this in your applications.
 
 ```scala mdoc
+helloJames.unsafeRunSync()
+
 greetingList.map(_.mkString("\n")).unsafeRunSync()
 ```
+
 
 ## Constructing a URI
 
