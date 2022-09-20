@@ -40,14 +40,16 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 Let's start by making a simple service.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
-  case _ =>
-    Ok()
+  case _ => Ok()
 }
 
 val request = Request[IO](Method.GET, uri"/")
+```
 
+
+```scala mdoc
 service.orNotFound(request).unsafeRunSync()
 ```
 
@@ -55,11 +57,11 @@ Now we can wrap the service in the `CORS` middleware.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware._
+
+val corsService = CORS.policy.withAllowOriginAll(service)
 ```
 
 ```scala mdoc
-val corsService = CORS.policy.withAllowOriginAll(service)
-
 corsService.orNotFound(request).unsafeRunSync()
 ```
 
@@ -98,16 +100,16 @@ and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
 ```scala mdoc:silent
 import scala.concurrent.duration._
-```
 
-```scala mdoc
 val corsMethodSvc = CORS.policy
   .withAllowOriginAll
   .withAllowMethodsIn(Set(Method.GET, Method.POST))
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+```
 
+```scala mdoc
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync()
 corsMethodSvc.orNotFound(duckPost).unsafeRunSync()
@@ -118,7 +120,7 @@ Next, we'll create a configuration that limits the origins to "yahoo.com" and
 "duckduckgo.com". `withAllowOriginHost` accepts an `Origin.Host => Boolean`.
 If you're simply enumerating allowed hosts, a `Set` is convenient:
 
-```scala mdoc
+```scala mdoc:silent
 import org.http4s.headers.Origin
 
 val corsOriginSvc = CORS.policy
@@ -129,7 +131,9 @@ val corsOriginSvc = CORS.policy
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+```
 
+```scala mdoc
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync()
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync()
 corsOriginSvc.orNotFound(duckPost).unsafeRunSync()
