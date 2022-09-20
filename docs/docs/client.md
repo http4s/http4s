@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 ```
 
 Then we create the [service] again so [mdoc] picks it up:
->
+
 ```scala mdoc:silent
 import cats.effect._
 import com.comcast.ip4s._
