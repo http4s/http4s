@@ -356,7 +356,7 @@ httpClient.expect[String](request)
 You can send a POST request and decode the JSON response into a case class
 by deriving an `EntityDecoder` for that case class:
 
-```scala mdoc
+```scala mdoc:silent
 import org.http4s.circe._
 import io.circe.generic.auto._
 
