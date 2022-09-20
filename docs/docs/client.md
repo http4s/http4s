@@ -386,33 +386,32 @@ Take a look at [json].
 
 ## Body decoding / encoding
 
-The reusable way to decode/encode a request is to write a custom `EntityDecoder`
-and `EntityEncoder`. For that topic, take a look at [entity].
+The reusable way to decode or encode a request is to write a custom `EntityDecoder`
+or `EntityEncoder`. For that topic, take a look at [entity].
 
-If you prefer a more fine-grained approach, some of the methods take a `Response[F]
-=> F[A]` argument, such as `run` or `get`, which lets you add a function which includes the
-decoding functionality, but ignores the media type.
+If you prefer a more fine-grained approach, some of the methods on `Client` take a
+`Response[F] => F[A]` argument, such as `get`, which lets you add a function which
+includes the decoding functionality, but ignores the media type.
 
-```scala
-client.run(req).use {
-  case Status.Successful(r) => r.attemptAs[A].leftMap(_.message).value
+```scala mdoc
+val endpoint = uri"http://localhost:8080/hello/Ember"
+httpClient.get[Either[String, String]](endpoint) {
+  case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
   case r => r.as[String]
-    .map(b => Left(s"Request $req failed with status ${r.status.code} and body $b"))
+    .map(b => Left(s"Request failed with status ${r.status.code} and body $b"))
 }
 ```
 
-However, your function has to consume the body before the returned `F` exits.
-Don't do this:
+Your function has to consume the body before the returned `F` exits.
+`Response.body` yields a `EntityBody` which is a type alias for `Stream[F, Byte]`.
+It's this `Stream` that needs to be consumed within your effect `F`.
+Do not do this:
 
-```scala
-// will come back to haunt you
-client.get[EntityBody]("some-url")(response => response.body)
-```
+```scala mdoc
+import org.http4s.EntityBody
 
-Passing it to a `EntityDecoder` is safe.
-
-```
-client.get[T]("some-url")(response => jsonOf(response.body))
+// response.body is not consumed within `F`
+httpClient.get[EntityBody[IO]]("some-url")(response => IO(response.body))
 ```
 
 [service]: service.md
