@@ -238,8 +238,8 @@ Note: unlike `IO`, wrapping a side effect in `Future` does not
 suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
-`IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
-suspended future is shifted to the correct thread pool.
+`IO.fromFuture` ensures that the suspended future is shifted to the correct
+thread pool.
 
 ```scala mdoc:silent
 val ioFuture = Ok(IO.fromFuture(IO(Future {
