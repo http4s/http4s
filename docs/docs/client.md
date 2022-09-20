@@ -189,12 +189,12 @@ greetingList.map(_.mkString("\n")).unsafeRunSync()
 
 ## Constructing a URI
 
-Before you can make a call, you'll need a `Uri` to represent the endpoint you
+Before you can make a Request, you'll need a `Uri` to represent the endpoint you
 want to access.
 
 There are a number of ways to construct a `Uri`.
 
-If you have a literal string, you can use `uri"..."`:
+If you have a literal string, you can use the `uri` string interpolator:
 
 ```scala mdoc
 uri"https://my-awesome-service.com/foo/bar?wow=yeah"
@@ -206,10 +206,12 @@ format at compile-time.
 Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
 validation fails:
 
-```scala mdoc
+```scala mdoc:silent
 val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
 val invalidUri = "yeah whatever"
+```
 
+```scala mdoc
 val uri: Either[ParseFailure, Uri] = Uri.fromString(validUri)
 
 val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
@@ -217,11 +219,12 @@ val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
 
 You can also build up a URI incrementally, e.g.:
 
-```scala mdoc
+```scala mdoc:silent
 val baseUri: Uri = uri"http://foo.com"
 val withPath: Uri = baseUri.withPath(path"/bar/baz")
 val withQuery: Uri = withPath.withQueryParam("hello", "world")
 ```
+
 
 ## Middleware
 
