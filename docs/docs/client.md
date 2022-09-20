@@ -323,9 +323,10 @@ package. These include:
 Apart from the middleware mentioned in the previous section. There is, as well,
 Out of the Box middleware for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/) and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 
+
 ## Examples
 
-### Send a GET request, treating the response as a string
+### Send a GET request
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
@@ -340,9 +341,7 @@ can build up a request object and pass that to `expect`:
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
-```
 
-```scala mdoc
 val request = GET(
   uri"https://my-lovely-api.com/",
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
@@ -352,7 +351,10 @@ val request = GET(
 httpClient.expect[String](request)
 ```
 
-### Post a form, decoding the JSON response to a case class
+### Send a POST request
+
+You can send a POST request and decode the JSON response into a case class
+by deriving an `EntityDecoder` for that case class:
 
 ```scala mdoc
 import org.http4s.circe._
