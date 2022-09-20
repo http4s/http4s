@@ -83,9 +83,7 @@ useful on client requests:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-```
 
-```scala mdoc
 POST(json"""{"name": "Alice"}""", uri"/hello")
 ```
 
@@ -254,7 +252,7 @@ val server = EmberServerBuilder
 
 We start a server resource in the background.
 
-```scala mdoc
+```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
