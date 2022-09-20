@@ -43,7 +43,7 @@ implicit val runtime: IORuntime = IORuntime.global
 
 Finish setting up our server:
 
-```scala mdoc
+```scala mdoc:silent
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -61,7 +61,7 @@ val server = EmberServerBuilder
 
 We'll start the server in the background.
 
-```scala mdoc
+```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
@@ -103,7 +103,7 @@ val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
-```scala mdoc
+```scala mdoc:silent
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
@@ -126,7 +126,7 @@ import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
 ```
 
-```scala mdoc
+```scala mdoc:silent
 def hello(name: String): IO[String] = {
   val target = uri"http://localhost:8080/hello/" / name
   httpClient.expect[String](target)
@@ -293,7 +293,7 @@ Out of the Box middleware for [Dropwizard](https://http4s.github.io/http4s-dropw
 
 You can send a GET by calling the `expect` method on the client, passing a `Uri`:
 
-```scala mdoc
+```scala mdoc:silent
 httpClient.expect[String](uri"https://google.com/")
 ```
 
