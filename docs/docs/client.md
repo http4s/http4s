@@ -11,6 +11,8 @@ trait Client[F[_]] {
 }
 ```
 
+While `Client` is abstract in its effect type `F`, we will use concrete `IO` throughout this guide.
+
 Here's a quick example app to print the response of a GET request.
 
 ```scala mdoc
