@@ -393,7 +393,7 @@ If you prefer a more fine-grained approach, some of the methods on `Client` take
 `Response[F] => F[A]` argument, such as `get`, which lets you add a function which
 includes the decoding functionality, but ignores the media type.
 
-```scala mdoc
+```scala mdoc:silent
 val endpoint = uri"http://localhost:8080/hello/Ember"
 httpClient.get[Either[String, String]](endpoint) {
   case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
@@ -405,9 +405,10 @@ httpClient.get[Either[String, String]](endpoint) {
 Your function has to consume the body before the returned `F` exits.
 `Response.body` yields a `EntityBody` which is a type alias for `Stream[F, Byte]`.
 It's this `Stream` that needs to be consumed within your effect `F`.
+
 Do not do this:
 
-```scala mdoc
+```scala mdoc:silent
 import org.http4s.EntityBody
 
 // response.body is not consumed within `F`
