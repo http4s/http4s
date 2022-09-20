@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.http4s.testing
+package org.http4s
 
-import cats.effect.IO
-import cats.effect.SyncIO
-import cats.effect.std.Dispatcher
-import munit.CatsEffectSuite
+import cats.effect.unsafe.IORuntime
+import epollcat.unsafe.EpollRuntime
 
-trait DispatcherIOFixture { this: CatsEffectSuite =>
+trait Http4sSuitePlatform { this: Http4sSuite =>
+  override def munitIORuntime: IORuntime = EpollRuntime.global
 
-  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
-
+  // allow flaky tests on ci
+  override def munitFlakyOK: Boolean = sys.env.contains("CI")
 }

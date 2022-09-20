@@ -16,6 +16,17 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Run(
+    List("brew install s2n"),
+    name = Some("Install s2n"),
+    cond = Some("startsWith(matrix.project, 'rootNative')"),
+  )
+val isLinux = {
+  val osName = Option(System.getProperty("os.name"))
+  osName.exists(_.toLowerCase().contains("linux"))
+}
+
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     id = "coverage",
@@ -100,7 +111,6 @@ lazy val core = libraryCrossProject("core")
       fs2Io.value,
       ip4sCore.value,
       literally.value,
-      log4s.value,
       munit.value % Test,
       scodecBits.value,
       vault.value,
@@ -115,6 +125,18 @@ lazy val core = libraryCrossProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
+  .platformsSettings(JVMPlatform, JSPlatform)(
+    libraryDependencies ++= Seq(
+      log4s.value
+    )
+  )
+  .platformsSettings(JSPlatform, NativePlatform)(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
+      scalaJavaLocalesEnUS.value,
+      scalaJavaTime.value,
+    )
+  )
   .jvmSettings(
     libraryDependencies ++= {
       Seq(log4catsSlf4j)
@@ -126,13 +148,6 @@ lazy val core = libraryCrossProject("core")
           slf4jApi // residual dependency from macros
         )
     },
-  )
-  .jsSettings(
-    libraryDependencies ++= Seq(
-      log4catsNoop.value,
-      scalaJavaLocalesEnUS.value,
-      scalaJavaTime.value,
-    )
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -170,6 +185,11 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+  )
+  .nativeSettings(
+    libraryDependencies ++= Seq(
+      epollcat.value
+    )
   )
   .dependsOn(core, laws)
 
@@ -234,7 +254,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jvmSettings(
     libraryDependencies += twitterHpack
   )
-  .jsSettings(
+  .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += hpack.value
   )
   .dependsOn(core, tests % Test)
@@ -373,7 +393,7 @@ lazy val unidocs = http4sProject("unidocs")
           scalafixInternalRules,
           scalafixInternalTests,
           docs,
-        ) ++ root.js.aggregate): _*
+        ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
     coverageEnabled := false,
   )
@@ -500,7 +520,7 @@ def http4sProject(name: String) =
 
 def http4sCrossProject(name: String, crossType: CrossType) =
   sbtcrossproject
-    .CrossProject(name, file(name))(JVMPlatform, JSPlatform)
+    .CrossProject(name, file(name))(JVMPlatform, JSPlatform, NativePlatform)
     .withoutSuffixFor(JVMPlatform)
     .crossType(crossType)
     .settings(commonSettings)
@@ -518,8 +538,24 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeSettings(
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      unusedCompileDependenciesTest := {},
+      nativeConfig ~= { c =>
+        if (isLinux) { // brew-installed s2n
+          c.withLinkingOptions(c.linkingOptions :+ "-L/home/linuxbrew/.linuxbrew/lib")
+        } else c
+      },
+      Test / envVars ++= {
+        val ldLibPath =
+          if (isLinux)
+            Map("LD_LIBRARY_PATH" -> "/home/linuxbrew/.linuxbrew/lib")
+          else Map.empty
+        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath
+      },
+    )
     .enablePlugins(Http4sPlugin)
-    .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))
     .configure(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)

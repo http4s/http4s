@@ -45,7 +45,7 @@ class EmberServerSuite extends Http4sSuite {
   }
 
   def url(address: SocketAddress[Host], path: String = ""): String =
-    s"http://${address.host}:${address.port.value}$path"
+    s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
 
   val serverResource: Resource[IO, Server] =
     EmberServerBuilder
