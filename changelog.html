@@ -210,29 +210,31 @@
         <p class="header"><a href="#">Changelog</a></p>
 
         <ul class="nav-list">
-          <li class="level1"><a href="#v0-23-16-2022-09-15">v0.23.16 (2022-09-15)</a></li>
+          <li class="level1"><a href="#v1-0-0-m37-2022-09-20">v1.0.0-M37 (2022-09-20)</a></li>
           <li class="level2"><a href="#what-s-changed-1">What&#39;s Changed</a></li>
-          <li class="level1"><a href="#v1-0-0-m36-2022-08-23">v1.0.0-M36 (2022-08-23)</a></li>
+          <li class="level1"><a href="#v0-23-16-2022-09-15">v0.23.16 (2022-09-15)</a></li>
           <li class="level2"><a href="#what-s-changed-2">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v1-0-0-m36-2022-08-23">v1.0.0-M36 (2022-08-23)</a></li>
+          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-1">New Contributors</a></li>
           <li class="level1"><a href="#v0-23-15-2022-08-22">v0.23.15 (2022-08-22)</a></li>
-          <li class="level2"><a href="#what-s-changed-3">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#what-s-changed-4">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-2">New Contributors</a></li>
           <li class="level1"><a href="#v1-0-0-m35-2022-07-25">v1.0.0-M35 (2022-07-25)</a></li>
-          <li class="level2"><a href="#what-s-changed-4">What&#39;s Changed</a></li>
-          <li class="level1"><a href="#v0-23-14-2022-07-25">v0.23.14 (2022-07-25)</a></li>
           <li class="level2"><a href="#what-s-changed-5">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-14-2022-07-25">v0.23.14 (2022-07-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-6">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-3">New Contributors</a></li>
           <li class="level1"><a href="#v1-0-0-m34-2022-07-05">v1.0.0-M34 (2022-07-05)</a></li>
-          <li class="level2"><a href="#what-s-changed-6">What&#39;s Changed</a></li>
-          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
           <li class="level2"><a href="#what-s-changed-7">What&#39;s Changed</a></li>
+          <li class="level1"><a href="#v0-23-13-2022-06-25">v0.23.13 (2022-06-25)</a></li>
+          <li class="level2"><a href="#what-s-changed-8">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-4">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-14-2022-06-23">v0.22.14 (2022-06-23)</a></li>
-          <li class="level2"><a href="#what-s-changed-8">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#what-s-changed-9">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-5">New Contributors</a></li>
           <li class="level1"><a href="#v1-0-0-m33-2022-05-25">v1.0.0-M33 (2022-05-25)</a></li>
-          <li class="level2"><a href="#what-s-changed-9">What&#39;s Changed</a></li>
+          <li class="level2"><a href="#what-s-changed-10">What&#39;s Changed</a></li>
           <li class="level2"><a href="#new-contributors-6">New Contributors</a></li>
           <li class="level2"><a href="#new-contributors-7">New Contributors</a></li>
           <li class="level1"><a href="#v0-22-13-2022-05-20">v0.22.13 (2022-05-20)</a></li>
@@ -525,6 +527,27 @@
         <p>Maintenance branches are merged before each new release. This change log is
         ordered chronologically, so each release contains all changes described below it.</p>
         
+        <h1 id="v1-0-0-m37-2022-09-20" class="section">v1.0.0-M37 (2022-09-20)<a class="anchor-link right" href="#v1-0-0-m37-2022-09-20"><i class="icofont-laika">&#xef71;</i></a></h1>
+        <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.16, including Scala Native support for all modules.</p>
+        
+        <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="documentation-1" class="section">Documentation<a class="anchor-link right" href="#documentation-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Add doc for mixing left- and right-associative by @jan0sch in <a href="https://github.com/http4s/http4s/pull/6598">https://github.com/http4s/http4s/pull/6598</a></li>
+        </ul>
+        
+        <h3 id="behind-the-scenes-1" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <ul>
+          <li>Ignore case-insensitive updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6643">https://github.com/http4s/http4s/pull/6643</a></li>
+          <li>Merge <code>series/0.23</code> into <code>main</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6664">https://github.com/http4s/http4s/pull/6664</a></li>
+          <li>Ignore munit-cats-effect updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6669">https://github.com/http4s/http4s/pull/6669</a></li>
+          <li>Ignore scalacheck updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6684">https://github.com/http4s/http4s/pull/6684</a></li>
+          <li>Ignore keypool updates on main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6675">https://github.com/http4s/http4s/pull/6675</a></li>
+          <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6692">https://github.com/http4s/http4s/pull/6692</a></li>
+        </ul>
+        <p><strong>Full Changelog</strong>: <a href="https://github.com/http4s/http4s/compare/v1.0.0-M36...v1.0.0-M37">https://github.com/http4s/http4s/compare/v1.0.0-M36...v1.0.0-M37</a></p>
+        
         <h1 id="v0-23-16-2022-09-15" class="section">v0.23.16 (2022-09-15)<a class="anchor-link right" href="#v0-23-16-2022-09-15"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with the 0.23.x series. This is the first release that supports the <a href="https://scala-native.org/">Scala Native</a> platform. All modules were cross-built, including:</p>
         <ul>
@@ -549,7 +572,7 @@
           <li><a href="https://github.com/http4s/http4s-curl/">https://github.com/http4s/http4s-curl/</a></li>
         </ul>
         
-        <h2 id="what-s-changed-1" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-1"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
         <ul>
           <li>Scala Native by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6661">https://github.com/http4s/http4s/pull/6661</a></li>
         </ul>
@@ -586,7 +609,7 @@
           <li>Update circe-core, circe-generic, ... to 0.14.3 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6679">https://github.com/http4s/http4s/pull/6679</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-1" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-2" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Update http4s-circe, http4s-ember-client to 0.23.15 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6635">https://github.com/http4s/http4s/pull/6635</a></li>
           <li>Update netty-buffer, netty-codec-http to 4.1.80.Final in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6640">https://github.com/http4s/http4s/pull/6640</a></li>
@@ -612,7 +635,7 @@
         <h1 id="v1-0-0-m36-2022-08-23" class="section">v1.0.0-M36 (2022-08-23)<a class="anchor-link right" href="#v1-0-0-m36-2022-08-23"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.15.</p>
         
-        <h2 id="what-s-changed-2" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-2"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-2" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -625,14 +648,14 @@
           <li>Spring cleaning: Remove unneeded temporal constraints and make some cosmetic changes by @FrancescoSerra in <a href="https://github.com/http4s/http4s/pull/6491">https://github.com/http4s/http4s/pull/6491</a></li>
         </ul>
         
-        <h3 id="documentation-1" class="section">Documentation<a class="anchor-link right" href="#documentation-1"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="documentation-2" class="section">Documentation<a class="anchor-link right" href="#documentation-2"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Remove references to Scala 2.12 in docs by @danicheg in <a href="https://github.com/http4s/http4s/pull/6604">https://github.com/http4s/http4s/pull/6604</a></li>
           <li>Fix 1.0 version table compatibility with 2.12 &amp; 2.13 by @JackTreble in <a href="https://github.com/http4s/http4s/pull/6607">https://github.com/http4s/http4s/pull/6607</a></li>
           <li>Tweak the http4s.g8 example on the quick start page by @danicheg in <a href="https://github.com/http4s/http4s/pull/6608">https://github.com/http4s/http4s/pull/6608</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-2" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-3" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Release v1.0.0-M35 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6569">https://github.com/http4s/http4s/pull/6569</a></li>
           <li>Pick Sbt Scoverage from 0.23 by @danicheg in <a href="https://github.com/http4s/http4s/pull/6574">https://github.com/http4s/http4s/pull/6574</a></li>
@@ -650,7 +673,7 @@
         <h1 id="v0-23-15-2022-08-22" class="section">v0.23.15 (2022-08-22)<a class="anchor-link right" href="#v0-23-15-2022-08-22"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with the 0.23.x series.</p>
         
-        <h2 id="what-s-changed-3" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-3"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-4" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-4"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-3" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -689,14 +712,14 @@
           <li>Parse all WebSocket frames in a <code>Chunk</code> in ember-server by @buntec in <a href="https://github.com/http4s/http4s/pull/6587">https://github.com/http4s/http4s/pull/6587</a></li>
         </ul>
         
-        <h3 id="documentation-2" class="section">Documentation<a class="anchor-link right" href="#documentation-2"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="documentation-3" class="section">Documentation<a class="anchor-link right" href="#documentation-3"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Fix typo: Add missing comma by @mikela in <a href="https://github.com/http4s/http4s/pull/6589">https://github.com/http4s/http4s/pull/6589</a></li>
           <li>Tweak client page by @danicheg in <a href="https://github.com/http4s/http4s/pull/6605">https://github.com/http4s/http4s/pull/6605</a></li>
           <li>Update quickstart guide to include Scala 3 branch by @dsusviela in <a href="https://github.com/http4s/http4s/pull/6620">https://github.com/http4s/http4s/pull/6620</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-3" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-3"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-4" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Release v0.23.14 by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6568">https://github.com/http4s/http4s/pull/6568</a></li>
           <li>Update http4s-circe, http4s-ember-client, ... to 0.23.14 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6570">https://github.com/http4s/http4s/pull/6570</a></li>
@@ -724,7 +747,7 @@
         <h1 id="v1-0-0-m35-2022-07-25" class="section">v1.0.0-M35 (2022-07-25)<a class="anchor-link right" href="#v1-0-0-m35-2022-07-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones. It also includes the changes from v0.23.13 and updates fs2 to v3.2.11 which includes a security patch for <a href="https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35">GHSA-2cpx-6pqp-wf35</a>.</p>
         
-        <h2 id="what-s-changed-4" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-4"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-5" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-5"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-4" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -732,7 +755,7 @@
           <li>Remove <code>BackendBuilder#allocate</code> by @danicheg in <a href="https://github.com/http4s/http4s/pull/6540">https://github.com/http4s/http4s/pull/6540</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-4" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-4"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-5" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-5"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6551">https://github.com/http4s/http4s/pull/6551</a></li>
           <li>0.23 -&gt; main by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6563">https://github.com/http4s/http4s/pull/6563</a></li>
@@ -744,7 +767,7 @@
         <h1 id="v0-23-14-2022-07-25" class="section">v0.23.14 (2022-07-25)<a class="anchor-link right" href="#v0-23-14-2022-07-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.23.x and updates fs2 to v3.2.11 which includes a security patch for <a href="https://github.com/typelevel/fs2/security/advisories/GHSA-2cpx-6pqp-wf35">GHSA-2cpx-6pqp-wf35</a>.</p>
         
-        <h2 id="what-s-changed-5" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-5"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-6" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-6"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-5" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-5"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -770,7 +793,7 @@
           <li>Ember-Server: WebSocketHelper rewrite / optimisation by @diesalbla in <a href="https://github.com/http4s/http4s/pull/6388">https://github.com/http4s/http4s/pull/6388</a></li>
         </ul>
         
-        <h3 id="documentation-3" class="section">Documentation<a class="anchor-link right" href="#documentation-3"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="documentation-4" class="section">Documentation<a class="anchor-link right" href="#documentation-4"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Release note tweaks for v0.23.13 by @rossabaker in <a href="https://github.com/http4s/http4s/pull/6494">https://github.com/http4s/http4s/pull/6494</a></li>
           <li>Don&#39;t use <code>Stream</code> in JSON client example by @armanbilge in <a href="https://github.com/http4s/http4s/pull/6511">https://github.com/http4s/http4s/pull/6511</a></li>
@@ -780,7 +803,7 @@
           <li>Freshen up <code>Middleware</code> docs by @danicheg in <a href="https://github.com/http4s/http4s/pull/6554">https://github.com/http4s/http4s/pull/6554</a></li>
         </ul>
         
-        <h3 id="behind-the-scenes-5" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-5"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="behind-the-scenes-6" class="section">Behind the scenes<a class="anchor-link right" href="#behind-the-scenes-6"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
           <li>Update http4s-circe, http4s-ember-client, ... to 0.23.13 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6493">https://github.com/http4s/http4s/pull/6493</a></li>
           <li>Update sbt-scoverage to 2.0.0 in series/0.23 by @http4s-steward in <a href="https://github.com/http4s/http4s/pull/6495">https://github.com/http4s/http4s/pull/6495</a></li>
@@ -814,7 +837,7 @@
         <h1 id="v1-0-0-m34-2022-07-05" class="section">v1.0.0-M34 (2022-07-05)<a class="anchor-link right" href="#v1-0-0-m34-2022-07-05"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is the latest milestone in the 1.x series, and is <em>not</em> binary compatible with previous 1.0 milestones.  It also includes the changes from v0.23.13.</p>
         
-        <h2 id="what-s-changed-6" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-6"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-7" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-7"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-6" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-6"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -836,7 +859,7 @@
         <h1 id="v0-23-13-2022-06-25" class="section">v0.23.13 (2022-06-25)<a class="anchor-link right" href="#v0-23-13-2022-06-25"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.23.x, and additionally includes the fixes in v0.22.14.</p>
         
-        <h2 id="what-s-changed-7" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-7"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-8" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-8"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-7" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-7"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -911,7 +934,7 @@
         <h1 id="v0-22-14-2022-06-23" class="section">v0.22.14 (2022-06-23)<a class="anchor-link right" href="#v0-22-14-2022-06-23"><i class="icofont-laika">&#xef71;</i></a></h1>
         <p>This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we&#39;ll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).</p>
         
-        <h2 id="what-s-changed-8" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-8"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-9" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-9"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-8" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-8"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
@@ -935,7 +958,7 @@
         <p>This is the first 1.x release after &quot;The Great Schism&quot;, described in v0.23.12.  Because 1.0 isn&#39;t stable yet, all ancillary repositories will need to be released for this version.  If there is one that you would like to maintain, please look for the &quot;Maintainers wanted!&quot; issue in the repository of interest.</p>
         <p>Additional to the below, this release includes all changes in v0.23.12.</p>
         
-        <h2 id="what-s-changed-9" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-9"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="what-s-changed-10" class="section">What&#39;s Changed<a class="anchor-link right" href="#what-s-changed-10"><i class="icofont-laika">&#xef71;</i></a></h2>
         
         <h3 id="http4s-core-9" class="section">http4s-core<a class="anchor-link right" href="#http4s-core-9"><i class="icofont-laika">&#xef71;</i></a></h3>
         <ul>
