@@ -88,7 +88,10 @@ val server = EmberServerBuilder
   .build
 ```
 
-We'll start the server in the background.
+If you're following along in a REPL you'll need to start the server in the background.
+Additionally you'll want a way to shutdown the server when you're done.
+This will start the server running, and later you can call `shutdown.unsafeRunSync()`
+run the server's finalizers and release resources.
 
 ```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
