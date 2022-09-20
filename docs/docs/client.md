@@ -232,7 +232,7 @@ Like the server [middleware], the client middleware is a wrapper around a
 `Client` that provides a means of accessing or manipulating `Request`s
 and `Response`s being sent.
 
-Consider functions from `Int` to `String. We could create a wrapper over functions of this type,
+Consider functions from `Int` to `String`. We could create a wrapper over functions of this type,
 which would take an `Int => String` and return an `Int => String`.
 
 Such a wrapper could make the result inspect its input, do something to it,
