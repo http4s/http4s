@@ -18,6 +18,7 @@ package org.http4s
 
 import cats.Foldable
 import cats.Hash
+import cats.Monoid
 import cats.Order
 import cats.Semigroup
 import cats.Show
@@ -173,15 +174,18 @@ object Header {
     implicit def foldablesToRaw[F[_]: Foldable, H](
         h: F[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)(m)
     }
 
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)(m)
     }
+
+    // Caching this to reduce allocations
+    private[this] val m: Monoid[List[Raw]] = Monoid[List[Raw]]
   }
 
   /** Abstracts over Single and Recurring Headers
