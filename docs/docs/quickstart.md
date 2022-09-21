@@ -136,6 +136,6 @@ a simple JSON service.
 [giter8 template]: https://github.com/http4s/http4s.g8
 [JSON]: json.md
 [Netty]: https://github.com/http4s/http4s-netty
-[versions]: /versions/
+[versions]: ../versions.md
 [sbt-revolver]: https://github.com/spray/sbt-revolver
 [integrations]: integrations.md

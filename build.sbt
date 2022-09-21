@@ -793,7 +793,7 @@ lazy val docs = http4sProject("site")
       cryptobits,
     ),
     description := "Documentation for http4s",
-    tlFatalWarningsInCi := false,
+    tlFatalWarnings := false,
     fork := false,
   )
   .dependsOn(
