@@ -92,6 +92,9 @@
 [rho](https://github.com/http4s/rho)
 : A self-documenting DSL built on http4s
 
+[scala k8s](https://github.com/hnaderi/scala-k8s)
+: Kubernetes client, data models and typesafe manifest generation for scala, scalajs, and scala native; with support for http4s clients on all platforms 
+
 [tsec](https://github.com/jmcardon/tsec)
 : A type-safe, functional, general purpose security and cryptography library
 
