@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.1.3, 2.12.17, 2.13.8]
+        scala: [3.1.3, 2.12.17, 2.13.9]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM, rootNative]
         exclude:
@@ -176,7 +176,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.8]
+        scala: [2.13.9]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -354,7 +354,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.8]
+        scala: [2.13.9]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -399,7 +399,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.8]
+        scala: [2.13.9]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
