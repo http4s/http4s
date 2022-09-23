@@ -29,7 +29,7 @@ object `Content-Encoding` {
 
   implicit val headerInstance: Header[`Content-Encoding`, Header.Single] =
     Header.createRendered(
-      ci"Content-Encoding",
+      name,
       _.contentCoding,
       parse,
     )
