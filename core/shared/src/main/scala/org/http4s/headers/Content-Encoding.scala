@@ -25,6 +25,8 @@ object `Content-Encoding` {
 
   private[http4s] val parser = ContentCoding.parser.map(`Content-Encoding`(_))
 
+  val name = ci"Content-Encoding"
+
   implicit val headerInstance: Header[`Content-Encoding`, Header.Single] =
     Header.createRendered(
       ci"Content-Encoding",
@@ -33,4 +35,7 @@ object `Content-Encoding` {
     )
 }
 
-final case class `Content-Encoding`(contentCoding: ContentCoding)
+final case class `Content-Encoding`(contentCoding: ContentCoding) extends Header.AsRaw1 {
+  lazy val asRaw1: Header.Raw =
+    Header.Raw(`Content-Encoding`.name, `Content-Encoding`.headerInstance.value(this))
+}

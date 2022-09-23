@@ -176,6 +176,12 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
 
+  def putHeader(header: Header.Raw): Self =
+    transformHeaders(_.putOne(header))
+
+  def putHeader(header: Header.AsRaw1): Self =
+    transformHeaders(_.putOne(header.asRaw1))
+
   /** Add a header to these headers.  The header should be a type with a
     * recurring `Header` instance to ensure that the new value can be
     * appended to any existing values.

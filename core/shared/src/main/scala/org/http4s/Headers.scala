@@ -72,6 +72,12 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def put(in: Header.ToRaw*): Headers =
     this ++ Headers(in.values)
 
+  def putOne(in: Header.Raw): Headers =
+    if (this.headers.isEmpty) new Headers(List(in))
+    else {
+      new Headers(this.headers.filterNot(_.name == in.name) :+ in)
+    }
+
   def ++(those: Headers): Headers =
     if (those.headers.isEmpty) this
     else if (this.headers.isEmpty) those

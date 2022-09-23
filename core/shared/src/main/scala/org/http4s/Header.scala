@@ -179,9 +179,24 @@ object Header {
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw =
+      scalaCollectionListToRaw(h.toList)
+
+    implicit def scalaCollectionListToRaw[H](
+        h: List[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = {
+        val result = List.newBuilder[Raw]
+        h.foreach { v =>
+          result ++= convert(v).values
+        }
+        result.result()
+      }
     }
+  }
+
+  trait AsRaw1 {
+    def asRaw1: Header.Raw
   }
 
   /** Abstracts over Single and Recurring Headers

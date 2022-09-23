@@ -53,4 +53,7 @@ object Server extends HeaderCompanion[Server]("Server") {
 /** Server header
   * https://datatracker.ietf.org/doc/html/rfc7231#section-7.4.2
   */
-final case class Server(product: ProductId, rest: List[ProductIdOrComment])
+final case class Server(product: ProductId, rest: List[ProductIdOrComment]) extends Header.AsRaw1 {
+  lazy val asRaw1: Header.Raw =
+    Header.Raw(Server.name, Server.headerInstance.value(this))
+}
