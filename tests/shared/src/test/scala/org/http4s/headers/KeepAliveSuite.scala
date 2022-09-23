@@ -102,7 +102,12 @@ class KeepAliveSuite extends HeaderLaws {
   ) {
     assertEquals(
       Header[`Keep-Alive`].parse("timeout=3, max=33, token=foo, max=8"),
-      Left(ParseFailure("Invalid Keep-Alive header","Reserved token 'token' was found in the extensions."))
+      Left(
+        ParseFailure(
+          "Invalid Keep-Alive header",
+          "Reserved token 'token' was found in the extensions.",
+        )
+      ),
     )
   }
 }
