@@ -18,6 +18,8 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-22.04")
+
 ThisBuild / githubWorkflowBuildPreamble +=
   WorkflowStep.Run(
     List("brew install s2n"),
