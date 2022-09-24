@@ -70,15 +70,73 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     * @return a new [[Headers]] containing the sum of the initial and input headers
     */
   def put(in: Header.ToRaw*): Headers =
-    this ++ Headers(in.values)
+    in match {
+      case thatHeader :: Nil =>
+        putOne(thatHeader)
+      case Nil =>
+        this
+      case _ =>
+        this ++ Headers(in.values)
+    }
+
+  private def putOne(header: Header.ToRaw): Headers =
+    if (this.headers.isEmpty) {
+      Headers(header)
+    } else {
+      header.values match {
+        case values @ head :: _ =>
+          val thatHeaderName = head.name
+          if (!headers.exists(_.name == thatHeaderName)) {
+            Headers(this.headers ++ values)
+          } else {
+            val newHeaders = mutable.ListBuffer.empty[Header.Raw]
+            headers.foreach { h =>
+              if (h.name != thatHeaderName) {
+                newHeaders += h
+              }
+            }
+            newHeaders ++= values
+            Headers(newHeaders.toList)
+          }
+        // Shouldn't really happen, but if it does, there's nothing to be done.
+        case Nil =>
+          this
+      }
+    }
 
   def ++(those: Headers): Headers =
     if (those.headers.isEmpty) this
     else if (this.headers.isEmpty) those
     else {
-      val thoseNames = mutable.Set.empty[CIString]
-      those.headers.foreach(h => thoseNames.add(h.name))
-      Headers(headers.filterNot(h => thoseNames.contains(h.name)) ++ those.headers)
+      those.headers match {
+        case thatHeader :: Nil =>
+          val thatHeaderName = thatHeader.name
+          if (!headers.exists(_.name == thatHeader.name)) {
+            Headers(this.headers :+ thatHeader)
+          } else {
+            val newHeaders = mutable.ListBuffer.empty[Header.Raw]
+            headers.foreach { h =>
+              if (h.name != thatHeaderName) {
+                newHeaders += h
+              }
+            }
+            newHeaders += thatHeader
+            Headers(newHeaders.toList)
+          }
+        case thoseHeaders =>
+          val thoseNames = mutable.Set.empty[CIString]
+          val newHeaders = mutable.ListBuffer.empty[Header.Raw]
+          headers.foreach { h =>
+            if (!thoseNames.contains(h.name)) {
+              newHeaders += h
+            }
+          }
+          thoseHeaders.foreach { h =>
+            thoseNames += h.name
+            newHeaders += h
+          }
+          Headers(newHeaders.toList)
+      }
     }
 
   def add[H: Header[*, Header.Recurring]](h: H): Headers =
