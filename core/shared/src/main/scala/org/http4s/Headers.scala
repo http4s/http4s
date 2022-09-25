@@ -111,18 +111,14 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
       those.headers match {
         case thatHeader :: Nil =>
           val thatHeaderName = thatHeader.name
-          if (!headers.exists(_.name == thatHeader.name)) {
-            Headers(this.headers :+ thatHeader)
-          } else {
-            val newHeaders = mutable.ListBuffer.empty[Header.Raw]
-            headers.foreach { h =>
-              if (h.name != thatHeaderName) {
-                newHeaders += h
-              }
+          val newHeaders = mutable.ListBuffer.empty[Header.Raw]
+          headers.foreach { h =>
+            if (h.name != thatHeaderName) {
+              newHeaders += h
             }
-            newHeaders += thatHeader
-            Headers(newHeaders.toList)
           }
+          newHeaders += thatHeader
+          Headers(newHeaders.toList)
         case thoseHeaders =>
           val thoseNames = mutable.Set.empty[CIString]
           val newHeaders = mutable.ListBuffer.empty[Header.Raw]
