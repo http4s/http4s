@@ -72,7 +72,11 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def put(in: Header.ToRaw*): Headers =
     in match {
       case thatHeader :: Nil =>
-        putOne(thatHeader)
+        if (this.headers.isEmpty) {
+          Headers(thatHeader)
+        } else {
+          putOne(thatHeader)
+        }
       case Nil =>
         this
       case _ =>
@@ -80,28 +84,19 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     }
 
   private def putOne(header: Header.ToRaw): Headers =
-    if (this.headers.isEmpty) {
-      Headers(header)
-    } else {
-      header.values match {
-        case values @ head :: _ =>
-          val thatHeaderName = head.name
-          if (!headers.exists(_.name == thatHeaderName)) {
-            Headers(this.headers ++ values)
-          } else {
-            val newHeaders = mutable.ListBuffer.empty[Header.Raw]
-            headers.foreach { h =>
-              if (h.name != thatHeaderName) {
-                newHeaders += h
-              }
-            }
-            newHeaders ++= values
-            Headers(newHeaders.toList)
-          }
-        // Shouldn't really happen, but if it does, there's nothing to be done.
-        case Nil =>
-          this
-      }
+    header.values match {
+      case values @ head :: _ =>
+        val thatHeaderName = head.name
+        if (!headers.exists(_.name == thatHeaderName)) {
+          Headers(this.headers ++ values)
+        } else {
+          val newHeaders = mutable.ListBuffer.from(headers.filterNot(_.name == thatHeaderName))
+          newHeaders ++= values
+          Headers(newHeaders.toList)
+        }
+      // Shouldn't really happen, but if it does, there's nothing to be done.
+      case Nil =>
+        this
     }
 
   def ++(those: Headers): Headers =
@@ -120,7 +115,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
           newHeaders += thatHeader
           Headers(newHeaders.toList)
         case thoseHeaders =>
-          val thoseNames = mutable.Set.empty[CIString]
+          val thoseNames = mutable.Set.from(thoseHeaders.map(_.name))
           val newHeaders = mutable.ListBuffer.empty[Header.Raw]
           headers.foreach { h =>
             if (!thoseNames.contains(h.name)) {
@@ -128,7 +123,6 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
             }
           }
           thoseHeaders.foreach { h =>
-            thoseNames += h.name
             newHeaders += h
           }
           Headers(newHeaders.toList)
