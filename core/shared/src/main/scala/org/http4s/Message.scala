@@ -179,6 +179,9 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def putRawHeader(header: Header.Raw): Self =
     transformHeaders(_.putOneRaw(header))
 
+  def putRawHeaders(headers: List[Header.Raw]): Self =
+    transformHeaders(_.putManyRaw(headers))
+
   def putRawHeader(header: Header.AsRaw1): Self =
     transformHeaders(_.putOneRaw(header.asRaw1))
 

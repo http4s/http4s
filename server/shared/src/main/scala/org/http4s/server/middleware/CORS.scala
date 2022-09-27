@@ -178,6 +178,9 @@ object CORS {
   )
   val defaultVaryHeader: Header.Raw = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
 
+  private[this] final val accessControlAllowCredentialsHeaderTrue: Header.Raw =
+    Header.Raw(ci"Access-Control-Allow-Credentials", "true")
+
   @deprecated(
     "The default `CORSConfig` is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
     "0.21.27",
@@ -204,6 +207,7 @@ object CORS {
           "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning."
         )
         .unsafeRunSync()
+
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(
@@ -220,13 +224,13 @@ object CORS {
 
       def varyHeader(response: Response[G]): Response[G] =
         response.headers.get(ci"Vary") match {
-          case None => response.putHeaders(defaultVaryHeader)
+          case None => response.putRawHeader(defaultVaryHeader)
           case _ => response
         }
 
       def allowCredentialsHeader(resp: Response[G]): Response[G] =
         if (!config.anyOrigin && config.allowCredentials)
-          resp.putHeaders("Access-Control-Allow-Credentials" -> "true")
+          resp.putRawHeader(accessControlAllowCredentialsHeaderTrue)
         else
           resp
 
@@ -234,18 +238,20 @@ object CORS {
           resp: Response[G]
       ): Response[G] = {
         val withMethodBasedHeader = methodBasedHeader(isPreflight)
-          .fold(resp)(h => resp.putHeaders(h))
+          .fold(resp)(h => resp.putRawHeader(h))
 
         varyHeader(allowCredentialsHeader(withMethodBasedHeader))
-          .putHeaders(
-            // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
-              _.mkString("", ", ", "")
-            ),
-            // TODO model me
-            "Access-Control-Allow-Origin" -> origin.value,
-            // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString,
+          .putRawHeaders(
+            List(
+              // TODO model me
+              Header.Raw(ci"Access-Control-Allow-Methods", config.allowedMethods.fold(method.renderString)(
+                _.mkString("", ", ", "")
+              )),
+              // TODO model me
+              Header.Raw(ci"Access-Control-Allow-Origin", origin.value),
+              // TODO model me
+              Header.Raw(ci"Access-Control-Max-Age", config.maxAge.toSeconds.toString),
+            )
           )
       }
 
@@ -442,7 +448,7 @@ sealed class CORSPolicy(
         buff
       }
       http(req)
-        .map(_.putHeaders(buff.result().map(Header.ToRaw.rawToRaw): _*))
+        .map(_.putRawHeaders(buff.result()))
         .map(varyHeader(req.method))
     }
 
@@ -457,7 +463,7 @@ sealed class CORSPolicy(
           maxAgeHeader.foreach(buff.+=)
       }
       preflightResponder(req)
-        .map(_.putHeaders(buff.result().map(Header.ToRaw.rawToRaw): _*))
+        .map(_.putRawHeaders(buff.result()))
         .map(varyHeader(Method.OPTIONS))
     }
 
@@ -522,7 +528,7 @@ sealed class CORSPolicy(
         case _ => varyHeaderNonOptions
       }) match {
         case Some(vary) =>
-          resp.putHeaders(
+          resp.putRawHeader(
             resp.headers.get(ci"Vary") match {
               case None =>
                 vary
