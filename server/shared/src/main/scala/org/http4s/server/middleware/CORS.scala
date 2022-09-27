@@ -244,9 +244,12 @@ object CORS {
           .putRawHeaders(
             List(
               // TODO model me
-              Header.Raw(ci"Access-Control-Allow-Methods", config.allowedMethods.fold(method.renderString)(
-                _.mkString("", ", ", "")
-              )),
+              Header.Raw(
+                ci"Access-Control-Allow-Methods",
+                config.allowedMethods.fold(method.renderString)(
+                  _.mkString("", ", ", "")
+                ),
+              ),
               // TODO model me
               Header.Raw(ci"Access-Control-Allow-Origin", origin.value),
               // TODO model me
