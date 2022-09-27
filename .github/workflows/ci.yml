@@ -118,7 +118,7 @@ jobs:
 
       - name: Install s2n
         if: startsWith(matrix.project, 'rootNative')
-        run: brew install s2n
+        run: /home/linuxbrew/.linuxbrew/bin/brew install s2n
 
       - name: Check that workflows are up to date
         run: sbt githubWorkflowCheck
