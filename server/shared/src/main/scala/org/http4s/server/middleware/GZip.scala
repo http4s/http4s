@@ -87,7 +87,7 @@ object GZip extends GZipPlatform {
     logger.trace("GZip middleware encoding content").unsafeRunSync()
     resp
       .removeHeader[`Content-Length`]
-      .putHeader(ContentEncodingHeader)
+      .putRawHeader(ContentEncodingHeader)
       .pipeBodyThrough(compressPipe)
   }
 }

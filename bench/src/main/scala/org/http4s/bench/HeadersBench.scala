@@ -43,7 +43,7 @@ class HeadersBench {
   @Benchmark
   def putHeaderRaw: Response[IO] =
     baseMessage
-      .putHeader(`Content-Length`(1000L))
-      .putHeader(cachedEncoding)
-      .putHeader(cachedServer)
+      .putRawHeader(`Content-Length`(1000L))
+      .putRawHeader(cachedEncoding)
+      .putRawHeader(cachedServer)
 }
