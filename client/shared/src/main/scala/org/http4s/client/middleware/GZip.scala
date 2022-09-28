@@ -38,6 +38,9 @@ object GZip {
   private val supportedCompressions =
     NonEmptyList.of(ContentCoding.gzip, ContentCoding.deflate)
 
+  private val acceptEncodingHeader =
+    `Accept-Encoding`(supportedCompressions)
+
   def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Async[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
@@ -53,7 +56,7 @@ object GZip {
       case Some(_) =>
         req
       case _ =>
-        req.putHeaders(`Accept-Encoding`(supportedCompressions))
+        req.putRawHeader(acceptEncodingHeader)
     }
 
   private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
