@@ -195,6 +195,12 @@ object Header {
     }
   }
 
+  /** Abstracts over headers that can be cached. The most common use case would be
+    * extending a modelled header (e.g. Accept-Encoding), extending the class
+    * and overriding asRaw1 using lazy val.
+    * This enables better efficiency when the same 'static' header is added to the headers
+    * of many responses, as it's not re-created on every single response.
+    */
   trait AsRaw1 {
     def asRaw1: Header.Raw
   }

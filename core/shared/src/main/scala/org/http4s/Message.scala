@@ -176,12 +176,32 @@ sealed trait Message[F[_]] extends Media[F] { self =>
   def putHeaders(headers: Header.ToRaw*): Self =
     transformHeaders(_.put(headers: _*))
 
-  def putRawHeader(header: Header.Raw): Self =
-    transformHeaders(_.putOneRaw(header))
-
+  /** Add the providers headers to the existing headers, replacing those
+    * of the same header name.
+    *
+    * Note this method is different to [[putHeaders]] by being efficient, but slightly
+    * less flexible, as no implicits conversions are provided into a Header.Raw
+    *
+    * Consider using [[putRawHeader]] if you only have a single header to add, as it
+    * avoids creating a list.
+    */
   def putRawHeaders(headers: List[Header.Raw]): Self =
     transformHeaders(_.putManyRaw(headers))
 
+  /** Add the providers headers to the existing headers, replacing those
+    * of the same header name.
+    *
+    * This is a more efficient version of [[putHeaders]]
+    */
+  def putRawHeader(header: Header.Raw): Self =
+    transformHeaders(_.putOneRaw(header))
+
+  /** Add the providers headers to the existing headers, replacing those
+    * of the same header name.
+    *
+    * This is a more efficient version of [[putHeaders]] and similar to [[putRawHeader]],
+    * but accept a modelled header.
+    */
   def putRawHeader(header: Header.AsRaw1): Self =
     transformHeaders(_.putOneRaw(header.asRaw1))
 
