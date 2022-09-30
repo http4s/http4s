@@ -18,6 +18,7 @@
 * _I'm ready for Cats-Effect 3:_ @VERSION_0_23@
 * _I'm new here, pick one:_ @VERSION_0_23@
 * _I'm using Scala.js [serverless](https://github.com/typelevel/feral) or in the [browser](https://http4s.github.io/http4s-dom):_ @VERSION_0_23@
+* _I'm using Scala Native:_ @VERSION_0_23@
 * _I live on the bleeding edge:_ @VERSION_1_0@
 
 

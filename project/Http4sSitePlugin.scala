@@ -88,7 +88,7 @@ object Http4sSitePlugin extends AutoPlugin {
       ),
       Teaser(
         "Cross-platform",
-        "http4s cross-builds for Scala.js, enabling you to share code across browsers, Node.js apps, serverless functions, and JVM servers.",
+        "http4s cross-builds for Scala.js and Scala Native. Share code and deploy to browsers, Node.js, native executable binaries, and the JVM.",
       ),
     )
 
