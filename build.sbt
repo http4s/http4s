@@ -19,21 +19,8 @@ ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-22.04")
-
-ThisBuild / githubWorkflowBuildPreamble +=
-  WorkflowStep.Run(
-    List("/home/linuxbrew/.linuxbrew/bin/brew install s2n"),
-    name = Some("Install s2n"),
-    cond = Some("startsWith(matrix.project, 'rootNative')"),
-  )
-val isLinux = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("linux"))
-}
-val isMacOs = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("mac"))
-}
+ThisBuild / githubWorkflowBuildPreamble ++= nativeBrewInstallWorkflowSteps.value
+ThisBuild / nativeBrewInstallCond := Some("matrix.project == 'rootNative'")
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
@@ -890,23 +877,12 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
-      nativeConfig ~= { c =>
-        if (isLinux) { // brew-installed s2n
-          c.withLinkingOptions(c.linkingOptions :+ "-L/home/linuxbrew/.linuxbrew/lib")
-        } else if (isMacOs) // brew-installed OpenSSL
-          c.withLinkingOptions(c.linkingOptions :+ "-L/usr/local/opt/openssl@1.1/lib")
-        else c
-      },
-      Test / envVars ++= {
-        val ldLibPath =
-          if (isLinux)
-            Map("LD_LIBRARY_PATH" -> "/home/linuxbrew/.linuxbrew/lib")
-          else Map("LD_LIBRARY_PATH" -> "/usr/local/opt/openssl@1.1/lib")
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath
-      },
+      nativeBrewFormulas += "s2n",
+      envVars ++= Map("S2N_DONT_MLOCK" -> "1"),
     )
     .enablePlugins(Http4sPlugin)
     .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))

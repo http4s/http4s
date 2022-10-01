@@ -116,8 +116,8 @@ jobs:
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
-      - name: Install s2n
-        if: startsWith(matrix.project, 'rootNative')
+      - name: Install brew formulae (ubuntu)
+        if: (matrix.project == 'rootNative') && startsWith(matrix.os, 'ubuntu')
         run: /home/linuxbrew/.linuxbrew/bin/brew install s2n
 
       - name: Check that workflows are up to date
