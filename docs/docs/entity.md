@@ -58,7 +58,7 @@ import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
-```scala mdoc
+```scala mdoc:silent
 val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
 val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =>
   EitherT {
@@ -71,6 +71,9 @@ val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =>
   }
 }
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
+```
+
+```scala mdoc
 println(response.flatMap(_.as[Resp]).unsafeRunSync())
 ```
 

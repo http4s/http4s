@@ -72,14 +72,14 @@ val routes = HttpRoutes.of[IO] {
 For simple file serving, it's possible to package resources with the jar and
 deliver them from there. For example, for all resources in the classpath under `assets`:
 
-```scala mdoc
+```scala mdoc:silent
 val assetsRoutes = resourceServiceBuilder[IO]("/assets").toRoutes
 ```
 
 For custom behaviour, `StaticFile.fromResource` can be used. In this example,
 only files matching a list of extensions are served. Append to the `List` as needed.
 
-```scala mdoc
+```scala mdoc:silent
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
@@ -108,7 +108,7 @@ Then, mount the `WebjarService` like any other service:
 import org.http4s.server.staticcontent.WebjarServiceBuilder.WebjarAsset
 ```
 
-```scala mdoc
+```scala mdoc:silent
 // only allow js assets
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
