@@ -241,50 +241,34 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
         <p>Let&#39;s make a simple service that will be exposed and wrapped with HSTS.</p>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
-  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt;
-    </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>)
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>)
 }
-</span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19787/365357641@26acd39a
-// )
-</span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
-</span><span class="comment">// request: Request[IO] = (
-//    = GET,
-//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@38e562b1
-// )
-</span><span>
-</span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
 </span><span class="keyword">val</span><span> </span><span class="identifier">responseOk</span><span> = </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// responseOk: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@268bd771
+//    = org.typelevel.vault.Vault@426bbed9
 // )
 </span><span class="identifier">responseOk</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res0: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2)</span></code></pre>
         <p>If we were to wrap this on the <code>HSTS</code> middleware.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span></code></pre>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">hstsService</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>)
-</span><span class="comment">// hstsService: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$21601/876899326@14e8037c
-// )
-</span><span>
-</span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">hstsService</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
 </span><span class="keyword">val</span><span> </span><span class="identifier">responseHSTS</span><span> = </span><span class="identifier">hstsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// responseHSTS: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@54182278
+//    = org.typelevel.vault.Vault@85dc908
 // )
 </span><span class="identifier">responseHSTS</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res1: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=31536000; includeSubDomains)</span></code></pre>
@@ -298,27 +282,19 @@
         should be done over <code>https</code> and it will contain the <code>includeSubDomains</code> directive by default.</p>
         <p>If you want to <code>preload</code> or change other default values you can pass a custom header, e.g.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span></code></pre>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">hstsHeader</span><span> = </span><span class="identifier">`Strict-Transport-Security`</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">hstsHeader</span><span> = </span><span class="identifier">`Strict-Transport-Security`</span><span>
   .</span><span class="identifier">unsafeFromDuration</span><span>(</span><span class="number-literal">30</span><span>.</span><span class="identifier">days</span><span>, </span><span class="identifier">includeSubDomains</span><span> = </span><span class="boolean-literal">true</span><span>, </span><span class="identifier">preload</span><span> = </span><span class="boolean-literal">true</span><span>)
-</span><span class="comment">// hstsHeader: Strict-Transport-Security = Strict-Transport-Security(
-//   maxAge = 2592000L,
-//   includeSubDomains = true,
-//   preload = true
-// )
-</span><span class="keyword">val</span><span> </span><span class="identifier">hstsServiceCustom</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>, </span><span class="identifier">hstsHeader</span><span>)
-</span><span class="comment">// hstsServiceCustom: cats.data.Kleisli[cats.data.OptionT[IO, β$0$], Request[IO], Response[IO[A]]] = Kleisli(
-//   run = org.http4s.server.middleware.HSTS$$$Lambda$21601/876899326@477b32a0
-// )
-</span><span>
-</span><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
+</span><span class="keyword">val</span><span> </span><span class="identifier">hstsServiceCustom</span><span> = </span><span class="type-name">HSTS</span><span>(</span><span class="identifier">service</span><span>, </span><span class="identifier">hstsHeader</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Do not call &#39;unsafeRunSync&#39; in your code
 </span><span class="keyword">val</span><span> </span><span class="identifier">responseCustom</span><span> = </span><span class="identifier">hstsServiceCustom</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// responseCustom: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@3f334561
+//    = org.typelevel.vault.Vault@253c959
 // )
 </span><span class="identifier">responseCustom</span><span>.</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 2, Strict-Transport-Security: max-age=2592000; includeSubDomains; preload)</span></code></pre>

@@ -288,26 +288,13 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@c2613cf
+//    = org.typelevel.vault.Vault@5893977
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span></code></pre>
-        <pre><code class="nohighlight"><span class="type-name">POST</span><span>(</span><span class="string-literal">json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
-</span><span class="comment">// res2: Request[IO] = (
-//    = POST,
-//    = Uri(
-//     scheme = None,
-//     authority = None,
-//     path = /hello,
-//     query = ,
-//     fragment = None
-//   ),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: application/json, Content-Length: 16),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@4dc1888e
-// )</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="type-name">POST</span><span>(</span><span class="string-literal">json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)</span></code></pre>
         
         <h2 id="encoding-case-classes-as-json" class="section">Encoding case classes as JSON<a class="anchor-link right" href="#encoding-case-classes-as-json"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>These JSON literals are nice, but in real apps, we prefer to operate
@@ -325,7 +312,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@4e0d41c7
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@574e6ac3
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -343,7 +330,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@11af1388
+//    = org.typelevel.vault.Vault@487fedc2
 // )
 </span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
 </span><span class="comment">// res6: Request[IO] = (
@@ -358,7 +345,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 14),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2d2bc219
+//    = org.typelevel.vault.Vault@4ad8b313
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -388,7 +375,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@6c6fbaca
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@6d679be
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
@@ -448,11 +435,7 @@
   .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">jsonApp</span><span>)
   .</span><span class="identifier">build</span></code></pre>
         <p>We start a server resource in the background.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span><span>
-</span><span class="comment">// shutdown: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$Lambda$20527/1437078760@48c8ddf9,
-//   event = cats.effect.tracing.TracingEvent$StackTrace
-// )</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">shutdown</span><span> = </span><span class="identifier">server</span><span>.</span><span class="identifier">allocated</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()</span><span class="number-literal">._2</span></code></pre>
         
         <h2 id="a-hello-world-client" class="section">A Hello World Client<a class="anchor-link right" href="#a-hello-world-client"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>Now let&#39;s make a client for the service above:</p>

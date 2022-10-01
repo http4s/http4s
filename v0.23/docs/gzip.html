@@ -239,52 +239,36 @@
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
         <p>Let&#39;s start by making a simple service that returns a (relatively) large string
         in its body. We&#39;ll use <code>as[String]</code> to examine the body.</p>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt;
     </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;I repeat myself when I&#39;m under stress. &quot;</span><span> * </span><span class="number-literal">3</span><span>)
 }
-</span><span class="comment">// service: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19787/365357641@21ec040f
-// )
-</span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)
-</span><span class="comment">// request: Request[IO] = (
-//    = GET,
-//    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@4752425f
-// )
-</span><span>
-</span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>)</span></code></pre>
+        <pre><code class="nohighlight"><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
 </span><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// response: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@4c9fb882
+//    = org.typelevel.vault.Vault@2366688c
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">body</span><span> = </span><span class="identifier">response</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// body: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
 </span><span class="identifier">body</span><span>.</span><span class="identifier">length</span><span>
 </span><span class="comment">// res0: Int = 117</span></code></pre>
         <p>Now we can wrap the service in the <code>GZip</code> middleware.</p>
-        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">serviceZip</span><span> = </span><span class="type-name">GZip</span><span>(</span><span class="identifier">service</span><span>)
-</span><span class="comment">// serviceZip: Http[cats.data.OptionT[IO, β$0$], IO[A]] = Kleisli(
-//   run = org.http4s.server.middleware.GZip$$$Lambda$21520/644830031@4f438436
-// )
-</span><span>
-</span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">serviceZip</span><span> = </span><span class="type-name">GZip</span><span>(</span><span class="identifier">service</span><span>)</span></code></pre>
+        <pre><code class="nohighlight"><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
 </span><span class="keyword">val</span><span> </span><span class="identifier">respNormal</span><span> = </span><span class="identifier">serviceZip</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// respNormal: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@e4e2dad
+//    = org.typelevel.vault.Vault@49b5b559
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyNormal</span><span> = </span><span class="identifier">respNormal</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyNormal: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -300,7 +284,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Accept-Encoding: gzip),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@4752425f
+//    = org.typelevel.vault.Vault@1b57cb28
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -310,7 +294,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@5bdbd681
+//    = org.typelevel.vault.Vault@77e0b495
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyZip</span><span> = </span><span class="identifier">respZip</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyZip: String = &quot;\u001f\ufffd\b\u0000\u0000\u0000\u0000\u0000\u0000\u0003\ufffdT(J-HM,Q\u022d,N\ufffdIS(\ufffdH\ufffdS\ufffdT\ufffdU(\ufffdKI-R(.)J-.\ufffdS\ufffd2\u0000UX\ufffd&lt;u\u0000\u0000\u0000&quot;
