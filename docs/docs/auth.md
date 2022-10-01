@@ -86,6 +86,7 @@ val serviceSpanish: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
 Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:
 
 * Use a Router with unique route prefixes
+
 ```scala mdoc:silent
 val serviceRouter = {
   Router (
@@ -96,6 +97,7 @@ val serviceRouter = {
 ```
 
 * Allow fallthrough, using `AuthMiddleware.withFallThrough`.
+
 ```scala mdoc:silent
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
@@ -103,6 +105,7 @@ val serviceSF: HttpRoutes[IO] = middlewareWithFallThrough(spanishRoutes) <+> fre
 ```
 
 * Reorder the routes so that authed routes compose last
+
 ```scala mdoc:silent
 val serviceFS: HttpRoutes[IO] =
   frenchRoutes <+> middlewareWithFallThrough(spanishRoutes)
