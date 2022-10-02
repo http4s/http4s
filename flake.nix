@@ -21,10 +21,10 @@
           name = "http4s";
           typelevelShell = {
             jdk.package = pkgs.jdk8;
-            nodejs.enable = true;
+            nodejs.enable = false;
             native.enable = true;
           };
-          packages = [ pkgs.s2n-tls pkgs.openssl.out pkgs.zlib.dev ];
+          packages = [ pkgs.s2n-tls pkgs.openssl.out pkgs.zlib.dev pkgs.nodejs-16_x ];
         };
       }
     );
