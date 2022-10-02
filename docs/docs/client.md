@@ -1,6 +1,6 @@
 # HTTP Client
 
-The `Client` trait in http4s can submit `Request`s to a server and return a `Response`.
+The `Client` trait in http4s can submit a `Request` to a server and return a `Response`.
 
 ```scala
 trait Client[F[_]] {
@@ -38,7 +38,7 @@ object Hello extends IOApp.Simple {
 
 ## Setup
 
-In order to play with a `Client` we'll first create a http4s `Server`.
+In order to play with a `Client` we'll first create an http4s `Server`.
 
 Ensure you have the following dependencies in your build.sbt:
 
@@ -55,7 +55,7 @@ libraryDependencies ++= Seq(
 ```
 
 Because this documentation is running in [mdoc] we need an implicit `IORuntime`.
-This would be taken care of for you if you were using `IOApp` as seen above.
+This would be taken care of for you if you were using `IOApp` as seen in the example above.
 
 ```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
@@ -90,12 +90,15 @@ val server = EmberServerBuilder
 
 If you're following along in a REPL you'll need to start the server in the background.
 Additionally you'll want a way to shutdown the server when you're done.
-This will start the server running, and later you can call `shutdown.unsafeRunSync()`
-run the server's finalizers and release resources.
+
+You can do this by starting the server like so:
 
 ```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
+
+Later you can call `shutdown.unsafeRunSync()` to run the server's finalizers and release resources.
+
 
 ## Making Requests
 
@@ -124,12 +127,12 @@ any other http4s backend, it presents the exact same `Client`
 interface!
 
 It uses blocking IO and is less suited for production, but it is
-highly useful in [mdoc] documentation:
+highly useful in a REPL or [mdoc] documentation:
 
 ```scala mdoc:silent
 import org.http4s.client.JavaNetClientBuilder
 
-// for our mdoc use only!
+// for REPL or mdoc use only!
 val httpClient: Client[IO] = JavaNetClientBuilder[IO].create
 ```
 
@@ -139,8 +142,8 @@ To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```scala mdoc:silent
-val helloJames: IO[String] =
-  httpClient.expect[String]("http://localhost:8080/hello/James")
+val helloEmber: IO[String] =
+  httpClient.expect[String]("http://localhost:8080/hello/Ember")
 ```
 
 We don't have any output from the server yet as we have not executed the
@@ -160,28 +163,28 @@ def hello(name: String): IO[String] = {
   httpClient.expect[String](target)
 }
 
-val people = List("Michael", "Jessica", "Ashley", "Christopher")
+val names = List("Ember", "http4s", "Scala")
 
 val greetingList: IO[List[String]] =
-  people.parTraverse(hello)
+  names.parTraverse(hello)
 ```
 
-We use `parTraverse` to apply `hello` to each person and collect the results into
+We use `parTraverse` to apply `hello` to each name and collect the results into
 one `IO[List[String]]`. The `par` prefix on `parTraverse` indicates that this
-will happen for each person concurrently.
+will happen concurrently not sequentially.
 
 ### Running a Request
 
-So far we have built two programs, `helloJames` will make a request to greet James,
-and `greetingList` will make multiple concurrent requests to greet multiple people.
+We have built two programs: `helloEmber` will make a single request to get a greeting for Ember,
+and `greetingList` will make multiple concurrent requests getting multiple greetings.
 In a production application we would likely compose these programs with other programs
 up until we finally pass them to `run` in `IOApp` as seen in our intro example.
 
-Here in [mdoc], or in a scala REPL, we manually run the `IO` with `unsafeRunSync()`.
+Here in [mdoc], or in a REPL, we manually run the `IO` with `unsafeRunSync()`.
 Remember, you should not do this in your applications.
 
 ```scala mdoc
-helloJames.unsafeRunSync()
+helloEmber.unsafeRunSync()
 
 greetingList.map(_.mkString("\n")).unsafeRunSync()
 ```
@@ -266,7 +269,7 @@ f1(10)
 f2(10)
 ```
 
-We see how `f2` changes from `f1` by passing an incremented argument to the original function.
+We see how `f2` wraps `f1` by passing an incremented argument to the original function.
 This wrapper could be considered a **middleware** over functions from `Int` to `String`.
 
 Recall our simplified definition of `Client[F]` - it boils down to a single abstract method:
