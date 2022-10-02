@@ -894,18 +894,15 @@ def http4sCrossProject(name: String, crossType: CrossType) =
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
       nativeConfig ~= { c =>
-        if (isLinux) { // brew-installed s2n
-          c.withLinkingOptions(c.linkingOptions :+ "-L/home/linuxbrew/.linuxbrew/lib")
-        } else if (isMacOs) // brew-installed OpenSSL
-          c.withLinkingOptions(c.linkingOptions :+ "-L/usr/local/opt/openssl@1.1/lib")
-        else c
+        Option(System.getenv("DEVSHELL_DIR")).fold(c) { devshellDir =>
+          c.withCompileOptions(c.compileOptions :+ s"-I$devshellDir/include")
+            .withLinkingOptions(c.linkingOptions :+ s"-L$devshellDir/lib")
+        }
       },
       Test / envVars ++= {
-        val ldLibPath =
-          if (isLinux)
-            Map("LD_LIBRARY_PATH" -> "/home/linuxbrew/.linuxbrew/lib")
-          else Map("LD_LIBRARY_PATH" -> "/usr/local/opt/openssl@1.1/lib")
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath
+        val ldLibPath = Option(System.getenv("DEVSHELL_DIR"))
+          .map(devshellDir => "LD_LIBRARY_PATH" -> s"$devshellDir/lib")
+        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath.toMap
       },
     )
     .enablePlugins(Http4sPlugin)
