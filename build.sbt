@@ -18,13 +18,13 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-22.04")
-
-ThisBuild / githubWorkflowBuildPreamble +=
+ThisBuild / githubWorkflowJobSetup ++= Seq(
   WorkflowStep.Use(
     UseRef.Public("cachix", "install-nix-action", "v17"),
     name = Some("Install Nix"),
+    params = Map("extra_nix_config" -> "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"),
   )
+)
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop -c sbt"
 
@@ -34,9 +34,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.Checkout) ++
-      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
-      githubWorkflowGeneratedCacheSteps.value ++
+    steps = githubWorkflowJobSetup.value.toList ++
       List(
         WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
         WorkflowStep.Use(
