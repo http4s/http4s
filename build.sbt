@@ -21,19 +21,12 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-22.04")
 
 ThisBuild / githubWorkflowBuildPreamble +=
-  WorkflowStep.Run(
-    List("/home/linuxbrew/.linuxbrew/bin/brew install s2n"),
-    name = Some("Install s2n"),
-    cond = Some("startsWith(matrix.project, 'rootNative')"),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "install-nix-action", "v17"),
+    name = Some("Install Nix"),
   )
-val isLinux = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("linux"))
-}
-val isMacOs = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("mac"))
-}
+
+ThisBuild / githubWorkflowSbtCommand := "nix develop -c sbt"
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
