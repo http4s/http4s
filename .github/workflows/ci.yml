@@ -70,8 +70,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
-        with:
-          extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Cachix
         uses: cachix/cachix-action@v10
@@ -158,8 +156,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
-        with:
-          extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Cachix
         uses: cachix/cachix-action@v10
@@ -299,8 +295,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
-        with:
-          extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Cachix
         uses: cachix/cachix-action@v10
@@ -341,8 +335,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
-        with:
-          extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Cachix
         uses: cachix/cachix-action@v10
