@@ -26,7 +26,7 @@ ThisBuild / githubWorkflowJobSetup ++= Seq(
   )
 )
 
-ThisBuild / githubWorkflowSbtCommand := "nix develop -c sbt"
+ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
