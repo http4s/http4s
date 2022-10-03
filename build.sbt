@@ -26,7 +26,12 @@ ThisBuild / githubWorkflowJobSetup ++= Seq(
     UseRef.Public("cachix", "install-nix-action", "v17"),
     name = Some("Install Nix"),
     params = Map("extra_nix_config" -> "access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}"),
-  )
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "cachix-action", "v10"),
+    name = Some("Install Cachix"),
+    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+  ),
 )
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"

@@ -73,6 +73,12 @@ jobs:
         with:
           extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Cachix
+        uses: cachix/cachix-action@v10
+        with:
+          name: http4s
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
       - name: Check that workflows are up to date
         run: 'nix develop .#${{ matrix.java }} -c sbt githubWorkflowCheck'
 
@@ -154,6 +160,12 @@ jobs:
         uses: cachix/install-nix-action@v17
         with:
           extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cachix
+        uses: cachix/cachix-action@v10
+        with:
+          name: http4s
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Download target directories (3.1.3, rootJS)
         uses: actions/download-artifact@v2
@@ -290,6 +302,12 @@ jobs:
         with:
           extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Cachix
+        uses: cachix/cachix-action@v10
+        with:
+          name: http4s
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
       - run: 'nix develop .#${{ matrix.java }} -c sbt ''++${{ matrix.scala }}'' coverage rootJVM/test coverageAggregate'
 
       - if: github.event_name != 'pull_request'
@@ -325,6 +343,12 @@ jobs:
         uses: cachix/install-nix-action@v17
         with:
           extra_nix_config: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cachix
+        uses: cachix/cachix-action@v10
+        with:
+          name: http4s
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Generate site
         run: 'nix develop .#${{ matrix.java }} -c sbt ''++${{ matrix.scala }}'' site/tlSite'
