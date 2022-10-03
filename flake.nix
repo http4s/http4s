@@ -2,8 +2,8 @@
   description = "Provision a dev environment";
 
   inputs = {
-    typelevel-nix.url = "github:rossabaker/typelevel-nix";
-    nixpkgs.follows = "typelevel-nix/nixpkgs";
+    typelevel-nix.url = "github:typelevel/typelevel-nix";
+    # nixpkgs.follows = "typelevel-nix/nixpkgs";
     flake-utils.follows = "typelevel-nix/flake-utils";
   };
 
@@ -14,14 +14,25 @@
           inherit system;
           overlays = [ typelevel-nix.overlay ];
         };
-      in
-      {
-        devShell = pkgs.devshell.mkShell {
+
+        mkShell = jdk: pkgs.devshell.mkShell {
           imports = [ typelevel-nix.typelevelShell ];
           name = "http4s";
           typelevelShell = {
-            jdk.package = pkgs.jdk8;
+            jdk.package = jdk;
+            nodejs.enable = false;
+            native.enable = true;
           };
+          packages = [ pkgs.s2n-tls pkgs.openssl.out pkgs.zlib.dev pkgs.nodejs-16_x ];
+        };
+      in
+      rec {
+        devShell = devShells."temurin@8";
+
+        devShells = {
+          "temurin@8" = mkShell pkgs.temurin-bin-8;
+          "temurin@11" = mkShell pkgs.temurin-bin-11;
+          "temurin@17" = mkShell pkgs.temurin-bin-17;
         };
       }
     );

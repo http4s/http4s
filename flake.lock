@@ -3,7 +3,7 @@
     "devshell": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1663445644,
@@ -67,6 +67,20 @@
     },
     "nixpkgs": {
       "locked": {
+        "lastModified": 1664753041,
+        "narHash": "sha256-0ogaD8PaGHluARFeupofvk1Nq9gpVeZdlFM0Kcwguys=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "a62844b302507c7531ad68a86cb7aa54704c9cb4",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
         "lastModified": 1643381941,
         "narHash": "sha256-pHTwvnN4tTsEKkWlXQ8JMY423epos8wUOhthpwJjtpc=",
         "owner": "NixOS",
@@ -81,7 +95,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1664117201,
         "narHash": "sha256-6QVOY28vj9eJqTVW5bT65hfY6qwmUi+fclgbRMotAzI=",
@@ -103,10 +117,7 @@
           "typelevel-nix",
           "flake-utils"
         ],
-        "nixpkgs": [
-          "typelevel-nix",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs",
         "typelevel-nix": "typelevel-nix"
       }
     },
@@ -115,18 +126,18 @@
         "devshell": "devshell",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1664196376,
-        "narHash": "sha256-pVkFz1zv3a0Zzhd8Jd9apz6GvhDEbBmJ2wnQySnEyEY=",
-        "owner": "rossabaker",
+        "lastModified": 1664297688,
+        "narHash": "sha256-pBk7dT3t8gWZ0/D5PlA3Whq492QuuFckRlIXAWLdxfE=",
+        "owner": "typelevel",
         "repo": "typelevel-nix",
-        "rev": "efbd70de63246c3eda6b61a8741433314a9fb7be",
+        "rev": "8448aab702b9e3370b42920dcf223bff810c0275",
         "type": "github"
       },
       "original": {
-        "owner": "rossabaker",
+        "owner": "typelevel",
         "repo": "typelevel-nix",
         "type": "github"
       }
