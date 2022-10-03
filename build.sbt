@@ -18,6 +18,9 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
+ThisBuild / githubWorkflowJobSetup ~= {
+  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+}
 ThisBuild / githubWorkflowJobSetup ++= Seq(
   WorkflowStep.Use(
     UseRef.Public("cachix", "install-nix-action", "v17"),
