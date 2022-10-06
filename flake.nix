@@ -3,7 +3,7 @@
 
   inputs = {
     typelevel-nix.url = "github:typelevel/typelevel-nix";
-    # nixpkgs.follows = "typelevel-nix/nixpkgs";
+    nixpkgs.follows = "typelevel-nix/nixpkgs";
     flake-utils.follows = "typelevel-nix/flake-utils";
   };
 
@@ -20,10 +20,10 @@
           name = "http4s";
           typelevelShell = {
             jdk.package = jdk;
-            nodejs.enable = false;
+            nodejs.enable = true;
             native.enable = true;
+            native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl ];
           };
-          packages = [ pkgs.s2n-tls pkgs.openssl.out pkgs.zlib.dev pkgs.nodejs-16_x ];
         };
       in
       rec {
