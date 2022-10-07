@@ -19,9 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.Header
-import org.http4s.util.Renderable
-import org.http4s.util.Writer
+import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci._
 
 object Cookie {
@@ -34,15 +32,10 @@ object Cookie {
   private[http4s] val parser: Parser[Cookie] = {
     import Parser.{char, string}
 
-    /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
-    val cookieString = (RequestCookie.parser ~ (string("; ") *> RequestCookie.parser).rep0).map {
+    ((RequestCookie.parser <* (char(';') ~ string(" ").?)) ~ (RequestCookie.parser <* char(';').?).rep0).map {
       case (head, tail) =>
         Cookie(NonEmptyList(head, tail))
     }
-
-    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
-     * here. */
-    cookieString <* char(';').?
   }
 
   val name: CIString = ci"Cookie"
