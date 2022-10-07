@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object Cookie {
@@ -32,9 +33,10 @@ object Cookie {
   private[http4s] val parser: Parser[Cookie] = {
     import Parser.{char, string}
 
-    ((RequestCookie.parser <* (char(';') ~ string(" ").?)) ~ (RequestCookie.parser <* char(';').?).rep0).map {
-      case (head, tail) =>
-        Cookie(NonEmptyList(head, tail))
+    ((RequestCookie.parser <* (char(';') ~ string(" ").?)) ~ (RequestCookie.parser <* char(
+      ';'
+    ).?).rep0).map { case (head, tail) =>
+      Cookie(NonEmptyList(head, tail))
     }
   }
 
