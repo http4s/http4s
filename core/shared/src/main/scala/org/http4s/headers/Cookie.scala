@@ -19,8 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.util.Renderable
-import org.http4s.util.Writer
+import cats.parse.Parser.char
+import org.http4s.util.{Renderable, Writer}
 import org.typelevel.ci._
 
 object Cookie {
@@ -30,15 +30,9 @@ object Cookie {
   def parse(s: String): ParseResult[Cookie] =
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
-  private[http4s] val parser: Parser[Cookie] = {
-    import Parser.{char, string}
-
-    ((RequestCookie.parser <* (char(';') ~ string(" ").?)) ~ (RequestCookie.parser <* char(
-      ';'
-    ).?).rep0).map { case (head, tail) =>
-      Cookie(NonEmptyList(head, tail))
-    }
-  }
+  private[http4s] val parser: Parser[Cookie] =
+    (RequestCookie.parser <* (char(';') ~ char(' ').?).?).rep
+      .map(Cookie(_))
 
   val name: CIString = ci"Cookie"
 

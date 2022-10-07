@@ -28,16 +28,18 @@ class CookieHeaderSuite extends munit.FunSuite {
   private val cookiestrSemicolon: String = cookiestr
   private val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
 
-  test("Cookie parser should parse a cookie") {
+  test("Cookie parser should parse a single cookie") {
+    assertEquals(parse("key1=value1").values.toList, List(RequestCookie("key1", "value1")))
+  }
+  test("Cookie parser should parse two cookies") {
     assertEquals(parse(cookiestr).values.toList, cookies)
   }
-  test("Cookie parser should parse a cookie (semicolon at the end)") {
+  test("Cookie parser should parse two cookies with semicolon at the end") {
     assertEquals(parse(cookiestrSemicolon).values.toList, cookies)
   }
   test("Cookie parser should tolerate missing leading space") {
     assertEquals(parse(cookiestrWithoutSpace).values.toList, cookies)
   }
-
   test("Cookie parser should tolerate spaces") {
     assertEquals(
       parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").values,
