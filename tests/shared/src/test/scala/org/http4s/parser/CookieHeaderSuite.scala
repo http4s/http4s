@@ -25,7 +25,7 @@ class CookieHeaderSuite extends munit.FunSuite {
 
   private val cookiestr = "key1=value1; key2=\"value2\""
   private val cookiestrWithoutSpace = "key1=value1;key2=\"value2\""
-  private val cookiestrSemicolon: String = cookiestr
+  private val cookiestrSemicolon: String = cookiestr + ";"
   private val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
 
   test("Cookie parser should parse a single cookie") {
