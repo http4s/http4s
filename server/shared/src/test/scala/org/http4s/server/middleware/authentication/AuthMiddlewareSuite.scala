@@ -28,9 +28,14 @@ import org.http4s.syntax.all._
 class AuthMiddlewareSuite extends Http4sSuite {
   type User = Long
 
+  private val userId42: User = 42
+
+  private val authUser42: Request[IO] => IO[Option[User]] = _ => Some(userId42).pure[IO]
+
+  private val noneShallPass: Request[IO] => IO[Option[User]] = _ => None.pure[IO]
+
   test("fall back to onAuthFailure when authentication returns a Either.Left") {
-    val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
-      Kleisli.pure(Left("Unauthorized"))
+    val authUser: Request[IO] => IO[Either[String, User]] = _ => Left("Unauthorized").pure[IO]
 
     val onAuthFailure: AuthedRoutes[String, IO] =
       Kleisli(req => OptionT.liftF(Forbidden(req.context)))
@@ -55,10 +60,8 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("enrich the request with a user when authentication returns Either.Right") {
-    val userId: User = 42
 
-    val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
-      Kleisli.pure(Right(userId))
+    val authUser: Request[IO] => IO[Either[String, User]] = _ => IO.pure(Right(userId42))
 
     val onAuthFailure: AuthedRoutes[String, IO] =
       Kleisli(req => OptionT.liftF(Forbidden(req.context)))
@@ -83,10 +86,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("not find a route if requested with the wrong verb inside an authenticated route") {
-    val userId: User = 42
-
-    val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
-      Kleisli.pure(Right(userId))
+    val authUser: Request[IO] => IO[Either[String, User]] = _ => IO.pure(Right(userId42))
 
     val onAuthFailure: AuthedRoutes[String, IO] =
       Kleisli(req => OptionT.liftF(Forbidden(req.context)))
@@ -111,17 +111,12 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("return 200 for a matched and authenticated route") {
-    val userId: User = 42
-
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.pure(userId)
-
     val authedRoutes: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
       }
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(authUser42)
 
     val service = middleware(authedRoutes)
 
@@ -129,17 +124,12 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("return 404 for an unmatched but authenticated route") {
-    val userId: User = 42
-
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.pure(userId)
-
     val authedRoutes: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
       }
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(authUser42)
 
     val service = middleware(authedRoutes)
 
@@ -147,15 +137,12 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("return 401 for a matched, but unauthenticated route") {
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.liftF(OptionT.none)
-
     val authedRoutes: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
       }
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(noneShallPass)
 
     val service = middleware(authedRoutes)
 
@@ -163,15 +150,12 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("return 401 for an unmatched, unauthenticated route") {
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.liftF(OptionT.none)
-
     val authedRoutes: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
       }
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(noneShallPass)
 
     val service = middleware(authedRoutes)
 
@@ -179,11 +163,6 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("compose authedRoutes and not fall through") {
-    val userId: User = 42
-
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.pure(userId)
-
     val authedRoutes1: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
@@ -194,7 +173,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
         Ok()
       }
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(authUser42)
 
     val service = middleware(authedRoutes1 <+> authedRoutes2)
 
@@ -203,9 +182,6 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("consume the entire request for an unauthenticated route for service composition") {
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.liftF(OptionT.none)
-
     val authedRoutes: AuthedRoutes[User, IO] =
       AuthedRoutes.of { case POST -> Root as _ =>
         Ok()
@@ -213,7 +189,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
 
     val regularRoutes: HttpRoutes[IO] = HttpRoutes.pure(Response[IO](Ok))
 
-    val middleware = AuthMiddleware(authUser)
+    val middleware = AuthMiddleware(noneShallPass)
 
     val service = middleware(authedRoutes)
 
@@ -228,19 +204,15 @@ class AuthMiddlewareSuite extends Http4sSuite {
   }
 
   test("not consume the entire request when using fall through") {
-    val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =
-      Kleisli.liftF(OptionT.none)
 
     val authedRoutes: AuthedRoutes[User, IO] =
-      AuthedRoutes.of { case POST -> Root as _ =>
-        Ok()
-      }
+      AuthedRoutes.of { case POST -> Root as _ => Ok() }
 
     val regularRoutes: HttpRoutes[IO] = HttpRoutes.of { case GET -> _ =>
       Ok()
     }
 
-    val middleware = AuthMiddleware.withFallThrough(authUser)
+    val middleware = AuthMiddleware.withFallThrough(noneShallPass)
 
     val service = middleware(authedRoutes)
 

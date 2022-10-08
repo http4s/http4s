@@ -113,11 +113,13 @@ package object server {
   /** An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
+    // HttpRoutes[F] => HttpRoutes[F]
     Middleware[OptionT[F, *], Request[F], Response[F], Request[F], Response[F]]
 
   /** An HTTP middleware that authenticates users.
     */
   type AuthMiddleware[F[_], T] =
+    // AuthedRoutes[T, F] => HttpRoutes[F]
     Middleware[OptionT[F, *], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 
   /** An HTTP middleware that adds a context.
@@ -126,22 +128,49 @@ package object server {
     Middleware[OptionT[F, *], ContextRequest[F, T], Response[F], Request[F], Response[F]]
 
   object AuthMiddleware {
+    @deprecated("Use the non-Kleisli versions instead", "0.23.17")
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T]
     ): AuthMiddleware[F, T] =
       noSpider[F, T](authUser, defaultAuthFailure[F])
 
+    @deprecated("Use the non-Kleisli versions instead", "0.23.17")
     def withFallThrough[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T]
     ): AuthMiddleware[F, T] =
       _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
 
+    @deprecated("Use the non-Kleisli versions instead", "0.23.17")
     def noSpider[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, *], Request[F], T],
         onAuthFailure: Request[F] => F[Response[F]],
+    ): AuthMiddleware[F, T] =
+      noSpider(r => authUser(r).value, onAuthFailure)
+
+    def apply[F[_]: Monad, T](
+        authUser: Request[F] => F[Option[T]]
+    ): AuthMiddleware[F, T] =
+      noSpider[F, T](authUser, defaultAuthFailure[F])
+
+    def withFallThrough[F[_]: Monad, T](
+        authUser: Request[F] => F[Option[T]]
+    ): AuthMiddleware[F, T] =
+      (routes: AuthedRoutes[T, F]) =>
+        Kleisli { (req: Request[F]) =>
+          OptionT {
+            authUser(req).flatMap {
+              case Some(t) => routes(AuthedRequest(t, req)).value
+              case None => Option.empty[Response[F]].pure[F]
+            }
+          }
+        }
+
+    def noSpider[F[_]: Monad, T](
+        authUser: Request[F] => F[Option[T]],
+        onAuthFailure: Request[F] => F[Response[F]],
     ): AuthMiddleware[F, T] = { service =>
       Kleisli { (r: Request[F]) =>
-        val resp = authUser(r).value.flatMap {
+        val resp = authUser(r).flatMap {
           case Some(authReq) =>
             service(AuthedRequest(authReq, r)).getOrElse(Response[F](Status.NotFound))
           case None => onAuthFailure(r)
@@ -153,8 +182,23 @@ package object server {
     def defaultAuthFailure[F[_]](implicit F: Applicative[F]): Request[F] => F[Response[F]] =
       _ => F.pure(Response[F](Status.Unauthorized))
 
+    @deprecated("Use the non-Kleisli versions instead", "0.23.17")
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
+        onFailure: AuthedRoutes[Err, F],
+    )(implicit F: Monad[F]): AuthMiddleware[F, T] =
+      (routes: AuthedRoutes[T, F]) =>
+        Kleisli { (req: Request[F]) =>
+          OptionT {
+            authUser(req).flatMap {
+              case Left(err) => onFailure(AuthedRequest(err, req)).value
+              case Right(suc) => routes(AuthedRequest(suc, req)).value
+            }
+          }
+        }
+
+    def apply[F[_], Err, T](
+        authUser: Request[F] => F[Either[Err, T]],
         onFailure: AuthedRoutes[Err, F],
     )(implicit F: Monad[F]): AuthMiddleware[F, T] =
       (routes: AuthedRoutes[T, F]) =>

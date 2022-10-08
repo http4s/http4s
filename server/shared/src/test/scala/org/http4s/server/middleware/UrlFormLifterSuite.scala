@@ -68,10 +68,10 @@ class UrlFormLifterSuite extends Http4sSuite {
 
   test("Do not require auth for public routes") {
     object Foo extends QueryParamDecoderMatcher[String]("foo")
+    def userParam(req: Request[IO]): IO[Either[String, String]] =
+      req.params.get("user").fold("invalid user".asLeft[String])(_.asRight[String]).pure[IO]
     val authMiddleware = AuthMiddleware[IO, String, String](
-      authUser = Kleisli(
-        _.params.get("user").fold("invalid user".asLeft[String])(_.asRight[String]).pure[IO]
-      ),
+      authUser = userParam(_),
       onFailure = Kleisli(_ => Response[IO]().withStatus(Forbidden).pure[OptionT[IO, *]]),
     )
     val app =
