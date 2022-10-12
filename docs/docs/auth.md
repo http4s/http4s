@@ -80,12 +80,14 @@ val frenchRoutes: HttpRoutes[IO] =
         case GET -> Root / "bonjour" => Ok(s"Bonjour")
     }
 
-val serviceSpanish: HttpRoutes[IO] = middleware(spanishRoutes) <+> frenchRoutes
+val serviceSpanish: HttpRoutes[IO] =
+  middleware(spanishRoutes) <+> frenchRoutes
 ```
 
 Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:
 
 * Use a Router with unique route prefixes
+
 ```scala mdoc:silent
 val serviceRouter = {
   Router (
@@ -96,6 +98,7 @@ val serviceRouter = {
 ```
 
 * Allow fallthrough, using `AuthMiddleware.withFallThrough`.
+
 ```scala mdoc:silent
 val middlewareWithFallThrough: AuthMiddleware[IO, User] =
   AuthMiddleware.withFallThrough(authUser)
@@ -104,6 +107,7 @@ val serviceSF: HttpRoutes[IO] =
 ```
 
 * Reorder the routes so that authed routes compose last
+
 ```scala mdoc:silent
 val serviceFS: HttpRoutes[IO] =
   frenchRoutes <+> middlewareWithFallThrough(spanishRoutes)
@@ -126,7 +130,8 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```scala mdoc:silent
-val authUserEither: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
+val authUserEither: Kleisli[IO, Request[IO], Either[String,User]] =
+  Kleisli(_ => IO(???))
 
 val onFailure: AuthedRoutes[String, IO] =
   Kleisli(req => OptionT.liftF(Forbidden(req.context)))
@@ -213,7 +218,7 @@ function.
 import org.http4s.syntax.header._
 import org.http4s.headers.Authorization
 
-val authUserHeaders: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUserHeader: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header  <- request.headers.get[Authorization]
                  .toRight("Couldn't find an Authorization header")

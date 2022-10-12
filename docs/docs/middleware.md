@@ -43,8 +43,7 @@ def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kl
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
-    case resp =>
-      resp
+    case resp => resp
   }
 }
 ```
@@ -61,17 +60,18 @@ we need to call `unsafeRunSync` on the result of the function to extract the `Re
 Note that basically, you shouldn't use `unsafeRunSync` in your application. 
 Here we use it for demo reasons only.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
-  case _ =>
-    Ok()
+  case _ => Ok()
 }
 
 val goodRequest = Request[IO](Method.GET, uri"/")
 val badRequest = Request[IO](Method.GET, uri"/bad")
+```
 
+```scala mdoc
 service.orNotFound(goodRequest).unsafeRunSync()
 service.orNotFound(badRequest).unsafeRunSync()
 ```
@@ -80,7 +80,9 @@ Now, we'll apply the service to our middleware function to create a new service,
 
 ```scala mdoc:silent
 val modifiedService = myMiddle(service, "SomeKey" -> "SomeValue");
+```
 
+```scala mdoc
 modifiedService.orNotFound(goodRequest).unsafeRunSync()
 modifiedService.orNotFound(badRequest).unsafeRunSync()
 ```
@@ -90,7 +92,7 @@ Note that the successful response has your header added to it.
 If you intend to use you middleware in multiple places, you may want to implement
 it as an `object` and use the `apply` method.
 
-```scala mdoc
+```scala mdoc:silent
 object MyMiddle {
   def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
@@ -103,7 +105,9 @@ object MyMiddle {
 }
 
 val newService = MyMiddle(service, "SomeKey" -> "SomeValue")
+```
 
+```scala mdoc
 newService.orNotFound(goodRequest).unsafeRunSync()
 newService.orNotFound(badRequest).unsafeRunSync()
 ```
@@ -125,7 +129,7 @@ Additionally, you can compose services before applying the middleware function,
 and/or compose services with the service obtained by applying some middleware function. 
 For example:
 
-```scala mdoc
+```scala mdoc:silent
 val apiService = HttpRoutes.of[IO] {
   case GET -> Root / "api" =>
     Ok()
@@ -139,7 +143,9 @@ val anotherService = HttpRoutes.of[IO] {
 val aggregateService = apiService <+> MyMiddle(service <+> anotherService, "SomeKey" -> "SomeValue")
 
 val apiRequest = Request[IO](Method.GET, uri"/api")
+```
 
+```scala mdoc
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
 aggregateService.orNotFound(apiRequest).unsafeRunSync()
 ```

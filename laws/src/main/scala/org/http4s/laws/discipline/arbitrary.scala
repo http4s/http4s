@@ -1137,6 +1137,15 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
     } yield headers.`Accept-Post`(values)
   }
 
+  implicit val arbitraryCrossOriginResourcePolicy: Arbitrary[`Cross-Origin-Resource-Policy`] =
+    Arbitrary[`Cross-Origin-Resource-Policy`](
+      Gen.oneOf(
+        `Cross-Origin-Resource-Policy`.SameSite,
+        `Cross-Origin-Resource-Policy`.SameOrigin,
+        `Cross-Origin-Resource-Policy`.CrossOrigin,
+      )
+    )
+
   val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
   val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)
 

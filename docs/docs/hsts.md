@@ -35,14 +35,15 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
-  case _ =>
-    Ok("ok")
+  case _ => Ok("ok")
 }
 
 val request = Request[IO](Method.GET, uri"/")
+```
 
+```scala mdoc
 // Do not call 'unsafeRunSync' in your code
 val responseOk = service.orNotFound(request).unsafeRunSync()
 responseOk.headers
@@ -52,11 +53,11 @@ If we were to wrap this on the `HSTS` middleware.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware._
+
+val hstsService = HSTS(service)
 ```
 
 ```scala mdoc
-val hstsService = HSTS(service)
-
 // Do not call 'unsafeRunSync' in your code
 val responseHSTS = hstsService.orNotFound(request).unsafeRunSync()
 responseHSTS.headers
@@ -78,13 +79,13 @@ If you want to `preload` or change other default values you can pass a custom he
 ```scala mdoc:silent
 import org.http4s.headers._
 import scala.concurrent.duration._
-```
 
-```scala mdoc
 val hstsHeader = `Strict-Transport-Security`
   .unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 val hstsServiceCustom = HSTS(service, hstsHeader)
+```
 
+```scala mdoc
 // Do not call 'unsafeRunSync' in your code
 val responseCustom = hstsServiceCustom.orNotFound(request).unsafeRunSync()
 responseCustom.headers

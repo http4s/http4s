@@ -255,48 +255,52 @@ private[ember] object H2Server {
     def processCreatedStream(
         h2: H2Connection[F],
         streamCreationLock: Semaphore[F],
-        i: Int,
-    ): F[Unit] =
-      for {
-        stream <- h2.mapRef.get.map(_.get(i)).map(_.get) // FOLD
-        req <- stream.getRequest.map(_.withBodyStream(stream.readBody))
-        resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
-        // Push Promises
-        pp = resp.attributes.lookup(H2Keys.PushPromises)
-        pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
-        streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-          Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-        ) { l =>
-          l.traverse { req =>
-            streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
-              h2.initiateLocalStream.flatMap { stream =>
-                stream
-                  .sendPushPromise(i, PseudoHeaders.requestToHeaders(req))
-                  .map(_ => (req, stream))
-              }
-            )
-          }
-        }
-        // _ <- Console.make[F].println("Writing Streams Commpleted")
-        responses <- streams.parTraverse { case (req, stream) =>
-          for {
-            resp <- httpApp(req)
-            // _ <- Console.make[F].println("Push Promise Response Completed")
-            _ <- stream.sendHeaders(
-              PseudoHeaders.responseToHeaders(resp),
-              false,
-            ) // PP Response
-          } yield (resp.body, stream)
-        }
+        streamIx: Int,
+    ): F[Unit] = {
+      def fulfillPushPromises(resp: Response[F]): F[Unit] = {
+        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
+          streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
+            h2.initiateLocalStream.flatMap { stream =>
+              stream
+                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+                .map(_ => (req, stream))
+            }
+          )
 
-        _ <- responses.parTraverse { case (_, stream) =>
+        def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks
             .evalMap(c => stream.sendData(c.toByteVector, false))
             .compile
             .drain >> // PP Resp Body
             stream.sendData(ByteVector.empty, true)
-        }
+
+        def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
+          for {
+            resp <- httpApp(req.covary[F])
+            // _ <- Console.make[F].println("Push Promise Response Completed")
+            pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
+            _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
+          } yield (resp.body, stream)
+
+        val pp = resp.attributes.lookup(H2Keys.PushPromises)
+        for {
+          // Push Promises
+          pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
+          streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
+            Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
+          )(l => l.traverse(sender))
+          // _ <- Console.make[F].println("Writing Streams Commpleted")
+          responses <- streams.parTraverse { case (req, stream) => respond(req, stream) }
+          _ <- responses.parTraverse { case (_, stream) => sendData(resp, stream) }
+        } yield ()
+      }
+
+      for {
+        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
+        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+        resp <- httpApp(req)
+        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
+        _ <- fulfillPushPromises(resp)
         trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
         _ <- resp.body.chunks.noneTerminate.zipWithNext
           .evalMap {
@@ -316,6 +320,7 @@ private[ember] object H2Server {
         )
         _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
       } yield ()
+    }
 
     def processCreatedStreams(h2: H2Connection[F], streamCreationLock: Semaphore[F]): F[Unit] =
       Stream
