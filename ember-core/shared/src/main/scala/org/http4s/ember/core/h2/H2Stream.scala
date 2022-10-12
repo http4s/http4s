@@ -383,22 +383,23 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def getResponse: F[org.http4s.Response[fs2.Pure]] = state.get.flatMap(_.response.get.rethrow)
 
   def readBody: Stream[F, Byte] = {
+    def pullBuffer(buffer: Queue[F, Either[Throwable, ByteVector]]): Pull[F, Byte, Unit] =
+      Pull.eval(buffer.tryTake).flatMap {
+        case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> pullBuffer(buffer)
+        case Some(Left(e)) => Pull.raiseError(e)
+        case None => Pull.done
+      }
+
     def p: Pull[F, Byte, Unit] =
       Pull.eval(state.get).flatMap { state =>
-        def p2: Pull[F, Byte, Unit] = Pull.eval(state.readBuffer.tryTake).flatMap {
-          case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> p2
-          case Some(Left(e)) => Pull.raiseError(e)
-          case None => Pull.done
-        }
-
         if (state.isClosed)
-          p2
+          pullBuffer(state.readBuffer)
         else
           Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
             case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
             case Left(Left(e)) => Pull.raiseError(e)
             case Right(_) => Pull.done
-          } >> p2 >> p
+          } >> pullBuffer(state.readBuffer) >> p
         }
       }
     p.stream
