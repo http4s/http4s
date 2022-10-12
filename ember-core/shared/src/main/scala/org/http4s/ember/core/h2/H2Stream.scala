@@ -390,17 +390,19 @@ private[h2] class H2Stream[F[_]: Concurrent](
         case None => Pull.done
       }
 
+    def p1(state: H2Stream.State[F]): Pull[F, Byte, Unit] =
+      Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
+        case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
+        case Left(Left(e)) => Pull.raiseError(e)
+        case Right(_) => Pull.done
+      }
+
     def p: Pull[F, Byte, Unit] =
       Pull.eval(state.get).flatMap { state =>
         if (state.isClosed)
           pullBuffer(state.readBuffer)
         else
-          Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
-            case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
-            case Left(Left(e)) => Pull.raiseError(e)
-            case Right(_) => Pull.done
-          } >> pullBuffer(state.readBuffer) >> p
-        }
+          p1(state) >> pullBuffer(state.readBuffer) >> p
       }
     p.stream
   }
