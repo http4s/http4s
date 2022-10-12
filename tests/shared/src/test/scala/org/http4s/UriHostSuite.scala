@@ -68,7 +68,17 @@ final class UriHostSuite extends Http4sSuite {
 
   test("Uri.Host.fromString should fail to parse gen-delims") {
     val genDelims = ":/?#[]@"
-    assertEquals(Uri.Host.fromString(genDelims).isLeft, true)
+    assert(Uri.Host.fromString(genDelims).isLeft)
+  }
+
+  test("Uri.Host.unsafeFromString return direct result") {
+    val s = "localhost"
+    assertEquals(Uri.Host.unsafeFromString(s), Uri.RegName(s))
+  }
+
+  test("Uri.Host.unsafeFromString should throw on bad input") {
+    val genDelims = ":/?#[]@"
+    intercept[ParseFailure](Uri.Host.unsafeFromString(genDelims))
   }
 
 }

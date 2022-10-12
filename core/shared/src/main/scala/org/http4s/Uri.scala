@@ -685,6 +685,9 @@ object Uri extends UriPlatform {
     def fromString(s: String): ParseResult[Host] =
       ParseResult.fromParser(Parser.host, "Invalid host")(s)
 
+    def unsafeFromString(s: String): Host =
+      fromString(s).fold(throw _, identity)
+
     /** Create a [[Host]] value from an [[com.comcast.ip4s.IpAddress]].
       *
       * This is a convenience method for creating the correct host based on
