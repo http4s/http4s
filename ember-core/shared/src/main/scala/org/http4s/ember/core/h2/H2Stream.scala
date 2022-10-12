@@ -19,6 +19,7 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.data._
 import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
 import org.http4s.Header
@@ -384,9 +385,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def readBody: Stream[F, Byte] = {
     def p: Pull[F, Byte, Unit] =
       Pull.eval(state.get).flatMap { state =>
-        val closed =
-          state.state == StreamState.HalfClosedRemote || state.state == StreamState.Closed
-        if (closed) {
+        if (state.isClosed) {
           def p2: Pull[F, Byte, Unit] = Pull.eval(state.readBuffer.tryTake).flatMap {
             case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> p2
             case Some(Left(e)) => Pull.raiseError(e)
@@ -420,7 +419,7 @@ private[h2] object H2Stream {
       request: Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]],
       response: Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]],
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
-      readBuffer: cats.effect.std.Queue[F, Either[Throwable, ByteVector]],
+      readBuffer: Queue[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
   ) {
     override def toString: String =
@@ -430,6 +429,9 @@ private[h2] object H2Stream {
       val hs = Headers(rawHs.toList.map(Header.ToRaw.keyValuesToRaw): _*)
       trailers.complete(Either.right(hs))
     }
+
+    def isClosed: Boolean = state == StreamState.HalfClosedRemote || state == StreamState.Closed
+
   }
 
   sealed trait StreamState
