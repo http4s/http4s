@@ -19,7 +19,6 @@ package client
 
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import org.http4s.internal.BackendBuilder
 import org.http4s.nodejs.ClientRequest
@@ -49,8 +48,8 @@ private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protect
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] = Client { (req: Request[F]) =>
-    Dispatcher.sequential[F].flatMap { dispatcher =>
-      Resource.make(F.delay(new AbortController))(ctr => F.delay(ctr.abort())).evalMap { abort =>
+    Resource.make(F.delay(new AbortController))(ctr => F.delay(ctr.abort())).evalMap { abort =>
+      F.async[IncomingMessage] { cb =>
         val options = new RequestOptions {
           method = req.method.renderString
           protocol = req.uri.scheme.map(_.value + ":").orUndefined
@@ -60,19 +59,16 @@ private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protect
           signal = abort.signal
         }
 
-        for {
-          incomingMessage <- F.deferred[IncomingMessage]
-          cb = (msg: IncomingMessage) =>
-            dispatcher.unsafeRunAndForget(incomingMessage.complete(msg))
-          clientRequest <-
-            if (req.uri.scheme.contains(Uri.Scheme.https))
-              F.delay(httpsRequest(options, cb))
-            else
-              F.delay(httpRequest(options, cb))
-          _ <- clientRequest.writeRequest(req)
-          response <- incomingMessage.get.flatMap(_.toResponse)
-        } yield response
-      }
+        val clientRequest =
+          if (req.uri.scheme.contains(Uri.Scheme.https))
+            F.delay(httpsRequest(options, msg => cb(Right(msg))))
+          else
+            F.delay(httpRequest(options, msg => cb(Right(msg))))
+
+        clientRequest
+          .flatMap(_.writeRequest(req))
+          .as(Some(F.unit)) // cancelation guaranteed by abort controller
+      }.flatMap(_.toResponse)
     }
   }
 
