@@ -49,7 +49,7 @@ private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protect
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create: Client[F] = Client { (req: Request[F]) =>
-    Dispatcher[F].flatMap { dispatcher =>
+    Dispatcher.sequential[F].flatMap { dispatcher =>
       Resource.make(F.delay(new AbortController))(ctr => F.delay(ctr.abort())).evalMap { abort =>
         val options = new RequestOptions {
           method = req.method.renderString
