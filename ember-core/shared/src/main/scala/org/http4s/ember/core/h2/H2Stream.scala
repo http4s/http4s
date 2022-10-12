@@ -397,14 +397,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
         case Right(_) => Pull.done
       }
 
-    def p: Pull[F, Byte, Unit] =
+    def loop: Pull[F, Byte, Unit] =
       Pull.eval(state.get).flatMap { state =>
         if (state.isClosed)
           pullBuffer(state.readBuffer)
         else
-          p1(state) >> pullBuffer(state.readBuffer) >> p
+          p1(state) >> pullBuffer(state.readBuffer) >> loop
       }
-    p.stream
+
+    loop.stream
   }
 
 }
