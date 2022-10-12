@@ -385,19 +385,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def readBody: Stream[F, Byte] = {
     def p: Pull[F, Byte, Unit] =
       Pull.eval(state.get).flatMap { state =>
-        if (state.isClosed) {
-          def p2: Pull[F, Byte, Unit] = Pull.eval(state.readBuffer.tryTake).flatMap {
-            case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> p2
-            case Some(Left(e)) => Pull.raiseError(e)
-            case None => Pull.done
-          }
+        def p2: Pull[F, Byte, Unit] = Pull.eval(state.readBuffer.tryTake).flatMap {
+          case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> p2
+          case Some(Left(e)) => Pull.raiseError(e)
+          case None => Pull.done
+        }
+
+        if (state.isClosed)
           p2
-        } else {
-          def p2: Pull[F, Byte, Unit] = Pull.eval(state.readBuffer.tryTake).flatMap {
-            case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> p2
-            case Some(Left(e)) => Pull.raiseError(e)
-            case None => Pull.done
-          }
+        else
           Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
             case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
             case Left(Left(e)) => Pull.raiseError(e)
