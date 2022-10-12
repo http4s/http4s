@@ -264,7 +264,7 @@ object Client {
             val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
             Resource.eval(app(reqAugmented)).flatMap(run(_))
           case resp: Response[F] =>
-            Resource.eval(F.pure(resp))
+            Resource.pure(resp)
         }
       case Entity.Default(_, _) =>
         message match {
@@ -280,17 +280,11 @@ object Client {
               }
             )
           case resp: Response[F] =>
-            refOp.fold {
-              Resource.suspend(Ref[F].of(false).map { disposed =>
-                Resource
-                  .eval(F.pure(resp.pipeBodyThrough(until(disposed))))
-                  .onFinalize(disposed.set(true))
-              })
-            } { disp =>
+            Resource.suspend(refOp.fold(Ref[F].of(false))(F.pure).map { r =>
               Resource
-                .eval(F.pure(resp.pipeBodyThrough(until(disp))))
-                .onFinalize(disp.set(true))
-            }
+                .pure(resp.pipeBodyThrough(until(r)))
+                .onFinalize(r.set(true))
+            })
         }
     }
     Client((req: Request[F]) => run(req))
