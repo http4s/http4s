@@ -21,13 +21,11 @@ import cats.effect.Async
 import cats.syntax.all._
 import fs2.io.Writable
 
-import scala.annotation.nowarn
 import scala.scalajs.js
 
 /** Facade for [[https://nodejs.org/api/http.html#class-httpserverresponse]]
   */
 @js.native
-@nowarn
 private[http4s] trait ServerResponse extends js.Object with Writable {
 
   protected[nodejs] def writeHead(
