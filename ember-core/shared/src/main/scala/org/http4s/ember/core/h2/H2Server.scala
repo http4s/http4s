@@ -193,7 +193,7 @@ private[ember] object H2Server {
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
-    def initH2Connection: F[(H2Connection[F], Semaphore[F])] = for {
+    def initH2Connection: F[H2Connection[F]] = for {
       address <- socket.remoteAddress
       (remotehost, remoteport) = (address.host, address.port)
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
@@ -219,24 +219,23 @@ private[ember] object H2Server {
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
-      h2 = new H2Connection(
-        remotehost,
-        remoteport,
-        H2Connection.ConnectionType.Server,
-        localSettings,
-        ref,
-        stateRef,
-        queue,
-        created,
-        closed,
-        hpack,
-        streamCreationLock.permit,
-        settingsAck,
-        ByteVector.empty,
-        socket,
-        logger,
-      )
-    } yield (h2, streamCreationLock)
+    } yield new H2Connection(
+      remotehost,
+      remoteport,
+      H2Connection.ConnectionType.Server,
+      localSettings,
+      ref,
+      stateRef,
+      queue,
+      created,
+      closed,
+      hpack,
+      streamCreationLock.permit,
+      settingsAck,
+      ByteVector.empty,
+      socket,
+      logger,
+    )
 
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
@@ -254,12 +253,11 @@ private[ember] object H2Server {
 
     def processCreatedStream(
         h2: H2Connection[F],
-        streamCreationLock: Semaphore[F],
         streamIx: Int,
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
         def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
-          streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
+          h2.streamCreateAndHeaders.use[(Request[Pure], H2Stream[F])](_ =>
             h2.initiateLocalStream.flatMap { stream =>
               stream
                 .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
@@ -322,32 +320,28 @@ private[ember] object H2Server {
       } yield ()
     }
 
-    def processCreatedStreams(h2: H2Connection[F], streamCreationLock: Semaphore[F]): F[Unit] =
+    def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .map(i => Stream.eval(processCreatedStream(h2, streamCreationLock, i).attempt))
+        .map(i => Stream.eval(processCreatedStream(h2, i).attempt))
         .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
         .compile
         .drain
         .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }
 
+    val settingsFrame = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+
     for {
-      pair <- Resource.eval(initH2Connection)
-      h2 = pair._1
-      streamCreationLock = pair._2
+      h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(
-        h2.outgoing.offer(
-          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
-        )
-      )
+      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
       _ <- clearClosedStreams(h2).background
-      _ <- processCreatedStreams(h2, streamCreationLock).background
+      _ <- processCreatedStreams(h2).background
       _ <- Resource.eval(
         h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
