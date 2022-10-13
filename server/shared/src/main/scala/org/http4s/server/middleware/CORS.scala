@@ -198,7 +198,7 @@ object CORS {
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]
   ): Http[F, G] = {
-    val purposelyUnused = 0 // to satisfy @nowarn on Scala 2
+    def purposelyUnused = 0 // to satisfy @nowarn on Scala 2
     if (config.anyOrigin && config.allowCredentials)
       logger
         .warn(
