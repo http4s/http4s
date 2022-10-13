@@ -21,8 +21,6 @@ import com.comcast.ip4s
 import fs2.Stream
 import org.typelevel.ci.CIString
 
-import scala.annotation.nowarn
-
 package object http4s {
 
   type AuthScheme = CIString
@@ -87,7 +85,6 @@ package object http4s {
   // Syntax to enable JS-cross compilation without splitting files
   // Nobody will actually be able to run these methods b/c they will fail to link
 
-  @nowarn
   implicit private[http4s] class Fs2IoPathCompanionOps(p: fs2.io.file.Path.type) {
     def fromNioPath(path: java.nio.file.Path): fs2.io.file.Path =
       throw new UnsupportedOperationException
@@ -97,7 +94,6 @@ package object http4s {
     def toNioPath: java.nio.file.Path = throw new UnsupportedOperationException
   }
 
-  @nowarn
   implicit private[http4s] class Ip4sIpv4AddressCompanionOps(ip: ip4s.Ipv4Address.type) {
     def fromInet4Address(a: java.net.Inet4Address): ip4s.Ipv4Address =
       throw new UnsupportedOperationException
@@ -107,7 +103,6 @@ package object http4s {
     def toInetAddress: java.net.Inet4Address = throw new UnsupportedOperationException
   }
 
-  @nowarn
   implicit private[http4s] class Ip4sIpv6AddressCompanionOps(ip: ip4s.Ipv6Address.type) {
     def fromInet6Address(a: java.net.Inet6Address): ip4s.Ipv6Address =
       throw new UnsupportedOperationException

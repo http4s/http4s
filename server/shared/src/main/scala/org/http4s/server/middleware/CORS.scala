@@ -194,10 +194,11 @@ object CORS {
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
     "0.21.27",
   )
-  @nowarn("cat=deprecation")
+  @nowarn // silence deprecation warning on Scala 3
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]
   ): Http[F, G] = {
+    def purposelyUnused = 0 // to satisfy @nowarn on Scala 2
     if (config.anyOrigin && config.allowCredentials)
       logger
         .warn(

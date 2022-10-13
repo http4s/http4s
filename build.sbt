@@ -498,6 +498,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+        "org.http4s.ember.core.h2.HpackPlatform"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -574,27 +577,9 @@ lazy val emberServer = libraryCrossProject("ember-server")
         "org.http4s.ember.server.internal.ServerHelpers.runConnection"
       ),
       ProblemFilters.exclude[Problem](
-        "org.http4s.ember.server.internal.WebSocketHelpers"
+        "org.http4s.ember.server.internal.*"
       ),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.server"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.upgradeSocket"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.serverInternal"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.unixSocketServer"
-          ),
-        )
-      else
-        Seq.empty
-    },
+    ),
     Test / parallelExecution := false,
   )
   .jvmSettings(
