@@ -498,6 +498,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+        "org.http4s.ember.core.h2.HpackPlatform"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
