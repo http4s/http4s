@@ -37,7 +37,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.typelevel.ci._
 
-import java.nio.file.Paths
 import scala.collection.immutable.Seq
 
 // TODO: this needs some more filling out
@@ -134,7 +133,10 @@ class UriSpec extends Http4sSuite {
       Left(
         ParseFailure(
           "Invalid URI",
-          "Error(20, NonEmptyList(EndOfString(20,25)))",
+          """http://example.org/a file
+            |                    ^
+            |expectation:
+            |* must end the string""".stripMargin,
         )
       ),
     )
@@ -993,7 +995,7 @@ class UriSpec extends Http4sSuite {
     val ps = Map("param" -> List(1.2, 2.1))
     assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
   }
-  if (Platform.isJvm)
+  if (Platform.isJvm || Platform.isNative)
     test("Uri parameter convenience methods should set a parameter with a float values") {
       val ps = Map("param" -> List(1.2f, 2.1f))
       assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
@@ -1162,8 +1164,8 @@ class UriSpec extends Http4sSuite {
     forAll(pathGen) { (input: String) =>
       val prefix = "/this/isa/prefix/"
       val processed = Uri.removeDotSegments(Uri.Path.unsafeFromString(input)).renderString
-      val path = Paths.get(prefix, processed).normalize
-      assert(path.startsWith(Paths.get(prefix)))
+      val path = (fs2.io.file.Path(prefix) / processed).normalize
+      assert(path.startsWith(fs2.io.file.Path(prefix)))
       assert(!processed.contains("./"))
       assert(!processed.contains("../"))
     }

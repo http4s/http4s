@@ -35,6 +35,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     org.http4s.server.test.BuildInfo.test_resourceDirectory
       .replace("jvm", "shared")
       .replace("js", "shared")
+      .replace("native", "shared")
 
   lazy val testResource: IO[Chunk[Byte]] =
     Files[IO].readAll(Path(defaultSystemPath) / "testresource.txt").chunks.compile.foldMonoid

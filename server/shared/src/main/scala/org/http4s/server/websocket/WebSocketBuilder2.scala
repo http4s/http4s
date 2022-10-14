@@ -18,6 +18,7 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
+import cats.effect.kernel.Unique
 import cats.syntax.all._
 import cats.~>
 import fs2.Pipe
@@ -43,7 +44,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
     filterPingPongs: Boolean,
-    webSocketKey: Key[WebSocketContext[F]],
+    private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
 
@@ -177,7 +178,19 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 }
 
 object WebSocketBuilder2 {
+  @deprecated(
+    "Use the arg-less constructor to create a `WebSocketBuilder2` and access its key with the webSocketKey method",
+    "0.23.15",
+  )
   private[http4s] def apply[F[_]: Applicative](
+      webSocketKey: Key[WebSocketContext[F]]
+  ): WebSocketBuilder2[F] =
+    withKey(webSocketKey)
+
+  def apply[F[_]: Applicative: Unique]: F[WebSocketBuilder2[F]] =
+    Key.newKey[F, WebSocketContext[F]].map(withKey[F])
+
+  private def withKey[F[_]: Applicative](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     impl(

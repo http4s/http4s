@@ -18,6 +18,7 @@ package org.http4s.ember.core.h2
 
 import cats._
 import cats.effect._
+import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
@@ -192,12 +193,12 @@ private[ember] object H2Server {
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
-    for {
-      address <- Resource.eval(socket.remoteAddress)
+    def initH2Connection: F[H2Connection[F]] = for {
+      address <- socket.remoteAddress
       (remotehost, remoteport) = (address.host, address.port)
-      ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-      initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-      stateRef <- Resource.eval(
+      ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
+      initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
+      stateRef <-
         Concurrent[F].ref(
           H2Connection.State(
             initialRemoteSettings,
@@ -211,134 +212,140 @@ private[ember] object H2Server {
             None,
           )
         )
-      )
-      queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-      hpack <- Resource.eval(Hpack.create[F])
-      settingsAck <- Resource.eval(
-        Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      )
-      streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
+      queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+      hpack <- Hpack.create[F]
+      settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+      streamCreationLock <- Semaphore[F](1)
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
+      created <- cats.effect.std.Queue.unbounded[F, Int]
+      closed <- cats.effect.std.Queue.unbounded[F, Int]
+    } yield new H2Connection(
+      remotehost,
+      remoteport,
+      H2Connection.ConnectionType.Server,
+      localSettings,
+      ref,
+      stateRef,
+      queue,
+      created,
+      closed,
+      hpack,
+      streamCreationLock.permit,
+      settingsAck,
+      ByteVector.empty,
+      socket,
+      logger,
+    )
 
-      h2 = new H2Connection(
-        remotehost,
-        remoteport,
-        H2Connection.ConnectionType.Server,
-        localSettings,
-        ref,
-        stateRef,
-        queue,
-        created,
-        closed,
-        hpack,
-        streamCreationLock.permit,
-        settingsAck,
-        ByteVector.empty,
-        socket,
-        logger,
-      )
+    def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.closedStreams)
+        .map(i =>
+          Stream.eval(
+            // Max Time After Close We Will Still Accept Messages
+            (Temporal[F].sleep(1.seconds) >>
+              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+          )
+        )
+        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .compile
+        .drain
+
+    def processCreatedStream(
+        h2: H2Connection[F],
+        streamIx: Int,
+    ): F[Unit] = {
+      def fulfillPushPromises(resp: Response[F]): F[Unit] = {
+        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
+          h2.streamCreateAndHeaders.use[(Request[Pure], H2Stream[F])](_ =>
+            h2.initiateLocalStream.flatMap { stream =>
+              stream
+                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+                .map(_ => (req, stream))
+            }
+          )
+
+        def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
+          resp.body.chunks
+            .evalMap(c => stream.sendData(c.toByteVector, false))
+            .compile
+            .drain >> // PP Resp Body
+            stream.sendData(ByteVector.empty, true)
+
+        def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
+          for {
+            resp <- httpApp(req.covary[F])
+            // _ <- Console.make[F].println("Push Promise Response Completed")
+            pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
+            _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
+          } yield (resp.body, stream)
+
+        val pp = resp.attributes.lookup(H2Keys.PushPromises)
+        for {
+          // Push Promises
+          pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
+          streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
+            Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
+          )(l => l.traverse(sender))
+          // _ <- Console.make[F].println("Writing Streams Commpleted")
+          responses <- streams.parTraverse { case (req, stream) => respond(req, stream) }
+          _ <- responses.parTraverse { case (_, stream) => sendData(resp, stream) }
+        } yield ()
+      }
+
+      for {
+        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
+        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+        resp <- httpApp(req)
+        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
+        _ <- fulfillPushPromises(resp)
+        trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
+        _ <- resp.body.chunks.noneTerminate.zipWithNext
+          .evalMap {
+            case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
+            case (Some(c), Some(None) | None) =>
+              if (trailers.isDefined) stream.sendData(c.toByteVector, false)
+              else stream.sendData(c.toByteVector, true)
+            case (None, _) =>
+              if (trailers.isDefined) Applicative[F].unit
+              else stream.sendData(ByteVector.empty, true)
+          }
+          .compile
+          .drain // Initial Resp Body
+        optTrailers <- trailers.sequence
+        optNel = optTrailers.flatMap(h =>
+          h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel
+        )
+        _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
+      } yield ()
+    }
+
+    def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.createdStreams)
+        .map(i => Stream.eval(processCreatedStream(h2, i).attempt))
+        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .compile
+        .drain
+        .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }
+
+    val settingsFrame = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+
+    for {
+      h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(
-        queue.offer(Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings)))
-      )
+      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
-        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> created.offer(1))
+        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
-      _ <-
-        Stream
-          .fromQueueUnterminated(closed)
-          .map(i =>
-            Stream.eval(
-              // Max Time After Close We Will Still Accept Messages
-              (Temporal[F].sleep(1.seconds) >>
-                ref.update(m => m - i)).timeout(15.seconds).attempt.start
-            )
-          )
-          .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
-          .compile
-          .drain
-          .background
-
-      _ <-
-        Stream
-          .fromQueueUnterminated(created)
-          .map { i =>
-            val x: F[Unit] = for {
-              stream <- ref.get.map(_.get(i)).map(_.get) // FOLD
-              req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
-              resp <- httpApp(req)
-              _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
-              // Push Promises
-              pp = resp.attributes.lookup(H2Keys.PushPromises)
-              pushEnabled <- stateRef.get.map(_.remoteSettings.enablePush.isEnabled)
-              streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-                Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-              ) { l =>
-                l.traverse { req =>
-                  streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
-                    h2.initiateLocalStream.flatMap { stream =>
-                      stream
-                        .sendPushPromise(i, PseudoHeaders.requestToHeaders(req))
-                        .map(_ => (req, stream))
-                    }
-                  )
-                }
-              }
-              // _ <- Console.make[F].println("Writing Streams Commpleted")
-              responses <- streams.parTraverse { case (req, stream) =>
-                for {
-                  resp <- httpApp(req.covary[F])
-                  // _ <- Console.make[F].println("Push Promise Response Completed")
-                  _ <- stream.sendHeaders(
-                    PseudoHeaders.responseToHeaders(resp),
-                    false,
-                  ) // PP Response
-                } yield (resp.body, stream)
-              }
-
-              _ <- responses.parTraverse { case (_, stream) =>
-                resp.body.chunks
-                  .evalMap(c => stream.sendData(c.toByteVector, false))
-                  .compile
-                  .drain >> // PP Resp Body
-                  stream.sendData(ByteVector.empty, true)
-              }
-              trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
-              _ <- resp.body.chunks.noneTerminate.zipWithNext
-                .evalMap {
-                  case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
-                  case (Some(c), Some(None) | None) =>
-                    if (trailers.isDefined) stream.sendData(c.toByteVector, false)
-                    else stream.sendData(c.toByteVector, true)
-                  case (None, _) =>
-                    if (trailers.isDefined) Applicative[F].unit
-                    else stream.sendData(ByteVector.empty, true)
-                }
-                .compile
-                .drain // Initial Resp Body
-              optTrailers <- trailers.sequence
-              optNel = optTrailers.flatMap(h =>
-                h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel
-              )
-              _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
-            } yield ()
-            Stream.eval(x.attempt)
-
-          }
-          .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
-          .compile
-          .drain
-          .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }
-          .background
-
+      _ <- clearClosedStreams(h2).background
+      _ <- processCreatedStreams(h2).background
       _ <- Resource.eval(
-        stateRef.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
+        h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
-      _ <- Resource.eval(holdWhileOpen(stateRef))
+      _ <- Resource.eval(holdWhileOpen(h2.state))
     } yield ()
   }
 }

@@ -89,7 +89,7 @@ class ConnectionSuite extends Http4sSuite {
   private def fixture(
       idleTimeout: FiniteDuration = 60.seconds,
       headerTimeout: FiniteDuration = 60.seconds,
-  ) = ResourceFixture(
+  ) = ResourceFunFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
       client <- clientResource(server.addressIp4s)

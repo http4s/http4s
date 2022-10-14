@@ -25,7 +25,6 @@ import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
-import org.log4s.getLogger
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -43,12 +42,12 @@ package object server {
          |             |_|""".stripMargin.split("\n").toList
 
     val IPv4Host: String =
-      if (Platform.isJvm)
+      if (Platform.isJvm || Platform.isNative)
         InetAddress.getByAddress("localhost", Array[Byte](127, 0, 0, 1)).getHostAddress
       else
         "127.0.0.1"
     val IPv6Host: String =
-      if (Platform.isJvm)
+      if (Platform.isJvm || Platform.isNative)
         InetAddress
           .getByAddress("localhost", Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
           .getHostAddress
@@ -169,8 +168,10 @@ package object server {
         }
   }
 
-  private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
-  private[this] val serviceErrorLogger = getLogger("org.http4s.server.service-errors")
+  private[this] val messageFailureLogger =
+    Platform.loggerFactory.getLoggerFromName("org.http4s.server.message-failures")
+  private[this] val serviceErrorLogger =
+    Platform.loggerFactory.getLoggerFromName("org.http4s.server.service-errors")
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
@@ -184,16 +185,20 @@ package object server {
   ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
     req => {
       case mf: MessageFailure =>
-        messageFailureLogger.debug(mf)(
-          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}"""
-        )
+        messageFailureLogger
+          .debug(mf)(
+            s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+                .getOrElse("<unknown>")}"""
+          )
+          .unsafeRunSync()
         mf.toHttpResponse[G](req.httpVersion).pure[F]
       case NonFatal(t) =>
-        serviceErrorLogger.error(t)(
-          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-              .getOrElse("<unknown>")}"""
-        )
+        serviceErrorLogger
+          .error(t)(
+            s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+                .getOrElse("<unknown>")}"""
+          )
+          .unsafeRunSync()
         F.pure(
           Response(
             Status.InternalServerError,

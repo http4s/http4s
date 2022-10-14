@@ -1,8 +1,144 @@
 # Changelog
 
-
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
+
+# v0.23.16 (2022-09-15)
+
+This release is binary compatible with the 0.23.x series. This is the first release that supports the [Scala Native](https://scala-native.org/) platform. All modules were cross-built, including:
+
+* core, dsl, and laws
+* server and client, including middlewares
+    * middlewares relying on cryptography require [OpenSSL](https://www.openssl.org/)
+* ember server and client, including support for HTTP/2 and TLS
+    * requires an [I/O-integrated runtime](https://github.com/typelevel/cats-effect/discussions/3070) for Cats Effect such as [epollcat](https://github.com/armanbilge/epollcat/)
+    * requires [s2n-tls](https://github.com/aws/s2n-tls) for TLS
+* jawn and circe
+
+In addition, a new [cURL](https://curl.se/)-based client backend is developed in a satellite repo.
+
+* https://github.com/http4s/http4s-curl/
+
+## What's Changed
+
+* Scala Native by @armanbilge in https://github.com/http4s/http4s/pull/6661
+
+### http4s-core
+
+* RFC: Phase out log4s by @armanbilge in https://github.com/http4s/http4s/pull/6614
+* Update fs2-core, fs2-io to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6670
+
+### http4s-server
+
+* Default redactHeadersWhen to include any header with "token" #6186 by @Lasering in https://github.com/http4s/http4s/pull/6649
+
+### http4s-client
+
+* Deprecate some methods in `Client` by @danicheg in https://github.com/http4s/http4s/pull/6651
+* Default redactHeadersWhen to include any header with "token" #6186 by @Lasering in https://github.com/http4s/http4s/pull/6649
+
+### http4s-ember-server
+
+* Expose `Network` constraint in ember builders by @armanbilge in https://github.com/http4s/http4s/pull/6526
+
+### http4s-ember-client
+
+* Expose `Network` constraint in ember builders by @armanbilge in https://github.com/http4s/http4s/pull/6526
+
+### http4s-circe
+
+* Update circe-core, circe-generic, ... to 0.14.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6679
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.15 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6635
+* Update netty-buffer, netty-codec-http to 4.1.80.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6640
+* Update case-insensitive, ... to 1.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6642
+* Pin slf4j to 1.x and cleanup by @armanbilge in https://github.com/http4s/http4s/pull/6644
+* Pin `logback-classic` to the `1.2.x` series by @danicheg in https://github.com/http4s/http4s/pull/6647
+* Update fs2-core, fs2-io to 3.2.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6656
+* Update netty-buffer, netty-codec-http to 4.1.81.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6659
+* Update to munit 1.0.0-M6 by @armanbilge in https://github.com/http4s/http4s/pull/6657
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6662
+* Update netty-buffer, netty-codec-http to 4.1.82.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6663
+* Update munit-cats-effect to 2.0.0-M3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6667
+* Update ip4s-core, ip4s-test-kit to 3.2.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6666
+* Update scalacheck-effect, ... to 2.0.0-M2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6668
+* Update keypool to 0.4.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6673
+* Update vault to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6674
+* Update sbt-scoverage to 2.0.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6672
+* Update log4cats-core, log4cats-noop, ... to 2.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6678
+* Update jawn-fs2 to 2.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6677
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.15...v0.23.16
+
+# v0.23.15 (2022-08-22)
+
+This release is binary compatible with the 0.23.x series.
+
+## What's Changed
+
+### http4s-core
+
+* Prettify error messages when parsing by @danicheg in https://github.com/http4s/http4s/pull/6541
+* Rewrite hashcode computation for `Uri.Path` by @FrancescoSerra in https://github.com/http4s/http4s/pull/6555
+* Simplify type signature for internal logger by @bplommer in https://github.com/http4s/http4s/pull/6628
+* Add SourceMap header by @cobr123 in https://github.com/http4s/http4s/pull/6622
+* Update fs2-core, fs2-io to 3.2.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6603
+* Update literally to 1.1.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6583
+
+### http4s-server
+
+* WebSocketBuilder2: make constructor public by @gvolpe in https://github.com/http4s/http4s/pull/6575
+* Cross-compile `GZip` middlewares for JS by @armanbilge in https://github.com/http4s/http4s/pull/6606
+
+### http4s-client
+
+* Fix request logger to log in the case of no request body, when `logBody=true` by @dzanot in https://github.com/http4s/http4s/pull/6535
+* Cross-compile `GZip` middlewares for JS by @armanbilge in https://github.com/http4s/http4s/pull/6606
+
+### http4s-ember-core
+
+* Set `serverNames` TLS parameter for ember h2 by @armanbilge in https://github.com/http4s/http4s/pull/6579
+* Ember H2 - Do not respond to WindowUpdate with Ping by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6593
+* Ember H2 Connection Header Compliance by @ChristopherDavenport in https://github.com/http4s/http4s/pull/6600
+* Don't backtrack in request/response prelude parsing by @TimWSpence in https://github.com/http4s/http4s/pull/6578
+* Ember Core - H2Server - Split for comprehension by @diesalbla in https://github.com/http4s/http4s/pull/6613
+
+### http4s-ember-server
+
+* Always respond to client close frame with 1000 "normal closure" by @yurique in https://github.com/http4s/http4s/pull/6594
+* Parse all WebSocket frames in a `Chunk` in ember-server by @buntec in https://github.com/http4s/http4s/pull/6587
+
+### Documentation
+
+* Fix typo: Add missing comma by @mikela in https://github.com/http4s/http4s/pull/6589
+* Tweak client page by @danicheg in https://github.com/http4s/http4s/pull/6605
+* Update quickstart guide to include Scala 3 branch by @dsusviela in https://github.com/http4s/http4s/pull/6620
+
+### Behind the scenes
+
+* Release v0.23.14 by @armanbilge in https://github.com/http4s/http4s/pull/6568
+* Update http4s-circe, http4s-ember-client, ... to 0.23.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6570
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6571
+* Update sbt-scoverage to 2.0.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6573
+* Update sbt-native-packager to 1.9.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6599
+* Update sbt-scoverage to 2.0.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6601
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6602
+* Update scalafmt-core to 3.5.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6609
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6615
+* Update sbt-native-packager to 1.9.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6616
+
+## New Contributors
+
+* @mikela made their first contribution in https://github.com/http4s/http4s/pull/6589
+* @buntec made their first contribution in https://github.com/http4s/http4s/pull/6587
+* @dzanot made their first contribution in https://github.com/http4s/http4s/pull/6535
+* @TimWSpence made their first contribution in https://github.com/http4s/http4s/pull/6578
+* @dsusviela made their first contribution in https://github.com/http4s/http4s/pull/6620
+* @cobr123 made their first contribution in https://github.com/http4s/http4s/pull/6622
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.14...v0.23.15
 
 # v0.23.14 (2022-07-25)
 

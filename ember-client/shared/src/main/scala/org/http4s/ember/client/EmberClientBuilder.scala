@@ -41,7 +41,7 @@ import org.typelevel.log4cats.Logger
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
-final class EmberClientBuilder[F[_]: Async] private (
+final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
@@ -61,7 +61,7 @@ final class EmberClientBuilder[F[_]: Async] private (
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
-) { self =>
+) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
@@ -225,9 +225,11 @@ final class EmberClientBuilder[F[_]: Async] private (
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
-      tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F])
-      )
+      tlsContextOptWithDefault <-
+        tlsContextOpt
+          .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
+            _.some.pure[Resource[F, *]]
+          )
       builder =
         KeyPool.Builder
           .apply[F, RequestKey, EmberConnection[F]](
@@ -309,7 +311,15 @@ final class EmberClientBuilder[F[_]: Async] private (
           address: UnixSocketAddress,
       ): Resource[F, Response[F]] =
         Resource
-          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
+          .eval(
+            unixSockets
+              .orElse(defaultUnixSockets)
+              .liftTo(
+                new RuntimeException(
+                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
+                )
+              )
+          )
           .flatMap(unixSockets =>
             Resource
               .make(
@@ -352,7 +362,7 @@ final class EmberClientBuilder[F[_]: Async] private (
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
 
-  def default[F[_]: Async] =
+  def default[F[_]: Async: Network] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       sgOpt = None,
@@ -372,6 +382,10 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       enableHttp2 = false,
       pushPromiseSupport = None,
     )
+
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
+    default(async, Network.forAsync(async))
 
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100

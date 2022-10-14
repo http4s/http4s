@@ -311,13 +311,18 @@ object MediaType extends MimeDB {
   private[http4s] def getMediaType(_mainType: String, _subType: String): MediaType = {
     val mainType = _mainType.toLowerCase
     val subType = _subType.toLowerCase
-    if (Platform.isJvm)
+    if (Platform.isJvm || Platform.isNative)
       MediaType.all.getOrElse(
         (mainType, subType),
         new MediaType(mainType, subType),
       )
     else // don't link the MimeDB!!!!
-      new MediaType(mainType, subType, binary = isBinary(mainType, subType))
+      new MediaType(
+        mainType,
+        subType,
+        compressible = isCompressible(mainType, subType),
+        binary = isBinary(mainType, subType),
+      )
   }
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
@@ -410,4 +415,10 @@ object MediaType extends MimeDB {
         }
       case _ => false
     }
+
+  // lazy, incomplete predictor, used only on JS
+  private[this] def isCompressible(mainType: String, subType: String): Boolean = {
+    val _ = subType
+    mainType == "text"
+  }
 }

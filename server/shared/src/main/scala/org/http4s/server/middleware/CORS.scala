@@ -27,7 +27,6 @@ import cats.syntax.all._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
-import org.log4s.getLogger
 import org.typelevel.ci._
 
 import scala.annotation.nowarn
@@ -151,7 +150,7 @@ object CORSConfig {
   * @see [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
   */
 object CORS {
-  private[CORS] val logger = getLogger
+  private[CORS] val logger = Platform.loggerFactory.getLogger
 
   /** The default CORS policy:
     * - Sends `Access-Control-Allow-Origin: *`
@@ -195,14 +194,17 @@ object CORS {
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
     "0.21.27",
   )
-  @nowarn("cat=deprecation")
+  @nowarn // silence deprecation warning on Scala 3
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]
   ): Http[F, G] = {
+    def purposelyUnused = 0 // to satisfy @nowarn on Scala 2
     if (config.anyOrigin && config.allowCredentials)
-      logger.warn(
-        "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning."
-      )
+      logger
+        .warn(
+          "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning."
+        )
+        .unsafeRunSync()
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(
@@ -263,16 +265,16 @@ object CORS {
         req.headers.get[`Access-Control-Request-Method`],
       ) match {
         case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm.method) =>
-          logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
+          logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}").unsafeRunSync()
           createOptionsResponse(origin, acrm).pure[F]
         case (_, Some(origin), _) =>
           if (allowCORS(origin, req.method))
             http(req).map { resp =>
-              logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
+              logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}").unsafeRunSync()
               corsHeaders(origin, req.method, isPreflight = false)(resp)
             }
           else {
-            logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
+            logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}").unsafeRunSync()
             Response(status = Status.Forbidden).pure[F]
           }
         case _ =>
@@ -331,9 +333,11 @@ sealed class CORSPolicy(
 
   @deprecated("Does not return 200 on preflight requests. Use the Applicative version", "0.21.28")
   protected[CORSPolicy] def apply[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
-    logger.warn(
-      "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.23.3 or greater."
-    )
+    logger
+      .warn(
+        "This CORSPolicy does not return 200 on preflight requests. It's kept for binary compatibility, but it's buggy. If you see this, upgrade to v0.23.3 or greater."
+      )
+      .unsafeRunSync()
     impl(http, http)
   }
 
@@ -532,9 +536,11 @@ sealed class CORSPolicy(
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
-      logger.warn(
-        "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses."
-      )
+      logger
+        .warn(
+          "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses."
+        )
+        .unsafeRunSync()
       http
     } else
       Kleisli(dispatch)
@@ -737,7 +743,7 @@ sealed class CORSPolicy(
 }
 
 object CORSPolicy {
-  private val logger = getLogger
+  private val logger = Platform.loggerFactory.getLogger
 
   private object CommonHeaders {
     val someAllowOriginWildcard: Option[Header.Raw] =

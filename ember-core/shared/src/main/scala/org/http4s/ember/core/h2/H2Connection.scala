@@ -448,7 +448,7 @@ private[h2] class H2Connection[F[_]](
               _ <- oldWriteBlock.complete(Right(()))
               _ <- {
                 if (!valid) goAway(H2Error.FlowControlError)
-                else outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+                else Applicative[F].unit
               }
             } yield ()
           case otherwise =>

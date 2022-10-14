@@ -23,7 +23,6 @@ import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Client middlewares that logs the HTTP responses it receives as soon as they are received locally.
@@ -31,9 +30,9 @@ import org.typelevel.ci.CIString
   * The "logging" is represented as an effectful action `String => F[Unit]`
   */
 object ResponseLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
-  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
+  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = logger.info(s).to[F]
 
   def apply[F[_]: Async](
       logHeaders: Boolean,
@@ -56,7 +55,7 @@ object ResponseLogger {
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
+      InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
         logBody,
         redactHeadersWhen,
@@ -91,7 +90,7 @@ object ResponseLogger {
             ) { _ =>
               val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
               logMessage(response.withBodyStream(newBody))
-                .handleErrorWith(t => F.delay(logger.error(t)("Error logging response body")))
+                .handleErrorWith(t => logger.error(t)("Error logging response body").to[F])
             }
           }
         }
@@ -117,10 +116,10 @@ object ResponseLogger {
       val prelude = s"${response.httpVersion} ${response.status}"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(response)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
+        InternalLogger.defaultLogBody(response)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

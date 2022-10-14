@@ -11,7 +11,7 @@ import org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 ```
 
-```scala mdoc
+```scala mdoc:silent
 case class TweetWithId(id: Int, message: String)
 case class Tweet(message: String)
 

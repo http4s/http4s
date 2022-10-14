@@ -32,6 +32,7 @@ import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
+import org.java_websocket.framing.CloseFrame
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import org.java_websocket.handshake.ServerHandshake
@@ -82,7 +83,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .withHttpWebSocketApp(service[IO])
       .build
 
-  private def fixture = (ResourceFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
   sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
@@ -90,6 +91,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       messages: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
+      closeCode: Deferred[IO, Int],
       client: WebSocketClient,
   ) {
     def connect: IO[Unit] =
@@ -111,6 +113,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       queue <- Queue.unbounded[IO, String]
       pongQueue <- Queue.unbounded[IO, String]
       remoteClosed <- Deferred[IO, Unit]
+      closeCode <- Deferred[IO, Int]
       client = new WebSocketClient(target) {
         override def onOpen(handshakedata: ServerHandshake): Unit = {
           val fa = waitOpen.complete(None)
@@ -120,7 +123,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         override def onClose(code: Int, reason: String, remote: Boolean): Unit = {
           val fa = waitOpen
             .complete(Some(new Throwable(s"closed: code: $code, reason: $reason")))
-            .attempt >> waitClose.complete(None)
+            .attempt >> closeCode.complete(code) >> waitClose.complete(None)
           dispatcher.unsafeRunSync(fa)
           ()
         }
@@ -140,7 +143,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, client)
+    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
 
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
@@ -179,16 +182,18 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield assertEquals(data, "hello")
   }
 
-  fixture.test("initiate close sequence on stream termination") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.messages.take
-      _ <- client.remoteClosed.get
-    } yield ()
+  fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
+    case (server, dispatcher) =>
+      for {
+        client <- createClient(
+          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
+          dispatcher,
+        )
+        _ <- client.connect
+        _ <- client.messages.take
+        _ <- client.remoteClosed.get
+        code <- client.closeCode.get
+      } yield assertEquals(code, CloseFrame.NORMAL)
   }
 
   fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
@@ -201,6 +206,21 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       _ <- client.ping("pingu")
       _ <- client.remoteClosed.get
     } yield ()
+  }
+
+  fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
+    val n = 10
+    val messages = List.tabulate(n)(i => s"${i + 1}")
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- messages.traverse_(client.send)
+      messagesReceived <- client.messages.take.replicateA(n)
+      _ <- client.close
+    } yield assertEquals(messagesReceived, messages)
   }
 
 }

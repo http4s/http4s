@@ -18,15 +18,30 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
+ThisBuild / githubWorkflowJobSetup ~= {
+  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+}
+ThisBuild / githubWorkflowJobSetup ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "install-nix-action", "v17"),
+    name = Some("Install Nix"),
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "cachix-action", "v10"),
+    name = Some("Install Cachix"),
+    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+  ),
+)
+
+ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
+
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     id = "coverage",
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.Checkout) ++
-      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
-      githubWorkflowGeneratedCacheSteps.value ++
+    steps = githubWorkflowJobSetup.value.toList ++
       List(
         WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
         WorkflowStep.Use(
@@ -103,7 +118,6 @@ lazy val core = libraryCrossProject("core")
       fs2Io.value,
       ip4sCore.value,
       literally.value,
-      log4s.value,
       munit.value % Test,
       scodecBits.value,
       vault.value,
@@ -187,25 +201,37 @@ lazy val core = libraryCrossProject("core")
           ProblemFilters.exclude[ReversedMissingMethodProblem](
             "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Message.logger"),
         )
       else Seq.empty
     },
   )
+  .platformsSettings(JVMPlatform, JSPlatform)(
+    libraryDependencies ++= Seq(
+      log4s.value
+    )
+  )
+  .platformsSettings(JSPlatform, NativePlatform)(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
+      scalaJavaLocalesEnUS.value,
+      scalaJavaTime.value,
+    )
+  )
   .jvmSettings(
+    libraryDependencies ++= {
+      Seq(log4catsSlf4j)
+    },
     libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
         Seq(
           slf4jApi // residual dependency from macros
         )
-    }
+    },
   )
   .jsSettings(
-    libraryDependencies ++= Seq(
-      scalaJavaLocalesEnUS.value,
-      scalaJavaTime.value,
-    ),
-    jsVersionIntroduced("0.23.5"),
+    jsVersionIntroduced("0.23.5")
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -251,6 +277,11 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+  )
+  .nativeSettings(
+    libraryDependencies ++= Seq(
+      epollcat.value
+    )
   )
   .dependsOn(core, laws)
 
@@ -301,6 +332,18 @@ lazy val server = libraryCrossProject("server")
           ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem](
             "org.http4s.server.middleware.authentication.Nonce.random"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.package.messageFailureLogger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.package.serviceErrorLogger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.CORS.logger"
+          ),
+          ProblemFilters.exclude[IncompatibleResultTypeProblem](
+            "org.http4s.server.middleware.HttpsRedirect.logger"
           ),
         )
       else Nil
@@ -439,6 +482,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.core.Parser#Response#RespPrelude.parsePrelude"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.Parser#MessageP.recurseFind"
+      ),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.EmptyStreamError$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP"),
@@ -452,6 +498,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+        "org.http4s.ember.core.h2.HpackPlatform"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -498,7 +547,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .jvmSettings(
     libraryDependencies += twitterHpack
   )
-  .jsSettings(
+  .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += hpack.value
   )
   .dependsOn(core, tests % Test)
@@ -527,25 +576,10 @@ lazy val emberServer = libraryCrossProject("ember-server")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.ember.server.internal.ServerHelpers.runConnection"
       ),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.server"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.upgradeSocket"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.serverInternal"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.unixSocketServer"
-          ),
-        )
-      else
-        Seq.empty
-    },
+      ProblemFilters.exclude[Problem](
+        "org.http4s.ember.server.internal.*"
+      ),
+    ),
     Test / parallelExecution := false,
   )
   .jvmSettings(
@@ -694,7 +728,7 @@ lazy val unidocs = http4sProject("unidocs")
           scalafixInternalRules,
           scalafixInternalTests,
           docs,
-        ) ++ root.js.aggregate): _*
+        ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
     coverageEnabled := false,
   )
@@ -821,7 +855,7 @@ def http4sProject(name: String) =
 
 def http4sCrossProject(name: String, crossType: CrossType) =
   sbtcrossproject
-    .CrossProject(name, file(name))(JVMPlatform, JSPlatform)
+    .CrossProject(name, file(name))(JVMPlatform, JSPlatform, NativePlatform)
     .withoutSuffixFor(JVMPlatform)
     .crossType(crossType)
     .settings(commonSettings)
@@ -839,8 +873,23 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeSettings(
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      unusedCompileDependenciesTest := {},
+      nativeConfig ~= { c =>
+        Option(System.getenv("DEVSHELL_DIR")).fold(c) { devshellDir =>
+          c.withCompileOptions(c.compileOptions :+ s"-I$devshellDir/include")
+            .withLinkingOptions(c.linkingOptions :+ s"-L$devshellDir/lib")
+        }
+      },
+      Test / envVars ++= {
+        val ldLibPath = Option(System.getenv("DEVSHELL_DIR"))
+          .map(devshellDir => "LD_LIBRARY_PATH" -> s"$devshellDir/lib")
+        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath.toMap
+      },
+    )
     .enablePlugins(Http4sPlugin)
-    .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))
     .configure(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)
