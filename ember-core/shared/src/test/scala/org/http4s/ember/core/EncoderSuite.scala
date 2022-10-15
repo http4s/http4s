@@ -46,7 +46,7 @@ class EncoderSuite extends Http4sSuite {
         .map(stripLines)
   }
 
-  test("reqToBytes should encode a no body request correctly") {
+  test("reqToBytes should encode a no body GET request correctly") {
     val req = Request[IO](Method.GET, uri"http://www.google.com")
     val expected =
       """GET / HTTP/1.1
@@ -113,6 +113,18 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
+  test("reqToBytes should encode a no body POST request correctly") {
+    val req = Request[IO](Method.POST)
+
+    val expected =
+      """POST / HTTP/1.1
+      |Content-Length: 0
+      |
+      |""".stripMargin
+
+    Helpers.encodeRequestRig(req).assertEquals(expected)
+  }
+
   test("respToBytes should encode a no body response correctly") {
     val resp = Response[IO](Status.Ok)
 
@@ -135,6 +147,20 @@ class EncoderSuite extends Http4sSuite {
       |""".stripMargin
 
     Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
+  test("reqToBytes should encode a no body request correctly with stream") {
+    val req = Request[IO](Method.POST, body = Stream.chunk(Chunk.empty))
+
+    val expected =
+      """POST / HTTP/1.1
+      |Transfer-Encoding: chunked
+      |
+      |0
+      |
+      |""".stripMargin
+
+    Helpers.encodeRequestRig(req).assertEquals(expected)
   }
 
   test("respToBytes should encode a no body response correctly with stream") {
