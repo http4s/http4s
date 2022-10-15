@@ -139,7 +139,7 @@ private[ember] object ChunkedEncoding {
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 
-  private[this] val lastChunk = {
+  private[this] val lastChunk: Stream[Nothing, Byte] = {
     val bytes = new Array[Byte](5)
     bytes(0) = '0'.toByte
     `\r\n\r\n`.copyToArray(bytes, 1)
