@@ -28,10 +28,10 @@ import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
 
-  private val SPACE = " "
-  private val CRLF = "\r\n"
-  val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
-  val zeroContentLengthRaw = "Content-Length: 0"
+  private[this] final val SPACE = " "
+  private[this] final val CRLF = "\r\n"
+  private[this] final val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  private[this] final val zeroContentLengthRaw = "Content-Length: 0"
 
   def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
@@ -79,7 +79,7 @@ private[ember] object Encoder {
         .flatMap(Stream.chunk)
   }
 
-  private val NoPayloadMethods: Set[Method] =
+  private[this] val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
   def reqToBytes[F[_]: ApplicativeThrow](
@@ -145,5 +145,5 @@ private[ember] object Encoder {
     }
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
+  private[this] val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }
