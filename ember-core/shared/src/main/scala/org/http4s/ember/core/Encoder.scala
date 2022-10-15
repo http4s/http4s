@@ -50,7 +50,7 @@ private[ember] object Encoder {
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         if (h.isNameValid) {
-          appliedContentLength |= h.name == `Content-Length`.name
+          appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
 
           stringBuilder
             .append(h.name)
@@ -117,7 +117,7 @@ private[ember] object Encoder {
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
           if (h.isNameValid) {
-            appliedContentLength |= h.name == `Content-Length`.name
+            appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
 
             stringBuilder
               .append(h.name)
