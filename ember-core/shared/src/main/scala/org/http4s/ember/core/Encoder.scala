@@ -47,15 +47,11 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
-      resp.headers
-        .get[`Content-Length`]
-        .foreach { _ =>
-          appliedContentLength = true
-        }
-
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         if (h.isNameValid) {
+          appliedContentLength |= h.name == `Content-Length`.name
+
           stringBuilder
             .append(h.name)
             .append(": ")
@@ -118,15 +114,11 @@ private[ember] object Encoder {
               .append(CRLF)
           }
 
-        req.headers
-          .get[`Content-Length`]
-          .foreach { _ =>
-            appliedContentLength = true
-          }
-
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
           if (h.isNameValid) {
+            appliedContentLength |= h.name == `Content-Length`.name
+
             stringBuilder
               .append(h.name)
               .append(": ")
