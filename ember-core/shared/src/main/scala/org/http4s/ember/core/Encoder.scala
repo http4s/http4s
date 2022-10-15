@@ -76,7 +76,7 @@ private[ember] object Encoder {
     else
       (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
         .chunkMin(writeBufferSize)
-        .flatMap(Stream.chunk)
+        .unchunks
   }
 
   private[this] val NoPayloadMethods: Set[Method] =
@@ -141,7 +141,7 @@ private[ember] object Encoder {
       else
         (Stream.chunk(Chunk.array(initSection)) ++ req.body)
           .chunkMin(writeBufferSize)
-          .flatMap(Stream.chunk)
+          .unchunks
     }
   }
 
