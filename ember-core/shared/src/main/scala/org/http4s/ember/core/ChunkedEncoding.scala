@@ -30,10 +30,12 @@ package ember.core
 import cats._
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
+import org.http4s.internal.appendSanitized
 import cats.syntax.all._
 import fs2._
 import scodec.bits.ByteVector
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 import Shared._
@@ -140,20 +142,37 @@ private[ember] object ChunkedEncoding {
     }
 
   private val lastChunk: Chunk[Byte] =
-    Chunk.byteVector((ByteVector('0') ++ crlf ++ crlf).compact)
+    Chunk.byteVector((ByteVector('0') ++ crlf).compact)
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
-  def encode[F[_]]: Pipe[F, Byte, Byte] = {
+  def encode[F[_]: Functor](trailers: F[Headers]): Pipe[F, Byte, Byte] = {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =
       if (bv.isEmpty) Chunk.empty
       else
         Chunk.byteVector(
           ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
         )
-    _.mapChunks { ch =>
-      encodeChunk(ch.toByteVector)
-    } ++ Stream.chunk(lastChunk)
+    _.mapChunks(ch => encodeChunk(ch.toByteVector)) ++
+      Stream.chunk(lastChunk) ++
+      Stream.evalUnChunk(trailers.map(encodeTrailers(_))) ++
+      Stream.chunk(Chunk.byteVector(crlf))
+  }
+
+  private def encodeTrailers(trailers: Headers): Chunk[Byte] = {
+    val stringBuilder = new StringBuilder()
+
+    trailers.foreach { h =>
+      if (h.isNameValid) {
+        stringBuilder
+          .append(h.name)
+          .append(": ")
+        appendSanitized(stringBuilder, h.value)
+        stringBuilder.append("\r\n")
+      }
+    }
+
+    Chunk.array(stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1))
   }
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
