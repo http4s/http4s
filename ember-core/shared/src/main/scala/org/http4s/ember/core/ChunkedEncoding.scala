@@ -30,9 +30,9 @@ package ember.core
 import cats._
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
-import org.http4s.internal.appendSanitized
 import cats.syntax.all._
 import fs2._
+import org.http4s.internal.appendSanitized
 import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
