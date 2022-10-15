@@ -297,6 +297,7 @@ private[ember] class H2Client[F[_]](
 
 private[ember] object H2Client {
   private type TinyClient[F[_]] = Request[F] => Resource[F, Response[F]]
+
   def impl[F[_]: Async](
       onPushPromise: (
           org.http4s.Request[fs2.Pure],
@@ -306,32 +307,28 @@ private[ember] object H2Client {
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
-  ): Resource[F, TinyClient[F] => TinyClient[F]] =
-    for {
-
-      mapH2 <- Resource.make {
-        Concurrent[F].ref(
-          Map[H2Client.RequestKey, (H2Connection[F], F[Unit])]()
-        )
-      } { ref =>
-        ref.get.flatMap(_.toList.traverse_ { case (_, (_, s)) => s }.attempt.void)
-      }
-      socketMap <- Resource.eval(
-        Concurrent[F].ref(Map[H2Client.RequestKey, SocketType]())
-      )
-
-      _ <- Stream
-        .awakeDelay(1.seconds)
-        .evalMap(_ => mapH2.get)
-        .flatMap(m => Stream.emits(m.toList))
-        .evalMap { case (t, (connection, shutdown)) =>
+  ): Resource[F, TinyClient[F] => TinyClient[F]] = {
+    def cleanClosed(pool: Ref[F, ConnectionPool[F]]): F[Unit] =
+      pool.get.flatMap { m =>
+        m.toList.traverse_ { case (t, (connection, shutdown)) =>
           connection.state.get.flatMap { s =>
-            if (s.closed) mapH2.update(m => m - t) >> shutdown else Applicative[F].unit
+            if (s.closed) pool.update(m => m - t) >> shutdown else Applicative[F].unit
           }.attempt
         }
-        .compile
-        .drain
-        .background
+      }
+
+    def periodicClean(pool: Ref[F, ConnectionPool[F]]): F[Unit] =
+      Stream.awakeDelay(1.seconds).foreach(_ => cleanClosed(pool)).compile.drain
+
+    def stopAll(pool: Ref[F, ConnectionPool[F]]): F[Unit] =
+      pool.get.flatMap(_.toList.traverse_ { case (_, (_, s)) => s.attempt })
+
+    val initMap: F[Ref[F, ConnectionPool[F]]] = Concurrent[F].ref(Map.empty)
+
+    for {
+      mapH2 <- Resource.make(initMap)(stopAll)
+      socketMap <- Resource.eval(Concurrent[F].ref(Map[H2Client.RequestKey, SocketType]()))
+      _ <- periodicClean(mapH2).background
       h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
@@ -352,6 +349,7 @@ private[ember] object H2Client {
           }
       }
     }
+  }
 
   sealed trait SocketType extends Product with Serializable
   case object Http2 extends SocketType
