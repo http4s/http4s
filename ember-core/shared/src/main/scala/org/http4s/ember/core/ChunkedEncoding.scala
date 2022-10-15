@@ -139,8 +139,12 @@ private[ember] object ChunkedEncoding {
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 
-  private val lastChunk: Chunk[Byte] =
-    Chunk.byteVector((ByteVector('0') ++ crlf ++ crlf).compact)
+  private[this] val lastChunk = {
+    val bytes = new Array[Byte](5)
+    bytes(0) = '0'.toByte
+    `\r\n\r\n`.copyToArray(bytes, 1)
+    Stream.chunk(Chunk.array(bytes))
+  }
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
@@ -153,7 +157,7 @@ private[ember] object ChunkedEncoding {
         )
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)
-    } ++ Stream.chunk(lastChunk)
+    } ++ lastChunk
   }
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
