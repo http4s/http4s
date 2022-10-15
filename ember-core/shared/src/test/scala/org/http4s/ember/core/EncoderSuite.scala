@@ -21,7 +21,6 @@ import cats.effect.Concurrent
 import cats.effect.IO
 import cats.syntax.all._
 import fs2._
-import org.http4s.headers.`Content-Length`
 import org.http4s.syntax.literals._
 
 class EncoderSuite extends Http4sSuite {
@@ -115,7 +114,7 @@ class EncoderSuite extends Http4sSuite {
   }
 
   test("respToBytes should encode a no body response correctly") {
-    val resp = Response[IO](Status.Ok).putHeaders(`Content-Length`.zero)
+    val resp = Response[IO](Status.Ok)
 
     val expected =
       """HTTP/1.1 200 OK
