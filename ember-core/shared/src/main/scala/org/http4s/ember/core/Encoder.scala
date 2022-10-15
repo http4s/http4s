@@ -61,17 +61,14 @@ private[ember] object Encoder {
             .append(": ")
           appendSanitized(stringBuilder, h.value)
           stringBuilder.append(CRLF)
-          ()
         }
       }
       if (!appliedContentLength && resp.body == EmptyBody && resp.status.isEntityAllowed) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-        ()
       } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
-        ()
       }
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
@@ -135,14 +132,12 @@ private[ember] object Encoder {
               .append(": ")
             appendSanitized(stringBuilder, h.value)
             stringBuilder.append(CRLF)
-            ()
           }
         }
 
         if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
           stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
-          ()
         }
 
         // Final CRLF terminates headers and signals body to follow.
