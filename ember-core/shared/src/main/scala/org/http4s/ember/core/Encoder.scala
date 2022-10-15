@@ -140,9 +140,13 @@ private[ember] object Encoder {
         }
 
         if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
-          stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
-          chunked = true
-          ()
+          if (req.body == EmptyBody) {
+            stringBuilder.append(zeroContentLengthRaw).append(CRLF)
+            chunked = false
+          } else {
+            stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
+            chunked = true
+          }
         }
 
         // Final CRLF terminates headers and signals body to follow.
