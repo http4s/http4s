@@ -150,11 +150,9 @@ private[ember] object ChunkedEncoding {
     */
   def encode[F[_]]: Pipe[F, Byte, Byte] = {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =
-      if (bv.isEmpty) Chunk.empty
-      else
-        Chunk.byteVector(
-          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
-        )
+      Chunk.byteVector(
+        ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
+      )
     _.mapChunks { ch =>
       encodeChunk(ch.toByteVector)
     } ++ lastChunk
