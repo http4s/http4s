@@ -267,7 +267,7 @@ private[ember] object H2Server {
 
         def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks
-            .evalMap(c => stream.sendData(c.toByteVector, false))
+            .foreach(c => stream.sendData(c.toByteVector, false))
             .compile
             .drain >> // PP Resp Body
             stream.sendData(ByteVector.empty, true)
