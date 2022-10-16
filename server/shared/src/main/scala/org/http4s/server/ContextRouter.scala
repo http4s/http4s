@@ -54,14 +54,15 @@ object ContextRouter {
   final class Segment[F[_], A, B](val run: (A, Uri.Path.Segment) => OptionT[F, B]) {
     def apply(routes: ContextRoutes[B, F])(implicit F: Monad[F]): ContextRoutes[A, F] =
       Kleisli { case ContextRequest(a, req) =>
-        for {
-          head <- OptionT.fromOption[F](req.pathInfo.segments.headOption)
-          b <- run(a, head)
-          caret = req.attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
-          response <- routes(
-            ContextRequest(b, req.withAttribute(Request.Keys.PathInfoCaret, caret + 1))
-          )
-        } yield response
+        req.pathInfo.segments.headOption match {
+          case Some(head) =>
+            run(a, head).flatMap { b =>
+              val caret = req.attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+              val creq = req.withAttribute(Request.Keys.PathInfoCaret, caret + 1)
+              routes(ContextRequest(b, creq))
+            }
+          case None => OptionT.none
+        }
       }
 
     def ->(routes: ContextRoutes[B, F]): Routable[F, A] =

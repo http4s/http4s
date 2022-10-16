@@ -31,7 +31,7 @@ object ErrorHandling {
     Kleisli { req =>
       val pf: PartialFunction[Throwable, F[Response[G]]] =
         inDefaultServiceErrorHandler[F, G](F)(req)
-      k.run(req).handleErrorWith { e =>
+      k(req).handleErrorWith { e =>
         pf.lift(e) match {
           case Some(resp) => resp
           case None => F.raiseError(e)
@@ -49,9 +49,7 @@ object ErrorHandling {
     def recoverWith[F[_]: MonadThrow, G[_], A](
         http: Kleisli[F, A, Response[G]]
     )(pf: PartialFunction[Throwable, F[Response[G]]]): Kleisli[F, A, Response[G]] =
-      Kleisli { (a: A) =>
-        http.run(a).recoverWith(pf)
-      }
+      Kleisli((a: A) => http.run(a).recoverWith(pf))
   }
 
   object Recover {
@@ -80,16 +78,15 @@ object ErrorHandling {
         httpVersion: HttpVersion
     ): Throwable => Response[G] = {
       case m: MessageFailure => m.toHttpResponse[G](httpVersion)
-      case _ =>
-        Response(
-          Status.InternalServerError,
-          httpVersion,
-          Headers(
-            Connection(ci"close"),
-            `Content-Length`.zero,
-          ),
-        )
+      case _ => fallbackServerError(httpVersion).covary[G]
     }
 
   }
+
+  private[server] def fallbackServerError(httpVersion: HttpVersion): Response[fs2.Pure] =
+    Response(
+      Status.InternalServerError,
+      httpVersion,
+      Headers(Connection.close, `Content-Length`.zero),
+    )
 }

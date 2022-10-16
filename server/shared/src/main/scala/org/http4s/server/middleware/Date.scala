@@ -27,16 +27,12 @@ import org.http4s.headers.{Date => HDate}
   */
 object Date {
   def apply[G[_]: Temporal, F[_], A](k: Kleisli[G, A, Response[F]]): Kleisli[G, A, Response[F]] =
-    Kleisli { a =>
-      for {
-        resp <- k(a)
-        header <-
-          resp.headers
-            .get[HDate]
-            .fold(
-              HttpDate.current[G].map(HDate(_))
-            )(_.pure[G])
-      } yield resp.putHeaders(header)
+    Kleisli(a => k(a).flatMap(addDate[G, F]))
+
+  private[this] def addDate[G[_]: Temporal, F[_]](resp: Response[F]): G[Response[F]] =
+    resp.headers.get[HDate] match {
+      case None => HttpDate.current[G].map(d => resp.putHeaders(HDate(d)))
+      case Some(_) => resp.pure[G]
     }
 
   def httpRoutes[F[_]: Temporal](routes: HttpRoutes[F]): HttpRoutes[F] =

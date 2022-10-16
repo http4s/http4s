@@ -71,29 +71,35 @@ object VirtualHost {
       port: Option[Int] = None,
   ): HostService[F, G] = {
     val r = hostRegex.r
-    HostService(
-      http,
-      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port),
-    )
+
+    def pred(h: Host): Boolean =
+      r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port)
+
+    HostService(http, pred)
   }
 
   def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(implicit
       F: Applicative[F],
       W: EntityEncoder[G, String],
-  ): Http[F, G] =
-    Kleisli { req =>
-      req.headers
-        .get[Host]
-        .fold(F.pure(Response[G](BadRequest).withEntity("Host header required."))) { h =>
-          // Fill in the host port if possible
-          val host: Host = h.port match {
-            case Some(_) => h
-            case None =>
-              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
-          }
-          (first +: rest).toVector
-            .collectFirst { case HostService(s, p) if p(host) => s(req) }
-            .getOrElse(F.pure(Response[G](NotFound).withEntity(s"Host '$host' not found.")))
-        }
+  ): Http[F, G] = {
+    def onHost(req: Request[G], h: Host): F[Response[G]] = {
+      def defaultPort: Option[Int] = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80))
+      // Fill in the host port if possible
+      val host: Host = if (h.port.isDefined) h else h.copy(port = defaultPort)
+      (first +: rest).toVector
+        .collectFirst { case HostService(s, p) if p(host) => s(req) }
+        .getOrElse(F.pure(Response[G](NotFound).withEntity(s"Host '$host' not found.")))
     }
+
+    Kleisli { (req: Request[G]) =>
+      req.headers.get[Host] match {
+        case None => F.pure(hostRequired.covary[G])
+        case Some(host) => onHost(req, host)
+      }
+    }
+  }
+
+  private[this] val hostRequired: Response[fs2.Pure] =
+    Response(BadRequest).withEntity("Host header required.")
+
 }

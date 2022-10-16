@@ -23,8 +23,6 @@ import cats.data.OptionT
 import cats.effect.SyncIO
 import cats.syntax.all._
 import com.comcast.ip4s
-import org.http4s.headers.Connection
-import org.http4s.headers.`Content-Length`
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -199,15 +197,6 @@ package object server {
                 .getOrElse("<unknown>")}"""
           )
           .unsafeRunSync()
-        F.pure(
-          Response(
-            Status.InternalServerError,
-            req.httpVersion,
-            Headers(
-              Connection.close,
-              `Content-Length`.zero,
-            ),
-          )
-        )
+        F.pure(middleware.ErrorHandling.fallbackServerError(req.httpVersion).covary[G])
     }
 }

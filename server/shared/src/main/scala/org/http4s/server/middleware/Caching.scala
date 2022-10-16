@@ -38,12 +38,7 @@ object Caching {
   def `no-store`[G[_]: Temporal, F[_], A](
       http: Kleisli[G, A, Response[F]]
   ): Kleisli[G, A, Response[F]] =
-    Kleisli { (a: A) =>
-      for {
-        resp <- http(a)
-        out <- `no-store-response`[G](resp)
-      } yield out
-    }
+    Kleisli((a: A) => http(a).flatMap(`no-store-response`[G](_)))
 
   /** Transform a Response so that it will not be cached.
     */
