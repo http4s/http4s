@@ -121,7 +121,7 @@ private[http4s] class RoutesToHandlerAdapter[F[_]](
         )
         .liftToF
       _ <- response.body.chunks
-        .evalMap(chunk =>
+        .foreach(chunk =>
           F.delay(HandlerHelpers.sendChunk(ctx, Unpooled.copiedBuffer(chunk.toArray))).liftToF
         )
         .compile
