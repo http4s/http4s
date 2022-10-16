@@ -173,109 +173,83 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
-    val streams: Stream[F, Stream[F, Nothing]] = server
-      .interruptWhen(shutdown.signal.attempt)
-      .map { connect =>
-        val handler: Stream[F, Nothing] = shutdown.trackConnection >>
-          Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
-            .flatMap {
-              case (socket, Some("h2")) =>
-                // ALPN H2 Strategy
-                Stream.exec(H2Server.requireConnectionPreface(socket)) ++
-                  Stream
-                    .resource(
-                      H2Server
-                        .fromSocket[F](
-                          socket,
-                          httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
-                          logger,
-                        )
-                    )
-                    .drain
-              case (socket, Some(_)) =>
-                // SSL Connection, not h2, will be http/1.1 but thats not how types align
-                // Prior Knowledge is only allowed over clear where application
-                // protocol has not been agreed via handshake
-                runConnection(
-                  socket,
-                  logger,
-                  idleTimeout,
-                  receiveBufferSize,
-                  maxHeaderSize,
-                  requestHeaderReceiveTimeout,
-                  httpApp,
-                  errorHandler,
-                  onWriteFailure,
-                  createRequestVault,
-                  webSocketKey,
-                  ByteVector.empty,
-                  enableHttp2,
-                ).drain
-              case (socket, None) => // Cleartext Protocol
-                enableHttp2 match {
-                  case true =>
-                    // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
-                    // Otherwise this is now http1
-                    Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
-                      case Left(bv) =>
-                        runConnection(
-                          socket,
-                          logger,
-                          idleTimeout,
-                          receiveBufferSize,
-                          maxHeaderSize,
-                          requestHeaderReceiveTimeout,
-                          httpApp,
-                          errorHandler,
-                          onWriteFailure,
-                          createRequestVault,
-                          webSocketKey,
-                          bv, // Pass read bytes we thought might be the prelude
-                          enableHttp2,
-                        ).drain
-                      case Right(_) =>
-                        Stream
-                          .resource(
-                            H2Server.fromSocket[F](
-                              socket,
-                              httpApp,
-                              H2Frame.Settings.ConnectionSettings.default,
-                              logger,
-                            )
-                          )
-                          .drain
-                    }
-                  // Since its not enabled, run connection normally.
-                  case false =>
-                    runConnection(
-                      socket,
-                      logger,
-                      idleTimeout,
-                      receiveBufferSize,
-                      maxHeaderSize,
-                      requestHeaderReceiveTimeout,
-                      httpApp,
-                      errorHandler,
-                      onWriteFailure,
-                      createRequestVault,
-                      webSocketKey,
-                      ByteVector.empty,
-                      enableHttp2,
-                    ).drain
-                }
-            }
+    val connSetts = H2Frame.Settings.ConnectionSettings.default
 
-        handler.handleErrorWith { t =>
-          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
-        }
+    def runSocket(socket: Socket[F], bv: ByteVector): Stream[F, Nothing] =
+      runConnection(
+        socket,
+        logger,
+        idleTimeout,
+        receiveBufferSize,
+        maxHeaderSize,
+        requestHeaderReceiveTimeout,
+        httpApp,
+        errorHandler,
+        onWriteFailure,
+        createRequestVault,
+        webSocketKey,
+        bv,
+        enableHttp2,
+      )
+
+    def serveFromSocket(socket: Socket[F]): Resource[F, Unit] =
+      H2Server.fromSocket[F](socket, httpApp, connSetts, logger)
+
+    def upgradeSocket(socketInit: Socket[F]): Resource[F, (Socket[F], Option[String])] =
+      tlsInfoOpt match {
+        case None => Resource.pure(socketInit -> Option.empty[String])
+        case Some((context, params)) =>
+          val newParams = if (enableHttp2) H2TLS.transform(params) else params
+          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
+          // As this is the only JVM specific code
+
+          context
+            .serverBuilder(socketInit)
+            .withParameters(newParams)
+            .withLogging(s => logger.trace(s))
+            .build
+            .evalMap(tlsSocket =>
+              tlsSocket.write(fs2.Chunk.empty) >>
+                tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
+            )
       }
 
-    streams.parJoin(
-      maxConnections
-    ) // TODO: replace with forking after we fix serverResource upstream
+    def forProtocol(socket: Socket[F], protocol: Option[String]): Stream[F, Nothing] =
+      protocol match {
+        case Some("h2") =>
+          // ALPN H2 Strategy
+          Stream.exec(H2Server.requireConnectionPreface(socket)) ++
+            Stream.resource(serveFromSocket(socket)).drain
+        case Some(_) =>
+          // SSL Connection, not h2, will be http/1.1 but thats not how types align
+          // Prior Knowledge is only allowed over clear where application
+          // protocol has not been agreed via handshake
+          runSocket(socket, ByteVector.empty)
+        case None if enableHttp2 =>
+          // Cleartext Protocol
+          // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+          // Otherwise this is now http1
+          Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+            // Pass read bytes we thought might be the prelude
+            case Left(bv) => runSocket(socket, bv)
+            case Right(_) => Stream.resource(serveFromSocket(socket)).drain
+          }
+        case None =>
+          // Since its not enabled, run connection normally.
+          runSocket(socket, ByteVector.empty)
+      }
+
+    def onSocket(connect: Socket[F]): Stream[F, Nothing] =
+      shutdown.trackConnection >> Stream
+        .resource(upgradeSocket(connect))
+        .flatMap { case (sock, prot) => forProtocol(sock, prot) }
+        .handleErrorWith { t =>
+          Stream.exec(logger.error(t)("Request handler failed with exception"))
+        }
+
+    // TODO: replace with forking after we fix serverResource upstream
     // StreamForking.forking(streams, maxConnections)
+    server.interruptWhen(shutdown.signal.attempt).map(onSocket).parJoin(maxConnections)
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](
@@ -287,31 +261,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   //       Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None") with NoStackTrace)
   //     case Some(value) => Stream.chunk(value)
   //   }
-
-  private[internal] def upgradeSocket[F[_]: Monad](
-      socketInit: Socket[F],
-      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      logger: Logger[F],
-      enableHttp2: Boolean,
-  ): Resource[F, (Socket[F], Option[String])] =
-    tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
-      case (context, params) =>
-        val newParams = if (enableHttp2) {
-          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
-          // As this is the only JVM specific code
-          H2TLS.transform(params)
-        } else params
-
-        context
-          .serverBuilder(socketInit)
-          .withParameters(newParams)
-          .withLogging(s => logger.trace(s))
-          .build
-          .evalMap(tlsSocket =>
-            tlsSocket.write(fs2.Chunk.empty) >>
-              tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
-          )
-    }
 
   private[internal] def runApp[F[_]](
       head: Array[Byte],
