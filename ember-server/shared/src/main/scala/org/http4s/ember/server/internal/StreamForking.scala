@@ -69,7 +69,7 @@ private[internal] object StreamForking {
 
       val runOuter: F[Unit] =
         streams
-          .evalMap(runInner(_))
+          .foreach(runInner(_))
           .interruptWhen(stopSignal)
           .compile
           .drain

@@ -29,7 +29,6 @@ import com.comcast.ip4s.SocketAddress
 import org.http4s.nodejs.IncomingMessage
 import org.http4s.nodejs.ServerResponse
 
-import scala.annotation.nowarn
 import scala.scalajs.js
 
 private[http4s] final case class ServerScaffold[F[_]](addresses: List[SocketAddress[IpAddress]])
@@ -38,13 +37,11 @@ private[http4s] object ServerScaffold {
 
   @js.native
   @js.annotation.JSImport("http", "createServer")
-  @nowarn
   private def createServer(
       requestListener: js.Function2[IncomingMessage, ServerResponse, Unit]
   ): Server = js.native
 
   @js.native
-  @nowarn
   private trait Server extends js.Object {
     def listen(port: Int, host: String, cb: js.Function0[Unit]): Any = js.native
     def address(): Address = js.native

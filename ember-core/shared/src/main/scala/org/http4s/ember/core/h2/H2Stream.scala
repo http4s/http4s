@@ -71,6 +71,34 @@ private[h2] class H2Stream[F[_]: Concurrent](
         new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
     }
 
+  def sendMessageBody(mess: Message[F]): F[Unit] = {
+    val trailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F])
+    mess.body.chunks.noneTerminate.zipWithNext
+      .foreach {
+        case (Some(c), Some(Some(_))) =>
+          sendData(c.toByteVector, false)
+        case (Some(c), Some(None) | None) =>
+          sendData(c.toByteVector, trailers.isEmpty)
+        case (None, _) =>
+          if (trailers.isDefined) Applicative[F].unit
+          else sendData(ByteVector.empty, true)
+      }
+      .compile
+      .drain
+  }
+
+  def sendTrailerHeaders(mess: Message[F]): F[Unit] =
+    mess.attributes.lookup(Message.Keys.TrailerHeaders[F]) match {
+      case None => Applicative[F].unit
+      case Some(fhs) =>
+        fhs.flatMap { hs =>
+          hs.headers
+            .map(a => (a.name.toString.toLowerCase(), a.value, false))
+            .toNel
+            .traverse_(sendHeaders(_, true))
+        }
+    }
+
   // TODO Check Settings to Split Headers into Headers and Continuation
   def sendHeaders(headers: NonEmptyList[(String, String, Boolean)], endStream: Boolean): F[Unit] =
     state.get.flatMap { s =>
