@@ -31,14 +31,15 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 Let's start by making a simple service.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
-  case _ =>
-    Ok()
+  case _ => Ok()
 }
 
 val request = Request[IO](Method.GET, uri"/")
+```
 
+```scala mdoc
 service.orNotFound(request).unsafeRunSync()
 ```
 
@@ -55,7 +56,7 @@ val csrfBuilder = CSRF[IO,IO](key, defaultOriginCheck)
 More info on what is possible in the [CSRFBuilder] Docs,
 but we will create a fairly simple CSRF Middleware in our example.
 
-```scala mdoc
+```scala mdoc:silent
 val csrf = csrfBuilder
   .withCookieName(cookieName)
   .withCookieDomain(Some("localhost"))
@@ -64,9 +65,12 @@ val csrf = csrfBuilder
 ```
 
 Now we need to wrap this around our service! We're gonna start with a safe call
-```scala mdoc
+```scala mdoc:silent
 val dummyRequest: Request[IO] =
     Request[IO](method = Method.GET).putHeaders("Origin" -> "http://localhost")
+```
+
+```scala mdoc
 val resp = csrf.validate()(service.orNotFound)(dummyRequest).unsafeRunSync()
 ```
 Notice how the response has the CSRF cookies added. How easy was

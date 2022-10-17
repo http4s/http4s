@@ -6,32 +6,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1660811669,
-        "narHash": "sha256-V6lmsaLNFz41myppL0yxglta92ijkSvpZ+XVygAh+bU=",
+        "lastModified": 1663445644,
+        "narHash": "sha256-+xVlcK60x7VY1vRJbNUEAHi17ZuoQxAIH4S4iUFUGBA=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "c2feacb46ee69949124c835419861143c4016fb5",
+        "rev": "e3dc3e21594fe07bdb24bdf1c8657acaa4cb8f66",
         "type": "github"
       },
       "original": {
         "owner": "numtide",
         "repo": "devshell",
-        "type": "github"
-      }
-    },
-    "flake-compat": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1650374568,
-        "narHash": "sha256-Z+s0J8/r907g149rllvwhb4pKi8Wam5ij0st8PwAh+E=",
-        "owner": "edolstra",
-        "repo": "flake-compat",
-        "rev": "b4a34015c698c7793d592d66adbab377907a2be8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "edolstra",
-        "repo": "flake-compat",
         "type": "github"
       }
     },
@@ -83,11 +67,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1662934689,
-        "narHash": "sha256-mXi8hmhiunOVTeHiuouWXb0vTqjzp9v9kshMmI561Us=",
+        "lastModified": 1665296151,
+        "narHash": "sha256-uOB0oxqxN9K7XGF1hcnY+PQnlQJ+3bP2vCn/+Ru/bbc=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "a0b7e70db7a55088d3de0cc370a59f9fbcc906c3",
+        "rev": "14ccaaedd95a488dd7ae142757884d8e125b3363",
         "type": "github"
       },
       "original": {
@@ -113,20 +97,19 @@
     "typelevel-nix": {
       "inputs": {
         "devshell": "devshell",
-        "flake-compat": "flake-compat",
         "flake-utils": "flake-utils_2",
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1662988593,
-        "narHash": "sha256-0wA+0Kz7wyseE+tm4sGIF6fJYiHYZCJnG58P3mWi5S8=",
-        "owner": "rossabaker",
+        "lastModified": 1665404222,
+        "narHash": "sha256-HH0aa1RAtJojBH4e1oq5p8IGVR3bjBztKEuWAlawfRw=",
+        "owner": "typelevel",
         "repo": "typelevel-nix",
-        "rev": "a29092a6b99664f9fb8414e8b78dd4c907573917",
+        "rev": "ea0308a79e6dba34d0698b130af9d2166e7a99c9",
         "type": "github"
       },
       "original": {
-        "owner": "rossabaker",
+        "owner": "typelevel",
         "repo": "typelevel-nix",
         "type": "github"
       }

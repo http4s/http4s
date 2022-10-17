@@ -30,8 +30,6 @@ import org.http4s.jawn.JawnInstances
 import org.typelevel.jawn.ParseException
 import org.typelevel.jawn.fs2.unwrapJsonArray
 
-import java.nio.ByteBuffer
-
 trait CirceInstances extends JawnInstances {
   protected val circeSupportParser =
     new CirceSupportParser(maxValueSize = None, allowDuplicateKeys = false)
@@ -54,7 +52,7 @@ trait CirceInstances extends JawnInstances {
 
   private def jsonDecoderByteBufferImpl[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(m).subflatMap { chunk =>
-      val bb = ByteBuffer.wrap(chunk.toArray)
+      val bb = chunk.toByteBuffer
       if (bb.hasRemaining)
         circeSupportParser
           .parseFromByteBuffer(bb)

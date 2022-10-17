@@ -145,7 +145,7 @@ private[h2] class H2Connection[F[_]](
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
       .chunks
-      .evalMap { chunk =>
+      .foreach { chunk =>
         def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
           val fullDataSize = chunk.foldLeft(0) {
             case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
@@ -188,7 +188,6 @@ private[h2] class H2Connection[F[_]](
         }
         firstGoAway.getOrElse(F.unit) >> go(chunk)
       }
-      .drain
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 

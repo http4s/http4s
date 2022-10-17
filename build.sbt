@@ -16,16 +16,22 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowBuildPreamble +=
-  WorkflowStep.Run(
-    List("brew install s2n"),
-    name = Some("Install s2n"),
-    cond = Some("startsWith(matrix.project, 'rootNative')"),
-  )
-val isLinux = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("linux"))
+ThisBuild / githubWorkflowJobSetup ~= {
+  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
 }
+ThisBuild / githubWorkflowJobSetup ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "install-nix-action", "v17"),
+    name = Some("Install Nix"),
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "cachix-action", "v10"),
+    name = Some("Install Cachix"),
+    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+  ),
+)
+
+ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
@@ -33,9 +39,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.CheckoutFull) ++
-      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
-      githubWorkflowGeneratedCacheSteps.value ++
+    steps = githubWorkflowJobSetup.value.toList ++
       List(
         WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
         WorkflowStep.Use(
@@ -542,16 +546,15 @@ def http4sCrossProject(name: String, crossType: CrossType) =
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
       nativeConfig ~= { c =>
-        if (isLinux) { // brew-installed s2n
-          c.withLinkingOptions(c.linkingOptions :+ "-L/home/linuxbrew/.linuxbrew/lib")
-        } else c
+        Option(System.getenv("DEVSHELL_DIR")).fold(c) { devshellDir =>
+          c.withCompileOptions(c.compileOptions :+ s"-I$devshellDir/include")
+            .withLinkingOptions(c.linkingOptions :+ s"-L$devshellDir/lib")
+        }
       },
       Test / envVars ++= {
-        val ldLibPath =
-          if (isLinux)
-            Map("LD_LIBRARY_PATH" -> "/home/linuxbrew/.linuxbrew/lib")
-          else Map.empty
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath
+        val ldLibPath = Option(System.getenv("DEVSHELL_DIR"))
+          .map(devshellDir => "LD_LIBRARY_PATH" -> s"$devshellDir/lib")
+        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath.toMap
       },
     )
     .enablePlugins(Http4sPlugin)
