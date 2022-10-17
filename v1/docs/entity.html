@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -284,51 +290,26 @@
         <p>If you&#39;re in a REPL, we also need a runtime:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">withContentType</span><span>(</span><span class="identifier">`Content-Type`</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">audio</span><span>.</span><span class="identifier">ogg</span><span>)))
-</span><span class="comment">// response: IO[Response[IO]] = Map(
-//   ioe = Pure(
-//     value = (
-//        = Status(code = 200),
-//        = HttpVersion(major = 1, minor = 1),
-//        = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 0),
-//        = Strict(
-//         bytes = Chunk(
-//           bytes = View(
-//             at = scodec.bits.ByteVector$AtArray@2a46b880,
-//             offset = 0L,
-//             size = 0L
-//           )
-//         )
-//       ),
-//        = org.typelevel.vault.Vault@272dbb13
-//     )
-//   ),
-//   f = &lt;function1&gt;,
-//   event = cats.effect.tracing.TracingEvent$StackTrace
-// )
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">withContentType</span><span>(</span><span class="identifier">`Content-Type`</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">audio</span><span>.</span><span class="identifier">ogg</span><span>)))
 </span><span class="keyword">val</span><span> </span><span class="identifier">audioDec</span><span> = </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">decodeBy</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">audio</span><span>.</span><span class="identifier">ogg</span><span>) { (</span><span class="identifier">m</span><span>: </span><span class="type-name">Media</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
   </span><span class="type-name">EitherT</span><span> {
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Audio</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// audioDec: EntityDecoder[IO[A], Audio] = org.http4s.EntityDecoder$$anon$7@13507e60
 </span><span class="keyword">val</span><span> </span><span class="identifier">videoDec</span><span> = </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">decodeBy</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">video</span><span>.</span><span class="identifier">ogg</span><span>) { (</span><span class="identifier">m</span><span>: </span><span class="type-name">Media</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
   </span><span class="type-name">EitherT</span><span> {
     </span><span class="identifier">m</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">map</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Video</span><span>(</span><span class="identifier">s</span><span>).</span><span class="identifier">asRight</span><span>[</span><span class="type-name">DecodeFailure</span><span>])
   }
 }
-</span><span class="comment">// videoDec: EntityDecoder[IO[A], Video] = org.http4s.EntityDecoder$$anon$7@37fcbdf6
-</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">bothDec</span><span> = </span><span class="identifier">audioDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>] </span><span class="identifier">orElse</span><span> </span><span class="identifier">videoDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>]
-</span><span class="comment">// bothDec: EntityDecoder[IO[A], Resp] = org.http4s.EntityDecoder$$anon$5$$anon$6@28e19131
-</span><span class="identifier">println</span><span>(</span><span class="identifier">response</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Resp</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>())
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">bothDec</span><span> = </span><span class="identifier">audioDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>] </span><span class="identifier">orElse</span><span> </span><span class="identifier">videoDec</span><span>.</span><span class="identifier">widen</span><span>[</span><span class="type-name">Resp</span><span>]</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">println</span><span>(</span><span class="identifier">response</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Resp</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>())
 </span><span class="comment">// Audio()</span></code></pre>
         
         <h2 id="presupplied-encoders-decoders" class="section">Presupplied Encoders/Decoders<a class="anchor-link right" href="#presupplied-encoders-decoders"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>The <code>EntityEncoder</code>/<code>EntityDecoder</code>s shipped with http4s.</p>
         
         <h3 id="raw-data-types" class="section">Raw Data Types<a class="anchor-link right" href="#raw-data-types"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <p>These are already in implicit scope by default, e.g. <code>String</code>, <code>File</code>,
-        <code>Future[_]</code>, and <code>InputStream</code>. Consult <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/EntityEncoder$">EntityEncoder</a> and <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/EntityDecoder$">EntityDecoder</a> for
+        <p>These are already in implicit scope by default, e.g. <code>String</code>, <code>File</code>, and <code>InputStream</code>. Consult <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/EntityEncoder$">EntityEncoder</a> and <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/EntityDecoder$">EntityDecoder</a> for
         a full list.</p>
         
         <h3 id="json" class="section">JSON<a class="anchor-link right" href="#json"><i class="icofont-laika">&#xef71;</i></a></h3>

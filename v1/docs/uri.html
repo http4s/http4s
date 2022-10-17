@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -252,58 +258,19 @@
         
         <h3 id="uri" class="section">URI<a class="anchor-link right" href="#uri"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Use the methods on the <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/Uri">uri class</a>.</p>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">docs</span><span> = </span><span class="identifier">uri</span><span>.</span><span class="identifier">withPath</span><span>(</span><span class="string-literal">path&quot;/docs/0.15&quot;</span><span>)
-</span><span class="comment">// docs: Uri = Uri(
-//   scheme = Some(value = Scheme(http)),
-//   authority = Some(
-//     value = Authority(
-//       userInfo = None,
-//       host = RegName(host = http4s.org),
-//       port = None
-//     )
-//   ),
-//   path = /docs/0.15,
-//   query = ,
-//   fragment = None
-// )
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">docs</span><span> = </span><span class="identifier">uri</span><span>.</span><span class="identifier">withPath</span><span>(</span><span class="string-literal">path&quot;/docs/0.15&quot;</span><span>)
 </span><span class="keyword">val</span><span> </span><span class="identifier">docs2</span><span> = </span><span class="identifier">uri</span><span> / </span><span class="string-literal">&quot;docs&quot;</span><span> / </span><span class="string-literal">&quot;0.15&quot;</span><span>
-</span><span class="comment">// docs2: Uri = Uri(
-//   scheme = Some(value = Scheme(http)),
-//   authority = Some(
-//     value = Authority(
-//       userInfo = None,
-//       host = RegName(host = http4s.org),
-//       port = None
-//     )
-//   ),
-//   path = /docs/0.15,
-//   query = ,
-//   fragment = None
-// )
 </span><span class="identifier">assert</span><span>(</span><span class="identifier">docs</span><span> == </span><span class="identifier">docs2</span><span>)</span></code></pre>
         
         <h3 id="uri-template" class="section">URI Template<a class="anchor-link right" href="#uri-template"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">UriTemplate</span><span>.</span><span class="identifier">_</span></code></pre>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">template</span><span> = </span><span class="type-name">UriTemplate</span><span>(
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">UriTemplate</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">template</span><span> = </span><span class="type-name">UriTemplate</span><span>(
   </span><span class="identifier">authority</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="type-name">Uri</span><span>.</span><span class="type-name">Authority</span><span>(</span><span class="identifier">host</span><span> = </span><span class="type-name">Uri</span><span>.</span><span class="type-name">RegName</span><span>(</span><span class="string-literal">&quot;http4s.org&quot;</span><span>))),
   </span><span class="identifier">scheme</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="type-name">Uri</span><span>.</span><span class="type-name">Scheme</span><span>.</span><span class="identifier">http</span><span>),
   </span><span class="identifier">path</span><span> = </span><span class="type-name">List</span><span>(</span><span class="type-name">PathElm</span><span>(</span><span class="string-literal">&quot;docs&quot;</span><span>), </span><span class="type-name">PathElm</span><span>(</span><span class="string-literal">&quot;0.15&quot;</span><span>))
-)
-</span><span class="comment">// template: UriTemplate = UriTemplate(
-//   scheme = Some(value = Scheme(http)),
-//   authority = Some(
-//     value = Authority(
-//       userInfo = None,
-//       host = RegName(host = http4s.org),
-//       port = None
-//     )
-//   ),
-//   path = List(PathElm(value = &quot;docs&quot;), PathElm(value = &quot;0.15&quot;)),
-//   query = List(),
-//   fragment = List()
-// )
-</span><span>
-</span><span class="identifier">template</span><span>.</span><span class="identifier">toUriIfPossible</span><span>
+)</span></code></pre>
+        <pre><code class="nohighlight"><span class="identifier">template</span><span>.</span><span class="identifier">toUriIfPossible</span><span>
 </span><span class="comment">// res1: scala.util.Try[Uri] = Success(
 //   value = Uri(
 //     scheme = Some(value = Scheme(http)),

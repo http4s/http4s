@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -280,25 +286,18 @@
         <h2 id="serving-from-jars" class="section">Serving from JARs<a class="anchor-link right" href="#serving-from-jars"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>For simple file serving, it&#39;s possible to package resources with the jar and
         deliver them from there. For example, for all resources in the classpath under <code>assets</code>:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">assetsRoutes</span><span> = </span><span class="identifier">resourceServiceBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="string-literal">&quot;/assets&quot;</span><span>).</span><span class="identifier">toRoutes</span><span>
-</span><span class="comment">// assetsRoutes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.server.staticcontent.ResourceServiceBuilder$$Lambda$22751/727904721@23be491e
-// )</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">assetsRoutes</span><span> = </span><span class="identifier">resourceServiceBuilder</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="string-literal">&quot;/assets&quot;</span><span>).</span><span class="identifier">toRoutes</span></code></pre>
         <p>For custom behaviour, <code>StaticFile.fromResource</code> can be used. In this example,
         only files matching a list of extensions are served. Append to the <code>List</code> as needed.</p>
-        <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">static</span><span>(</span><span class="identifier">file</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">request</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">static</span><span>(</span><span class="identifier">file</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">request</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =
   </span><span class="type-name">StaticFile</span><span>.</span><span class="identifier">fromResource</span><span>(</span><span class="string-literal">&quot;/&quot;</span><span> + </span><span class="identifier">file</span><span>, </span><span class="type-name">Some</span><span>(</span><span class="identifier">request</span><span>)).</span><span class="identifier">getOrElseF</span><span>(</span><span class="type-name">NotFound</span><span>())
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">fileTypes</span><span> = </span><span class="type-name">List</span><span>(</span><span class="string-literal">&quot;.js&quot;</span><span>, </span><span class="string-literal">&quot;.css&quot;</span><span>, </span><span class="string-literal">&quot;.map&quot;</span><span>, </span><span class="string-literal">&quot;.html&quot;</span><span>, </span><span class="string-literal">&quot;.webm&quot;</span><span>)
-</span><span class="comment">// fileTypes: List[String] = List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;)
-</span><span>
+
 </span><span class="keyword">val</span><span> </span><span class="identifier">fileRoutes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="identifier">path</span><span> </span><span class="keyword">if</span><span> </span><span class="identifier">fileTypes</span><span>.</span><span class="identifier">exists</span><span>(</span><span class="identifier">path</span><span>.</span><span class="identifier">endsWith</span><span>) =&gt;
     </span><span class="identifier">static</span><span>(</span><span class="identifier">path</span><span>, </span><span class="identifier">request</span><span>)
-}
-</span><span class="comment">// fileRoutes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$20736/531343038@40566b7d
-// )</span></code></pre>
+}</span></code></pre>
         
         <h2 id="webjars" class="section">Webjars<a class="anchor-link right" href="#webjars"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>A special service exists to load files from <a href="http://www.webjars.org">WebJars</a>. Add your WebJar to the
@@ -314,10 +313,7 @@
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">webjars</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="identifier">webjarServiceBuilder</span><span>[</span><span class="type-name">IO</span><span>]
   .</span><span class="identifier">withWebjarAssetFilter</span><span>(</span><span class="identifier">isJsAsset</span><span>)
-  .</span><span class="identifier">toRoutes</span><span>
-</span><span class="comment">// webjars: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.server.staticcontent.WebjarServiceBuilder$$Lambda$22753/473545241@4af96dc6
-// )</span></code></pre>
+  .</span><span class="identifier">toRoutes</span></code></pre>
         <p>Assuming that the service is mounted as root on port <code>8080</code>, and you included the webjar <code>swagger-ui-3.20.9.jar</code> on your classpath, you would reach the assets with the path: <code>http://localhost:8080/swagger-ui/3.20.9/index.html</code></p>
 
         <hr style="margin-top: 30px"/>

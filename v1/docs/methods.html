@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -234,10 +240,8 @@
 </span><span class="keyword">def</span><span> </span><span class="declaration-name">deleteTweet</span><span>(</span><span class="identifier">id</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] = ???
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">tweetWithIdEncoder</span><span> = </span><span class="identifier">jsonEncoderOf</span><span>[</span><span class="type-name">TweetWithId</span><span>]
-</span><span class="comment">// tweetWithIdEncoder: EntityEncoder.Pure[TweetWithId] = org.http4s.EntityEncoder$$anon$1@14d61dbc
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">tweetDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Tweet</span><span>]
-</span><span class="comment">// tweetDecoder: EntityDecoder[IO, Tweet] = org.http4s.EntityDecoder$$anon$2@76b38bef
-</span><span>
+
 </span><span class="keyword">val</span><span> </span><span class="identifier">tweetService</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;tweets&quot;</span><span> / </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">tweetId</span><span>) =&gt;
     </span><span class="identifier">getTweet</span><span>(</span><span class="identifier">tweetId</span><span>)
@@ -254,10 +258,7 @@
   </span><span class="keyword">case</span><span> </span><span class="type-name">DELETE</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;tweets&quot;</span><span> / </span><span class="type-name">IntVar</span><span>(</span><span class="identifier">tweetId</span><span>) =&gt;
     </span><span class="identifier">deleteTweet</span><span>(</span><span class="identifier">tweetId</span><span>)
       .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>())
-}
-</span><span class="comment">// tweetService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$20736/531343038@4b2ebfe5
-// )</span></code></pre>
+}</span></code></pre>
         <p>There&#39;s also <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M37//org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
         implementation of the <code>HEAD</code> route.</p>
 

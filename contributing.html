@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -343,17 +349,17 @@
         
         <h4 id="unsafe-constructors" class="section">Unsafe Constructors<a class="anchor-link right" href="#unsafe-constructors"><i class="icofont-laika">&#xef71;</i></a></h4>
         <p>All constructors that are partial on their input should be prefixed with <code>unsafe</code>.</p>
-        <pre><code>// Good
-def fromLong(l: Long): ParseResult[Foo] =
-  if (l &lt; 0) Left(ParseFailure(&quot;l must be non-negative&quot;))
-  else Right(new Foo(l))
-def unsafeFromLong(l: Long): Foo =
-  fromLong(l).fold(throw _, identity)
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Good
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">fromLong</span><span>(</span><span class="identifier">l</span><span>: </span><span class="type-name">Long</span><span>): </span><span class="type-name">ParseResult</span><span>[</span><span class="type-name">Foo</span><span>] =
+  </span><span class="keyword">if</span><span> (</span><span class="identifier">l</span><span> &lt; </span><span class="number-literal">0</span><span>) </span><span class="type-name">Left</span><span>(</span><span class="type-name">ParseFailure</span><span>(</span><span class="string-literal">&quot;l must be non-negative&quot;</span><span>))
+  </span><span class="keyword">else</span><span> </span><span class="type-name">Right</span><span>(</span><span class="keyword">new</span><span> </span><span class="type-name">Foo</span><span>(</span><span class="identifier">l</span><span>))
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">unsafeFromLong</span><span>(</span><span class="identifier">l</span><span>: </span><span class="type-name">Long</span><span>): </span><span class="type-name">Foo</span><span> =
+  </span><span class="identifier">fromLong</span><span>(</span><span class="identifier">l</span><span>).</span><span class="identifier">fold</span><span>(</span><span class="keyword">throw</span><span> </span><span class="identifier">_</span><span>, </span><span class="identifier">identity</span><span>)
 
-// Bad
-def fromLong(l: Long): ParseResult[Foo] =
-  if (l &lt; 0) throw new ParseFailure(&quot;crash boom bang&quot;)
-  else Right(new Foo(l))</code></pre>
+</span><span class="comment">// Bad
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">fromLong</span><span>(</span><span class="identifier">l</span><span>: </span><span class="type-name">Long</span><span>): </span><span class="type-name">ParseResult</span><span>[</span><span class="type-name">Foo</span><span>] =
+  </span><span class="keyword">if</span><span> (</span><span class="identifier">l</span><span> &lt; </span><span class="number-literal">0</span><span>) </span><span class="keyword">throw</span><span> </span><span class="keyword">new</span><span> </span><span class="type-name">ParseFailure</span><span>(</span><span class="string-literal">&quot;crash boom bang&quot;</span><span>)
+  </span><span class="keyword">else</span><span> </span><span class="type-name">Right</span><span>(</span><span class="keyword">new</span><span> </span><span class="type-name">Foo</span><span>(</span><span class="identifier">l</span><span>))</span></code></pre>
         <p>Constructors prefixed with <code>from</code> may return either a <code>ParseResult[A]</code> or, if
         total, <code>A</code>.</p>
         

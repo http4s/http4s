@@ -162,6 +162,8 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
         
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
@@ -189,6 +191,10 @@
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
         
@@ -281,31 +287,30 @@
         </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;bonjour&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Bonjour&quot;</span><span>)
     }
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">serviceSpanish</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="identifier">middleware</span><span>(</span><span class="identifier">spanishRoutes</span><span>) &lt;+&gt; </span><span class="identifier">frenchRoutes</span></code></pre>
+</span><span class="keyword">val</span><span> </span><span class="identifier">serviceSpanish</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] =
+  </span><span class="identifier">middleware</span><span>(</span><span class="identifier">spanishRoutes</span><span>) &lt;+&gt; </span><span class="identifier">frenchRoutes</span></code></pre>
         <p>Call to the french routes will always return 401 (Unauthorized) as they are caught by the spanish routes. To allow access to other routes you can:</p>
         <ul>
-          <li>
-            <p>Use a Router with unique route prefixes</p>
-            <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">serviceRouter</span><span> = {
-</span><span class="type-name">Router</span><span> (
-</span><span class="string-literal">&quot;/spanish&quot;</span><span> -&gt; </span><span class="identifier">middleware</span><span>(</span><span class="identifier">spanishRoutes</span><span>),
-</span><span class="string-literal">&quot;/french&quot;</span><span> -&gt; </span><span class="identifier">frenchRoutes</span><span>
-)
-}</span></code></pre>
-          </li>
-          <li>
-            <p>Allow fallthrough, using <code>AuthMiddleware.withFallThrough</code>.</p>
-            <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">middlewareWithFallThrough</span><span>: </span><span class="type-name">AuthMiddleware</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>] =
-</span><span class="type-name">AuthMiddleware</span><span>.</span><span class="identifier">withFallThrough</span><span>(</span><span class="identifier">authUser</span><span>)
-</span><span class="keyword">val</span><span> </span><span class="identifier">serviceSF</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] =
-</span><span class="identifier">middlewareWithFallThrough</span><span>(</span><span class="identifier">spanishRoutes</span><span>) &lt;+&gt; </span><span class="identifier">frenchRoutes</span></code></pre>
-          </li>
-          <li>
-            <p>Reorder the routes so that authed routes compose last</p>
-            <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">serviceFS</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] =
-</span><span class="identifier">frenchRoutes</span><span> &lt;+&gt; </span><span class="identifier">middlewareWithFallThrough</span><span>(</span><span class="identifier">spanishRoutes</span><span>)</span></code></pre>
-          </li>
+          <li>Use a Router with unique route prefixes</li>
         </ul>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">serviceRouter</span><span> = {
+  </span><span class="type-name">Router</span><span> (
+    </span><span class="string-literal">&quot;/spanish&quot;</span><span> -&gt; </span><span class="identifier">middleware</span><span>(</span><span class="identifier">spanishRoutes</span><span>),
+    </span><span class="string-literal">&quot;/french&quot;</span><span> -&gt; </span><span class="identifier">frenchRoutes</span><span>
+  )
+}</span></code></pre>
+        <ul>
+          <li>Allow fallthrough, using <code>AuthMiddleware.withFallThrough</code>.</li>
+        </ul>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">middlewareWithFallThrough</span><span>: </span><span class="type-name">AuthMiddleware</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>] =
+  </span><span class="type-name">AuthMiddleware</span><span>.</span><span class="identifier">withFallThrough</span><span>(</span><span class="identifier">authUser</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">serviceSF</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] =
+  </span><span class="identifier">middlewareWithFallThrough</span><span>(</span><span class="identifier">spanishRoutes</span><span>) &lt;+&gt; </span><span class="identifier">frenchRoutes</span></code></pre>
+        <ul>
+          <li>Reorder the routes so that authed routes compose last</li>
+        </ul>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">serviceFS</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] =
+  </span><span class="identifier">frenchRoutes</span><span> &lt;+&gt; </span><span class="identifier">middlewareWithFallThrough</span><span>(</span><span class="identifier">spanishRoutes</span><span>)</span></code></pre>
         <p>Alternatively, to customize the behavior on not authenticated if you do not
         wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
         
@@ -319,7 +324,8 @@
         <p>To allow for failure, the <code>authUser</code> function has to be adjusted to a <code>Request[F]
 =&gt; F[Either[String,User]]</code>. So we&#39;ll need to handle that possibility. For advanced
         error handling, we recommend an error <a href="https://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">authUserEither</span><span>: </span><span class="type-name">Kleisli</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="type-name">Either</span><span>[</span><span class="type-name">String</span><span>,</span><span class="type-name">User</span><span>]] = </span><span class="type-name">Kleisli</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>(???))
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">authUserEither</span><span>: </span><span class="type-name">Kleisli</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="type-name">Either</span><span>[</span><span class="type-name">String</span><span>,</span><span class="type-name">User</span><span>]] =
+  </span><span class="type-name">Kleisli</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>(???))
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">onFailure</span><span>: </span><span class="type-name">AuthedRoutes</span><span>[</span><span class="type-name">String</span><span>, </span><span class="type-name">IO</span><span>] =
   </span><span class="type-name">Kleisli</span><span>(</span><span class="identifier">req</span><span> =&gt; </span><span class="type-name">OptionT</span><span>.</span><span class="identifier">liftF</span><span>(</span><span class="type-name">Forbidden</span><span>(</span><span class="identifier">req</span><span>.</span><span class="identifier">context</span><span>)))
@@ -388,7 +394,7 @@
         <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">header</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="type-name">Authorization</span><span>
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">authUserHeaders</span><span>: </span><span class="type-name">Kleisli</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="type-name">Either</span><span>[</span><span class="type-name">String</span><span>,</span><span class="type-name">User</span><span>]] = </span><span class="type-name">Kleisli</span><span>({ </span><span class="identifier">request</span><span> =&gt;
+</span><span class="keyword">val</span><span> </span><span class="identifier">authUserHeader</span><span>: </span><span class="type-name">Kleisli</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="type-name">Either</span><span>[</span><span class="type-name">String</span><span>,</span><span class="type-name">User</span><span>]] = </span><span class="type-name">Kleisli</span><span>({ </span><span class="identifier">request</span><span> =&gt;
   </span><span class="keyword">val</span><span> </span><span class="identifier">message</span><span> = </span><span class="keyword">for</span><span> {
     </span><span class="identifier">header</span><span>  &lt;- </span><span class="identifier">request</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">get</span><span>[</span><span class="type-name">Authorization</span><span>]
                  .</span><span class="identifier">toRight</span><span>(</span><span class="string-literal">&quot;Couldn&#39;t find an Authorization header&quot;</span><span>)
