@@ -135,7 +135,7 @@ object CharPredicate {
 
     implicit def fromChars(chars: Seq[Char]): ApplyMagnet =
       chars match {
-        case _ if chars.size < 128 & !chars.exists(unmaskable) =>
+        case _ if chars.sizeIs < 128 & !chars.exists(unmaskable) =>
           @tailrec def rec(ix: Int, result: CharPredicate): CharPredicate =
             if (ix == chars.length) result else rec(ix + 1, result ++ chars(ix))
           new ApplyMagnet(rec(0, Empty))
