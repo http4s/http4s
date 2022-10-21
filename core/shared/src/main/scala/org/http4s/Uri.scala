@@ -425,13 +425,13 @@ object Uri extends UriPlatform {
     def splitAt(idx: Int): (Path, Path) =
       if (idx <= 0) {
         (Path.empty, this)
-      } else if (idx < segments.size) {
+      } else if (segments.sizeIs > idx) {
         val (start, end) = segments.splitAt(idx)
         (
           Path(start, absolute = absolute),
           Path(end, absolute = true, endsWithSlash = endsWithSlash),
         )
-      } else if (idx == segments.size) {
+      } else if (segments.sizeIs == idx) {
         (Path(segments, absolute = absolute), if (endsWithSlash) Path.Root else Path.empty)
       } else {
         (this, Path.empty)
