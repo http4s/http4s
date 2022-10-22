@@ -52,9 +52,7 @@ private[ember] object Encoder {
         if (h.isNameValid) {
           appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
 
-          stringBuilder
-            .append(h.name)
-            .append(": ")
+          stringBuilder.append(h.name).append(": ")
           appendSanitized(stringBuilder, h.value)
           stringBuilder.append(CRLF)
         }
@@ -119,9 +117,7 @@ private[ember] object Encoder {
           if (h.isNameValid) {
             appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
 
-            stringBuilder
-              .append(h.name)
-              .append(": ")
+            stringBuilder.append(h.name).append(": ")
             appendSanitized(stringBuilder, h.value)
             stringBuilder.append(CRLF)
           }
