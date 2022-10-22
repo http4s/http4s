@@ -267,7 +267,7 @@ private[ember] object H2Server {
 
         def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks
-            .evalMap(c => stream.sendData(c.toByteVector, false))
+            .foreach(c => stream.sendData(c.toByteVector, false))
             .compile
             .drain >> // PP Resp Body
             stream.sendData(ByteVector.empty, true)
@@ -299,24 +299,8 @@ private[ember] object H2Server {
         resp <- httpApp(req)
         _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
         _ <- fulfillPushPromises(resp)
-        trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
-        _ <- resp.body.chunks.noneTerminate.zipWithNext
-          .evalMap {
-            case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
-            case (Some(c), Some(None) | None) =>
-              if (trailers.isDefined) stream.sendData(c.toByteVector, false)
-              else stream.sendData(c.toByteVector, true)
-            case (None, _) =>
-              if (trailers.isDefined) Applicative[F].unit
-              else stream.sendData(ByteVector.empty, true)
-          }
-          .compile
-          .drain // Initial Resp Body
-        optTrailers <- trailers.sequence
-        optNel = optTrailers.flatMap(h =>
-          h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel
-        )
-        _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
+        _ <- stream.sendMessageBody(resp) // Initial Resp Body
+        _ <- stream.sendTrailerHeaders(resp)
       } yield ()
     }
 

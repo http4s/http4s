@@ -72,7 +72,7 @@ class RequestCookieJar private (val cookies: List[RequestCookie]) extends AnyVal
     new RequestCookieJar(cookies.filter(c => p(c.name)))
 
   override def toString(): String =
-    s"RequestCookieJar(${cookies.map(_.renderString).mkString("\n")})"
+    s"RequestCookieJar(${cookies.iterator.map(_.renderString).mkString("\n")})"
 
   def ++(cookies: collection.Iterable[RequestCookie]) =
     new RequestCookieJar(this.cookies ++ cookies)

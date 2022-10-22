@@ -147,7 +147,7 @@ package object oauth1 {
       val baseStr = mkBaseString(
         method,
         uri,
-        (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"),
+        (headers ++ queryParams).sorted.iterator.map(Show[ProtocolParameter].show).mkString("&"),
       )
       val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
       makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
