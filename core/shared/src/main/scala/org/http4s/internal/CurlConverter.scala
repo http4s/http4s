@@ -39,6 +39,7 @@ private[http4s] object CurlConverter {
     val preparedHeaders = headers
       .redactSensitive(redactHeadersWhen)
       .headers
+      .iterator
       .map { header =>
         s"""--header '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
       }

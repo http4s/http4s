@@ -24,5 +24,5 @@ import io.circe.DecodingFailure
   * [[accumulatingJsonOf]] to decode JSON messages.
   */
 final case class DecodingFailures(failures: NonEmptyList[DecodingFailure]) extends Exception {
-  override def getMessage: String = failures.toList.map(_.show).mkString("\n")
+  override def getMessage: String = failures.iterator.map(_.show).mkString("\n")
 }
