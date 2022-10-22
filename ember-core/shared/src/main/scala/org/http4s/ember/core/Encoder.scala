@@ -57,10 +57,13 @@ private[ember] object Encoder {
           stringBuilder.append(CRLF)
         }
       }
-      if (!appliedContentLength && (resp.body eq EmptyBody) && resp.status.isEntityAllowed) {
+
+      def isEmptyBody = resp.body eq EmptyBody
+      def isEntityAllowed = resp.status.isEntityAllowed
+      if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-      } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
       }
@@ -123,12 +126,12 @@ private[ember] object Encoder {
           }
         }
 
-        if (
-          !appliedContentLength && (req.body eq EmptyBody) && !NoPayloadMethods.contains(req.method)
-        ) {
+        def isEmptyBody = req.body eq EmptyBody
+        def isNoPayloadMethod = NoPayloadMethods.contains(req.method)
+        if (!appliedContentLength && isEmptyBody && !isNoPayloadMethod) {
           stringBuilder.append(zeroContentLengthRaw).append(CRLF)
           chunked = false
-        } else if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
+        } else if (!chunked && !appliedContentLength && !isNoPayloadMethod) {
           stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
         }
