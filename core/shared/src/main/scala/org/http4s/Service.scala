@@ -1,9 +1,11 @@
 package org.http4s
 
+import cats.Applicative
 import cats.Monad
 import cats.MonoidK
 import cats.StackSafeMonad
 import cats.effect.kernel.Resource
+import cats.mtl.Local
 
 import Service._
 
@@ -28,6 +30,9 @@ sealed abstract class Service[F[_], -A, B] {
         case None => default.run(a)
       }
     )
+
+  def local[C](f: C => A): Service[F, C, B] =
+    apply(c => run(f(c)))
 }
 
 object Service extends ServiceInstances {
@@ -42,6 +47,9 @@ object Service extends ServiceInstances {
 
   def pass[F[_], A, B]: Service[F, A, B] =
     apply(Function.const(Resource.pure(None)))
+
+  def ask[F[_], A]: Service[F, A, A] =
+    Service(a => Resource.pure(Some(a)))
 }
 
 private[http4s] sealed abstract class ServiceInstance[F[_], A]
@@ -65,7 +73,16 @@ private[http4s] sealed abstract class ServiceInstance[F[_], A]
 }
 
 private[http4s] trait ServiceInstances {
-  implicit def catsInstancesForHttp4sService[F[_], A, B]
+  implicit def catsInstancesForHttp4sService[F[_], A]
       : Monad[Service[F, A, *]] with MonoidK[Service[F, A, *]] =
     new ServiceInstance[F, A] {}
+
+  implicit def catsMtlLocalForHttp4sService[F[_], A]: Local[Service[F, A, *], A] =
+    new Local[Service[F, A, *], A] {
+      val applicative = Applicative[Service[F, A, *]]
+      def ask[E >: A]: Service[F, A, E] =
+        Service.ask
+      def local[B](fb: Service[F, A, B])(f: A => A): Service[F, A, B] =
+        fb.local(f)
+    }
 }
