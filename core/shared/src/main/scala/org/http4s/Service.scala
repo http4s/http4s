@@ -10,7 +10,10 @@ import cats.mtl.Local
 import Service._
 
 sealed abstract class Service[F[_], -A, B] {
-  def run: A => Resource[F, Option[B]]
+  protected[Service] def run: A => Resource[F, Option[B]]
+
+  def runOrElse(b: B): A => Resource[F, B] =
+    a => run(a).map(_.getOrElse(b))
 
   def map[C](f: B => C): Service[F, A, C] =
     apply((a: A) => run(a).map(_.map(f)))
