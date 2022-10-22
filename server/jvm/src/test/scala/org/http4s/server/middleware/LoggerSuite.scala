@@ -23,9 +23,6 @@ import cats.syntax.all._
 import fs2.io.readInputStream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
-import org.http4s.testing.AutoCloseableResource
-
-import scala.io.Source
 
 /** Common Tests for Logger, RequestLogger, and ResponseLogger
   */
@@ -45,7 +42,12 @@ class LoggerSuite extends Http4sSuite {
     readInputStream[IO](IO.pure(testResource), 4096)
 
   private val expectedBody: String =
-    AutoCloseableResource.resource(Source.fromInputStream(testResource))(_.mkString)
+    fs2.io
+      .readInputStream(SyncIO(testResource), 4096)
+      .through(fs2.text.utf8.decode)
+      .compile
+      .string
+      .unsafeRunSync()
 
   private val respApp = ResponseLogger.httpApp(logHeaders = true, logBody = true)(testApp)
 

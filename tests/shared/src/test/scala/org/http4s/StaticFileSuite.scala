@@ -24,7 +24,6 @@ import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status._
 import org.http4s.headers._
-import org.http4s.testing.AutoCloseableResource
 
 import java.net.URL
 import java.net.UnknownHostException
@@ -305,18 +304,22 @@ class StaticFileSuite extends Http4sSuite {
 
   if (Platform.isJvm)
     test("Read from a URL") {
-      val url = getClass.getResource("/lorem-ipsum.txt")
-      val expected =
-        AutoCloseableResource.resource(scala.io.Source.fromURL(url, "utf-8"))(_.mkString)
-      val s = StaticFile
-        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
-        .value
-        .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
-      // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
-      // saves chunks, which are mutated by naive usage of readInputStream.
-      // This ensures that we're making a defensive copy of the bytes for
-      // things like CachingChunkWriter that buffer the chunks.
-      s.flatMap(_.compile.to(Array).map(new String(_, "utf-8"))).assertEquals(expected)
+      fs2.io
+        .readClassResource[IO, this.type]("/lorem-ipsum.txt")
+        .through(fs2.text.utf8.decode)
+        .compile
+        .string
+        .flatMap { expected =>
+          val s = StaticFile
+            .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
+            .value
+            .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
+          // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
+          // saves chunks, which are mutated by naive usage of readInputStream.
+          // This ensures that we're making a defensive copy of the bytes for
+          // things like CachingChunkWriter that buffer the chunks.
+          s.flatMap(_.compile.to(Array).map(new String(_, "utf-8"))).assertEquals(expected)
+        }
     }
 
   if (Platform.isJvm)

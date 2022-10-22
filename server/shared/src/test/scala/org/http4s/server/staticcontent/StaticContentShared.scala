@@ -18,14 +18,12 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.effect.IO
+import cats.effect.{IO, SyncIO}
 import fs2._
 import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.syntax.all._
-import org.http4s.testing.AutoCloseableResource
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
@@ -43,21 +41,14 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   lazy val testResourceGzipped: IO[Chunk[Byte]] =
     Files[IO].readAll(Path(defaultSystemPath) / "testresource.txt.gz").chunks.compile.foldMonoid
 
-  lazy val testWebjarResource: Chunk[Byte] = {
-    val s =
-      getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
-    require(s != null, "Couldn't acquire resource!")
-
-    Chunk.array(
-      AutoCloseableResource.resource(
-        scala.io.Source
-          .fromInputStream(s)
-      )(
-        _.mkString
-          .getBytes(StandardCharsets.UTF_8)
+  lazy val testWebjarResource: Chunk[Byte] =
+    fs2.io
+      .readClassResource[SyncIO, this.type](
+        "/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt"
       )
-    )
-  }
+      .compile
+      .to(Chunk)
+      .unsafeRunSync()
 
   lazy val testWebjarResourceGzipped: Chunk[Byte] = {
     val url =
@@ -68,22 +59,14 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     Chunk.array(bytes)
   }
 
-  lazy val testWebjarSubResource: Chunk[Byte] = {
-    val s = getClass.getResourceAsStream(
-      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt"
-    )
-    require(s != null, "Couldn't acquire resource!")
-
-    Chunk.array(
-      AutoCloseableResource.resource(
-        scala.io.Source
-          .fromInputStream(s)
-      )(
-        _.mkString
-          .getBytes(StandardCharsets.UTF_8)
+  lazy val testWebjarSubResource: Chunk[Byte] =
+    fs2.io
+      .readClassResource[SyncIO, this.type](
+        "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt"
       )
-    )
-  }
+      .compile
+      .to(Chunk)
+      .unsafeRunSync()
 
   def runReq(
       req: Request[IO],
