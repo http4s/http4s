@@ -59,7 +59,7 @@ private[ember] object Encoder {
           stringBuilder.append(CRLF)
         }
       }
-      if (!appliedContentLength && resp.body == EmptyBody && resp.status.isEntityAllowed) {
+      if (!appliedContentLength && (resp.body eq EmptyBody) && resp.status.isEntityAllowed) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
       } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
@@ -128,7 +128,7 @@ private[ember] object Encoder {
         }
 
         if (
-          !appliedContentLength && req.body == EmptyBody && !NoPayloadMethods.contains(req.method)
+          !appliedContentLength && (req.body eq EmptyBody) && !NoPayloadMethods.contains(req.method)
         ) {
           stringBuilder.append(zeroContentLengthRaw).append(CRLF)
           chunked = false
