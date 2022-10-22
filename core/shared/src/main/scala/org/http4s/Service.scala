@@ -1,8 +1,8 @@
 package org.http4s
 
+import cats.Alternative
 import cats.Applicative
 import cats.Monad
-import cats.MonoidK
 import cats.StackSafeMonad
 import cats.effect.kernel.Resource
 import cats.mtl.Local
@@ -55,7 +55,7 @@ object Service extends ServiceInstances {
 private[http4s] sealed abstract class ServiceInstance[F[_], A]
     extends Monad[Service[F, A, *]]
     with StackSafeMonad[Service[F, A, *]]
-    with MonoidK[Service[F, A, *]] {
+    with Alternative[Service[F, A, *]] {
   override def map[B, C](fb: Service[F, A, B])(f: B => C): Service[F, A, C] =
     fb.map(f)
 
@@ -74,7 +74,7 @@ private[http4s] sealed abstract class ServiceInstance[F[_], A]
 
 private[http4s] trait ServiceInstances {
   implicit def catsInstancesForHttp4sService[F[_], A]
-      : Monad[Service[F, A, *]] with MonoidK[Service[F, A, *]] =
+      : Monad[Service[F, A, *]] with Alternative[Service[F, A, *]] =
     new ServiceInstance[F, A] {}
 
   implicit def catsMtlLocalForHttp4sService[F[_], A]: Local[Service[F, A, *], A] =
