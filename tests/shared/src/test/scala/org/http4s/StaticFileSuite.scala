@@ -24,10 +24,10 @@ import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status._
 import org.http4s.headers._
-import org.http4s.testing.AutoCloseableResource
 
 import java.net.URL
 import java.net.UnknownHostException
+import scala.util.Using
 
 class StaticFileSuite extends Http4sSuite {
   test("Determine the media-type based on the files extension") {
@@ -307,7 +307,7 @@ class StaticFileSuite extends Http4sSuite {
     test("Read from a URL") {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected =
-        AutoCloseableResource.resource(scala.io.Source.fromURL(url, "utf-8"))(_.mkString)
+        Using.resource(scala.io.Source.fromURL(url, "utf-8"))(_.mkString)
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
         .value
