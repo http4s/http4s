@@ -2,6 +2,7 @@ package org.http4s
 
 import cats.Monad
 import cats.StackSafeMonad
+import cats.SemigroupK
 import cats.effect.kernel.Resource
 
 import Service._
@@ -19,9 +20,17 @@ sealed abstract class Service[F[_], -A, B] {
         case None => Resource.pure[F, Option[C]](None)
       })
     )
+
+  def orElse[AA <: A](default: => Service[F, AA, B]): Service[F, AA, B] =
+    apply(a =>
+      run(a).flatMap {
+        case some: Some[_] => Resource.pure(some)
+        case None => default.run(a)
+      }
+    )
 }
 
-object Service extends ServiceKleisliMonadInstance {
+object Service extends ServiceInstances {
   private[Service] final case class Run[F[_], -A, B](run: A => Resource[F, Option[B]])
       extends Service[F, A, B]
 
@@ -32,9 +41,10 @@ object Service extends ServiceKleisliMonadInstance {
     apply(Function.const(Resource.pure(Some(b))))
 }
 
-private[http4s] sealed abstract class ServiceMonad[F[_], A]
+private[http4s] sealed abstract class ServiceInstance[F[_], A]
     extends Monad[Service[F, A, *]]
-    with StackSafeMonad[Service[F, A, *]] {
+    with StackSafeMonad[Service[F, A, *]]
+    with SemigroupK[Service[F, A, *]] {
   override def map[B, C](fb: Service[F, A, B])(f: B => C): Service[F, A, C] =
     fb.map(f)
 
@@ -43,9 +53,13 @@ private[http4s] sealed abstract class ServiceMonad[F[_], A]
 
   def flatMap[B, C](fb: Service[F, A, B])(f: B => Service[F, A, C]): Service[F, A, C] =
     fb.flatMap(f)
+
+  def combineK[B](x: Service[F, A, B], y: Service[F, A, B]): Service[F, A, B] =
+    x.orElse(y)
 }
 
-private[http4s] trait ServiceKleisliMonadInstance {
-  implicit def catsMonadForHttp4sService[F[_], A, B]: Monad[Service[F, A, *]] =
-    new ServiceMonad[F, A] {}
+private[http4s] trait ServiceInstances {
+  implicit def catsInstancesForHttp4sService[F[_], A, B]
+      : Monad[Service[F, A, *]] with SemigroupK[Service[F, A, *]] =
+    new ServiceInstance[F, A] {}
 }
