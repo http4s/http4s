@@ -23,10 +23,10 @@ import fs2._
 import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.syntax.all._
-import org.http4s.testing.AutoCloseableResource
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
+import scala.util.Using
 
 private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
   def routes: HttpRoutes[IO]
@@ -49,7 +49,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.array(
-      AutoCloseableResource.resource(
+      Using.resource(
         scala.io.Source
           .fromInputStream(s)
       )(
@@ -75,7 +75,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSuite =>
     require(s != null, "Couldn't acquire resource!")
 
     Chunk.array(
-      AutoCloseableResource.resource(
+      Using.resource(
         scala.io.Source
           .fromInputStream(s)
       )(
