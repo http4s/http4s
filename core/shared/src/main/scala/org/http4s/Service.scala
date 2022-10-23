@@ -25,50 +25,71 @@ import cats.mtl.Local
 
 import Service._
 
-sealed abstract class Service[F[_], -A, B] {
-  protected[Service] def run: A => Resource[F, Option[B]]
-
-  def runOrElse(b: B): A => Resource[F, B] =
-    a => run(a).map(_.getOrElse(b))
+sealed abstract class Service[F[_], A, B] { self =>
+  def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B]
 
   def map[C](f: B => C): Service[F, A, C] =
-    apply((a: A) => run(a).map(_.map(f)))
-
-  def flatMap[AA <: A, C](f: B => Service[F, AA, C]) =
-    apply((a: AA) =>
-      run(a).flatMap(_ match {
-        case Some(b) => f(b).run(a)
-        case None => Resource.pure[F, Option[C]](None)
-      })
-    )
-
-  def orElse[AA <: A](default: => Service[F, AA, B]): Service[F, AA, B] =
-    apply(a =>
-      run(a).flatMap {
-        case some: Some[_] => Resource.pure(some)
-        case None => default.run(a)
+    new Service[F, A, C] {
+      def applyOrElse(a: A, default: A => Resource[F, C]): Resource[F, C] = {
+        val rb = self.applyOrElse(a, checkFallback)
+        if (isFallback(rb)) default(a) else rb.map(f)
       }
-    )
+    }
+
+  def flatMap[C](f: B => Service[F, A, C]) =
+    new Service[F, A, C] {
+      def applyOrElse(a: A, default: A => Resource[F, C]): Resource[F, C] = {
+        val rb = self.applyOrElse(a, checkFallback)
+        if (isFallback(rb)) default(a) else rb.flatMap(f(_).applyOrElse(a, default))
+      }
+    }
+
+  def orElse(default: => Service[F, A, B]): Service[F, A, B] =
+    new Service[F, A, B] {
+      def applyOrElse(a: A, default2: A => Resource[F, B]): Resource[F, B] = {
+        val rb = self.applyOrElse(a, checkFallback)
+        if (isFallback(rb)) default.applyOrElse(a, default2)
+        else rb
+      }
+    }
 
   def local[C](f: C => A): Service[F, C, B] =
-    apply(c => run(f(c)))
+    new Service[F, C, B] {
+      def applyOrElse(c: C, default: C => Resource[F, B]): Resource[F, B] = {
+        val rb = self.applyOrElse(f(c), checkFallback)
+        if (isFallback(rb)) default(c) else rb
+      }
+    }
 }
 
 object Service extends ServiceInstances {
-  private[Service] final case class Run[F[_], -A, B](run: A => Resource[F, Option[B]])
-      extends Service[F, A, B]
-
-  def apply[F[_], A, B](run: A => Resource[F, Option[B]]): Run[F, A, B] =
-    Run(run)
+  // This is the same basic trick as used in scala.PartialFunction to
+  // detect partiality without allocating an option.  We use
+  // fallbackSentinel as the default function in calls to applyOrElse.
+  // If the call returns the fallbackSentinel, it fell through and we
+  // need to invoke our own default logic.
+  private[this] val fallbackSentinel: Any => AnyRef = Function.const(fallbackSentinel)
+  private def checkFallback[F[_], B] = fallbackSentinel.asInstanceOf[Any => Resource[F, B]]
+  private def isFallback[F[_], B](x: F[B]) = fallbackSentinel eq x.asInstanceOf[AnyRef]
 
   def pure[F[_], A, B](b: B): Service[F, A, B] =
-    apply(Function.const(Resource.pure(Some(b))))
+    new Service[F, A, B] {
+      val rb = Resource.pure[F, B](b)
+      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
+        rb
+    }
 
   def pass[F[_], A, B]: Service[F, A, B] =
-    apply(Function.const(Resource.pure(None)))
+    new Service[F, A, B] {
+      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
+        default(a)
+    }
 
   def ask[F[_], A]: Service[F, A, A] =
-    Service(a => Resource.pure(Some(a)))
+    new Service[F, A, A] {
+      def applyOrElse(a: A, default: A => Resource[F, A]): Resource[F, A] =
+        Resource.pure(a)
+    }
 }
 
 private[http4s] sealed abstract class ServiceInstance[F[_], A]
@@ -100,7 +121,7 @@ private[http4s] trait ServiceInstances {
     new Local[Service[F, A, *], A] {
       val applicative = Applicative[Service[F, A, *]]
       def ask[E >: A]: Service[F, A, E] =
-        Service.ask
+        Service.ask.asInstanceOf[Service[F, A, E]]
       def local[B](fb: Service[F, A, B])(f: A => A): Service[F, A, B] =
         fb.local(f)
     }
