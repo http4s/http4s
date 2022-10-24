@@ -64,13 +64,12 @@ sealed abstract class Service[F[_], A, B] { self =>
 
 object Service extends ServiceInstances {
   // This is the same basic trick as used in scala.PartialFunction to
-  // detect partiality without allocating an option.  We use
-  // fallbackSentinel as the default function in calls to applyOrElse.
-  // If the call returns the fallbackSentinel, it fell through and we
-  // need to invoke our own default logic.
-  private[this] val fallbackSentinel: Any => AnyRef = Function.const(fallbackSentinel)
-  private def checkFallback[F[_], B] = fallbackSentinel.asInstanceOf[Any => Resource[F, B]]
-  private def isFallback[F[_], B](x: F[B]) = fallbackSentinel eq x.asInstanceOf[AnyRef]
+  // detect partiality without allocating an option.
+  private[this] object Fallback
+  private[this] val fallbackResource = Resource.pure[Any, Any](Fallback)
+  private[this] val fallbackFunction: Any => AnyRef = Function.const(fallbackResource)
+  private def checkFallback[F[_], B] = fallbackFunction.asInstanceOf[Any => Resource[F, B]]
+  private def isFallback[F[_], B](x: Resource[F, B]) = fallbackResource eq x.asInstanceOf[AnyRef]
 
   def pure[F[_], A, B](b: B): Service[F, A, B] =
     new Service[F, A, B] {
