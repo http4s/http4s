@@ -90,6 +90,12 @@ object Service extends ServiceInstances {
       def applyOrElse(a: A, default: A => Resource[F, A]): Resource[F, A] =
         Resource.pure(a)
     }
+
+  def of[F[_], A, B](pf: PartialFunction[A, Resource[F, B]]): Service[F, A, B] =
+    new Service[F, A, B] {
+      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
+        pf.applyOrElse(a, default)
+    }
 }
 
 private[http4s] sealed abstract class ServiceInstance[F[_], A]
