@@ -31,6 +31,10 @@ import org.openjdk.jmh.annotations._
 @BenchmarkMode(Array(Mode.Throughput))
 class ServiceBench {
   @Benchmark
+  def function: Unit =
+    ServiceBench.function(0).use_.unsafeRunSync()
+
+  @Benchmark
   def routes: Unit =
     ServiceBench.routes(0).use_.unsafeRunSync()
 
@@ -49,6 +53,22 @@ object ServiceBench {
       pf: PartialFunction[A, Resource[F, B]]
   ): Kleisli[OptionT[Resource[F, *], *], A, B] =
     Kleisli(a => OptionT(Applicative[Resource[F, *]].unit >> pf.lift(a).sequence))
+
+  // No Kleisli.
+  val function: Int => Resource[IO, Int] = {
+    val a: PartialFunction[Int, Resource[IO, Int]] = { case 42 =>
+      Resource.pure(-42)
+    }
+    val b: PartialFunction[Int, Resource[IO, Int]] = { case i =>
+      Resource.pure(i)
+    }
+    a.orElse(b) // cheats: can't do effectful routingv
+      .compose[Int] { case i: Int =>
+        i + 1
+      }
+      .andThen(_.flatMap(i => Resource.pure(i + 1)))
+      .applyOrElse(_, Function.const(Resource.pure(0)))
+  }
 
   val routes: Int => Resource[IO, Int] = {
     val a = routesOf[IO, Int, Int] { case 42 =>
