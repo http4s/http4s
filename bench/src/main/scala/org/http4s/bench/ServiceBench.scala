@@ -27,7 +27,22 @@ import cats.effect.kernel.Resource
 import cats.syntax.all._
 import org.openjdk.jmh.annotations._
 
-// sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.ServiceBench"
+/** There are four implementations here:
+  *
+  * - function: a raw function Int => Resource[IO, Int]
+  * - routes: like 0.23's HttpRoutes, but with a Resource
+  * - altService: a Service monad with run as the SAM
+  * - service: a proposed 1.0 monad, with applyOrElse as the SAM
+  *
+  * Each behaves thusly.  The rules were hacked together, and
+  * are not particularly sensible in hindsight:
+  *
+  * - Each should increment the argument by 1.
+  * - The first service is defined only at 42, returning -42
+  * - The second service is defined for positive ints, and increments them
+  * - All services default to 0
+  */
+
 @BenchmarkMode(Array(Mode.Throughput))
 class ServiceBench {
   @Benchmark
@@ -35,16 +50,48 @@ class ServiceBench {
     ServiceBench.function(0).use_.unsafeRunSync()
 
   @Benchmark
+  def functionDirect: Unit =
+    ServiceBench.function(41).use_.unsafeRunSync()
+
+  @Benchmark
+  def functionFail: Unit =
+    ServiceBench.function(-100).use_.unsafeRunSync()
+
+  @Benchmark
   def routes: Unit =
     ServiceBench.routes(0).use_.unsafeRunSync()
+
+  @Benchmark
+  def routesDirect: Unit =
+    ServiceBench.routes(41).use_.unsafeRunSync()
+
+  @Benchmark
+  def routesFail: Unit =
+    ServiceBench.routes(-100).use_.unsafeRunSync()
 
   @Benchmark
   def service: Unit =
     ServiceBench.service(0).use_.unsafeRunSync()
 
   @Benchmark
+  def serviceDirect: Unit =
+    ServiceBench.service(41).use_.unsafeRunSync()
+
+  @Benchmark
+  def serviceFail: Unit =
+    ServiceBench.service(-100).use_.unsafeRunSync()
+
+  @Benchmark
   def altService: Unit =
     ServiceBench.altService(0).use_.unsafeRunSync()
+
+  @Benchmark
+  def altServiceDirect: Unit =
+    ServiceBench.altService(41).use_.unsafeRunSync()
+
+  @Benchmark
+  def altServiceFail: Unit =
+    ServiceBench.altService(-100).use_.unsafeRunSync()
 }
 
 object ServiceBench {
@@ -59,8 +106,9 @@ object ServiceBench {
     val a: PartialFunction[Int, Resource[IO, Int]] = { case 42 =>
       Resource.pure(-42)
     }
-    val b: PartialFunction[Int, Resource[IO, Int]] = { case i =>
-      Resource.pure(i)
+    val b: PartialFunction[Int, Resource[IO, Int]] = {
+      case i if i > 0 =>
+        Resource.pure(i)
     }
     a.orElse(b) // cheats: can't do effectful routingv
       .compose[Int] { case i: Int =>
@@ -74,8 +122,9 @@ object ServiceBench {
     val a = routesOf[IO, Int, Int] { case 42 =>
       Resource.pure(-42)
     }
-    val b = routesOf[IO, Int, Int] { case i =>
-      Resource.pure(i)
+    val b = routesOf[IO, Int, Int] {
+      case i if i > 0 =>
+        Resource.pure(i)
     }
     (a <+> b) // Combine two
       .local((i: Int) => i + 1) // transform the input
@@ -88,8 +137,9 @@ object ServiceBench {
     val a = Service.of[IO, Int, Int] { case 42 =>
       Resource.pure(-42)
     }
-    val b = Service.of[IO, Int, Int] { case i =>
-      Resource.pure(i)
+    val b = Service.of[IO, Int, Int] {
+      case i if i > 0 =>
+        Resource.pure(i)
     }
     (a <+> b) // Combine two
       .local((i: Int) => i + 1) // transform the input
@@ -102,8 +152,9 @@ object ServiceBench {
     val a = AltService.of[IO, Int, Int] { case 42 =>
       Resource.pure(-42)
     }
-    val b = AltService.of[IO, Int, Int] { case i =>
-      Resource.pure(i)
+    val b = AltService.of[IO, Int, Int] {
+      case i if i > 0 =>
+        Resource.pure(i)
     }
     (a <+> b) // Combine two
       .local((i: Int) => i + 1) // transform the input
