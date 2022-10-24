@@ -25,40 +25,32 @@ import cats.mtl.Local
 
 import Service._
 
-sealed abstract class Service[F[_], A, B] { self =>
+trait Service[F[_], A, B] { self =>
   def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B]
 
   def map[C](f: B => C): Service[F, A, C] =
-    new Service[F, A, C] {
-      def applyOrElse(a: A, default: A => Resource[F, C]): Resource[F, C] = {
-        val rb = self.applyOrElse(a, checkFallback)
-        if (isFallback(rb)) default(a) else rb.map(f)
-      }
+    (a, default) => {
+      val rb = self.applyOrElse(a, checkFallback)
+      if (isFallback(rb)) default(a) else rb.map(f)
     }
 
-  def flatMap[C](f: B => Service[F, A, C]) =
-    new Service[F, A, C] {
-      def applyOrElse(a: A, default: A => Resource[F, C]): Resource[F, C] = {
-        val rb = self.applyOrElse(a, checkFallback)
-        if (isFallback(rb)) default(a) else rb.flatMap(f(_).applyOrElse(a, default))
-      }
+  def flatMap[C](f: B => Service[F, A, C]): Service[F, A, C] =
+    (a, default) => {
+      val rb = self.applyOrElse(a, checkFallback)
+      if (isFallback(rb)) default(a) else rb.flatMap(f(_).applyOrElse(a, default))
     }
 
   def orElse(default: => Service[F, A, B]): Service[F, A, B] =
-    new Service[F, A, B] {
-      def applyOrElse(a: A, default2: A => Resource[F, B]): Resource[F, B] = {
-        val rb = self.applyOrElse(a, checkFallback)
-        if (isFallback(rb)) default.applyOrElse(a, default2)
-        else rb
-      }
+    (a, default2) => {
+      val rb = self.applyOrElse(a, checkFallback)
+      if (isFallback(rb)) default.applyOrElse(a, default2)
+      else rb
     }
 
   def local[C](f: C => A): Service[F, C, B] =
-    new Service[F, C, B] {
-      def applyOrElse(c: C, default: C => Resource[F, B]): Resource[F, B] = {
-        val rb = self.applyOrElse(f(c), checkFallback)
-        if (isFallback(rb)) default(c) else rb
-      }
+    (c, default) => {
+      val rb = self.applyOrElse(f(c), checkFallback)
+      if (isFallback(rb)) default(c) else rb
     }
 }
 
@@ -71,30 +63,19 @@ object Service extends ServiceInstances {
   private def checkFallback[F[_], B] = fallbackFunction.asInstanceOf[Any => Resource[F, B]]
   private def isFallback[F[_], B](x: Resource[F, B]) = fallbackResource eq x.asInstanceOf[AnyRef]
 
-  def pure[F[_], A, B](b: B): Service[F, A, B] =
-    new Service[F, A, B] {
-      val rb = Resource.pure[F, B](b)
-      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
-        rb
-    }
+  def pure[F[_], A, B](b: B): Service[F, A, B] = {
+    val rb = Resource.pure[F, B](b)
+    (_, _) => rb
+  }
 
   def pass[F[_], A, B]: Service[F, A, B] =
-    new Service[F, A, B] {
-      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
-        default(a)
-    }
+    (a, default) => default(a)
 
   def ask[F[_], A]: Service[F, A, A] =
-    new Service[F, A, A] {
-      def applyOrElse(a: A, default: A => Resource[F, A]): Resource[F, A] =
-        Resource.pure(a)
-    }
+    (a, _) => Resource.pure(a)
 
   def of[F[_], A, B](pf: PartialFunction[A, Resource[F, B]]): Service[F, A, B] =
-    new Service[F, A, B] {
-      def applyOrElse(a: A, default: A => Resource[F, B]): Resource[F, B] =
-        pf.applyOrElse(a, default)
-    }
+    pf.applyOrElse(_, _)
 }
 
 private[http4s] sealed abstract class ServiceInstance[F[_], A]
