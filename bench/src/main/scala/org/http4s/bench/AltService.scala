@@ -29,8 +29,11 @@ import AltService._
 sealed abstract class AltService[F[_], -A, B] {
   protected[AltService] def run: A => Resource[F, Option[B]]
 
-  def runOrElse(b: B): A => Resource[F, B] =
-    a => run(a).map(_.getOrElse(b))
+  def applyOrElse[AA <: A](a: AA, f: AA => Resource[F, B]): Resource[F, B] =
+    run(a).flatMap(_ match {
+      case Some(b) => Resource.pure(b)
+      case None => f(a)
+    })
 
   def map[C](f: B => C): AltService[F, A, C] =
     apply((a: A) => run(a).map(_.map(f)))

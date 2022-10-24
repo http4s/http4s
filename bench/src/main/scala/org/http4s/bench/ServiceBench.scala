@@ -108,6 +108,6 @@ object ServiceBench {
     (a <+> b) // Combine two
       .local((i: Int) => i + 1) // transform the input
       .flatMap(i => AltService.pure(i + 1)) // transform the output
-      .runOrElse(0) // "compiled" to the function
+      .applyOrElse(_, Function.const(Resource.pure(0))) // "compiled" to the function
   }
 }
