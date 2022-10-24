@@ -22,7 +22,6 @@ import cats.effect.Ref
 import cats.effect._
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
-import cats.syntax.all._
 import cats.~>
 import fs2._
 import org.http4s.headers.Host
@@ -269,22 +268,20 @@ object Client {
       case Entity.Default(_, _) =>
         message match {
           case req: Request[F] =>
-            Resource.suspend(
-              Ref[F].of(false).map { disposed =>
-                val reqAugmented =
-                  addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
-                Resource
-                  .eval(app(reqAugmented))
-                  .onFinalize(disposed.set(true))
-                  .flatMap(run(_, Option(disposed)))
-              }
-            )
+            Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+              val reqAugmented =
+                addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+              Resource
+                .eval(app(reqAugmented))
+                .onFinalize(disposed.set(true))
+                .flatMap(run(_, Option(disposed)))
+            }
           case resp: Response[F] =>
-            Resource.suspend(refOp.fold(Ref[F].of(false))(F.pure).map { r =>
+            Resource.eval(refOp.fold(Ref[F].of(false))(F.pure)).flatMap { r =>
               Resource
                 .pure(resp.pipeBodyThrough(until(r)))
                 .onFinalize(r.set(true))
-            })
+            }
         }
     }
     Client((req: Request[F]) => run(req))
