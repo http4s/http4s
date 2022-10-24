@@ -67,9 +67,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
         // This is bad. Don't do this.
         client.run(req).use(IO.pure).flatMap(_.as[String])
       }
-      .attempt
-      .map(_.left.toOption.get.getMessage)
-      .assertEquals("response was disposed")
+      .interceptMessage[java.io.IOException]("response was disposed")
   }
 
   test("mock client with stream request should read strict body") {
