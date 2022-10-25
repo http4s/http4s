@@ -46,7 +46,7 @@ import org.openjdk.jmh.annotations._
 @BenchmarkMode(Array(Mode.Throughput))
 class ServiceBench {
   @Benchmark
-  def function: Unit =
+  def functionFallback: Unit =
     ServiceBench.function(0).use_.unsafeRunSync()
 
   @Benchmark
@@ -58,7 +58,7 @@ class ServiceBench {
     ServiceBench.function(-100).use_.unsafeRunSync()
 
   @Benchmark
-  def routes: Unit =
+  def routesFallback: Unit =
     ServiceBench.routes(0).use_.unsafeRunSync()
 
   @Benchmark
@@ -70,7 +70,7 @@ class ServiceBench {
     ServiceBench.routes(-100).use_.unsafeRunSync()
 
   @Benchmark
-  def service: Unit =
+  def serviceFallback: Unit =
     ServiceBench.service(0).use_.unsafeRunSync()
 
   @Benchmark
@@ -82,7 +82,7 @@ class ServiceBench {
     ServiceBench.service(-100).use_.unsafeRunSync()
 
   @Benchmark
-  def altService: Unit =
+  def altServiceFallback: Unit =
     ServiceBench.altService(0).use_.unsafeRunSync()
 
   @Benchmark
