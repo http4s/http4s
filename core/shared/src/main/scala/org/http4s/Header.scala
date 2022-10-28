@@ -55,7 +55,7 @@ trait Header[A, T <: Header.Type] {
 
 object Header {
   final case class Raw(name: CIString, value: String) {
-    override def toString: String = s"${name}: ${value}"
+    override def toString: String = Raw.toString(name, value)
 
     /** True if [[name]] is a valid field-name per RFC7230.  Where it
       * is not, the header may be dropped by the backend.
@@ -70,6 +70,9 @@ object Header {
   }
 
   object Raw {
+    @inline private[http4s] def toString(name: CIString, value: String): String =
+      s"${name.toString}: $value"
+
     implicit lazy val catsInstancesForHttp4sHeaderRaw
         : Order[Raw] with Hash[Raw] with Show[Raw] with Renderer[Raw] = new Order[Raw]
       with Hash[Raw]
