@@ -143,7 +143,9 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
+    multiParams.map { case (k, v) =>
+      k -> v.headOption.getOrElse("")
+    }
 
   /** `Map[String, List[String]]` representation of the [[Query]]
     *
