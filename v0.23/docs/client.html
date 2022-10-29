@@ -550,16 +550,16 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Authorization: Bearer open sesame, Accept: application/json),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@3983b3d2
+//    = org.typelevel.vault.Vault@7333af8c
 // )
 </span><span>
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">request</span><span>)
 </span><span class="comment">// res6: IO[String] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$20701/2045172948@6df3dcda,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$20700/496710399@75a5315b,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$20681/462559359@1f2c7e72,
+//   f = cats.effect.kernel.Resource$$Lambda$20680/275756300@75de183c,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
@@ -570,7 +570,7 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">AuthResponse</span><span>(</span><span class="identifier">access_token</span><span>: </span><span class="type-name">String</span><span>)
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">authResponseEntityDecoder</span><span>: </span><span class="type-name">EntityDecoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>] = </span><span class="identifier">jsonOf</span><span>
-</span><span class="comment">// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@1c8a294c
+</span><span class="comment">// authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = org.http4s.EntityDecoder$$anon$2@55c75c3b
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">POST</span><span>(
   </span><span class="type-name">UrlForm</span><span>(
@@ -598,16 +598,16 @@ which would take an</code>Int =&gt; String<code>and return an</code>Int =&gt; St
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@38b3042c
+//    = org.typelevel.vault.Vault@3b66d6c0
 // )
 </span><span>
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">AuthResponse</span><span>](</span><span class="identifier">postRequest</span><span>)
 </span><span class="comment">// res7: IO[AuthResponse] = FlatMap(
 //   ioe = Delay(
-//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$20701/2045172948@4b550aec,
+//     thunk = org.http4s.client.JavaNetClientBuilder$$Lambda$20700/496710399@6715071e,
 //     event = cats.effect.tracing.TracingEvent$StackTrace
 //   ),
-//   f = cats.effect.kernel.Resource$$Lambda$20681/462559359@37f6321a,
+//   f = cats.effect.kernel.Resource$$Lambda$20680/275756300@620ffc38,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )</span></code></pre>
         
