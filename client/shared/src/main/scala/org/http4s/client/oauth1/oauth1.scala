@@ -33,7 +33,6 @@ import org.http4s.client.oauth1.ProtocolParameter.Timestamp
 import org.http4s.client.oauth1.ProtocolParameter.Verifier
 import org.http4s.client.oauth1.ProtocolParameter.Version
 import org.http4s.headers.Authorization
-import org.typelevel.ci._
 
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
@@ -152,7 +151,7 @@ package object oauth1 {
       val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
       makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
         val creds = Credentials.AuthParams(
-          ci"OAuth",
+          AuthScheme.OAuth,
           NonEmptyList(
             "oauth_signature" -> encode(sig),
             realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList,
@@ -214,7 +213,10 @@ package object oauth1 {
     )
     makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm).map { sig =>
       val creds =
-        Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
+        Credentials.AuthParams(
+          AuthScheme.OAuth,
+          NonEmptyList("oauth_signature" -> encode(sig), params),
+        )
 
       Authorization(creds)
     }
