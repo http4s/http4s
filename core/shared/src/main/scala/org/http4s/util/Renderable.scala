@@ -206,10 +206,14 @@ trait Writer { self =>
       start: String = "",
       end: String = "",
   ): this.type =
-    NonEmptyList.fromList(s) match {
-      case Some(s) => addNel(s, sep, start, end)
-      case None =>
+    s match {
+      case Nil =>
         append(start)
+        append(end)
+      case x :: list =>
+        append(start)
+        append(x)
+        list.foreach(s => append(sep).append(s))
         append(end)
     }
 
