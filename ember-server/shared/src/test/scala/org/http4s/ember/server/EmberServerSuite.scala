@@ -28,6 +28,8 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits._
 import org.http4s.server.Server
 
+import scala.concurrent.duration._
+
 class EmberServerSuite extends Http4sSuite {
 
   def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
@@ -47,12 +49,15 @@ class EmberServerSuite extends Http4sSuite {
   def url(address: SocketAddress[Host], path: String = ""): String =
     s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
 
-  val serverResource: Resource[IO, Server] =
-    EmberServerBuilder
-      .default[IO]
-      .withPort(port"0")
-      .withHttpApp(service[IO])
-      .build
+  def serverResource(
+      f: EmberServerBuilder[IO] => EmberServerBuilder[IO] = identity
+  ): Resource[IO, Server] =
+    f(
+      EmberServerBuilder
+        .default[IO]
+        .withPort(port"0")
+        .withHttpApp(service[IO])
+    ).build
 
   private val client = ResourceFunFixture(EmberClientBuilder.default[IO].build)
 
@@ -75,10 +80,16 @@ class EmberServerSuite extends Http4sSuite {
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
-    serverResource.use(server => IO.pure(server.addressIp4s)).flatMap { address =>
+    serverResource().use(server => IO.pure(server.addressIp4s)).flatMap { address =>
       client
         .get(url(address))(_.status.pure[IO])
         .intercept[ConnectException]
+    }
+  }
+
+  client.test("shutdown timeout of 0 doesn't reset connections") { client =>
+    serverResource(_.withShutdownTimeout(0.nanos)).use { server =>
+      client.expect[String](url(server.addressIp4s)).assertEquals("Hello!")
     }
   }
 
