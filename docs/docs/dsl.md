@@ -57,7 +57,7 @@ anything.  The right hand side of the request must return a
 
 In the following we use `cats.effect.IO` as the effect type `F`.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
   case _ =>
     IO(Response(Status.Ok))
@@ -70,7 +70,7 @@ One beautiful thing about the `HttpRoutes[F]` model is that we don't
 need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
-```scala mdoc
+```scala mdoc:silent
 val getRoot = Request[IO](Method.GET, uri"/")
 
 val serviceIO = service.orNotFound.run(getRoot)
@@ -106,9 +106,8 @@ generating `F[Response]`s.
 http4s-dsl provides a shortcut to create an `F[Response]` by
 applying a status code:
 
-```scala mdoc
-val okIo = Ok()
-val ok = okIo.unsafeRunSync()
+```scala mdoc:silent
+val okIo: IO[Response[IO]] = Ok()
 ```
 
 This simple `Ok()` expression succinctly says what we mean in a
@@ -172,7 +171,7 @@ Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar")))
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
-```scala mdoc
+```scala mdoc:silent
 val cookieResp = {
   for {
     resp <- Ok("Ok response.")
@@ -180,6 +179,9 @@ val cookieResp = {
   } yield resp.addCookie(ResponseCookie("foo", "bar",
       expires = Some(now), httpOnly = true, secure = true))
 }
+```
+
+```scala mdoc
 cookieResp.unsafeRunSync().headers
 ```
 
@@ -236,25 +238,31 @@ Note: unlike `IO`, wrapping a side effect in `Future` does not
 suspend it, and the resulting expression would still be side
 effectful, unless we wrap it in `IO`:
 
-`IO.fromFuture` requires an implicit `ContextShift`, to ensure that the
-suspended future is shifted to the correct thread pool.
+`IO.fromFuture` ensures that the suspended future is shifted to the correct
+thread pool.
 
-```scala mdoc
+```scala mdoc:silent
 val ioFuture = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })))
+```
+
+```scala mdoc
 ioFuture.unsafeRunSync()
 ```
 
 As good functional programmers who like to delay our side effects, we
 of course prefer to operate in `F`s:
 
-```scala mdoc
+```scala mdoc:silent
 val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
 })
+```
+
+```scala mdoc
 io.unsafeRunSync()
 ```
 
@@ -276,9 +284,7 @@ for one second:
 ```scala mdoc:silent
 import fs2.Stream
 import scala.concurrent.duration._
-```
 
-```scala mdoc
 val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
@@ -317,7 +323,7 @@ info via the `->` object.  On the left side is the method, and on the
 right side, the path info.  The following matches a request to `GET
 /hello`:
 
-```scala mdoc
+```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> Root / "hello" => Ok("hello")
 }
@@ -359,7 +365,7 @@ Alice!" to `GET /hello/Alice`:
 
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
-  case GET -> Root / "hello" / name => Ok(s"Hello ${name}!")
+  case GET -> Root / "hello" / name => Ok(s"Hello, ${name}!")
 }
 ```
 
@@ -372,6 +378,16 @@ say `"Hello, Alice and Bob!"`
 ```scala mdoc:silent
 HttpRoutes.of[IO] {
   case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.segments.mkString(" and ")}!""")
+}
+```
+
+**Please note:** You cannot mix left- and right-associative matchers in a path! So something like `case GET -> "hello" / "world" /: rest => ???` will not compile.
+
+Imagining some path parameter extractors you could still do something like this:
+
+```scala mdoc:silent
+HttpRoutes.of[IO] {
+  case GET -> IntVar(anInt) /: UUIDVar(anId) /: rest => Ok(s"""Hello $anInt / $anId, ${rest.segments.mkString(" and ")}!""")
 }
 ```
 
@@ -389,7 +405,7 @@ Path params can be extracted and converted to a specific type but are
 `String`s by default. There are numeric extractors provided in the form
 of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
 
-```scala mdoc
+```scala mdoc:silent
 def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpRoutes.of[IO] {
@@ -406,9 +422,7 @@ in which `IntVar` does it.
 import java.time.LocalDate
 import scala.util.Try
 import org.http4s.client.dsl.io._
-```
 
-```scala mdoc
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {
     if (!str.isEmpty)
@@ -427,6 +441,9 @@ val dailyWeatherService = HttpRoutes.of[IO] {
 }
 
 val req = GET(uri"/weather/temperature/2016-11-05")
+```
+
+```scala mdoc
 dailyWeatherService.orNotFound(req).unsafeRunSync()
 ```
 
@@ -434,21 +451,21 @@ dailyWeatherService.orNotFound(req).unsafeRunSync()
 
 [Matrix path parameters](https://www.w3.org/DesignIssues/MatrixURIs.html) can be extracted using `MatrixVar`.
 
-```scala mdoc:silent
-import org.http4s.dsl.impl.MatrixVar
-```
-
 In following example, we extract the `first` and `last` matrix path parameters.
 By default, matrix path parameters are extracted as `String`s.
 
-```scala mdoc
+```scala mdoc:silent
+import org.http4s.dsl.impl.MatrixVar
+
 object FullNameExtractor extends MatrixVar("name", List("first", "last"))
 
 val greetingService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / FullNameExtractor(first, last) / "greeting" =>
     Ok(s"Hello, $first $last.")
 }
+```
 
+```scala mdoc
 greetingService
   .orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting"))
   .unsafeRunSync()
@@ -456,14 +473,16 @@ greetingService
 
 Like standard path parameters, matrix path parameters can be extracted as numeric types using `IntVar` or `LongVar`.
 
-```scala mdoc
+```scala mdoc:silent
 object FullNameAndIDExtractor extends MatrixVar("name", List("first", "last", "id"))
 
 val greetingWithIdService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / FullNameAndIDExtractor(first, last, IntVar(id)) / "greeting" =>
     Ok(s"Hello, $first $last. Your User ID is $id.")
 }
+```
 
+```scala mdoc
 greetingWithIdService
   .orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting"))
   .unsafeRunSync()

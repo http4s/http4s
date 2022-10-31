@@ -18,20 +18,18 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Ref
 import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
-import org.log4s.getLogger
 import org.typelevel.ci.CIString
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
-  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
+  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = logger.info(s).to[F]
 
   def apply[F[_]: Async](
       logHeaders: Boolean,
@@ -81,26 +79,37 @@ object RequestLogger {
         Resource.suspend {
           req.entity match {
             case Entity.Default(_, _) =>
-              Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+              (F.ref(false), F.ref(Vector.empty[Chunk[Byte]])).mapN { case (hasLogged, vec) =>
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
-                val logAtEnd: F[Unit] =
-                  logMessage(req.withBodyStream(newBody)).handleErrorWith { t =>
-                    F.delay(logger.error(t)("Error logging request body"))
-                  }
+                val logOnceAtEnd: F[Unit] = hasLogged
+                  .getAndSet(true)
+                  .ifM(
+                    F.unit,
+                    logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                      logger.error(t)("Error logging request body").to[F]
+                    },
+                  )
 
                 // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 val logPipe: Pipe[F, Byte, Byte] =
                   _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
-                    .onFinalizeWeak(logAtEnd)
+                    .onFinalizeWeak(logOnceAtEnd)
 
-                client.run(req.pipeBodyThrough(logPipe))
+                val resp = client.run(req.pipeBodyThrough(logPipe))
+
+                // If the request body was not consumed (ex: bodiless GET)
+                // the second best we can do is log on the response body finalizer
+                // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
+                resp
+                  .map[Response[F]](_.pipeBodyThrough(_.onFinalizeWeak(logOnceAtEnd)))
+                  .onFinalize(logOnceAtEnd)
               }
 
             case Entity.Strict(_) | Entity.Empty =>
               logMessage(req)
                 .handleErrorWith { t =>
-                  F.delay(logger.error(t)("Error logging request body"))
+                  logger.error(t)("Error logging request body").to[F]
                 }
                 .as(client.run(req))
           }

@@ -27,6 +27,7 @@ import fs2.io.net.tls._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
+import org.http4s.ember.core.Util
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -64,7 +65,7 @@ Connection
     PushPromise - Special Case only after Open or Half-closed(remote)
 
  */
-private[ember] class H2Client[F[_]: Async](
+private[ember] class H2Client[F[_]](
     sg: SocketGroup[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
@@ -77,7 +78,7 @@ private[ember] class H2Client[F[_]: Async](
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
     logger: Logger[F],
-) {
+)(implicit F: Async[F]) {
   import org.http4s._
   import H2Client._
 
@@ -85,28 +86,28 @@ private[ember] class H2Client[F[_]: Async](
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): F[H2Connection[F]] =
     connections.get.map(_.get(key).map(_._1)).flatMap {
       case Some(connection) => Applicative[F].pure(connection)
       case None =>
-        createConnection(key, useTLS, priorKnowledge).allocated.flatMap(tup =>
-          connections
-            .modify { map =>
-              val current = map.get(key)
-              val newMap = current.fold(map.+((key, tup)))(_ => map)
-              val out = current.fold(
-                Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
-              )(r => Either.right((r._1, tup._2)))
-              (newMap, out)
-            }
-            .flatMap {
-              case Right((connection, shutdown)) =>
-                // println("Using Reused Connection")
-                shutdown.map(_ => connection)
-              case Left(connection) =>
-                // println("Using Created Connection")
-                connection.pure[F]
-            }
+        createConnection(key, useTLS, priorKnowledge, enableEndpointValidation).allocated.flatMap(
+          tup =>
+            connections
+              .modify { map =>
+                val current = map.get(key)
+                val newMap = current.fold(map.+((key, tup)))(_ => map)
+                val out = current.fold(
+                  Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
+                )(r => Either.right((r._1, tup._2)))
+                (newMap, out)
+              }
+              .flatMap {
+                case Right((connection, shutdown)) =>
+                  shutdown.map(_ => connection)
+                case Left(connection) =>
+                  connection.pure[F]
+              }
         )
     }
 
@@ -115,8 +116,9 @@ private[ember] class H2Client[F[_]: Async](
       key: H2Client.RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): Resource[F, H2Connection[F]] =
-    createSocket(key, useTLS, priorKnowledge).flatMap {
+    createSocket(key, useTLS, priorKnowledge, enableEndpointValidation).flatMap {
       case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
       case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
     }
@@ -127,29 +129,20 @@ private[ember] class H2Client[F[_]: Async](
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
+      enableEndpointValidation: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- sg.client(address)
     socket <- {
       if (useTLS) {
+        val tlsParams = Util.mkClientTLSParameters(address.some, enableEndpointValidation)
         for {
           tlsSocket <- tls
             .clientBuilder(baseSocket)
-            .withParameters(
-              H2TLS.transform(TLSParameters.Default)
-            )
+            .withParameters(H2TLS.transform(tlsParams))
             .build
           _ <- Resource.eval(tlsSocket.write(Chunk.empty))
-          protocol <- Resource.eval(H2TLS.protocol(tlsSocket))
-          socketType <- protocol match {
-            case Some("h2") => Resource.pure[F, SocketType](Http2)
-            case Some("http/1.1") => Resource.pure[F, SocketType](Http1)
-            case Some(_) =>
-              Resource.raiseError[F, SocketType, Throwable](
-                new ProtocolException("Unknown protocol")
-              )
-            case None => Resource.pure[F, SocketType](Http1)
-          }
+          socketType <- Resource.eval(parseSocketType(tlsSocket))
         } yield (tlsSocket, socketType)
       } else {
         val socketType = if (priorKnowledge) Http2 else Http1
@@ -159,42 +152,48 @@ private[ember] class H2Client[F[_]: Async](
     }
   } yield socket
 
+  private def parseSocketType(tlsSocket: TLSSocket[F]): F[SocketType] =
+    H2TLS.protocol(tlsSocket).flatMap {
+      case Some("h2") => F.pure(Http2)
+      case Some("http/1.1") => F.pure(Http1)
+      case Some(_) => F.raiseError(new ProtocolException("Unknown protocol"))
+      case None => F.pure(Http1)
+    }
+
   // This Socket Becomes an Http2 Socket
   def fromSocket(
       acc: ByteVector,
       socket: Socket[F],
       key: RequestKey,
-  ): Resource[F, H2Connection[F]] =
-    for {
-      socketAdd <- Resource.eval(RequestKey.getAddress(key))
-      _ <- Resource.eval(socket.write(Chunk.byteVector(Preface.clientBV)))
-      ref <- Resource.eval(Concurrent[F].ref(Map[Int, H2Stream[F]]()))
-      initialWriteBlock <- Resource.eval(Deferred[F, Either[Throwable, Unit]])
-      stateRef <- Resource.eval(
-        Concurrent[F].ref(
-          H2Connection.State(
-            defaultSettings,
-            defaultSettings.initialWindowSize.windowSize,
-            initialWriteBlock,
-            localSettings.initialWindowSize.windowSize,
-            0,
-            0,
-            false,
-            None,
-            None,
+  ): Resource[F, H2Connection[F]] = {
+    def createH2Connection: F[H2Connection[F]] =
+      for {
+        socketAdd <- RequestKey.getAddress(key)
+        _ <- socket.write(Chunk.byteVector(Preface.clientBV))
+        ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
+        initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
+        stateRef <-
+          Concurrent[F].ref(
+            H2Connection.State(
+              defaultSettings,
+              defaultSettings.initialWindowSize.windowSize,
+              initialWriteBlock,
+              localSettings.initialWindowSize.windowSize,
+              0,
+              0,
+              false,
+              None,
+              None,
+            )
           )
-        )
-      )
-      queue <- Resource.eval(cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]]) // TODO revisit
-      hpack <- Resource.eval(Hpack.create[F])
-      settingsAck <- Resource.eval(
-        Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      )
-      streamCreationLock <- Resource.eval(cats.effect.std.Semaphore[F](1))
-      // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      closed <- Resource.eval(cats.effect.std.Queue.unbounded[F, Int])
-      h2 = new H2Connection(
+        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+        hpack <- Hpack.create[F]
+        settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+        streamCreationLock <- cats.effect.std.Semaphore[F](1)
+        // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
+        created <- cats.effect.std.Queue.unbounded[F, Int]
+        closed <- cats.effect.std.Queue.unbounded[F, Int]
+      } yield new H2Connection(
         socketAdd.host,
         socketAdd.port,
         H2Connection.ConnectionType.Client,
@@ -211,70 +210,61 @@ private[ember] class H2Client[F[_]: Async](
         socket,
         logger,
       )
+
+    def clearClosed(h2: H2Connection[F]): F[Unit] =
+      Stream
+        .fromQueueUnterminated(h2.closedStreams)
+        .repeat
+        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
+        .compile
+        .drain
+
+    def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
+      def processStream(i: Int): F[Unit] =
+        (for {
+          stream <- h2.mapRef.get.flatMap { streamMap =>
+            streamMap.get(i).liftTo(new ProtocolException("Stream missing for push promise"))
+          } // FOLD
+          // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
+          req <- stream.getRequest
+          resp = stream.getResponse.map(_.covary[F].withBodyStream(stream.readBody))
+          // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
+          outE <- onPushPromise(req, resp).flatMap {
+            case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
+            case Outcome.Succeeded(f) => f
+          }.attempt
+          _ <- h2.mapRef.update(_ - i)
+          out <- outE.liftTo[F]
+        } yield out)
+          .onError { case e => logger.warn(e)(s"Error Handling Push Promise") }
+          .attempt
+          .void
+
+      Stream
+        .fromQueueUnterminated(h2.createdStreams)
+        .parEvalMap(10)(i => if (i % 2 == 0) processStream(i) else F.unit)
+        .compile
+        .drain
+        .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
+    }
+
+    def processSettings(h2: H2Connection[F]): F[Unit] = {
+      val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+      h2.outgoing.offer(Chunk.singleton(localSetts))
+    }
+
+    for {
+      h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
       _ <- h2.writeLoop.compile.drain.background
-      _ <-
-        Stream
-          .fromQueueUnterminated(closed)
-          .repeat
-          .evalMap { i =>
-            if (i % 2 != 0) ref.update(m => m - i)
-            else Applicative[F].unit
-          }
-          .compile
-          .drain
-          .background
-      _ <-
-        Stream
-          .fromQueueUnterminated(created)
-          .parEvalMap(10) { i =>
-            val f = if (i % 2 == 0) {
-              val x = for {
-                //
-                stream <- ref.get
-                  .map(_.get(i))
-                  .flatMap(
-                    _.liftTo(new ProtocolException("Stream missing for push promise"))
-                  ) // FOLD
-                // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
-                req <- stream.getRequest
-
-                resp = stream.getResponse.map(_.withBodyStream(stream.readBody))
-                // _ <- Sync[F].delay(println(s"Push promise request acquired for $i"))
-                outE <- onPushPromise(req, resp).flatMap {
-                  case Outcome.Canceled() => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
-                  case Outcome.Succeeded(f) => f
-                }.attempt
-                _ <- ref.update(_ - i)
-                out <- outE.liftTo[F]
-              } yield out
-              x.onError { case e => logger.warn(e)(s"Error Handling Push Promise") }.attempt.void
-            } else Applicative[F].unit
-            f
-          }
-          .compile
-          .drain
-          .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
-          .background
-
-      _ <- Resource.eval(
-        h2.outgoing.offer(
-          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
-        )
-      )
-      settings <- Resource.eval(h2.settingsAck.get.rethrow)
-      _ <- Resource.eval(
-        stateRef.update(s =>
-          s.copy(
-            remoteSettings = settings,
-            writeWindow = s.remoteSettings.initialWindowSize.windowSize,
-          )
-        )
-      )
+      _ <- clearClosed(h2).background
+      _ <- pullCreatedStreams(h2).background
+      _ <- Resource.eval(processSettings(h2))
     } yield h2
+  }
 
-  def runHttp2Only(req: Request[F]): Resource[F, Response[F]] = {
+  def runHttp2Only(req: Request[F], enableEndpointValidation: Boolean): Resource[F, Response[F]] = {
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
     val useTLS = req.uri.scheme.map(_.value) match {
@@ -287,9 +277,10 @@ private[ember] class H2Client[F[_]: Async](
       case None => true
     }
     val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
-    val trailers = req.attributes.lookup(Message.Keys.TrailerHeaders[F])
     for {
-      connection <- Resource.eval(getOrCreate(key, useTLS, priorKnowledge))
+      connection <- Resource.eval(
+        getOrCreate(key, useTLS, priorKnowledge, enableEndpointValidation)
+      )
       // Stream Order Must Be Correct, so we must grab the global lock
       stream <- Resource.make(
         connection.streamCreateAndHeaders.use(_ =>
@@ -298,23 +289,8 @@ private[ember] class H2Client[F[_]: Async](
           )
         )
       )(stream => connection.mapRef.update(m => m - stream.id))
-      _ <- (req.body.chunks.noneTerminate.zipWithNext
-        .evalMap {
-          case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
-          case (Some(c), Some(None) | None) =>
-            if (trailers.isDefined) stream.sendData(c.toByteVector, false)
-            else stream.sendData(c.toByteVector, true)
-          case (None, _) =>
-            if (trailers.isDefined) Applicative[F].unit
-            else stream.sendData(ByteVector.empty, true)
-        }
-        .compile
-        .drain >> trailers.sequence.flatMap(optTrailers =>
-        optTrailers
-          .flatMap(h => h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel)
-          .traverse(nel => stream.sendHeaders(nel, true))
-      )).background
-      resp <- Resource.eval(stream.getResponse).map(_.withBodyStream(stream.readBody))
+      _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background
+      resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp
   }
 }
@@ -329,6 +305,7 @@ private[ember] object H2Client {
       tlsContext: TLSContext[F],
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
+      enableEndpointValidation: Boolean,
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
 
@@ -361,11 +338,11 @@ private[ember] object H2Client {
       val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
       val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
-        case Some(Http2) => h2.runHttp2Only(req)
+        case Some(Http2) => h2.runHttp2Only(req, enableEndpointValidation)
         case Some(Http1) => http1Client(req)
         case None =>
           (
-            h2.runHttp2Only(req) <*
+            h2.runHttp2Only(req, enableEndpointValidation) <*
               Resource.eval(socketMap.update(s => s + (key -> Http2)))
           ).handleErrorWith[org.http4s.Response[F], Throwable] {
             case InvalidSocketType() | MissingHost() | MissingPort() =>

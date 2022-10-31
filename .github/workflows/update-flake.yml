@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Nix
-        uses: cachix/install-nix-action@v16
+        uses: cachix/install-nix-action@v17
         with:
           extra_nix_config: |
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
@@ -21,6 +21,7 @@ jobs:
           app_id: 207529
           private_key: ${{ secrets.STEWARD_PRIVATE_KEY }}
       - name: Update flake.lock
-        uses: DeterminateSystems/update-flake-lock@v8
+        uses: DeterminateSystems/update-flake-lock@v14
         with:
           token: ${{ steps.generate-token.outputs.token }}
+          branch: update/flake-lock-${{ github.run_number }}

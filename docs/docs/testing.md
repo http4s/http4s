@@ -1,11 +1,11 @@
 # Testing
 
 This document implements a simple `org.http4s.HttpRoutes` and then
-walk through the results of applying inputs, i.e. `org.http4s.Request`, to the service, i.e. `org.http4s.HttpService`.
+walks through the results (i.e. `org.http4s.Response`) of applying inputs (i.e. `org.http4s.Request`) to it.
 
 After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.
 
-Now, let's define an `org.http4s.HttpService`.
+Now, let's define an `org.http4s.HttpRoutes`.
 
 ```scala mdoc:silent
 import cats.syntax.all._
@@ -26,7 +26,7 @@ import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
-```scala mdoc
+```scala mdoc:silent
 case class User(name: String, age: Int)
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
 
@@ -34,7 +34,7 @@ trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
 }
 
-def service[F[_]](repo: UserRepo[F])(
+def httpRoutes[F[_]](repo: UserRepo[F])(
       implicit F: Async[F]
 ): HttpRoutes[F] = HttpRoutes.of[F] {
   case GET -> Root / "user" / id =>
@@ -47,7 +47,7 @@ def service[F[_]](repo: UserRepo[F])(
 
 For testing, let's define a `check` function:
 
-```scala mdoc
+```scala mdoc:silent
 // Return true if match succeeds; otherwise false
 def check[A](actual:        IO[Response[IO]],
             expectedStatus: Status,
@@ -68,15 +68,18 @@ def check[A](actual:        IO[Response[IO]],
 
 Let's define service by passing a `UserRepo` that returns `Ok(user)`.
 
-```scala mdoc
+```scala mdoc:silent
 val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User("johndoe", 42)))
 }
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response: IO[Response[IO]] = httpRoutes[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = uri"/user/not-used" )
 )
 
+```
+
+```scala mdoc
 val expectedJson = Json.obj(
       "name" := "johndoe",
       "age" := 42
@@ -87,30 +90,34 @@ check[Json](response, Status.Ok, Some(expectedJson))
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
 
-```scala mdoc
+```scala mdoc:silent
 val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 }
 
-val respFoundNone: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
+val respFoundNone: IO[Response[IO]] = httpRoutes[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = uri"/user/not-used" )
 )
+```
 
+```scala mdoc
 check[Json](respFoundNone, Status.NotFound, None)
 ```
 
 Finally, let's pass a `Request` which our service does not handle.
 
-```scala mdoc
+```scala mdoc:silent
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] =
     IO.raiseError(new RuntimeException("Should not get called!"))
 }
 
-val respNotFound: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
+val respNotFound: IO[Response[IO]] = httpRoutes[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = uri"/not-a-matching-path" )
 )
+```
 
+```scala mdoc
 check[String](respNotFound, Status.NotFound, Some("Not found"))
 ```
 
@@ -118,13 +125,13 @@ check[String](respNotFound, Status.NotFound, Some("Not found"))
 
 Having HttpApp you can build a client for testing purposes. Following the example above we could define our HttpApp like this:
 
-```scala mdoc
-val httpApp: HttpApp[IO] = service[IO](success).orNotFound
+```scala mdoc:silent
+val httpApp: HttpApp[IO] = httpRoutes[IO](success).orNotFound
 ```
 
 From this, we can obtain the `Client` instance using `Client.fromHttpApp` and then use it to test our sever/app.
 
-```scala mdoc
+```scala mdoc:silent
 import org.http4s.client.Client
 
 val request: Request[IO] = Request(method = Method.GET, uri = uri"/user/not-used")
@@ -136,7 +143,7 @@ assert(resp.unsafeRunSync() == expectedJson)
 
 ## Conclusion
 
-The above documentation demonstrated how to define an `HttpService[F]`, pass `Request`'s, and then
+The above documentation demonstrated how to define an `HttpRoutes[F]`, pass `Request`'s, and then
 test the expected `Response`.
 
 To add unit tests in your chosen Scala Testing Framework, please follow the above examples.

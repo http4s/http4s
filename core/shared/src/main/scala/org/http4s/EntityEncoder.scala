@@ -57,7 +57,7 @@ trait EntityEncoder[+F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]],
+  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
     * if defined the headers
     */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
@@ -101,14 +101,12 @@ object EntityEncoder {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder.Pure[A] =
-    encodeBy(hs: _*)(a => Entity.strict(toChunk(a)))
+  def simple[A](hs: Header.ToRaw*)(toByteVector: A => ByteVector): EntityEncoder.Pure[A] =
+    encodeBy(hs: _*)(a => Entity.strict(toByteVector(a)))
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[A](implicit charset: Charset = `UTF-8`, show: Show[A]): EntityEncoder.Pure[A] = {
-    val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple[A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
-  }
+  def showEncoder[A](implicit charset: Charset = `UTF-8`, show: Show[A]): EntityEncoder.Pure[A] =
+    stringEncoder.contramap(show.show)
 
   def emptyEncoder[A]: EntityEncoder.Pure[A] =
     new EntityEncoder[fs2.Pure, A] {
@@ -141,7 +139,7 @@ object EntityEncoder {
 
   implicit def stringEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
-    simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
+    simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder(implicit
@@ -149,14 +147,14 @@ object EntityEncoder {
   ): EntityEncoder.Pure[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
-  implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
+  implicit val byteVectorEncoder: EntityEncoder.Pure[ByteVector] =
     simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
-  implicit val byteArrayEncoder: EntityEncoder.Pure[Array[Byte]] =
-    chunkEncoder.contramap(Chunk.array[Byte])
+  implicit val chunkEncoder: EntityEncoder.Pure[Chunk[Byte]] =
+    byteVectorEncoder.contramap(_.toByteVector)
 
-  implicit def byteVectorEncoder[F[_]]: EntityEncoder[F, ByteVector] =
-    chunkEncoder.contramap(Chunk.byteVector)
+  implicit val byteArrayEncoder: EntityEncoder.Pure[Array[Byte]] =
+    byteVectorEncoder.contramap(ByteVector.view)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know

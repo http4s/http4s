@@ -20,6 +20,7 @@ import cats._
 import cats.data._
 import cats.syntax.all._
 import org.http4s._
+import org.typelevel.ci.CIString
 
 /** HTTP/2 pseudo headers */
 private[h2] object PseudoHeaders {
@@ -47,13 +48,15 @@ private[h2] object PseudoHeaders {
       (SCHEME, req.uri.scheme.map(_.value).getOrElse("https"), false) ::
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
-        req.headers.headers.map(raw =>
-          (
-            raw.name.toString.toLowerCase(),
-            raw.value,
-            org.http4s.Headers.SensitiveHeaders.contains(raw.name),
-          )
-        ): _*
+        req.headers.headers
+          .filterNot(p => connectionHeadersFields.contains(p.name))
+          .map(raw =>
+            (
+              raw.name.toString.toLowerCase(),
+              raw.value,
+              org.http4s.Headers.SensitiveHeaders.contains(raw.name),
+            )
+          ): _*
     )
     l
   }
@@ -123,6 +126,7 @@ private[h2] object PseudoHeaders {
     NonEmptyList(
       (STATUS, response.status.code.toString, false),
       response.headers.headers
+        .filterNot(p => connectionHeadersFields.contains(p.name))
         .map(raw =>
           (
             raw.name.toString.toLowerCase,
@@ -162,4 +166,15 @@ private[h2] object PseudoHeaders {
     }.toOption
       .flatten
 
+  // Connection Specific Headers should be removed when doing h2
+  // This is because connection mechanisms are handled by h2
+  // rather than request/response cycle.
+  // https://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2.2
+  val connectionHeadersFields: Set[CIString] = Set(
+    org.http4s.headers.`Transfer-Encoding`.headerInstance.name,
+    org.http4s.headers.Connection.headerInstance.name,
+    org.http4s.headers.Upgrade.headerInstance.name,
+    org.http4s.headers.`Keep-Alive`.headerInstance.name,
+    CIString("Proxy-Connection"),
+  )
 }

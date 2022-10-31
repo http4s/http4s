@@ -30,6 +30,8 @@ import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
 import org.http4s.syntax.all._
 
+import scala.annotation.nowarn
+
 class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val app = HttpRoutes
     .of[IO] {
@@ -156,7 +158,9 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should fetch request tasks with expect") {
-    client.expect[String](IO.pure(req)).assertEquals("hello")
+    @nowarn("cat=deprecation")
+    val test = client.expect[String](IO.pure(req)).assertEquals("hello")
+    test
   }
 
   test("Client should fetch request tasks with expectOr") {
@@ -172,7 +176,9 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should status returns the status for a request task") {
-    client.status(IO.pure(req)).assertEquals(Status.Ok)
+    @nowarn("cat=deprecation")
+    val test = client.status(IO.pure(req)).assertEquals(Status.Ok)
+    test
   }
 
   test("Client should successful returns the success of the status for a request") {
@@ -180,7 +186,9 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should successful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assert
+    @nowarn("cat=deprecation")
+    val test = client.successful(IO.pure(req)).assert
+    test
   }
 
   test("Client should status returns the status for a request") {
@@ -188,7 +196,9 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should status returns the status for a request task") {
-    client.status(IO.pure(req)).assertEquals(Status.Ok)
+    @nowarn("cat=deprecation")
+    val test = client.status(IO.pure(req)).assertEquals(Status.Ok)
+    test
   }
 
   test("Client should successful returns the success of the status for a request") {
@@ -196,7 +206,9 @@ class ClientSyntaxSuite extends Http4sSuite with Http4sClientDsl[IO] {
   }
 
   test("Client should successful returns the success of the status for a request task") {
-    client.successful(IO.pure(req)).assert
+    @nowarn("cat=deprecation")
+    val test = client.successful(IO.pure(req)).assert
+    test
   }
 
   test(

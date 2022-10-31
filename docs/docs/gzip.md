@@ -31,14 +31,16 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 Let's start by making a simple service that returns a (relatively) large string
 in its body. We'll use `as[String]` to examine the body.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("I repeat myself when I'm under stress. " * 3)
 }
 
 val request = Request[IO](Method.GET, uri"/")
+```
 
+```scala mdoc
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = service.orNotFound(request).unsafeRunSync()
 val body = response.as[String].unsafeRunSync()
@@ -47,10 +49,12 @@ body.length
 
 Now we can wrap the service in the `GZip` middleware.
 
-```scala mdoc
+```scala mdoc:silent
 import org.http4s.server.middleware._
 val serviceZip = GZip(service)
+```
 
+```scala mdoc
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val respNormal = serviceZip.orNotFound(request).unsafeRunSync()
 val bodyNormal = respNormal.as[String].unsafeRunSync()

@@ -63,32 +63,30 @@ object Timeout {
     * @param timeout Finite duration to wait before returning
     * a `503 Service Unavailable` response
     */
-  def apply[F[_], G[_], A](timeout: FiniteDuration)(http: Kleisli[F, A, Response[G]])(implicit
-      F: Temporal[F]
+  def apply[F[_]: Temporal, G[_], A](timeout: FiniteDuration)(
+      http: Kleisli[F, A, Response[G]]
   ): Kleisli[F, A, Response[G]] =
     apply(timeout, Response.timeout[G].pure[F])(http)
 
   /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)*]], but for HttpRoutes */
-  def httpRoutes[F[_]](timeout: FiniteDuration)(httpRoutes: HttpRoutes[F])(implicit
-      F: Temporal[F]
+  def httpRoutes[F[_]: Temporal](timeout: FiniteDuration)(
+      httpRoutes: HttpRoutes[F]
   ): HttpRoutes[F] =
     apply(timeout)(httpRoutes)
 
   /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse*]], but for HttpRoutes */
-  def httpRoutes[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
+  def httpRoutes[F[_]: Temporal](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
       httpRoutes: HttpRoutes[F]
-  )(implicit F: Temporal[F]): HttpRoutes[F] =
+  ): HttpRoutes[F] =
     apply(timeout, OptionT.liftF(timeoutResponse))(httpRoutes)
 
   /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration)*]], but for HttpApp */
-  def httpApp[F[_]](timeout: FiniteDuration)(httpApp: HttpApp[F])(implicit
-      F: Temporal[F]
-  ): HttpApp[F] =
+  def httpApp[F[_]: Temporal](timeout: FiniteDuration)(httpApp: HttpApp[F]): HttpApp[F] =
     apply(timeout)(httpApp)
 
   /** This is the same as [[apply[F[_],G[_],A](timeout:scala\.concurrent\.duration\.FiniteDuration,timeoutResponse*]], but for HttpApp */
-  def httpApp[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(httpApp: HttpApp[F])(
-      implicit F: Temporal[F]
+  def httpApp[F[_]: Temporal](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
+      httpApp: HttpApp[F]
   ): HttpApp[F] =
     apply(timeout, timeoutResponse)(httpApp)
 }

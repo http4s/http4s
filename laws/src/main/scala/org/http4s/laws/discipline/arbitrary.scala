@@ -39,6 +39,7 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -864,7 +865,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
     val strictEntityGen =
       http4sTestingGenForPureByteStream
-        .map(body => Entity.strict(body.compile.to(fs2.Chunk)))
+        .map(body => Entity.strict(body.compile.to(ByteVector)))
 
     val chunkedEntityGen =
       http4sTestingGenForPureByteStream
@@ -1135,6 +1136,15 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val arbitraryCrossOriginResourcePolicy: Arbitrary[`Cross-Origin-Resource-Policy`] =
+    Arbitrary[`Cross-Origin-Resource-Policy`](
+      Gen.oneOf(
+        `Cross-Origin-Resource-Policy`.SameSite,
+        `Cross-Origin-Resource-Policy`.SameOrigin,
+        `Cross-Origin-Resource-Policy`.CrossOrigin,
+      )
+    )
 
   val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
   val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)

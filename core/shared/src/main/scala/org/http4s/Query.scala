@@ -31,7 +31,6 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
 import java.nio.charset.StandardCharsets
-import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
@@ -144,13 +143,15 @@ final class Query private (value: Either[Vector[KeyValue], String])
     * none exist, the empty `String` "" is returned.
     */
   lazy val params: Map[String, String] =
-    multiParams.view.mapValues(_.headOption.getOrElse("")).toMap
+    multiParams.map { case (k, v) =>
+      k -> v.headOption.getOrElse("")
+    }
 
-  /** `Map[String, Seq[String]]` representation of the [[Query]]
+  /** `Map[String, List[String]]` representation of the [[Query]]
     *
-    * Params are represented as a `Seq[String]` and may be empty.
+    * Params are represented as a `List[String]` and may be empty.
     */
-  lazy val multiParams: Map[String, immutable.Seq[String]] =
+  lazy val multiParams: Map[String, List[String]] =
     if (toVector.isEmpty) Map.empty
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]

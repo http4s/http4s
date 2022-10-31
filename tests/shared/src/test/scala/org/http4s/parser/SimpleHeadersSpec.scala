@@ -144,7 +144,7 @@ class SimpleHeadersSpec extends Http4sSuite {
     assertEquals(ETag.EntityTag("hash", Weak).toString(), "W/\"hash\"")
     assertEquals(ETag.EntityTag("hash", Strong).toString(), "\"hash\"")
 
-    val headers = Seq("\"hash\"", "W/\"hash\"")
+    val headers = List("\"hash\"", "W/\"hash\"")
 
     headers.foreach { header =>
       assertEquals(ETag.parse(header).map(_.value), Right(header))
@@ -152,7 +152,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("SimpleHeaders should parse If-None-Match") {
-    val headers = Seq(
+    val headers = List(
       `If-None-Match`(EntityTag("hash")),
       `If-None-Match`(EntityTag("123-999")),
       `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
@@ -165,7 +165,7 @@ class SimpleHeadersSpec extends Http4sSuite {
   }
 
   test("parse Max-Forwards") {
-    val headers = Seq(
+    val headers = List(
       `Max-Forwards`.unsafeFromLong(0),
       `Max-Forwards`.unsafeFromLong(100),
     )

@@ -84,9 +84,7 @@ useful on client requests:
 
 ```scala mdoc:silent
 import org.http4s.client.dsl.io._
-```
 
-```scala mdoc
 POST(json"""{"name": "Alice"}""", uri"/hello")
 ```
 
@@ -255,7 +253,7 @@ val server = EmberServerBuilder
 
 We start a server resource in the background.
 
-```scala mdoc
+```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
@@ -268,16 +266,16 @@ import org.http4s.client.dsl.io._
 import org.http4s.ember.client._
 import cats.effect.IO
 import io.circe.generic.auto._
-import fs2.Stream
 
-// Decode the Hello response
-def helloClient(name: String): Stream[IO, Hello] = {
+def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
   // Create a client
-  Stream.resource(EmberClientBuilder.default[IO].build).flatMap { httpClient =>
+  // Note: this client is used exactly once, and discarded
+  // Ideally you should .build.use it once, and share it for multiple requests
+  EmberClientBuilder.default[IO].build.use { httpClient =>
     // Decode a Hello response
-    Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
+    httpClient.expect(req)(jsonOf[IO, Hello])
   }
 }
 ```
@@ -286,8 +284,7 @@ Finally, we post `User("Alice")` to our Hello service and expect
 `Hello("Alice")` back:
 
 ```scala mdoc
-val helloAlice = helloClient("Alice")
-helloAlice.compile.last.unsafeRunSync()
+helloClient("Alice").unsafeRunSync()
 ```
 
 Finally, shut down our example server.

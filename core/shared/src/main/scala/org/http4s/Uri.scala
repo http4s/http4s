@@ -50,8 +50,8 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.charset.{Charset => JCharset}
-import scala.collection.immutable
 import scala.math.Ordered
+import scala.util.hashing.MurmurHash3
 
 /** Representation of the [[Request]] URI
   *
@@ -123,23 +123,23 @@ final case class Uri(
   /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the
-    * sequence will be empty. If the value is empty the the sequence contains an
+    * list will be empty. If the value is empty the the list contains an
     * empty string.
     *
     * =====Examples=====
     * <table>
     * <tr><th>Query String</th><th>Map</th></tr>
-    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
-    * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
-    * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
-    * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> List("v"))</code></td></tr>
+    * <tr><td><code>?param=</code></td><td><code>Map("param" -> List(""))</code></td></tr>
+    * <tr><td><code>?param</code></td><td><code>Map("param" -> List())</code></td></tr>
+    * <tr><td><code>?=value</code></td><td><code>Map("" -> List("value"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> List("v1","v2"), "p2" -> List("v3","v4"))</code></td></tr>
     * </table>
     *
     * The query string is lazily parsed. If an error occurs during parsing
     * an empty `Map` is returned.
     */
-  def multiParams: Map[String, immutable.Seq[String]] = query.multiParams
+  def multiParams: Map[String, List[String]] = query.multiParams
 
   /** View of the head elements of the URI parameters in query string.
     *
@@ -337,10 +337,11 @@ object Uri extends UriPlatform {
       this.segments == path.segments && path.absolute == this.absolute && path.endsWithSlash == this.endsWithSlash
 
     override def hashCode(): Int = {
-      var hash = segments.hashCode()
-      hash += 31 * absolute.hashCode()
-      hash += 31 * endsWithSlash.hashCode()
-      hash
+      var hash = Path.hashSeed
+      hash = MurmurHash3.mix(hash, segments.##)
+      hash = MurmurHash3.mix(hash, absolute.##)
+      hash = MurmurHash3.mix(hash, endsWithSlash.##)
+      MurmurHash3.finalizeHash(hash, 3)
     }
 
     def render(writer: Writer): writer.type = {
@@ -360,12 +361,36 @@ object Uri extends UriPlatform {
       */
     def /[A: Path.SegmentEncoder](segment: A): Path = addSegment[A](segment)
 
-    def addSegment(segment: Path.Segment): Path = addSegments(List(segment))
+    def addSegment(segment: Path.Segment): Path = {
+      val segments = this.segments :+ segment
+      val endsWithSlash = if (segment.isEmpty) this.endsWithSlash else false
+      Path(
+        segments = segments,
+        absolute = absolute || this.segments.isEmpty,
+        endsWithSlash = endsWithSlash,
+      )
+    }
+
     def addSegment[A](segment: A)(implicit encoder: Path.SegmentEncoder[A]): Path =
-      addSegments(List(encoder.toSegment(segment)))
+      addSegment(encoder.toSegment(segment))
 
     def addSegments(value: Seq[Path.Segment]): Path =
-      Path(this.segments ++ value, absolute = absolute || this.segments.isEmpty)
+      if (value.isEmpty) this
+      else {
+        val segments = this.segments ++ value
+        val endsWithSlash = value match {
+          case Nil | Seq(Path.Segment.empty) =>
+            this.endsWithSlash
+          case _ =>
+            false
+        }
+
+        Path(
+          segments = segments,
+          absolute = absolute || this.segments.isEmpty,
+          endsWithSlash = endsWithSlash,
+        )
+      }
 
     def normalize: Path = Path(segments.filterNot(_.isEmpty))
 
@@ -400,13 +425,13 @@ object Uri extends UriPlatform {
     def splitAt(idx: Int): (Path, Path) =
       if (idx <= 0) {
         (Path.empty, this)
-      } else if (idx < segments.size) {
+      } else if (segments.sizeIs > idx) {
         val (start, end) = segments.splitAt(idx)
         (
           Path(start, absolute = absolute),
           Path(end, absolute = true, endsWithSlash = endsWithSlash),
         )
-      } else if (idx == segments.size) {
+      } else if (segments.sizeIs == idx) {
         (Path(segments, absolute = absolute), if (endsWithSlash) Path.Root else Path.empty)
       } else {
         (this, Path.empty)
@@ -429,6 +454,9 @@ object Uri extends UriPlatform {
     val Root: Path = new Path(Vector.empty, absolute = true, endsWithSlash = true)
     lazy val Asterisk: Path =
       new Path(Vector(Segment("*")), absolute = false, endsWithSlash = false)
+
+    private val hashSeed: Int =
+      MurmurHash3.mix(MurmurHash3.productSeed, "Uri.Path".##)
 
     final class Segment private (val encoded: String) {
       def isEmpty = encoded.isEmpty
@@ -546,8 +574,9 @@ object Uri extends UriPlatform {
           )
       }
 
-    implicit val http4sInstancesForPath: Order[Path] with Semigroup[Path] =
-      new Order[Path] with Semigroup[Path] {
+    def http4sInstancesForPath: Order[Path] with Semigroup[Path] = http4sInstancesForPathBinCompat
+    implicit val http4sInstancesForPathBinCompat: Order[Path] with Semigroup[Path] with Hash[Path] =
+      new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
           def comparePaths[A: Order](focus: Path => A): Int =
             compareField(x, y, focus)
@@ -559,6 +588,8 @@ object Uri extends UriPlatform {
         }
 
         def combine(x: Path, y: Path): Path = x.concat(y)
+
+        def hash(x: Path): Int = x.##
       }
 
   }
@@ -647,6 +678,12 @@ object Uri extends UriPlatform {
   }
 
   object Host {
+
+    def fromString(s: String): ParseResult[Host] =
+      ParseResult.fromParser(Parser.host, "Invalid host")(s)
+
+    def unsafeFromString(s: String): Host =
+      fromString(s).fold(throw _, identity)
 
     /** Create a [[Host]] value from an [[com.comcast.ip4s.IpAddress]].
       *

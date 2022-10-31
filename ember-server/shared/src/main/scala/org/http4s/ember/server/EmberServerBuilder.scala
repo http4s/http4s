@@ -33,12 +33,10 @@ import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
-import org.http4s.websocket.WebSocketContext
-import org.typelevel.vault.Key
 
 import scala.concurrent.duration._
 
-final class EmberServerBuilder[F[_]: Async] private (
+final class EmberServerBuilder[F[_]: Async: Network] private (
     val host: Option[Host],
     val port: Port,
     private val httpApp: WebSocketBuilder[F] => HttpApp[F],
@@ -173,7 +171,7 @@ final class EmberServerBuilder[F[_]: Async] private (
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
-      wsKey <- Resource.eval(Key.newKey[F, WebSocketContext[F]])
+      wsBuilder <- Resource.eval(WebSocketBuilder[F])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -182,7 +180,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               port,
               additionalSocketOptions,
               sg,
-              httpApp(WebSocketBuilder(wsKey)),
+              httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
               shutdown,
@@ -194,7 +192,7 @@ final class EmberServerBuilder[F[_]: Async] private (
               requestHeaderReceiveTimeout,
               idleTimeout,
               logger,
-              wsKey,
+              wsBuilder.webSocketKey,
               enableHttp2,
             )
             .compile
@@ -207,7 +205,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
-            httpApp(WebSocketBuilder(wsKey)),
+            httpApp(wsBuilder),
             tlsInfoOpt,
             ready,
             shutdown,
@@ -219,7 +217,7 @@ final class EmberServerBuilder[F[_]: Async] private (
             requestHeaderReceiveTimeout,
             idleTimeout,
             logger,
-            wsKey,
+            wsBuilder.webSocketKey,
             enableHttp2,
           )
           .compile
@@ -236,7 +234,7 @@ final class EmberServerBuilder[F[_]: Async] private (
 }
 
 object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
-  def default[F[_]: Async]: EmberServerBuilder[F] =
+  def default[F[_]: Async: Network]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -256,6 +254,10 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       None,
       false,
     )
+
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
+    default(async, Network.forAsync(async))
 
   private object Defaults {
     val host: String = server.defaults.IPv4Host

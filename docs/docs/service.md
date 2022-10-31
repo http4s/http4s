@@ -6,7 +6,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.8" // Also supports 2.12.x and 3.x
+scalaVersion := "2.13.8" // Also supports 3.x
 
 val http4sVersion = "@VERSION@"
 
@@ -19,8 +19,6 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-ember-client" % http4sVersion
 )
 
-// Uncomment if you're using Scala 2.12.x
-// scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [mdoc].  Each page
@@ -64,7 +62,7 @@ matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
-```scala mdoc
+```scala mdoc:silent
 val helloWorldService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -85,7 +83,7 @@ We've defined `tweetsEncoder` as being implicit so that we don't need to explici
 reference it when serving the response, which can be seen as
 `getPopularTweets().flatMap(Ok(_))`.
 
-```scala mdoc
+```scala mdoc:silent
 case class Tweet(id: Int, message: String)
 
 implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
@@ -127,7 +125,7 @@ import org.http4s.server.Router
 import scala.concurrent.duration._
 ```
 
-```scala mdoc
+```scala mdoc:silent
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val server = EmberServerBuilder
@@ -142,7 +140,7 @@ The `withHttpApp` call associates the specified routes with this http server ins
 
 We start a server resource in the background.
 
-```scala mdoc
+```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
@@ -156,7 +154,7 @@ $ curl http://localhost:8080/hello/Pete
 
 We can shut down the server by canceling its fiber.
 
-```scala mdoc
+```scala mdoc:silent
 shutdown.unsafeRunSync()
 ```
 

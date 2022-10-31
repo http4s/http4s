@@ -34,7 +34,6 @@ import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Uri
-import org.log4s.getLogger
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -59,7 +58,7 @@ private[http4s] class NettyTestServer[F[_]](
 }
 
 private[http4s] object NettyTestServer {
-  private val logger = getLogger(this.getClass)
+  private val logger = org.http4s.Platform.loggerFactory.getLoggerFromClass(this.getClass)
 
   def apply[F[_]: Async](
       port: Int,
@@ -78,7 +77,7 @@ private[http4s] object NettyTestServer {
       .handler(new LoggingHandler(LogLevel.INFO))
       .childHandler(new ChannelInitializer[NioSocketChannel]() {
         def initChannel(ch: NioSocketChannel): Unit = {
-          logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].")
+          logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].").unsafeRunSync()
           dispatcher.unsafeRunSync(establishedConnections.update(_ + 1))
           sslContext.foreach { sslContext =>
             val engine = sslContext.createSSLEngine()

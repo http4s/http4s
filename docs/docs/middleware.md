@@ -1,14 +1,13 @@
 # Middleware
 
-A middleware is a wrapper around a [service] that provides a means of manipulating
+A middleware is an abstraction around a [service] that provides a means of manipulating
 the `Request` sent to service, and/or the `Response` returned by the service. In
 some cases, such as [Authentication], middleware may even prevent the service
 from being called.
 
-At its most basic, middleware is simply a function that takes one `Service` as a
-parameter and returns another `Service`. In addition to the `Service`, the middleware
-function can take any additional parameters it needs to perform its task. Let's look
-at a simple example.
+At its most basic, middleware is a function that takes one service
+and returns another. The middleware function can take any additional parameters 
+it needs to perform its task. Let's look at a simple example.
 
 For this, we'll need a dependency on the http4s [dsl].
 
@@ -37,15 +36,14 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 ```
 
 Then, we can create a middleware that adds a header to successful responses from
-the wrapped service like this.
+the underlying `HttpRoutes` like this.
 
 ```scala mdoc
 def myMiddle(service: HttpRoutes[IO], header: Header.ToRaw): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
-    case resp =>
-      resp
+    case resp => resp
   }
 }
 ```
@@ -55,41 +53,46 @@ which returns an `F[Response]`. So, we use `map` to get the request out of the t
 add the header if the response is a success, and then pass the response on. We could
 just as easily modify the request before we passed it to the service.
 
-Now, let's create a simple service. As mentioned between [service] and [dsl], because `Service`
+Now, let's create a simple service. As mentioned between [service] and [dsl], because `HttpRoutes`
 is implemented as a [`Kleisli`], which is just a function at heart, we can test a
-service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
+service without a server. Due to an `HttpRoutes[F]` returns a `F[Response[F]]`,
 we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
+Note that basically, you shouldn't use `unsafeRunSync` in your application. 
+Here we use it for demo reasons only.
 
-```scala mdoc
+```scala mdoc:silent
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
-  case _ =>
-    Ok()
+  case _ => Ok()
 }
 
 val goodRequest = Request[IO](Method.GET, uri"/")
 val badRequest = Request[IO](Method.GET, uri"/bad")
+```
 
+```scala mdoc
 service.orNotFound(goodRequest).unsafeRunSync()
 service.orNotFound(badRequest).unsafeRunSync()
 ```
 
-Now, we'll wrap the service in our middleware to create a new service, and try it out.
+Now, we'll apply the service to our middleware function to create a new service, and try it out.
+
+```scala mdoc:silent
+val modifiedService = myMiddle(service, "SomeKey" -> "SomeValue");
+```
 
 ```scala mdoc
-val wrappedService = myMiddle(service, "SomeKey" -> "SomeValue");
-
-wrappedService.orNotFound(goodRequest).unsafeRunSync()
-wrappedService.orNotFound(badRequest).unsafeRunSync()
+modifiedService.orNotFound(goodRequest).unsafeRunSync()
+modifiedService.orNotFound(badRequest).unsafeRunSync()
 ```
 
 Note that the successful response has your header added to it.
 
-If you intend to use you middleware in multiple places,  you may want to implement
+If you intend to use you middleware in multiple places, you may want to implement
 it as an `object` and use the `apply` method.
 
-```scala mdoc
+```scala mdoc:silent
 object MyMiddle {
   def addHeader(resp: Response[IO], header: Header.ToRaw) =
     resp match {
@@ -102,37 +105,47 @@ object MyMiddle {
 }
 
 val newService = MyMiddle(service, "SomeKey" -> "SomeValue")
+```
 
+```scala mdoc
 newService.orNotFound(goodRequest).unsafeRunSync()
 newService.orNotFound(badRequest).unsafeRunSync()
 ```
 
-It is possible for the wrapped `Service` to have different `Request` and `Response`
-types than the middleware. Authentication is, again, a good example. Authentication
-middleware is an `HttpService` (an alias for `Service[Request, Response]`) that wraps an `
-AuthedService` (an alias for `Service[AuthedRequest[T], Response]`. There is a type
-defined for this in the `http4s.server` package:
+Let's consider Authentication middleware as an example. Authentication
+middleware is a function that takes `AuthedRoutes[F]` 
+(that translates to `AuthedRequest[F, T] => F[Option[Response[F]]]`) 
+and returns `HttpRoutes[F]` (that translates to `Request[F] => F[Option[Response[F]]]`). 
+There is a type defined for this in the `http4s.server` package:
 
 ```scala
-type AuthMiddleware[F, T] = Middleware[AuthedRequest[F, T], Response[F], Request[F], Response[F]]
+type AuthMiddleware[F[_], T] = Middleware[OptionT[F, *], AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 ```
 See the [Authentication] documentation for more details.
 
 ## Composing Services with Middleware
-Because middleware returns a `Service`, you can compose services wrapped in
-middleware with other, unwrapped, services, or services wrapped in other middleware.
-You can also wrap a single service in multiple layers of middleware. For example:
+Since middleware returns a [`Kleisli`], you can compose it with another middleware.
+Additionally, you can compose services before applying the middleware function, 
+and/or compose services with the service obtained by applying some middleware function. 
+For example:
 
-```scala mdoc
+```scala mdoc:silent
 val apiService = HttpRoutes.of[IO] {
   case GET -> Root / "api" =>
     Ok()
 }
 
-val aggregateService = apiService <+> MyMiddle(service, "SomeKey" -> "SomeValue")
+val anotherService = HttpRoutes.of[IO] {
+  case GET -> Root / "another" =>
+    Ok()
+}
+
+val aggregateService = apiService <+> MyMiddle(service <+> anotherService, "SomeKey" -> "SomeValue")
 
 val apiRequest = Request[IO](Method.GET, uri"/api")
+```
 
+```scala mdoc
 aggregateService.orNotFound(goodRequest).unsafeRunSync()
 aggregateService.orNotFound(apiRequest).unsafeRunSync()
 ```

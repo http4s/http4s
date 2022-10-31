@@ -22,6 +22,9 @@
 [HiFi](https://hi.fi/)
 : Uses http4s for internal web services
 
+[Hireproof](https://hireproof.io/)
+: Uses http4s-server for its JSON API as well as http4s-client to consume external services
+
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
@@ -92,6 +95,9 @@
 
 [rho](https://github.com/http4s/rho)
 : A self-documenting DSL built on http4s
+
+[scala k8s](https://github.com/hnaderi/scala-k8s)
+: Kubernetes client, data models and typesafe manifest generation for scala, scalajs, and scala native; with support for http4s clients on all platforms 
 
 [tsec](https://github.com/jmcardon/tsec)
 : A type-safe, functional, general purpose security and cryptography library
