@@ -27,9 +27,12 @@ import org.typelevel.ci._
   *
   * @param length the length
   */
-final case class `Content-Length`(length: Long) {
+final case class `Content-Length`(length: Long) extends Header.AsRaw1 {
   def modify(f: Long => Long): Option[`Content-Length`] =
     `Content-Length`.fromLong(f(length)).toOption
+
+  lazy val asRaw1: Header.Raw =
+    Header.Raw(`Content-Length`.name, `Content-Length`.headerInstance.value(this))
 }
 
 object `Content-Length` {

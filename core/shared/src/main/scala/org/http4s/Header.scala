@@ -179,9 +179,30 @@ object Header {
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
+    )(implicit convert: H => ToRaw with Primitive): Header.ToRaw =
+      scalaCollectionListToRaw(h.toList)
+
+    implicit def scalaCollectionListToRaw[H](
+        h: List[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values: List[Raw] = {
+        val result = List.newBuilder[Raw]
+        h.foreach { v =>
+          result ++= convert(v).values
+        }
+        result.result()
+      }
     }
+  }
+
+  /** Abstracts over headers that can be cached. The most common use case would be
+    * extending a modelled header (e.g. Accept-Encoding), extending the class
+    * and overriding asRaw1 using lazy val.
+    * This enables better efficiency when the same 'static' header is added to the headers
+    * of many responses, as it's not re-created on every single response.
+    */
+  trait AsRaw1 {
+    def asRaw1: Header.Raw
   }
 
   /** Abstracts over Single and Recurring Headers
