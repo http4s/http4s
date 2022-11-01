@@ -171,7 +171,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
       start: String,
       separator: String,
       end: String,
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactWhen: CIString => Boolean,
   ): String =
     headers.iterator
       .map {
@@ -190,9 +190,9 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
     *                      of all headers separated by the string `separator`. Sensitive headers'
     *                      values are redacted with the `redactWhen` function.
     */
-  def mkStringSeparatedBy(
+  def mkString(
       separator: String,
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactWhen: CIString => Boolean,
   ): String =
     headers.iterator
       .map {

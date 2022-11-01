@@ -124,23 +124,16 @@ class HeadersSpec extends Http4sSuite {
     val expectedString1 = "Headers(Header-One: value one, Header-Two: value two)"
     val expectedString2 =
       "Headers(Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>)"
+    val expectedString3 = "Header-One: value one, Header-Two: value two"
+    val expectedString4 = "Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>"
 
-    assertEquals(h1.mkString("Headers(", ", ", ")"), expectedString1)
-    assertEquals(h2.mkString("Headers(", ", ", ")", _.toString == "Header-Three"), expectedString2)
-  }
-
-  test("Headers#mkStringSeparatedBy") {
-    val h1 = Headers("Header-One" -> "value one", "Header-Two" -> "value two")
-    val h2 = Headers(
-      "Header-One" -> "value one",
-      "Header-Two" -> "value two",
-      "Header-Three" -> "value three",
+    assertEquals(
+      h1.mkString("Headers(", ", ", ")", Headers.SensitiveHeaders.contains),
+      expectedString1,
     )
-    val expectedString1 = "Header-One: value one, Header-Two: value two"
-    val expectedString2 = "Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>"
-
-    assertEquals(h1.mkStringSeparatedBy(", "), expectedString1)
-    assertEquals(h2.mkStringSeparatedBy(", ", _.toString == "Header-Three"), expectedString2)
+    assertEquals(h2.mkString("Headers(", ", ", ")", _.toString == "Header-Three"), expectedString2)
+    assertEquals(h1.mkString(", ", Headers.SensitiveHeaders.contains), expectedString3)
+    assertEquals(h2.mkString(", ", _.toString == "Header-Three"), expectedString4)
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)

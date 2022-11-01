@@ -58,7 +58,7 @@ object Retry {
       logRetries: Boolean = true,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
-      val headers = request.headers.mkStringSeparatedBy(",", redactWhen)
+      val headers = request.headers.mkString(",", redactWhen)
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
