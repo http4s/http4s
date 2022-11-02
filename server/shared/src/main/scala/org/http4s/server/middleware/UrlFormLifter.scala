@@ -28,7 +28,7 @@ import cats.~>
   *
   * The params are merged into the existing paras _after_ the existing query params. This
   * means that if the query already contains the pair "foo" -> Some("bar"), parameters on
-  * the body must be acessed through `multiParams`.
+  * the body must be accessed through `multiParams`.
   */
 object UrlFormLifter {
   def apply[F[_]: Sync, G[_]: Concurrent](f: G ~> F)(
