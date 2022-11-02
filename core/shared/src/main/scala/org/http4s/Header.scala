@@ -128,7 +128,7 @@ object Header {
     * headers and key-value pairs.
     *
     * A method taking variadic `ToRaw` arguments will allow taking
-    * heteregenous arguments, provided they are either:
+    * heterogeneous arguments, provided they are either:
     *
     * - A value of type `A`  which has a `Header[A]` in scope
     * - A (name, value) pair of `String`, which is treated as a `Recurring` header
