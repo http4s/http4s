@@ -140,7 +140,9 @@ private[ember] object Encoder {
         }
 
         if (
-          !appliedContentLength && req.body == EmptyBody && !NoPayloadMethods.contains(req.method)
+          !appliedContentLength && req.entity == Entity.Empty && !NoPayloadMethods.contains(
+            req.method
+          )
         ) {
           stringBuilder.append(zeroContentLengthRaw).append(CRLF)
           chunked = false
