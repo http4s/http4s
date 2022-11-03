@@ -12,9 +12,9 @@ include:
   syntactically correct, but semantically incorrect.  A well-formed
   JSON request that is missing expected fields may generate this
   failure.
-* `MediaTypeMissing`: indiciates that the message had no media type,
+* `MediaTypeMissing`: indicates that the message had no media type,
   and the server wasn't willing to infer it.
-* `MediaTypeMismatch`: indiciates that the server received a media
+* `MediaTypeMismatch`: indicates that the server received a media
   type that it wasn't prepared to handle.
 
 ## Logging

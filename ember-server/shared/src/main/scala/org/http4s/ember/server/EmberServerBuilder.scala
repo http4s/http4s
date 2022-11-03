@@ -166,6 +166,11 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
 
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOption]
+  ): EmberServerBuilder[F] =
+    copy(additionalSocketOptions = additionalSocketOptions)
+
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
