@@ -153,6 +153,54 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   def foreach(f: Header.Raw => Unit): Unit = headers.foreach(f)
 
+  /** Creates a string representation for a list of headers
+    * and redacts sensitive headers' values.
+    *
+    *  @param start       the starting string
+    *  @param separator   the separator string
+    *  @param end         the ending string
+    *  @param redactWhen  the function for filtering out header values of sensitive headers
+    *  @return            a string representation of the list of headers.
+    *                      The resulting string begins with the string `start`
+    *                      and ends with the string `end`. Inside, the string
+    *                      representations of all headers are separated
+    *                      by the string `separator`. Sensitive headers' values
+    *                      are redacted with the `redactWhen` function.
+    */
+  def mkString(
+      start: String,
+      separator: String,
+      end: String,
+      redactWhen: CIString => Boolean,
+  ): String =
+    headers.iterator
+      .map {
+        case h if redactWhen(h.name) => Header.Raw.toString(h.name, "<REDACTED>")
+        case h => Header.Raw.toString(h.name, h.value)
+      }
+      .mkString(start, separator, end)
+
+  /** Creates a string representation for a list of headers
+    * and redacts sensitive headers' values.
+    *
+    *  @param separator   the separator string
+    *  @param redactWhen  the function for filtering out header values of sensitive headers
+    *  @return            a string representation of the list of headers.
+    *                      The resulting string is constructed from the string representations
+    *                      of all headers separated by the string `separator`. Sensitive headers'
+    *                      values are redacted with the `redactWhen` function.
+    */
+  def mkString(
+      separator: String,
+      redactWhen: CIString => Boolean,
+  ): String =
+    headers.iterator
+      .map {
+        case h if redactWhen(h.name) => Header.Raw.toString(h.name, "<REDACTED>")
+        case h => Header.Raw.toString(h.name, h.value)
+      }
+      .mkString(separator)
+
   override def toString: String =
     this.show
 }

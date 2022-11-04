@@ -545,17 +545,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
-      nativeConfig ~= { c =>
-        Option(System.getenv("DEVSHELL_DIR")).fold(c) { devshellDir =>
-          c.withCompileOptions(c.compileOptions :+ s"-I$devshellDir/include")
-            .withLinkingOptions(c.linkingOptions :+ s"-L$devshellDir/lib")
-        }
-      },
-      Test / envVars ++= {
-        val ldLibPath = Option(System.getenv("DEVSHELL_DIR"))
-          .map(devshellDir => "LD_LIBRARY_PATH" -> s"$devshellDir/lib")
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath.toMap
-      },
+      Test / envVars += "S2N_DONT_MLOCK" -> "1",
     )
     .enablePlugins(Http4sPlugin)
     .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))

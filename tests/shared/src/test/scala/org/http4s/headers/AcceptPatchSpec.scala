@@ -28,7 +28,7 @@ class AcceptPatchSpec extends Http4sSuite {
         "Accept-Patch: text/example",
       )
     }
-    test("render should mulitple media types") {
+    test("render should multiple media types") {
       assertEquals(
         `Accept-Patch`(
           NonEmptyList.of(

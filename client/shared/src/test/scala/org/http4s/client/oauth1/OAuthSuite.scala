@@ -24,7 +24,6 @@ import org.http4s.client.oauth1
 import org.http4s.client.oauth1.ProtocolParameter._
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.headers.Authorization
-import org.typelevel.ci._
 
 class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
@@ -82,7 +81,7 @@ class OAuthSuite extends Http4sSuite {
       )
       .map { auth =>
         val creds = auth.credentials
-        assertEquals(creds.authScheme, ci"OAuth")
+        assertEquals(creds.authScheme, AuthScheme.OAuth)
       }
   }
 

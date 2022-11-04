@@ -23,7 +23,7 @@ import cats.implicits._
 import org.http4s._
 import org.http4s.server._
 
-/** Middelwares which allow for bracketing on a Request/Response, including
+/** Middlewares which allow for bracketing on a Request/Response, including
   * the completion of the Response body stream.
   *
   * These are analogous to `cats.effect.Bracket` and `fs2.Stream.bracket`. The

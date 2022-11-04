@@ -34,7 +34,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): String =
     if (logHeaders)
-      message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
+      message.headers.mkString("Headers(", ", ", ")", redactHeadersWhen)
     else ""
 
   def defaultLogBody[F[_]: Concurrent](
