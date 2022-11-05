@@ -248,14 +248,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       }
     }
 
-    val streams: Stream[F, Stream[F, Nothing]] = server
-      .interruptWhen(shutdown.signal.attempt)
-      .map(onConnection)
-
-    streams.parJoin(
-      maxConnections
-    ) // TODO: replace with forking after we fix serverResource upstream
+    // TODO: replace with forking after we fix serverResource upstream
     // StreamForking.forking(streams, maxConnections)
+    server.interruptWhen(shutdown.signal.attempt).map(onConnection).parJoin(maxConnections)
   }
 
   // private[internal] def reachedEndError[F[_]: Sync](
