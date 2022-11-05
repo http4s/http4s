@@ -197,6 +197,23 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       H2Server.fromSocket[F](socket, httpApp, defaultSetts, logger)
     }
 
+    def runConnectionAux(socket: Socket[F], bv: ByteVector): Stream[F, Nothing] =
+      runConnection(
+        socket,
+        logger,
+        idleTimeout,
+        receiveBufferSize,
+        maxHeaderSize,
+        requestHeaderReceiveTimeout,
+        httpApp,
+        errorHandler,
+        onWriteFailure,
+        createRequestVault,
+        webSocketKey,
+        bv,
+        enableHttp2,
+      )
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -212,63 +229,22 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 // SSL Connection, not h2, will be http/1.1 but thats not how types align
                 // Prior Knowledge is only allowed over clear where application
                 // protocol has not been agreed via handshake
-                runConnection(
-                  socket,
-                  logger,
-                  idleTimeout,
-                  receiveBufferSize,
-                  maxHeaderSize,
-                  requestHeaderReceiveTimeout,
-                  httpApp,
-                  errorHandler,
-                  onWriteFailure,
-                  createRequestVault,
-                  webSocketKey,
-                  ByteVector.empty,
-                  enableHttp2,
-                ).drain
+                runConnectionAux(socket, ByteVector.empty)
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
                   case true =>
                     // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
                     // Otherwise this is now http1
                     Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+                      // Pass read bytes we thought might be the prelude
                       case Left(bv) =>
-                        runConnection(
-                          socket,
-                          logger,
-                          idleTimeout,
-                          receiveBufferSize,
-                          maxHeaderSize,
-                          requestHeaderReceiveTimeout,
-                          httpApp,
-                          errorHandler,
-                          onWriteFailure,
-                          createRequestVault,
-                          webSocketKey,
-                          bv, // Pass read bytes we thought might be the prelude
-                          enableHttp2,
-                        ).drain
+                        runConnectionAux(socket, bv)
                       case Right(_) =>
                         Stream.resource(serverFromSocket(connect)).drain
                     }
                   // Since its not enabled, run connection normally.
                   case false =>
-                    runConnection(
-                      socket,
-                      logger,
-                      idleTimeout,
-                      receiveBufferSize,
-                      maxHeaderSize,
-                      requestHeaderReceiveTimeout,
-                      httpApp,
-                      errorHandler,
-                      onWriteFailure,
-                      createRequestVault,
-                      webSocketKey,
-                      ByteVector.empty,
-                      enableHttp2,
-                    ).drain
+                    runConnectionAux(socket, ByteVector.empty)
                 }
             }
 
