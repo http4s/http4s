@@ -231,20 +231,17 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 // protocol has not been agreed via handshake
                 runConnectionAux(socket, ByteVector.empty)
               case (socket, None) => // Cleartext Protocol
-                enableHttp2 match {
-                  case true =>
-                    // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
-                    // Otherwise this is now http1
-                    Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
-                      // Pass read bytes we thought might be the prelude
-                      case Left(bv) =>
-                        runConnectionAux(socket, bv)
-                      case Right(_) =>
-                        Stream.resource(serverFromSocket(connect)).drain
-                    }
+                if (enableHttp2) {
+                  // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                  // Otherwise this is now http1
+                  Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+                    // Pass read bytes we thought might be the prelude
+                    case Left(bv) => runConnectionAux(socket, bv)
+                    case Right(_) => Stream.resource(serverFromSocket(connect)).drain
+                  }
+                } else {
                   // Since its not enabled, run connection normally.
-                  case false =>
-                    runConnectionAux(socket, ByteVector.empty)
+                  runConnectionAux(socket, ByteVector.empty)
                 }
             }
 
