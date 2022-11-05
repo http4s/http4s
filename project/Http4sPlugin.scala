@@ -29,6 +29,8 @@ object Http4sPlugin extends AutoPlugin {
   val scala_212 = "2.12.17"
   val scala_3 = "3.2.0"
 
+  private val CompileTime = config("compile-time").hide
+
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
   )
@@ -48,6 +50,8 @@ object Http4sPlugin extends AutoPlugin {
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
     libraryDependencies += scalacCompatAnnotation,
+    ivyConfigurations += CompileTime,
+    Compile / unmanagedClasspath ++= update.value.select(configurationFilter(CompileTime.name)),
   )
 
   def extractApiVersion(version: String) = {
