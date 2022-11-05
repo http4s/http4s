@@ -192,6 +192,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             )
       }
 
+    def serverFromSocket(socket: Socket[F]): Resource[F, Unit] = {
+      val defaultSetts = H2Frame.Settings.ConnectionSettings.default
+      H2Server.fromSocket[F](socket, httpApp, defaultSetts, logger)
+    }
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
@@ -202,17 +207,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               case (socket, Some("h2")) =>
                 // ALPN H2 Strategy
                 Stream.exec(H2Server.requireConnectionPreface(socket)) ++
-                  Stream
-                    .resource(
-                      H2Server
-                        .fromSocket[F](
-                          socket,
-                          httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
-                          logger,
-                        )
-                    )
-                    .drain
+                  Stream.resource(serverFromSocket(connect)).drain
               case (socket, Some(_)) =>
                 // SSL Connection, not h2, will be http/1.1 but thats not how types align
                 // Prior Knowledge is only allowed over clear where application
@@ -255,16 +250,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           enableHttp2,
                         ).drain
                       case Right(_) =>
-                        Stream
-                          .resource(
-                            H2Server.fromSocket[F](
-                              socket,
-                              httpApp,
-                              H2Frame.Settings.ConnectionSettings.default,
-                              logger,
-                            )
-                          )
-                          .drain
+                        Stream.resource(serverFromSocket(connect)).drain
                     }
                   // Since its not enabled, run connection normally.
                   case false =>
@@ -306,7 +292,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   //       Stream.raiseError(new EOFException("Unexpected EOF - socket.read returned None") with NoStackTrace)
   //     case Some(value) => Stream.chunk(value)
   //   }
-
 
   private[internal] def runApp[F[_]](
       head: Array[Byte],
