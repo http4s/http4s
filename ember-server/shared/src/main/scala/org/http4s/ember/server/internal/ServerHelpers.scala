@@ -214,41 +214,43 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         enableHttp2,
       )
 
+    def onConnection(connect: Socket[F]): Stream[F, Nothing] = {
+      val handler: Stream[F, Nothing] = shutdown.trackConnection >>
+        Stream
+          .resource(upgradeSocket(connect))
+          .flatMap {
+            case (socket, Some("h2")) =>
+              // ALPN H2 Strategy
+              Stream.exec(H2Server.requireConnectionPreface(socket)) ++
+                Stream.resource(serverFromSocket(connect)).drain
+            case (socket, Some(_)) =>
+              // SSL Connection, not h2, will be http/1.1 but thats not how types align
+              // Prior Knowledge is only allowed over clear where application
+              // protocol has not been agreed via handshake
+              runConnectionAux(socket, ByteVector.empty)
+            case (socket, None) => // Cleartext Protocol
+              if (enableHttp2) {
+                // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                // Otherwise this is now http1
+                Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
+                  // Pass read bytes we thought might be the prelude
+                  case Left(bv) => runConnectionAux(socket, bv)
+                  case Right(_) => Stream.resource(serverFromSocket(connect)).drain
+                }
+              } else {
+                // Since its not enabled, run connection normally.
+                runConnectionAux(socket, ByteVector.empty)
+              }
+          }
+
+      handler.handleErrorWith { t =>
+        Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+      }
+    }
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
-      .map { connect =>
-        val handler: Stream[F, Nothing] = shutdown.trackConnection >>
-          Stream
-            .resource(upgradeSocket(connect))
-            .flatMap {
-              case (socket, Some("h2")) =>
-                // ALPN H2 Strategy
-                Stream.exec(H2Server.requireConnectionPreface(socket)) ++
-                  Stream.resource(serverFromSocket(connect)).drain
-              case (socket, Some(_)) =>
-                // SSL Connection, not h2, will be http/1.1 but thats not how types align
-                // Prior Knowledge is only allowed over clear where application
-                // protocol has not been agreed via handshake
-                runConnectionAux(socket, ByteVector.empty)
-              case (socket, None) => // Cleartext Protocol
-                if (enableHttp2) {
-                  // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
-                  // Otherwise this is now http1
-                  Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
-                    // Pass read bytes we thought might be the prelude
-                    case Left(bv) => runConnectionAux(socket, bv)
-                    case Right(_) => Stream.resource(serverFromSocket(connect)).drain
-                  }
-                } else {
-                  // Since its not enabled, run connection normally.
-                  runConnectionAux(socket, ByteVector.empty)
-                }
-            }
-
-        handler.handleErrorWith { t =>
-          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
-        }
-      }
+      .map(onConnection)
 
     streams.parJoin(
       maxConnections
