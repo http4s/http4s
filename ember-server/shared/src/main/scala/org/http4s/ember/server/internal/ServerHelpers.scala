@@ -173,12 +173,31 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
+
+    def upgradeSocket(socketInit: Socket[F]): Resource[F, (Socket[F], Option[String])] =
+      tlsInfoOpt match {
+        case None => (socketInit, Option.empty[String]).pure[Resource[F, *]]
+        case Some((context, params)) =>
+          val newParams = if (enableHttp2) H2TLS.transform(params) else params
+          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
+          // As this is the only JVM specific code
+          context
+            .serverBuilder(socketInit)
+            .withParameters(newParams)
+            .withLogging(s => logger.trace(s))
+            .build
+            .evalMap(tlsSocket =>
+              tlsSocket.write(fs2.Chunk.empty) >>
+                tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
+            )
+      }
+
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
-            .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .resource(upgradeSocket(connect))
             .flatMap {
               case (socket, Some("h2")) =>
                 // ALPN H2 Strategy
@@ -288,30 +307,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   //     case Some(value) => Stream.chunk(value)
   //   }
 
-  private[internal] def upgradeSocket[F[_]: Monad](
-      socketInit: Socket[F],
-      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      logger: Logger[F],
-      enableHttp2: Boolean,
-  ): Resource[F, (Socket[F], Option[String])] =
-    tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
-      case (context, params) =>
-        val newParams = if (enableHttp2) {
-          // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
-          // As this is the only JVM specific code
-          H2TLS.transform(params)
-        } else params
-
-        context
-          .serverBuilder(socketInit)
-          .withParameters(newParams)
-          .withLogging(s => logger.trace(s))
-          .build
-          .evalMap(tlsSocket =>
-            tlsSocket.write(fs2.Chunk.empty) >>
-              tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
-          )
-    }
 
   private[internal] def runApp[F[_]](
       head: Array[Byte],
