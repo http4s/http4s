@@ -50,6 +50,7 @@ object Http4sPlugin extends AutoPlugin {
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
     libraryDependencies += scalacCompatAnnotation,
+    unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
     ivyConfigurations += CompileTime,
     Compile / unmanagedClasspath ++= update.value.select(configurationFilter(CompileTime.name)),
   )
