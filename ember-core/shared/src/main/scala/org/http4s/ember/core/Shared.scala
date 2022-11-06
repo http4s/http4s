@@ -19,8 +19,8 @@ package org.http4s.ember.core
 import scodec.bits.ByteVector
 
 private[core] object Shared {
-  val `\n` : ByteVector = ByteVector('\n')
-  val `\r` : ByteVector = ByteVector('\r')
-  val crlf: ByteVector = ByteVector('\r', '\n')
-  val `\r\n\r\n` : ByteVector = (crlf ++ crlf).compact
+  val `\n` : ByteVector = ByteVector.fromByte('\n'.toByte)
+  val `\r` : ByteVector = ByteVector.fromByte('\r'.toByte)
+  val crlf: ByteVector = ByteVector.view(Array[Byte]('\r', '\n'))
+  val `\r\n\r\n` : ByteVector = ByteVector.view(Array[Byte]('\r', '\n', '\r', '\n'))
 }
