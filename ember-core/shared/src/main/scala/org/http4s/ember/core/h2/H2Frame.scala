@@ -104,16 +104,18 @@ private[ember] object H2Frame {
       val iTwo = ((raw.identifier >> 8) & 0xff).toByte
       val iThree = ((raw.identifier) & 0xff).toByte
 
-      ByteVector(
-        zero,
-        one,
-        two,
-        t,
-        f,
-        iZero,
-        iOne,
-        iTwo,
-        iThree,
+      ByteVector.view(
+        Array(
+          zero,
+          one,
+          two,
+          t,
+          f,
+          iZero,
+          iOne,
+          iTwo,
+          iThree,
+        )
       ) ++ raw.payload
     }
   }
