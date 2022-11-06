@@ -25,6 +25,7 @@ import org.http4s._
 import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
+import java.util.Arrays
 import scala.annotation.switch
 
 private[ember] object Parser {
@@ -46,7 +47,7 @@ private[ember] object Parser {
           else {
             read.flatMap {
               case Some(chunk) =>
-                val nextBuffer = appendByteArrays(currentBuffer, chunk)
+                val nextBuffer = concatBytes(currentBuffer, chunk)
                 recurseFind(nextBuffer, read, maxHeaderSize, s)(f)(idx)
               case None if currentBuffer.length > 0 =>
                 F.raiseError(EmberException.ReachedEndOfStream())
@@ -631,12 +632,18 @@ private[ember] object Parser {
     }
   }
 
-  private[this] def appendByteArrays(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] = {
-    val res = new Array[Byte](a1.length + a2.size)
-    System.arraycopy(a1, 0, res, 0, a1.length)
-    a2.copyToArray(res, a1.length)
-    res
-  }
+  private[this] def concatBytes(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] =
+    if (a1.length == 0) {
+      a2 match {
+        case Chunk.ArraySlice(slice, 0, length) if slice.length == length =>
+          slice
+        case _ => a2.toArray
+      }
+    } else {
+      val res = Arrays.copyOf(a1, a1.length + a2.size)
+      a2.copyToArray(res, a1.length)
+      res
+    }
 
   private[this] val space = ' '.toByte
   private[this] val cr: Byte = '\r'.toByte
