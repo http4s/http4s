@@ -242,8 +242,7 @@ object CORS {
             `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
             // TODO model me
             "Access-Control-Allow-Origin" -> origin.value,
-            // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString,
+            `Access-Control-Max-Age`.unsafeFromLong(config.maxAge.toSeconds.max(-1)),
           )
       }
 
