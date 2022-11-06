@@ -29,6 +29,8 @@ object Http4sPlugin extends AutoPlugin {
   val scala_212 = "2.12.17"
   val scala_3 = "3.2.0"
 
+  private val CompileTime = config("compile-time").hide
+
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
   )
@@ -47,6 +49,10 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
+    libraryDependencies += scalacCompatAnnotation,
+    unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
+    ivyConfigurations += CompileTime,
+    Compile / unmanagedClasspath ++= update.value.select(configurationFilter(CompileTime.name)),
   )
 
   def extractApiVersion(version: String) = {
@@ -124,6 +130,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitDiscipline = "2.0.0-M3"
     val netty = "4.1.84.Final"
     val quasiquotes = "2.1.0"
+    val scalacCompat = "0.1.0"
     val scalacheck = "1.17.0"
     val scalacheckEffect = "2.0.0-M2"
     val scalaJavaLocales = "1.4.1"
@@ -181,6 +188,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
+  lazy val scalacCompatAnnotation =
+    "org.typelevel" %% "scalac-compat-annotation" % V.scalacCompat % CompileTime
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)
