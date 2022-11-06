@@ -18,7 +18,8 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
 
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.duration.FiniteDuration
