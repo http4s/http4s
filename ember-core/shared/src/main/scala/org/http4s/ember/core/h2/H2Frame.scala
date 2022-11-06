@@ -20,6 +20,7 @@ import cats.syntax.all._
 import scodec.bits._
 
 import scala.annotation.nowarn
+import scala.annotation.switch
 
 private[ember] sealed trait H2Frame
 
@@ -118,7 +119,7 @@ private[ember] object H2Frame {
   }
 
   def fromRaw(rawFrame: RawFrame): Either[H2Error, H2Frame] =
-    rawFrame.`type` match {
+    (rawFrame.`type`: @switch) match {
       case Data.`type` => Data.fromRaw(rawFrame)
       case Headers.`type` => Headers.fromRaw(rawFrame)
       case Priority.`type` => Priority.fromRaw(rawFrame)
@@ -170,7 +171,7 @@ private[ember] object H2Frame {
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
   }
   object Data {
-    val `type`: Byte = 0x0
+    final val `type` = 0x0
     // 2 flags
     // EndStream = Bit 0 indicates this is the last frame this will send
     // Padded = Bit 3 indicates
@@ -241,7 +242,7 @@ private[ember] object H2Frame {
       s"Headers(identifier=$identifier, dependency=$dependency, endStream=$endStream, endHeaders=$endHeaders, headerBlock=$headerBlock, padding=$padding)"
   }
   object Headers {
-    val `type`: Byte = 0x1
+    final val `type` = 0x1
 
     final case class StreamDependency(exclusive: Boolean, dependency: Int, weight: Byte)
 
@@ -377,7 +378,7 @@ private[ember] object H2Frame {
       weight: Byte,
   ) extends H2Frame
   object Priority {
-    val `type`: Byte = 0x2
+    final val `type` = 0x2
     def fromRaw(raw: RawFrame): Either[H2Error, Priority] =
       if (raw.`type` == `type`) {
         if (raw.length === 5) {
@@ -420,7 +421,7 @@ private[ember] object H2Frame {
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
   }
   object RstStream {
-    val `type`: Byte = 0x3
+    final val `type` = 0x3
 
     def toRaw(rst: RstStream): RawFrame =
       RawFrame(4, `type`, 0, rst.identifier, ByteVector.fromInt(rst.value.toInt))
@@ -453,7 +454,7 @@ private[ember] object H2Frame {
       else s"Settings(identifier=$identifier, ack=$ack, list=$list)"
   }
   object Settings {
-    val `type`: Byte = 0x4
+    final val `type` = 0x4
     val Ack: Settings = Settings(0x0, true, Nil)
 
     def updateSettings(
@@ -654,7 +655,7 @@ private[ember] object H2Frame {
       padding: Option[ByteVector],
   ) extends H2Frame
   object PushPromise {
-    val `type`: Byte = 0x5
+    final val `type` = 0x5
     def toRaw(push: PushPromise): RawFrame = {
       val flag = {
         var base = 0
@@ -728,7 +729,7 @@ private[ember] object H2Frame {
       else s"Ping(identifier=$identifier, ack=$ack, data=$data)"
   } // Always exactly 8 bytes
   object Ping {
-    val `type`: Byte = 0x6
+    final val `type` = 0x6
     val empty: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
     val default: Ping = Ping(0, false, empty)
@@ -771,7 +772,7 @@ private[ember] object H2Frame {
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
   }
   object GoAway {
-    val `type`: Byte = 0x7
+    final val `type` = 0x7
 
     def toRaw(goAway: GoAway): RawFrame = {
       val payload = {
@@ -825,7 +826,7 @@ private[ember] object H2Frame {
    */
   final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame
   object WindowUpdate {
-    val `type`: Byte = 0x8
+    final val `type` = 0x8
 
     def toRaw(windowUpdate: WindowUpdate): RawFrame = {
       val payload = {
@@ -868,7 +869,7 @@ private[ember] object H2Frame {
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
   }
   object Continuation {
-    val `type`: Byte = 0x9
+    final val `type` = 0x9
     def toRaw(cont: Continuation): RawFrame = {
       val flag: Byte = (if (cont.endHeaders) 0 | (1 << 2) else 0).toByte
       RawFrame(
