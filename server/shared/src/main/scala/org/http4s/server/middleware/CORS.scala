@@ -239,10 +239,7 @@ object CORS {
 
         varyHeader(allowCredentialsHeader(withMethodBasedHeader))
           .putHeaders(
-            // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
-              _.mkString("", ", ", "")
-            ),
+            `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
             // TODO model me
             "Access-Control-Allow-Origin" -> origin.value,
             // TODO model me
