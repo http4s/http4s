@@ -732,12 +732,10 @@ private[ember] object H2Frame {
   } // Always exactly 8 bytes
   object Ping {
     final val `type` = 0x6
-    val empty: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
+    private[this] val empty: ByteVector = ByteVector.view(Array[Byte](0, 0, 0, 0, 0, 0, 0, 0))
 
     val default: Ping = Ping(0, false, empty)
     val ack: Ping = Ping(0, true, empty)
-
-    val emptyBV: ByteVector = ByteVector(0, 0, 0, 0, 0, 0, 0, 0)
 
     def toRaw(ping: Ping): RawFrame = {
       val flag: Byte = (if (ping.ack) 0 | (1 << 0) else 0).toByte
