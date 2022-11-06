@@ -22,7 +22,9 @@ import scodec.bits._
 import scala.annotation.nowarn
 import scala.annotation.switch
 
-private[ember] sealed trait H2Frame
+private[ember] sealed abstract class H2Frame {
+  def toRaw: H2Frame.RawFrame
+}
 
 @nowarn("msg=implicit numeric widening")
 private[ember] object H2Frame {
@@ -135,24 +137,12 @@ private[ember] object H2Frame {
       case _ => Unknown(rawFrame).asRight
     }
 
-  def toRaw(frame: H2Frame): RawFrame = frame match {
-    case d: Data => Data.toRaw(d)
-    case h: Headers => Headers.toRaw(h)
-    case p: Priority => Priority.toRaw(p)
-    case r: RstStream => RstStream.toRaw(r)
-    case s: Settings => Settings.toRaw(s)
-    case p: PushPromise => PushPromise.toRaw(p)
-    case p: Ping => Ping.toRaw(p)
-    case g: GoAway => GoAway.toRaw(g)
-    case w: WindowUpdate => WindowUpdate.toRaw(w)
-    case c: Continuation => Continuation.toRaw(c)
-    case unknown: Unknown => unknown.raw
-  }
-
   def toByteVector(frame: H2Frame): ByteVector =
-    RawFrame.toByteVector(toRaw(frame))
+    RawFrame.toByteVector(frame.toRaw)
 
-  final case class Unknown(raw: RawFrame) extends H2Frame
+  final case class Unknown(raw: RawFrame) extends H2Frame {
+    def toRaw: RawFrame = raw
+  }
 
   /*
     +---------------+
@@ -171,6 +161,8 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
+
+    def toRaw = Data.toRaw(this)
   }
   object Data {
     final val `type` = 0x0
@@ -242,6 +234,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"Headers(identifier=$identifier, dependency=$dependency, endStream=$endStream, endHeaders=$endHeaders, headerBlock=$headerBlock, padding=$padding)"
+    def toRaw = Headers.toRaw(this)
   }
   object Headers {
     final val `type` = 0x1
@@ -378,7 +371,9 @@ private[ember] object H2Frame {
       exclusive: Boolean,
       streamDependency: Int,
       weight: Byte,
-  ) extends H2Frame
+  ) extends H2Frame {
+    def toRaw = Priority.toRaw(this)
+  }
   object Priority {
     final val `type` = 0x2
     def fromRaw(raw: RawFrame): Either[H2Error, Priority] =
@@ -421,6 +416,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
+    def toRaw = RstStream.toRaw(this)
   }
   object RstStream {
     final val `type` = 0x3
@@ -454,6 +450,7 @@ private[ember] object H2Frame {
       if (identifier == 0 && ack && list.isEmpty) "Settings.Ack"
       else if (identifier == 0 && !ack) s"Settings(${list.map(_.toString).intercalate(", ")})"
       else s"Settings(identifier=$identifier, ack=$ack, list=$list)"
+    def toRaw = Settings.toRaw(this)
   }
   object Settings {
     final val `type` = 0x4
@@ -655,7 +652,9 @@ private[ember] object H2Frame {
       promisedStreamId: Int,
       headerBlock: ByteVector,
       padding: Option[ByteVector],
-  ) extends H2Frame
+  ) extends H2Frame {
+    def toRaw = PushPromise.toRaw(this)
+  }
   object PushPromise {
     final val `type` = 0x5
     def toRaw(push: PushPromise): RawFrame = {
@@ -729,6 +728,7 @@ private[ember] object H2Frame {
       if (identifier == 0 && ack) "Ping.Ack"
       else if (identifier == 0 && !ack) "Ping"
       else s"Ping(identifier=$identifier, ack=$ack, data=$data)"
+    def toRaw = Ping.toRaw(this)
   } // Always exactly 8 bytes
   object Ping {
     final val `type` = 0x6
@@ -772,6 +772,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
+    def toRaw = GoAway.toRaw(this)
   }
   object GoAway {
     final val `type` = 0x7
@@ -826,7 +827,9 @@ private[ember] object H2Frame {
     |R|              Window Size Increment (31)                     |
     +-+-------------------------------------------------------------+
    */
-  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame
+  final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame {
+    def toRaw = WindowUpdate.toRaw(this)
+  }
   object WindowUpdate {
     final val `type` = 0x8
 
@@ -869,6 +872,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
+    def toRaw = Continuation.toRaw(this)
   }
   object Continuation {
     final val `type` = 0x9
