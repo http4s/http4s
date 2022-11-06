@@ -27,6 +27,7 @@ import scodec.bits.ByteVector
 
 import java.util.Arrays
 import scala.annotation.switch
+import scala.util.control.NonFatal
 
 private[ember] object Parser {
 
@@ -500,18 +501,16 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                try {
-                  val codeInt = codeS.toInt
-                  Status.fromInt(codeInt) match {
-                    case Left(e) =>
-                      throw e
-                    case Right(s) =>
-                      status = s
+                val codeInt = codeS.toInt
+                Status.fromInt(codeInt) match {
+                  case Left(e) =>
+                    if (NonFatal(e)) {
+                      throwable = e
                       complete = true
-                  }
-                } catch {
-                  case scala.util.control.NonFatal(e) =>
-                    throwable = e
+                    } else
+                      throw e
+                  case Right(s) =>
+                    status = s
                     complete = true
                 }
               }
