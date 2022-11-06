@@ -69,10 +69,10 @@ private[ember] object Parser {
   )
 
   object HeaderP {
-    private[this] val colon: Byte = ':'.toByte
-    private[this] val contentLengthS = "Content-Length"
-    private[this] val transferEncodingS = "Transfer-Encoding"
-    private[this] val chunkedS = "chunked"
+    private[this] final val colon = 58 // ':'
+    private[this] final val contentLengthS = "Content-Length"
+    private[this] final val transferEncodingS = "Transfer-Encoding"
+    private[this] final val chunkedS = "chunked"
 
     final case class ParserState(
         idx: Int,
@@ -647,7 +647,7 @@ private[ember] object Parser {
       res
     }
 
-  private[this] val space = ' '.toByte
-  private[this] val cr: Byte = '\r'.toByte
-  private[this] val lf: Byte = '\n'.toByte
+  private[this] final val space = 32 // ' '
+  private[this] final val cr = 13 // '\r'
+  private[this] final val lf = 10 // '\n'
 }
