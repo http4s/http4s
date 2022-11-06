@@ -162,7 +162,7 @@ private[ember] object H2Frame {
     override def toString: String =
       s"Data(identifier=$identifier, data=$data, pad=$pad, endStream=$endStream)"
 
-    def toRaw = Data.toRaw(this)
+    def toRaw: RawFrame = Data.toRaw(this)
   }
   object Data {
     final val `type` = 0x0
@@ -234,7 +234,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"Headers(identifier=$identifier, dependency=$dependency, endStream=$endStream, endHeaders=$endHeaders, headerBlock=$headerBlock, padding=$padding)"
-    def toRaw = Headers.toRaw(this)
+    def toRaw: RawFrame = Headers.toRaw(this)
   }
   object Headers {
     final val `type` = 0x1
@@ -374,7 +374,7 @@ private[ember] object H2Frame {
       streamDependency: Int,
       weight: Byte,
   ) extends H2Frame {
-    def toRaw = Priority.toRaw(this)
+    def toRaw: RawFrame = Priority.toRaw(this)
   }
   object Priority {
     final val `type` = 0x2
@@ -418,7 +418,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"RstStream(identifier=$identifier, value=${H2Error.fromInt(value).getOrElse(value)})"
-    def toRaw = RstStream.toRaw(this)
+    def toRaw: RawFrame = RstStream.toRaw(this)
   }
   object RstStream {
     final val `type` = 0x3
@@ -452,7 +452,7 @@ private[ember] object H2Frame {
       if (identifier == 0 && ack && list.isEmpty) "Settings.Ack"
       else if (identifier == 0 && !ack) s"Settings(${list.map(_.toString).intercalate(", ")})"
       else s"Settings(identifier=$identifier, ack=$ack, list=$list)"
-    def toRaw = Settings.toRaw(this)
+    def toRaw: RawFrame = Settings.toRaw(this)
   }
   object Settings {
     final val `type` = 0x4
@@ -655,7 +655,7 @@ private[ember] object H2Frame {
       headerBlock: ByteVector,
       padding: Option[ByteVector],
   ) extends H2Frame {
-    def toRaw = PushPromise.toRaw(this)
+    def toRaw: RawFrame = PushPromise.toRaw(this)
   }
   object PushPromise {
     final val `type` = 0x5
@@ -732,7 +732,7 @@ private[ember] object H2Frame {
       if (identifier == 0 && ack) "Ping.Ack"
       else if (identifier == 0 && !ack) "Ping"
       else s"Ping(identifier=$identifier, ack=$ack, data=$data)"
-    def toRaw = Ping.toRaw(this)
+    def toRaw: RawFrame = Ping.toRaw(this)
   } // Always exactly 8 bytes
   object Ping {
     final val `type` = 0x6
@@ -774,7 +774,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"GoAway(identifier=$identifier, lastStreamId=$lastStreamId, errorCode=${H2Error.fromInt(errorCode).getOrElse(errorCode)}, additionalDebugData=$additionalDebugData)"
-    def toRaw = GoAway.toRaw(this)
+    def toRaw: RawFrame = GoAway.toRaw(this)
   }
   object GoAway {
     final val `type` = 0x7
@@ -831,7 +831,7 @@ private[ember] object H2Frame {
     +-+-------------------------------------------------------------+
    */
   final case class WindowUpdate(identifier: Int, windowSizeIncrement: Int) extends H2Frame {
-    def toRaw = WindowUpdate.toRaw(this)
+    def toRaw: RawFrame = WindowUpdate.toRaw(this)
   }
   object WindowUpdate {
     final val `type` = 0x8
@@ -875,7 +875,7 @@ private[ember] object H2Frame {
   ) extends H2Frame {
     override def toString: String =
       s"Continuation(identifier=$identifier, endHeader=$endHeaders, headerBlockFragment=$headerBlockFragment)"
-    def toRaw = Continuation.toRaw(this)
+    def toRaw: RawFrame = Continuation.toRaw(this)
   }
   object Continuation {
     final val `type` = 0x9
