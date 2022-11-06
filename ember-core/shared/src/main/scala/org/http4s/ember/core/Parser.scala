@@ -635,8 +635,9 @@ private[ember] object Parser {
   private[this] def concatBytes(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] =
     if (a1.length == 0) {
       a2 match {
-        case Chunk.ArraySlice(slice, 0, length) if slice.length == length =>
-          slice
+        case slice @ Chunk.ArraySlice(_, 0, length)
+            if slice.values.isInstanceOf[Array[Byte]] && slice.values.length == length =>
+          slice.values
         case _ => a2.toArray
       }
     } else {
