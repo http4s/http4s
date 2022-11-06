@@ -190,7 +190,7 @@ private[ember] object H2Frame {
     def toRaw(data: Data): RawFrame = {
       val payload = data.pad
         .map(p =>
-          ByteVector(p.length.toByte) ++
+          ByteVector.fromByte(p.length.toByte) ++
             data.data ++
             p
         )
@@ -332,7 +332,7 @@ private[ember] object H2Frame {
       val body = (headers.padding, headers.dependency) match {
         case (None, None) => headers.headerBlock
         case (Some(pad), None) =>
-          ByteVector(pad.length.toByte) ++ headers.headerBlock ++
+          ByteVector.fromByte(pad.length.toByte) ++ headers.headerBlock ++
             pad
         case (padO, Some(dependency)) =>
           val dep0 = ((dependency.dependency >> 24) & 0xff).toByte
@@ -340,11 +340,13 @@ private[ember] object H2Frame {
           val dep2 = ((dependency.dependency >> 8) & 0xff).toByte
           val dep3 = ((dependency.dependency >> 0) & 0xff).toByte
           val modDep0 = (if (dependency.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
-          val base = ByteVector(modDep0, dep1, dep2, dep3, dependency.weight) ++ headers.headerBlock
+          val base = ByteVector.view(
+            Array(modDep0, dep1, dep2, dep3, dependency.weight)
+          ) ++ headers.headerBlock
           padO match {
             case None => base
             case Some(pad) =>
-              ByteVector(pad.length.toByte) ++ base ++
+              ByteVector.fromByte(pad.length.toByte) ++ base ++
                 pad
           }
       }
@@ -399,7 +401,7 @@ private[ember] object H2Frame {
         val dep2 = ((priority.streamDependency >> 8) & 0xff).toByte
         val dep3 = ((priority.streamDependency >> 0) & 0xff).toByte
         val modDep0 = (if (priority.exclusive) dep0 | (1 << 7) else dep0 & ~(1 << 7)).toByte
-        ByteVector(modDep0, dep1, dep2, dep3, priority.weight)
+        ByteVector.view(Array(modDep0, dep1, dep2, dep3, priority.weight))
       }
       RawFrame(payload.size.toInt, `type`, 0, priority.identifier, payload)
     }
@@ -565,7 +567,7 @@ private[ember] object H2Frame {
         val v1 = ((next.value >> 16) & 0xff).toByte
         val v2 = ((next.value >> 8) & 0xff).toByte
         val v3 = ((next.value >> 0) & 0xff).toByte
-        ByteVector(s0, s1, v0, v1, v2, v3) ++ bv
+        ByteVector.view(Array(s0, s1, v0, v1, v2, v3)) ++ bv
       }
       val flag: Byte = (if (settings.ack) 0 | (1 << 0) else 0).toByte
       RawFrame(payload.size.toInt, `type`, flag, settings.identifier, payload)
@@ -672,9 +674,11 @@ private[ember] object H2Frame {
           val s3: Byte = ((push.promisedStreamId >> 0) & 0xff).toByte
           val modS0: Byte = (s0 & ~(1 << 7)).toByte
 
-          ByteVector(modS0, s1, s2, s3) ++ push.headerBlock
+          ByteVector.view(Array(modS0, s1, s2, s3)) ++ push.headerBlock
         }
-        push.padding.fold(base)(padding => ByteVector(padding.length.toByte) ++ base ++ padding)
+        push.padding.fold(base)(padding =>
+          ByteVector.fromByte(padding.length.toByte) ++ base ++ padding
+        )
       }
       RawFrame(payload.size.toInt, `type`, flag, push.identifier, payload)
     }
@@ -788,9 +792,10 @@ private[ember] object H2Frame {
         val e2: Byte = ((goAway.errorCode >> 8) & 0xff).toByte
         val e3: Byte = ((goAway.errorCode >> 0) & 0xff).toByte
 
-        ByteVector(modS0, s1, s2, s3, e0, e1, e2, e3) ++ goAway.additionalDebugData.getOrElse(
-          ByteVector.empty
-        )
+        ByteVector.view(Array(modS0, s1, s2, s3, e0, e1, e2, e3)) ++ goAway.additionalDebugData
+          .getOrElse(
+            ByteVector.empty
+          )
       }
 
       RawFrame(payload.length.toInt, `type`, 0, goAway.identifier, payload)
@@ -838,7 +843,7 @@ private[ember] object H2Frame {
         val s2: Byte = ((windowUpdate.windowSizeIncrement >> 8) & 0xff).toByte
         val s3: Byte = ((windowUpdate.windowSizeIncrement >> 0) & 0xff).toByte
         val modS0: Byte = (s0 & ~(1 << 7)).toByte
-        ByteVector(modS0, s1, s2, s3)
+        ByteVector.view(Array(modS0, s1, s2, s3))
       }
 
       RawFrame(payload.length.toInt, `type`, 0, windowUpdate.identifier, payload)
