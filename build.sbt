@@ -529,6 +529,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
             "org.http4s.ember.core.h2.HpackPlatform"
           ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Frame#*.toRaw"
+          ),
         )
       else Seq.empty
     },
