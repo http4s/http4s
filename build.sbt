@@ -501,6 +501,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleTemplateDefProblem](
         "org.http4s.ember.core.h2.HpackPlatform"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Frame#*.type"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
