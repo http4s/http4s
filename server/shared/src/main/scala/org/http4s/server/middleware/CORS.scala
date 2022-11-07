@@ -369,11 +369,11 @@ sealed class CORSPolicy(
     val maxAgeHeader =
       maxAge match {
         case MaxAge.Some(deltaSeconds) =>
-          Header.Raw(ci"Access-Control-Max-Age", deltaSeconds.toString).some
+          Header.Raw(`Access-Control-Max-Age`.name, deltaSeconds.toString).some
         case MaxAge.Default =>
           None
         case MaxAge.DisableCaching =>
-          Header.Raw(ci"Access-Control-Max-Age", "-1").some
+          Header.Raw(`Access-Control-Max-Age`.name, "-1").some
       }
 
     val varyHeaderNonOptions =
