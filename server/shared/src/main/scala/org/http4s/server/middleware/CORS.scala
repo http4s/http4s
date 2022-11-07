@@ -362,7 +362,7 @@ sealed class CORSPolicy(
         case AllowMethods.All => None
         case AllowMethods.In(methods) =>
           Header
-            .Raw(ci"Access-Control-Allow-Methods", methods.map(_.renderString).mkString(", "))
+            .Raw(`Access-Control-Allow-Methods`.name, methods.map(_.renderString).mkString(", "))
             .some
       }
 
@@ -749,7 +749,7 @@ object CORSPolicy {
     val someExposeHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Expose-Headers`].name, "*").some
     val someAllowMethodsWildcard: Option[Header.Raw] =
-      Header.Raw(ci"Access-Control-Allow-Methods", "*").some
+      Header.Raw(`Access-Control-Allow-Methods`.name, "*").some
     val someAllowHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Headers`].name, "*").some
   }
