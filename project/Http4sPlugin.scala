@@ -27,7 +27,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.10"
   val scala_212 = "2.12.17"
-  val scala_3 = "3.2.0"
+  val scala_3 = "3.2.1"
 
   private val CompileTime = config("compile-time").hide
 
