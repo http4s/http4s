@@ -239,14 +239,10 @@ object CORS {
 
         varyHeader(allowCredentialsHeader(withMethodBasedHeader))
           .putHeaders(
-            // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
-              _.mkString("", ", ", "")
-            ),
+            `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
             // TODO model me
             "Access-Control-Allow-Origin" -> origin.value,
-            // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString,
+            `Access-Control-Max-Age`.unsafeFromLong(config.maxAge.toSeconds.max(-1)),
           )
       }
 
@@ -366,18 +362,18 @@ sealed class CORSPolicy(
         case AllowMethods.All => None
         case AllowMethods.In(methods) =>
           Header
-            .Raw(ci"Access-Control-Allow-Methods", methods.map(_.renderString).mkString(", "))
+            .Raw(`Access-Control-Allow-Methods`.name, methods.map(_.renderString).mkString(", "))
             .some
       }
 
     val maxAgeHeader =
       maxAge match {
         case MaxAge.Some(deltaSeconds) =>
-          Header.Raw(ci"Access-Control-Max-Age", deltaSeconds.toString).some
+          Header.Raw(`Access-Control-Max-Age`.name, deltaSeconds.toString).some
         case MaxAge.Default =>
           None
         case MaxAge.DisableCaching =>
-          Header.Raw(ci"Access-Control-Max-Age", "-1").some
+          Header.Raw(`Access-Control-Max-Age`.name, "-1").some
       }
 
     val varyHeaderNonOptions =
@@ -753,7 +749,7 @@ object CORSPolicy {
     val someExposeHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Expose-Headers`].name, "*").some
     val someAllowMethodsWildcard: Option[Header.Raw] =
-      Header.Raw(ci"Access-Control-Allow-Methods", "*").some
+      Header.Raw(`Access-Control-Allow-Methods`.name, "*").some
     val someAllowHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Headers`].name, "*").some
   }
