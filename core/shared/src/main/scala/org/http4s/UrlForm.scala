@@ -99,7 +99,11 @@ object UrlForm {
     new UrlForm(Map(key -> Chain.one(value)))
 
   def apply(values: (String, String)*): UrlForm =
-    values.foldLeft(empty)(_ + _)
+    values match {
+      case Seq() => empty
+      case Seq(x) => single(x._1, x._2)
+      case h +: tail => tail.foldLeft(single(h._1, h._2))(_ + _)
+    }
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
     apply(values.toList: _*)
