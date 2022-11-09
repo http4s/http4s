@@ -95,6 +95,9 @@ object UrlForm {
     if (values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
+  def single(key: String, value: String): UrlForm =
+    new UrlForm(Map(key -> Chain.one(value)))
+
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
 
