@@ -106,7 +106,14 @@ object UrlForm {
     }
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
-    apply(values.toList: _*)
+    values.knownSize match {
+      case 0 => empty
+      case 1 =>
+        val h = values.headOption.get
+        single(h._1, h._2)
+      case _ =>
+        values.foldLeft(empty)(_ + _)
+    }
 
   implicit def entityEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, UrlForm] =
     EntityEncoder
