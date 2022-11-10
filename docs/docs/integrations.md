@@ -13,7 +13,7 @@ There are also integrations for entities, metrics, and more. Check out the "Rela
 Http4s Ember is a server and client backend developed in the core repository.
 
 - Implements HTTP/1 and HTTP/2
-- Runs on JDK 8+, Node.js 14+, and Scala Native
+- Runs on JDK 8+, Node.js 16+, and Scala Native
 - Pure FP, built with Cats Effect and FS2
 
 ```scala
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
 
 | Backend                                                          | Platform                    | Http Client | Http Server | Websocket Client | Websocket Server | Proxy support (Client) |
 |------------------------------------------------------------------|-------------------------------|:-----------:|:-----------:|:----------------:|:----------------:|:----------------------:|
-| [Ember](#ember)                                                  | JDK 8+ / Node.js 14+ / Native | ✅           | ✅           | ❌                | ✅                | ❌                      |
+| [Ember](#ember)                                                  | JDK 8+ / Node.js 16+ / Native | ✅           | ✅           | ❌                | ✅                | ❌                      |
 | [Blaze](https://github.com/http4s/blaze)                         | JDK 8+                        | ✅           | ✅           | ❌                | ✅                | ❌                      |
 | [JDK Http Client](https://jdk-http-client.http4s.org/stable/) | JDK 11+                       | ✅           | ❌           | ✅                | ❌                | ✅                      |
 | [Jetty](https://github.com/http4s/http4s-jetty)                  | JDK 8+                        | ❌           | ✅           | ❌                | ❌                | ✅                      |
