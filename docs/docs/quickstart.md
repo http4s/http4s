@@ -57,8 +57,8 @@ $ find src/main -name '*.scala'
 ./src/main/scala/com/example/quickstart/Main.scala
 ./src/main/scala/com/example/quickstart/QuickstartServer.scala
 ```
-`Main.scala` defines a runnable object `Main extends IOApp` with an entry point method `run`
-which calls the `stream` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
+`Main.scala` defines a runnable object `Main extends IOApp.Simple` with an entry point member `run`
+which calls the `run` method of the object `QuickstartServer` defined on `QuickstartServer.scala`.
 Starting ember, http4s' native server backend.
 
 `QuickStartRoutes` has two `route` definitions. The `helloWorldRoutes` containing a simple `HttpRoutes`
