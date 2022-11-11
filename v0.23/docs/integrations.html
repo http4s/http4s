@@ -62,6 +62,7 @@
     
     <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
     <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../styles/styles.css" />
     <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
     <script src="../../helium/laika-helium.js"></script>
     <script src="../../helium/laika-versions.js"></script>
@@ -216,6 +217,8 @@
         <p class="header"><a href="#">Integrations</a></p>
 
         <ul class="nav-list">
+          <li class="level1"><a href="#ember">Ember</a></li>
+          <li class="level1"><a href="#backend-integrations">Backend Integrations</a></li>
           <li class="level1"><a href="#entity-integrations">Entity Integrations</a></li>
         </ul>
 
@@ -224,98 +227,99 @@
 
       <main class="content">
 
-        <h1 id="http-backend-integrations" class="title">Http Backend Integrations</h1>
-        <p>Http4s provides a frontend interface compatible with cats-effect, but it supports many different backend implementations</p>
+        <h1 id="integrations" class="title">Integrations</h1>
+        <p>Http4s provides a standard interface for defining services and clients. This enables an ecosystem of interchangeable server and client backends.</p>
+        <p>There are also integrations for entities, metrics, and more. Check out the &quot;Related Projects&quot; section of the navigation menu for the complete list of integrations.</p>
+        
+        <h2 id="ember" class="section">Ember<a class="anchor-link right" href="#ember"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>Http4s Ember is a server and client backend developed in the core repository.</p>
+        <ul>
+          <li>Implements HTTP/1 and HTTP/2</li>
+          <li>Runs on JDK 8+, Node.js 16+, and Scala Native</li>
+          <li>Pure FP, built with Cats Effect and FS2</li>
+        </ul>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-server&quot;</span><span> % </span><span class="string-literal">&quot;0.23.16&quot;</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-client&quot;</span><span> % </span><span class="string-literal">&quot;0.23.16&quot;</span><span>,
+)</span></code></pre>
+        
+        <h2 id="backend-integrations" class="section">Backend Integrations<a class="anchor-link right" href="#backend-integrations"><i class="icofont-laika">&#xef71;</i></a></h2>
         <table>
           <thead>
             <tr>
               <th>Backend</th>
-              <th>Jdk Support</th>
-              <th>Http4s Version(s)</th>
-              <th>100% Nonblocking</th>
-              <th>Http Client</th>
-              <th>Http Server</th>
-              <th>Websocket Client</th>
-              <th>Websocket Server</th>
-              <th>Proxy support (Client)</th>
+              <th>Platform</th>
+              <th class="align-center">Http Client</th>
+              <th class="align-center">Http Server</th>
+              <th class="align-center">Websocket Client</th>
+              <th class="align-center">Websocket Server</th>
+              <th class="align-center">Proxy support (Client)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td><a href="#ember">Ember</a></td>
+              <td>JDK 8+ / Node.js 16+ / Native</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+            </tr>
+            <tr>
               <td><a href="https://github.com/http4s/blaze">Blaze</a></td>
-              <td>8+</td>
-              <td>0.15+</td>
-              <td>✅ Nonblocking</td>
-              <td><code>http4s-blaze-client</code></td>
-              <td><code>http4s-blaze-server</code></td>
-              <td>❌</td>
-              <td>✅</td>
-              <td>❌</td>
+              <td>JDK 8+</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
             </tr>
             <tr>
-              <td><a href="https://github.com/AsyncHttpClient/async-http-client">Async Http Client</a></td>
-              <td>8+</td>
-              <td>0.18+</td>
-              <td>✅ Nonblocking</td>
-              <td><code>http4s-async-http-client</code></td>
-              <td>❌</td>
-              <td>❌</td>
-              <td>❌</td>
-              <td>✅</td>
+              <td><a href="https://jdk-http-client.http4s.org/stable/">JDK Http Client</a></td>
+              <td>JDK 11+</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
             </tr>
             <tr>
-              <td><a href="https://github.com/http4s/http4s">Ember</a></td>
-              <td>8+</td>
-              <td>0.21+</td>
-              <td>✅ Nonblocking</td>
-              <td><code>http4s-ember-client</code></td>
-              <td><code>http4s-ember-server</code></td>
-              <td>✅</td>
-              <td>✅</td>
-              <td>❌</td>
+              <td><a href="https://github.com/http4s/http4s-servlet">Servlet</a></td>
+              <td>JDK 8+</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">❌</td>
             </tr>
             <tr>
-              <td><a href="https://jdk-http-client.http4s.org/stable/">Jdk11 Http Client</a></td>
-              <td>11+</td>
-              <td>0.21+</td>
-              <td>✅ Nonblocking</td>
-              <td><code>http4s-jdk-http-client</code></td>
-              <td>❌</td>
-              <td>✅</td>
-              <td>❌</td>
-              <td>✅</td>
+              <td><a href="https://http4s.github.io/http4s-dom">DOM</a></td>
+              <td>Browsers</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">❌</td>
             </tr>
             <tr>
-              <td><a href="https://www.eclipse.org/jetty/">Jetty</a></td>
-              <td>8+</td>
-              <td>All (0.2+)</td>
-              <td>?</td>
-              <td>❌</td>
-              <td><code>http4s-jetty</code></td>
-              <td></td>
-              <td></td>
-              <td>✅</td>
-            </tr>
-            <tr>
-              <td><a href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/">OkHttp</a></td>
-              <td>8+</td>
-              <td>0.18+</td>
-              <td>❌ Blocking</td>
-              <td><code>http4s-okhttp-client</code></td>
-              <td>❌</td>
-              <td>❌</td>
-              <td>❌</td>
-              <td>✅</td>
+              <td><a href="https://github.com/typelevel/feral">Feral</a></td>
+              <td>Serverless</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">✅</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">❌</td>
+              <td class="align-center">❌</td>
             </tr>
           </tbody>
         </table>
         
         <h2 id="entity-integrations" class="section">Entity Integrations<a class="anchor-link right" href="#entity-integrations"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>Http4s has multiple smaller modules for Entity encoding and Decoding support of common types.</p>
+        <p>Http4s has multiple smaller modules for Entity encoding and decoding support of common types.</p>
         <ul>
-          <li>Circe: <code>http4s-circe</code>. See the <a href="json.html">json</a> docs for more.</li>
-          <li>Scalatags: <code>http4s-scalatags</code></li>
-          <li>Scala-Xml: <code>http4s-scala-xml</code></li>
+          <li><a href="json.html">Circe</a></li>
+          <li><a href="https://github.com/http4s/http4s-scalatags">Scalatags</a></li>
+          <li><a href="https://github.com/http4s/http4s-scala-xml">Scala XML</a></li>
         </ul>
 
         <hr style="margin-top: 30px"/>
