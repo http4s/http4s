@@ -10,6 +10,7 @@ import explicitdeps.ExplicitDepsPlugin.autoImport.unusedCompileDependenciesFilte
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+import org.typelevel.sbt.TypelevelKernelPlugin.autoImport._
 import org.typelevel.sbt.gha.GenerativeKeys._
 import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
@@ -28,8 +29,6 @@ object Http4sPlugin extends AutoPlugin {
   val scala_213 = "2.13.10"
   val scala_212 = "2.12.17"
   val scala_3 = "3.2.1"
-
-  private val CompileTime = config("compile-time").hide
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -51,8 +50,6 @@ object Http4sPlugin extends AutoPlugin {
     doctestTestFramework := DoctestTestFramework.Munit,
     libraryDependencies += scalacCompatAnnotation,
     unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
-    ivyConfigurations += CompileTime,
-    Compile / unmanagedClasspath ++= update.value.select(configurationFilter(CompileTime.name)),
   )
 
   def extractApiVersion(version: String) = {
