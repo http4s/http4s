@@ -21,10 +21,10 @@ make sure it belongs in http4s before you put effort into creating a
 pull request. The preferred ways to do that are to either:
 
 * [Create a GitHub issue] describing your idea.
-* Get feedback in the [http4s Gitter room].
+* Get feedback in the [Typelevel Discord].
 
 [Create a GitHub issue]: https://github.com/http4s/http4s/issues/new
-[http4s Gitter room]: https://gitter.im/http4s/http4s
+[Typelevel Discord]: https://discord.gg/XF3CXcMzqD
 
 ## Let us know you are working on it
 
@@ -44,13 +44,10 @@ git clone git@github.com:http4s/http4s.git
 
 To build http4s, you should have [SBT] and [Hugo] installed.
 To test http4s you will also need [Node.js] v16 and [yarn].
-Run `sbt ci`. This runs:
+Run `sbt`, then use one of the following commands:
 
+* `compile`: compiles all code
 * `test`: compiles all code and runs the unit tests
-* `makeSite`: compiles the tutorial, generates the scaladoc, and
-  builds the static site.
-* `mimaReportBinaryIssues`: checks for binary incompatible changes,
-  which are relevant past patch release .0.
 
 [SBT]: https://www.scala-sbt.org/1.x/docs/Setup.html
 [Hugo]: https://gohugo.io/getting-started/installing/
@@ -244,9 +241,8 @@ not write any output to disk, it serves the site entirely from memory. And btw: 
 
 ## Submit a Pull Request
 
-Before you open a pull request, you should make sure that `sbt ci` runs
-successfully. Github Actions will run this as well, but it may save you some
-time to be alerted to style or [mdoc] problems earlier.
+Before you open a pull request, you should run `sbt quicklint` and
+commit any results.
 
 If your pull request addresses an existing issue, please tag that
 issue number in the body of your pull request or commit message. For
