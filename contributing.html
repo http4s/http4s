@@ -252,7 +252,7 @@
         pull request. The preferred ways to do that are to either:</p>
         <ul>
           <li><a href="https://github.com/http4s/http4s/issues/new">Create a GitHub issue</a> describing your idea.</li>
-          <li>Get feedback in the <a href="https://gitter.im/http4s/http4s">http4s Gitter room</a>.</li>
+          <li>Get feedback in the <a href="https://discord.gg/XF3CXcMzqD">Typelevel Discord</a>.</li>
         </ul>
         
         <h2 id="let-us-know-you-are-working-on-it" class="section">Let us know you are working on it<a class="anchor-link right" href="#let-us-know-you-are-working-on-it"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -267,13 +267,10 @@
         <pre class="keep-together pdf epub"><code class="sh">git clone git@github.com:http4s/http4s.git</code></pre>
         <p>To build http4s, you should have <a href="https://www.scala-sbt.org/1.x/docs/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.
         To test http4s you will also need <a href="https://nodejs.org">Node.js</a> v16 and <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
-        Run <code>sbt ci</code>. This runs:</p>
+        Run <code>sbt</code>, then use one of the following commands:</p>
         <ul>
+          <li><code>compile</code>: compiles all code</li>
           <li><code>test</code>: compiles all code and runs the unit tests</li>
-          <li><code>makeSite</code>: compiles the tutorial, generates the scaladoc, and
-          builds the static site.</li>
-          <li><code>mimaReportBinaryIssues</code>: checks for binary incompatible changes,
-          which are relevant past patch release .0.</li>
         </ul>
         
         <h2 id="coding-standard" class="section">Coding Standard<a class="anchor-link right" href="#coding-standard"><i class="icofont-laika">&#xef71;</i></a></h2>
@@ -416,9 +413,8 @@
         not write any output to disk, it serves the site entirely from memory. And btw: it uses http4s for that.</p>
         
         <h2 id="submit-a-pull-request" class="section">Submit a Pull Request<a class="anchor-link right" href="#submit-a-pull-request"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>Before you open a pull request, you should make sure that <code>sbt ci</code> runs
-        successfully. Github Actions will run this as well, but it may save you some
-        time to be alerted to style or <a href="https://scalameta.org/mdoc/">mdoc</a> problems earlier.</p>
+        <p>Before you open a pull request, you should run <code>sbt quicklint</code> and
+        commit any results.</p>
         <p>If your pull request addresses an existing issue, please tag that
         issue number in the body of your pull request or commit message. For
         example, if your pull request addresses issue number 52, please

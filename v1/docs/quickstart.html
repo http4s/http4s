@@ -261,8 +261,8 @@ $ find src/main -name &#39;*.scala&#39;
 ./src/main/scala/com/example/quickstart/Jokes.scala
 ./src/main/scala/com/example/quickstart/Main.scala
 ./src/main/scala/com/example/quickstart/QuickstartServer.scala</code></pre>
-        <p><code>Main.scala</code> defines a runnable object <code>Main extends IOApp</code> with an entry point method <code>run</code>
-        which calls the <code>stream</code> method of the object <code>QuickstartServer</code> defined on <code>QuickstartServer.scala</code>.
+        <p><code>Main.scala</code> defines a runnable object <code>Main extends IOApp.Simple</code> with an entry point member <code>run</code>
+        which calls the <code>run</code> method of the object <code>QuickstartServer</code> defined on <code>QuickstartServer.scala</code>.
         Starting ember, http4s&#39; native server backend.</p>
         <p><code>QuickStartRoutes</code> has two <code>route</code> definitions. The <code>helloWorldRoutes</code> containing a simple <code>HttpRoutes</code>
         that responds to <code>GET/hello/$USERNAME</code> with a JSON greeting.  Let&#39;s try it:</p>
