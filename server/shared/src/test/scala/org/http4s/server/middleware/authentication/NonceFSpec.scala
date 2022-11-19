@@ -18,13 +18,13 @@ package org.http4s
 package server.middleware.authentication
 
 import cats.effect.IO
-import cats.effect.std.Random
+import cats.effect.std.SecureRandom
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF._
 
 class NonceFSpec extends Http4sSuite {
   test("nonce in expected range") {
-    Random.javaSecuritySecureRandom[IO].map { random =>
+    SecureRandom.javaSecuritySecureRandom[IO].map { random =>
       forAllF(Gen.chooseNum(1, 240)) { (n: Int) =>
         NonceF
           .gen(random, n)
@@ -36,7 +36,7 @@ class NonceFSpec extends Http4sSuite {
 
   test("nonce has correct alphabet") {
     val alphabet = "0123456789abcdef".toSet
-    Random.javaSecuritySecureRandom[IO].map { random =>
+    SecureRandom.javaSecuritySecureRandom[IO].map { random =>
       forAllF { (_: Unit) =>
         NonceF.gen(random, 160).map(nonce => assert(nonce.data.forall(alphabet), nonce.data))
       }
