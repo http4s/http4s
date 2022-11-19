@@ -283,7 +283,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       serverFailure.covary[F].pure[F]
     }
 
-    @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
+    @deprecated("Use errorHandler, default fallback of failure InternalServerFailure", "0.21.17")
     def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       serverFailure.covary[F]
     }
