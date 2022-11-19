@@ -126,7 +126,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
-  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
   def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
     withErrorHandler { case e => onError(e).pure[F] }
 
