@@ -64,7 +64,9 @@ class CORSSuite extends Http4sSuite {
 
   private def assertAllowMethods[F[_]](resp: Response[F], methods: Option[String]) =
     assertEquals(
-      resp.headers.get(ci"Access-Control-Allow-Methods").map(_.map(_.value).toList.mkString(", ")),
+      resp.headers
+        .get(`Access-Control-Allow-Methods`.name)
+        .map(_.map(_.value).toList.mkString(", ")),
       methods,
     )
 

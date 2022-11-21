@@ -86,7 +86,7 @@ object HttpDate {
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */
-  @deprecated("0.20.16", "Use HttpDate.current instead, this breaks referential transparency")
+  @deprecated("Use HttpDate.current instead, this breaks referential transparency", "0.20.16")
   def now: HttpDate =
     unsafeFromInstant(Instant.now)
 

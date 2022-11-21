@@ -33,7 +33,13 @@ class MultipartSuite extends Http4sSuite {
   private val url = uri"https://example.com/path/to/some/where"
 
   private val multiparts =
-    Random.scalaUtilRandom[IO].map(Multiparts.fromRandom[IO]).syncStep.unsafeRunSync().toOption.get
+    Random
+      .scalaUtilRandom[IO]
+      .map(Multiparts.fromRandom[IO])
+      .syncStep(Int.MaxValue)
+      .unsafeRunSync()
+      .toOption
+      .get
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
     for {

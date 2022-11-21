@@ -23,7 +23,13 @@ import org.scalacheck.effect.PropF._
 
 class MultipartsSuite extends Http4sSuite {
   private val multiparts =
-    Random.scalaUtilRandom[IO].map(Multiparts.fromRandom[IO]).syncStep.unsafeRunSync().toOption.get
+    Random
+      .scalaUtilRandom[IO]
+      .map(Multiparts.fromRandom[IO])
+      .syncStep(Int.MaxValue)
+      .unsafeRunSync()
+      .toOption
+      .get
   private val alphabet =
     Set('A' to 'Z': _*) ++ Set('a' to 'z': _*) ++ Set('0' to '9': _*) ++ Set('_', '-')
 

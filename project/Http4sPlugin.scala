@@ -7,6 +7,7 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+import org.typelevel.sbt.TypelevelKernelPlugin.autoImport._
 import org.typelevel.sbt.gha.GenerativeKeys._
 import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
@@ -23,7 +24,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.10"
-  val scala_3 = "3.2.0"
+  val scala_3 = "3.2.1"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -43,6 +44,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
+    libraryDependencies += scalacCompatAnnotation,
   )
 
   def extractApiVersion(version: String) = {
@@ -95,34 +97,35 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
     val caseInsensitive = "1.3.0"
-    val cats = "2.8.0"
-    val catsEffect = "3.3.14"
+    val cats = "2.9.0"
+    val catsEffect = "3.4.1"
     val catsParse = "0.3.8"
     val circe = "0.14.3"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val epollcat = "0.1.1"
+    val epollcat = "0.1.2"
     val fs2 = "3.3.0"
     val ip4s = "3.2.0"
     val hpack = "1.0.4"
     val javaWebSocket = "1.5.3"
     val jawn = "1.4.0"
     val jawnFs2 = "2.4.0"
-    val jnrUnixSocket = "0.38.17"
+    val jnrUnixSocket = "0.38.19"
     val keypool = "0.4.8"
     val literally = "1.1.0"
     val logback = "1.2.6"
     val log4cats = "2.5.0"
     val log4s = "1.10.0"
-    val munit = "1.0.0-M6"
+    val munit = "1.0.0-M7"
     val munitCatsEffect = "2.0.0-M3"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.84.Final"
+    val netty = "4.1.85.Final"
     val quasiquotes = "2.1.0"
+    val scalacCompat = "0.1.0"
     val scalacheck = "1.17.0"
     val scalacheckEffect = "2.0.0-M2"
-    val scalaJavaLocales = "1.4.1"
+    val scalaJavaLocales = "1.5.0"
     val scalaJavaTime = "2.4.0"
     val scodecBits = "1.1.34"
     val slf4j = "1.7.36"
@@ -177,6 +180,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
+  lazy val scalacCompatAnnotation =
+    "org.typelevel" %% "scalac-compat-annotation" % V.scalacCompat % CompileTime
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)
