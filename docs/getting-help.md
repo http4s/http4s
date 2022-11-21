@@ -39,12 +39,4 @@ organization.
 [GitHub issues]: https://github.com/http4s/http4s/issues
 [contributing]: ../contributing/
 
-## Twitter
-
-We tweet from [@http4s].  Twitter is ill-suited to support, but we
-encourage you to follow for release announcements.  Your likes and
-retweets help grow our community.
-
-[@http4s]: https://twitter.com/http4s
 [Scala Code of Conduct]: ../code-of-conduct/
-
