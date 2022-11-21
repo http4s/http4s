@@ -110,6 +110,7 @@ lazy val core = libraryCrossProject("core")
       caseInsensitive.value,
       catsCore.value,
       catsEffectStd.value,
+      catsMtl.value,
       catsParse.value.exclude("org.typelevel", "cats-core_2.13"),
       fs2Core.value,
       fs2Io.value,
