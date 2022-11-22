@@ -11,6 +11,7 @@ import org.typelevel.sbt.TypelevelKernelPlugin.autoImport._
 import org.typelevel.sbt.gha.GenerativeKeys._
 import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
+import explicitdeps.ExplicitDepsPlugin.autoImport._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -45,6 +46,7 @@ object Http4sPlugin extends AutoPlugin {
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
     libraryDependencies += scalacCompatAnnotation,
+    unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
   )
 
   def extractApiVersion(version: String) = {
