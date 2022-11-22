@@ -20,14 +20,12 @@ package middleware
 
 import cats.ApplicativeThrow
 import cats.data.NonEmptyList
-import cats.effect.kernel.Async
 import cats.effect.kernel.MonadCancelThrow
 import fs2.Pipe
 import fs2.Pull
 import fs2.Stream
 import fs2.compression.Compression
 import fs2.compression.DeflateParams
-import fs2.io.compression._
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.headers.`Content-Encoding`
 import org.typelevel.ci._
