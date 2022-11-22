@@ -192,7 +192,6 @@ object CORS {
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
     "0.21.27",
   )
-  @nowarn212("cat=deprecation")
   @nowarn3("cat=deprecation")
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]

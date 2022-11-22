@@ -52,12 +52,6 @@ object GZip {
       }
     }
 
-  @deprecated("Use overload with `Compression` constraint", "0.23.17")
-  def apply[F[_]](bufferSize: Int, client: Client[F], F: Async[F]): Client[F] = {
-    implicit val async = F
-    apply(bufferSize)(client)
-  }
-
   private def addHeaders[F[_]](req: Request[F]): Request[F] =
     req.headers.get[`Accept-Encoding`] match {
       case Some(_) =>
