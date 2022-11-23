@@ -103,7 +103,7 @@ class ResourceServiceBuilder[F[_]] private (
               }
               .flatMap { path =>
                 StaticFile.fromResource(
-                  path.toString,
+                  path.toString.replaceAll("\\\\", "/"),
                   Some(request),
                   preferGzipped = preferGzipped,
                   classLoader,
