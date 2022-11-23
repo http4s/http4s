@@ -25,7 +25,7 @@ import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
-import cats.effect.std.Random
+import cats.effect.std.SecureRandom
 import cats.syntax.all._
 import cats.~>
 import org.http4s.Uri.Scheme
@@ -489,8 +489,8 @@ object CSRF {
     * SecureRandom use via jvm flags.
     */
   private val InitialSeedArraySize: Int = 20
-  private val CachedRandom: Random[SyncIO] =
-    Random
+  private val CachedRandom: SecureRandom[SyncIO] =
+    SecureRandom
       .javaSecuritySecureRandom[SyncIO]
       .flatTap(_.nextBytes(InitialSeedArraySize))
       .unsafeRunSync()

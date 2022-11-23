@@ -131,7 +131,6 @@ object Status {
 
   /** Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
     */
-  // scalastyle:off magic.number
   val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))
   val SwitchingProtocols: Status = register(
     trust(101, "Switching Protocols", isEntityAllowed = false)
@@ -202,7 +201,6 @@ object Status {
   val NetworkAuthenticationRequired: Status = register(
     trust(511, "Network Authentication Required")
   )
-  // scalastyle:on magic.number
 
   implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
   implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]

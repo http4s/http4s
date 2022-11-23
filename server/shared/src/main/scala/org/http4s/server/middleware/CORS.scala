@@ -26,8 +26,8 @@ import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.typelevel.ci._
+import org.typelevel.scalaccompat.annotation._
 
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.util.hashing.MurmurHash3
 
@@ -192,11 +192,10 @@ object CORS {
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
     "0.21.27",
   )
-  @nowarn // silence deprecation warning on Scala 3
+  @nowarn3("cat=deprecation")
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]
   ): Http[F, G] = {
-    def purposelyUnused = 0 // to satisfy @nowarn on Scala 2
     if (config.anyOrigin && config.allowCredentials)
       logger
         .warn(
@@ -237,14 +236,10 @@ object CORS {
 
         varyHeader(allowCredentialsHeader(withMethodBasedHeader))
           .putHeaders(
-            // TODO model me
-            "Access-Control-Allow-Methods" -> config.allowedMethods.fold(method.renderString)(
-              _.mkString("", ", ", "")
-            ),
+            `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
             // TODO model me
             "Access-Control-Allow-Origin" -> origin.value,
-            // TODO model me
-            "Access-Control-Max-Age" -> config.maxAge.toSeconds.toString,
+            `Access-Control-Max-Age`.unsafeFromLong(config.maxAge.toSeconds.max(-1)),
           )
       }
 
@@ -346,18 +341,18 @@ sealed class CORSPolicy(
         case AllowMethods.All => None
         case AllowMethods.In(methods) =>
           Header
-            .Raw(ci"Access-Control-Allow-Methods", methods.map(_.renderString).mkString(", "))
+            .Raw(`Access-Control-Allow-Methods`.name, methods.map(_.renderString).mkString(", "))
             .some
       }
 
     val maxAgeHeader =
       maxAge match {
         case MaxAge.Some(deltaSeconds) =>
-          Header.Raw(ci"Access-Control-Max-Age", deltaSeconds.toString).some
+          Header.Raw(`Access-Control-Max-Age`.name, deltaSeconds.toString).some
         case MaxAge.Default =>
           None
         case MaxAge.DisableCaching =>
-          Header.Raw(ci"Access-Control-Max-Age", "-1").some
+          Header.Raw(`Access-Control-Max-Age`.name, "-1").some
       }
 
     val varyHeaderNonOptions =
@@ -733,7 +728,7 @@ object CORSPolicy {
     val someExposeHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Expose-Headers`].name, "*").some
     val someAllowMethodsWildcard: Option[Header.Raw] =
-      Header.Raw(ci"Access-Control-Allow-Methods", "*").some
+      Header.Raw(`Access-Control-Allow-Methods`.name, "*").some
     val someAllowHeadersWildcard: Option[Header.Raw] =
       Header.Raw(Header[`Access-Control-Allow-Headers`].name, "*").some
   }

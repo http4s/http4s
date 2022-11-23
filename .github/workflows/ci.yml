@@ -29,13 +29,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.2.0, 2.13.10]
+        scala: [3.2.1, 2.13.10]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM, rootNative]
         exclude:
-          - scala: 3.2.0
+          - scala: 3.2.1
             java: temurin@11
-          - scala: 3.2.0
+          - scala: 3.2.1
             java: temurin@17
           - project: rootJS
             java: temurin@11
@@ -78,34 +78,34 @@ jobs:
 
       - name: Check headers and formatting
         if: matrix.java == 'temurin@8'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' headerCheckAll scalafmtCheckAll ''project /'' scalafmtSbtCheck'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' headerCheckAll scalafmtCheckAll ''project /'' scalafmtSbtCheck'
 
       - name: scalaJSLink
         if: matrix.project == 'rootJS'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' Test/scalaJSLinkerResult'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' Test/scalaJSLinkerResult'
 
       - name: nativeLink
         if: matrix.project == 'rootNative'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' Test/nativeLink'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' Test/nativeLink'
 
       - name: Test
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' test'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' test'
 
       - name: Check binary compatibility
         if: matrix.java == 'temurin@8'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' mimaReportBinaryIssues'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' mimaReportBinaryIssues'
 
       - name: Generate API documentation
         if: matrix.java == 'temurin@8'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' doc'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' doc'
 
       - name: Check scalafix lints
         if: matrix.java == 'temurin@8' && !startsWith(matrix.scala, '3.')
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' ''scalafixAll --check'''
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' ''scalafixAll --check'''
 
       - name: Check unused compile dependencies
         if: matrix.java == 'temurin@8'
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++${{ matrix.scala }}'' unusedCompileDependenciesTest'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' unusedCompileDependenciesTest'
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
@@ -159,32 +159,32 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Download target directories (3.2.0, rootJS)
+      - name: Download target directories (3.2.1, rootJS)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.0-rootJS
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootJS
 
-      - name: Inflate target directories (3.2.0, rootJS)
+      - name: Inflate target directories (3.2.1, rootJS)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.2.0, rootJVM)
+      - name: Download target directories (3.2.1, rootJVM)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.0-rootJVM
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootJVM
 
-      - name: Inflate target directories (3.2.0, rootJVM)
+      - name: Inflate target directories (3.2.1, rootJVM)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.2.0, rootNative)
+      - name: Download target directories (3.2.1, rootNative)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.0-rootNative
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootNative
 
-      - name: Inflate target directories (3.2.0, rootNative)
+      - name: Inflate target directories (3.2.1, rootNative)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -231,7 +231,7 @@ jobs:
           (echo "$PGP_PASSPHRASE"; echo; echo) | gpg --command-fd 0 --pinentry-mode loopback --change-passphrase $(gpg --list-secret-keys --with-colons 2> /dev/null | grep '^sec:' | cut --delimiter ':' --fields 5 | tail -n 1)
 
       - name: Publish
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''++${{ matrix.scala }}'' tlRelease'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' tlRelease'
 
   coverage:
     name: Generate coverage report
@@ -268,7 +268,7 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - run: 'nix develop .#${{ matrix.java }} -c sbt ''++${{ matrix.scala }}'' coverage rootJVM/test coverageAggregate'
+      - run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' coverage rootJVM/test coverageAggregate'
 
       - if: github.event_name != 'pull_request'
         uses: codecov/codecov-action@v2
@@ -309,7 +309,7 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Generate site
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''++${{ matrix.scala }}'' site/tlSite'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' site/tlSite'
 
       - name: Publish site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

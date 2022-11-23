@@ -17,7 +17,7 @@
 package org.http4s.server.middleware.authentication
 
 import cats.effect.SyncIO
-import cats.effect.std.Random
+import cats.effect.std.SecureRandom
 
 import java.util.Date
 
@@ -26,7 +26,7 @@ private[authentication] class Nonce(val created: Date, var nc: Int, val data: St
 
 @deprecated("Untracked side effects. Use NonceF.", "0.23.11")
 private[authentication] object Nonce {
-  val random: Random[SyncIO] = Random.javaSecuritySecureRandom[SyncIO].unsafeRunSync()
+  val random: SecureRandom[SyncIO] = SecureRandom.javaSecuritySecureRandom[SyncIO].unsafeRunSync()
 
   def gen(bits: Int): Nonce =
     new Nonce(new Date(), 0, NonceF.getRandomData[SyncIO](random, bits).unsafeRunSync())

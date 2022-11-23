@@ -57,7 +57,10 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   private def this(vec: Vector[KeyValue]) = this(Left(vec))
 
+  @deprecated("Unsafe method. Use get(idx) instead", "0.23.17")
   def apply(idx: Int): KeyValue = pairs(idx)
+
+  def get(idx: Int): Option[KeyValue] = pairs.get(idx.toLong)
 
   def length: Int = pairs.length
 

@@ -18,7 +18,7 @@ package org.http4s.server.middleware.authentication
 
 import cats.effect.Async
 import cats.effect.Ref
-import cats.effect.std.Random
+import cats.effect.std.SecureRandom
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 
@@ -38,7 +38,7 @@ private[authentication] object NonceKeeperF {
     current <- F.monotonic
     lastCleanupMillis <- Ref[F].of(current)
     nonces = new LinkedHashMap[String, NonceF[F]]
-    random <- Random.javaSecuritySecureRandom[F]
+    random <- SecureRandom.javaSecuritySecureRandom[F]
   } yield new NonceKeeperF(
     staleTimeout,
     nonceCleanupInterval,
@@ -64,7 +64,7 @@ private[authentication] class NonceKeeperF[F[_]](
     semaphore: Semaphore[F],
     lastCleanupMillis: Ref[F, FiniteDuration],
     nonces: LinkedHashMap[String, NonceF[F]],
-    random: Random[F],
+    random: SecureRandom[F],
 )(implicit F: Async[F]) {
   require(bits > 0, "Please supply a positive integer for bits.")
 
