@@ -64,7 +64,7 @@ private[internal] object StreamForking {
           .handleErrorWith(stopFailed)
           .guarantee(available.release >> decrementRunning)
 
-        F.uncancelable(poll => available.acquire >> incrementRunning >> F.start(poll(fa)).void)
+        F.uncancelable(_ => available.acquire >> incrementRunning >> F.start(fa).void)
       }
 
       val runOuter: F[Unit] =
