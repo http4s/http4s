@@ -36,6 +36,8 @@ import org.http4s.Uri.Path._
 import org.http4s._
 import org.http4s.headers.Allow
 
+import scala.util.Try
+
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
     Some((req, req.multiParams))
@@ -165,6 +167,9 @@ object /: {
 }
 
 protected class PathVar[A](cast: String => Option[A]) {
+  def this(cast: String => Try[A])(implicit ev: DummyImplicit) =
+    this((str: String) => cast(str).toOption)
+
   def unapply(str: String): Option[A] =
     if (str.nonEmpty)
       cast(str)
