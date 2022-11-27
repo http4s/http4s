@@ -47,7 +47,7 @@ object Renderer {
 
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
-  implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
+  implicit lazy val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
