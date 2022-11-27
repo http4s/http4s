@@ -73,7 +73,7 @@ object Retry {
         retryHeader
           .map { h =>
             h.retry match {
-              case Left(d) => F.realTime.map(d.toDuration - _)
+              case Left(date) => F.realTime.map(date.toDuration - _)
               case Right(secs) => secs.seconds.pure[F]
             }
           }
