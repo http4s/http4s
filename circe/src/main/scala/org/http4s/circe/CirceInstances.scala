@@ -177,10 +177,10 @@ trait CirceInstances extends JawnInstances {
   ): EntityEncoder[F, Stream[F, A]] =
     streamJsonArrayEncoderWithPrinter[F](printer).contramap[Stream[F, A]](_.map(encoder.apply))
 
-  implicit lazy val encodeUri: Encoder[Uri] =
+  implicit val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
 
-  implicit lazy val decodeUri: Decoder[Uri] =
+  implicit val decodeUri: Decoder[Uri] =
     Decoder.decodeString.emap { str =>
       Uri.fromString(str).leftMap(_ => "Uri")
     }
