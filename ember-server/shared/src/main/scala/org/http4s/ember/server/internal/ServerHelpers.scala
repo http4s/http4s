@@ -18,6 +18,7 @@ package org.http4s.ember.server.internal
 
 import cats._
 import cats.effect._
+import cats.effect.syntax.all._
 import cats.effect.kernel.Resource
 import cats.syntax.all._
 import com.comcast.ip4s._
@@ -75,31 +76,51 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
   )(implicit F: Async[F]): Stream[F, Nothing] = {
-    val server: Stream[F, Socket[F]] =
-      Stream
-        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
-        .attempt
-        .evalTap(e => ready.complete(e.map(_._1)))
-        .rethrow
-        .flatMap(_._2)
-    serverInternal(
-      server,
-      httpApp: HttpApp[F],
-      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      shutdown: Shutdown[F],
-      // Defaults
-      errorHandler: Throwable => F[Response[F]],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConnections: Int,
-      receiveBufferSize: Int,
-      maxHeaderSize: Int,
-      requestHeaderReceiveTimeout: Duration,
-      idleTimeout: Duration,
-      logger: Logger[F],
-      true,
-      webSocketKey,
-      enableHttp2,
-    )
+    val res = Resource.uncancelable[F, Unit] { _ =>
+      Resource
+        .eval(
+          sg
+            .serverResource(host, Some(port), additionalSocketOptions)
+            .attempt
+            .evalTap(e => ready.complete(e.map(_._1)))
+            .rethrow
+            .allocated
+            .uncancelable
+        )
+        .flatMap { case ((_, sockets), fin) =>
+          Resource
+            .eval(
+              serverInternal(
+                sockets,
+                httpApp: HttpApp[F],
+                tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+                shutdown: Shutdown[F],
+                // Defaults
+                errorHandler: Throwable => F[Response[F]],
+                onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+                maxConnections: Int,
+                receiveBufferSize: Int,
+                maxHeaderSize: Int,
+                requestHeaderReceiveTimeout: Duration,
+                idleTimeout: Duration,
+                logger: Logger[F],
+                true,
+                webSocketKey,
+                enableHttp2,
+              ).compile.drain.start
+            )
+            .flatMap { fiber =>
+              Resource.eval(fiber.join) >>
+                // Run finalizer to close server socket and then wait for
+                // active connections to finish
+                Resource.onFinalize[F](fiber.join.void) >> Resource.onFinalize[F](fin)
+            }
+
+        }
+    }
+
+    Stream.resource(res).drain
+
   }
 
   def unixSocketServer[F[_]: Async](
