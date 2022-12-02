@@ -186,7 +186,7 @@ protected class PathVar[A](cast: String => Option[A]) {
 object IntVar
     extends PathVar((str: String) =>
       try
-        Option(str.toInt)
+        Some(str.toInt)
       catch {
         case t if scala.util.control.NonFatal(t) => None
       }
@@ -201,7 +201,7 @@ object IntVar
 object LongVar
     extends PathVar((str: String) =>
       try
-        Option(str.toLong)
+        Some(str.toLong)
       catch {
         case t if scala.util.control.NonFatal(t) => None
       }
@@ -216,7 +216,7 @@ object LongVar
 object UUIDVar
     extends PathVar((str: String) =>
       try
-        Option(java.util.UUID.fromString(str))
+        Some(java.util.UUID.fromString(str))
       catch {
         case t if scala.util.control.NonFatal(t) => None
       }
