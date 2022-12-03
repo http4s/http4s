@@ -701,7 +701,8 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
       val sizeKB = size / 1000
       // not a hard target. increase *moderately* if need be
       // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      val targetKB = 350
+      // linking java.time.* results in a 70 KB increase
+      val targetKB = 280
       val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
       if (sizeKB < targetKB)
         log.info(msg)
