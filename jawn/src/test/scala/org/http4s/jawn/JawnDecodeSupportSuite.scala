@@ -24,7 +24,7 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
   def testJsonDecoder(decoder: EntityDecoder[IO, J]): Unit = {
     test("return right when the entity is valid") {
       val resp = Response[IO](Status.Ok).withEntity("""{"valid": true}""")
-      decoder.decode(resp, strict = false).value.map(_.isRight).assert
+      decoder.decode(resp, strict = false).map(_.isRight).assert
     }
 
     testErrors(decoder)(
@@ -49,7 +49,6 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
       val resp = Response[IO](Status.Ok).withEntity("""garbage""")
       decoder
         .decode(resp, strict = false)
-        .value
         .map(_.leftMap(r => emptyBody.applyOrElse(r, (_: DecodeFailure) => false)))
     }
 
@@ -57,7 +56,6 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
       val resp = Response[IO](Status.Ok).withEntity("")
       decoder
         .decode(resp, strict = false)
-        .value
         .map(_.leftMap(r => parseError.applyOrElse(r, (_: DecodeFailure) => false)))
     }
   }

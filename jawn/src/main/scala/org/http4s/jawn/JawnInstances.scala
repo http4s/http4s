@@ -37,21 +37,19 @@ trait JawnInstances {
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Concurrent, J: Facade](
       m: Media[F]
-  ): DecodeResult[F, J] =
-    DecodeResult {
-      m.body.chunks
-        .parseJson(AsyncParser.SingleValue)
-        .map(Either.right)
-        .handleErrorWith {
-          case pe: ParseException =>
-            Stream.emit(Left(jawnParseExceptionMessage(pe)))
-          case e =>
-            Stream.raiseError[F](e)
-        }
-        .compile
-        .last
-        .map(_.getOrElse(Left(jawnEmptyBodyMessage)))
-    }
+  ): F[DecodeResult[J]] =
+    m.body.chunks
+      .parseJson(AsyncParser.SingleValue)
+      .map(Either.right)
+      .handleErrorWith {
+        case pe: ParseException =>
+          Stream.emit(Left(jawnParseExceptionMessage(pe)))
+        case e =>
+          Stream.raiseError[F](e)
+      }
+      .compile
+      .last
+      .map(_.getOrElse(Left(jawnEmptyBodyMessage)))
 }
 
 object JawnInstances {

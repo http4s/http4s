@@ -74,8 +74,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
-            val result = decoded.value
+            val result = decoder.decode(request, true)
 
             assertIOBoolean(
               EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
@@ -96,8 +95,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
-            val result = decoded.value
+            val result = decoder.decode(request, true)
 
             assertIOBoolean(
               EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
@@ -121,8 +119,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, entity = entity, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
-            val result = decoded.value
+            val result = decoder.decode(request, true)
 
             assertIOBoolean(
               EitherT(result).semiflatMap(eqMultipartIO(_, multipart)).getOrElse(false)
@@ -165,9 +162,7 @@ Content-Type: application/pdf
 
       mkDecoder.use { decoder =>
         val decoded = decoder.decode(request, true)
-        val result = decoded.value.map(_.isRight)
-
-        result.assertEquals(true)
+        decoded.map(_.isRight).assertEquals(true)
       }
     }
 
@@ -198,7 +193,7 @@ I am a big moose
 
       mkDecoder.use { decoder =>
         val decoded = decoder.decode(request, true)
-        val result = decoded.value.map(_.isRight)
+        val result = decoded.map(_.isRight)
 
         result.assertEquals(true)
       }

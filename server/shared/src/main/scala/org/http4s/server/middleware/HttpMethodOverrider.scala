@@ -134,7 +134,6 @@ object HttpMethodOverrider {
               UrlForm
                 .entityDecoder[G]
                 .decode(req, strict = true)
-                .value
                 .map(_.toOption.map(_.values))
             )
           } yield formFields.flatMap(_.get(field).flatMap(_.uncons.map(_._1)))

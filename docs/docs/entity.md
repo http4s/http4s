@@ -54,7 +54,8 @@ determine which of the chained decoders are to be used.
 import org.http4s._
 import org.http4s.headers.`Content-Type`
 import org.http4s.dsl.io._
-import cats._, cats.effect._, cats.implicits._, cats.data._
+import cats._, cats.effect._
+import cats.syntax.all._
 
 sealed trait Resp
 case class Audio(body: String) extends Resp
@@ -70,15 +71,11 @@ implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
 ```scala mdoc:silent
 val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
-val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { (m: Media[IO]) =>
-  EitherT {
-    m.as[String].map(s => Audio(s).asRight[DecodeFailure])
-  }
+val audioDec = EntityDecoder.decodeBy[IO, Audio](MediaType.audio.ogg) { (m: Media[IO]) =>
+  m.as[String].map(s => Right(Audio(s)))
 }
-val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =>
-  EitherT {
-    m.as[String].map(s => Video(s).asRight[DecodeFailure])
-  }
+val videoDec = EntityDecoder.decodeBy[IO, Video](MediaType.video.ogg) { (m: Media[IO]) =>
+  m.as[String].map(s => Right(Video(s)))
 }
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
 ```

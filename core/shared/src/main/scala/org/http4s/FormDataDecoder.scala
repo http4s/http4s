@@ -95,6 +95,9 @@ object FormDataDecoder {
   type FormData = Map[String, Chain[String]]
   type Result[A] = ValidatedNel[ParseFailure, A]
 
+  private[this] def toDecodeResult[A](res: Result[A]): DecodeResult[A] =
+    res.toEither.leftMap(es => InvalidMessageBodyFailure(es.map(_.sanitized).mkString_("\n")))
+
   def apply[A](f: FormData => Result[A]): FormDataDecoder[A] =
     new FormDataDecoder[A] {
       def apply(data: FormData): Result[A] = f(data)
@@ -103,11 +106,7 @@ object FormDataDecoder {
   implicit def formEntityDecoder[F[_]: Concurrent, A](implicit
       fdd: FormDataDecoder[A]
   ): EntityDecoder[F, A] =
-    UrlForm.entityDecoder[F].flatMapR { d =>
-      fdd(d.values)
-        .leftMap(es => InvalidMessageBodyFailure(es.map(_.sanitized).mkString_("\n")))
-        .liftTo[DecodeResult[F, *]]
-    }
+    UrlForm.entityDecoder[F].subflatMap(d => toDecodeResult(fdd(d.values)))
 
   private def apply[Data, A](
       extract: FormData => Either[String, Data]

@@ -45,17 +45,9 @@ class UrlFormSpec extends Http4sSuite {
 
     test("UrlForm should entityDecoder . entityEncoder == right") {
       PropF.forAllF { (urlForm: UrlForm) =>
-        DecodeResult
-          .success(
-            Request[IO]()
-              .withEntity(urlForm)(UrlForm.entityEncoder(charset))
-              .pure[IO]
-          )
-          .flatMap { req =>
-            UrlForm.entityDecoder[IO].decode(req, strict = false)
-          }
-          .value
-          .assertEquals(Right(urlForm))
+        val req = Request[IO]().withEntity(urlForm)(UrlForm.entityEncoder(charset))
+
+        UrlForm.entityDecoder[IO].decode(req, strict = false).assertEquals(Right(urlForm))
       }
     }
 

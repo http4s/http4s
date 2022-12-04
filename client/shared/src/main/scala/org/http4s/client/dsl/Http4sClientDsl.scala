@@ -19,6 +19,7 @@ package client
 package dsl
 
 import cats.Applicative
+import cats.syntax.functor._
 import org.http4s.headers.`Content-Length`
 
 trait Http4sClientDsl[F[_]] {
@@ -31,7 +32,7 @@ trait Http4sClientDsl[F[_]] {
   ): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>
-      decoder.decode(resp, strict = true).map(t => (resp.headers, t))
+      decoder.decode(resp, strict = true).map(_.map(t => (resp.headers, t)))
     )
   }
 }

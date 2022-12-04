@@ -30,7 +30,7 @@ trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
     (for {
       entity <- F.pure(encoder.toEntity(a))
       message = Request(entity = entity, headers = encoder.headers)
-      a0 <- decoder.decode(message, strict = true).value
+      a0 <- decoder.decode(message, strict = true)
     } yield a0) <-> F.pure(Right(a))
 }
 

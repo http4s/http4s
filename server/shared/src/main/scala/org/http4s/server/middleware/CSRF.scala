@@ -415,7 +415,6 @@ object CSRF {
     def getFormToken: F[Option[String]] = {
       def extractToken: G[Option[String]] =
         r.attemptAs[UrlForm]
-          .value
           .map(_.fold(_ => none[String], _.values.get(fieldName).flatMap(_.uncons.map(_._1))))
 
       r.headers.get[`Content-Type`] match {

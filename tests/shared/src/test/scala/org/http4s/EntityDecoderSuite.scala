@@ -45,166 +45,114 @@ class EntityDecoderSuite extends Http4sSuite {
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
-  private val req = Response[IO](Ok).withEntity("foo").pure[IO]
+  private val req = Response[IO](Ok).withEntity("foo")
 
   test("flatMapR with success") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.successT[IO, String]("bar"))
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Right("bar"))
+    val composed =
+      EntityDecoder.text[IO].flatMapR(_ => IO.pure(Right("bar")))
+
+    composed.decode(req, strict = false).assertEquals(Right("bar"))
   }
 
   test("flatMapR with failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Left(MalformedMessageBodyFailure("bummer")))
+    val failure = MalformedMessageBodyFailure("bummer")
+    val composed = EntityDecoder.text[IO].flatMapR(_ => IO.pure(Left(failure)))
+    composed.decode(req, strict = false).assertEquals(Left(failure))
   }
 
+  private val bummer = MalformedMessageBodyFailure("bummer")
+  private val doubleBummer = MalformedMessageBodyFailure("double bummer")
+
   test("handleError from failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .handleError(_ => "SAVED")
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Right("SAVED"))
+    val composed =
+      EntityDecoder
+        .text[IO]
+        .flatMapR(_ => IO.pure(Left(bummer)))
+        .handleError(_ => "SAVED")
+
+    composed.decode(req, strict = false).assertEquals(Right("SAVED"))
   }
 
   test("handleErrorWith success from failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .handleErrorWith(_ => DecodeResult.successT[IO, String]("SAVED"))
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Right("SAVED"))
+    val failed: IO[DecodeResult[String]] = IO.pure(Left(bummer))
+    val saved: IO[DecodeResult[String]] = IO.pure(DecodeResult.succeed[String]("SAVED"))
+    val composed = EntityDecoder.text[IO].flatMapR(_ => failed).handleErrorWith(_ => saved)
+    composed.decode(req, strict = false).assertEquals(Right("SAVED"))
   }
 
   test("recoverWith failure from failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .handleErrorWith(_ =>
-            DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer"))
-          )
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Left(MalformedMessageBodyFailure("double bummer")))
+    val composed =
+      EntityDecoder
+        .text[IO]
+        .flatMapR(_ => IO.pure(Left(bummer)))
+        .handleErrorWith(_ => IO.pure(Left(doubleBummer)))
+
+    composed.decode(req, strict = false).assertEquals(Left(doubleBummer))
   }
 
   test("transform from success") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .transform(_ => Right("TRANSFORMED"))
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Right("TRANSFORMED"))
+    val composed = EntityDecoder.text[IO].transform(_ => Right("TRANSFORMED"))
+
+    composed.decode(req, strict = false).assertEquals(Right("TRANSFORMED"))
   }
 
   test("bimap from failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .bimap(_ => MalformedMessageBodyFailure("double bummer"), identity)
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Left(MalformedMessageBodyFailure("double bummer")))
+    val composed =
+      EntityDecoder
+        .text[IO]
+        .flatMapR(_ => IO(Either.left[DecodeFailure, String](bummer)))
+        .bimap(_ => doubleBummer, identity)
+
+    composed.decode(req, strict = false).assertEquals(Left(doubleBummer))
   }
 
   test("transformWith from success") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .transformWith(_ => DecodeResult.successT[IO, String]("TRANSFORMED"))
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Right("TRANSFORMED"))
+    val composed = EntityDecoder.text[IO].transformWith(_ => IO.pure(Right("TRANSFORMED")))
+
+    composed.decode(req, strict = false).assertEquals(Right("TRANSFORMED"))
   }
 
   test("biflatMap from failure") {
-    DecodeResult
-      .success(req)
-      .flatMap { r =>
-        EntityDecoder
-          .text[IO]
-          .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
-          .biflatMap(
-            _ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer")),
-            s => DecodeResult.successT[IO, String](s),
-          )
-          .decode(r, strict = false)
-      }
-      .value
-      .assertEquals(Left(MalformedMessageBodyFailure("double bummer")))
+    val composed =
+      EntityDecoder
+        .text[IO]
+        .flatMapR(_ => IO.pure(Left(bummer)))
+        .biflatMap(
+          _ => IO.pure(Left(doubleBummer)),
+          (s: String) => IO.pure(Right(s)),
+        )
+
+    composed.decode(req, strict = false).assertEquals(Left(doubleBummer))
   }
 
   val nonMatchingDecoder: EntityDecoder[IO, String] =
-    EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
-      DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
+    EntityDecoder.decodeBy[IO, String](MediaRange.`video/*`) { _ =>
+      IO.pure(Left(MalformedMessageBodyFailure("Nope.")))
     }
 
   val decoder1: EntityDecoder[IO, Int] =
-    EntityDecoder.decodeBy(`application/gnutar`) { _ =>
-      DecodeResult.successT(1)
-    }
+    EntityDecoder.decodeBy[IO, Int](`application/gnutar`)(_ => IO.pure(Right(1)))
 
   val decoder2: EntityDecoder[IO, Int] =
-    EntityDecoder.decodeBy(`application/excel`) { _ =>
-      DecodeResult.successT(2)
-    }
+    EntityDecoder.decodeBy[IO, Int](`application/excel`)(_ => IO.pure(Right(2)))
 
   val failDecoder: EntityDecoder[IO, Int] =
-    EntityDecoder.decodeBy(`application/soap+xml`) { _ =>
-      DecodeResult.failureT(MalformedMessageBodyFailure("Nope."))
+    EntityDecoder.decodeBy[IO, Int](`application/soap+xml`) { _ =>
+      IO.pure(Left(MalformedMessageBodyFailure("Nope.")))
     }
 
   test("Check the validity of a message body") {
     val decoder = EntityDecoder.decodeBy[IO, String](MediaType.text.plain) { _ =>
-      DecodeResult.failureT(InvalidMessageBodyFailure("Nope."))
+      IO.pure(DecodeResult.failed[String](InvalidMessageBodyFailure("Nope.")))
     }
 
+    val req = Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain)))
     decoder
-      .decode(Request[IO](headers = Headers(`Content-Type`(MediaType.text.plain))), strict = true)
-      .swap
-      .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
-      .map(_.status)
-      .value
+      .decode(req, strict = true)
+      .map {
+        case Left(e) => Right(e.toHttpResponse[IO](HttpVersion.`HTTP/1.1`).status)
+        case Right(x) => Left(x)
+      }
       .assertEquals(Right(Status.UnprocessableEntity))
   }
 
@@ -273,7 +221,6 @@ class EntityDecoderSuite extends Http4sSuite {
     val req = Request[IO]()
     decoder1
       .decode(req, strict = true)
-      .value
       .assertEquals(Left(MediaTypeMissing(decoder1.consumes)))
   }
 
@@ -282,7 +229,6 @@ class EntityDecoderSuite extends Http4sSuite {
     val req = Request[IO](headers = Headers(`Content-Type`(tpe)))
     decoder1
       .decode(req, strict = true)
-      .value
       .assertEquals(Left(MediaTypeMismatch(tpe, decoder1.consumes)))
   }
 
@@ -291,7 +237,7 @@ class EntityDecoderSuite extends Http4sSuite {
   ) {
     val reqMediaType = MediaType.application.`atom+xml`
     val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
-    (decoder1 <+> decoder2).decode(req, strict = false).value.assertEquals(Right(2))
+    (decoder1 <+> decoder2).decode(req, strict = false).assertEquals(Right(2))
   }
 
   test(
@@ -301,19 +247,16 @@ class EntityDecoderSuite extends Http4sSuite {
       Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
     val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) { _ =>
-      DecodeResult.successT(3)
+      IO.pure(DecodeResult.succeed[Int](3))
     }
     (decoder1 <+> catchAllDecoder)
       .decode(reqSomeOtherMediaType, strict = true)
-      .value
       .assertEquals(Right(3)) *>
       (catchAllDecoder <+> decoder1)
         .decode(reqSomeOtherMediaType, strict = true)
-        .value
         .assertEquals(Right(3)) *>
       (catchAllDecoder <+> decoder1)
         .decode(reqNoMediaType, strict = true)
-        .value
         .assertEquals(Right(3))
   }
 
@@ -326,11 +269,9 @@ class EntityDecoderSuite extends Http4sSuite {
       Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2 <+> failDecoder)
       .decode(reqSomeOtherMediaType, strict = true)
-      .value
       .assertEquals(Left(MediaTypeMismatch(reqMediaType, expectedMediaRanges))) *>
       (decoder1 <+> decoder2 <+> failDecoder)
         .decode(Request(), strict = true)
-        .value
         .assertEquals(Left(MediaTypeMissing(expectedMediaRanges)))
   }
 
@@ -338,7 +279,7 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => IO.pure(DecodeResult.succeed("hooray")))
     IO.async[String] { cb =>
       request
         .decodeWith(happyDecoder, strict = false) { s =>
@@ -351,12 +292,10 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
     val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
-      DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!")))
+      IO.pure(DecodeResult.failed[String](MalformedMessageBodyFailure("Bah!")))
     )
     request
-      .decodeWith(grumpyDecoder, strict = false) { _ =>
-        IO.pure(Response())
-      }
+      .decodeWith(grumpyDecoder, strict = false)(_ => IO.pure(Response()))
       .map(_.status)
       .assertEquals(Status.BadRequest)
   }
@@ -379,15 +318,12 @@ class EntityDecoderSuite extends Http4sSuite {
         "Name" -> Chain("Jonathan Doe"),
       )
     )
-    val resp: IO[Response[IO]] = Request[IO]()
-      .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
-      .pure[IO]
-      .flatMap(server)
+    val req = Request[IO]().withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
+    val resp: IO[Response[IO]] = server(req)
+
     resp.map(_.status).assertEquals(Ok) *>
-      DecodeResult
-        .success(resp)
+      resp
         .flatMap(UrlForm.entityDecoder[IO].decode(_, strict = true))
-        .value
         .assertEquals(Right(urlForm))
   }
 
@@ -450,7 +386,6 @@ class EntityDecoderSuite extends Http4sSuite {
     EntityDecoder
       .binary[IO]
       .decode(msg, strict = false)
-      .value
       .assertEquals(Right(Chunk.empty[Byte]))
   }
 
@@ -459,7 +394,7 @@ class EntityDecoderSuite extends Http4sSuite {
     val body = ByteVector.view(d1) ++ ByteVector.view(d2)
     val msg = Request[IO](entity = Entity.Strict(body))
     val expected = Chunk.array(Array[Byte](1, 2, 3, 4, 5, 6))
-    EntityDecoder.binary[IO].decode(msg, strict = false).value.assertEquals(Right(expected))
+    EntityDecoder.binary[IO].decode(msg, strict = false).assertEquals(Right(expected))
   }
 
   test("binary EntityDecoder should Match any media type") {

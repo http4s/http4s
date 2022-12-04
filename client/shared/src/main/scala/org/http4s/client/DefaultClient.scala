@@ -76,7 +76,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
 
     run(r).use {
       case Successful(resp) =>
-        d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
+        d.decode(resp, strict = false).flatMap(F.fromEither)
       case failedResponse =>
         onError(failedResponse).flatMap(F.raiseError)
     }
@@ -131,7 +131,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
 
     run(r).use {
       case Successful(resp) =>
-        d.decode(resp, strict = false).leftWiden[Throwable].rethrowT.map(_.some)
+        d.decode(resp, strict = false).flatMap(F.fromEither).map(_.some)
       case failedResponse =>
         failedResponse.status match {
           case Status.NotFound => Option.empty[A].pure[F]
@@ -154,9 +154,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
       req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
     } else req
 
-    run(r).use { resp =>
-      d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
-    }
+    run(r).use(resp => d.decode(resp, strict = false).flatMap(F.fromEither))
   }
 
   /** Submits a request and decodes the response, regardless of the status code.

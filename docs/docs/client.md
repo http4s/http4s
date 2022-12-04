@@ -416,7 +416,7 @@ includes the decoding functionality, but ignores the media type.
 ```scala mdoc:silent
 val endpoint = uri"http://localhost:8080/hello/Ember"
 httpClient.get[Either[String, String]](endpoint) {
-  case Status.Successful(r) => r.attemptAs[String].leftMap(_.message).value
+  case Status.Successful(r) => r.attemptAs[String].map(_.leftMap(_.message))
   case r => r.as[String]
     .map(b => Left(s"Request failed with status ${r.status.code} and body $b"))
 }

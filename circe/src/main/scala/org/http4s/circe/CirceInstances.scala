@@ -20,6 +20,7 @@ package circe
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.syntax.either._
+import cats.syntax.functor._
 import fs2.Chunk
 import fs2.Pull
 import fs2.Stream
@@ -50,17 +51,19 @@ trait CirceInstances extends JawnInstances {
   def jsonDecoderByteBuffer[F[_]: Concurrent]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Json] =
-    EntityDecoder.collectBinary(m).subflatMap { chunk =>
-      val bb = chunk.toByteBuffer
-      if (bb.hasRemaining)
-        circeSupportParser
-          .parseFromByteBuffer(bb)
-          .toEither
-          .leftMap(e => circeParseExceptionMessage(ParsingFailure(e.getMessage(), e)))
-      else
-        Left(jawnEmptyBodyMessage)
-    }
+  private def jsonDecoderByteBufferImpl[F[_]: Concurrent](m: Media[F]): F[DecodeResult[Json]] =
+    EntityDecoder
+      .collectBinary(m)
+      .map(_.flatMap { chunk =>
+        val bb = chunk.toByteBuffer
+        if (bb.hasRemaining)
+          circeSupportParser
+            .parseFromByteBuffer(bb)
+            .toEither
+            .leftMap(e => circeParseExceptionMessage(ParsingFailure(e.getMessage(), e)))
+        else
+          Left(jawnEmptyBodyMessage)
+      })
 
   // default cutoff value is based on benchmarks results
   implicit def jsonDecoder[F[_]: Concurrent]: EntityDecoder[F, Json] =
@@ -108,13 +111,8 @@ trait CirceInstances extends JawnInstances {
       decodeErrorHandler: (Json, NonEmptyList[DecodingFailure]) => DecodeFailure,
       rs: MediaRange*
   )(implicit F: Concurrent[F], decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).flatMapR { json =>
-      decoder
-        .decodeJson(json)
-        .fold(
-          failure => DecodeResult.failureT(decodeErrorHandler(json, NonEmptyList.one(failure))),
-          DecodeResult.successT(_),
-        )
+    jsonDecoderAdaptive[F](cutoff = 100000, r1, rs: _*).subflatMap { json =>
+      decoder.decodeJson(json).leftMap(f => decodeErrorHandler(json, NonEmptyList.one(f)))
     }
 
   /** An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
@@ -126,13 +124,8 @@ trait CirceInstances extends JawnInstances {
       F: Concurrent[F],
       decoder: Decoder[A],
   ): EntityDecoder[F, A] =
-    jsonDecoder[F].flatMapR { json =>
-      decoder
-        .decodeAccumulating(json.hcursor)
-        .fold(
-          failures => DecodeResult.failureT(jsonDecodeError(json, failures)),
-          DecodeResult.successT(_),
-        )
+    jsonDecoder[F].subflatMap { json =>
+      decoder.decodeAccumulating(json.hcursor).toEither.leftMap(jsonDecodeError(json, _))
     }
 
   implicit def jsonEncoder: EntityEncoder.Pure[Json] = jsonEncoderWithPrinter(defaultPrinter)
@@ -156,7 +149,7 @@ trait CirceInstances extends JawnInstances {
 
   implicit def streamJsonArrayDecoder[F[_]: Concurrent]: EntityDecoder[F, Stream[F, Json]] =
     EntityDecoder.decodeBy(MediaType.application.json) { media =>
-      DecodeResult.successT(media.body.chunks.through(unwrapJsonArray))
+      Concurrent[F].pure(Right(media.body.chunks.through(unwrapJsonArray)))
     }
 
   /** An [[EntityEncoder]] for a [[fs2.Stream]] of JSONs, which will encode it as a single JSON array. */

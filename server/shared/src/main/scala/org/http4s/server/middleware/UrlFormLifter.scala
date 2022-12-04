@@ -53,14 +53,10 @@ object UrlFormLifter {
       req.headers.get[headers.`Content-Type`] match {
         case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _))
             if checkRequest(req) =>
-          for {
-            decoded <- f(UrlForm.entityDecoder[G].decode(req, strictDecode).value)
-            resp <- decoded.fold(
-              mf => f(mf.toHttpResponse[G](req.httpVersion).pure[G]),
-              addUrlForm,
-            )
-          } yield resp
-
+          f(UrlForm.entityDecoder[G].decode(req, strictDecode)).flatMap {
+            case Right(urlForm) => addUrlForm(urlForm)
+            case Left(mf) => f(mf.toHttpResponse[G](req.httpVersion).pure[G])
+          }
         case _ => http(req)
       }
     }

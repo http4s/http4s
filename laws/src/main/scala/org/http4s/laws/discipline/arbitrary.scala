@@ -905,13 +905,13 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       F: Concurrent[F],
       dispatcher: Dispatcher[F],
       testContext: TestContext,
-      g: Arbitrary[DecodeResult[F, A]],
+      g: Arbitrary[F[DecodeResult[A]]],
   ): Arbitrary[EntityDecoder[F, A]] =
     Arbitrary(for {
-      f <- getArbitrary[(Media[F], Boolean) => DecodeResult[F, A]]
+      f <- getArbitrary[(Media[F], Boolean) => F[DecodeResult[A]]]
       mrs <- getArbitrary[Set[MediaRange]]
     } yield new EntityDecoder[F, A] {
-      def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
+      def decode(m: Media[F], strict: Boolean): F[DecodeResult[A]] = f(m, strict)
       def consumes = mrs
     })
 

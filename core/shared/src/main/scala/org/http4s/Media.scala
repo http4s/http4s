@@ -60,7 +60,7 @@ object Media {
       * @tparam T type of the result
       * @return the effect which will generate the `DecodeResult[T]`
       */
-    def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+    def attemptAs[T](implicit decoder: EntityDecoder[F, T]): F[DecodeResult[T]] =
       decoder.decode(self, strict = false)
 
     /** Decode the [[Media]] to the specified type
@@ -72,7 +72,7 @@ object Media {
       * @return the effect which will generate the A
       */
     def as[A](implicit F: MonadThrow[F], decoder: EntityDecoder[F, A]): F[A] =
-      F.rethrow(attemptAs.value)
+      F.rethrow(attemptAs)
   }
 
   def apply[F[_]](e: Entity[F], h: Headers): Media[F] =
