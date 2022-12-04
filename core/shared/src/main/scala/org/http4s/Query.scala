@@ -277,8 +277,7 @@ object Query {
     override def hashCode: Int = 31 + pairs.##
   }
 
-  final class Parsed private[http4s] (value: Vector[KeyValue]) extends Query {
-    def pairs: Vector[KeyValue] = value
+  final class Parsed private[http4s] (val pairs: Vector[KeyValue]) extends Query {
 
     /** Render the Query as a `String`.
       *
@@ -295,7 +294,7 @@ object Query {
           toSkip = UriCoding.QueryNoEncode,
         )
 
-      value.foreach {
+      pairs.foreach {
         case (n, None) =>
           if (!first) writer.append('&')
           else first = false
@@ -318,7 +317,7 @@ object Query {
         case _ => false
       }
 
-    override def hashCode: Int = 31 + value.##
+    override def hashCode: Int = 31 + pairs.##
   }
 
   type KeyValue = (String, Option[String])
