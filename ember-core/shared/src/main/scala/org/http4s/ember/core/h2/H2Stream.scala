@@ -73,18 +73,26 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val trailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F])
-    mess.body.chunks.noneTerminate.zipWithNext
-      .foreach {
-        case (Some(c), Some(Some(_))) =>
-          sendData(c.toByteVector, false)
-        case (Some(c), Some(None) | None) =>
-          sendData(c.toByteVector, trailers.isEmpty)
-        case (None, _) =>
-          if (trailers.isDefined) Applicative[F].unit
-          else sendData(ByteVector.empty, true)
-      }
-      .compile
-      .drain
+    for {
+      maxFrameSize <- remoteSettings.map(_.maxFrameSize.frameSize)
+
+      _ <-
+        mess.body
+          .chunkLimit(maxFrameSize)
+          .noneTerminate
+          .zipWithNext
+          .foreach {
+            case (Some(c), Some(Some(_))) =>
+              sendData(c.toByteVector, false)
+            case (Some(c), Some(None) | None) =>
+              sendData(c.toByteVector, trailers.isEmpty)
+            case (None, _) =>
+              if (trailers.isDefined) Applicative[F].unit
+              else sendData(ByteVector.empty, true)
+          }
+          .compile
+          .drain
+    } yield ()
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
