@@ -22,7 +22,6 @@ import cats.effect.Ref
 import cats.effect._
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
-import cats.syntax.all._
 import cats.~>
 import fs2._
 import org.http4s.headers.Host
@@ -237,7 +236,9 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
+  def fromHttpApp[F[_]](
+      app: HttpApp[F]
+  )(implicit F: Concurrent[F]): Client[F] = {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
@@ -252,33 +253,38 @@ object Client {
       go(source).stream
     }
 
-    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
-      Ref[F].of(false).map { disposed =>
-        val req0 = {
-          val entity = req.entity match {
-            case Entity.Empty | Entity.Strict(_) =>
-              req
-            case Entity.Default(_, _) =>
-              req.pipeBodyThrough(until(disposed))
-          }
-
-          addHostHeaderIfUriIsAbsolute(entity)
+    def run(
+        message: Message[F],
+        refOp: Option[Ref[F, Boolean]] = None,
+    ): Resource[F, Response[F]] = message.entity match {
+      case Entity.Empty | Entity.Strict(_) =>
+        message match {
+          case req: Request[F] =>
+            val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
+            Resource.eval(app(reqAugmented)).flatMap(run(_))
+          case resp: Response[F] =>
+            Resource.pure(resp)
         }
-
-        Resource
-          .eval(app(req0))
-          .onFinalize(disposed.set(true))
-          .map { resp =>
-            resp.entity match {
-              case Entity.Empty | Entity.Strict(_) =>
-                resp
-              case Entity.Default(_, _) =>
-                resp.pipeBodyThrough(until(disposed))
+      case Entity.Default(_, _) =>
+        message match {
+          case req: Request[F] =>
+            Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+              val reqAugmented =
+                addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+              Resource
+                .eval(app(reqAugmented))
+                .onFinalize(disposed.set(true))
+                .flatMap(run(_, Option(disposed)))
             }
-          }
-      }
-
-    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+          case resp: Response[F] =>
+            Resource.eval(refOp.fold(Ref[F].of(false))(F.pure)).flatMap { r =>
+              Resource
+                .pure(resp.pipeBodyThrough(until(r)))
+                .onFinalize(r.set(true))
+            }
+        }
+    }
+    Client((req: Request[F]) => run(req))
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
