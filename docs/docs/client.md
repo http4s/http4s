@@ -87,7 +87,7 @@ val server = EmberServerBuilder
 
 @:callout(info)
 
-Because this documentation is running in [mdoc] we need an implicit `IORuntime` to let us run out `IO` values explicitly with `.unsafeRunSync()`.
+Because this documentation is running in [mdoc] we need an implicit `IORuntime` to let us run our `IO` values explicitly with `.unsafeRunSync()`.
 In real code you should construct your whole program in `IO` and assign it to `run` in `IOApp` as in the example above.
 
 
