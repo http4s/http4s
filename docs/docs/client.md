@@ -438,7 +438,6 @@ httpClient.get[EntityBody[IO]]("some-url")(response => IO(response.body))
 [service]: service.md
 [entity]: entity.md
 [json]: json.md
-[`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
 [middleware]: middleware.md
 [Follow Redirect]: @API_URL@/org/http4s/client/middleware/FollowRedirect$
 [Retry]: @API_URL@/org/http4s/client/middleware/Retry$
