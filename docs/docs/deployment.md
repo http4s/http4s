@@ -121,5 +121,5 @@ At this point we may want to package the binary in a docker container, integrate
 
 As an alternative to executing via the JVM, GraalVM's native-image allows us to execute as a native binary. For example, in Linux environments this might be known as an `ELF` format. There are a number of ways to generate a native image, be it dynamic or static.
 
-A dynamic image is less portable because it depends on shared libary files on each Linux host. Then similar to creating an assembly JAR containing all our Java dependencies, when we build a static native image, we build
+A dynamic image is less portable because it depends on shared library files on each Linux host. Then similar to creating an assembly JAR containing all our Java dependencies, when we build a static native image, we build
 a more portable assembly including all the dependencies to run our binary across multiple platforms. For example we could expect a static ELF-64 binary to work across multiple linux distributions of different versions for the same architecture.

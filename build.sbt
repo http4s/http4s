@@ -18,22 +18,22 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-22.04")
+ThisBuild / githubWorkflowJobSetup ~= {
+  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+}
+ThisBuild / githubWorkflowJobSetup ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "install-nix-action", "v17"),
+    name = Some("Install Nix"),
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "cachix-action", "v10"),
+    name = Some("Install Cachix"),
+    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+  ),
+)
 
-ThisBuild / githubWorkflowBuildPreamble +=
-  WorkflowStep.Run(
-    List("/home/linuxbrew/.linuxbrew/bin/brew install s2n"),
-    name = Some("Install s2n"),
-    cond = Some("startsWith(matrix.project, 'rootNative')"),
-  )
-val isLinux = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("linux"))
-}
-val isMacOs = {
-  val osName = Option(System.getProperty("os.name"))
-  osName.exists(_.toLowerCase().contains("mac"))
-}
+ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
@@ -41,9 +41,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.Checkout) ++
-      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
-      githubWorkflowGeneratedCacheSteps.value ++
+    steps = githubWorkflowJobSetup.value.toList ++
       List(
         WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
         WorkflowStep.Use(
@@ -500,6 +498,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
         .exclude[MissingClassProblem]("org.http4s.ember.core.Parser$MessageP$MessageTooLongError$"),
       ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.Parser$MessageP$"),
       ProblemFilters.exclude[MissingClassProblem]("org.http4s.ember.core.h2.HpackPlatform$Impl"),
+      ProblemFilters.exclude[IncompatibleTemplateDefProblem](
+        "org.http4s.ember.core.h2.HpackPlatform"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -576,27 +577,9 @@ lazy val emberServer = libraryCrossProject("ember-server")
         "org.http4s.ember.server.internal.ServerHelpers.runConnection"
       ),
       ProblemFilters.exclude[Problem](
-        "org.http4s.ember.server.internal.WebSocketHelpers"
+        "org.http4s.ember.server.internal.*"
       ),
-    ) ++ {
-      if (tlIsScala3.value)
-        Seq(
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.server"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.upgradeSocket"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.serverInternal"
-          ),
-          ProblemFilters.exclude[DirectMissingMethodProblem](
-            "org.http4s.ember.server.internal.ServerHelpers.unixSocketServer"
-          ),
-        )
-      else
-        Seq.empty
-    },
+    ),
     Test / parallelExecution := false,
   )
   .jvmSettings(
@@ -718,7 +701,8 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
       val sizeKB = size / 1000
       // not a hard target. increase *moderately* if need be
       // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      val targetKB = 350
+      // linking java.time.* results in a 70 KB increase
+      val targetKB = 280
       val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
       if (sizeKB < targetKB)
         log.info(msg)
@@ -893,20 +877,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
-      nativeConfig ~= { c =>
-        if (isLinux) { // brew-installed s2n
-          c.withLinkingOptions(c.linkingOptions :+ "-L/home/linuxbrew/.linuxbrew/lib")
-        } else if (isMacOs) // brew-installed OpenSSL
-          c.withLinkingOptions(c.linkingOptions :+ "-L/usr/local/opt/openssl@1.1/lib")
-        else c
-      },
-      Test / envVars ++= {
-        val ldLibPath =
-          if (isLinux)
-            Map("LD_LIBRARY_PATH" -> "/home/linuxbrew/.linuxbrew/lib")
-          else Map("LD_LIBRARY_PATH" -> "/usr/local/opt/openssl@1.1/lib")
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath
-      },
+      Test / envVars += "S2N_DONT_MLOCK" -> "1",
     )
     .enablePlugins(Http4sPlugin)
     .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))

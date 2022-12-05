@@ -27,6 +27,8 @@ import org.typelevel.ci.CIStringSyntax
 
 object `Access-Control-Allow-Methods` {
 
+  val name: CIString = ci"Access-Control-Allow-Methods"
+
   private[http4s] val parser =
     Rfc7230
       .headerRep(Rfc7230.token.map(CIString(_)))
@@ -42,7 +44,7 @@ object `Access-Control-Allow-Methods` {
 
   implicit val headerInstance: Header[`Access-Control-Allow-Methods`, Header.Recurring] =
     Header.createRendered(
-      ci"Access-Control-Allow-Methods",
+      name,
       _.methods,
       parse,
     )

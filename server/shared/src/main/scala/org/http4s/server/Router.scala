@@ -66,7 +66,7 @@ object Router {
     define(mappings: _*)(HttpRoutes.empty[F])
 
   /** Defines an [[HttpRoutes]] based on list of mappings and
-    * a default Service to be used when none in the list match incomming requests.
+    * a default Service to be used when none in the list match incoming requests.
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */

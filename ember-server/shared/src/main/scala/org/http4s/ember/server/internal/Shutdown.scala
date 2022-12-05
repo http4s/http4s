@@ -100,7 +100,7 @@ private[server] object Shutdown {
         override val signal: F[Unit] = unblock.get
         override val newConnection: F[Unit] = F.unit
         override val removeConnection: F[Unit] = F.unit
-        override val trackConnection: Stream[F, Unit] = Stream.empty
+        override val trackConnection: Stream[F, Unit] = Stream.emit(())
       }
     }
 
