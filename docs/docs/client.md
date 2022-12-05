@@ -13,6 +13,11 @@ trait Client[F[_]] {
 
 While `Client` is abstract in its effect type `F`, we will use concrete `IO` throughout this guide.
 
+Let's briefly chat about the `Resource` wrapping the return type.
+Every request/response pair is transmitted over a connection, which is a finite resource.
+When you are done reading the `Response`, you return from the `Resource`.
+This releases the connection so that it may be re-used by another request/response pair, or shutdown.
+
 Here's a quick example app to print the response of a GET request.
 
 ```scala mdoc
@@ -54,15 +59,6 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Because this documentation is running in [mdoc] we need an implicit `IORuntime`.
-This would be taken care of for you if you were using `IOApp` as seen in the example above.
-
-```scala mdoc:silent
-import cats.effect.unsafe.IORuntime
-
-implicit val runtime: IORuntime = IORuntime.global
-```
-
 Now we can finish setting up our server:
 
 ```scala mdoc:silent
@@ -88,8 +84,20 @@ val server = EmberServerBuilder
   .build
 ```
 
-If you're following along in a REPL you'll need to start the server in the background.
-Additionally you'll want a way to shutdown the server when you're done.
+
+@:callout(info)
+
+Because this documentation is running in [mdoc] we need an implicit `IORuntime` to let us run out `IO` values explicitly with `.unsafeRunSync()`.
+In real code you should construct your whole program in `IO` and assign it to `run` in `IOApp` as in the example above.
+
+
+```scala mdoc:silent
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = IORuntime.global
+```
+
+If you are following along in a REPL you will need to start the server in the background.
+Additionally you will want a way to shutdown the server when you're done.
 
 You can do this by starting the server like so:
 
@@ -99,26 +107,34 @@ val shutdown = server.allocated.unsafeRunSync()._2
 
 Later you can call `shutdown.unsafeRunSync()` to run the server's finalizers and release resources.
 
+@:@
+
 
 ## Making Requests
 
 ### Creating the client
 
-A good default choice is the `EmberClientBuilder`.  The
-`EmberClientBuilder` maintains a connection pool and speaks HTTP 1.x.
+A good default choice is the `EmberClientBuilder`.
+The `EmberClientBuilder` sets up a connection pool, enabling the reuse of connections for multiple requests, supports HTTP/1.x and HTTP/2, and is available for ScalaJS.
 
 ```scala mdoc:silent
 import org.http4s.ember.client.EmberClientBuilder
 
-EmberClientBuilder.default[IO].build.use { client =>
-  // use `client` here and return an `IO`.
-  // the client will be acquired and shut down
-  // automatically each time the `IO` is run.
-
-  // we'll explain this shortly
-  client.expect[String]("http://localhost:8080/hello/Ember")
+EmberClientBuilder
+  .default[IO]
+  .build
+  .use { client =>
+    // use `client` here, returning an `IO`.
+    client.expect[String]("http://localhost:8080/hello/Ember")
 }
 ```
+
+In the above example `.build` returns a `Resource[IO, Client]`.
+We use the `Client` by passing `use` a function `Client => IO[B]`.
+The result is a value that, when run, will acquire a `Client`, use it, and release it (even under cancellation or errors).
+
+Note that we generally only call `.build.use` once per application and pass around the `Client`.
+See the [Quick Start][quick-start] [g8 template][g8-template] for an example.
 
 For the remainder of this tutorial, we'll use an alternate client backend
 built on the standard `java.net` library client.  Unlike the ember
@@ -126,7 +142,7 @@ client, it does not need to be shut down.  Like the ember-client, and
 any other http4s backend, it presents the exact same `Client`
 interface!
 
-It uses blocking IO and is less suited for production, but it is
+It uses blocking I/O and is not suited for production, but it is
 highly useful in a REPL or [mdoc] documentation:
 
 ```scala mdoc:silent
@@ -146,9 +162,9 @@ val helloEmber: IO[String] =
   httpClient.expect[String]("http://localhost:8080/hello/Ember")
 ```
 
-We don't have any output from the server yet as we have not executed the
-request.  We have an `IO[String]` value, which is a description of a
-program that will request a `String` from the server when run.
+We don't have any output from the server yet as we have not executed the request.
+We have an `IO[String]` value, which is a description of a program that, when run,
+will send a GET request to the server, and expect a plain text `String` response.
 
 Let's build another program that makes requests in parallel to greet a
 collection of people:
@@ -163,20 +179,21 @@ def hello(name: String): IO[String] = {
   httpClient.expect[String](target)
 }
 
-val names = List("Ember", "http4s", "Scala")
+val inputs = List("Ember", "http4s", "Scala")
 
-val greetingList: IO[List[String]] =
-  names.parTraverse(hello)
+val getGreetings: IO[List[String]] =
+  inputs.parTraverse(hello)
 ```
 
 We use `parTraverse` to apply `hello` to each name and collect the results into
-one `IO[List[String]]`. The `par` prefix on `parTraverse` indicates that this
+one `IO[List[String]]`.
+The `par` prefix (as in "parallel") on `parTraverse` indicates that this
 will happen concurrently not sequentially.
 
 ### Running a Request
 
 We have built two programs: `helloEmber` will make a single request to get a greeting for Ember,
-and `greetingList` will make multiple concurrent requests getting multiple greetings.
+and `getGreetings` will make multiple concurrent requests getting multiple greetings.
 In a production application we would likely compose these programs with other programs
 up until we finally pass them to `run` in `IOApp` as seen in our intro example.
 
@@ -186,13 +203,13 @@ Remember, you should not do this in your applications.
 ```scala mdoc
 helloEmber.unsafeRunSync()
 
-greetingList.map(_.mkString("\n")).unsafeRunSync()
+getGreetings.unsafeRunSync()
 ```
 
 
 ## Constructing a URI
 
-Before you can make a Request, you'll need a `Uri` to represent the endpoint you
+Typically, to construct a `Request`, you use a `Uri` to represent the endpoint you
 want to access.
 
 There are a number of ways to construct a `Uri`.
@@ -430,3 +447,5 @@ httpClient.get[EntityBody[IO]]("some-url")(response => IO(response.body))
 [Response Logger]: @API_URL@/org/http4s/client/middleware/ResponseLogger$
 [Logger]: @API_URL@/org/http4s/client/middleware/Logger$
 [mdoc]: https://scalameta.org/mdoc/
+[quick-start]: quickstart.md
+[g8-template]: https://github.com/http4s/http4s.g8
