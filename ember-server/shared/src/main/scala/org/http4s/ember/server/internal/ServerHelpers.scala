@@ -110,10 +110,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               ).compile.drain.start
             )
             .flatMap { fiber =>
-              Resource.eval(fiber.join) >>
-                // Run finalizer to close server socket and then wait for
-                // active connections to finish
-                Resource.onFinalize[F](fiber.join.void) >> Resource.onFinalize[F](fin)
+              // Run finalizer to close server socket and then wait for
+              // active connections to finish
+              Resource.onFinalize[F](fiber.join.void) >> Resource
+                .onFinalize[F](fin) >>
+                // Keep Stream alive until shutdown
+                Resource.eval(shutdown.signal)
             }
 
         }
@@ -200,6 +202,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
             .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .interruptWhen(shutdown.signal.attempt)
             .flatMap {
               case (socket, Some("h2")) =>
                 // ALPN H2 Strategy
