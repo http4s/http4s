@@ -427,20 +427,20 @@
         extracted from the header, or the generated request id.</p>
         <pre><code class="nohighlight"><span class="comment">// generated request id can be correlated with logs
 </span><span class="keyword">val</span><span> </span><span class="identifier">resp</span><span> = </span><span class="identifier">responseIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// request received, cid=8a3a90bb-4fea-4476-95df-db67ae705152
+</span><span class="comment">// request received, cid=0850f9a0-872f-42aa-9b58-991380761830
 // resp: Response[IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, X-Request-ID: 8a3a90bb-4fea-4476-95df-db67ae705152),
+//    = Headers(Content-Length: 0, X-Request-ID: 0850f9a0-872f-42aa-9b58-991380761830),
 //    = Stream(..),
 //    = org.typelevel.vault.Vault@72041023
 // )
 // X-Request-ID header added to response
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 8a3a90bb-4fea-4476-95df-db67ae705152)
+</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 0850f9a0-872f-42aa-9b58-991380761830)
 // the request id is also available using attributes
 </span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)
-</span><span class="comment">// res9: Option[String] = Some(value = &quot;8a3a90bb-4fea-4476-95df-db67ae705152&quot;)</span></code></pre>
+</span><span class="comment">// res9: Option[String] = Some(value = &quot;0850f9a0-872f-42aa-9b58-991380761830&quot;)</span></code></pre>
 
         <hr style="margin-top: 30px"/>
         <footer style="font-size: 90%; text-align: center">
