@@ -42,3 +42,4 @@ Http4s has multiple smaller modules for Entity encoding and decoding support of 
 - [Circe](json.md)
 - [Scalatags](https://github.com/http4s/http4s-scalatags)
 - [Scala XML](https://github.com/http4s/http4s-scala-xml)
+- [fs2-data](https://github.com/http4s/http4s-fs2-data)
