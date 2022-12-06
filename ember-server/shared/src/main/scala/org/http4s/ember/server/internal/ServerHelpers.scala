@@ -18,8 +18,8 @@ package org.http4s.ember.server.internal
 
 import cats._
 import cats.effect._
-import cats.effect.syntax.all._
 import cats.effect.kernel.Resource
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
