@@ -33,6 +33,7 @@ libraryDependencies ++= Seq(
 | [Servlet](https://github.com/http4s/http4s-servlet)              | JDK 8+                        | ❌           | ✅           | ❌                | ❌                | ❌                      |
 | [DOM](https://http4s.github.io/http4s-dom)                       | Browsers                      | ✅           | ❌           | ✅                | ❌                | ❌                      |
 | [Feral](https://github.com/typelevel/feral)                      | Serverless                    | ❌           | ✅           | ❌                | ❌                | ❌                      |
+| [Netty](https://github.com/http4s/http4s-netty)                  | JDK 8+                        | ✅           | ✅           | ✅                | ✅                | ✅                      |
 
 ## Entity Integrations
 
