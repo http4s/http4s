@@ -53,15 +53,7 @@ object DefaultHead {
       G: Concurrent[G],
       M: MonoidK[F],
   ): Http[F, G] = {
-    implicit val functor = F
-    implicit val monoidK = M
-
-    Kleisli { req =>
-      req.method match {
-        case HEAD => http(req) <+> http(req.withMethod(GET)).map(r => drainBody[G](r)(G))
-        case _ => http(req)
-      }
-    }
+    apply(http)(F, G, M)
   }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
