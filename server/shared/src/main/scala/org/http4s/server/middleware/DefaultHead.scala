@@ -18,11 +18,12 @@ package org.http4s
 package server
 package middleware
 
-import cats.{Applicative, Functor, Monad, MonoidK}
+import cats.Applicative
+import cats.Functor
+import cats.Monad
+import cats.MonoidK
 import cats.data.Kleisli
-import cats.effect.Concurrent
 import cats.syntax.all._
-import fs2.Stream
 import org.http4s.Method.GET
 import org.http4s.Method.HEAD
 
