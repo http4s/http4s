@@ -47,5 +47,5 @@ object DefaultHead {
     apply(httpRoutes)
 
   private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
-    response.pipeBodyThrough(_.interruptWhen[G](Stream(true)).drain)
+    response.pipeBodyThrough(_.interruptWhen[G](Concurrent[G].unit.attempt).drain)
 }
