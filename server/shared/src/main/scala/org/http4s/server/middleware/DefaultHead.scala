@@ -52,9 +52,8 @@ object DefaultHead {
       F: Functor[F],
       G: Concurrent[G],
       M: MonoidK[F],
-  ): Http[F, G] = {
+  ): Http[F, G] =
     apply(http)(F, G, M)
-  }
 
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
