@@ -18,8 +18,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.Functor
-import cats.MonoidK
+import cats.{Applicative, Functor, Monad, MonoidK}
 import cats.data.Kleisli
 import cats.effect.Concurrent
 import cats.syntax.all._
@@ -35,7 +34,9 @@ import org.http4s.Method.HEAD
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]: Applicative](
+      http: Http[F, G]
+  )(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
         case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
@@ -43,9 +44,13 @@ object DefaultHead {
       }
     }
 
-  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
-  private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
-    response.pipeBodyThrough(_.interruptWhen[G](Concurrent[G].unit.attempt).drain)
+  private[this] def drainBody[G[_]](
+      response: Response[G]
+  )(implicit G: Applicative[G]): Response[G] =
+    response.pipeBodyThrough(
+      _.interruptWhen[G](G.pure[Either[Throwable, Unit]](Right(()))).drain
+    )
 }
