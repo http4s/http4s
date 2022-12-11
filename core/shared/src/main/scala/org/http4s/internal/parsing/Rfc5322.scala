@@ -15,4 +15,10 @@ object Rfc5322 {
       .map(p => p._1 + p._2)
       .rep0.map(_.mkString) ~ FWS.string.?.map(_.getOrElse("")) ~ char(')').string)
   .map { case (((s1, s2), s3), s4) => s1 + s2 + s3 + s4 }
+  val CFWS: Parser[String] = ((FWS.string.?.map(_.getOrElse("")).with1 ~ comment)
+    .backtrack
+    .map(p => p._1 + p._2)
+    .rep
+    .map(_.toList.mkString) ~ FWS.string.?.map(_.getOrElse("")))
+    .map{ case (s1, s2) => s1 + s2 } | string(FWS)
 }

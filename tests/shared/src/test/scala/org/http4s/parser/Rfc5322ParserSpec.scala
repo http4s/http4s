@@ -50,4 +50,15 @@ class Rfc5322ParserSpec extends Http4sSuite {
       assertEquals(Rfc5322.comment.parse(c._1).toOption.get._2, c._2)
     })
   }
+
+  test("CFWS parser") {
+    val cases = List(
+      (" ", " "),
+      (" ( comment ) ", " ( comment ) "),
+      (" ( comment )  (comment 2) ", " ( comment )  (comment 2) ")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.CFWS.parse(c._1).toOption.get._2, c._2)
+    })
+  }
 }
