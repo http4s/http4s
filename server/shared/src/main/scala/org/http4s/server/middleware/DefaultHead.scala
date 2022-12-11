@@ -67,7 +67,5 @@ object DefaultHead {
   private[this] def drainBody[G[_]](
       response: Response[G]
   )(implicit G: Applicative[G]): Response[G] =
-    response.pipeBodyThrough(
-      _.interruptWhen[G](G.pure[Either[Throwable, Unit]](Right(()))).drain
-    )
+    response.pipeBodyThrough(_.interruptWhen[G](G.pure(Either.unit[Throwable])).drain)
 }
