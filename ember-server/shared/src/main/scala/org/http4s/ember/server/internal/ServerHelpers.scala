@@ -390,8 +390,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F],
+      isShutdown: Boolean,
   ): F[Response[F]] = {
-    val connection = connectionFor(req.httpVersion, req.headers)
+    val connection = if (isShutdown) close else connectionFor(req.httpVersion, req.headers)
     for {
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
@@ -482,7 +483,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       // Http1.1
                       case None =>
                         for {
-                          nextResp <- postProcessResponse(req, resp)
+                          nextResp <- postProcessResponse(req, resp, isShutdown)
                           _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                           nextBuffer <- drain
                         } yield nextBuffer.map(buffer =>
@@ -491,7 +492,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       // h2c escalation of the connection
                       case Some((settings, newReq)) =>
                         for {
-                          nextResp <- postProcessResponse(req, resp)
+                          nextResp <- postProcessResponse(req, resp, isShutdown)
                           _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                           _ <- H2Server.requireConnectionPreface(socket)
                           out <- H2Server

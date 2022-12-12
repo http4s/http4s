@@ -26,6 +26,7 @@ import org.http4s._
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.Encoder
 import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Util
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server.Server
@@ -163,6 +164,32 @@ class ConnectionSuite extends Http4sSuite {
         _ <- client.responseAndDrain
         chunk <- client.readChunk
       } yield assertEquals(chunk, None)
+  }
+
+  test("connection close after server socket close") {
+    val req = GET(uri"http://localhost:9000/keep-alive")
+    IO.uncancelable { _ =>
+      serverResource(30.seconds, 30.seconds).allocated.flatMap { case (server, close) =>
+        clientResource(server.addressIp4s).use { c =>
+          // Start making request
+          c.writes(
+            fs2.text.utf8.encode(Stream("GET /keep-alive HTTP/1.1\r\n"))
+          ) >>
+            // Close server socket to initiate shutdown
+            close.start >> IO.sleep(1.second) >>
+            // Finish making request
+            c.writes(
+              fs2.text.utf8.encode(Stream("Connection: keep-alive\r\n\r\n"))
+            ) >> c.response
+              .map { resp =>
+                Util.isKeepAlive(req.httpVersion, resp.headers)
+              }
+              // Server should set `Connection: close`
+              .assertEquals(false)
+        }
+      }
+
+    }
   }
 
 }
