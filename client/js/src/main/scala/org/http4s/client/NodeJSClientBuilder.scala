@@ -52,7 +52,13 @@ private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protect
         val options = new RequestOptions {
           method = req.method.renderString
           protocol = req.uri.scheme.map(_.value + ":").orUndefined
-          host = req.uri.authority.map(_.host.renderString).orUndefined
+          host = req.uri.authority.map { authority =>
+            authority.host match {
+              case Uri.RegName(n) => n.toString
+              case Uri.Ipv4Address(ip) => ip.toString
+              case Uri.Ipv6Address(ip) => ip.toString
+            }
+          }.orUndefined
           port = req.uri.authority.flatMap(_.port).map(_.toInt).orUndefined
           path = req.uri.copy(scheme = None, authority = None).renderString
           signal = abort.signal

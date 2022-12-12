@@ -29,6 +29,7 @@ libraryDependencies ++= Seq(
 |------------------------------------------------------------------|-------------------------------|:-----------:|:-----------:|:----------------:|:----------------:|:----------------------:|
 | [Ember](#ember)                                                  | JDK 8+ / Node.js 16+ / Native | ✅           | ✅           | ❌                | ✅                | ❌                      |
 | [Blaze](https://github.com/http4s/blaze)                         | JDK 8+                        | ✅           | ✅           | ❌                | ✅                | ❌                      |
+| [Netty](https://github.com/http4s/http4s-netty)                  | JDK 8+                        | ✅           | ✅           | ✅                | ✅                | ✅                      |
 | [JDK Http Client](https://jdk-http-client.http4s.org/stable/)    | JDK 11+                       | ✅           | ❌           | ✅                | ❌                | ✅                      |
 | [Servlet](https://github.com/http4s/http4s-servlet)              | JDK 8+                        | ❌           | ✅           | ❌                | ❌                | ❌                      |
 | [DOM](https://http4s.github.io/http4s-dom)                       | Browsers                      | ✅           | ❌           | ✅                | ❌                | ❌                      |
@@ -41,3 +42,4 @@ Http4s has multiple smaller modules for Entity encoding and decoding support of 
 - [Circe](json.md)
 - [Scalatags](https://github.com/http4s/http4s-scalatags)
 - [Scala XML](https://github.com/http4s/http4s-scala-xml)
+- [fs2-data](https://github.com/http4s/http4s-fs2-data)
