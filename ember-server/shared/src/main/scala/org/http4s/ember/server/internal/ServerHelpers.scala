@@ -85,7 +85,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             .evalTap(e => ready.complete(e.map(_._1)))
             .rethrow
             .allocated
-            .uncancelable
         )
         .flatMap { case ((_, sockets), fin) =>
           Resource
