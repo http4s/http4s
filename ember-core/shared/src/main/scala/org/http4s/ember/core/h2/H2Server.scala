@@ -187,7 +187,7 @@ private[ember] object H2Server {
         _ <- s.request.complete(Either.right(req))
         er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
         _ <- s.readBuffer.offer(er)
-        _ <- s.writeBlock.complete(Either.right(()))
+        _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =

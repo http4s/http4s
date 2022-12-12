@@ -47,7 +47,7 @@ package object scaffold {
         ff.flatMap(f =>
           F.delay {
             f.addListener { (f: io.netty.util.concurrent.Future[_]) =>
-              if (f.isSuccess) callback(Right(()))
+              if (f.isSuccess) callback(Either.unit)
               else callback(Left(f.cause()))
             }
             None
