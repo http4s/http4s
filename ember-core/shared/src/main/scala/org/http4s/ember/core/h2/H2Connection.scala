@@ -400,7 +400,7 @@ private[h2] class H2Connection[F[_]](
             )
           }
           (settings, difference, oldWriteBlock) = t
-          _ <- oldWriteBlock.complete(Either.right(()))
+          _ <- oldWriteBlock.complete(Either.unit)
           _ <- mapRef.get.flatMap { map =>
             map.toList.traverse { case (_, stream) =>
               stream.modifyWriteWindow(difference)
@@ -444,7 +444,7 @@ private[h2] class H2Connection[F[_]](
                 )
               }
               (oldWriteBlock, valid) = t
-              _ <- oldWriteBlock.complete(Right(()))
+              _ <- oldWriteBlock.complete(Either.unit)
               _ <- {
                 if (!valid) goAway(H2Error.FlowControlError)
                 else Applicative[F].unit

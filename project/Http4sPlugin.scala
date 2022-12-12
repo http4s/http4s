@@ -100,13 +100,13 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.3"
     val caseInsensitive = "1.3.0"
     val cats = "2.9.0"
-    val catsEffect = "3.4.1"
+    val catsEffect = "3.4.2"
     val catsParse = "0.3.8"
     val circe = "0.14.3"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val epollcat = "0.1.2"
+    val epollcat = "0.1.3"
     val fs2 = "3.3.0"
     val ip4s = "3.2.0"
     val hpack = "1.0.4"
@@ -133,7 +133,7 @@ object Http4sPlugin extends AutoPlugin {
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.3.0"
+    val vault = "3.4.0"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze

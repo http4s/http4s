@@ -464,6 +464,7 @@ object Uri extends UriPlatform {
       override def equals(obj: Any): Boolean =
         obj match {
           case s: Segment => s.encoded == encoded
+          case _ => false
         }
 
       override def hashCode(): Int = encoded.hashCode
