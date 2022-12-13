@@ -64,6 +64,7 @@ class ConnectionSuite extends Http4sSuite {
       .withHttpApp(service)
       .withIdleTimeout(idleTimeout)
       .withRequestHeaderReceiveTimeout(headerTimeout)
+      .withShutdownTimeout(5.seconds)
       .build
 
   sealed case class TestClient(client: Socket[IO]) {
@@ -167,7 +168,6 @@ class ConnectionSuite extends Http4sSuite {
   }
 
   test("connection close after server socket close") {
-    val req = GET(uri"http://localhost:9000/keep-alive")
     IO.uncancelable { _ =>
       serverResource(30.seconds, 30.seconds).allocated.flatMap { case (server, close) =>
         clientResource(server.addressIp4s).use { c =>
@@ -182,13 +182,28 @@ class ConnectionSuite extends Http4sSuite {
               fs2.text.utf8.encode(Stream("Connection: keep-alive\r\n\r\n"))
             ) >> c.response
               .map { resp =>
-                Util.isKeepAlive(req.httpVersion, resp.headers)
+                Util.isKeepAlive(HttpVersion.`HTTP/1.1`, resp.headers)
               }
               // Server should set `Connection: close`
               .assertEquals(false)
         }
       }
 
+    }
+  }
+
+  test("hard shutdown after timeout") {
+    IO.uncancelable { _ =>
+      serverResource(30.seconds, 30.seconds).allocated.flatMap { case (server, close) =>
+        clientResource(server.addressIp4s).use { c =>
+          // Start making request
+          c.writes(
+            fs2.text.utf8.encode(Stream("GET /keep-alive HTTP/1.1\r\n"))
+          ) >>
+            // Close server socket to initiate shutdown
+            close
+        }
+      }
     }
   }
 
