@@ -85,10 +85,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             .evalTap(e => ready.complete(e.map(_._1)))
             .rethrow
             .allocated
-        )
-        .flatMap { case ((_, sockets), fin) =>
-          Resource
-            .eval(
+            .flatMap { case ((_, sockets), fin) =>
               serverInternal(
                 sockets,
                 httpApp: HttpApp[F],
@@ -106,17 +103,16 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 true,
                 webSocketKey,
                 enableHttp2,
-              ).compile.drain.start
-            )
-            .flatMap { fiber =>
-              // Run finalizer to close server socket and then wait for
-              // active connections to finish
-              Resource.onFinalize[F](fiber.join.void) >> Resource
-                .onFinalize[F](fin) >>
-                // Keep Stream alive until shutdown
-                Resource.eval(shutdown.signal)
+              ).compile.drain.start.tupleRight(fin)
             }
-
+        )
+        .flatMap { case (fiber, fin) =>
+          // Run finalizer to close server socket and then wait for
+          // active connections to finish
+          Resource.onFinalize[F](fiber.join.void) >> Resource
+            .onFinalize[F](fin) >>
+            // Keep Stream alive until shutdown
+            Resource.eval(shutdown.signal)
         }
     }
 
