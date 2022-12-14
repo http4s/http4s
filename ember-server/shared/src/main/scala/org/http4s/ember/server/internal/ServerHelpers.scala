@@ -472,6 +472,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         // Http1.1
                         case None =>
                           for {
+                            // Check shutdown again so we set `Connection: close` if necessary
+                            isShutdown <- shutdown.isShutdown
                             nextResp <- postProcessResponse(req, resp, isShutdown)
                             _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                             nextBuffer <- drain
@@ -481,6 +483,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         // h2c escalation of the connection
                         case Some((settings, newReq)) =>
                           for {
+                            // Check shutdown again so we set `Connection: close` if necessary
+                            isShutdown <- shutdown.isShutdown
                             nextResp <- postProcessResponse(req, resp, isShutdown)
                             _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                             _ <- H2Server.requireConnectionPreface(socket)
