@@ -78,7 +78,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val res = Resource.uncancelable[F, Unit] { _ =>
       Resource
-        .eval(
+        .make(
           sg
             .serverResource(host, Some(port), additionalSocketOptions)
             .attempt
@@ -105,15 +105,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 enableHttp2,
               ).compile.drain.start.tupleRight(fin)
             }
-        )
-        .flatMap { case (fiber, fin) =>
-          // Run finalizer to close server socket and then wait for
-          // active connections to finish
-          Resource.onFinalize[F](fiber.join.void) >> Resource
-            .onFinalize[F](fin) >>
-            // Keep Stream alive until shutdown
-            Resource.eval(shutdown.signal)
-        }
+        ) { case (fiber, fin) => fin >> fiber.join.void } >> Resource.eval(shutdown.signal)
     }
 
     Stream.resource(res).drain
