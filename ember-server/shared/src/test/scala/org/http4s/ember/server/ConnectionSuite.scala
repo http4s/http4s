@@ -175,9 +175,11 @@ class ConnectionSuite extends Http4sSuite {
           c.writes(
             fs2.text.utf8.encode(Stream("GET /keep-alive HTTP/1.1\r\n"))
           ) >>
+            // Resolve races to ensure server starts reading request
+            IO.sleep(500.millis) >>
             // Close server socket to initiate shutdown
-            close.start >> IO.sleep(1.second) >>
-            // Finish making request
+            close.start >> IO.sleep(500.millis) >>
+            // Finish making request. Similarly resolve races by giving time for server to start shutdown
             c.writes(
               fs2.text.utf8.encode(Stream("Connection: keep-alive\r\n\r\n"))
             ) >> c.response
