@@ -23,7 +23,6 @@ import cats.Functor
 import cats.Monad
 import cats.MonoidK
 import cats.data.Kleisli
-import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import org.http4s.Method.GET
 import org.http4s.Method.HEAD
@@ -46,23 +45,8 @@ object DefaultHead {
       }
     }
 
-  @deprecated("Use overload with Applicative constraint", "0.23.17")
-  def apply[F[_], G[_]](
-      http: Http[F, G],
-      F: Functor[F],
-      G: Concurrent[G],
-      M: MonoidK[F],
-  ): Http[F, G] =
-    apply(http)(F, G, M)
-
   def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
-
-  @deprecated("Use overload with Monad constraint", "0.23.17")
-  def httpRoutes[F[_]](httpRoutes: HttpRoutes[F], F: Concurrent[F]): HttpRoutes[F] = {
-    implicit val concurrent = F
-    apply(httpRoutes)
-  }
 
   private[this] def drainBody[G[_]](
       response: Response[G]
