@@ -104,8 +104,7 @@ private[server] object Shutdown {
         override val await: F[Unit] = unblock.complete(()).void
         override val signal: F[Unit] = unblock.get
         override val isShutdown: F[Boolean] = F.pure(true)
-        // TODO this is a hack
-        override val gracePeriod: Duration = 500.millis
+        override val gracePeriod: Duration = 0.millis
         override val newConnection: F[Unit] = F.unit
         override val removeConnection: F[Unit] = F.unit
         override val trackConnection: Stream[F, Unit] = Stream.emit(())
