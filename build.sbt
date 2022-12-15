@@ -878,7 +878,9 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
       unusedCompileDependenciesTest := {},
-      Test / nativeBrewFormulas += "s2n",
+      Test / nativeBrewFormulas ++= {
+        if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
+      },
       Test / envVars += "S2N_DONT_MLOCK" -> "1",
     )
     .enablePlugins(Http4sPlugin)
