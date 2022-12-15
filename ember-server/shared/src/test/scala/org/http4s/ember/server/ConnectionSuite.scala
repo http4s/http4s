@@ -54,6 +54,8 @@ class ConnectionSuite extends Http4sSuite {
       }
       .orNotFound
 
+  val shutdownTimeout = 5.seconds
+
   def serverResource(
       idleTimeout: FiniteDuration,
       headerTimeout: FiniteDuration,
@@ -64,7 +66,7 @@ class ConnectionSuite extends Http4sSuite {
       .withHttpApp(service)
       .withIdleTimeout(idleTimeout)
       .withRequestHeaderReceiveTimeout(headerTimeout)
-      .withShutdownTimeout(5.seconds)
+      .withShutdownTimeout(shutdownTimeout)
       .build
 
   sealed case class TestClient(client: Socket[IO]) {
@@ -206,7 +208,7 @@ class ConnectionSuite extends Http4sSuite {
             close
         }
       }
-    }
+    }.timeout(shutdownTimeout + 2.seconds)
   }
 
 }
