@@ -47,7 +47,7 @@ object Renderer {
 
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
-  implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
+  implicit lazy val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -206,10 +206,14 @@ trait Writer { self =>
       start: String = "",
       end: String = "",
   ): this.type =
-    NonEmptyList.fromList(s) match {
-      case Some(s) => addNel(s, sep, start, end)
-      case None =>
+    s match {
+      case Nil =>
         append(start)
+        append(end)
+      case x :: list =>
+        append(start)
+        append(x)
+        list.foreach(s => append(sep).append(s))
         append(end)
     }
 

@@ -18,12 +18,13 @@ package org.http4s
 package server
 package middleware
 
+import cats.Applicative
 import cats.Functor
+import cats.Monad
 import cats.MonoidK
 import cats.data.Kleisli
-import cats.effect.Concurrent
+import cats.effect.kernel.Concurrent
 import cats.syntax.all._
-import fs2.Stream
 import org.http4s.Method.GET
 import org.http4s.Method.HEAD
 
@@ -35,7 +36,9 @@ import org.http4s.Method.HEAD
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]: Applicative](
+      http: Http[F, G]
+  )(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
         case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
@@ -43,9 +46,26 @@ object DefaultHead {
       }
     }
 
-  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  @deprecated("Use overload with Applicative constraint", "0.23.17")
+  def apply[F[_], G[_]](
+      http: Http[F, G],
+      F: Functor[F],
+      G: Concurrent[G],
+      M: MonoidK[F],
+  ): Http[F, G] =
+    apply(http)(F, G, M)
+
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
-  private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
-    response.pipeBodyThrough(_.interruptWhen[G](Stream(true)).drain)
+  @deprecated("Use overload with Monad constraint", "0.23.17")
+  def httpRoutes[F[_]](httpRoutes: HttpRoutes[F], F: Concurrent[F]): HttpRoutes[F] = {
+    implicit val concurrent = F
+    apply(httpRoutes)
+  }
+
+  private[this] def drainBody[G[_]](
+      response: Response[G]
+  )(implicit G: Applicative[G]): Response[G] =
+    response.pipeBodyThrough(_.interruptWhen[G](G.pure(Either.unit[Throwable])).drain)
 }

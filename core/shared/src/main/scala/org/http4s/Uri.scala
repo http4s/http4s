@@ -467,6 +467,7 @@ object Uri extends UriPlatform {
       override def equals(obj: Any): Boolean =
         obj match {
           case s: Segment => s.encoded == encoded
+          case _ => false
         }
 
       override def hashCode(): Int = encoded.hashCode
@@ -681,6 +682,12 @@ object Uri extends UriPlatform {
   }
 
   object Host {
+
+    def fromString(s: String): ParseResult[Host] =
+      ParseResult.fromParser(Parser.host, "Invalid host")(s)
+
+    def unsafeFromString(s: String): Host =
+      fromString(s).fold(throw _, identity)
 
     /** Create a [[Host]] value from an [[com.comcast.ip4s.IpAddress]].
       *

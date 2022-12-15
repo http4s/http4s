@@ -160,7 +160,7 @@ package object internal extends InternalPlatform {
     var i = 0
     val len = s.length
     while (i < len) {
-      // Strings are equal igoring case if either their uppercase or lowercase
+      // Strings are equal ignoring case if either their uppercase or lowercase
       // forms are equal. Equality of one does not imply the other, so we need
       // to go in both directions. A character is not guaranteed to make this
       // round trip, but it doesn't matter as long as all equal characters

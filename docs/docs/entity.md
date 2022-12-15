@@ -81,8 +81,7 @@ println(response.flatMap(_.as[Resp]).unsafeRunSync())
 The `EntityEncoder`/`EntityDecoder`s shipped with http4s.
 
 ### Raw Data Types
-These are already in implicit scope by default, e.g. `String`, `File`,
-`Future[_]`, and `InputStream`. Consult [EntityEncoder] and [EntityDecoder] for
+These are already in implicit scope by default, e.g. `String`, `File`, and `InputStream`. Consult [EntityEncoder] and [EntityDecoder] for
 a full list.
 
 ### JSON

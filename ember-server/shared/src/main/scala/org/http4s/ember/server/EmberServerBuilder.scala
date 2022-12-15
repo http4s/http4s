@@ -126,7 +126,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
-  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
   def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
     withErrorHandler { case e => onError(e).pure[F] }
 
@@ -157,8 +157,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
-  def withHttp2 = copy(enableHttp2 = true)
-  def withoutHttp2 = copy(enableHttp2 = false)
+  def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
+  def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
@@ -166,10 +166,15 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
-  ) =
+  ): EmberServerBuilder[F] =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
-  def withoutUnixSocketConfig =
+  def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
+
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOption]
+  ): EmberServerBuilder[F] =
+    copy(additionalSocketOptions = additionalSocketOptions)
 
   def build: Resource[F, Server] =
     for {
@@ -278,7 +283,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       serverFailure.covary[F].pure[F]
     }
 
-    @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
+    @deprecated("Use errorHandler, default fallback of failure InternalServerFailure", "0.21.17")
     def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       serverFailure.covary[F]
     }

@@ -139,7 +139,12 @@ private[ember] object Encoder {
           }
         }
 
-        if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
+        if (
+          !appliedContentLength && req.body == EmptyBody && !NoPayloadMethods.contains(req.method)
+        ) {
+          stringBuilder.append(zeroContentLengthRaw).append(CRLF)
+          chunked = false
+        } else if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
           stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
           ()
