@@ -441,85 +441,82 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             )
           }
 
-          shutdown.isShutdown.flatMap { isShutdown =>
-            val handleReq: F[Option[((Request[F], Response[F], Boolean), State)]] =
-              result.attempt.flatMap {
-                case Right((req, resp, drain)) =>
-                  // TODO: Should we pay this cost for every HTTP request?
-                  // Intercept the response for various upgrade paths
-                  resp.attributes.lookup(webSocketKey) match {
-                    case Some(ctx) =>
-                      drain.flatMap {
-                        case Some(buffer) =>
-                          WebSocketHelpers
-                            .upgrade(
-                              socket,
-                              req,
-                              ctx,
-                              buffer,
-                              receiveBufferSize,
-                              idleTimeout,
-                              onWriteFailure,
-                              errorHandler,
-                              logger,
-                            )
-                            .as(None)
-                        case None =>
-                          Applicative[F].pure(None)
-                      }
-                    case None =>
-                      resp.attributes.lookup(H2Keys.H2cUpgrade) match {
-                        // Http1.1
-                        case None =>
-                          for {
-                            // Check shutdown again so we set `Connection: close` if necessary
-                            isShutdown <- shutdown.isShutdown
-                            nextResp <- postProcessResponse(req, resp, isShutdown)
-                            _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                            nextBuffer <- drain
-                          } yield nextBuffer.map(buffer =>
-                            ((req, nextResp, isShutdown), (buffer, true))
-                          )
-                        // h2c escalation of the connection
-                        case Some((settings, newReq)) =>
-                          for {
-                            // Check shutdown again so we set `Connection: close` if necessary
-                            isShutdown <- shutdown.isShutdown
-                            nextResp <- postProcessResponse(req, resp, isShutdown)
-                            _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                            _ <- H2Server.requireConnectionPreface(socket)
-                            out <- H2Server
-                              .fromSocket(
-                                socket,
-                                httpApp,
-                                H2Frame.Settings.ConnectionSettings.default,
-                                logger,
-                                settings,
-                                newReq.some,
-                              )
-                              .use(_ => Async[F].never[Unit])
-                              .as(None)
-                          } yield out
-                      }
-                  }
-                case Left(err) =>
-                  err match {
-                    case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
-                        EmberException.ReadTimeout(_) =>
-                      Applicative[F].pure(None)
-                    case err =>
-                      errorHandler(err)
-                        .handleError(_ => serverFailure.covary[F])
-                        .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+          result.attempt.flatMap {
+            case Right((req, resp, drain)) =>
+              // TODO: Should we pay this cost for every HTTP request?
+              // Intercept the response for various upgrade paths
+              resp.attributes.lookup(webSocketKey) match {
+                case Some(ctx) =>
+                  drain.flatMap {
+                    case Some(buffer) =>
+                      WebSocketHelpers
+                        .upgrade(
+                          socket,
+                          req,
+                          ctx,
+                          buffer,
+                          receiveBufferSize,
+                          idleTimeout,
+                          onWriteFailure,
+                          errorHandler,
+                          logger,
+                        )
                         .as(None)
+                    case None =>
+                      Applicative[F].pure(None)
+                  }
+                case None =>
+                  resp.attributes.lookup(H2Keys.H2cUpgrade) match {
+                    // Http1.1
+                    case None =>
+                      for {
+                        // Check shutdown again so we set `Connection: close` if necessary
+                        isShutdown <- shutdown.isShutdown
+                        nextResp <- postProcessResponse(req, resp, isShutdown)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        nextBuffer <- drain
+                      } yield nextBuffer.map(buffer =>
+                        ((req, nextResp, isShutdown), (buffer, true))
+                      )
+                    // h2c escalation of the connection
+                    case Some((settings, newReq)) =>
+                      for {
+                        // Check shutdown again so we set `Connection: close` if necessary
+                        isShutdown <- shutdown.isShutdown
+                        nextResp <- postProcessResponse(req, resp, isShutdown)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        _ <- H2Server.requireConnectionPreface(socket)
+                        out <- H2Server
+                          .fromSocket(
+                            socket,
+                            httpApp,
+                            H2Frame.Settings.ConnectionSettings.default,
+                            logger,
+                            settings,
+                            newReq.some,
+                          )
+                          .use(_ => Async[F].never[Unit])
+                          .as(None)
+                      } yield out
                   }
               }
-            if (isShutdown) Async[F].timeout(handleReq, shutdown.gracePeriod) else handleReq
+            case Left(err) =>
+              err match {
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
+                  Applicative[F].pure(None)
+                case err =>
+                  errorHandler(err)
+                    .handleError(_ => serverFailure.covary[F])
+                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                    .as(None)
+              }
           }
       }
       .takeWhile { case (_, resp, isShutdown) =>
         !isShutdown && resp.headers.get[Connection].exists(_.hasKeepAlive)
       }
+      .interruptWhen[F]((shutdown.signal >> Async[F].sleep(shutdown.gracePeriod)).attempt)
       .drain
   }
 
