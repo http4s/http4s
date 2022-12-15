@@ -105,7 +105,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 enableHttp2,
               ).compile.drain.start.tupleRight(fin)
             }
-        ) { case (fiber, fin) => fin >> fiber.join.void } >> Resource.eval(shutdown.signal)
+        ) { case (fiber, fin) => fin.guarantee(fiber.join.void) } >> Resource.eval(shutdown.signal)
     }
 
     Stream.resource(res).drain
