@@ -61,4 +61,33 @@ class Rfc5322ParserSpec extends Http4sSuite {
       assertEquals(Rfc5322.CFWS.parse(c._1).toOption.get._2, c._2)
     })
   }
+
+  test("atom parser") {
+    val cases = List(
+      ("abcd1234", "abcd1234"),
+      (" abcd1234 (comment 2)", "abcd1234"),
+      (" (comment 1) abcd1234 (comment 2)", "abcd1234")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.atom.parse(c._1).toOption.get._2, c._2)
+    })
+  }
+
+  test("dot-atom-text parser") {
+    val cases = List(
+      ("a", "a"),
+      ("a.b", "a.b"),
+      ("abc.defg", "abc.defg")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.`dot-atom-text`.parse(c._1).toOption.get._2, c._2)
+    })
+
+    val failCases = List(
+      ".abc"
+    )
+    failCases.foreach(c => {
+      assertEquals(Rfc5322.`dot-atom-text`.parse(c).toOption, None)
+    })
+  }
 }

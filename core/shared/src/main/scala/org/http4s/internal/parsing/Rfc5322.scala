@@ -1,7 +1,7 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Rfc5234.{crlf, vchar, wsp}
+import cats.parse.Rfc5234.{alpha, crlf, digit, vchar, wsp}
 import cats.parse.Parser.{char, charIn, string, void}
 
 object Rfc5322 {
@@ -21,4 +21,14 @@ object Rfc5322 {
     .rep
     .map(_.toList.mkString) ~ FWS.string.?.map(_.getOrElse("")))
     .map{ case (s1, s2) => s1 + s2 } | string(FWS)
+
+
+  val atext: Parser[String] = (alpha | digit | charIn(
+    '!', '#', '$', '%', '&', '\'', '*', '+', '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~'
+  )).string
+    val atom: Parser[String] = CFWS.?.with1 *> atext.rep.map(_.toList.mkString) <* CFWS.?
+    val `dot-atom-text`: Parser[String] = (atext.rep.map(_.toList.mkString) ~
+      (char('.').string ~ atext.rep.map(_.toList.mkString)).map(p => p._1 + p._2).rep0.map(_.mkString))
+      .map(p => p._1 + p._2)
+
 }
