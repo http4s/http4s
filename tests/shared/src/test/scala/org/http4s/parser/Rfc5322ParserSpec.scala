@@ -90,4 +90,20 @@ class Rfc5322ParserSpec extends Http4sSuite {
       assertEquals(Rfc5322.`dot-atom-text`.parse(c).toOption, None)
     })
   }
+
+  test("quoted-string parser") {
+    val cases = List(
+      ("\"a\"", "a"),
+      (" (comment1) \"abc\\! dfg\\!\" (comment2) ", "abc! dfg!")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.`quoted-string`.parse(c._1).toOption.get._2, c._2)
+    })
+    val failCases = List(
+      "a"
+    )
+    failCases.foreach(c => {
+      assertEquals(Rfc5322.`quoted-string`.parse(c).toOption, None)
+    })
+  }
 }

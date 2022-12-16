@@ -1,7 +1,7 @@
 package org.http4s.internal.parsing
 
 import cats.parse.Parser
-import cats.parse.Rfc5234.{alpha, crlf, digit, vchar, wsp}
+import cats.parse.Rfc5234.{alpha, crlf, digit, dquote, vchar, wsp}
 import cats.parse.Parser.{char, charIn, string, void}
 
 object Rfc5322 {
@@ -30,5 +30,9 @@ object Rfc5322 {
     val `dot-atom-text`: Parser[String] = (atext.rep.map(_.toList.mkString) ~
       (char('.').string ~ atext.rep.map(_.toList.mkString)).map(p => p._1 + p._2).rep0.map(_.mkString))
       .map(p => p._1 + p._2)
-
+    val `dot-atom`: Parser[String] = CFWS.?.with1 *> `dot-atom-text` <* CFWS.?
+    val qtext: Parser[String] = charIn((Seq(33) ++ (35 to 91) ++ (93 to 126)).map(_.toChar)).string
+    val qcontent: Parser[String] = qtext | `quoted-pair`
+    val `quoted-string`: Parser[String] = CFWS.?.with1 *> dquote *> (FWS.string.?.map(_.getOrElse("")).with1 ~ qcontent)
+      .map(p => p._1 + p._2).rep0.map(_.mkString) <* FWS.? <* dquote <* CFWS.?
 }
