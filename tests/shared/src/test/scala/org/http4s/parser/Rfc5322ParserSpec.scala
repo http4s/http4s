@@ -106,4 +106,15 @@ class Rfc5322ParserSpec extends Http4sSuite {
       assertEquals(Rfc5322.`quoted-string`.parse(c).toOption, None)
     })
   }
+
+  test("domain-literal parser") {
+    val cases = List(
+      (" (comment1) [ 1 2 3 4 ] (comment2) ", "[ 1 2 3 4 ]"),
+      ("[]", "[]"),
+      ("[example.com]", "[example.com]")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.`domain-literal`.parse(c._1).toOption.get._2, c._2)
+    })
+  }
 }

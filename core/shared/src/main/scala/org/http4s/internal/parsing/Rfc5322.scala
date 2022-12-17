@@ -35,4 +35,15 @@ object Rfc5322 {
     val qcontent: Parser[String] = qtext | `quoted-pair`
     val `quoted-string`: Parser[String] = CFWS.?.with1 *> dquote *> (FWS.string.?.map(_.getOrElse("")).with1 ~ qcontent)
       .map(p => p._1 + p._2).rep0.map(_.mkString) <* FWS.? <* dquote <* CFWS.?
+    val word: Parser[String] = atom | `quoted-string`
+    val phrase: Parser[String] = word.rep.map(_.toList.mkString)
+    val `display-name`: Parser[String] = phrase
+    val `local-part`: Parser[String] = `dot-atom` | `quoted-string`
+    val dtext: Parser[String] = charIn(((33 to 90) ++ (94 to 126)).map(_.toChar)).map(_.toString)
+    val `domain-literal`: Parser[String] = CFWS.?.with1 *> (
+      char('[').string ~
+      (FWS.string.?.map(_.getOrElse("")).with1 ~ dtext).backtrack.map(p => p._1 + p._2).rep0.map(_.mkString) ~
+        FWS.string.?.map(_.getOrElse("")) ~
+        char(']').string
+      ).map{ case (((s1, s2), s3), s4) => s1 + s2 + s3 + s4} <* CFWS.?
 }
