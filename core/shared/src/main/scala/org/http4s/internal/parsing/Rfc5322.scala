@@ -46,4 +46,8 @@ object Rfc5322 {
         FWS.string.?.map(_.getOrElse("")) ~
         char(']').string
       ).map{ case (((s1, s2), s3), s4) => s1 + s2 + s3 + s4} <* CFWS.?
+    val domain: Parser[String] = `dot-atom` | `domain-literal`
+    val `addr-spec`: Parser[String] = (`local-part` ~ char('@').string ~ domain).map{
+      case ((s1, s2), s3) => s1 + s2 + s3
+    }
 }

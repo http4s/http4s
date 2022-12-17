@@ -117,4 +117,15 @@ class Rfc5322ParserSpec extends Http4sSuite {
       assertEquals(Rfc5322.`domain-literal`.parse(c._1).toOption.get._2, c._2)
     })
   }
+
+  test("addr-spec parser") {
+    val cases = List(
+      ("abc@d.com", "abc@d.com"),
+      ("a.b.c.d@e.com", "a.b.c.d@e.com"),
+      ("\"abc\"@d.e.f", "abc@d.e.f")
+    )
+    cases.foreach(c => {
+      assertEquals(Rfc5322.`addr-spec`.parse(c._1).toOption.get._2, c._2)
+    })
+  }
 }
