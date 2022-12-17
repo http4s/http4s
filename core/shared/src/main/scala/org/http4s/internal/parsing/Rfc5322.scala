@@ -22,7 +22,6 @@ object Rfc5322 {
     .map(_.toList.mkString) ~ FWS.string.?.map(_.getOrElse("")))
     .map{ case (s1, s2) => s1 + s2 } | string(FWS)
 
-
   val atext: Parser[String] = (alpha | digit | charIn(
     '!', '#', '$', '%', '&', '\'', '*', '+', '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~'
   )).string
@@ -50,4 +49,8 @@ object Rfc5322 {
     val `addr-spec`: Parser[String] = (`local-part` ~ char('@').string ~ domain).map{
       case ((s1, s2), s3) => s1 + s2 + s3
     }
+    val `angle-addr`: Parser[String] = (CFWS.?.with1 *> char('<').string ~ `addr-spec` ~ char('>').string <* CFWS.?)
+      .map{ case ((s1, s2), s3) => s1 + s2 + s3}
+    val `name-addr`: Parser[String] = (`display-name`.?.with1 ~ `angle-addr`).map(p => p._1.getOrElse("") + p._2)
+    val mailbox: Parser[String] = `name-addr`.backtrack | `addr-spec`
 }
