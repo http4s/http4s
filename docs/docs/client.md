@@ -232,9 +232,9 @@ val invalidUri = "yeah whatever"
 ```
 
 ```scala mdoc
-val uri: Either[ParseFailure, Uri] = Uri.fromString(validUri)
+val uri: ParseResult[Uri] = Uri.fromString(validUri)
 
-val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
+val parseFailure: ParseResult[Uri] = Uri.fromString(invalidUri)
 ```
 
 You can also build up a URI incrementally, e.g.:
