@@ -25,8 +25,8 @@ import org.openjdk.jmh.annotations._
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@BenchmarkMode(Array(Mode.Throughput))
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 @State(Scope.Benchmark)
 class QueryBench {
   @Param(Array("0", "10", "100", "1000"))
