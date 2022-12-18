@@ -51,7 +51,7 @@ object Accept {
         mr.withExtensions(extensions.toMap).withQValue(qValue)
     }
 
-    headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
+    headerRep1(fullRange).map(Accept(_))
   }
 
   implicit val headerInstance: Header[Accept, Header.Recurring] =
