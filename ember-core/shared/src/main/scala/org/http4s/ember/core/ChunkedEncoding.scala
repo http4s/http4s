@@ -140,9 +140,7 @@ private[ember] object ChunkedEncoding {
     }
 
   private[this] val lastChunk: Stream[fs2.Pure, Byte] = {
-    val bytes = new Array[Byte](5)
-    bytes(0) = '0'.toByte
-    `\r\n\r\n`.copyToArray(bytes, 1)
+    val bytes = Array[Byte]('0', '\r', '\n', '\r', '\n')
     Stream.chunk(Chunk.array(bytes))
   }
 
