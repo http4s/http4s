@@ -105,7 +105,7 @@ object QValue extends QValuePlatform {
   private[http4s] val parser: Parser0[QValue] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-    import org.http4s.internal.parsing.Rfc7230.ows
+    import org.http4s.internal.parsing.CommonRules.ows
 
     val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
       .mapFilter(

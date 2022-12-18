@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import org.http4s.internal.parsing.Rfc2616
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object Trailer {
@@ -30,7 +30,7 @@ object Trailer {
     ParseResult.fromParser(parser, "Invalid Trailer header")(s)
 
   private[http4s] val parser =
-    Rfc7230.headerRep1(Rfc2616.token).map(xs => Trailer(xs.map(CIString(_))))
+    CommonRules.headerRep1(Rfc2616.token).map(xs => Trailer(xs.map(CIString(_))))
 
   val name: CIString = ci"Trailer"
 

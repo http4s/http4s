@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
 import org.http4s.Header
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `Transfer-Encoding` {
@@ -35,7 +35,7 @@ object `Transfer-Encoding` {
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)
 
   private[http4s] val parser: Parser[`Transfer-Encoding`] =
-    Rfc7230.headerRep1(TransferCoding.parser).map(apply)
+    CommonRules.headerRep1(TransferCoding.parser).map(apply)
 
   implicit val headerInstance: Header[`Transfer-Encoding`, Header.Recurring] =
     Header.createRendered(

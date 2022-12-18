@@ -28,7 +28,7 @@ import com.comcast.ip4s.Ipv6Address
 import org.http4s.Header
 import org.http4s._
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -321,8 +321,8 @@ object Forwarded extends ForwardedRenderers {
     }
 
     def quoted[A](p: Parser0[A]): P[A] =
-      Rfc7230.token
-        .orElse(Rfc7230.quotedString)
+      CommonRules.token
+        .orElse(CommonRules.quotedString)
         .flatMap(str =>
           p.parseAll(str)
             .fold(_ => P.fail[A], P.pure)
@@ -346,7 +346,7 @@ object Forwarded extends ForwardedRenderers {
 
     val forwardedPair = P.oneOf(
       List(
-        Rfc7230.token
+        CommonRules.token
           .flatMap(tok =>
             tok.toLowerCase(Locale.ROOT) match {
               case "by" =>
@@ -370,7 +370,7 @@ object Forwarded extends ForwardedRenderers {
         .map(pairs => pairs.tail.foldLeft(pairs.head.create)((z, x) => x.merge(z)))
 
     // Forwarded = 1#forwarded-element
-    Rfc7230
+    CommonRules
       .headerRep1(forwardedElement)
       .map(Forwarded.apply)
   }

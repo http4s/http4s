@@ -26,11 +26,11 @@ import cats.parse.Rfc5234.digit
 import cats.parse.Rfc5234.sp
 import org.http4s.Challenge
 import org.http4s.Credentials
-import org.http4s.internal.parsing.Rfc7230.bws
-import org.http4s.internal.parsing.Rfc7230.headerRep1
-import org.http4s.internal.parsing.Rfc7230.ows
-import org.http4s.internal.parsing.Rfc7230.quotedString
-import org.http4s.internal.parsing.Rfc7230.token
+import org.http4s.internal.parsing.CommonRules.bws
+import org.http4s.internal.parsing.CommonRules.headerRep1
+import org.http4s.internal.parsing.CommonRules.ows
+import org.http4s.internal.parsing.CommonRules.quotedString
+import org.http4s.internal.parsing.CommonRules.token
 import org.typelevel.ci.CIString
 
 private[http4s] object Rfc7235 {

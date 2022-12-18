@@ -22,7 +22,7 @@ import cats.parse._
 import com.comcast.ip4s.IpAddress
 import org.http4s.Header
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -36,7 +36,7 @@ object `X-Forwarded-For` {
     ParseResult.fromParser(parser, "Invalid X-Forwarded-For header")(s)
 
   private[http4s] val parser: Parser[`X-Forwarded-For`] =
-    Rfc7230
+    CommonRules
       .headerRep1(
         (Rfc3986.ipv4Address.backtrack | Rfc3986.ipv6Address)
           .map(s => Some(s)) | (Parser.string("unknown").as(None))

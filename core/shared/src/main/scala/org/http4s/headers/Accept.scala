@@ -19,7 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7230.headerRep1
+import org.http4s.internal.parsing.CommonRules.headerRep1
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._

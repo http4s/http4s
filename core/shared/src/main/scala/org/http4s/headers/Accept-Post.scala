@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import cats.parse.Parser0
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 //Accept-Post response header.
 //See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Post
@@ -29,7 +29,7 @@ object `Accept-Post` {
     ParseResult.fromParser(parser, "Invalid Accept-Post header")(s)
 
   private[http4s] val parser: Parser0[`Accept-Post`] =
-    Rfc7230.headerRep(MediaType.parser).map(`Accept-Post`(_))
+    CommonRules.headerRep(MediaType.parser).map(`Accept-Post`(_))
 
   implicit val headerInstance: Header[`Accept-Post`, Header.Recurring] =
     Header.createRendered(

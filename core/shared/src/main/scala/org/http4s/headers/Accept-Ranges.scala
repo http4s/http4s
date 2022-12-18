@@ -19,7 +19,7 @@ package headers
 import cats.parse.Parser
 import cats.parse.{Parser0 => P0}
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderer
 import org.typelevel.ci._
 
@@ -36,7 +36,7 @@ object `Accept-Ranges` {
 
     val none = Parser.string("none").as(Nil)
 
-    val rangeUnit = Rfc7230.token.map(org.http4s.RangeUnit.apply)
+    val rangeUnit = CommonRules.token.map(org.http4s.RangeUnit.apply)
 
     /*
      Accept-Ranges     = acceptable-ranges
@@ -47,7 +47,7 @@ object `Accept-Ranges` {
       Parser.oneOf0(
         List(
           none,
-          Rfc7230.headerRep1(rangeUnit).map(_.toList),
+          CommonRules.headerRep1(rangeUnit).map(_.toList),
         )
       )
 
