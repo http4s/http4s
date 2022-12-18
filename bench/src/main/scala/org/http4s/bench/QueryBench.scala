@@ -18,13 +18,15 @@ package org.http4s.bench
 
 import org.http4s.Query
 import org.http4s.Query.KeyValue
+import org.http4s.QueryParam
+import org.http4s.QueryParamEncoder
 import org.openjdk.jmh.annotations._
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-@BenchmarkMode(Array(Mode.Throughput))
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 class QueryBench {
   @Param(Array("0", "10", "100", "1000"))
@@ -83,4 +85,26 @@ class QueryBench {
   @Benchmark
   def prependRawQuery: Query =
     generateKeyValue() +: rawQuery
+
+  final case class Key(key: String)
+
+  object Key {
+    implicit val queryParam: QueryParam[Key] =
+      QueryParam.fromKey("foo")
+  }
+
+  final case class Value(value: String)
+
+  object Value {
+    implicit val queryParamEncoder: QueryParamEncoder[Value] =
+      QueryParamEncoder[String].contramap(_.value)
+  }
+
+  @Benchmark
+  def withQueryParamRawQuery: Query =
+    rawQuery.withQueryParam[Value, Key](Key("foo"), Value("bar"))
+
+  @Benchmark
+  def withQueryParamParsedQuery: Query =
+    parsedQuery.withQueryParam[Value, Key](Key("foo"), Value("bar"))
 }
