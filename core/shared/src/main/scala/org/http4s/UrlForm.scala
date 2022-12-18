@@ -99,7 +99,7 @@ object UrlForm {
     values.foldLeft(empty)(_ + _)
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
-    apply(values.toList: _*)
+    values.foldLeft(empty)(_ + _)
 
   implicit def entityEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, UrlForm] =
     EntityEncoder
