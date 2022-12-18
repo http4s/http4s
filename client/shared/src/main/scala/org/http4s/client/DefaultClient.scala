@@ -26,6 +26,7 @@ import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.Accept
 import org.http4s.headers.MediaRangeAndQValue
+import cats.data.NonEmptyList
 
 private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[F])
     extends Client[F] {
@@ -91,8 +92,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
       req: Request[F]
   )(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
+      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
     } else req
 
     run(r).use {
@@ -171,8 +172,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
+      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
     } else req
 
     run(r).use { resp =>
