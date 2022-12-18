@@ -86,14 +86,14 @@ class QueryBench {
   def prependRawQuery: Query =
     generateKeyValue() +: rawQuery
 
-  final case class Key(key: String)
+  sealed case class Key(key: String)
 
   object Key {
     implicit val queryParam: QueryParam[Key] =
       QueryParam.fromKey("foo")
   }
 
-  final case class Value(value: String)
+  sealed case class Value(value: String)
 
   object Value {
     implicit val queryParamEncoder: QueryParamEncoder[Value] =
