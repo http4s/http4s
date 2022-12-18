@@ -18,11 +18,16 @@ package org.http4s
 package headers
 
 import org.http4s.parser.HttpHeaderParser
+import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 
 object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
+  @deprecated("Use parse(Int) instead", "0.21.34")
   override def parse(s: String): ParseResult[`User-Agent`] =
-    HttpHeaderParser.USER_AGENT(s)
+    parse(Rfc2616BasicRules.CommentDefaultMaxDepth)(s)
+
+  def parse(maxDepth: Int)(s: String): ParseResult[`User-Agent`] =
+    HttpHeaderParser.USER_AGENT(maxDepth)(s)
 }
 
 sealed trait AgentToken extends Renderable

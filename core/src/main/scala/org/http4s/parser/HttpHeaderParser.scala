@@ -142,7 +142,7 @@ object HttpHeaderParser
     addParser_("SET-COOKIE".ci, `SET_COOKIE`)
     addParser_("STRICT-TRANSPORT-SECURITY".ci, `STRICT_TRANSPORT_SECURITY`)
     addParser_("TRANSFER-ENCODING".ci, `TRANSFER_ENCODING`)
-    addParser_("USER-AGENT".ci, `USER_AGENT`)
+    addParser_("USER-AGENT".ci, `USER_AGENT`(Rfc2616BasicRules.CommentDefaultMaxDepth))
     addParser_("WWW-AUTHENTICATE".ci, `WWW_AUTHENTICATE`)
     addParser_("X-B3-FLAGS".ci, `X_B3_FLAGS`)
     addParser_("X-B3-PARENTSPANID".ci, `X_B3_PARENTSPANID`)
