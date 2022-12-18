@@ -194,7 +194,7 @@ trait QueryOps {
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
       else
-        values.toList.foldLeft(baseQuery) { case (vec, v) =>
+        values.foldLeft(baseQuery) { case (vec, v) =>
           vec :+ (name.value -> Some(v.value))
         }
 
