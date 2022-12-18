@@ -198,7 +198,7 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+      xs.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
         m :+ (k -> Some(s))
       }
     )
@@ -223,7 +223,7 @@ object Query {
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
+      case (m, (k, vs)) => vs.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
     })
 
   private def parse(query: String): Vector[KeyValue] =
