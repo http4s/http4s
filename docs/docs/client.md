@@ -423,8 +423,10 @@ httpClient.get[Either[String, String]](endpoint) {
 ```
 
 Your function has to consume the body before the returned `F` exits.
-`Response.body` yields a `EntityBody` which is a type alias for `Stream[F, Byte]`.
-It's this `Stream` that needs to be consumed within your effect `F`.
+`Response.entity` yields an `Entity[F]` that encodes body of the response.
+A response body may be empty, completely loaded into memory, or streamed.
+For more details, see the [entity] page. In the case of a streamed response, 
+it's this `Stream` that needs to be consumed within your effect `F`.
 
 Do not do this:
 
