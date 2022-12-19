@@ -19,8 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc2616
 import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
 import org.typelevel.ci._
 
 // values should be case insensitive

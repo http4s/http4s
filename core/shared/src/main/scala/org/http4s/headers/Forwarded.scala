@@ -27,8 +27,8 @@ import com.comcast.ip4s.Ipv4Address
 import com.comcast.ip4s.Ipv6Address
 import org.http4s.Header
 import org.http4s._
-import org.http4s.internal.parsing.Rfc3986
 import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._

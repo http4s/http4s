@@ -20,9 +20,9 @@ package headers
 import cats.parse.Parser
 import cats.parse.Rfc5234
 import org.http4s.internal.CharPredicate
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc2616
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._

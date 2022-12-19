@@ -20,8 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import org.http4s.CacheDirective._
-import org.http4s.internal.parsing.Rfc2616
 import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
 
