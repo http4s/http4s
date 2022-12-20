@@ -580,8 +580,10 @@
     .</span><span class="identifier">map</span><span>(</span><span class="identifier">b</span><span> =&gt; </span><span class="type-name">Left</span><span>(</span><span class="string-literal">s&quot;Request failed with status </span><span class="substitution">${r.status.code}</span><span class="string-literal"> and body </span><span class="substitution">$b</span><span class="string-literal">&quot;</span><span>))
 }</span></code></pre>
         <p>Your function has to consume the body before the returned <code>F</code> exits.
-        <code>Response.body</code> yields a <code>EntityBody</code> which is a type alias for <code>Stream[F, Byte]</code>.
-        It&#39;s this <code>Stream</code> that needs to be consumed within your effect <code>F</code>.</p>
+        <code>Response.entity</code> yields an <code>Entity[F]</code> that encodes body of the response.
+        A response body may be empty, completely loaded into memory, or streamed.
+        For more details, see the <a href="entity.html">entity</a> page. In the case of a streamed response, 
+        it&#39;s this <code>Stream</code> that needs to be consumed within your effect <code>F</code>.</p>
         <p>Do not do this:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">EntityBody</span><span>
 
