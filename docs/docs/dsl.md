@@ -197,10 +197,10 @@ Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync().headers
 #### Simple Bodies
 
 Most status codes take an argument as a body.  In http4s, `Request[F]`
-and `Response[F]` bodies are represented as a
-`fs2.Stream[F, Byte]`.  It's also considered good
-HTTP manners to provide a `Content-Type` and, where known in advance,
-`Content-Length` header in one's responses.
+and `Response[F]` bodies are represented as an
+`org.http4s.Entity[F]`. For more details, see the [entity] page. 
+It's also considered good HTTP manners to provide a `Content-Type` and, 
+where known in advance, `Content-Length` header in one's responses.
 
 All of this hassle is neatly handled by http4s' [EntityEncoder]s.
 We'll cover these in more depth in another tutorial.  The important point
@@ -613,4 +613,5 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
+[entity]: entity.md
 [EntityEncoder]: @API_URL@/org/http4s/EntityEncoder$
