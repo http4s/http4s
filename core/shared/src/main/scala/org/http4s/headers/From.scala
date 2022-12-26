@@ -14,7 +14,7 @@ object From extends HeaderCompanion[From]("From") {
   implicit val headerInstance: Header[From, Header.Single] = Header.createRendered(
     ci"From",
     _.email,
-    parse
+    parse,
   )
 }
 

@@ -12,18 +12,18 @@ class FromSuite extends Http4sSuite {
       ("\"abc!\"@example.com", "abc!@example.com"),
       ("(comment A) \r\n (comment B) a@b.com", "a@b.com"),
     )
-    cases.foreach(c => {
+    cases.foreach { c =>
       val result = From.parse(c._1)
       assertEquals(result.toOption.get, From(c._2))
-    })
+    }
 
     val failCases = List(
       "a.b.com",
       "display name a@b.com",
     )
-    failCases.foreach(c => {
-      val result =From.parse(c)
+    failCases.foreach { c =>
+      val result = From.parse(c)
       assert(result.isLeft)
-    })
+    }
   }
 }
