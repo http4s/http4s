@@ -14,12 +14,12 @@ class Rfc5322ParserSpec extends Http4sSuite {
     cases.foreach(c => {
       assert(Rfc5322.FWS.parse(c).isRight)
     })
-    val cases2 = List(
+    val failCases = List(
       "",
-      "  \r\n",
-      "\r\n"
+      "\r\n",
+      "  \r\n"
     )
-    cases2.foreach(c => {
+    failCases.foreach(c => {
       assert(Rfc5322.FWS.parse(c).isLeft)
     })
   }
@@ -36,37 +36,36 @@ class Rfc5322ParserSpec extends Http4sSuite {
 
   test("comment parser") {
     val cases = List(
-      ("( comment1 comment2 ( comment3 ))", "( comment1 comment2 ( comment3 ))"),
-      ("(    \r\n  comment)", "(    \r\n  comment)"),
-      ("( \\! )", "( ! )"),
-      ("(\\! )", "(! )"),
-      ("( \\!)", "( !)"),
-      ("(\\!)", "(!)"),
-      ("( \\!   \\!   )", "( !   !   )"),
-      ("( \\! comment )", "( ! comment )"),
-      ("( \\! comment (((comment2))) ((comment3 \r\n (comment4 \\$))) )", "( ! comment (((comment2))) ((comment3 \r\n (comment4 $))) )")
+      "(\\!)",
+      "(\\! )",
+      "( \\!)",
+      "( \\! )",
+      "( \\!   \\!   )",
+      "( \\! comment )",
+      "(    \r\n  comment)",
+      "( comment1 comment2 ( comment3 ))",
+      "( \\! comment (((comment2))) ((comment3 \r\n (comment4 \\$))) )"
     )
     cases.foreach(c => {
-      assertEquals(Rfc5322.comment.parse(c._1).toOption.get._2, c._2)
+      assert(Rfc5322.comment.parse(c).isRight)
     })
   }
 
   test("CFWS parser") {
     val cases = List(
-      (" ", " "),
-      (" ( comment ) ", " ( comment ) "),
-      (" ( comment )  (comment 2) ", " ( comment )  (comment 2) ")
+      " ",
+      " ( comment ) ",
+      " ( comment )  (comment 2) "
     )
     cases.foreach(c => {
-      assertEquals(Rfc5322.CFWS.parse(c._1).toOption.get._2, c._2)
+      assert(Rfc5322.CFWS.parse(c).isRight)
     })
   }
 
   test("atom parser") {
     val cases = List(
       ("abcd1234", "abcd1234"),
-      (" abcd1234 (comment 2)", "abcd1234"),
-      (" (comment 1) abcd1234 (comment 2)", "abcd1234")
+      ("(comment 1) abcd1234 (comment 2)", "abcd1234")
     )
     cases.foreach(c => {
       assertEquals(Rfc5322.atom.parse(c._1).toOption.get._2, c._2)
@@ -77,7 +76,8 @@ class Rfc5322ParserSpec extends Http4sSuite {
     val cases = List(
       ("a", "a"),
       ("a.b", "a.b"),
-      ("abc.defg", "abc.defg")
+      ("abc.defg", "abc.defg"),
+      ("a.b.c.defg", "a.b.c.defg")
     )
     cases.foreach(c => {
       assertEquals(Rfc5322.`dot-atom-text`.parse(c._1).toOption.get._2, c._2)
@@ -87,7 +87,7 @@ class Rfc5322ParserSpec extends Http4sSuite {
       ".abc"
     )
     failCases.foreach(c => {
-      assertEquals(Rfc5322.`dot-atom-text`.parse(c).toOption, None)
+      assert(Rfc5322.`dot-atom-text`.parse(c).isLeft)
     })
   }
 
@@ -109,7 +109,7 @@ class Rfc5322ParserSpec extends Http4sSuite {
 
   test("domain-literal parser") {
     val cases = List(
-      (" (comment1) [ 1 2 3 4 ] (comment2) ", "[ 1 2 3 4 ]"),
+      (" (comment) [ 1 2 3 4 ] (comment) ", "[ 1 2 3 4 ]"),
       ("[]", "[]"),
       ("[example.com]", "[example.com]")
     )
@@ -131,12 +131,19 @@ class Rfc5322ParserSpec extends Http4sSuite {
 
   test("mailbox parser") {
     val cases = List(
-      ("abc <d.e.f.g@hijk.com>", "abc<d.e.f.g@hijk.com>"),
-      ("<d.e.f.g@hijk.com>", "<d.e.f.g@hijk.com>"),
-      ("abc@hijk.com", "abc@hijk.com")
+      ("abc <d.e.f.g@hijk.com>", "d.e.f.g@hijk.com"),
+      ("<d.e.f.g@hijk.com>", "d.e.f.g@hijk.com"),
+      ("abc@hijk.com", "abc@hijk.com"),
     )
     cases.foreach(c => {
       assertEquals(Rfc5322.mailbox.parse(c._1).toOption.get._2, c._2)
+    })
+    val failCases = List(
+      "abc.example.com",
+      "a@c@example.com"
+    )
+    failCases.foreach(c => {
+      assert(Rfc5322.mailbox.parse(c).isLeft)
     })
   }
 }
