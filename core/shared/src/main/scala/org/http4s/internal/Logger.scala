@@ -17,7 +17,7 @@
 package org.http4s.internal
 
 import cats.Monad
-import cats.effect.kernel.Async
+import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Charset
@@ -41,7 +41,7 @@ object Logger {
 
   def defaultLogBody[F[_]](
       message: Message[F]
-  )(logBody: Boolean)(implicit F: Async[F]): Option[F[String]] =
+  )(logBody: Boolean)(implicit F: Concurrent[F]): Option[F[String]] =
     if (logBody && message.entity != Entity.Empty) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
@@ -54,9 +54,9 @@ object Logger {
         case Entity.Strict(bv) =>
           if (!isBinary || isJson) {
             val charset = message.charset.fold(Charset.`UTF-8`.nioCharset)(_.nioCharset)
-            Some(F.delay(bv.decodeStringLenient()(charset)))
+            Some(F.pure(bv.decodeStringLenient()(charset)))
           } else
-            Some(F.delay(bv.toHex))
+            Some(F.pure(bv.toHex))
         case Entity.Default(_, _) =>
           val stream =
             if (!isBinary || isJson)
@@ -72,7 +72,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-  )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] = {
+  )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
     val logBodyText = (_: Stream[F, Byte]) => defaultLogBody(message)(logBody)
 
     logMessageWithBodyText(message)(logHeaders, logBodyText, redactHeadersWhen)(log)
