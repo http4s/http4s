@@ -20,6 +20,7 @@ import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
+import org.http4s.Entity
 import org.http4s.Headers
 import org.http4s.MediaType
 import org.http4s.Message
@@ -40,7 +41,7 @@ object Logger {
   def defaultLogBody[F[_]: Concurrent](
       message: Message[F]
   )(logBody: Boolean): Option[F[String]] =
-    if (logBody) {
+    if (logBody && message.entity != Entity.Empty) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
         mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
