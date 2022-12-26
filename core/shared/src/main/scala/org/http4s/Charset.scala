@@ -36,7 +36,7 @@ import java.util.Locale
 import scala.jdk.CollectionConverters._
 
 // scalafix:off Http4sGeneralLinters; bincompat until 1.0
-final case class Charset private (nioCharset: NioCharset) extends Renderable {
+final case class Charset private[http4s] (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
 
