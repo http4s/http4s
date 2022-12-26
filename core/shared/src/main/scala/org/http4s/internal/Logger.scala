@@ -42,7 +42,7 @@ object Logger {
   def defaultLogBody[F[_]](
       message: Message[F]
   )(logBody: Boolean)(implicit F: Async[F]): Option[F[String]] =
-    if (logBody) {
+    if (logBody && message.entity != Entity.Empty) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
         mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
