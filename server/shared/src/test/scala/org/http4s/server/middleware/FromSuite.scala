@@ -14,7 +14,7 @@ class FromSuite extends Http4sSuite {
     )
     cases.foreach { c =>
       val result = From.parse(c._1)
-      assertEquals(result.toOption.get, From(c._2))
+      assertEquals(result.toOption.get.email, c._2)
     }
 
     val failCases = List(

@@ -25,7 +25,7 @@ object From extends HeaderCompanion[From]("From") {
   override def parse(s: String): ParseResult[From] =
     ParseResult.fromParser(parser, "Invalid From header")(s)
 
-  private[http4s] val parser: Parser[From] = Rfc5322.mailbox.map(From.apply)
+  private[http4s] val parser: Parser[From] = Rfc5322.mailbox.map(email => new From(email) {})
 
   implicit val headerInstance: Header[From, Header.Single] = Header.createRendered(
     ci"From",
@@ -34,4 +34,4 @@ object From extends HeaderCompanion[From]("From") {
   )
 }
 
-final case class From(email: String)
+sealed abstract case class From private (email: String)
