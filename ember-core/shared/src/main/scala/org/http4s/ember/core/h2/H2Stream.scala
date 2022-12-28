@@ -73,25 +73,28 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val trailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F])
-    mess.body
-      .ifEmpty[F, Byte](
-        Stream.eval(
-          // Message empty with trailing headers, do nothing
-          if (trailers.isDefined) Applicative[F].unit
-          // Message empty no trailing headers, send empty bytevector
-          else sendData(ByteVector.empty, true)
-        ) >> Stream.empty
-      )
-      .chunks
-      .zipWithNext
-      .foreach {
-        case (c, Some(_)) =>
-          sendData(c.toByteVector, endStream = false)
-        case (c, None) =>
-          sendData(c.toByteVector, endStream = trailers.isEmpty)
-      }
-      .compile
-      .drain
+    val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
+    maxFrameSize.flatMap(maxFrameSize =>
+      mess.body
+        .ifEmpty[F, Byte](
+          Stream.eval(
+            // Message empty with trailing headers, do nothing
+            if (trailers.isDefined) Applicative[F].unit
+            // Message empty no trailing headers, send empty bytevector
+            else sendData(ByteVector.empty, true)
+          ) >> Stream.empty
+        )
+        .chunkLimit(maxFrameSize)
+        .zipWithNext
+        .foreach {
+          case (c, Some(_)) =>
+            sendData(c.toByteVector, endStream = false)
+          case (c, None) =>
+            sendData(c.toByteVector, endStream = trailers.isEmpty)
+        }
+        .compile
+        .drain
+    )
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =

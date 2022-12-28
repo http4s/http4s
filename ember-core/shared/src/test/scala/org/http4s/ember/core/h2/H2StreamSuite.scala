@@ -124,4 +124,30 @@ class H2StreamSuite extends Http4sSuite {
       _ <- testMessageSize(stream, queue, frameSize, messageSize = frameSize, numFrames = 1)
     } yield ()
   }
+
+  test("H2Stream(open) sendMessageBody body=50kb frameSize=16kb should send four Data frames") {
+    val frameSize = 16384
+    val config = defaultSettings.copy(
+      maxFrameSize = SettingsMaxFrameSize(frameSize)
+    )
+
+    for {
+      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      (stream, queue) = sq
+      _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 4)
+    } yield ()
+  }
+
+  test("H2Stream(open) sendMessageBody body=50kb frameSize=32kb should send two Data frames") {
+    val frameSize = 32768
+    val config = defaultSettings.copy(
+      maxFrameSize = SettingsMaxFrameSize(frameSize)
+    )
+
+    for {
+      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      (stream, queue) = sq
+      _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 2)
+    } yield ()
+  }
 }
