@@ -54,9 +54,7 @@ object Logger {
             .compile
             .string
         else
-          message.body.compile
-            .to(fs2.Collector.supportsByteVector(ByteVector))
-            .map(_.toHex)
+          message.body.compile.to(ByteVector).map(_.toHex)
 
       Some(string)
     } else None
