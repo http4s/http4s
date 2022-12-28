@@ -112,7 +112,7 @@ class H2StreamSuite extends Http4sSuite {
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody frameSize=16384 should send one Data frame".fail) {
+  test("H2Stream(open) sendMessageBody frameSize=16384 should send one Data frame") {
     val frameSize = 16 << 10
     val config = defaultSettings.copy(
       maxFrameSize = SettingsMaxFrameSize(frameSize)
