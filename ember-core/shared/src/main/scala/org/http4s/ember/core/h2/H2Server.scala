@@ -306,7 +306,8 @@ private[ember] object H2Server {
       Stream
         .fromQueueUnterminated(h2.createdStreams)
         .parEvalMap(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
-          processCreatedStream(h2, i).attempt
+          processCreatedStream(h2, i)
+            .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
         )
         .compile
         .drain
