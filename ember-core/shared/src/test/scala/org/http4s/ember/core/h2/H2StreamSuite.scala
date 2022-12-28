@@ -28,7 +28,6 @@ import org.http4s.HttpVersion
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
-import org.http4s.ember.core.h2.H2Frame.Settings.SettingsMaxFrameSize
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
 
@@ -113,7 +112,7 @@ class H2StreamSuite extends Http4sSuite {
   test("H2Stream sendMessageBody body=16kb frameSize=16kb should send one Data frame") {
     val frameSize = 16384
     val config = defaultSettings.copy(
-      maxFrameSize = SettingsMaxFrameSize(frameSize)
+      maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
     )
 
     for {
@@ -126,7 +125,7 @@ class H2StreamSuite extends Http4sSuite {
   test("H2Stream sendMessageBody body=50kb frameSize=16kb should send four Data frames") {
     val frameSize = 16384
     val config = defaultSettings.copy(
-      maxFrameSize = SettingsMaxFrameSize(frameSize)
+      maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
     )
 
     for {
@@ -139,7 +138,7 @@ class H2StreamSuite extends Http4sSuite {
   test("H2Stream sendMessageBody body=50kb frameSize=32kb should send two Data frames") {
     val frameSize = 32768
     val config = defaultSettings.copy(
-      maxFrameSize = SettingsMaxFrameSize(frameSize)
+      maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
     )
 
     for {
