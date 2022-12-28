@@ -28,7 +28,6 @@ import org.http4s.HttpVersion
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
-import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Frame.Settings.SettingsMaxFrameSize
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
