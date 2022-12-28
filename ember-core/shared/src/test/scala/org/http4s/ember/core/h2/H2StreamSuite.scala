@@ -37,8 +37,7 @@ class H2StreamSuite extends Http4sSuite {
   val defaultSettings = H2Frame.Settings.ConnectionSettings.default
 
   def streamAndQueue(
-      config: H2Frame.Settings.ConnectionSettings,
-      state: H2Stream.StreamState,
+      config: H2Frame.Settings.ConnectionSettings
   ): IO[(H2Stream[IO], Queue[IO, Chunk[H2Frame]])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
@@ -54,7 +53,7 @@ class H2StreamSuite extends Http4sSuite {
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
-          state = state,
+          state = H2Stream.StreamState.Open,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
           writeBlock = writeBlock,
           readWindow = config.initialWindowSize.windowSize,
@@ -102,50 +101,50 @@ class H2StreamSuite extends Http4sSuite {
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody empty message should send one empty Data frame") {
+  test("H2Stream sendMessageBody empty message should send one empty Data frame") {
     val config = defaultSettings
 
     for {
-      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, 0, messageSize = 0, numFrames = 1)
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody body=16kb frameSize=16kb should send one Data frame") {
+  test("H2Stream sendMessageBody body=16kb frameSize=16kb should send one Data frame") {
     val frameSize = 16384
     val config = defaultSettings.copy(
       maxFrameSize = SettingsMaxFrameSize(frameSize)
     )
 
     for {
-      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = frameSize, numFrames = 1)
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody body=50kb frameSize=16kb should send four Data frames") {
+  test("H2Stream sendMessageBody body=50kb frameSize=16kb should send four Data frames") {
     val frameSize = 16384
     val config = defaultSettings.copy(
       maxFrameSize = SettingsMaxFrameSize(frameSize)
     )
 
     for {
-      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 4)
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody body=50kb frameSize=32kb should send two Data frames") {
+  test("H2Stream sendMessageBody body=50kb frameSize=32kb should send two Data frames") {
     val frameSize = 32768
     val config = defaultSettings.copy(
       maxFrameSize = SettingsMaxFrameSize(frameSize)
     )
 
     for {
-      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 2)
     } yield ()
