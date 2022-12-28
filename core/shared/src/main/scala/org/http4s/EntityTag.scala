@@ -21,7 +21,7 @@ import cats.parse.Parser
 import cats.parse.Rfc5234
 import org.http4s.EntityTag.Strong
 import org.http4s.EntityTag.Weakness
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
@@ -52,7 +52,7 @@ object EntityTag {
   private[http4s] val parser: Parser[EntityTag] = {
     import Parser.{charIn, string}
     import Rfc5234.dquote
-    import Rfc7230.obsText
+    import CommonRules.obsText
 
     // weak       = %x57.2F ; "W/", case-sensitive
     val weak = string("W/").as(EntityTag.Weak)

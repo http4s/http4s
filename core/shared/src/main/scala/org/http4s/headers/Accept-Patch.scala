@@ -19,7 +19,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `Accept-Patch` {
@@ -30,7 +30,7 @@ object `Accept-Patch` {
     ParseResult.fromParser(parser, "Invalid Accept-Patch header")(s)
 
   private[http4s] val parser =
-    Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
+    CommonRules.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
 
   implicit val headerInstance: Header[`Accept-Patch`, Header.Recurring] =
     Header.createRendered(

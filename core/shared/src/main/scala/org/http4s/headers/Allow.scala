@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object Allow {
@@ -26,8 +26,8 @@ object Allow {
   def parse(s: String): ParseResult[Allow] =
     ParseResult.fromParser(parser, "Invalid Allow header")(s)
 
-  private[http4s] val parser = Rfc7230
-    .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
+  private[http4s] val parser = CommonRules
+    .headerRep1(CommonRules.token.mapFilter(s => Method.fromString(s).toOption))
     .map(_.toList)
     .?
     .map(_.getOrElse(Nil))
