@@ -87,16 +87,16 @@ class H2StreamSuite extends Http4sSuite {
       outgoing: Queue[IO, Chunk[H2Frame]],
       frameSize: Int,
       messageSize: Int,
-      frames: Int,
+      numFrames: Int,
   ) = {
     val sample = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
       .withEntity("0" * messageSize)
 
     for {
       _ <- stream.sendMessageBody(sample)
-      chunks <- outgoing.take.replicateA(frames).map(_.flatMap(_.toList))
+      chunks <- outgoing.take.replicateA(numFrames).map(_.flatMap(_.toList))
       data = chunks.collect { case H2Frame.Data(_, data, _, _) => data }
-      _ <- assertIO(IO(data.size), frames)
+      _ <- assertIO(IO(data.size), numFrames)
       _ <- assertIO(IO(data.map(_.size).sum), messageSize.toLong)
       _ <- data.traverse_(c => IO(assert(clue(c.size) <= clue(frameSize))))
     } yield ()
@@ -108,12 +108,12 @@ class H2StreamSuite extends Http4sSuite {
     for {
       sq <- streamAndQueue(config, H2Stream.StreamState.Open)
       (stream, queue) = sq
-      _ <- testMessageSize(stream, queue, 0, 0, 1)
+      _ <- testMessageSize(stream, queue, 0, messageSize = 0, numFrames = 1)
     } yield ()
   }
 
-  test("H2Stream(open) sendMessageBody frameSize=16384 should send one Data frame") {
-    val frameSize = 16 << 10
+  test("H2Stream(open) sendMessageBody body=16kb frameSize=16kb should send one Data frame") {
+    val frameSize = 16384
     val config = defaultSettings.copy(
       maxFrameSize = SettingsMaxFrameSize(frameSize)
     )
@@ -121,7 +121,7 @@ class H2StreamSuite extends Http4sSuite {
     for {
       sq <- streamAndQueue(config, H2Stream.StreamState.Open)
       (stream, queue) = sq
-      _ <- testMessageSize(stream, queue, frameSize, frameSize, 1)
+      _ <- testMessageSize(stream, queue, frameSize, messageSize = frameSize, numFrames = 1)
     } yield ()
   }
 }
