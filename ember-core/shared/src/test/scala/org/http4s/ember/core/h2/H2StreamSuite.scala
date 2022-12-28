@@ -34,34 +34,12 @@ import org.typelevel.log4cats
 import scodec.bits.ByteVector
 
 class H2StreamSuite extends Http4sSuite {
+  val defaultSettings = H2Frame.Settings.ConnectionSettings.default
 
-  test("H2Stream(open) sendMessageBody frameSize=16384 should send one Data frame".fail) {
-    val defaultSettings = H2Frame.Settings.ConnectionSettings.default
-
-    val frameSize = 16 << 10 // any higher test times out
-    val config = defaultSettings.copy(
-      maxFrameSize = SettingsMaxFrameSize(frameSize)
-    )
-
-    def testMessageSize(
-        outgoing: Queue[IO, Chunk[H2Frame]],
-        stream: H2Stream[IO],
-        messageSize: Int,
-        frames: Int,
-    ) = {
-      val sample = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
-        .withEntity("0" * messageSize)
-
-      for {
-        _ <- stream.sendMessageBody(sample)
-        chunks <- outgoing.take.replicateA(frames).map(_.flatMap(_.toList))
-        data = chunks.collect { case H2Frame.Data(_, data, _, _) => data }
-        _ <- assertIO(IO(data.size), frames)
-        _ <- assertIO(IO(data.map(_.size).sum), messageSize.toLong)
-        _ <- data.traverse_(c => IO(assert(clue(c.size) <= clue(config.maxFrameSize.frameSize))))
-      } yield ()
-    }
-
+  def streamAndQueue(
+      config: H2Frame.Settings.ConnectionSettings,
+      state: H2Stream.StreamState,
+  ): IO[(H2Stream[IO], Queue[IO, Chunk[H2Frame]])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
@@ -69,14 +47,14 @@ class H2StreamSuite extends Http4sSuite {
       trailers <- Deferred[IO, Either[Throwable, Headers]]
       readBuffer <- Queue.unbounded[IO, Either[Throwable, ByteVector]]
 
-      _ <- writeBlock.complete(Right(()))
+      _ <- writeBlock.complete(Either.unit)
       _ <- req.complete(Left(new Exception()))
       _ <- resp.complete(Left(new Exception()))
       _ <- trailers.complete(Right(Headers.empty))
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
-          state = H2Stream.StreamState.Open,
+          state = state,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
           writeBlock = writeBlock,
           readWindow = config.initialWindowSize.windowSize,
@@ -87,13 +65,9 @@ class H2StreamSuite extends Http4sSuite {
           contentLengthCheck = None,
         )
       )
-
       hpack <- Hpack.create[IO]
-
-      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
-
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
-
+      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
       stream = new H2Stream[IO](
         1,
         defaultSettings,
@@ -106,8 +80,48 @@ class H2StreamSuite extends Http4sSuite {
         _ => IO.unit,
         logger,
       )
+    } yield (stream, outgoing)
 
-      _ <- testMessageSize(outgoing, stream, frameSize, 1)
+  def testMessageSize(
+      stream: H2Stream[IO],
+      outgoing: Queue[IO, Chunk[H2Frame]],
+      frameSize: Int,
+      messageSize: Int,
+      frames: Int,
+  ) = {
+    val sample = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+      .withEntity("0" * messageSize)
+
+    for {
+      _ <- stream.sendMessageBody(sample)
+      chunks <- outgoing.take.replicateA(frames).map(_.flatMap(_.toList))
+      data = chunks.collect { case H2Frame.Data(_, data, _, _) => data }
+      _ <- assertIO(IO(data.size), frames)
+      _ <- assertIO(IO(data.map(_.size).sum), messageSize.toLong)
+      _ <- data.traverse_(c => IO(assert(clue(c.size) <= clue(frameSize))))
+    } yield ()
+  }
+
+  test("H2Stream(open) sendMessageBody empty message should send one empty Data frame") {
+    val config = defaultSettings
+
+    for {
+      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      (stream, queue) = sq
+      _ <- testMessageSize(stream, queue, 0, 0, 1)
+    } yield ()
+  }
+
+  test("H2Stream(open) sendMessageBody frameSize=16384 should send one Data frame".fail) {
+    val frameSize = 16 << 10
+    val config = defaultSettings.copy(
+      maxFrameSize = SettingsMaxFrameSize(frameSize)
+    )
+
+    for {
+      sq <- streamAndQueue(config, H2Stream.StreamState.Open)
+      (stream, queue) = sq
+      _ <- testMessageSize(stream, queue, frameSize, frameSize, 1)
     } yield ()
   }
 }
