@@ -201,27 +201,6 @@ trait QueryOps {
     replaceQuery(Query.fromVector(vec))
   }
 
-  /*
-  /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
-   * If the value is empty the same instance of `Self` will be returned.
-   * If a parameter with the given `key` already exists the values will be
-   * replaced.
-   */
-  def withMaybeQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParamKeyLike[K].getKey(key), value map QueryParamEncoder[T].encode)
-
-  /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
-   * If the value is empty or if the parameter to be added equal the existing
-   * entry the same instance of `Self` will be returned.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced.
-   */
-  def withMaybeQueryParam[T: QueryParam: QueryParamEncoder](value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
-   */
-
   /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If the value is empty or if the parameter to be added equal the existing
     * entry the same instance of `Self` will be returned.

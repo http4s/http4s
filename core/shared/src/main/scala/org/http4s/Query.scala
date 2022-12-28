@@ -234,12 +234,12 @@ object Query {
         case Left(_) => Vector.empty
       }
 
-  /* query       = *( pchar / "/" / "?" )
-   *
-   * These are illegal, but common in the wild.  We will be
-   * "conservative in our sending behavior and liberal in our
-   * receiving behavior", and encode them.
-   */
+  /** query       = *( pchar / "/" / "?" )
+    *
+    * These are illegal, but common in the wild.  We will be
+    * "conservative in our sending behavior and liberal in our
+    * receiving behavior", and encode them.
+    */
   private[http4s] lazy val parser: Parser0[Query] = {
     import cats.parse.Parser.charIn
     import Rfc3986.pchar
