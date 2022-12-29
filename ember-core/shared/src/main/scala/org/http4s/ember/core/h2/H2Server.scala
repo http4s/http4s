@@ -305,7 +305,7 @@ private[ember] object H2Server {
     def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .parEvalMap(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
           processCreatedStream(h2, i)
             .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
         )
