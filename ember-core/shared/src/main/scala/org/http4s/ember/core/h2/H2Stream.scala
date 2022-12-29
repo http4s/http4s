@@ -86,11 +86,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
         )
         .chunkLimit(maxFrameSize)
         .zipWithNext
-        .foreach {
-          case (c, Some(_)) =>
-            sendData(c.toByteVector, endStream = false)
-          case (c, None) =>
-            sendData(c.toByteVector, endStream = trailers.isEmpty)
+        .foreach { case (c, nextChunk) =>
+          val isEndStream = nextChunk.isEmpty && trailers.isEmpty
+          sendData(c.toByteVector, isEndStream)
         }
         .compile
         .drain
