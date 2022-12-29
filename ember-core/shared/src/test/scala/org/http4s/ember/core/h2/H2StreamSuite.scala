@@ -99,17 +99,20 @@ class H2StreamSuite extends Http4sSuite {
     } yield ()
   }
 
-  test("H2Stream sendMessageBody empty message should send one empty Data frame") {
+  test("H2Stream sendMessageBody empty message should send one empty Data frame and half-close") {
     val config = defaultSettings
 
     for {
       sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, 0, messageSize = 0, numFrames = 1)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }
 
-  test("H2Stream sendMessageBody body=16kb frameSize=16kb should send one Data frame") {
+  test(
+    "H2Stream sendMessageBody body=16kb frameSize=16kb should send one Data frame and half-close"
+  ) {
     val frameSize = 16384
     val config = defaultSettings.copy(
       maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
@@ -119,10 +122,13 @@ class H2StreamSuite extends Http4sSuite {
       sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = frameSize, numFrames = 1)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }
 
-  test("H2Stream sendMessageBody body=50kb frameSize=16kb should send four Data frames") {
+  test(
+    "H2Stream sendMessageBody body=50kb frameSize=16kb should send four Data frames and half-close"
+  ) {
     val frameSize = 16384
     val config = defaultSettings.copy(
       maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
@@ -132,10 +138,13 @@ class H2StreamSuite extends Http4sSuite {
       sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 4)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }
 
-  test("H2Stream sendMessageBody body=50kb frameSize=32kb should send two Data frames") {
+  test(
+    "H2Stream sendMessageBody body=50kb frameSize=32kb should send two Data frames and half-close"
+  ) {
     val frameSize = 32768
     val config = defaultSettings.copy(
       maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
@@ -145,6 +154,37 @@ class H2StreamSuite extends Http4sSuite {
       sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 2)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
+    } yield ()
+  }
+
+  test("H2Stream sendMessageBody empty message with 'Trailer' header keeps stream open") {
+    val config = defaultSettings
+
+    for {
+      sq <- streamAndQueue(config)
+      (stream, queue) = sq
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+        .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
+      _ <- stream.sendMessageBody(resp)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
+    } yield ()
+  }
+
+  test("H2Stream sendMessageBody non-empty message with 'Trailer' header keeps stream open") {
+    val frameSize = 16384
+    val config = defaultSettings.copy(
+      maxFrameSize = H2Frame.Settings.SettingsMaxFrameSize(frameSize)
+    )
+
+    for {
+      sq <- streamAndQueue(config)
+      (stream, queue) = sq
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+        .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
+        .withEntity("0" * frameSize * 2)
+      _ <- stream.sendMessageBody(resp)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
     } yield ()
   }
 }
