@@ -77,12 +77,12 @@ private[h2] class H2Stream[F[_]: Concurrent](
     maxFrameSize.flatMap(maxFrameSize =>
       mess.body
         .ifEmpty[F, Byte](
-          Stream.eval(
+          Stream.exec(
             // Message empty with trailing headers, do nothing
             if (trailers.isDefined) Applicative[F].unit
             // Message empty no trailing headers, send empty bytevector
             else sendData(ByteVector.empty, true)
-          ) >> Stream.empty
+          )
         )
         .chunkLimit(maxFrameSize)
         .zipWithNext
