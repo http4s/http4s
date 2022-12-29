@@ -20,6 +20,7 @@ import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
+import org.http4s.Charset
 import org.http4s.Entity
 import org.http4s.Headers
 import org.http4s.MediaType
@@ -38,20 +39,33 @@ object Logger {
       message.headers.mkString("Headers(", ", ", ")", redactHeadersWhen)
     else ""
 
-  def defaultLogBody[F[_]: Concurrent](
+  def defaultLogBody[F[_]](
       message: Message[F]
-  )(logBody: Boolean): Option[F[String]] =
+  )(logBody: Boolean)(implicit F: Concurrent[F]): Option[F[String]] =
     if (logBody && message.entity != Entity.Empty) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
         mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
       )
-      val bodyStream = if (!isBinary || isJson) {
-        message.bodyText
-      } else {
-        message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
+
+      message.entity match {
+        case Entity.Empty =>
+          None
+        case Entity.Strict(bv) =>
+          if (!isBinary || isJson) {
+            val charset = message.charset.fold(Charset.`UTF-8`.nioCharset)(_.nioCharset)
+            Some(F.pure(bv.decodeStringLenient()(charset)))
+          } else
+            Some(F.pure(bv.toHex))
+        case Entity.Default(_, _) =>
+          val stream =
+            if (!isBinary || isJson)
+              message.bodyText
+            else
+              message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
+
+          Some(stream.compile.string)
       }
-      Some(bodyStream.compile.string)
     } else None
 
   def logMessage[F[_]](message: Message[F])(
