@@ -32,7 +32,7 @@ object `Accept-Charset` {
 
   private[http4s] val parser: Parser[`Accept-Charset`] = {
     import cats.parse.Parser._
-    import org.http4s.internal.parsing.Rfc7230._
+    import org.http4s.internal.parsing.CommonRules._
 
     val anyCharset = (char('*') *> QValue.parser)
       .map(q => if (q != QValue.One) `*`.withQValue(q) else `*`)

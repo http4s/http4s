@@ -28,6 +28,7 @@ import org.http4s.Message
 import org.http4s.Request
 import org.http4s.Response
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 object Logger {
 
@@ -58,13 +59,13 @@ object Logger {
           } else
             Some(F.pure(bv.toHex))
         case Entity.Default(_, _) =>
-          val stream =
+          val string =
             if (!isBinary || isJson)
-              message.bodyText
+              message.bodyText.compile.string
             else
-              message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
+              message.body.compile.to(ByteVector).map(_.toHex)
 
-          Some(stream.compile.string)
+          Some(string)
       }
     } else None
 

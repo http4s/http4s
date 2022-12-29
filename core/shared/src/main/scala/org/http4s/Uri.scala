@@ -1127,10 +1127,11 @@ object Uri extends UriPlatform {
     }
 
   private[http4s] object Parser {
-    /* port        = *DIGIT
-     *
-     * Limitation: we only parse up to Int. The spec allows bigint!
-     */
+
+    /** port        = *DIGIT
+      *
+      * Limitation: we only parse up to Int. The spec allows bigint!
+      */
     private[http4s] val port: Parser0[Option[Int]] = {
       import Rfc3986.digit
 

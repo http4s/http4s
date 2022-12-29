@@ -73,15 +73,15 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   def updateFormFields[T](key: String, vals: Chain[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
     vals.foldLeft(this)(_.updateFormField(key, _)(ev))
 
-  /* same as `updateFormField(key, value)` */
+  /** Same as `updateFormField(key, value)` */
   def +?[T: QueryParamEncoder](key: String, value: T): UrlForm =
     updateFormField(key, value)
 
-  /* same as `updateParamEncoder`(key, value) */
+  /** Same as `updateParamEncoder`(key, value) */
   def +?[T: QueryParamEncoder](key: String, value: Option[T]): UrlForm =
     updateFormField(key, value)
 
-  /* same as `updatedParamEncoders`(key, vals) */
+  /** Same as `updatedParamEncoders`(key, vals) */
   def ++?[T: QueryParamEncoder](key: String, vals: Chain[T]): UrlForm =
     updateFormFields(key, vals)
 }
@@ -98,7 +98,7 @@ object UrlForm {
     values.foldLeft(empty)(_ + _)
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
-    apply(values.toList: _*)
+    values.foldLeft(empty)(_ + _)
 
   implicit def entityEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[UrlForm] =
     EntityEncoder.stringEncoder
