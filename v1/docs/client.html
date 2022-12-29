@@ -417,8 +417,8 @@
         validation fails:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">validUri</span><span> = </span><span class="string-literal">&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;</span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">invalidUri</span><span> = </span><span class="string-literal">&quot;yeah whatever&quot;</span></code></pre>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">uri</span><span>: </span><span class="type-name">Either</span><span>[</span><span class="type-name">ParseFailure</span><span>, </span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">validUri</span><span>)
-</span><span class="comment">// uri: Either[ParseFailure, Uri] = Right(
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">uri</span><span>: </span><span class="type-name">ParseResult</span><span>[</span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">validUri</span><span>)
+</span><span class="comment">// uri: ParseResult[Uri] = Right(
 //   value = Uri(
 //     scheme = Some(value = Scheme(https)),
 //     authority = Some(
@@ -434,8 +434,8 @@
 //   )
 // )
 </span><span>
-</span><span class="keyword">val</span><span> </span><span class="identifier">parseFailure</span><span>: </span><span class="type-name">Either</span><span>[</span><span class="type-name">ParseFailure</span><span>, </span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">invalidUri</span><span>)
-</span><span class="comment">// parseFailure: Either[ParseFailure, Uri] = Left(
+</span><span class="keyword">val</span><span> </span><span class="identifier">parseFailure</span><span>: </span><span class="type-name">ParseResult</span><span>[</span><span class="type-name">Uri</span><span>] = </span><span class="type-name">Uri</span><span>.</span><span class="identifier">fromString</span><span>(</span><span class="identifier">invalidUri</span><span>)
+</span><span class="comment">// parseFailure: ParseResult[Uri] = Left(
 //   value = ParseFailure(
 //     sanitized = &quot;Invalid URI&quot;,
 //     details = &quot;&quot;&quot;yeah whatever
