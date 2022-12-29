@@ -79,7 +79,7 @@ class H2StreamSuite extends Http4sSuite {
       )
     } yield (stream, outgoing)
 
-  def testMessageSize(
+  private def testMessageSize(
       stream: H2Stream[IO],
       outgoing: Queue[IO, Chunk[H2Frame]],
       frameSize: Int,
