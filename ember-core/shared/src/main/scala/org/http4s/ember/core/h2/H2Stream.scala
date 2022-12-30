@@ -71,6 +71,11 @@ private[h2] class H2Stream[F[_]: Concurrent](
         new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
     }
 
+  /** Send [[Message]] in chunks according to remote receiver's max frame size.
+    * On empty [[Message]], send an empty DATA frame if there are no trailer headers.
+    *
+    * @param mess the [[Message]] to send
+    */
   def sendMessageBody(mess: Message[F]): F[Unit] = {
     val noTrailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F]).isEmpty
     val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
