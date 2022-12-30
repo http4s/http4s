@@ -78,10 +78,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
       mess.body
         .ifEmpty[F, Byte](
           Stream.exec(
-            // Message empty with trailing headers, do nothing
-            if (trailers.isDefined) Applicative[F].unit
-            // Message empty no trailing headers, send empty bytevector
-            else sendData(ByteVector.empty, true)
+            // send empty bytevector when there are no trailing headers
+            sendData(ByteVector.empty, true).whenA(trailers.isEmpty)
           )
         )
         .chunkLimit(maxFrameSize)
