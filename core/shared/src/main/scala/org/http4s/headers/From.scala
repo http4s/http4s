@@ -21,11 +21,19 @@ import cats.parse.Parser
 import org.http4s.internal.parsing.Rfc5322
 import org.typelevel.ci.CIStringSyntax
 
+sealed trait From extends Product with Serializable {
+  val email: String
+}
+
 object From extends HeaderCompanion[From]("From") {
+  private final case class FromImpl(email: String) extends From {
+    override def productPrefix: String = "From"
+  }
+
   override def parse(s: String): ParseResult[From] =
     ParseResult.fromParser(parser, "Invalid From header")(s)
 
-  private[http4s] val parser: Parser[From] = Rfc5322.mailbox.map(email => new From(email) {})
+  private[http4s] val parser: Parser[From] = Rfc5322.mailbox.map(email => FromImpl(email))
 
   implicit val headerInstance: Header[From, Header.Single] = Header.createRendered(
     ci"From",
@@ -33,5 +41,3 @@ object From extends HeaderCompanion[From]("From") {
     parse,
   )
 }
-
-sealed abstract case class From private (email: String)
