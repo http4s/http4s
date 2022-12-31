@@ -26,9 +26,9 @@ import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all._
 import cats.~>
-import fs2._
 import org.http4s.headers._
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 import scala.collection.mutable.ListBuffer
 
@@ -49,14 +49,20 @@ object ChunkAggregator {
   )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF(response => f(aggregate(response)))
 
-  private[this] def aggregate[G[_]: Sync](r: Response[G]): G[Response[G]] =
-    r.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
-      .map { vec =>
-        val body = Chunk.concat(vec)
-        r
-          .withBodyStream(Stream.chunk(body))
-          .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
-      }
+  private[this] def aggregate[G[_]](r: Response[G])(implicit G: Sync[G]): G[Response[G]] =
+    r.entity match {
+      case Entity.Empty =>
+        G.pure(r.transformHeaders(removeChunkedTransferEncoding(0L)))
+      case Entity.Strict(bv) =>
+        G.pure(r.transformHeaders(removeChunkedTransferEncoding(bv.size)))
+      case Entity.Default(b, _) =>
+        b.compile // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
+          .to(ByteVector)
+          .map(bv =>
+            r.withEntity(Entity.strict(bv))
+              .transformHeaders(removeChunkedTransferEncoding(bv.size))
+          )
+    }
 
   def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F])(httpRoutes)
