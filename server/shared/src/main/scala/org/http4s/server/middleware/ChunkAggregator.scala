@@ -23,12 +23,12 @@ import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.data.OptionT
-import cats.effect.Sync
+import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import cats.~>
-import fs2._
 import org.http4s.headers._
 import org.typelevel.ci._
+import scodec.bits.ByteVector
 
 import scala.collection.mutable.ListBuffer
 
@@ -44,24 +44,30 @@ import scala.collection.mutable.ListBuffer
   *  https://datatracker.ietf.org/doc/html/rfc7230#section-4.1
   */
 object ChunkAggregator {
-  def apply[F[_]: FlatMap, G[_]: Sync, A](
+  def apply[F[_]: FlatMap, G[_]: Concurrent, A](
       f: G ~> F
   )(http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF(response => f(aggregate(response)))
 
-  private[this] def aggregate[G[_]: Sync](r: Response[G]): G[Response[G]] =
-    r.body.chunks.compile.toVector // scalafix:ok Http4sFs2Linters.noFs2SyncCompiler; bincompat until 1.0
-      .map { vec =>
-        val body = Chunk.concat(vec)
-        r
-          .withBodyStream(Stream.chunk(body))
-          .transformHeaders(removeChunkedTransferEncoding(body.size.toLong))
-      }
+  private[this] def aggregate[G[_]](r: Response[G])(implicit G: Concurrent[G]): G[Response[G]] =
+    r.entity match {
+      case Entity.Empty =>
+        G.pure(r.transformHeaders(removeChunkedTransferEncoding(0L)))
+      case Entity.Strict(bv) =>
+        G.pure(r.transformHeaders(removeChunkedTransferEncoding(bv.size)))
+      case Entity.Default(b, _) =>
+        b.compile
+          .to(ByteVector)
+          .map(bv =>
+            r.withEntity(Entity.strict(bv))
+              .transformHeaders(removeChunkedTransferEncoding(bv.size))
+          )
+    }
 
-  def httpRoutes[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(OptionT.liftK[F])(httpRoutes)
 
-  def httpApp[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Concurrent](httpApp: HttpApp[F]): HttpApp[F] =
     apply(FunctionK.id[F])(httpApp)
 
   /* removes the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
