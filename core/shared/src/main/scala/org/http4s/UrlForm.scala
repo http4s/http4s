@@ -95,11 +95,25 @@ object UrlForm {
     if (values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
+  def single(key: String, value: String): UrlForm =
+    new UrlForm(Map(key -> Chain.one(value)))
+
   def apply(values: (String, String)*): UrlForm =
-    values.foldLeft(empty)(_ + _)
+    values match {
+      case Seq() => empty
+      case Seq(x) => single(x._1, x._2)
+      case h +: tail => tail.foldLeft(single(h._1, h._2))(_ + _)
+    }
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
-    values.foldLeft(empty)(_ + _)
+    values.knownSize match {
+      case 0 => empty
+      case 1 =>
+        val h = values.headOption.get
+        single(h._1, h._2)
+      case _ =>
+        values.foldLeft(empty)(_ + _)
+    }
 
   implicit def entityEncoder[F[_]](implicit charset: Charset = `UTF-8`): EntityEncoder[F, UrlForm] =
     EntityEncoder

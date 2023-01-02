@@ -30,7 +30,6 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
-import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Uri
@@ -74,7 +73,7 @@ private[http4s] object NettyTestServer {
       .channelFactory(new ChannelFactory[NioServerSocketChannel] {
         override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
       })
-      .handler(new LoggingHandler(LogLevel.INFO))
+      .handler(new LoggingHandler())
       .childHandler(new ChannelInitializer[NioSocketChannel]() {
         def initChannel(ch: NioSocketChannel): Unit = {
           logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].").unsafeRunSync()
