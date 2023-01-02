@@ -30,6 +30,7 @@ import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import scala.concurrent.duration._
 
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
@@ -42,8 +43,9 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
   def compare(that: HttpDate): Int =
     this.epochSecond.compare(that.epochSecond)
 
-  def toInstant: Instant =
-    Instant.ofEpochSecond(epochSecond)
+  def toDuration: FiniteDuration = epochSecond.seconds
+
+  def toInstant: Instant = Instant.ofEpochSecond(epochSecond)
 
   def render(writer: Writer): writer.type =
     writer << toInstant
@@ -86,7 +88,7 @@ object HttpDate {
     * 10000, this will throw an exception. The author intends to leave this
     * problem for future generations.
     */
-  @deprecated("0.20.16", "Use HttpDate.current instead, this breaks referential transparency")
+  @deprecated("Use HttpDate.current instead, this breaks referential transparency", "0.20.16")
   def now: HttpDate =
     unsafeFromInstant(Instant.now)
 

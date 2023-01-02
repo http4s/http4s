@@ -187,7 +187,7 @@ private[ember] object H2Server {
         _ <- s.request.complete(Either.right(req))
         er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
         _ <- s.readBuffer.offer(er)
-        _ <- s.writeBlock.complete(Either.right(()))
+        _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
@@ -280,17 +280,15 @@ private[ember] object H2Server {
             _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
           } yield (resp.body, stream)
 
-        val pp = resp.attributes.lookup(H2Keys.PushPromises)
-        for {
-          // Push Promises
-          pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
-          streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-            Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-          )(l => l.traverse(sender))
-          // _ <- Console.make[F].println("Writing Streams Commpleted")
-          responses <- streams.parTraverse { case (req, stream) => respond(req, stream) }
-          _ <- responses.parTraverse { case (_, stream) => sendData(resp, stream) }
-        } yield ()
+        resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
+          h2.state.get.flatMap {
+            case s if s.remoteSettings.enablePush.isEnabled =>
+              l.traverse(sender)
+                .flatMap(_.parTraverse { case (req, stream) => respond(req, stream) })
+                .flatMap(_.parTraverse_ { case (_, stream) => sendData(resp, stream) })
+            case _ => Applicative[F].unit
+          }
+        }
       }
 
       for {

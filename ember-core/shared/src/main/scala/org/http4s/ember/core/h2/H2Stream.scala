@@ -391,7 +391,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
     _ <- {
       if (!valid) rstStream(H2Error.FlowControlError)
-      else oldWriteBlock.complete(Right(())).void
+      else oldWriteBlock.complete(Either.unit).void
     }
   } yield ()
 
@@ -404,7 +404,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
       (newS, s.writeBlock)
     }
 
-    _ <- oldWriteBlock.complete(Right(())).void
+    _ <- oldWriteBlock.complete(Either.unit).void
   } yield ()
 
   def getRequest: F[org.http4s.Request[fs2.Pure]] = state.get.flatMap(_.request.get.rethrow)

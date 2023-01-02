@@ -59,7 +59,7 @@ private[http4s] object ServerScaffold {
   ): Resource[F, ServerScaffold[F]] = {
     require(num == 1 && !secure)
     val app = routes.orNotFound
-    Dispatcher[F].flatMap { dispatcher =>
+    Dispatcher.parallel[F].flatMap { dispatcher =>
       Resource
         .make {
           F.delay(
@@ -70,7 +70,7 @@ private[http4s] object ServerScaffold {
             }
           )
         } { server =>
-          F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
+          F.async_[Unit] { cb => server.close(() => cb(Either.unit)); () }
         }
         .evalMap { server =>
           F.async_[ServerScaffold[F]] { cb =>

@@ -17,6 +17,7 @@
 package org.http4s.websocket
 
 import cats.effect.SyncIO
+import cats.syntax.either._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import scodec.bits.ByteVector
@@ -66,7 +67,7 @@ private[http4s] object WebSocketHandshake {
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
           .map {
-            case (_, v) if genAcceptKey(key) == v => Right(())
+            case (_, v) if genAcceptKey(key) == v => Either.unit
             case (_, v) => Left(s"Invalid key: $v")
           }
           .getOrElse(Left("Missing Sec-WebSocket-Accept header"))

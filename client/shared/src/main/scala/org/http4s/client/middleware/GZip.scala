@@ -18,8 +18,10 @@ package org.http4s
 package client
 package middleware
 
+import cats.ApplicativeThrow
 import cats.data.NonEmptyList
-import cats.effect.Async
+import cats.effect.kernel.Async
+import cats.effect.kernel.MonadCancelThrow
 import fs2.Pipe
 import fs2.Pull
 import fs2.Stream
@@ -38,7 +40,9 @@ object GZip {
   private val supportedCompressions =
     NonEmptyList.of(ContentCoding.gzip, ContentCoding.deflate)
 
-  def apply[F[_]](bufferSize: Int = 32 * 1024)(client: Client[F])(implicit F: Async[F]): Client[F] =
+  def apply[F[_]: MonadCancelThrow: Compression](
+      bufferSize: Int = 32 * 1024
+  )(client: Client[F]): Client[F] =
     Client[F] { req =>
       val reqWithEncoding = addHeaders(req)
       val responseResource = client.run(reqWithEncoding)
@@ -48,6 +52,12 @@ object GZip {
       }
     }
 
+  @deprecated("Use overload with `Compression` constraint", "0.23.17")
+  def apply[F[_]](bufferSize: Int, client: Client[F], F: Async[F]): Client[F] = {
+    implicit val async = F
+    apply(bufferSize)(client)
+  }
+
   private def addHeaders[F[_]](req: Request[F]): Request[F] =
     req.headers.get[`Accept-Encoding`] match {
       case Some(_) =>
@@ -56,8 +66,9 @@ object GZip {
         req.putHeaders(`Accept-Encoding`(supportedCompressions))
     }
 
-  private def decompress[F[_]](bufferSize: Int, response: Response[F])(implicit
-      F: Async[F]
+  private def decompress[F[_]: ApplicativeThrow: Compression](
+      bufferSize: Int,
+      response: Response[F],
   ): Response[F] =
     response.headers.get[`Content-Encoding`] match {
       case Some(header)
@@ -78,9 +89,9 @@ object GZip {
         response
     }
 
-  private def decompressWith[F[_]](
+  private def decompressWith[F[_]: ApplicativeThrow](
       decompressor: Pipe[F, Byte, Byte]
-  )(implicit F: Async[F]): Pipe[F, Byte, Byte] =
+  ): Pipe[F, Byte, Byte] =
     _.pull.peek1
       .flatMap {
         case None => Pull.raiseError(EmptyBodyException)
