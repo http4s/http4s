@@ -212,7 +212,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   webSocketKey,
                   ByteVector.empty,
                   enableHttp2,
-                ).drain
+                )
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
                   case true =>
@@ -234,7 +234,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           webSocketKey,
                           bv, // Pass read bytes we thought might be the prelude
                           enableHttp2,
-                        ).drain
+                        )
                       case Right(_) =>
                         Stream
                           .resource(
@@ -263,7 +263,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       webSocketKey,
                       ByteVector.empty,
                       enableHttp2,
-                    ).drain
+                    )
                 }
             }
 
