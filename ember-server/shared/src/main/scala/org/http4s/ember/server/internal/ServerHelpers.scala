@@ -388,7 +388,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       initialBuffer: ByteVector,
       enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
-    type State = (Array[Byte], Boolean)
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
       .adaptError {
@@ -399,7 +398,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     def isAlive(r: Response[F]): Boolean =
       r.headers.get[Connection].exists(_.hasKeepAlive)
 
-    def step(buffer: Array[Byte], reuse: Boolean): F[Option[(Unit, State)]] = {
+    def stepLoop(buffer: Array[Byte], reuse: Boolean): F[Unit] = {
       val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
         // next request has already been (partially) received
         buffer.pure[F]
@@ -449,29 +448,28 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       errorHandler,
                       logger,
                     )
-                    .as(None)
                 case None =>
-                  Applicative[F].pure(None)
+                  Applicative[F].unit
               }
             case None =>
               resp.attributes.lookup(H2Keys.H2cUpgrade) match {
                 // Http1.1
                 case None =>
-                  for {
-                    nextResp <- postProcessResponse(req, resp)
-                    _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                    nextBuffer <- drain
-                  } yield nextBuffer match {
-                    case Some(buffer) if isAlive(nextResp) => Some(() -> (buffer, true))
-                    case _ => None
-                  }
+                  postProcessResponse(req, resp)
+                    .flatTap(send(socket)(Some(req), _, idleTimeout, onWriteFailure))
+                    .flatMap { nextResp =>
+                      drain.flatMap {
+                        case Some(buffer) if isAlive(nextResp) => stepLoop(buffer, true)
+                        case _ => Applicative[F].unit
+                      }
+                    }
                 // h2c escalation of the connection
                 case Some((settings, newReq)) =>
                   for {
                     nextResp <- postProcessResponse(req, resp)
                     _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                     _ <- H2Server.requireConnectionPreface(socket)
-                    out <- H2Server
+                    _ <- H2Server
                       .fromSocket(
                         socket,
                         httpApp,
@@ -481,29 +479,23 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         newReq.some,
                       )
                       .use(_ => Async[F].never[Unit])
-                      .as(None)
-                  } yield out
+                  } yield ()
               }
           }
         case Left(err) =>
           err match {
             case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
                 EmberException.ReadTimeout(_) =>
-              Applicative[F].pure(None)
+              Applicative[F].unit
             case err =>
               errorHandler(err)
                 .handleError(_ => serverFailure.covary[F])
                 .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                .as(None)
           }
       }
     }
 
-    Stream
-      .unfoldEval[F, State, Unit](initialBuffer.toArray -> false) { case (buffer, reuse) =>
-        step(buffer, reuse)
-      }
-      .drain
+    Stream.exec(stepLoop(initialBuffer.toArray, false))
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
