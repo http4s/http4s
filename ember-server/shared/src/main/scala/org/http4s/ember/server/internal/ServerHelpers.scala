@@ -395,8 +395,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
+
+    def isAlive(r: Response[F]): Boolean =
+      r.headers.get[Connection].exists(_.hasKeepAlive)
+
     Stream
-      .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
+      .unfoldEval[F, State, Unit](initialBuffer.toArray -> false) { case (buffer, reuse) =>
         val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
           // next request has already been (partially) received
           buffer.pure[F]
@@ -458,7 +462,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       nextResp <- postProcessResponse(req, resp)
                       _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                       nextBuffer <- drain
-                    } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
+                    } yield nextBuffer match {
+                      case Some(buffer) if isAlive(nextResp) => Some(() -> (buffer, true))
+                      case _ => None
+                    }
                   // h2c escalation of the connection
                   case Some((settings, newReq)) =>
                     for {
@@ -492,7 +499,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             }
         }
       }
-      .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
       .drain
   }
 
