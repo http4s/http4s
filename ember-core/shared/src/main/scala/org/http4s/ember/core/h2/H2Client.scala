@@ -276,7 +276,7 @@ private[ember] class H2Client[F[_]](
       case Some(_) => true
       case None => true
     }
-    val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
+    val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
     for {
       connection <- Resource.eval(
         getOrCreate(key, useTLS, priorKnowledge, enableEndpointValidation)
@@ -335,7 +335,7 @@ private[ember] object H2Client {
       h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
-      val priorKnowledge = req.attributes.lookup(H2Keys.Http2PriorKnowledge).isDefined
+      val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
       val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
         case Some(Http2) => h2.runHttp2Only(req, enableEndpointValidation)
