@@ -77,7 +77,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     * @param mess the [[Message]] to send
     */
   def sendMessageBody(mess: Message[F]): F[Unit] = {
-    val noTrailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F]).isEmpty
+    val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
     val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
     maxFrameSize.flatMap(maxFrameSize =>
       mess.body
