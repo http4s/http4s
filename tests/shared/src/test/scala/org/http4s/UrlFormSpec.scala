@@ -142,6 +142,12 @@ class UrlFormSpec extends Http4sSuite {
       )
     }
 
+    test("UrlForm.single") {
+      assertEquals(UrlForm.single("foo", "bar").get("foo"), Chain.one("bar"))
+      assertEquals(UrlForm.single("foo", "bar").get("baz"), Chain.empty[String])
+      assertEquals(UrlForm.single("", "bar"), UrlForm(Map("" -> Chain("bar"))))
+    }
+
     test("UrlForm should construct consistently from kv-pairs or and Map[String, Chain[String]]") {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
