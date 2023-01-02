@@ -176,7 +176,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
 
     def upgradeSocket(socketInit: Socket[F]): Resource[F, (Socket[F], Option[String])] =
       tlsInfoOpt match {
-        case None => (socketInit, Option.empty[String]).pure[Resource[F, *]]
+        case None => Resource.pure(socketInit, None)
         case Some((context, params)) =>
           val newParams = if (enableHttp2) H2TLS.transform(params) else params
           // TODO for JS perhaps TLSParameters => TLSParameters is a platform specific way
@@ -230,7 +230,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               runConnectionAux(socket, ByteVector.empty)
             case (socket, None) => // Cleartext Protocol
               if (enableHttp2) {
-                // Http2 Prior Knowledge Check, if prelude is first bytes received tread as http2
+                // Http2 Prior Knowledge Check, if prelude is first bytes received treat as http2
                 // Otherwise this is now http1
                 Stream.eval(H2Server.checkConnectionPreface(socket)).flatMap {
                   // Pass read bytes we thought might be the prelude
@@ -244,7 +244,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           }
 
       handler.handleErrorWith { t =>
-        Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+        Stream.exec(logger.error(t)("Request handler failed with exception"))
       }
     }
 
