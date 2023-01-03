@@ -25,6 +25,8 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import org.http4s.util._
 
+import scala.util.hashing.MurmurHash3
+
 /** HTTP's version number consists of two decimal digits separated by
   * a "." (period or decimal point). The first digit ("major version")
   * indicates the messaging syntax, whereas the second digit ("minor
@@ -41,8 +43,10 @@ import org.http4s.util._
   * HTTP Semantics, Protocol Versioning]]
   */
 // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
-final case class HttpVersion private (major: Int, minor: Int)
-    extends Renderable
+final class HttpVersion private (val major: Int, val minor: Int)
+    extends Product
+    with Serializable
+    with Renderable
     with Ordered[HttpVersion] {
   // scalafix:on
 
@@ -64,9 +68,50 @@ final case class HttpVersion private (major: Int, minor: Int)
     */
   override def compare(that: HttpVersion): Int =
     (this.major, this.minor).compare((that.major, that.minor))
+
+  override def equals(o: Any): Boolean =
+    o match {
+      case that: HttpVersion =>
+        this.major == that.major && this.minor == that.minor
+      case _ => false
+    }
+
+  override def hashCode(): Int = {
+    var hash = HttpVersion.hashSeed
+    hash = MurmurHash3.mix(hash, major)
+    hash = MurmurHash3.mix(hash, minor)
+    MurmurHash3.finalizeHash(hash, 2)
+  }
+
+  def productArity: Int = 2
+
+  def productElement(n: Int): Any =
+    n match {
+      case 0 => major
+      case 1 => minor
+      case _ => throw new IndexOutOfBoundsException()
+    }
+
+  def canEqual(that: Any): Boolean =
+    that match {
+      case _: HttpVersion => true
+      case _ => false
+    }
 }
 
 object HttpVersion {
+
+  /** Unsafe constructor for [[HttpVersion]], consider
+    * using its safe version [[HttpVersion.fromVersion]] instead.
+    */
+  def apply(major: Int, minor: Int): HttpVersion = new HttpVersion(major, minor)
+
+  def unapply(httpVersion: HttpVersion): Option[(Int, Int)] =
+    if (httpVersion eq null) None
+    else Some(httpVersion.major -> httpVersion.minor)
+
+  private val hashSeed: Int =
+    MurmurHash3.mix(MurmurHash3.productSeed, "HttpVersion".hashCode)
 
   /** HTTP/0.9 was first formalized in the HTTP/1.0 spec. `HTTP/0.9`
     * does not literally appear in the HTTP/0.9 protocol.
