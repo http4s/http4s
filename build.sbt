@@ -354,6 +354,7 @@ lazy val bench = http4sProject("bench")
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
   .settings(
+    startYear := Some(2022),
     // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
     // By placing the app in Test scope it gets linked as part of that CI step
     Test / scalaJSUseMainModuleInitializer := true,
