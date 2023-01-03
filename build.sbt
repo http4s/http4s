@@ -58,7 +58,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
-  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+  new NodeJSEnv(
+    NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=1024"))
+  )
 }
 
 lazy val modules: List[CompositeProject] = List(
