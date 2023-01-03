@@ -18,6 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.Header
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Renderer
 import org.http4s.util.Writer
@@ -30,11 +31,25 @@ object `User-Agent` {
 
   val name = ci"User-Agent"
 
+  @deprecated("Use parse(Int)(String) instead", "0.22.15")
   def parse(s: String): ParseResult[`User-Agent`] =
-    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
+    parse(Rfc7230.CommentDefaultMaxDepth)(s)
 
+  def parse(maxDepth: Int)(s: String): ParseResult[`User-Agent`] =
+    parsePartiallyApplied(maxDepth)(s)
+
+  private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`User-Agent`] =
+    ParseResult.fromParser(parser(maxDepth), "Invalid User-Agent header")
+
+  @deprecated("Use parser(Int) instead", "0.22.15")
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        `User-Agent`(product, tokens)
+    }
+
+  private[http4s] def parser(maxDepth: Int) =
+    ProductIdOrComment.serverAgentParser(maxDepth).map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         `User-Agent`(product, tokens)
     }
@@ -54,7 +69,7 @@ object `User-Agent` {
           }
 
         },
-      parse,
+      parsePartiallyApplied(100),
     )
 
   implicit def convert(implicit
