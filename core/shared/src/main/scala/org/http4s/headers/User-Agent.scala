@@ -31,7 +31,7 @@ object `User-Agent` {
 
   val name = ci"User-Agent"
 
-  @deprecated("Use parse(Int)(String) instead", "0.22.15")
+  @deprecated("Use parse(Int)(String) instead", "0.23.17")
   def parse(s: String): ParseResult[`User-Agent`] =
     parse(Rfc7230.CommentDefaultMaxDepth)(s)
 
@@ -41,7 +41,7 @@ object `User-Agent` {
   private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`User-Agent`] =
     ParseResult.fromParser(parser(maxDepth), "Invalid User-Agent header")
 
-  @deprecated("Use parser(Int) instead", "0.22.15")
+  @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>

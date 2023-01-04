@@ -89,7 +89,7 @@ private[parsing] trait CommonRules {
 
   final val CommentDefaultMaxDepth = 100
 
-  @deprecated("Use comment(Int) instead", "0.22.15")
+  @deprecated("Use comment(Int) instead", "0.23.17")
   private[http4s] val comment: Parser[String] =
     comment(CommentDefaultMaxDepth)
 

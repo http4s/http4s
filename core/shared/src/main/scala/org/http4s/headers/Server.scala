@@ -33,7 +33,7 @@ object Server extends HeaderCompanion[Server]("Server") {
     apply(id, tail.toList)
 
   @nowarn("cat=deprecation")
-  @deprecated("Use parse(Int) instead", "0.22.15")
+  @deprecated("Use parse(Int) instead", "0.23.17")
   override def parse(s: String): ParseResult[`Server`] =
     parse(Rfc7230.CommentDefaultMaxDepth)(s)
 
@@ -43,7 +43,7 @@ object Server extends HeaderCompanion[Server]("Server") {
   private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`Server`] =
     ParseResult.fromParser(parser(maxDepth), "Invalid Server header")
 
-  @deprecated("Use parser(Int) instead", "0.22.15")
+  @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser: Parser[Server] =
     parser(Rfc7230.CommentDefaultMaxDepth)
 
