@@ -4,6 +4,18 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.21.34 (2023-01-04)
+
+## What's changed
+
+### http4s-core
+* Fixes [CVE-2023-22465](https://github.com/http4s/http4s/security/advisories/GHSA-54w6-vxfh-fw7f)
+
+## Behind the scenes
+* Don't publish website from 0.21 by @armanbilge in https://github.com/http4s/http4s/pull/6151
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.33...v0.21.34
+
 # v0.22.14 (2022-06-21)
 
 This release is binary compatible with 0.22.x series.  Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.  All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
