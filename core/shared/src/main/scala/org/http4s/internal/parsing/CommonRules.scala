@@ -76,9 +76,22 @@ private[parsing] trait CommonRules {
       .orElse(obsText)
 
   /* "(" *( ctext / quoted-pair / comment ) ")" */
-  val comment: Parser[String] = Parser.recursive[String] { (comment: Parser[String]) =>
-    between(char('('), cText.orElse(quotedPair).orElse(comment).rep0.string, char(')'))
+  def comment(maxDepth: Int): Parser[String] = {
+    def go(n: Int): Parser[String] =
+      between(
+        char('('),
+        if (n <= 0) Parser.failWith("exceeded maximum comment depth")
+        else cText.orElse(quotedPair).orElse(go(n - 1)).rep0.string,
+        char(')'),
+      )
+    go(maxDepth)
   }
+
+  final val CommentDefaultMaxDepth = 100
+
+  @deprecated("Use comment(Int) instead", "0.22.15")
+  private[http4s] val comment: Parser[String] =
+    comment(CommentDefaultMaxDepth)
 
   def headerRep[A](element: Parser[A]): Parser0[List[A]] =
     headerRep1(element).?.map(_.fold(List.empty[A])(_.toList))
