@@ -47,8 +47,19 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
   @nowarn("cat=deprecation")
   def Token: Rule1[String] = rule(capture(oneOrMore(!CTL ~ !Separator ~ ANY)))
 
-  // TODO What's the replacement for DROP?
-  def Comment: Rule0 = rule("(" ~ zeroOrMore(CText | QuotedPair ~> DROP | Comment) ~ ")")
+  def Comment(maxDepth: Int): Rule0 = {
+    def go(n: Int): Rule0 =
+      if (n < 0) rule(fail("max comment depth exceeded"))
+      else
+        rule {
+          "(" ~ zeroOrMore(CText | QuotedPair ~> DROP | go(n - 1)) ~ ")"
+        }
+    go(maxDepth)
+  }
+
+  @deprecated("Use Comment(Int) instead", "0.21.34")
+  def Comment: Rule0 =
+    Comment(Rfc2616BasicRules.CommentDefaultMaxDepth)
 
   def DROP: Any => Unit = { _ =>
     ()
@@ -89,4 +100,6 @@ private[http4s] object Rfc2616BasicRules {
       .leftMap(e => ParseFailure("Invalid token", e.format(in)))
 
   def isToken(in: ParserInput) = token(in).isRight
+
+  val CommentDefaultMaxDepth: Int = 100
 }

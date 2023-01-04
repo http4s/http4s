@@ -198,11 +198,15 @@ private[parser] trait SimpleHeaders {
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
     TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
+  @deprecated("Use USER_AGENT(Int) instead", "0.21.34")
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
+    USER_AGENT(Rfc2616BasicRules.CommentDefaultMaxDepth)(value)
+
+  def USER_AGENT(maxDepth: Int)(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {
       def entry =
         rule {
-          product ~ zeroOrMore(RWS ~ (product | comment)) ~> {
+          product ~ zeroOrMore(RWS ~ (product | comment(maxDepth))) ~ EOL ~> {
             (product: AgentProduct, tokens: collection.Seq[AgentToken]) =>
               (`User-Agent`(product, tokens.toList))
           }
@@ -213,9 +217,9 @@ private[parser] trait SimpleHeaders {
           Token ~ optional("/" ~ Token) ~> (AgentProduct(_, _))
         }
 
-      def comment: Rule1[AgentComment] =
+      def comment(maxDepth: Int): Rule1[AgentComment] =
         rule {
-          capture(Comment) ~> { (s: String) =>
+          capture(Comment(maxDepth)) ~> { (s: String) =>
             AgentComment(s.substring(1, s.length - 1))
           }
         }
