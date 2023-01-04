@@ -22,6 +22,7 @@ import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
+
 import scala.annotation.nowarn
 
 object Server extends HeaderCompanion[Server]("Server") {

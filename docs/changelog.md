@@ -3,6 +3,29 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.22.15 (2023-01-04)
+
+## What's Changed
+### http4s-core
+* Fixes [CVE-2023-22465](https://github.com/http4s/http4s/security/advisories/GHSA-54w6-vxfh-fw7f)
+
+### Behind the scenes
+* Set LoggingHandler in NettyTestServer to the default DEBUG level by @RafalSumislawski in https://github.com/http4s/http4s/pull/6497
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.22.14...v0.22.15
+
+# v0.21.34 (2023-01-04)
+
+## What's changed
+
+### http4s-core
+* Fixes [CVE-2023-22465](https://github.com/http4s/http4s/security/advisories/GHSA-54w6-vxfh-fw7f)
+
+## Behind the scenes
+* Don't publish website from 0.21 by @armanbilge in https://github.com/http4s/http4s/pull/6151
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.21.33...v0.21.34
+
 # v0.23.16 (2022-09-15)
 
 This release is binary compatible with the 0.23.x series. This is the first release that supports the [Scala Native](https://scala-native.org/) platform. All modules were cross-built, including:
