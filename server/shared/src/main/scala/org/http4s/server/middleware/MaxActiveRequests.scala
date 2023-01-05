@@ -115,8 +115,8 @@ object MaxActiveRequests {
       .map(middleware =>
         httpRoutes =>
           middleware(Kleisli {
-            case ContextRequest(concurrent, _) if concurrent > maxActive =>
-              defaultResp.pure[OptionT[F, *]]
+            case ContextRequest(concurrent, req) if concurrent > maxActive =>
+              OptionT.liftF(req.as[Unit].as(defaultResp))
             case ContextRequest(_, req) =>
               httpRoutes(req)
           })
