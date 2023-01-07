@@ -52,12 +52,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Cache sbt
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.sbt
@@ -81,7 +81,7 @@ jobs:
         run: 'nix develop .#${{ matrix.java }} -c sbt githubWorkflowCheck'
 
       - name: Check headers and formatting
-        if: matrix.java == 'temurin@8'
+        if: matrix.java == 'temurin@8' && matrix.os == 'ubuntu-latest'
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' headerCheckAll scalafmtCheckAll ''project /'' scalafmtSbtCheck'
 
       - name: scalaJSLink
@@ -96,11 +96,11 @@ jobs:
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' test'
 
       - name: Check binary compatibility
-        if: matrix.java == 'temurin@8'
+        if: matrix.java == 'temurin@8' && matrix.os == 'ubuntu-latest'
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' mimaReportBinaryIssues'
 
       - name: Generate API documentation
-        if: matrix.java == 'temurin@8'
+        if: matrix.java == 'temurin@8' && matrix.os == 'ubuntu-latest'
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' doc'
 
       - name: Check scalafix lints
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.23')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}-${{ matrix.project }}
           path: targets.tar
@@ -138,12 +138,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Cache sbt
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.sbt
@@ -164,7 +164,7 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Download target directories (3.2.1, rootJS)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootJS
 
@@ -174,7 +174,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.2.1, rootJVM)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootJVM
 
@@ -184,7 +184,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.2.1, rootNative)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-3.2.1-rootNative
 
@@ -194,7 +194,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.12.17, rootJS)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.17-rootJS
 
@@ -204,7 +204,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.12.17, rootJVM)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.17-rootJVM
 
@@ -214,7 +214,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.12.17, rootNative)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.17-rootNative
 
@@ -224,7 +224,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.13.10, rootJS)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.10-rootJS
 
@@ -234,7 +234,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.13.10, rootJVM)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.10-rootJVM
 
@@ -244,7 +244,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.13.10, rootNative)
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.10-rootNative
 
@@ -277,12 +277,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Cache sbt
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.sbt
@@ -317,12 +317,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Cache sbt
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.sbt
@@ -347,7 +347,7 @@ jobs:
 
       - name: Publish site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/series/0.23'
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v3.9.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site/target/docs/site
