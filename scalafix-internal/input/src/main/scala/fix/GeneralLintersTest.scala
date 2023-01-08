@@ -12,7 +12,3 @@ class Dog extends Animal// assert: Http4sGeneralLinters.leakingSealedHierarchy
 
 sealed abstract class Plant
 trait Tree extends Plant// assert: Http4sGeneralLinters.leakingSealedHierarchy
-
-package pkg {
-  final case class Foo private[pkg](v: String)// assert: Http4sGeneralLinters.nonValidatingCopyConstructor
-}

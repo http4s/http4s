@@ -40,11 +40,9 @@ import org.http4s.util._
   * [[https://httpwg.org/http-core/draft-ietf-httpbis-semantics-latest.html#protocol.version
   * HTTP Semantics, Protocol Versioning]]
   */
-// scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
 final case class HttpVersion private (major: Int, minor: Int)
     extends Renderable
     with Ordered[HttpVersion] {
-  // scalafix:on
 
   /** Renders as an HTTP/1.1 string
     *
