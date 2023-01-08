@@ -609,7 +609,7 @@ object Uri extends UriPlatform {
     *
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
-  final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+  final case class UserInfo private (
       username: String,
       password: Option[String],
   ) extends Ordered[UserInfo] {
