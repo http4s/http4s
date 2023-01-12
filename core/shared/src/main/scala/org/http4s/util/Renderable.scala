@@ -16,6 +16,7 @@
 
 package org.http4s.util
 
+import cats.ContravariantMonoidal
 import cats.data.NonEmptyList
 import org.http4s.Header
 import org.http4s.internal.CharPredicate
@@ -113,6 +114,47 @@ object Renderer {
   implicit def headerSelectRenderer[A](implicit select: Header.Select[A]): Renderer[A] =
     new Renderer[A] {
       override def render(writer: Writer, t: A): writer.type = writer << select.toRaw1(t)
+    }
+
+  val charRenderer: Renderer[Char] =
+    new Renderer[Char] {
+      override def render(writer: Writer, c: Char): writer.type =
+        writer << c
+    }
+
+  def stringLiteralRenderer(s: String): Renderer[Unit] =
+    new Renderer[Unit] {
+      override def render(writer: Writer, u: Unit): writer.type =
+        writer << s
+    }
+
+  def charLiteralRenderer(c: Char): Renderer[Unit] =
+    new Renderer[Unit] {
+      override def render(writer: Writer, u: Unit): writer.type =
+        writer << c
+    }
+
+  implicit val catsContravariantMonoidalForHttp4sUtilRenderable: ContravariantMonoidal[Renderer] =
+    new ContravariantMonoidal[Renderer] {
+      def contramap[A, B](fa: Renderer[A])(f: B => A): Renderer[B] =
+        new Renderer[B] {
+          def render(writer: Writer, b: B): writer.type =
+            fa.render(writer, f(b))
+        }
+
+      val unit: Renderer[Unit] =
+        new Renderer[Unit] {
+          def render(writer: Writer, unit: Unit): writer.type =
+            writer
+        }
+
+      def product[A, B](fa: Renderer[A], fb: Renderer[B]): Renderer[(A, B)] =
+        new Renderer[(A, B)] {
+          def render(writer: Writer, ab: (A, B)): writer.type = {
+            fa.render(writer, ab._1)
+            fb.render(writer, ab._2)
+          }
+        }
     }
 }
 
