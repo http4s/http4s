@@ -24,6 +24,8 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
 
+import scala.annotation.nowarn
+
 object Server extends HeaderCompanion[Server]("Server") {
 
   override val name: CIString = super.name
@@ -31,6 +33,7 @@ object Server extends HeaderCompanion[Server]("Server") {
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 
+  @nowarn("cat=deprecation")
   @deprecated("Use parse(Int) instead", "0.23.17")
   override def parse(s: String): ParseResult[`Server`] =
     parse(CommonRules.CommentDefaultMaxDepth)(s)
