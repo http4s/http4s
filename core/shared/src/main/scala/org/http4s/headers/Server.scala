@@ -18,12 +18,11 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
-
-import scala.annotation.nowarn
 
 object Server extends HeaderCompanion[Server]("Server") {
 
@@ -32,10 +31,9 @@ object Server extends HeaderCompanion[Server]("Server") {
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 
-  @nowarn("cat=deprecation")
   @deprecated("Use parse(Int) instead", "0.23.17")
   override def parse(s: String): ParseResult[`Server`] =
-    parse(Rfc7230.CommentDefaultMaxDepth)(s)
+    parse(CommonRules.CommentDefaultMaxDepth)(s)
 
   def parse(maxDepth: Int)(s: String): ParseResult[`Server`] =
     parsePartiallyApplied(maxDepth)(s)
@@ -67,7 +65,7 @@ object Server extends HeaderCompanion[Server]("Server") {
             writer
           }
         },
-      parsePartiallyApplied(100),
+      parsePartiallyApplied(CommonRules.CommentDefaultMaxDepth),
     )
 }
 
