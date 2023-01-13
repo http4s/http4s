@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets
 /** [[Writer]] that will result in a `Chunk`
   */
 private[http4s] class ChunkWriter(
-   charset: Charset = StandardCharsets.UTF_8
+    charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
   private[this] val builder = Chunk.newBuilder[Byte]
 

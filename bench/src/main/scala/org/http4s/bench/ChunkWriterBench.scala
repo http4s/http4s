@@ -19,9 +19,8 @@ class ChunkWriterBench {
   private val alphaNum = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toVector
 
   @Setup(Level.Trial)
-  def setup(): Unit = {
+  def setup(): Unit =
     singleString = Vector.fill(size)(alphaNum(Random.nextInt(alphaNum.length))).mkString
-  }
 
   @Benchmark
   def appendSingleString: Chunk[Byte] = {
