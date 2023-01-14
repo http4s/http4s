@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.Header
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Renderer
 import org.http4s.util.Writer
@@ -33,7 +33,7 @@ object `User-Agent` {
 
   @deprecated("Use parse(Int)(String) instead", "0.23.17")
   def parse(s: String): ParseResult[`User-Agent`] =
-    parse(Rfc7230.CommentDefaultMaxDepth)(s)
+    parse(CommonRules.CommentDefaultMaxDepth)(s)
 
   def parse(maxDepth: Int)(s: String): ParseResult[`User-Agent`] =
     parsePartiallyApplied(maxDepth)(s)
@@ -69,7 +69,7 @@ object `User-Agent` {
           }
 
         },
-      parsePartiallyApplied(100),
+      parsePartiallyApplied(CommonRules.CommentDefaultMaxDepth),
     )
 
   implicit def convert(implicit
