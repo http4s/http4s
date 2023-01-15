@@ -44,11 +44,6 @@ class H2StreamSuite extends Http4sSuite {
       trailers <- Deferred[IO, Either[Throwable, Headers]]
       readBuffer <- Queue.unbounded[IO, Either[Throwable, ByteVector]]
 
-      _ <- writeBlock.complete(Either.unit)
-      _ <- req.complete(Left(new Exception()))
-      _ <- resp.complete(Left(new Exception()))
-      _ <- trailers.complete(Right(Headers.empty))
-
       state <- Ref[IO].of(
         H2Stream.State[IO](
           state = H2Stream.StreamState.Open,
