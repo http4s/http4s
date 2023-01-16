@@ -31,7 +31,7 @@ object `Accept-Language` {
   private[http4s] val parser: Parser[`Accept-Language`] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-    import org.http4s.internal.parsing.Rfc7230.headerRep1
+    import org.http4s.internal.parsing.CommonRules.headerRep1
 
     val languageTag =
       ((alpha.rep | charIn('*')).string ~ (ch(

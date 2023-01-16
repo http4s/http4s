@@ -58,7 +58,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
-  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+  new NodeJSEnv(
+    NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
+  )
 }
 
 lazy val modules: List[CompositeProject] = List(
@@ -458,6 +460,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsCore.value,
       log4catsTesting.value % Test,
+      log4catsNoop.value % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -501,6 +504,16 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleTemplateDefProblem](
         "org.http4s.ember.core.h2.HpackPlatform"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Frame#*.type"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.H2Frame$*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Frame#Ping.empty"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Frame#Ping.emptyBV"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -518,6 +531,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.Hpack$"),
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
             "org.http4s.ember.core.h2.HpackPlatform"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Frame#*.toRaw"
           ),
         )
       else Seq.empty
@@ -685,6 +701,7 @@ lazy val bench = http4sProject("bench")
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
   .settings(
+    startYear := Some(2022),
     // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
     // By placing the app in Test scope it gets linked as part of that CI step
     Test / scalaJSUseMainModuleInitializer := true,

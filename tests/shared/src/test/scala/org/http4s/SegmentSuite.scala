@@ -17,9 +17,15 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.OrderTests
+import munit.Compare
 import org.http4s.Uri.Path.Segment
 import org.http4s.laws.discipline.arbitrary._
 
 class SegmentSuite extends Http4sSuite {
   checkAll("Order[Segment]", OrderTests[Segment].order)
+
+  test("equals does not throw") {
+    implicit val comp: Compare[Segment, String] = Compare.defaultCompare
+    assertNotEquals(Uri.Path.Segment.apply("123"), "123")
+  }
 }

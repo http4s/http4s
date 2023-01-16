@@ -21,7 +21,7 @@ import cats.implicits._
 import cats.kernel.Semigroup
 import cats.parse._
 import org.http4s.Header
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -91,7 +91,7 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       case _: NumberFormatException => None
     }
   private val parser: Parser[`Keep-Alive`] = {
-    import Rfc7230.{headerRep1, quotedString, token}
+    import CommonRules.{headerRep1, quotedString, token}
     import Numbers.digits
 
     // "timeout" "=" delta-seconds
