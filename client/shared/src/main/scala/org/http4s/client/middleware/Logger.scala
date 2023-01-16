@@ -40,17 +40,31 @@ object Logger {
       )
     )
 
+  def logWithBody[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Entity[F] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
+      logAction: Option[String => F[Unit]] = None,
+  )(client: Client[F]): Client[F] =
+    ResponseLogger.logWithBody(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger.logWithBody(logHeaders, logBody, redactHeadersWhen, logAction)(
+        client
+      )
+    )
+
+  @deprecated("Use Logger.logWithBody that utilizes Entity model for a Message body", "1.0.0-M39")
   def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
-    ResponseLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
-      RequestLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
-        client
-      )
-    )
+    logWithBody(
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
+      redactHeadersWhen,
+      logAction,
+    )(client)
 
   def logMessage[F[_]](message: Message[F])(
       logHeaders: Boolean,
