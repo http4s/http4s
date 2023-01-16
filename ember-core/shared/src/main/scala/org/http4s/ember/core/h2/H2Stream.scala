@@ -71,20 +71,28 @@ private[h2] class H2Stream[F[_]: Concurrent](
         new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
     }
 
+  /** Send [[Message]] in chunks according to remote receiver's max frame size.
+    * On empty [[Message]], send an empty DATA frame if there are no trailer headers.
+    *
+    * @param mess the [[Message]] to send
+    */
   def sendMessageBody(mess: Message[F]): F[Unit] = {
-    val trailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F])
-    mess.body.chunks.noneTerminate.zipWithNext
-      .foreach {
-        case (Some(c), Some(Some(_))) =>
-          sendData(c.toByteVector, false)
-        case (Some(c), Some(None) | None) =>
-          sendData(c.toByteVector, trailers.isEmpty)
-        case (None, _) =>
-          if (trailers.isDefined) Applicative[F].unit
-          else sendData(ByteVector.empty, true)
-      }
-      .compile
-      .drain
+    val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
+    val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
+    maxFrameSize.flatMap(maxFrameSize =>
+      mess.body
+        .ifEmpty[F, Byte](
+          Stream.exec(sendData(ByteVector.empty, true).whenA(noTrailers))
+        )
+        .chunkLimit(maxFrameSize)
+        .zipWithNext
+        .foreach { case (c, nextChunk) =>
+          val isEndStream = nextChunk.isEmpty && noTrailers
+          sendData(c.toByteVector, isEndStream)
+        }
+        .compile
+        .drain
+    )
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
