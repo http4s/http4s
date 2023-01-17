@@ -5,7 +5,7 @@ ordered chronologically, so each release contains all changes described below it
 
 # v0.23.18 (2023-01-17)
 
-This is is a bugfix that addresses a fatal error that affects a small
+This is a bugfix that addresses a fatal error that affects a small
 number of people.  It also contains some optimizations and important
 dependency upgrades, including a memory leak in Cats Effect.
 
