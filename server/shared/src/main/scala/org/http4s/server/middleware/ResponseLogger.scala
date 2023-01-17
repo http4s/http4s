@@ -50,7 +50,7 @@ object ResponseLogger {
 
   private[server] def impl[G[_], F[_], A](
       logHeaders: Boolean,
-      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      logBodyText: Either[Boolean, Entity[F] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]],
@@ -66,7 +66,7 @@ object ResponseLogger {
           Logger.logMessage[F, Response[F]](resp)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText(resp)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBody(resp)(logHeaders, f, log(_), redactHeadersWhen)
       }
 
     val logBody: Boolean = logBodyText match {
@@ -115,13 +115,32 @@ object ResponseLogger {
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  def httpAppLogBody[F[_]: Async, A](
+      logHeaders: Boolean,
+      logBody: Entity[F] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
+    impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
+      httpApp
+    )
+
+  @deprecated(
+    "Use ResponseLogger.httpAppLogBody that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
   def httpAppLogBodyText[F[_]: Async, A](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: Kleisli[F, A, Response[F]]): Kleisli[F, A, Response[F]] =
-    impl[F, F, A](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(
+    httpAppLogBody[F, A](
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
+      redactHeadersWhen,
+      logAction,
+    )(
       httpApp
     )
 
@@ -133,9 +152,9 @@ object ResponseLogger {
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpRoutesLogBodyText[F[_]: Async, A](
+  def httpRoutesLogBody[F[_]: Async, A](
       logHeaders: Boolean,
-      logBody: Stream[F, Byte] => Option[F[String]],
+      logBody: Entity[F] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
@@ -143,6 +162,23 @@ object ResponseLogger {
       logHeaders,
       Right(logBody),
       OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction,
+    )(httpRoutes)
+
+  @deprecated(
+    "Use ResponseLogger.httpRoutesLogBody that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
+  def httpRoutesLogBodyText[F[_]: Async, A](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(httpRoutes: Kleisli[OptionT[F, *], A, Response[F]]): Kleisli[OptionT[F, *], A, Response[F]] =
+    httpRoutesLogBody[F, A](
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
       redactHeadersWhen,
       logAction,
     )(httpRoutes)

@@ -51,7 +51,7 @@ object RequestLogger {
 
   private[server] def impl[G[_], F[_]](
       logHeaders: Boolean,
-      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      logBodyText: Either[Boolean, Entity[F] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]],
@@ -69,7 +69,7 @@ object RequestLogger {
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
         case Right(f) =>
           org.http4s.internal.Logger
-            .logMessageWithBodyText(r)(logHeaders, f, redactHeadersWhen)(log(_))
+            .logMessageWithBody(r)(logHeaders, f, log(_), redactHeadersWhen)
       }
 
     val logBody: Boolean = logBodyText match {
@@ -135,17 +135,34 @@ object RequestLogger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
+  def httpAppLogBody[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Entity[F] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+
+  @deprecated(
+    "Use RequestLogger.httpAppLogBody that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
-    impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+    httpAppLogBody[F](
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
+      redactHeadersWhen,
+      logAction,
+    )(httpApp)
 
-  def httpRoutesLogBodyText[F[_]: Async](
+  def httpRoutesLogBody[F[_]: Async](
       logHeaders: Boolean,
-      logBody: Stream[F, Byte] => Option[F[String]],
+      logBody: Entity[F] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
@@ -153,6 +170,23 @@ object RequestLogger {
       logHeaders,
       Right(logBody),
       OptionT.liftK[F],
+      redactHeadersWhen,
+      logAction,
+    )(httpRoutes)
+
+  @deprecated(
+    "Use RequestLogger.httpRoutesLogBody that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
+  def httpRoutesLogBodyText[F[_]: Async](
+      logHeaders: Boolean,
+      logBody: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    httpRoutesLogBody[F](
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
       redactHeadersWhen,
       logAction,
     )(httpRoutes)
