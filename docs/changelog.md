@@ -17,7 +17,7 @@ dependency upgrades, including a memory leak in Cats Effect.
 * Update fs2-core, fs2-io to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6925
 
 ### http4s-ember-core
-* Fix Ember H2 end of stream handling by @valencik in https://github.com/http4s/http4s/pull/6882
+* Fix Ember H2 end of stream handling by @valencik, @janilcgarcia in https://github.com/http4s/http4s/pull/6882
 ### http4s-circe
 * Use `Chunk` builder in `CirceInstances#streamedJsonArray` by @danicheg in https://github.com/http4s/http4s/pull/6922
 ### Behind the scenes
