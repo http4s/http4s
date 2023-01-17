@@ -3,6 +3,40 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.18 (2023-01-17)
+
+This is is a bugfix that addresses a fatal error that affects a small
+number of people.  It also contains some optimizations and important
+dependency upgrades, including a memory leak in Cats Effect.
+
+## What's Changed
+### http4s-core
+* Use `Chunk` builder instead of `Buffer` in `ChunkWriter` by @danicheg in https://github.com/http4s/http4s/pull/6919
+* Fix StackOverflowError initializing CommonRules by @rossabaker in https://github.com/http4s/http4s/pull/6920
+* Update cats-effect, cats-effect-std, ... to 3.4.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6924
+* Update fs2-core, fs2-io to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6925
+
+### http4s-ember-core
+* Fix Ember H2 end of stream handling by @valencik in https://github.com/http4s/http4s/pull/6882
+### http4s-circe
+* Use `Chunk` builder in `CirceInstances#streamedJsonArray` by @danicheg in https://github.com/http4s/http4s/pull/6922
+### Behind the scenes
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6898
+* Try limiting Node.js heap size to 1GB by @armanbilge in https://github.com/http4s/http4s/pull/6894
+* Update sbt to 1.8.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6900
+* Update cats-parse to 0.3.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6902
+* Post v0.21.34 cleanup by @rossabaker in https://github.com/http4s/http4s/pull/6904
+* Update http4s-circe, http4s-ember-client, ... to 0.23.17 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6907
+* Post-0.23.17 cleanup by @rossabaker in https://github.com/http4s/http4s/pull/6906
+* Update sbt to 1.8.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6909
+* Update sbt-http4s-org to 0.14.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6912
+* Update netty-buffer, netty-codec-http to 4.1.87.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6918
+* Low-hanging Ember optimizations by @armanbilge in https://github.com/http4s/http4s/pull/6753
+* Even less memory for Node.js by @armanbilge in https://github.com/http4s/http4s/pull/6921
+* Update sbt-native-packager to 1.9.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6923
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.17...v0.23.18
+
 # v0.23.17 (2023-01-04)
 ## What's Changed
 ### http4s-core
