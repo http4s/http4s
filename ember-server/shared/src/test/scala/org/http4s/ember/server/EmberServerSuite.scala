@@ -92,7 +92,11 @@ class EmberServerSuite extends Http4sSuite {
       .compile
       .drain
       .timeout(1.second)
-      .intercept[EmberException.ReachedEndOfStream]
+      .intercept[EmberException.ReachedEndOfStream] >>
+      // server should still be alive
+      client
+        .get(url(server.addressIp4s))(_.status.pure[IO])
+        .assertEquals(Status.Ok)
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
