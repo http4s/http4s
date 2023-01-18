@@ -25,6 +25,7 @@ import fs2.io.net.ConnectException
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.core.EmberException
 import org.http4s.implicits._
 import org.http4s.server.Server
 
@@ -42,6 +43,8 @@ class EmberServerSuite extends Http4sSuite {
           Ok("Hello!")
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
+        case GET -> Root / "failed-stream" =>
+          Ok(Stream.raiseError[F](new RuntimeException("BOOM")).covaryOutput[String])
       }
       .orNotFound
   }
@@ -77,6 +80,18 @@ class EmberServerSuite extends Http4sSuite {
     client
       .get(url(server.addressIp4s))(_.status.pure[IO])
       .assertEquals(Status.Ok)
+  }
+
+  fixture().test("connection closed when response body stream fails") { case (server, client) =>
+    import org.http4s.dsl.io._
+    import org.http4s.client.dsl.io._
+    val req = GET(Uri.unsafeFromString(url(server.addressIp4s, "/failed-stream")))
+    client
+      .stream(req)
+      .flatMap(_.body)
+      .compile
+      .drain
+      .intercept[EmberException.ReachedEndOfStream]
   }
 
   client.test("server shuts down after exiting resource scope") { client =>
