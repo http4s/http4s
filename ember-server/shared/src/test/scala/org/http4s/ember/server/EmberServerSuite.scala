@@ -91,6 +91,7 @@ class EmberServerSuite extends Http4sSuite {
       .flatMap(_.body)
       .compile
       .drain
+      .timeout(1.second)
       .intercept[EmberException.ReachedEndOfStream]
   }
 
