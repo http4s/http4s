@@ -122,15 +122,27 @@ object Renderer {
         writer << c
     }
 
-  def stringLiteralRenderer(s: String): Renderer[Unit] =
-    new Renderer[Unit] {
-      override def render(writer: Writer, u: Unit): writer.type =
+  trait ConstRenderer[A] extends Renderer[A] {
+    def renderConst(writer: Writer): writer.type
+
+    override final def render(writer: Writer, a: A): writer.type =
+      renderConst(writer)
+  }
+
+  object UnitRenderer extends ConstRenderer[Unit] {
+    def renderConst(writer: Writer): writer.type =
+      writer
+  }
+
+  def stringLiteralRenderer[A](s: String): Renderer[A] =
+    new ConstRenderer[A] {
+      override def renderConst(writer: Writer): writer.type =
         writer << s
     }
 
-  def charLiteralRenderer(c: Char): Renderer[Unit] =
-    new Renderer[Unit] {
-      override def render(writer: Writer, u: Unit): writer.type =
+  def charLiteralRenderer[A](c: Char): Renderer[A] =
+    new ConstRenderer[A] {
+      override def renderConst(writer: Writer): writer.type =
         writer << c
     }
 
@@ -143,17 +155,36 @@ object Renderer {
         }
 
       val unit: Renderer[Unit] =
-        new Renderer[Unit] {
-          def render(writer: Writer, unit: Unit): writer.type =
-            writer
-        }
+        UnitRenderer
 
       def product[A, B](fa: Renderer[A], fb: Renderer[B]): Renderer[(A, B)] =
-        new Renderer[(A, B)] {
-          def render(writer: Writer, ab: (A, B)): writer.type = {
-            fa.render(writer, ab._1)
-            fb.render(writer, ab._2)
-          }
+        (fa, fb) match {
+          case (UnitRenderer, UnitRenderer) =>
+            UnitRenderer.asInstanceOf[ConstRenderer[(A, B)]]
+          case (UnitRenderer, fb: Renderer[B]) =>
+            fb.asInstanceOf[Renderer[(Unit, B)]]
+          case (fa: Renderer[A], UnitRenderer) =>
+            fa.asInstanceOf[Renderer[(A, Unit)]]
+          case (fa: ConstRenderer[A], fb: ConstRenderer[B]) =>
+            new ConstRenderer[(A, B)] {
+              def renderConst(writer: Writer): writer.type =
+                fb.renderConst(fa.renderConst(writer))
+            }
+          case (fa: ConstRenderer[A], fb: Renderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.render(fa.renderConst(writer), ab._2)
+            }
+          case (fa: Renderer[A], fb: ConstRenderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.renderConst(fa.render(writer, ab._1))
+            }
+          case (fa: Renderer[A], fb: Renderer[B]) =>
+            new Renderer[(A, B)] {
+              def render(writer: Writer, ab: (A, B)): writer.type =
+                fb.render(fa.render(writer, ab._1), ab._2)
+            }
         }
     }
 }

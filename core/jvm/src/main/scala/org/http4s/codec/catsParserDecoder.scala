@@ -11,5 +11,7 @@ object catsParserDecoder extends (Http1Codec.Op ~> Parser0) {
       case Http1Codec.StringLiteral(s) => Parser.string(s)
       case Http1Codec.CharLiteral(c) => Parser.char(c)
       case Http1Codec.Digit => Rfc5234.digit
+      case Http1Codec.ListOf(codec) =>
+        codec.foldMap(this).asInstanceOf[Parser[A]].rep0
     }
 }

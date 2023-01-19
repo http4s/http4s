@@ -7,6 +7,7 @@ object Http1Codec {
   final case class StringLiteral(s: String) extends Op[Unit]
   final case class CharLiteral(c: Char) extends Op[Unit]
   case object Digit extends Op[Char]
+  final case class ListOf[A](codec: Http1Codec[A]) extends Op[List[A]]
 
   def stringLiteral(s: String): Http1Codec[Unit] =
     lift(StringLiteral(s))
@@ -14,6 +15,8 @@ object Http1Codec {
     lift(CharLiteral(c))
   def digit: Http1Codec[Char] =
     lift(Digit)
+  def listOf[A](codec: Http1Codec[A]): Http1Codec[List[A]] =
+    lift(ListOf(codec))
 
   def lift[A](op: Op[A]): Http1Codec[A] =
     FreeInvariantMonoidal.lift(op)
