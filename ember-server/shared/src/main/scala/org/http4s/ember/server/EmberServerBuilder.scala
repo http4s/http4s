@@ -180,8 +180,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(additionalSocketOptions = additionalSocketOptions)
 
   /** An error handler which will run in cases where the server is unable to
-    * parse the "request-line". This is the first line of the request,
-    * e.g. "GET / HTTP/1.1".
+    * parse the "start-line" (http 2 name) or "request-line" (http 1.1
+    * name). This is the first line of the request, e.g. "GET / HTTP/1.1".
     *
     * In this case, RFC 9112 (HTTP 2) says a 400 should be returned.
     *
