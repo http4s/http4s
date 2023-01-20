@@ -57,8 +57,8 @@ class ConnectionSuite extends Http4sSuite {
       .orNotFound
 
   def emberServerBuilder(
-    idleTimeout: FiniteDuration,
-    headerTimeout: FiniteDuration,
+      idleTimeout: FiniteDuration,
+      headerTimeout: FiniteDuration,
   ): EmberServerBuilder[IO] =
     EmberServerBuilder
       .default[IO]
@@ -179,10 +179,9 @@ class ConnectionSuite extends Http4sSuite {
       } yield assertEquals(chunk, None)
   }
 
-
   fixture().test("#6931 - bad request on request/start-line which can not be parsed") { client =>
     val request = Stream(
-      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n",
+      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n"
     )
 
     for {
@@ -192,14 +191,17 @@ class ConnectionSuite extends Http4sSuite {
   }
 
   ResourceFunFixture(
-    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout).withRequestLineParseErrorHandler{
-      case _ => IO.pure(Response(Status.InternalServerError))
-    }.build.flatMap(server =>
-      clientResource(server.addressIp4s)
-    )
-  ).test("#6931 - respect user configured behavior for request/start-line which can not be parsed") { client =>
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withRequestLineParseErrorHandler { case _ =>
+        IO.pure(Response(Status.InternalServerError))
+      }
+      .build
+      .flatMap(server => clientResource(server.addressIp4s))
+  ).test(
+    "#6931 - respect user configured behavior for request/start-line which can not be parsed"
+  ) { client =>
     val request = Stream(
-      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n",
+      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n"
     )
 
     for {
