@@ -183,11 +183,12 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     * parse the "request-line". This is the first line of the request,
     * e.g. "GET / HTTP/1.1".
     *
-    * In this case, says either a 400 or 301 should be returned.
+    * In this case, RFC 9112 (HTTP 2) says a 400 should be returned.
     *
     * This handler allows for configuring the behavior. The default as of
     * 0.23.19 is to return a 400.
     *
+    * @see [[https://www.rfc-editor.org/rfc/rfc9112#section-2.2-9 RFC 9112]
     * @see [[https://www.rfc-editor.org/rfc/rfc7230 RFC 7230]]
     */
   def withRequestLineParseErrorHandler(
