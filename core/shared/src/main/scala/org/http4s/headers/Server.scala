@@ -18,10 +18,12 @@ package org.http4s
 package headers
 
 import cats.parse.Parser
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
+
 import scala.annotation.nowarn
 
 object Server extends HeaderCompanion[Server]("Server") {
@@ -32,9 +34,9 @@ object Server extends HeaderCompanion[Server]("Server") {
     apply(id, tail.toList)
 
   @nowarn("cat=deprecation")
-  @deprecated("Use parse(Int) instead", "0.22.15")
+  @deprecated("Use parse(Int) instead", "0.23.17")
   override def parse(s: String): ParseResult[`Server`] =
-    parse(Rfc7230.CommentDefaultMaxDepth)(s)
+    parse(CommonRules.CommentDefaultMaxDepth)(s)
 
   def parse(maxDepth: Int)(s: String): ParseResult[`Server`] =
     parsePartiallyApplied(maxDepth)(s)
@@ -42,7 +44,7 @@ object Server extends HeaderCompanion[Server]("Server") {
   private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`Server`] =
     ParseResult.fromParser(parser(maxDepth), "Invalid Server header")
 
-  @deprecated("Use parser(Int) instead", "0.22.15")
+  @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser: Parser[Server] =
     parser(Rfc7230.CommentDefaultMaxDepth)
 
@@ -66,7 +68,7 @@ object Server extends HeaderCompanion[Server]("Server") {
             writer
           }
         },
-      parsePartiallyApplied(100),
+      parsePartiallyApplied(CommonRules.CommentDefaultMaxDepth),
     )
 }
 

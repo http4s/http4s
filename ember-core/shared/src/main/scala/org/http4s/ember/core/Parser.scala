@@ -25,7 +25,9 @@ import org.http4s._
 import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
+import java.util.Arrays
 import scala.annotation.switch
+import scala.util.control.NonFatal
 
 private[ember] object Parser {
 
@@ -46,7 +48,7 @@ private[ember] object Parser {
           else {
             read.flatMap {
               case Some(chunk) =>
-                val nextBuffer = appendByteArrays(currentBuffer, chunk)
+                val nextBuffer = concatBytes(currentBuffer, chunk)
                 recurseFind(nextBuffer, read, maxHeaderSize, s)(f)(idx)
               case None if currentBuffer.length > 0 =>
                 F.raiseError(EmberException.ReachedEndOfStream())
@@ -67,10 +69,10 @@ private[ember] object Parser {
   )
 
   object HeaderP {
-    private[this] val colon: Byte = ':'.toByte
-    private[this] val contentLengthS = "Content-Length"
-    private[this] val transferEncodingS = "Transfer-Encoding"
-    private[this] val chunkedS = "chunked"
+    private[this] final val colon = 58 // ':'
+    private[this] final val contentLengthS = "Content-Length"
+    private[this] final val transferEncodingS = "Transfer-Encoding"
+    private[this] final val chunkedS = "chunked"
 
     final case class ParserState(
         idx: Int,
@@ -499,18 +501,16 @@ private[ember] object Parser {
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                try {
-                  val codeInt = codeS.toInt
-                  Status.fromInt(codeInt) match {
-                    case Left(e) =>
-                      throw e
-                    case Right(s) =>
-                      status = s
+                val codeInt = codeS.toInt
+                Status.fromInt(codeInt) match {
+                  case Left(e) =>
+                    if (NonFatal(e)) {
+                      throwable = e
                       complete = true
-                  }
-                } catch {
-                  case scala.util.control.NonFatal(e) =>
-                    throwable = e
+                    } else
+                      throw e
+                  case Right(s) =>
+                    status = s
                     complete = true
                 }
               }
@@ -631,14 +631,23 @@ private[ember] object Parser {
     }
   }
 
-  private[this] def appendByteArrays(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] = {
-    val res = new Array[Byte](a1.length + a2.size)
-    System.arraycopy(a1, 0, res, 0, a1.length)
-    a2.copyToArray(res, a1.length)
-    res
-  }
+  private[this] def concatBytes(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] =
+    if (a1.length == 0) {
+      a2 match {
+        case slice: Chunk.ArraySlice[Byte]
+            if slice.values.isInstanceOf[Array[Byte]] &&
+              slice.offset == 0 &&
+              slice.values.length == slice.length =>
+          slice.values
+        case _ => a2.toArray
+      }
+    } else {
+      val res = Arrays.copyOf(a1, a1.length + a2.size)
+      a2.copyToArray(res, a1.length)
+      res
+    }
 
-  private[this] val space = ' '.toByte
-  private[this] val cr: Byte = '\r'.toByte
-  private[this] val lf: Byte = '\n'.toByte
+  private[this] final val space = 32 // ' '
+  private[this] final val cr = 13 // '\r'
+  private[this] final val lf = 10 // '\n'
 }

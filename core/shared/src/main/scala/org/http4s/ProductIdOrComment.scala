@@ -23,7 +23,7 @@ import org.http4s.util.Writer
 
 sealed trait ProductIdOrComment extends Renderable
 object ProductIdOrComment {
-  @deprecated("Use serverAgentParser(Int) instead", "0.22.15")
+  @deprecated("Use serverAgentParser(Int) instead", "0.23.17")
   private[http4s] val serverAgentParser: P[(ProductId, List[ProductIdOrComment])] =
     serverAgentParser(CommonRules.CommentDefaultMaxDepth)
 
@@ -63,7 +63,7 @@ object ProductComment {
   private[http4s] def parser(maxDepth: Int): P[ProductComment] =
     CommonRules.comment(maxDepth).map(ProductComment.apply)
 
-  @deprecated("Use parser(Int) instead", "0.22.15")
+  @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser: P[ProductComment] =
     parser(CommonRules.CommentDefaultMaxDepth)
 }
