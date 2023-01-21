@@ -188,7 +188,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     * This handler allows for configuring the behavior. The default as of
     * 0.23.19 is to return a 400.
     *
-    * @see [[https://www.rfc-editor.org/rfc/rfc9112#section-2.2-9 RFC 9112]
+    * @see [[https://www.rfc-editor.org/rfc/rfc9112#section-2.2-9 RFC 9112]]
     * @see [[https://www.rfc-editor.org/rfc/rfc7230 RFC 7230]]
     */
   def withRequestLineParseErrorHandler(
