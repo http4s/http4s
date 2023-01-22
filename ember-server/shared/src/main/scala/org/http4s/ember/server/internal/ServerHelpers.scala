@@ -359,7 +359,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .drain
       .attempt
       .flatMap {
-        case Left(err) => onWriteFailure(request, resp, err) >> MonadThrow[F].raiseError(err)
+        case Left(err) => onWriteFailure(request, resp, err) *> MonadThrow[F].raiseError(err)
         case Right(()) => Applicative[F].unit
       }
 
