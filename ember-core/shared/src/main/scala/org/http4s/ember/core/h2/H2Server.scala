@@ -116,7 +116,15 @@ private[ember] object H2Server {
         val upgrade = connectionCheck && upgradeCheck
         (settings, upgrade) match {
           case (Some(settings), true) =>
-            val bb: F[ByteVector] = req.body.compile.to(ByteVector)
+            val bb: F[ByteVector] =
+              req.entity match {
+                case Entity.Empty =>
+                  Applicative[F].pure(ByteVector.empty)
+                case Entity.Strict(bv) =>
+                  Applicative[F].pure(bv)
+                case Entity.Default(body, _) =>
+                  body.compile.to(ByteVector)
+              }
             val fres: F[Response[F]] = bb.map { bv =>
               val newReq: Request[fs2.Pure] = Request[fs2.Pure](
                 req.method,
@@ -185,8 +193,13 @@ private[ember] object H2Server {
           (x, x)
         }
         _ <- s.request.complete(Either.right(req))
-        er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-        _ <- s.readBuffer.offer(er)
+        bv = req.entity match {
+          case Entity.Empty => ByteVector.empty
+          case Entity.Strict(bv) => bv
+          case Entity.Default(body, _) =>
+            body.compile.to(fs2.Collector.supportsByteVector(ByteVector))
+        }
+        _ <- s.readBuffer.offer(Either.right(bv))
         _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
