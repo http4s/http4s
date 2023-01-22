@@ -197,7 +197,7 @@ private[ember] object H2Server {
           case Entity.Empty => ByteVector.empty
           case Entity.Strict(bv) => bv
           case Entity.Default(body, _) =>
-            body.compile.to(fs2.Collector.supportsByteVector(ByteVector))
+            body.compile.to(ByteVector)
         }
         _ <- s.readBuffer.offer(Either.right(bv))
         _ <- s.writeBlock.complete(Either.unit)
