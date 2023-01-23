@@ -22,8 +22,8 @@ import cats.Applicative
 import cats.data.Kleisli
 import cats.syntax.all._
 import fs2.Chunk
-import fs2.Stream._
 import org.http4s.headers._
+import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
 
@@ -62,21 +62,44 @@ object Jsonp {
     resp.contentType.map(_.mediaType).contains(MediaType.application.json)
 
   private def jsonp[F[_]](resp: Response[F], callback: String) = {
-    val begin = beginJsonp(callback)
-    val end = EndJsonp
-    val jsonpBody = chunk(begin) ++ resp.body ++ chunk(end)
-    val newLengthHeaderOption = resp.headers.get[`Content-Length`].flatMap { old =>
-      old.modify(_ + begin.size + end.size)
+    val (entity, updateHeaderBy) = resp.entity match {
+      case e @ Entity.Empty =>
+        e -> None
+
+      case Entity.Strict(bv) =>
+        val begin = beginJsonpByteVector(callback)
+        val end = EndJsonpByteVector
+        val entity = Entity.Strict(begin ++ bv ++ end)
+        entity -> Some(begin.size + end.size)
+
+      case Entity.Default(body, _) =>
+        val begin = beginJsonpChunk(callback)
+        val end = EndJsonpChunk
+        val entity = Entity.Default(fs2.Stream.chunk(begin) ++ body ++ fs2.Stream.chunk(end), None)
+        entity -> Some(begin.size.toLong + end.size.toLong)
     }
+    val newLengthHeaderOpt =
+      updateHeaderBy.flatMap(s =>
+        resp.headers.get[`Content-Length`].flatMap { old =>
+          old.modify(_ + s)
+        }
+      )
+
     resp
-      .copy(entity = Entity(jsonpBody))
-      .transformHeaders(_ ++ Headers(newLengthHeaderOption))
+      .copy(entity = entity)
+      .transformHeaders(_ ++ Headers(newLengthHeaderOpt))
       .withContentType(`Content-Type`(MediaType.application.javascript))
   }
 
-  private def beginJsonp(callback: String) =
+  private def beginJsonpChunk(callback: String) =
     Chunk.array((callback + "(").getBytes(StandardCharsets.UTF_8))
 
-  private val EndJsonp =
+  private def beginJsonpByteVector(callback: String) =
+    ByteVector.view((callback + "(").getBytes(StandardCharsets.UTF_8))
+
+  private val EndJsonpChunk =
     Chunk.array(");".getBytes(StandardCharsets.UTF_8))
+
+  private val EndJsonpByteVector =
+    ByteVector.view(");".getBytes(StandardCharsets.UTF_8))
 }
