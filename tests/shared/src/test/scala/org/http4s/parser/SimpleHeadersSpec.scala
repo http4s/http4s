@@ -186,18 +186,18 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header = `User-Agent`(ProductId("foo", Some("bar")), List(ProductId("foo")))
     assertEquals(header.value, "foo/bar foo")
 
-    assertEquals(`User-Agent`.parse(header.value), Right(header))
+    assertEquals(`User-Agent`.parse(100)(header.value), Right(header))
 
     val header2 =
       `User-Agent`(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(`User-Agent`.parse(header2.value), Right(header2))
+    assertEquals(`User-Agent`.parse(188)(header2.value), Right(header2))
 
     val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
 
     val headerraw = Header.Raw(`User-Agent`.name, headerstr)
 
-    val parsed = `User-Agent`.parse(headerraw.value)
+    val parsed = `User-Agent`.parse(100)(headerraw.value)
     assertEquals(
       parsed,
       Right(
@@ -218,16 +218,16 @@ class SimpleHeadersSpec extends Http4sSuite {
     val header = Server(ProductId("foo", Some("bar")), List(ProductComment("foo")))
     assertEquals(header.value, "foo/bar (foo)")
 
-    assertEquals(Server.parse(header.toRaw1.value), Right(header))
+    assertEquals(Server.parse(100)(header.toRaw1.value), Right(header))
 
     val header2 =
       Server(ProductId("foo"), List(ProductId("bar", Some("biz")), ProductComment("blah")))
     assertEquals(header2.value, "foo bar/biz (blah)")
-    assertEquals(Server.parse(header2.toRaw1.value), Right(header2))
+    assertEquals(Server.parse(100)(header2.toRaw1.value), Right(header2))
 
     val headerstr = "nginx/1.14.0 (Ubuntu)"
     assertEquals(
-      Server.parse(headerstr),
+      Server.parse(100)(headerstr),
       Right(
         Server(
           ProductId("nginx", Some("1.14.0")),
@@ -240,7 +240,7 @@ class SimpleHeadersSpec extends Http4sSuite {
 
     val headerstr2 = "CERN/3.0 libwww/2.17"
     assertEquals(
-      Server.parse(headerstr2),
+      Server.parse(100)(headerstr2),
       Right(
         Server(
           ProductId("CERN", Some("3.0")),

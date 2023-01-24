@@ -28,7 +28,7 @@ private[internal] trait ServerHelpersPlatform {
 
   def parseSSLSession(session: SSLSession): Option[SecureSession] =
     (
-      Option(session.getId).map(ByteVector(_).toHex),
+      Option(session.getId).map(ByteVector.view(_).toHex),
       Option(session.getCipherSuite),
       Option(session.getCipherSuite).map(deduceKeyLength),
       Some(getCertChain(session)),
