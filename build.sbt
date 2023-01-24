@@ -56,7 +56,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
-  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+  new NodeJSEnv(
+    NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
+  )
 }
 
 lazy val modules: List[CompositeProject] = List(
@@ -253,6 +255,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsCore.value,
       log4catsTesting.value % Test,
+      log4catsNoop.value % Test,
     ),
   )
   .jvmSettings(

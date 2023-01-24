@@ -300,13 +300,12 @@ object CirceInstances {
               case None => Pull.pure(None)
               case Some((hd, tl)) =>
                 val interspersed = {
-                  val bldr = Vector.newBuilder[Chunk[Byte]]
-                  bldr.sizeHint(hd.size * 2)
+                  val bldr = Chunk.newBuilder[Byte]
                   hd.foreach { o =>
                     bldr += CirceInstances.comma
                     bldr += fromJsonToChunk(printer)(o)
                   }
-                  Chunk.concat(bldr.result())
+                  bldr.result
                 }
                 Pull.output(interspersed) >> Pull.pure(Some(tl))
             }
