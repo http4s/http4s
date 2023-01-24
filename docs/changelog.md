@@ -3,6 +3,22 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M39 (2023-01-24)
+
+This bugfix release merges forward v0.23.18 and is binary compatible
+with v1.0.0-M38.
+
+## What's Changed
+### http4s-ember-core
+* Take into account the `Entity` model in `H2Server` by @danicheg in https://github.com/http4s/http4s/pull/6936
+### http4s-ember-client
+* Don't drain the body for non-streamed entities in EmberClient by @danicheg in https://github.com/http4s/http4s/pull/6935
+### Behind the scenes
+* Remove nonValidatingCopyConstructor linter by @rossabaker in https://github.com/http4s/http4s/pull/6914
+* Merge 0.23.18 -> main by @rossabaker in https://github.com/http4s/http4s/pull/6939
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M38...v1.0.0-M39
+
 # v0.23.18 (2023-01-17)
 
 This is is a bugfix that addresses a fatal error that affects a small
