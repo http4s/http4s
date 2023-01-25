@@ -29,22 +29,30 @@ trait MetricsOps[F[_]] {
   /** Increases the count of active requests
     *
     * @param classifier the classifier to apply
+    * @param tags tags to apply
     */
-  def increaseActiveRequests(classifier: Option[String]): F[Unit]
+  def increaseActiveRequests(classifier: Option[String], tags: Map[String, String]): F[Unit]
 
   /** Decreases the count of active requests
     *
     * @param classifier the classifier to apply
+    * @param tags tags to apply
     */
-  def decreaseActiveRequests(classifier: Option[String]): F[Unit]
+  def decreaseActiveRequests(classifier: Option[String], tags: Map[String, String]): F[Unit]
 
   /** Records the time to receive the response headers
     *
     * @param method the http method of the request
     * @param elapsed the time to record
     * @param classifier the classifier to apply
+    * @param tags tags to apply
     */
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
+  def recordHeadersTime(
+      method: Method,
+      elapsed: Long,
+      classifier: Option[String],
+      tags: Map[String, String],
+  ): F[Unit]
 
   /** Records the time to fully consume the response, including the body
     *
@@ -52,12 +60,14 @@ trait MetricsOps[F[_]] {
     * @param status the http status code of the response
     * @param elapsed the time to record
     * @param classifier the classifier to apply
+    * @param tags tags to apply
     */
   def recordTotalTime(
       method: Method,
       status: Status,
       elapsed: Long,
       classifier: Option[String],
+      tags: Map[String, String],
   ): F[Unit]
 
   /** Record abnormal terminations, like errors, timeouts or just other abnormal terminations.
@@ -65,11 +75,13 @@ trait MetricsOps[F[_]] {
     * @param elapsed the time to record
     * @param terminationType the type of termination
     * @param classifier the classifier to apply
+    * @param tags tags to apply
     */
   def recordAbnormalTermination(
       elapsed: Long,
       terminationType: TerminationType,
       classifier: Option[String],
+      tags: Map[String, String],
   ): F[Unit]
 
   /** Transform the effect of MetricOps using the supplied natural transformation
@@ -81,28 +93,37 @@ trait MetricsOps[F[_]] {
   def mapK[G[_]](fk: F ~> G): MetricsOps[G] = {
     val ops = this
     new MetricsOps[G] {
-      override def increaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
-        ops.increaseActiveRequests(classifier)
+      override def increaseActiveRequests(
+          classifier: Option[String],
+          tags: Map[String, String],
+      ): G[Unit] = fk(
+        ops.increaseActiveRequests(classifier, tags)
       )
-      override def decreaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
-        ops.decreaseActiveRequests(classifier)
+      override def decreaseActiveRequests(
+          classifier: Option[String],
+          tags: Map[String, String],
+      ): G[Unit] = fk(
+        ops.decreaseActiveRequests(classifier, tags)
       )
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier))
+          tags: Map[String, String],
+      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier, tags))
       override def recordTotalTime(
           method: Method,
           status: Status,
           elapsed: Long,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier))
+          tags: Map[String, String],
+      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier, tags))
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier))
+          tags: Map[String, String],
+      ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier, tags))
     }
   }
 }

@@ -48,6 +48,7 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param tagsF a function that allows to add tags that can be customized per request
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
@@ -56,8 +57,11 @@ object Metrics {
       classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
         None
       },
+      tagsF: Request[F] => Map[String, String] = { (_: Request[F]) =>
+        Map.empty
+      },
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
-    effect(ops, classifierF.andThen(_.pure[F]))(client)
+    effect(ops, classifierF.andThen(_.pure[F]), tagsF.andThen(_.pure[F]))(client)
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
@@ -68,18 +72,24 @@ object Metrics {
     *
     * @param ops a algebra describing the metrics operations
     * @param classifierF a function that allows to add a classifier that can be customized per request
+    * @param tagsF a function that allows to add tags that can be customized per request
     * @param client the [[Client]] to gather metrics from
     * @return the metrics middleware wrapping the [[Client]]
     */
-  def effect[F[_]](ops: MetricsOps[F], classifierF: Request[F] => F[Option[String]])(
+  def effect[F[_]](
+      ops: MetricsOps[F],
+      classifierF: Request[F] => F[Option[String]],
+      tagsF: Request[F] => F[Map[String, String]],
+  )(
       client: Client[F]
   )(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
-    Client(withMetrics(client, ops, classifierF))
+    Client(withMetrics(client, ops, classifierF, tagsF))
 
   private def withMetrics[F[_]](
       client: Client[F],
       ops: MetricsOps[F],
       classifierF: Request[F] => F[Option[String]],
+      tagsF: Request[F] => F[Map[String, String]],
   )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     for {
       statusRef <- Resource.eval(C.ref[Option[Status]](None))
@@ -88,6 +98,7 @@ object Metrics {
         client,
         ops,
         classifierF,
+        tagsF,
         req,
         statusRef,
         start.toNanos,
@@ -98,21 +109,23 @@ object Metrics {
       client: Client[F],
       ops: MetricsOps[F],
       classifierF: Request[F] => F[Option[String]],
+      tagsF: Request[F] => F[Map[String, String]],
       req: Request[F],
       statusRef: Ref[F, Option[Status]],
       start: Long,
   )(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     (for {
       classifier <- Resource.eval(classifierF(req))
-      _ <- Resource.make(ops.increaseActiveRequests(classifier))(_ =>
-        ops.decreaseActiveRequests(classifier)
+      tags <- Resource.eval(tagsF(req))
+      _ <- Resource.make(ops.increaseActiveRequests(classifier, tags))(_ =>
+        ops.decreaseActiveRequests(classifier, tags)
       )
       _ <- Resource.onFinalize(
         F.monotonic
           .flatMap(now =>
             statusRef.get.flatMap(oStatus =>
               oStatus.traverse_(status =>
-                ops.recordTotalTime(req.method, status, now.toNanos - start, classifier)
+                ops.recordTotalTime(req.method, status, now.toNanos - start, classifier, tags)
               )
             )
           )
@@ -120,21 +133,31 @@ object Metrics {
       resp <- client.run(req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
       end <- Resource.eval(F.monotonic)
-      _ <- Resource.eval(ops.recordHeadersTime(req.method, end.toNanos - start, classifier))
+      _ <- Resource.eval(ops.recordHeadersTime(req.method, end.toNanos - start, classifier, tags))
     } yield resp).handleErrorWith { (e: Throwable) =>
       Resource.eval(
-        classifierF(req).flatMap(registerError(start, ops, _)(e)) *> C.raiseError[Response[F]](e)
+        for {
+          classifier <- classifierF(req)
+          tags <- tagsF(req)
+          _ <- registerError(start, ops, classifier, tags)(e)
+          resp <- C.raiseError[Response[F]](e)
+        } yield resp
       )
     }
 
-  private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
+  private def registerError[F[_]](
+      start: Long,
+      ops: MetricsOps[F],
+      classifier: Option[String],
+      tags: Map[String, String],
+  )(
       e: Throwable
   )(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
     F.monotonic
       .flatMap { now =>
         if (e.isInstanceOf[TimeoutException])
-          ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier)
+          ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier, tags)
         else
-          ops.recordAbnormalTermination(now.toNanos - start, Error(e), classifier)
+          ops.recordAbnormalTermination(now.toNanos - start, Error(e), classifier, tags)
       }
 }
