@@ -36,7 +36,7 @@ private[ember] object Util extends UtilPlatform {
   private[this] val closeCi = ci"close"
   private[this] val keepAliveCi = ci"keep-alive"
   private[this] val connectionCi = ci"connection"
-  val close: Connection = Connection(NonEmptyList.of(closeCi))
+  private[http4s] val close: Connection = Connection(NonEmptyList.of(closeCi))
   private[this] val keepAlive = Connection(NonEmptyList.one(keepAliveCi))
 
   private def streamCurrentTimeMillis[F[_]](clock: Clock[F]): Stream[F, Long] =

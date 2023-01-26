@@ -513,7 +513,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .takeWhile { case (resp, isShutdown) =>
         !isShutdown && resp.headers.get[Connection].exists(_.hasKeepAlive)
       }
-      .interruptWhen[F]((shutdown.signal >> Async[F].sleep(shutdown.gracePeriod)).attempt)
+      .interruptWhen[F]((shutdown.signal >> Async[F].sleep(shutdown.shutdownGracePeriod)).attempt)
       .drain
   }
 
