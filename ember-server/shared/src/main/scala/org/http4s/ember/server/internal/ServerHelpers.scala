@@ -76,7 +76,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
   )(implicit F: Async[F]): Stream[F, Nothing] = {
-    val res = Resource.uncancelable[F, Unit] { _ =>
+    val res =
       Resource
         .make(
           sg
@@ -106,7 +106,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               ).compile.drain.start.tupleRight(fin)
             }
         ) { case (fiber, fin) => fin.guarantee(fiber.join.void) } >> Resource.eval(shutdown.signal)
-    }
 
     Stream.resource(res).drain
 
