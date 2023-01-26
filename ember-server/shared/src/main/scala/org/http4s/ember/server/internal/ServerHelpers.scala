@@ -371,7 +371,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .drain
       .attempt
       .flatMap {
-        case Left(err) => onWriteFailure(request, resp, err)
+        case Left(err) => onWriteFailure(request, resp, err) *> MonadThrow[F].raiseError(err)
         case Right(()) => Applicative[F].unit
       }
 
@@ -410,7 +410,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
     Stream
-      .unfoldEval[F, State, (Request[F], Response[F], Boolean)](initialBuffer.toArray -> false) {
+      .unfoldEval[F, State, (Response[F], Boolean)](initialBuffer.toArray -> false) {
         case (buffer, reuse) =>
           val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
             // next request has already been (partially) received
@@ -475,9 +475,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                         nextResp <- postProcessResponse(req, resp, isShutdown)
                         _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
                         nextBuffer <- drain
-                      } yield nextBuffer.map(buffer =>
-                        ((req, nextResp, isShutdown), (buffer, true))
-                      )
+                      } yield nextBuffer.map(buffer => ((nextResp, isShutdown), (buffer, true)))
                     // h2c escalation of the connection
                     case Some((settings, newReq)) =>
                       for {
@@ -513,7 +511,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
               }
           }
       }
-      .takeWhile { case (_, resp, isShutdown) =>
+      .takeWhile { case (resp, isShutdown) =>
         !isShutdown && resp.headers.get[Connection].exists(_.hasKeepAlive)
       }
       .interruptWhen[F]((shutdown.signal >> Async[F].sleep(shutdown.gracePeriod)).attempt)

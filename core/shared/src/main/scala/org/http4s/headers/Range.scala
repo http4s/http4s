@@ -21,7 +21,7 @@ import cats.data.NonEmptyList
 import cats.parse.Numbers
 import cats.parse.{Parser => P}
 import cats.parse.{Parser0 => P0}
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -77,11 +77,11 @@ object Range {
     val suffixByteRangeSpec = negativeLong.map(SubRange(_))
 
     // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
-    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse(suffixByteRangeSpec))
+    val byteRangeSet = CommonRules.headerRep1(byteRangeSpec.orElse(suffixByteRangeSpec))
 
     // byte-ranges-specifier = bytes-unit "=" byte-range-set
     val byteRangesSpecifier =
-      ((Rfc7230.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
+      ((CommonRules.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
         .map { case (unit, ranges) => Range(unit, ranges) }
 
     // Range = byte-ranges-specifier / other-ranges-specifier
