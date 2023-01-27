@@ -82,7 +82,7 @@ The same `EntityEncoder[Json]` we use on server responses is also
 useful on client requests:
 
 ```scala mdoc:silent
-Request(Method.POST, uri"/hello")
+Request[IO](Method.POST, uri"/hello")
   .withEntity(json"""{"name": "Alice"}""")
 ```
 
@@ -131,7 +131,7 @@ and responses for our case classes:
 
 ```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync()
-Request(Method.POST, uri"/hello")
+Request[IO](Method.POST, uri"/hello")
   .withEntity(User("Bob").asJson)
 ```
 
@@ -267,7 +267,7 @@ import io.circe.generic.auto._
 
 def helloClient(name: String): IO[Hello] = {
   // Encode a User request  
-  val req = Request(Method.POST, uri"http://localhost:8080/hello")
+  val req = Request[IO](Method.POST, uri"http://localhost:8080/hello")
     .withEntity(User(name).asJson)
   // Create a client
   // Note: this client is used exactly once, and discarded

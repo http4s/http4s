@@ -429,7 +429,7 @@ val dailyWeatherService = HttpRoutes.of[IO] {
       .map(s"The temperature on $localDate will be: " + _))
 }
 
-val request = Request(Method.GET, uri"/weather/temperature/2016-11-05")
+val request = Request[IO](Method.GET, uri"/weather/temperature/2016-11-05")
 ```
 
 ```scala mdoc
@@ -456,7 +456,7 @@ val greetingService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingService
-  .orNotFound(Request(Method.GET, uri"/hello/name;first=john;last=doe/greeting"))
+  .orNotFound(Request[IO](Method.GET, uri"/hello/name;first=john;last=doe/greeting"))
   .unsafeRunSync()
 ```
 
@@ -473,7 +473,7 @@ val greetingWithIdService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingWithIdService
-  .orNotFound(Request(Method.GET, uri"/hello/name;first=john;last=doe;id=123/greeting"))
+  .orNotFound(Request[IO](Method.GET, uri"/hello/name;first=john;last=doe;id=123/greeting"))
   .unsafeRunSync()
 ```
 
