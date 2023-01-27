@@ -358,14 +358,18 @@ If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
 ```scala mdoc:silent
-import org.http4s.client.dsl.io._
+import org.http4s.Request
+import org.http4s.Headers
 import org.http4s.headers._
 import org.http4s.MediaType
 
-val request = GET(
-  uri"https://my-lovely-api.com/",
-  Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
-  Accept(MediaType.application.json)
+val request = Request(
+  method = Method.GET,
+  uri = uri"https://jsonplaceholder.typicode.com/posts/2",
+  headers = Headers(
+    Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
+    Accept(MediaType.application.json),
+  )
 )
 
 httpClient.expect[String](request)
@@ -384,14 +388,14 @@ case class AuthResponse(access_token: String)
 
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = jsonOf
 
-val postRequest = POST(
-  UrlForm(
-    "grant_type" -> "client_credentials",
-    "client_id" -> "my-awesome-client",
-    "client_secret" -> "s3cr3t"
-  ),
-  uri"https://my-lovely-api.com/oauth2/token"
-)
+val postRequest = Request(Method.POST, uri"https://my-lovely-api.com/oauth2/token")
+  .withEntity(
+    UrlForm(
+      "grant_type" -> "client_credentials",
+      "client_id" -> "my-awesome-client",
+      "client_secret" -> "s3cr3t"
+    )
+  )
 
 httpClient.expect[AuthResponse](postRequest)
 ```

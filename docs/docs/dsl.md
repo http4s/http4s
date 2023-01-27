@@ -411,7 +411,6 @@ in which `IntVar` does it.
 ```scala mdoc:silent
 import java.time.LocalDate
 import scala.util.Try
-import org.http4s.client.dsl.io._
 
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {
@@ -430,11 +429,11 @@ val dailyWeatherService = HttpRoutes.of[IO] {
       .map(s"The temperature on $localDate will be: " + _))
 }
 
-val req = GET(uri"/weather/temperature/2016-11-05")
+val request = Request(Method.GET, uri"/weather/temperature/2016-11-05")
 ```
 
 ```scala mdoc
-dailyWeatherService.orNotFound(req).unsafeRunSync()
+dailyWeatherService.orNotFound(request).unsafeRunSync()
 ```
 
 ### Handling Matrix Path Parameters
@@ -457,7 +456,7 @@ val greetingService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingService
-  .orNotFound(GET(uri"/hello/name;first=john;last=doe/greeting"))
+  .orNotFound(Request(Method.GET, uri"/hello/name;first=john;last=doe/greeting"))
   .unsafeRunSync()
 ```
 
@@ -474,7 +473,7 @@ val greetingWithIdService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingWithIdService
-  .orNotFound(GET(uri"/hello/name;first=john;last=doe;id=123/greeting"))
+  .orNotFound(Request(Method.GET, uri"/hello/name;first=john;last=doe;id=123/greeting"))
   .unsafeRunSync()
 ```
 
