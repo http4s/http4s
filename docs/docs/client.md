@@ -358,12 +358,13 @@ If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
 ```scala mdoc:silent
+import cats.effect.IO
 import org.http4s.Request
 import org.http4s.Headers
 import org.http4s.headers._
 import org.http4s.MediaType
 
-val request = Request(
+val request = Request[IO](
   method = Method.GET,
   uri = uri"https://jsonplaceholder.typicode.com/posts/2",
   headers = Headers(
@@ -381,6 +382,7 @@ You can send a POST request and decode the JSON response into a case class
 by deriving an `EntityDecoder` for that case class:
 
 ```scala mdoc:silent
+import cats.effect.IO
 import org.http4s.circe._
 import io.circe.generic.auto._
 
@@ -388,7 +390,7 @@ case class AuthResponse(access_token: String)
 
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = jsonOf
 
-val postRequest = Request(Method.POST, uri"https://my-lovely-api.com/oauth2/token")
+val postRequest = Request[IO](Method.POST, uri"https://my-lovely-api.com/oauth2/token")
   .withEntity(
     UrlForm(
       "grant_type" -> "client_credentials",
