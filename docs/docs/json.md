@@ -158,7 +158,9 @@ response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
-POST("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
+Request[IO](Method.POST, uri"/hello")
+  .withEntity("""{"name":"Bob"}""")
+  .as[Json].unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -176,7 +178,9 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
+Request[IO](Method.POST, uri"/hello")
+  .withEntity("""{"name":"Bob"}""")
+  .as[User].unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use
