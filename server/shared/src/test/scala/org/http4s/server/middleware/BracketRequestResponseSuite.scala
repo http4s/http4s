@@ -34,8 +34,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
         ) { case (_, oc) =>
-          IO(assertEquals(oc, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
-            .update(_ + 1L)
+          IO(assert(oc.isSuccess)) *> releaseRef.update(_ + 1L)
         }
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
@@ -64,10 +63,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, ec) =>
-          IO(assertEquals(ec, Outcome.errored[IO, Throwable, Unit](error))) *> releaseRef.update(
-            _ + 1L
-          )
+        ) { case (_, oc) =>
+          IO(assert(oc.isError)) *> releaseRef.update(_ + 1L)
         }
       routes = middleware(Kleisli(Function.const(OptionT.liftF(IO.raiseError(error)))))
       response <- routes.run(Request[IO]()).value.attempt
@@ -87,9 +84,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, ec) =>
-          IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
-            .update(_ + 1L)
+        ) { case (_, oc) =>
+          IO(assert(oc.isSuccess)) *> releaseRef.update(_ + 1L)
         }
       routes = middleware(Kleisli(Function.const(OptionT.none)))
       response <- routes.run(Request[IO]()).value
@@ -111,9 +107,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, ec) =>
-          IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
-            .update(_ + 1L)
+        ) { case (_, oc) =>
+          IO(assert(oc.isSuccess)) *> releaseRef.update(_ + 1L)
         }
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
@@ -176,10 +171,8 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, ec) =>
-          IO(assertEquals(ec, Outcome.errored[IO, Throwable, Unit](error))) *> releaseRef.update(
-            _ + 1L
-          )
+        ) { case (_, oc) =>
+          IO(assert(oc.isError)) *> releaseRef.update(_ + 1L)
         }
       routes = middleware(
         Kleisli(
@@ -225,10 +218,11 @@ final class BracketRequestResponseSuite extends Http4sSuite {
       middleware =
         BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
           acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, ec) =>
-          IO(assertEquals(ec, Outcome.succeeded[IO, Throwable, Unit](IO.unit))) *> releaseRef
-            .update(_ + 1L) *> IO
-            .raiseError[Unit](error)
+        ) { case (_, oc) =>
+          IO(assert(oc.isSuccess)) *>
+            releaseRef
+              .update(_ + 1L) *> IO
+              .raiseError[Unit](error)
         }
       routes = middleware(
         Kleisli((contextRequest: ContextRequest[IO, Long]) =>
