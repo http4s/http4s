@@ -183,6 +183,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
+      .interruptWhen(shutdown.signal.attempt)
       .map { connect =>
         val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
