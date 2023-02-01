@@ -366,7 +366,7 @@ import org.http4s.MediaType
 
 val request = Request[IO](
   method = Method.GET,
-  uri = uri"https://jsonplaceholder.typicode.com/posts/2",
+  uri = uri"https://my-lovely-api.com/",
   headers = Headers(
     Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
     Accept(MediaType.application.json),
@@ -390,14 +390,16 @@ case class AuthResponse(access_token: String)
 
 implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = jsonOf
 
-val postRequest = Request[IO](Method.POST, uri"https://my-lovely-api.com/oauth2/token")
-  .withEntity(
-    UrlForm(
-      "grant_type" -> "client_credentials",
-      "client_id" -> "my-awesome-client",
-      "client_secret" -> "s3cr3t"
-    )
+val postRequest = Request[IO](
+  method = Method.POST, 
+  uri = uri"https://my-lovely-api.com/oauth2/token"
+).withEntity(
+  UrlForm(
+    "grant_type" -> "client_credentials",
+    "client_id" -> "my-awesome-client",
+    "client_secret" -> "s3cr3t"
   )
+)
 
 httpClient.expect[AuthResponse](postRequest)
 ```

@@ -456,8 +456,10 @@ val greetingService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingService
-  .orNotFound(Request[IO](Method.GET, uri"/hello/name;first=john;last=doe/greeting"))
-  .unsafeRunSync()
+  .orNotFound(Request[IO](
+    method = Method.GET, 
+    uri = uri"/hello/name;first=john;last=doe/greeting"
+  )).unsafeRunSync()
 ```
 
 Like standard path parameters, matrix path parameters can be extracted as numeric types using `IntVar` or `LongVar`.
@@ -473,8 +475,10 @@ val greetingWithIdService = HttpRoutes.of[IO] {
 
 ```scala mdoc
 greetingWithIdService
-  .orNotFound(Request[IO](Method.GET, uri"/hello/name;first=john;last=doe;id=123/greeting"))
-  .unsafeRunSync()
+  .orNotFound(Request[IO](
+    method = Method.GET, 
+    uri = uri"/hello/name;first=john;last=doe;id=123/greeting"
+  )).unsafeRunSync()
 ```
 
 ### Handling Query Parameters
