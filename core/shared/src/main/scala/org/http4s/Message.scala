@@ -77,7 +77,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
-    * @param w [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
+    * @param w [[EntityEncoder]] with which to convert the body to an [[Entity]]
     * @tparam T type of the Body
     * @return a new message with the new body
     */

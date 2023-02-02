@@ -139,7 +139,7 @@ trait EntityDecoder[F[_], T] { self =>
     this.asInstanceOf[EntityDecoder[F, T2]]
 }
 
-/** EntityDecoder is used to attempt to decode an [[EntityBody]]
+/** EntityDecoder is used to attempt to decode an [[Entity]]
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
