@@ -18,7 +18,8 @@ package org.http4s.server.middleware
 
 import cats.data._
 import cats.effect._
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import org.http4s._
 import org.http4s.server._
 import org.http4s.server.middleware.BracketRequestResponse.ReleaseError
