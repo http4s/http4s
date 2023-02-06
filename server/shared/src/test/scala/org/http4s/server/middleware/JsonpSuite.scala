@@ -24,7 +24,7 @@ import org.http4s.syntax.all._
 class JsonpSuite extends Http4sSuite {
   // The implementing regex isn't supported on scala-native.
   // https://github.com/http4s/http4s/pull/6958
-  override def munitIgnore: Boolean = !Platform.isNative
+  override def munitIgnore: Boolean = Platform.isNative
 
   private val json = """{"msg": "hi"}"""
 
