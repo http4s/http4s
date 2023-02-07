@@ -467,6 +467,7 @@ object Uri extends UriPlatform {
       override def equals(obj: Any): Boolean =
         obj match {
           case s: Segment => s.encoded == encoded
+          case _ => false
         }
 
       override def hashCode(): Int = encoded.hashCode
@@ -1145,10 +1146,11 @@ object Uri extends UriPlatform {
     }
 
   private[http4s] object Parser {
-    /* port        = *DIGIT
-     *
-     * Limitation: we only parse up to Int. The spec allows bigint!
-     */
+
+    /** port        = *DIGIT
+      *
+      * Limitation: we only parse up to Int. The spec allows bigint!
+      */
     private[http4s] val port: Parser0[Option[Int]] = {
       import Rfc3986.digit
 

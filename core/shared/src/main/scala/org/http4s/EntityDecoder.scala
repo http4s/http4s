@@ -355,6 +355,7 @@ object EntityDecoder {
   ): EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
+  @deprecated("Broken. An entity decoder cannot return a Stream", "0.23.17")
   implicit def eventStream[F[_]: Applicative]: EntityDecoder[F, EventStream[F]] =
     EntityDecoder.decodeBy(MediaType.`text/event-stream`) { msg =>
       DecodeResult.successT(msg.body.through(ServerSentEvent.decoder))

@@ -20,8 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import org.http4s.CacheDirective._
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc2616
-import org.http4s.internal.parsing.Rfc7230
 import org.http4s.parser.AdditionalRules
 import org.typelevel.ci._
 
@@ -33,7 +33,7 @@ object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control")
     apply(NonEmptyList(head, tail.toList))
 
   private[http4s] val FieldNames: Parser[NonEmptyList[String]] =
-    Rfc7230.quotedString.repSep(Rfc7230.listSep)
+    CommonRules.quotedString.repSep(CommonRules.listSep)
   private[http4s] val DeltaSeconds: Parser[Duration] =
     AdditionalRules.NonNegativeLong.map(Duration(_, TimeUnit.SECONDS))
 
@@ -61,14 +61,14 @@ object `Cache-Control` extends HeaderCompanion[`Cache-Control`]("Cache-Control")
         Parser.ignoreCase("stale-while-revalidate=") *> DeltaSeconds.map(s =>
           `stale-while-revalidate`(s)
         ) ::
-        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | Rfc7230.quotedString)).?).map {
+        (Rfc2616.token ~ (Parser.string("=") *> (Rfc2616.token | CommonRules.quotedString)).?).map {
           case (name: String, arg: Option[String]) =>
             org.http4s.CacheDirective(CIString(name), arg)
         } :: Nil
     )
 
   private[http4s] val parser: Parser[`Cache-Control`] =
-    CacheDirective.repSep(Rfc7230.listSep).map(`Cache-Control`(_))
+    CacheDirective.repSep(CommonRules.listSep).map(`Cache-Control`(_))
 
   implicit val headerInstance: Header[`Cache-Control`, Header.Recurring] =
     createRendered(
