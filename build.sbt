@@ -171,6 +171,9 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "org.http4s.MimeDB#application_parts#application_3.org$http4s$MimeDB$application_parts$application_3$$_part_3_="
       ),
+
+      // package-private, and only broken on JS/Native
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Charset.availableCharsets"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
