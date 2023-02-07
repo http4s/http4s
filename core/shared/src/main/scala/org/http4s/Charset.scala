@@ -62,13 +62,16 @@ object Charset {
   val `UTF-16BE`: Charset = Charset(StandardCharsets.UTF_16BE)
   val `UTF-16LE`: Charset = Charset(StandardCharsets.UTF_16LE)
 
+  private[http4s] def availableCharsets: List[NioCharset] =
+    NioCharset.availableCharsets.values.asScala.toList
+
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups
   // that will succeed.
   private[this] val cache: HashMap[String, NioCharset] = {
     val map = new HashMap[String, NioCharset]
     for {
-      cs <- NioCharset.availableCharsets.values.asScala.toSeq
+      cs <- availableCharsets
       name <- cs.name :: cs.aliases.asScala.toList
     } map.put(name.toLowerCase(Locale.ROOT), cs)
     map
