@@ -23,7 +23,7 @@ import org.typelevel.ci._
 object Authorization {
   // https://datatracker.ietf.org/doc/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[Authorization] = {
-    import org.http4s.internal.parsing.Rfc7235.credentials
+    import org.http4s.internal.parsing.AuthRules.credentials
     credentials.map(Authorization(_))
   }
 

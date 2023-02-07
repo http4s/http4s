@@ -70,7 +70,7 @@ private[http4s] object ServerScaffold {
             }
           )
         } { server =>
-          F.async_[Unit] { cb => server.close(() => cb(Right(()))); () }
+          F.async_[Unit] { cb => server.close(() => cb(Either.unit)); () }
         }
         .evalMap { server =>
           F.async_[ServerScaffold[F]] { cb =>

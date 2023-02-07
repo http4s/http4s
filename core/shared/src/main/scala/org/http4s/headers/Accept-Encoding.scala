@@ -30,7 +30,7 @@ object `Accept-Encoding` {
     ParseResult.fromParser(parser, "Invalid Accept-Encoding header")(s)
 
   private[http4s] val parser: Parser[`Accept-Encoding`] = {
-    import org.http4s.internal.parsing.Rfc7230.headerRep1
+    import org.http4s.internal.parsing.CommonRules.headerRep1
 
     headerRep1(ContentCoding.parser).map(xs => apply(xs))
   }

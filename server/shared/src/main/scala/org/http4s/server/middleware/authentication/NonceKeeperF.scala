@@ -88,7 +88,7 @@ private[authentication] class NonceKeeperF[F[_]](
                     it.remove()
                     it
                   })
-                case _ => F.delay(Right(()))
+                case _ => F.delay(Either.unit)
               }
             }
         } else F.pure(())
