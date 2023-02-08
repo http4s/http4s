@@ -4,7 +4,8 @@
 
 http4s is available for Scala 2.12, 2.13, and 3.
 
-You can add http4s to your build by adding its modules to your dependencies in `build.sbt`:
+You can add http4s to your build by adding its modules to your dependencies in `build.sbt`.
+Here are some common dependencies, more are available on the [integrations page][integrations].
 
 ```scala
 libraryDependencies ++= Seq(
@@ -125,3 +126,4 @@ a simple JSON service.
 [giter8 template]: https://github.com/http4s/http4s.g8
 [versions]: /versions/
 [sbt-revolver]: https://github.com/spray/sbt-revolver
+[integrations]: integrations.md
