@@ -1,9 +1,30 @@
 # Quick Start
 
-**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`
+## Dependencies
+
+http4s is available for Scala 2.12, 2.13, and 3.2
+
+You can add http4s to your build by adding its modules to your dependencies in `build.sbt`:
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-core"         % @VERSION@,
+  "org.http4s" %% "http4s-client"       % @VERSION@,
+  "org.http4s" %% "http4s-server"       % @VERSION@,
+  "org.http4s" %% "http4s-dsl"          % @VERSION@,
+  "org.http4s" %% "http4s-ember-client" % @VERSION@,
+  "org.http4s" %% "http4s-ember-server" % @VERSION@,
+)
+```
+
+@:callout(info)
+To run with 2.12 please make sure that the flag `-Ypartial-unification`
 is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
 This feature is enabled by default starting in Scala 2.13.
+@:@
 
+
+## Giter8 Template
 
 Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
