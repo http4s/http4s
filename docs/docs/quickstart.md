@@ -8,13 +8,18 @@ You can add http4s to your build by adding its modules to your dependencies in `
 Here are some common dependencies, more are available on the [integrations page][integrations].
 
 ```scala
+val http4sVersion = "@VERSION@"
+
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-core"         % @VERSION@,
-  "org.http4s" %% "http4s-client"       % @VERSION@,
-  "org.http4s" %% "http4s-server"       % @VERSION@,
-  "org.http4s" %% "http4s-dsl"          % @VERSION@,
-  "org.http4s" %% "http4s-ember-client" % @VERSION@,
-  "org.http4s" %% "http4s-ember-server" % @VERSION@,
+  // get up and running with a client and server
+  "org.http4s" %% "http4s-ember-client" % http4sVersion,
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-dsl"          % http4sVersion,
+
+  // for core classes and traits, e.g. `Client[F]`
+  "org.http4s" %% "http4s-core"         % http4sVersion,
+  "org.http4s" %% "http4s-client"       % http4sVersion,
+  "org.http4s" %% "http4s-server"       % http4sVersion,
 )
 ```
 
