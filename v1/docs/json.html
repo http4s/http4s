@@ -293,19 +293,18 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@4586cb6c,
+//         at = scodec.bits.ByteVector$AtByteBuffer@438d6d97,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@73603094
+//    = org.typelevel.vault.Vault@6c49e2d3
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
-
-</span><span class="type-name">POST</span><span>(</span><span class="string-literal">json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;</span><span>)</span></code></pre>
         
         <h2 id="encoding-case-classes-as-json" class="section">Encoding case classes as JSON<a class="anchor-link right" href="#encoding-case-classes-as-json"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>These JSON literals are nice, but in real apps, we prefer to operate
@@ -323,7 +322,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@25db515f
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@2822a4ba
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -343,16 +342,17 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@1082e433,
+//         at = scodec.bits.ByteVector$AtByteBuffer@49b61ac4,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@632c90e4
+//    = org.typelevel.vault.Vault@617f37b0
 // )
-</span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
-</span><span class="comment">// res6: Request[IO] = (
+</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>)
+</span><span class="comment">// res6: Request[IO[x]] = (
 //    = POST,
 //    = Uri(
 //     scheme = None,
@@ -362,17 +362,17 @@
 //     fragment = None
 //   ),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: application/json, Content-Length: 14),
+//    = Headers(Content-Length: 14, Content-Type: application/json),
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@113ae885,
+//         at = scodec.bits.ByteVector$AtByteBuffer@42830e36,
 //         offset = 0L,
 //         size = 14L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@6e140254
+//    = org.typelevel.vault.Vault@7fb975a8
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -390,7 +390,9 @@
         response body to JSON using the <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"><code>as</code> syntax</a>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Json</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res8: Json = JObject(value = object[name -&gt; &quot;Alice&quot;])
-</span><span class="type-name">POST</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>).</span><span class="identifier">as</span><span>[</span><span class="type-name">Json</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;</span><span>)
+  .</span><span class="identifier">as</span><span>[</span><span class="type-name">Json</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res9: Json = JObject(value = object[name -&gt; &quot;Bob&quot;])</span></code></pre>
         <p>Like sending raw JSON, this is useful to a point, but we typically
         want to get to a typed model as quickly as we can.</p>
@@ -402,11 +404,13 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@69b0c0d9
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@6a020a1
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
-</span><span class="type-name">POST</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>).</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;</span><span>)
+  .</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res11: User = User(name = &quot;Bob&quot;)</span></code></pre>
         <p>If we are always decoding from JSON to a typed model, we can use
         the following import:</p>
@@ -466,14 +470,14 @@
         
         <h2 id="a-hello-world-client" class="section">A Hello World Client<a class="anchor-link right" href="#a-hello-world-client"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>Now let&#39;s make a client for the service above:</p>
-        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">_</span><span>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="type-name">IO</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">generic</span><span>.</span><span class="identifier">auto</span><span>.</span><span class="identifier">_</span><span>
 
 </span><span class="keyword">def</span><span> </span><span class="declaration-name">helloClient</span><span>(</span><span class="identifier">name</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Hello</span><span>] = {
-  </span><span class="comment">// Encode a User request
-</span><span>  </span><span class="keyword">val</span><span> </span><span class="identifier">req</span><span> = </span><span class="type-name">POST</span><span>(</span><span class="type-name">User</span><span>(</span><span class="identifier">name</span><span>).</span><span class="identifier">asJson</span><span>, </span><span class="string-literal">uri&quot;http://localhost:8080/hello&quot;</span><span>)
+  </span><span class="comment">// Encode a User request  
+</span><span>  </span><span class="keyword">val</span><span> </span><span class="identifier">req</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;http://localhost:8080/hello&quot;</span><span>)
+    .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">User</span><span>(</span><span class="identifier">name</span><span>).</span><span class="identifier">asJson</span><span>)
   </span><span class="comment">// Create a client
 </span><span>  </span><span class="comment">// Note: this client is used exactly once, and discarded
 </span><span>  </span><span class="comment">// Ideally you should .build.use it once, and share it for multiple requests

@@ -531,14 +531,19 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">uri&quot;https://google.com/&quot;</span><span>)</span></code></pre>
         <p>If you need to do something more complicated like setting request headers, you
         can build up a request object and pass that to <code>expect</code>:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="type-name">IO</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">Request</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">Headers</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">MediaType</span><span>
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">GET</span><span>(
-  </span><span class="string-literal">uri&quot;https://my-lovely-api.com/&quot;</span><span>,
-  </span><span class="type-name">Authorization</span><span>(</span><span class="type-name">Credentials</span><span>.</span><span class="type-name">Token</span><span>(</span><span class="type-name">AuthScheme</span><span>.</span><span class="type-name">Bearer</span><span>, </span><span class="string-literal">&quot;open sesame&quot;</span><span>)),
-  </span><span class="type-name">Accept</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">application</span><span>.</span><span class="identifier">json</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>,
+  </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;https://my-lovely-api.com/&quot;</span><span>,
+  </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(
+    </span><span class="type-name">Authorization</span><span>(</span><span class="type-name">Credentials</span><span>.</span><span class="type-name">Token</span><span>(</span><span class="type-name">AuthScheme</span><span>.</span><span class="type-name">Bearer</span><span>, </span><span class="string-literal">&quot;open sesame&quot;</span><span>)),
+    </span><span class="type-name">Accept</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">application</span><span>.</span><span class="identifier">json</span><span>),
+  )
 )
 
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">request</span><span>)</span></code></pre>
@@ -546,20 +551,23 @@
         <h3 id="send-a-post-request" class="section">Send a POST request<a class="anchor-link right" href="#send-a-post-request"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>You can send a POST request and decode the JSON response into a case class
         by deriving an <code>EntityDecoder</code> for that case class:</p>
-        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">_</span><span>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="type-name">IO</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">generic</span><span>.</span><span class="identifier">auto</span><span>.</span><span class="identifier">_</span><span>
 
 </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">AuthResponse</span><span>(</span><span class="identifier">access_token</span><span>: </span><span class="type-name">String</span><span>)
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">authResponseEntityDecoder</span><span>: </span><span class="type-name">EntityDecoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">AuthResponse</span><span>] = </span><span class="identifier">jsonOf</span><span>
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">POST</span><span>(
+</span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, 
+  </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;https://my-lovely-api.com/oauth2/token&quot;</span><span>
+).</span><span class="identifier">withEntity</span><span>(
   </span><span class="type-name">UrlForm</span><span>(
     </span><span class="string-literal">&quot;grant_type&quot;</span><span> -&gt; </span><span class="string-literal">&quot;client_credentials&quot;</span><span>,
     </span><span class="string-literal">&quot;client_id&quot;</span><span> -&gt; </span><span class="string-literal">&quot;my-awesome-client&quot;</span><span>,
     </span><span class="string-literal">&quot;client_secret&quot;</span><span> -&gt; </span><span class="string-literal">&quot;s3cr3t&quot;</span><span>
-  ),
-  </span><span class="string-literal">uri&quot;https://my-lovely-api.com/oauth2/token&quot;</span><span>
+  )
 )
 
 </span><span class="identifier">httpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">AuthResponse</span><span>](</span><span class="identifier">postRequest</span><span>)</span></code></pre>
