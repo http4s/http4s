@@ -29,7 +29,7 @@ import org.http4s.multipart.Multipart
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
-import scodec.bits.ByteVector
+import scodec.bits._
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
@@ -156,7 +156,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     case object MyThrowable extends Throwable
     val app = HttpApp[IO] { (_: Request[IO]) =>
       Response[IO](Status.Ok)
-        .withEntity(ByteVector("foo".getBytes))
+        .withEntity(asciiBytes"foo")
         .pure[IO]
     }
     val client = Client.fromHttpApp(app)

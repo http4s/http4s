@@ -147,7 +147,7 @@ object Header {
     trait Primitive
 
     implicit def identityToRaw(h: Header.ToRaw): Header.ToRaw with Primitive = new Header.ToRaw
-    with Primitive {
+      with Primitive {
       val values: List[Raw] = h.values
     }
 

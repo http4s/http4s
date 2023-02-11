@@ -632,7 +632,7 @@ class UriSpec extends Http4sSuite {
         (
           "param",
           List("value1", "value2"),
-        ),
+        )
       )
     assertEquals(i, Map("param" -> List("value1", "value2")))
   }
