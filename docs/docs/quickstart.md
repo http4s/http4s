@@ -1,9 +1,36 @@
 # Quick Start
 
-**Note**: To run with 2.12 please make sure that the flag `-Ypartial-unification`
+## Dependencies
+
+http4s is available for Scala 2.12, 2.13, and 3.
+
+You can add http4s to your build by adding its modules to your dependencies in `build.sbt`.
+Here are some common dependencies, more are available on the [integrations page][integrations].
+
+```scala
+val http4sVersion = "@VERSION@"
+
+libraryDependencies ++= Seq(
+  // get up and running with a client and server
+  "org.http4s" %% "http4s-ember-client" % http4sVersion,
+  "org.http4s" %% "http4s-ember-server" % http4sVersion,
+  "org.http4s" %% "http4s-dsl"          % http4sVersion,
+
+  // for core classes and traits, e.g. `Client[F]`
+  "org.http4s" %% "http4s-core"         % http4sVersion,
+  "org.http4s" %% "http4s-client"       % http4sVersion,
+  "org.http4s" %% "http4s-server"       % http4sVersion,
+)
+```
+
+@:callout(info)
+To run with 2.12 please make sure that the flag `-Ypartial-unification`
 is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
 This feature is enabled by default starting in Scala 2.13.
+@:@
 
+
+## Giter8 Template
 
 Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
@@ -104,3 +131,4 @@ a simple JSON service.
 [giter8 template]: https://github.com/http4s/http4s.g8
 [versions]: /versions/
 [sbt-revolver]: https://github.com/spray/sbt-revolver
+[integrations]: integrations.md
