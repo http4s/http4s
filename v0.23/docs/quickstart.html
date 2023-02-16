@@ -217,6 +217,8 @@
         <p class="header"><a href="#">Quick Start</a></p>
 
         <ul class="nav-list">
+          <li class="level1"><a href="#dependencies">Dependencies</a></li>
+          <li class="level1"><a href="#giter8-template">Giter8 Template</a></li>
         </ul>
 
         <p class="footer"></p>
@@ -225,9 +227,32 @@
       <main class="content">
 
         <h1 id="quick-start" class="title">Quick Start</h1>
-        <p><strong>Note</strong>: To run with 2.12 please make sure that the flag <code>-Ypartial-unification</code>
-        is enabled in your compiler options (i.e <code>scalacOptions += &quot;-Ypartial-unification&quot;</code> in sbt).
-        This feature is enabled by default starting in Scala 2.13.</p>
+        
+        <h2 id="dependencies" class="section">Dependencies<a class="anchor-link right" href="#dependencies"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>http4s is available for Scala 2.12, 2.13, and 3.</p>
+        <p>You can add http4s to your build by adding its modules to your dependencies in <code>build.sbt</code>.
+        Here are some common dependencies, more are available on the <a href="integrations.html">integrations page</a>.</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.23.18&quot;</span><span>
+
+</span><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="comment">// get up and running with a client and server
+</span><span>  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span>          % </span><span class="identifier">http4sVersion</span><span>,
+
+  </span><span class="comment">// for core classes and traits, e.g. `Client[F]`
+</span><span>  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-core&quot;</span><span>         % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-client&quot;</span><span>       % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-server&quot;</span><span>       % </span><span class="identifier">http4sVersion</span><span>,
+)</span></code></pre>
+        <div class="callout info">
+          <i class="icofont-laika">&#xef4e;</i>
+          <p>To run with 2.12 please make sure that the flag <code>-Ypartial-unification</code>
+          is enabled in your compiler options (i.e <code>scalacOptions += &quot;-Ypartial-unification&quot;</code> in sbt).
+          This feature is enabled by default starting in Scala 2.13.</p>
+        </div>
+        
+        <h2 id="giter8-template" class="section">Giter8 Template<a class="anchor-link right" href="#giter8-template"><i class="icofont-laika">&#xef71;</i></a></h2>
         <p>Getting started with http4s is easy.  Let&#39;s materialize an http4s
         skeleton project from its <a href="https://github.com/http4s/http4s.g8">giter8 template</a>:</p>
         <pre class="keep-together pdf epub"><code class="sbt"># for Scala 2.x
