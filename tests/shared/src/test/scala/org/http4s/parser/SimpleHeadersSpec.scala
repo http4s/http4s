@@ -276,5 +276,4 @@ class SimpleHeadersSpec extends Http4sSuite {
     assert(`X-Forwarded-Host`.parse(bad).isLeft)
   }
 
-
 }
