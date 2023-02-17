@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-http4s is available for Scala 2.12, 2.13, and 3. You can add http4s to your build by adding its modules to `libraryDependencies` in your `build.sbt`.
+http4s is available for Scala 2.12, 2.13, and 3.2+. You can add http4s to your build by adding its modules to `libraryDependencies` in your `build.sbt`.
 
 ```scala
 val http4sVersion = "@VERSION@"
@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-This brings in the [Ember HTTP client and server implementation][ember] as well as the the [routing DSL][dsl]. This is _most likely_ what you want. Other [integration modules][integrations] are available as well, such as for working with [JSON].
+This brings in the [Ember HTTP client and server implementation][ember] as well as the the [routing DSL][dsl]. This is _most likely_ what you want. Other [integration modules][integrations] are available as well, such as for working with [JSON], or using alternative client/server implementations, such as [Netty].
 
 Depending on your usecase, you may want to consider one of several other http4s modules. For example, if you are writing a library, you probably want to develop it against the generic http4s interfaces, without hard-coding a particular implementation, such as Ember.
 
@@ -135,6 +135,7 @@ a simple JSON service.
 [ember]: integrations.md#ember
 [giter8 template]: https://github.com/http4s/http4s.g8
 [JSON]: json.md
+[Netty]: https://github.com/http4s/http4s-netty
 [versions]: /versions/
 [sbt-revolver]: https://github.com/spray/sbt-revolver
 [integrations]: integrations.md
