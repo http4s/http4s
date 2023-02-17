@@ -268,4 +268,13 @@ class SimpleHeadersSpec extends Http4sSuite {
     assert(`X-Forwarded-For`.parse(bad2).isLeft)
   }
 
+  test("SimpleHeaders should parse X-Forwarded-Host") {
+    val header = `X-Forwarded-Host`(Uri.Host.unsafeFromString("http4s.org"))
+    assertEquals(`X-Forwarded-Host`.parse(header.host.value), Right(header))
+
+    val bad = "???"
+    assert(`X-Forwarded-Host`.parse(bad).isLeft)
+  }
+
+
 }
