@@ -213,7 +213,7 @@ private[client] object ClientHelpers {
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
-        else nextBytes.set(bytes) *> canBeReused.set(Reusable.Reuse)  *> startNextRead
+        else nextBytes.set(bytes) *> canBeReused.set(Reusable.Reuse) *> startNextRead
       case None => F.unit
     }
 
