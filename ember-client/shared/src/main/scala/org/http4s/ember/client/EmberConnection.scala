@@ -35,14 +35,15 @@ private[ember] final case class EmberConnection[F[_]](
   def isValid: F[Boolean] = {
     val isOpen = keySocket.socket.isOpen
     val isEof = nextRead.get.flatMap(_.tryGet).map {
-      case Some(result) => result.exists(_.isDefined) // if Left or None this socket is dead
+      case Some(result) => result.fold(_ => true, _.isEmpty) // if Left or None this socket is dead
       case None => false // no read yet, which is good!
     }
     (isOpen, isEof).mapN((open, eof) => open && !eof)
   }
 
   def startNextRead: F[Unit] =
-    hotRead.swap {
+    hotRead
+      .swap {
         Resource.eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]]).flatTap { result =>
           val read = keySocket.socket.read(chunkSize)
           F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
@@ -72,7 +73,9 @@ private[ember] object EmberConnection {
           .flatMap(F.ref(_))
       ),
     ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
-      Resource.make(F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead)))(
+      Resource.make(
+        F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead))
+      )(
         _.cleanup
       )
     }
