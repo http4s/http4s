@@ -228,7 +228,7 @@ private[client] object ClientHelpers {
   ): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
-        .eval(managed.value.keySocket.socket.isOpen)
+        .eval(managed.value.isValid)
         .ifM(
           managed.pure[Resource[F, *]],
           // Already Closed,

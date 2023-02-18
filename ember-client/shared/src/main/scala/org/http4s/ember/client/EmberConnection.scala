@@ -31,6 +31,15 @@ private[ember] final case class EmberConnection[F[_]](
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
+  def isValid: F[Boolean] = {
+    val isOpen = keySocket.socket.isOpen
+    val isEof = nextRead.get.flatMap(_.tryGet).map {
+      case Some(result) => result.exists(_.isDefined) // if Left or None this socket is dead
+      case None => false // no read yet, which is good!
+    }
+    (isOpen, isEof).mapN((open, eof) => open && !eof)
+  }
+
   def startNextRead(read: F[Option[Chunk[Byte]]]): F[Unit] =
     hotRead
       .swap {
