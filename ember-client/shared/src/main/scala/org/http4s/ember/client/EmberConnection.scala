@@ -26,6 +26,7 @@ import fs2.Chunk
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
+    chunkSize: Int,
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
@@ -40,10 +41,10 @@ private[ember] final case class EmberConnection[F[_]](
     (isOpen, isEof).mapN((open, eof) => open && !eof)
   }
 
-  def startNextRead(read: F[Option[Chunk[Byte]]]): F[Unit] =
-    hotRead
-      .swap {
+  def startNextRead: F[Unit] =
+    hotRead.swap {
         Resource.eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]]).flatTap { result =>
+          val read = keySocket.socket.read(chunkSize)
           F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
         }
       }
@@ -58,7 +59,8 @@ private[ember] final case class EmberConnection[F[_]](
 
 private[ember] object EmberConnection {
   def apply[F[_]](
-      keySocketResource: Resource[F, RequestKeySocket[F]]
+      keySocketResource: Resource[F, RequestKeySocket[F]],
+      chunkSize: Int,
   )(implicit F: Concurrent[F]): Resource[F, EmberConnection[F]] =
     (
       Resource.eval(keySocketResource.allocated),
@@ -70,7 +72,7 @@ private[ember] object EmberConnection {
           .flatMap(F.ref(_))
       ),
     ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
-      Resource.make(F.pure(EmberConnection(keySocket, release, nextBytes, hotRead, nextRead)))(
+      Resource.make(F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead)))(
         _.cleanup
       )
     }

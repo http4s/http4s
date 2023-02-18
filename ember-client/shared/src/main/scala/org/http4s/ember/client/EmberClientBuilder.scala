@@ -241,7 +241,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   checkEndpointIdentification,
                   sg,
                   additionalSocketOptions,
-                )
+                ),
+              chunkSize,
             ) <* Resource
               .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
               .onFinalize(
@@ -297,10 +298,10 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                 ClientHelpers.postProcessResponse(
                   request,
                   response,
-                  managed.value,
-                  chunkSize,
                   drain,
+                  managed.value.nextBytes,
                   managed.canBeReused,
+                  managed.value.startNextRead,
                 )
               case _ => Applicative[F].unit
             }
@@ -323,7 +324,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           )
           .flatMap(unixSockets =>
             EmberConnection(
-              ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
+              ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt),
+              chunkSize,
             )
           )
           .flatMap(connection =>
