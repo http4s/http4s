@@ -29,6 +29,7 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
@@ -148,24 +149,29 @@ private[client] object ClientHelpers {
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket) >>
-        connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val parse = Parser.Response.parser(maxResponseHeaderSize)(
-            head,
+      writeRequestToSocket(req, connection.keySocket.socket).productR {
+        val parse = (
+          connection.nextBytes.getAndSet(Array.emptyByteArray),
+          connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
+        ).flatMapN { (head, firstRead) =>
+          Parser.Response.parser(maxResponseHeaderSize)(
+            firstRead.fold(head)(Util.concatBytes(head, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
-          timeoutToMaybe(
-            parse,
-            timeout,
-            Defer[F].defer(
-              ApplicativeThrow[F].raiseError(
-                new java.util.concurrent.TimeoutException(
-                  s"Timed Out on EmberClient Header Receive Timeout: $timeout"
-                )
-              )
-            ),
-          )
         }
+
+        timeoutToMaybe(
+          parse,
+          timeout,
+          Defer[F].defer(
+            ApplicativeThrow[F].raiseError(
+              new java.util.concurrent.TimeoutException(
+                s"Timed Out on EmberClient Header Receive Timeout: $timeout"
+              )
+            )
+          ),
+        )
+      }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
