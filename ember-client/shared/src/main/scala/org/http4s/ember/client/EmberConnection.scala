@@ -28,9 +28,18 @@ private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
-    hotRead: Hotswap[F, Deferred[F, Option[Chunk[Byte]]]],
-    nextRead: Ref[F, Deferred[F, Option[Chunk[Byte]]]],
+    hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+    nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
+  def startNextRead(read: F[Option[Chunk[Byte]]]): F[Unit] =
+    hotRead
+      .swap {
+        Resource.eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]]).flatTap { result =>
+          F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
+        }
+      }
+      .flatMap(nextRead.set(_))
+
   def cleanup: F[Unit] =
     nextBytes.set(Array.emptyByteArray) >>
       keySocket.socket.endOfInput.attempt.void >>
@@ -45,9 +54,11 @@ private[ember] object EmberConnection {
     (
       Resource.eval(keySocketResource.allocated),
       Resource.eval(F.ref(Array.emptyByteArray)),
-      Hotswap.create[F, Deferred[F, Option[Chunk[Byte]]]],
+      Hotswap.create[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
       Resource.eval(
-        F.deferred[Option[Chunk[Byte]]].flatTap(_.complete(Some(Chunk.empty))).flatMap(F.ref(_))
+        F.deferred[Either[Throwable, Option[Chunk[Byte]]]]
+          .flatTap(_.complete(Right(Some(Chunk.empty))))
+          .flatMap(F.ref(_))
       ),
     ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
       Resource.make(F.pure(EmberConnection(keySocket, release, nextBytes, hotRead, nextRead)))(
