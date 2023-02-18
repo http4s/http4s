@@ -298,5 +298,6 @@ object BracketRequestResponse {
       )(_._2)(F)(contextApp0)
   }
 
-  private[http4s] final case class ReleaseError(cause: Throwable) extends Throwable
+  private[http4s] final case class ReleaseError(override val getCause: Throwable)
+      extends RuntimeException
 }
