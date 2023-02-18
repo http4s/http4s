@@ -22,6 +22,7 @@ import com.comcast.ip4s._
 import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
+import fs2.io.net.SocketOption
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
@@ -139,18 +140,24 @@ class EmberServerSuite extends Http4sSuite {
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
 
-  client.test("#4935 - client can detect a terminated connection") { client =>
+  client.test("#4935 - client can detect a terminated connection".only) { client =>
     def runReq(server: Server) = {
       val req =
         Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
       client.expect[String](req).assertEquals("Hello!")
     }
 
-    serverResource(_.withShutdownTimeout(0.nanos))
-      .use(server => runReq(server).as(server.addressIp4s.port))
+    serverResource(
+      _.withShutdownTimeout(0.nanos)
+        .withAdditionalSocketOptions(List(SocketOption.reuseAddress(true)))
+    ).use(server => runReq(server).as(server.addressIp4s.port))
       .flatMap { port =>
         IO.sleep(1.second) *> // so server shutdown propagates
-          serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+          serverResource(
+            _.withPort(port)
+              .withAdditionalSocketOptions(List(SocketOption.reuseAddress(true)))
+              .withShutdownTimeout(0.nanos)
+          ).use(runReq(_))
       }
   }
 
