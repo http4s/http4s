@@ -16,17 +16,21 @@
 
 package org.http4s.ember.client
 
-import cats._
 import cats.effect.Concurrent
 import cats.effect.Resource
+import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
+import cats.effect.std.Hotswap
 import cats.syntax.all._
+import fs2.Chunk
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
-)(implicit F: MonadThrow[F]) {
+    hotRead: Hotswap[F, Deferred[F, Option[Chunk[Byte]]]],
+    nextRead: Ref[F, Deferred[F, Option[Chunk[Byte]]]],
+)(implicit F: Concurrent[F]) {
   def cleanup: F[Unit] =
     nextBytes.set(Array.emptyByteArray) >>
       keySocket.socket.endOfInput.attempt.void >>
@@ -35,14 +39,19 @@ private[ember] final case class EmberConnection[F[_]](
 }
 
 private[ember] object EmberConnection {
-  def apply[F[_]: Concurrent](
+  def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]]
-  ): F[EmberConnection[F]] =
-    Ref[F].of(Array.emptyByteArray).flatMap { nextBytes =>
-      val keySocketResourceAllocated: F[(RequestKeySocket[F], F[Unit])] =
-        keySocketResource.allocated
-      keySocketResourceAllocated.map { case (keySocket, release) =>
-        EmberConnection(keySocket, release, nextBytes)
-      }
+  )(implicit F: Concurrent[F]): Resource[F, EmberConnection[F]] =
+    (
+      Resource.eval(keySocketResource.allocated),
+      Resource.eval(F.ref(Array.emptyByteArray)),
+      Hotswap.create[F, Deferred[F, Option[Chunk[Byte]]]],
+      Resource.eval(
+        F.deferred[Option[Chunk[Byte]]].flatTap(_.complete(Some(Chunk.empty))).flatMap(F.ref(_))
+      ),
+    ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
+      Resource.make(F.pure(EmberConnection(keySocket, release, nextBytes, hotRead, nextRead)))(
+        _.cleanup
+      )
     }
 }

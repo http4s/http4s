@@ -232,23 +232,23 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           )
       builder =
         KeyPool.Builder
-          .apply[F, RequestKey, EmberConnection[F]](
-            (requestKey: RequestKey) =>
-              EmberConnection(
-                org.http4s.ember.client.internal.ClientHelpers
-                  .requestKeyToSocketWithKey[F](
-                    requestKey,
-                    tlsContextOptWithDefault,
-                    checkEndpointIdentification,
-                    sg,
-                    additionalSocketOptions,
-                  )
-              ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            (connection: EmberConnection[F]) =>
-              logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
-              ) >>
-                connection.cleanup,
+          .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
+            EmberConnection(
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  sg,
+                  additionalSocketOptions,
+                )
+            ) <* Resource
+              .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
+              .onFinalize(
+                logger.trace(
+                  s"Shutting Down Connection - RequestKey: ${requestKey}"
+                )
+              )
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -321,12 +321,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               )
           )
           .flatMap(unixSockets =>
-            Resource
-              .make(
-                EmberConnection(
-                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
-                )
-              )(ec => ec.shutdown)
+            EmberConnection(
+              ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
+            )
           )
           .flatMap(connection =>
             Resource.eval(
