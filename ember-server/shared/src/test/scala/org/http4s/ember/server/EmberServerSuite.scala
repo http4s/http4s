@@ -149,7 +149,8 @@ class EmberServerSuite extends Http4sSuite {
     serverResource(_.withShutdownTimeout(0.nanos))
       .use(server => runReq(server).as(server.addressIp4s.port))
       .flatMap { port =>
-        serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+        IO.sleep(1.second) *> // so server shutdown propagates
+          serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
       }
   }
 
