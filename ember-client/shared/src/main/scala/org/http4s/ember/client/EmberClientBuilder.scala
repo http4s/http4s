@@ -297,8 +297,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                 ClientHelpers.postProcessResponse(
                   request,
                   response,
+                  managed.value,
+                  chunkSize,
                   drain,
-                  managed.value.nextBytes,
                   managed.canBeReused,
                 )
               case _ => Applicative[F].unit

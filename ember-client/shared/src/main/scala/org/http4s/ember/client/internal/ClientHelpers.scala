@@ -202,8 +202,9 @@ private[client] object ClientHelpers {
   private[ember] def postProcessResponse[F[_]](
       req: Request[F],
       resp: Response[F],
+      connection: EmberConnection[F],
+      chunkSize: Int,
       drain: F[Option[Array[Byte]]],
-      nextBytes: Ref[F, Array[Byte]],
       canBeReused: Ref[F, Reusable],
   )(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
@@ -212,7 +213,9 @@ private[client] object ClientHelpers {
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
-        else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+        else connection.nextBytes.set(bytes) *>
+          connection.startNextRead(connection.keySocket.socket.read(chunkSize)) *>
+          canBeReused.set(Reusable.Reuse)
       case None => F.unit
     }
 
