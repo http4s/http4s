@@ -21,7 +21,7 @@ with v1.0.0-M38.
 
 # v0.23.18 (2023-01-17)
 
-This is is a bugfix that addresses a fatal error that affects a small
+This is a bugfix that addresses a fatal error that affects a small
 number of people.  It also contains some optimizations and important
 dependency upgrades, including a memory leak in Cats Effect.
 
@@ -33,7 +33,7 @@ dependency upgrades, including a memory leak in Cats Effect.
 * Update fs2-core, fs2-io to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6925
 
 ### http4s-ember-core
-* Fix Ember H2 end of stream handling by @valencik in https://github.com/http4s/http4s/pull/6882
+* Fix Ember H2 end of stream handling by @valencik, @janilcgarcia in https://github.com/http4s/http4s/pull/6882
 ### http4s-circe
 * Use `Chunk` builder in `CirceInstances#streamedJsonArray` by @danicheg in https://github.com/http4s/http4s/pull/6922
 ### Behind the scenes

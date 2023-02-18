@@ -37,10 +37,9 @@ import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
-import scodec.bits.ByteVector
+import scodec.bits._
 
 import java.io.File
-import java.nio.charset.StandardCharsets
 import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
@@ -769,7 +768,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity.Strict(ByteVector.view("Not found".getBytes(StandardCharsets.UTF_8))), // TODO
+      entity = Entity.Strict(asciiBytes"Not found"),
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

@@ -42,7 +42,7 @@ final case class Charset private[http4s] (nioCharset: NioCharset) extends Render
   def render(writer: Writer): writer.type = writer << nioCharset.name
 }
 
-object Charset extends CharsetCompanionPlatform {
+object Charset {
 
   implicit val catsInstancesForHttp4sCharset: Hash[Charset] with Order[Charset] =
     new Hash[Charset] with Order[Charset] {
@@ -61,10 +61,13 @@ object Charset extends CharsetCompanionPlatform {
   val `UTF-16BE`: Charset = Charset(StandardCharsets.UTF_16BE)
   val `UTF-16LE`: Charset = Charset(StandardCharsets.UTF_16LE)
 
+  private[http4s] def availableCharsets =
+    NioCharset.availableCharsets.values.asScala.toSeq
+
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups
   // that will succeed.
-  private val cache: HashMap[String, NioCharset] = {
+  private[this] val cache: HashMap[String, NioCharset] = {
     val map = new HashMap[String, NioCharset]
     for {
       cs <- availableCharsets
