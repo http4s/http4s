@@ -139,19 +139,20 @@ class EmberServerSuite extends Http4sSuite {
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
 
-  client.test("#4935 - client can detect a terminated connection") { client =>
-    def runReq(server: Server) = {
-      val req =
-        Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
-      client.expect[String](req).assertEquals("Hello!")
-    }
-
-    serverResource(_.withShutdownTimeout(0.nanos))
-      .use(server => runReq(server).as(server.addressIp4s.port))
-      .flatMap { port =>
-        IO.sleep(1.second) *> // so server shutdown propagates
-          serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+  if (!Platform.isNative)
+    client.test("#4935 - client can detect a terminated connection") { client =>
+      def runReq(server: Server) = {
+        val req =
+          Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
+        client.expect[String](req).assertEquals("Hello!")
       }
-  }
+
+      serverResource(_.withShutdownTimeout(0.nanos))
+        .use(server => runReq(server).as(server.addressIp4s.port))
+        .flatMap { port =>
+          IO.sleep(1.second) *> // so server shutdown propagates
+            serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+        }
+    }
 
 }
