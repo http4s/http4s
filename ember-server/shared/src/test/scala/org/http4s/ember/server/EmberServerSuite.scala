@@ -139,7 +139,7 @@ class EmberServerSuite extends Http4sSuite {
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
 
-  client.test("#4935 - client can detect a terminated connection".only) { client =>
+  client.test("#4935 - client can detect a terminated connection") { client =>
     def runReq(server: Server) = {
       val req =
         Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
