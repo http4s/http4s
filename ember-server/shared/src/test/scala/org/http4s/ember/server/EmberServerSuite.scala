@@ -138,4 +138,19 @@ class EmberServerSuite extends Http4sSuite {
         r2 <- client.fetchAs[String](request)
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
+
+  client.test("#4935 - client can detect a terminated connection".only) { client =>
+    def runReq(server: Server) = {
+      val req =
+        Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
+      client.expect[String](req).assertEquals("Hello!")
+    }
+
+    serverResource(_.withShutdownTimeout(0.nanos))
+      .use(server => runReq(server).as(server.addressIp4s.port))
+      .flatMap { port =>
+        serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+      }
+  }
+
 }
