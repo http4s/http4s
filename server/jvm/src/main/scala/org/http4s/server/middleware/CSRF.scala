@@ -41,6 +41,7 @@ import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.internal.decodeHexString
 import org.http4s.internal.encodeHexString
 import org.typelevel.ci._
+import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
@@ -102,7 +103,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
       joined <- F.delay(rawToken + "-" + clock.millis())
       data <- F.fromEither(ByteVector.encodeUtf8(joined))
       out <- Hmac[M].digest(key, data)
-    } yield lift(joined + "-" + encodeHexString(out.toArray))
+    } yield lift(joined + "-" + out.toHex(Alphabets.HexUppercase))
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
