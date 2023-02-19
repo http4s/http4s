@@ -49,12 +49,14 @@ package object internal extends InternalPlatform {
     * @param data the array
     * @return a hexadecimal encoded string
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def encodeHexString(data: Array[Byte]): String =
     new String(encodeHex(data))
 
   /** Encode a string to a Hexadecimal string representation
     * Adapted from apache commons Hex.encodeHex
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def encodeHex(data: Array[Byte]): Array[Char] = {
     val l = data.length
     val out = new Array[Char](l << 1)

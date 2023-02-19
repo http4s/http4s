@@ -20,6 +20,7 @@ package bench
 import org.openjdk.jmh.annotations._
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.EncodeHexBench"
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -34,6 +35,7 @@ class EncodeHexBench {
   }
 
   @Benchmark
+  @nowarn("cat=deprecation")
   def encodeHex: Array[Char] =
     org.http4s.internal.encodeHex(bytes)
 }
