@@ -39,7 +39,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.internal.decodeHexString
-import org.http4s.internal.encodeHexString
 import org.typelevel.ci._
 import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
@@ -528,7 +527,10 @@ object CSRF {
 
   /** Generate an unsigned CSRF token from a `SecureRandom` */
   private[middleware] def genTokenString[F[_]: Sync]: F[String] =
-    CachedRandom.nextBytes(CSRFTokenLength).to[F].map(encodeHexString)
+    CachedRandom
+      .nextBytes(CSRFTokenLength)
+      .map(arr => ByteVector.view(arr).toHex(Alphabets.HexUppercase))
+      .to[F]
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Sync[F]): F[javax.crypto.SecretKey] =
