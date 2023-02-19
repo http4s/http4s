@@ -20,12 +20,22 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.CommonRules
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
+
+/** Response header that indicates whether the browser should be allowed to
+  * render the response as a downloadable file.
+  *
+  * [[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options X-Content-Type-Options]]
+  */
+sealed abstract case class `X-Content-Type-Options` private (value: CIString)
 
 object `X-Content-Type-Options`
     extends HeaderCompanion[`X-Content-Type-Options`]("X-Content-Type-Options") {
 
-  val nosniff = new `X-Content-Type-Options`(ci"nosniff")
+  private class XContentTypeOptionsImpl(value: CIString) extends `X-Content-Type-Options`(value)
+
+  private val nosniff = new XContentTypeOptionsImpl(ci"nosniff")
 
   override def parse(s: String): ParseResult[`X-Content-Type-Options`] =
     ParseResult.fromParser(parser, "Invalid X-Content-Type-Options header")(s)
@@ -43,10 +53,3 @@ object `X-Content-Type-Options`
       parse,
     )
 }
-
-/** Response header that indicates whether the browser should be allowed to
-  * render the response as a downloadable file.
-  *
-  * [[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options X-Content-Type-Options]]
-  */
-final case class `X-Content-Type-Options` private (value: CIString)
