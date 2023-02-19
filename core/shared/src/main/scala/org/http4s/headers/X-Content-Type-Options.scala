@@ -17,17 +17,24 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.typelevel.ci.CIStringSyntax
+import org.http4s.internal.parsing.CommonRules
+import org.typelevel.ci.{CIString, CIStringSyntax}
 
 object `X-Content-Type-Options`
     extends HeaderCompanion[`X-Content-Type-Options`]("X-Content-Type-Options") {
+
+  val nosniff = new `X-Content-Type-Options`(ci"nosniff")
 
   override def parse(s: String): ParseResult[`X-Content-Type-Options`] =
     ParseResult.fromParser(parser, "Invalid X-Content-Type-Options header")(s)
 
   private[http4s] val parser: Parser[`X-Content-Type-Options`] =
-    Parser.string("nosniff").as(new `X-Content-Type-Options`("nosniff"))
+    CommonRules.headerRep1(CommonRules.quotedString).mapFilter {
+      case NonEmptyList("nosniff", _) => Some(nosniff)
+      case _ => None
+    }
 
   override implicit val headerInstance: Header[`X-Content-Type-Options`, Header.Single] =
     Header.createRendered(
@@ -42,4 +49,4 @@ object `X-Content-Type-Options`
   *
   * [[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options X-Content-Type-Options]]
   */
-final case class `X-Content-Type-Options`(value: String)
+final case class `X-Content-Type-Options` private (value: CIString)

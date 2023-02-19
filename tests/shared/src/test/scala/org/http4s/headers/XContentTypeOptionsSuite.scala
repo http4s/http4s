@@ -22,7 +22,7 @@ import org.http4s.implicits.http4sSelectSyntaxOne
 class XContentTypeOptionsSuite extends Http4sSuite {
   test("render should create and header with no-sniff") {
     assertEquals(
-      `X-Content-Type-Options`.parse("nosniff").map(_.renderString),
+      `X-Content-Type-Options`.parse("\"nosniff\"").map(_.renderString),
       ParseResult.success("X-Content-Type-Options: nosniff"),
     )
   }
