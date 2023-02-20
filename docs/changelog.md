@@ -3,6 +3,60 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.19-RC1 (2023-02-20)
+
+This release candidate updates to Cats Effect v3.5.0-RC2, which brings [major changes](https://github.com/typelevel/cats-effect/releases/tag/v3.5.0-RC1), as well as FS2 v3.7.0-RC1. Otherwise there are no significant changes in http4s itself.
+
+## What's Changed
+
+### http4s-core
+
+* Update nscplugin, sbt-scala-native, ... to 0.4.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6946
+* Update sbt-scalajs, scalajs-compiler, ... to 1.13.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6962
+* Update scodec-bits to 1.1.35 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6961
+* Allow to customize flags for file decoders by @armanbilge in https://github.com/http4s/http4s/pull/6982
+* Update to CE v3.5.0-RC2, FS2 v3.7.0-RC1 by @armanbilge in https://github.com/http4s/http4s/pull/6985
+
+### http4s-ember-server
+
+* Fix hanging when stream fails by @TimWSpence in https://github.com/http4s/http4s/pull/6930
+
+### Documentation
+
+* Phase out the client DSL in the docs by @gringrape in https://github.com/http4s/http4s/pull/6944
+* Add section with sbt dependencies to quickstart by @valencik in https://github.com/http4s/http4s/pull/6963
+
+### Behind the scenes
+
+* Update sbt-native-packager to 1.9.13 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6928
+* Update http4s-circe, http4s-ember-client, ... to 0.23.18 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6929
+* Update scalafmt-core to 3.7.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6932
+* Update scalafmt-core to 3.7.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6938
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6949
+* Refactor `Outcome` usage in `BracketRequestResponseSuite` by @danicheg in https://github.com/http4s/http4s/pull/6948
+* Update sbt-jmh to 0.4.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6951
+* Update cats-effect, cats-effect-std, ... to 3.4.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6956
+* Update scala-java-time to 2.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6833
+* Update locales-minimal-en_us-db to 1.5.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6832
+* Update scala3-library, ... to 3.2.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6947
+* Update fs2-core, fs2-io to 3.6.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6964
+* Update sbt-native-packager to 1.9.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6966
+* Update fs2-core, fs2-io to 3.6.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6967
+* Update sbt-scoverage to 2.0.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6969
+* Update netty-buffer, netty-codec-http to 4.1.88.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6971
+* Update netty-buffer, netty-codec-http to 4.1.89.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6972
+* Update sbt-native-packager to 1.9.15 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6973
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6974
+* Update cats-effect, cats-effect-std, ... to 3.4.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6975
+* Tweak `MetricsOps#classifierFMethodWithOptionallyExcludedPath` by @danicheg in https://github.com/http4s/http4s/pull/6976
+* Update epollcat to 0.1.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6983
+
+## New Contributors
+
+* @gringrape made their first contribution in https://github.com/http4s/http4s/pull/6944
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.18...v0.23.19-RC1
+
 # v0.23.18 (2023-01-17)
 
 This is a bugfix that addresses a fatal error that affects a small
