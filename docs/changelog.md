@@ -12,7 +12,6 @@ This release candidate updates to Cats Effect v3.5.0-RC2, which brings [major ch
 ### http4s-core
 
 * Update nscplugin, sbt-scala-native, ... to 0.4.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6946
-* Update scala3-library, ... to 3.2.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6947
 * Update sbt-scalajs, scalajs-compiler, ... to 1.13.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6962
 * Update scodec-bits to 1.1.35 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6961
 * Allow to customize flags for file decoders by @armanbilge in https://github.com/http4s/http4s/pull/6982
@@ -39,6 +38,7 @@ This release candidate updates to Cats Effect v3.5.0-RC2, which brings [major ch
 * Update cats-effect, cats-effect-std, ... to 3.4.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6956
 * Update scala-java-time to 2.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6833
 * Update locales-minimal-en_us-db to 1.5.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6832
+* Update scala3-library, ... to 3.2.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6947
 * Update fs2-core, fs2-io to 3.6.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6964
 * Update sbt-native-packager to 1.9.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6966
 * Update fs2-core, fs2-io to 3.6.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6967
