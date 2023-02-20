@@ -34,7 +34,7 @@ class XContentTypeOptionsSuite extends Http4sSuite {
   test("parse should create header with uppercase value") {
     assertEquals(
       `X-Content-Type-Options`.parse("\"NOSNIFF\"").map(_.renderString),
-      ParseResult.success("X-Content-Type-Options: nosniff")
+      ParseResult.success("X-Content-Type-Options: nosniff"),
     )
   }
 }
