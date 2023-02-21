@@ -507,6 +507,13 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Date(httpDate)
     }
 
+  implicit val http4sTestingArbitraryForDeprecationHeader: Arbitrary[headers.Deprecation] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Deprecation(httpDate)
+    }
+
   val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
