@@ -93,7 +93,7 @@ timingService(goodRequest).unsafeRunSync().headers
 
 ### RequestId
 
-Use the `RequestId` middleware to automatically generate a `X-Request-ID` header to a request,
+Use the `RequestId` middleware to automatically generate a `X-Request-ID` header for a request,
 if one wasn't supplied. Adds a `X-Request-ID` header to the response with the id generated
 or supplied as part of the request.
 
