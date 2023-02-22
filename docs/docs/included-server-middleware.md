@@ -32,7 +32,7 @@ val postRequest = Request[IO](Method.POST, uri"/post")
 ## Headers
 
 ### Caching
-This middleware adds response headers so that clients know how to cache a response. It performs no caching.
+This middleware adds response headers so that clients know how to cache a response. It performs no server-side caching.
 Below is one example of usage, see [Caching] for more methods.
 
 ```scala mdoc:silent
