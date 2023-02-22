@@ -30,7 +30,7 @@ object Sunset {
 
   /* `Date = HTTP-date` */
   private[http4s] val parser: Parser[`Sunset`] =
-    HttpDate.imfFixdate.map(apply)
+    HttpDate.parser.map(apply)
 
   implicit val headerInstance: Header[Sunset, Header.Single] =
     Header.createRendered(

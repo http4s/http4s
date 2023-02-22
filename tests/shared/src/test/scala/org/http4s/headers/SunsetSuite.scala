@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import cats.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 
@@ -49,16 +48,20 @@ class SunsetSuite extends HeaderLaws {
       Right(HttpDate.unsafeFromZonedDateTime(gmtSunset)),
     )
   }
-  test("fromSunset should not accept format RFC 1036") {
+  test("fromSunset should accept format RFC 1036") {
     assertEquals(
-      Sunset.parse("Sunday, 06-Nov-94 08:49:37 GMT").leftMap(_.sanitized),
-      Left("Invalid Sunset header"),
+      Date.parse("Sunday, 06-Nov-94 08:49:37 GMT").map(_.date),
+      Right(HttpDate.unsafeFromZonedDateTime(gmtSunset)),
     )
   }
-  test("fromSunset should not accept format ANSI date") {
+  test("fromSunset should accept format ANSI date") {
     assertEquals(
-      Sunset.parse("Sun Nov  6 08:49:37 1994").leftMap(_.sanitized),
-      Left("Invalid Sunset header"),
+      Date.parse("Sun Nov  6 08:49:37 1994").map(_.date),
+      Right(HttpDate.unsafeFromZonedDateTime(gmtSunset)),
+    )
+    assertEquals(
+      Date.parse("Sun Nov 16 08:49:37 1994").map(_.date),
+      Right(HttpDate.unsafeFromZonedDateTime(gmtSunset.plusDays(10))),
     )
   }
 }
