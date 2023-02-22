@@ -20,6 +20,10 @@ package headers
 import cats.parse.Parser
 import org.typelevel.ci._
 
+/** Sunset Header - RFC 8594
+  *
+  * https://www.rfc-editor.org/rfc/rfc8594
+  */
 object Sunset {
   def parse(s: String): ParseResult[Sunset] =
     ParseResult.fromParser(parser, "Invalid Sunset header")(s)

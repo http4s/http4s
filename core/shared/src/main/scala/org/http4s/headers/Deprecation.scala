@@ -20,6 +20,10 @@ package headers
 import cats.parse.Parser
 import org.typelevel.ci._
 
+/** Deprecation Header
+  *
+  * https://greenbytes.de/tech/webdav/draft-ietf-httpapi-deprecation-header-latest.html#the-deprecation-http-response-header-field
+  */
 object Deprecation {
   def parse(s: String): ParseResult[Deprecation] =
     ParseResult.fromParser(parser, "Invalid Deprecation header")(s)
