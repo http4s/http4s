@@ -17,7 +17,6 @@
 package org.http4s
 package client
 
-import cats.effect.Async
 import cats.effect.Resource
 import cats.effect.Sync
 import cats.syntax.all._
@@ -56,7 +55,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
     val sslSocketFactory: Option[SSLSocketFactory],
-)(implicit protected val F: Async[F])
+)(implicit protected val F: Sync[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,
@@ -214,7 +213,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
-  def apply[F[_]: Async]: JavaNetClientBuilder[F] =
+  def apply[F[_]: Sync]: JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = defaults.ConnectTimeout,
       readTimeout = defaults.RequestTimeout,
