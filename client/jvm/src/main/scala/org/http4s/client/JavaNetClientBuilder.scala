@@ -227,5 +227,5 @@ object JavaNetClientBuilder {
     ) {}
 
   @deprecated("Use overload with Sync constraint", "0.23.19")
-  def apply[F[_]](F: Async[F]): JavaNetClientBuilder[F] = apply(F: Sync[F])
+  def apply[F[_], SourceBreakingDummy](F: Async[F]): JavaNetClientBuilder[F] = apply(F: Sync[F])
 }
