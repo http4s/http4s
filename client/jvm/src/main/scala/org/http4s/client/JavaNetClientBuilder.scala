@@ -167,6 +167,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
     }
 
+  // scalafix:off Http4sFs2Linters.noFs2SyncCompiler
+  // good enough for `SyncIO`, and FS2 will upgrade compiler at runtime if `IO`
   private def writeBody(req: Request[F], conn: HttpURLConnection): F[Unit] =
     if (req.isChunked)
       F.delay(conn.setDoOutput(true)) *>
@@ -187,6 +189,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
+  // scalafix:on
 
   private def readBody(conn: HttpURLConnection): Stream[F, Byte] = {
     def inputStream =
