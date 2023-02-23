@@ -17,6 +17,7 @@
 package org.http4s
 package client
 
+import cats.effect.Async
 import cats.effect.Resource
 import cats.effect.Sync
 import cats.syntax.all._
@@ -224,4 +225,7 @@ object JavaNetClientBuilder {
       hostnameVerifier = None,
       sslSocketFactory = None,
     ) {}
+
+  @deprecated("Use overload with Sync constraint", "0.23.19")
+  def apply[F[_]](F: Async[F]): JavaNetClientBuilder[F] = apply(F: Sync[F])
 }

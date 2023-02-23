@@ -403,6 +403,12 @@ lazy val client = libraryCrossProject("client")
         "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1"
       ),
       // end wsclient
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.F"
+      ), // sealed protected
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.this"
+      ), // private
     ) ++ {
       if (tlIsScala3.value)
         Seq(
