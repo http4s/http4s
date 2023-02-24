@@ -20,7 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.internal.parsing.CommonRules
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
 
 /** The X-Frame-Options HTTP response header can be used to indicate whether or not a browser should be allowed to
   * render a page in a frame or iframe.
