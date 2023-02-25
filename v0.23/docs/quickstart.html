@@ -229,19 +229,18 @@
         <h1 id="quick-start" class="title">Quick Start</h1>
         
         <h2 id="dependencies" class="section">Dependencies<a class="anchor-link right" href="#dependencies"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>http4s is available for Scala 2.12, 2.13, and 3.</p>
-        <p>You can add http4s to your build by adding its modules to your dependencies in <code>build.sbt</code>.
-        Here are some common dependencies, more are available on the <a href="integrations.html">integrations page</a>.</p>
-        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.23.18&quot;</span><span>
+        <p>http4s is available for Scala 2.12, 2.13, and 3.2+. You can add http4s to your build by adding its modules to <code>libraryDependencies</code> in your <code>build.sbt</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.23.18&quot;</span><span>
 
 </span><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
-  </span><span class="comment">// get up and running with a client and server
-</span><span>  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-client&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span>          % </span><span class="identifier">http4sVersion</span><span>,
-
-  </span><span class="comment">// for core classes and traits, e.g. `Client[F]`
-</span><span>  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-core&quot;</span><span>         % </span><span class="identifier">http4sVersion</span><span>,
+)</span></code></pre>
+        <p>This brings in the <a href="integrations.html#ember">Ember HTTP client and server implementation</a> as well as the the <a href="dsl.html">routing DSL</a>. This is <em>most likely</em> what you want. Other <a href="integrations.html">integration modules</a> are available as well, such as for working with <a href="json.html">JSON</a>, or using alternative client/server implementations, such as <a href="https://github.com/http4s/http4s-netty">Netty</a>. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.</p>
+        <p>Depending on your usecase, you may want to consider one of several other http4s modules. For example, if you are writing a library, you probably want to develop it against the generic http4s interfaces, without hard-coding a particular implementation, such as Ember.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-core&quot;</span><span>         % </span><span class="identifier">http4sVersion</span><span>,
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-client&quot;</span><span>       % </span><span class="identifier">http4sVersion</span><span>,
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-server&quot;</span><span>       % </span><span class="identifier">http4sVersion</span><span>,
 )</span></code></pre>
