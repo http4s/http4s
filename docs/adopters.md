@@ -184,5 +184,5 @@ G8 templates provide a fast way to get started with SBT projects by just running
 ----
 
 @:style(footer)
-[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
+[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/docs/adopters.md), alphabetically, if you please.
 @:@
