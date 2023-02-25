@@ -155,7 +155,7 @@ private[client] object ClientHelpers {
           connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
         ).flatMapN { (head, firstRead) =>
           Parser.Response.parser(maxResponseHeaderSize)(
-            firstRead.fold(head)(Util.concatBytes(head, _)),
+            firstRead.foldLeft(head)(Util.concatBytes(_, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
         }
