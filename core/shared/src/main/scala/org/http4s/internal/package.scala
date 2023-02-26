@@ -41,6 +41,7 @@ import scala.util.control.NoStackTrace
 package object internal extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
@@ -75,9 +76,11 @@ package object internal extends InternalPlatform {
     iterateData(out, l)
   }
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
     decodeHex(data.toCharArray)
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private object HexDecodeException extends Exception with NoStackTrace
 
   /** Dirty, optimized hex decoding based off of apache
@@ -86,6 +89,7 @@ package object internal extends InternalPlatform {
     * @param data
     * @return
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
     def toDigit(ch: Char): Int = {
       val digit = Character.digit(ch, 16)
