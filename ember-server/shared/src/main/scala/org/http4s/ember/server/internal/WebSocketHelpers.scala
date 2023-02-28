@@ -100,6 +100,8 @@ private[internal] object WebSocketHelpers {
     handler.handleErrorWith {
       case e @ BrokenPipeError() =>
         logger.trace(e)("WebSocket connection abruptly terminated by client")
+      case e @ EndOfStreamError() =>
+        logger.trace(e)("WebSocket connection abruptly terminated by client")
       case e => logger.error(e)("WebSocket connection terminated with exception")
     }
   }
