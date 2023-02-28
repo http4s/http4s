@@ -3,6 +3,40 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.19-RC2 (2023-02-28)
+
+This release candidate updates to Cats Effect v3.5.0-RC3 and FS2 v3.7.0-RC2.
+
+## What's Changed
+
+### http4s-core
+
+* Update cats-effect, cats-effect-std, ... to 3.5.0-RC3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7004
+* Update fs2-core, fs2-io to 3.7.0-RC2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7005
+
+### http4s-server
+
+* Use `ByteVector#toHex` in `CSRF` Middleware by @danicheg in https://github.com/http4s/http4s/pull/6984
+* Use `ByteVector#fromHex` in `CSRF` Middleware by @danicheg in https://github.com/http4s/http4s/pull/7002
+
+### http4s-client
+
+* `JavaNetClient` does not need `Async` by @armanbilge in https://github.com/http4s/http4s/pull/6996
+
+### Documentation
+
+* Clarify module choices in quickstart docs by @armanbilge in https://github.com/http4s/http4s/pull/6977
+
+### Behind the scenes
+
+* Update sbt-native-packager to 1.9.16 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6987
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/6988
+* Update scalafmt-core to 3.7.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6997
+* Update scodec-bits to 1.1.36 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/6998
+* Update scodec-bits to 1.1.37 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7003
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.19-RC1...v0.23.19-RC2
+
 # v0.23.19-RC1 (2023-02-20)
 
 This release candidate updates to Cats Effect v3.5.0-RC2, which brings [major changes](https://github.com/typelevel/cats-effect/releases/tag/v3.5.0-RC1), as well as FS2 v3.7.0-RC1. Otherwise there are no significant changes in http4s itself.
