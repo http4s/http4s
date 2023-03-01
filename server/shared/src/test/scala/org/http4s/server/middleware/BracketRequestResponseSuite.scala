@@ -18,9 +18,12 @@ package org.http4s.server.middleware
 
 import cats.data._
 import cats.effect._
+import fs2.Chunk
 import fs2.Stream
 import org.http4s._
 import org.http4s.server._
+import org.http4s.server.middleware.BracketRequestResponse.ReleaseError
+import scodec.bits.ByteVector
 
 final class BracketRequestResponseSuite extends Http4sSuite {
 
@@ -98,68 +101,100 @@ final class BracketRequestResponseSuite extends Http4sSuite {
     }
   }
 
-  test(
-    "When more than one request is running at a time, release Refs should reflect the current state"
-  ) {
-    for {
-      acquireRef <- Ref.of[IO, Long](0L)
-      releaseRef <- Ref.of[IO, Long](0L)
-      middleware =
-        BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, oc) =>
-          IO(assert(oc.isSuccess)) *> releaseRef.update(_ + 1L)
-        }
-      routes = middleware(
-        Kleisli((contextRequest: ContextRequest[IO, Long]) =>
-          OptionT.liftF(
-            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))
+  private def testConcurrentRequestsRunning(
+      mkEntity: Long => Entity[IO],
+      isStreamedEntity: Boolean,
+  ): Unit = {
+    val testNamePostfix =
+      if (isStreamedEntity)
+        "for Streamed response body"
+      else
+        "for non-Streamed response body"
+
+    test(
+      s"When more than one request is running at a time, release Refs should reflect the current state $testNamePostfix"
+    ) {
+      for {
+        acquireRef <- Ref.of[IO, Long](0L)
+        releaseRef <- Ref.of[IO, Long](0L)
+        middleware =
+          BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
+            acquireRef.updateAndGet(_ + 1L)
+          ) { case (_, oc) =>
+            IO(assert(oc.isSuccess)) *> releaseRef.update(_ + 1L)
+          }
+        routes = middleware(
+          Kleisli((contextRequest: ContextRequest[IO, Long]) =>
+            OptionT.liftF(
+              IO(
+                Response(
+                  status = Status.Ok,
+                  entity = mkEntity(contextRequest.context),
+                )
+              )
+            )
           )
-        )
-      ).orNotFound
-      // T0
-      acquireCount0 <- acquireRef.get
-      releaseCount0 <- releaseRef.get
-      // T1
-      response1 <- routes.run(Request[IO]())
-      acquireCount1 <- acquireRef.get
-      releaseCount1 <- releaseRef.get
-      // T2
-      response2 <- routes.run(Request[IO]())
-      acquireCount2 <- acquireRef.get
-      releaseCount2 <- releaseRef.get
-      // T3
-      responseBody3 <- response1.as[String]
-      responseValue3 <- IO(responseBody3.toLong)
-      acquireCount3 <- acquireRef.get
-      releaseCount3 <- releaseRef.get
-      // T4
-      responseBody4 <- response2.as[String]
-      responseValue4 <- IO(responseBody4.toLong)
-      acquireCount4 <- acquireRef.get
-      releaseCount4 <- releaseRef.get
-    } yield {
-      // T0
-      assertEquals(acquireCount0, 0L)
-      assertEquals(releaseCount0, 0L)
-      // T1
-      assertEquals(response1.status, Status.Ok)
-      assertEquals(acquireCount1, 1L)
-      assertEquals(releaseCount1, 0L)
-      // T2
-      assertEquals(response2.status, Status.Ok)
-      assertEquals(acquireCount2, 2L)
-      assertEquals(releaseCount2, 0L)
-      // T3
-      assertEquals(responseValue3, 1L)
-      assertEquals(acquireCount3, 2L)
-      assertEquals(releaseCount3, 1L)
-      // T4
-      assertEquals(responseValue4, 2L)
-      assertEquals(acquireCount4, 2L)
-      assertEquals(releaseCount4, 2L)
+        ).orNotFound
+        // T0
+        acquireCount0 <- acquireRef.get
+        releaseCount0 <- releaseRef.get
+        // T1
+        response1 <- routes.run(Request[IO]())
+        acquireCount1 <- acquireRef.get
+        releaseCount1 <- releaseRef.get
+        // T2
+        response2 <- routes.run(Request[IO]())
+        acquireCount2 <- acquireRef.get
+        releaseCount2 <- releaseRef.get
+        // T3
+        responseBody3 <- response1.as[String]
+        responseValue3 <- IO(responseBody3.toLong)
+        acquireCount3 <- acquireRef.get
+        releaseCount3 <- releaseRef.get
+        // T4
+        responseBody4 <- response2.as[String]
+        responseValue4 <- IO(responseBody4.toLong)
+        acquireCount4 <- acquireRef.get
+        releaseCount4 <- releaseRef.get
+      } yield {
+        // T0
+        assertEquals(acquireCount0, 0L)
+        assertEquals(releaseCount0, 0L)
+        // T1
+        assertEquals(response1.status, Status.Ok)
+        assertEquals(acquireCount1, 1L)
+        assertEquals(releaseCount1, if (isStreamedEntity) 0L else 1L)
+        // T2
+        assertEquals(response2.status, Status.Ok)
+        assertEquals(acquireCount2, 2L)
+        assertEquals(releaseCount2, if (isStreamedEntity) 0L else 2L)
+        // T3
+        assertEquals(responseValue3, 1L)
+        assertEquals(acquireCount3, 2L)
+        assertEquals(releaseCount3, if (isStreamedEntity) 1L else 2L)
+        // T4
+        assertEquals(responseValue4, 2L)
+        assertEquals(acquireCount4, 2L)
+        assertEquals(releaseCount4, 2L)
+      }
     }
   }
+
+  testConcurrentRequestsRunning(
+    mkEntity = context =>
+      Entity.Default(
+        fs2.Stream
+          .eval(IO.delay(Chunk.array(context.toString.getBytes)))
+          .unchunks,
+        None,
+      ),
+    isStreamedEntity = true,
+  )
+
+  testConcurrentRequestsRunning(
+    mkEntity = context => Entity.Strict(ByteVector.view(context.toString.getBytes)),
+    isStreamedEntity = false,
+  )
 
   test(
     "When an error occurs during processing of the Response body, acquire/release still execute"
@@ -208,37 +243,72 @@ final class BracketRequestResponseSuite extends Http4sSuite {
     } yield assertEquals(response, Left(error))
   }
 
-  test(
-    "When an error occurs during release, acquire should execute correctly and release should only be attempted once"
-  ) {
-    val error: Throwable = new AssertionError
-    for {
-      acquireRef <- Ref.of[IO, Long](0L)
-      releaseRef <- Ref.of[IO, Long](0L)
-      middleware =
-        BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
-          acquireRef.updateAndGet(_ + 1L)
-        ) { case (_, oc) =>
-          IO(assert(oc.isSuccess)) *>
-            releaseRef
-              .update(_ + 1L) *> IO
-              .raiseError[Unit](error)
-        }
-      routes = middleware(
-        Kleisli((contextRequest: ContextRequest[IO, Long]) =>
-          OptionT.liftF(
-            IO(Response(status = Status.Ok).withEntity(contextRequest.context.toString))
+  private def testReleaseCountAttempts(
+      mkEntity: Long => Entity[IO],
+      isStreamedEntity: Boolean,
+  ): Unit = {
+    val testNamePostfix =
+      if (isStreamedEntity)
+        "for Streamed response body"
+      else
+        "for non-Streamed response body"
+
+    test(
+      s"When an error occurs during release, acquire should execute correctly and release should only be attempted once $testNamePostfix"
+    ) {
+      val error: Throwable = new AssertionError
+      for {
+        acquireRef <- Ref.of[IO, Long](0L)
+        releaseRef <- Ref.of[IO, Long](0L)
+        middleware =
+          BracketRequestResponse.bracketRequestResponseCaseRoutes[IO, Long](
+            acquireRef.updateAndGet(_ + 1L)
+          ) { case (_, oc) =>
+            IO(assert(oc.isSuccess)) *>
+              releaseRef
+                .update(_ + 1L) *> IO
+                .raiseError[Unit](error)
+          }
+        routes = middleware(
+          Kleisli((contextRequest: ContextRequest[IO, Long]) =>
+            OptionT.liftF(
+              IO(
+                Response(
+                  status = Status.Ok,
+                  entity = mkEntity(contextRequest.context),
+                )
+              )
+            )
           )
+        ).orNotFound
+        response <- routes.run(Request[IO]()).attempt
+        acquireCount <- acquireRef.get
+        responseBody <- response.fold(err => IO(Left(err)), _.as[String].attempt)
+        releaseCount <- releaseRef.get
+      } yield {
+        assertEquals(acquireCount, 1L)
+        assertEquals(releaseCount, 1L)
+        assertEquals(
+          responseBody,
+          if (isStreamedEntity) Left(error) else Left(ReleaseError(error)),
         )
-      ).orNotFound
-      response <- routes.run(Request[IO]())
-      acquireCount <- acquireRef.get
-      responseBody <- response.as[String].attempt
-      releaseCount <- releaseRef.get
-    } yield {
-      assertEquals(acquireCount, 1L)
-      assertEquals(releaseCount, 1L)
-      assertEquals(responseBody, Left(error))
+      }
     }
   }
+
+  testReleaseCountAttempts(
+    mkEntity = context =>
+      Entity.Default(
+        fs2.Stream
+          .eval(IO.delay(Chunk.array(context.toString.getBytes)))
+          .unchunks,
+        None,
+      ),
+    isStreamedEntity = true,
+  )
+
+  testReleaseCountAttempts(
+    mkEntity = context => Entity.Strict(ByteVector.view(context.toString.getBytes)),
+    isStreamedEntity = false,
+  )
 }
