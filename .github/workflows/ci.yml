@@ -69,10 +69,10 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v17
+        uses: cachix/install-nix-action@v20
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v12
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -155,10 +155,10 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v17
+        uses: cachix/install-nix-action@v20
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v12
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -294,10 +294,10 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v17
+        uses: cachix/install-nix-action@v20
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v12
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -334,10 +334,10 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v17
+        uses: cachix/install-nix-action@v20
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v12
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
