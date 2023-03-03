@@ -1,4 +1,4 @@
-# Included Server Middleware
+# Server Middleware
 
 Http4s includes some middleware out of the box in the `org.http4s.server.middleware`
 package. Some of it is documented in its own page:

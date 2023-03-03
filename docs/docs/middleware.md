@@ -154,12 +154,17 @@ Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` h
 our header added to it. But, `apiRequest` did not go through the middleware and did
 not have the header added to it's `Result`.
 
+## Included middleware
+
+See [Server Middleware].
+
 [service]: service.md
 [dsl]: dsl.md
 [Authentication]: auth.md
 [CORS]: cors.md
 [GZip]: gzip.md
 [HSTS]: hsts.md
+[Server Middleware]: server-middleware.md
 [Service Timeout]: @API_URL@/org/http4s/server/middleware/Timeout$
 [Jsonp]: @API_URL@/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: @API_URL@/org/http4s/server/middleware/VirtualHost$
