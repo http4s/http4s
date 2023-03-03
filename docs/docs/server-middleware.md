@@ -34,9 +34,10 @@ val service = HttpRoutes.of[IO] {
   case POST -> Root / "queryForm" :? NameQueryParamMatcher(name) => Ok(s"hello $name")
   case GET -> Root / "wait" => IO.sleep(10.millis) >> Ok()
   case GET -> Root / "boom" => IO.raiseError(new RuntimeException("boom!"))
-  case r @ GET -> Root / "reverse" => r.decode[IO, String](s => Ok(s.reverse)) 
+  case r @ GET -> Root / "reverse" => r.as[String].flatMap(s => Ok(s.reverse))
   case GET -> Root / "forever" => IO(
-    Response[IO](headers = Headers("hello" -> "hi")).withEntity(Stream.constant("a"))
+    Response[IO](headers = Headers("hello" -> "hi"))
+      .withEntity(Stream.constant("a").covary[IO])
   )
   case r @ GET -> Root / "doubleRead" => (r.as[String], r.as[String])
     .flatMapN((a, b) => Ok(s"$a == $b"))
