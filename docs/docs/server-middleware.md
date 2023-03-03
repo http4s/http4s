@@ -62,6 +62,10 @@ consume it if necessary.
 Also note that these examples might use non-idiomatic constructs like `unsafeRunSync` and mutable collections for
 conciseness.
 
+@:navigationTree {
+    entries = [ { target = "#" } ]
+}
+
 ## Headers
 
 ### Caching
