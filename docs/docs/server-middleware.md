@@ -29,7 +29,7 @@ object NameQueryParamMatcher extends QueryParamDecoderMatcher[String]("name")
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" => BadRequest()
   case GET -> Root / "ok" => Ok()
-  case POST -> Root / "post" => Ok()
+  case r @ POST -> Root / "post" => r.as[Unit] >> Ok()
   case GET -> Root / "b" / "c" => Ok()
   case POST -> Root / "queryForm" :? NameQueryParamMatcher(name) => Ok(s"hello $name")
   case GET -> Root / "wait" => IO.sleep(10.millis) >> Ok()
@@ -501,7 +501,8 @@ val loggerService = Logger.httpRoutes[IO](
 
 ```
 ```scala mdoc
-loggerService(reverseRequest.withEntity("mood")).attempt.void.unsafeRunSync()
+loggerService(reverseRequest.withEntity("mood")).flatMap(_.as[Unit])
+  .attempt.void.unsafeRunSync()
 loggerLog
 ```
 
