@@ -265,7 +265,7 @@ jobs:
           (echo "$PGP_PASSPHRASE"; echo; echo) | gpg --command-fd 0 --pinentry-mode loopback --change-passphrase $(gpg --list-secret-keys --with-colons 2> /dev/null | grep '^sec:' | cut --delimiter ':' --fields 5 | tail -n 1)
 
       - name: Publish
-        run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' tlRelease'
+        run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' tlCiRelease'
 
   coverage:
     name: Generate coverage report
