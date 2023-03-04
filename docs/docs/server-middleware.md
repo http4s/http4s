@@ -34,7 +34,7 @@ val service = HttpRoutes.of[IO] {
   case POST -> Root / "queryForm" :? NameQueryParamMatcher(name) => Ok(s"hello $name")
   case GET -> Root / "wait" => IO.sleep(10.millis) >> Ok()
   case GET -> Root / "boom" => IO.raiseError(new RuntimeException("boom!"))
-  case r @ GET -> Root / "reverse" => r.as[String].flatMap(s => Ok(s.reverse))
+  case r @ POST -> Root / "reverse" => r.as[String].flatMap(s => Ok(s.reverse))
   case GET -> Root / "forever" => IO(
     Response[IO](headers = Headers("hello" -> "hi"))
       .withEntity(Stream.constant("a").covary[IO])
@@ -51,7 +51,7 @@ val badRequest = Request[IO](Method.GET, uri"/bad")
 val postRequest = Request[IO](Method.POST, uri"/post")
 val waitRequest = Request[IO](Method.GET, uri"/wait")
 val boomRequest = Request[IO](Method.GET, uri"/boom")
-val reverseRequest = Request[IO](Method.GET, uri"/reverse")
+val reverseRequest = Request[IO](Method.POST, uri"/reverse")
 ```
 The provided examples will use the pattern `service(request)` to show the effects of the middleware, and sometimes
 drain the response body with `response.as[Unit]`, this is necessary when the middleware depends on the request's
@@ -321,7 +321,12 @@ concurrentLog.get.unsafeRunSync()
 Ensures the request body is under a specific length. It does so by inspecting
 the body, not by simply checking `Content-Length` (which could be spoofed).
 This could be useful for file uploads, or to prevent attacks that exploit 
-a service that loads the whole body into memory.
+a service that loads the whole body into memory. Note that many `EntityDecoder`s
+are susceptible to this form of attack: the `String` entity decoder
+will read the complete value into memory, while a json entity decoder might build 
+the full AST before attempting to decode. For this reason it's advisable to
+apply this middleware unless something else, like a reverse proxy, is
+applying this limit.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.EntityLimiter
@@ -506,7 +511,7 @@ val loggerService = Logger.httpRoutes[IO](
 ```
 ```scala mdoc
 loggerService(reverseRequest.withEntity("mood")).flatMap(_.as[Unit])
-  .attempt.void.unsafeRunSync()
+  .void.unsafeRunSync()
 loggerLog
 ```
 
@@ -608,7 +613,7 @@ which bypasses the same-origin security policy implemented in browsers.
 
 ### ContextMiddleware
 
-This middleware allows extracting context from a request an propagating it down to the routes.
+This middleware allows extracting context from a request and propagating it down to the routes.
 
 ```scala mdoc:silent
 import org.http4s.server.ContextMiddleware
