@@ -9,7 +9,7 @@ ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
 ThisBuild / tlBaseVersion := "0.23"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
-ThisBuild / tlCiReleaseBranches := Seq("series/0.23", "issue/4935")
+ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
