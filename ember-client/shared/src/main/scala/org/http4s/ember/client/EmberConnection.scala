@@ -29,11 +29,11 @@ private[ember] final case class EmberConnection[F[_]](
     chunkSize: Int,
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
-    /** These variables store the currently running read operation and its result.
-      * The next read is started pre-emptively so that we may receieve EOF from server ASAP.
-      * On the happy path when we reuse a connection, this will block until the next request is sent.
-      * On the less-happy path, this read will complete with EOF, which we check before sending a request.
-      */
+    /* These variables store the currently running read operation and its result.
+     * The next read is started pre-emptively so that we may receieve EOF from server ASAP.
+     * On the happy path when we reuse a connection, this will block until the next request is sent.
+     * On the less-happy path, this read will complete with EOF, which we check before sending a request.
+     */
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
