@@ -29,9 +29,18 @@ private[ember] final case class EmberConnection[F[_]](
     chunkSize: Int,
     shutdown: F[Unit],
     nextBytes: Ref[F, Array[Byte]],
+    /** These variables store the currently running read operation and its result.
+      * The next read is started pre-emptively so that we may receieve EOF from server ASAP.
+      * On the happy path when we reuse a connection, this will block until the next request is sent.
+      * On the less-happy path, this read will complete with EOF, which we check before sending a request.
+      */
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
+
+  /** For the connection to be valid, the socket must be open,
+    * and its pre-emptive read must not have terminated in an error or EOF.
+    */
   def isValid: F[Boolean] = {
     val isOpen = keySocket.socket.isOpen
     val isEof = nextRead.get.flatMap(_.tryGet).map {
@@ -41,6 +50,11 @@ private[ember] final case class EmberConnection[F[_]](
     (isOpen, isEof).mapN((open, eof) => open && !eof)
   }
 
+  /** We must start the next read after completing a request/response pair,
+    * and before returning this connection to the pool.
+    *
+    * This way [[isValid]] can check for EOF when the connection is retrieved from the pool.
+    */
   def startNextRead: F[Unit] =
     hotRead
       .swap {

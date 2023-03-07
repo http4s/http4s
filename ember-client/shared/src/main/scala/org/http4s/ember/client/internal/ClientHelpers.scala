@@ -151,7 +151,9 @@ private[client] object ClientHelpers {
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
       writeRequestToSocket(req, connection.keySocket.socket).productR {
         val parse = (
+          // leftover bytes from last request
           connection.nextBytes.getAndSet(Array.emptyByteArray),
+          // bytes from the pre-emptive read in this connection, which probably has not completed yet, hence the timout
           connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
         ).flatMapN { (head, firstRead) =>
           Parser.Response.parser(maxResponseHeaderSize)(
@@ -213,7 +215,10 @@ private[client] object ClientHelpers {
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
-        else nextBytes.set(bytes) *> canBeReused.set(Reusable.Reuse) *> startNextRead
+        else
+          nextBytes.set(bytes) *>
+            canBeReused.set(Reusable.Reuse) *>
+            startNextRead // start the next read before returning to pool
       case None => F.unit
     }
 
