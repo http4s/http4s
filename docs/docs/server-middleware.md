@@ -619,19 +619,20 @@ chunkAggregatorClient.run(Request[IO](Method.GET, uri"/random"))
 
 Jsonp is a javascript technique to load json data without using [XMLHttpRequest],
 which bypasses the same-origin security policy implemented in browsers.
+Jsonp usage is discouraged and can often be replaced with correct CORS configuration.
 
-```scala mdoc:silent
-// import org.http4s.server.middleware.Jsonp
+```scala mdoc:compile-only
+import org.http4s.server.middleware.Jsonp
 
-// val jsonRoutes = HttpRoutes.of[IO] {
-//  case GET -> Root / "json" => Ok("""{"a": 1}""")
-// }
+val jsonRoutes = HttpRoutes.of[IO] {
+  case GET -> Root / "json" => Ok("""{"a": 1}""")
+}
 
-// val jsonService = Jsonp(callbackParam = "handleJson")(jsonRoutes).orNotFound
-// val jsonRequest = Request[IO](Method.GET, uri"/json")
-```
-```scala mdoc
-// jsonService(jsonRequest).flatMap(_.bodyText.compile.lastOrError).unsafeRunSync()
+val jsonService = Jsonp(callbackParam = "handleJson")(jsonRoutes).orNotFound
+val jsonClient = Client.fromHttpApp(jsonService)
+val jsonRequest = Request[IO](Method.GET, uri"/json")
+
+jsonClient.expect[String](jsonRequest).unsafeRunSync()
 ```
 
 ### ContextMiddleware
