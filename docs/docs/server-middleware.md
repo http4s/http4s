@@ -44,7 +44,7 @@ val service = HttpRoutes.of[IO] {
     .flatMapN((a, b) => Ok(s"$a == $b"))
   case GET -> Root / "random" => Random.scalaUtilRandom[IO]
     .flatMap(_.nextInt)
-    .flatMap(random => Ok(random.toString)) 
+    .flatMap(random => Ok(random.toString))
 }
 
 val okRequest = Request[IO](Method.GET, uri"/ok")
@@ -235,7 +235,7 @@ overrideClient.status(overrideRequest).unsafeRunSync()
 
 ### HttpsRedirect
 Redirects requests to https when the `X-Forwarded-Proto` header is `http`. This
-header is usually provided by a load-balancer to indicate which protocol the client used.  
+header is usually provided by a load-balancer to indicate which protocol the client used.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.HttpsRedirect
@@ -304,7 +304,7 @@ val concurrentService =
   ConcurrentRequests.route[IO](
       onIncrement = total => IO(println(s"someone comes to town, total=$total")),
       onDecrement = total => IO(println(s"someone leaves town, total=$total"))
-  ).map((middle: ContextMiddleware[IO, Long]) => 
+  ).map((middle: ContextMiddleware[IO, Long]) =>
     dropContext(middle)(service).orNotFound
   )
 
@@ -320,10 +320,10 @@ concurrentClient.flatMap(cl =>
 
 Ensures the request body is under a specific length. It does so by inspecting
 the body, not by simply checking `Content-Length` (which could be spoofed).
-This could be useful for file uploads, or to prevent attacks that exploit 
+This could be useful for file uploads, or to prevent attacks that exploit
 a service that loads the whole body into memory. Note that many `EntityDecoder`s
 are susceptible to this form of attack: the `String` entity decoder
-will read the complete value into memory, while a json entity decoder might build 
+will read the complete value into memory, while a json entity decoder might build
 the full AST before attempting to decode. For this reason it's advisable to
 apply this middleware unless something else, like a reverse proxy, is
 applying this limit.
@@ -411,14 +411,14 @@ timeoutClient.status(waitRequest).timed.unsafeRunSync()
 
 Triggers an action if an error occurs while processing the request. Applies
 to the error channel (like `IO.raiseError`, or `MonadThrow[F].raiseError`)
-not http responses that indicate errors (like `BadRequest`). 
+not http responses that indicate errors (like `BadRequest`).
 Could be used for logging and monitoring.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.ErrorAction
 
 val errorActionService = ErrorAction.httpRoutes[IO](
-  service, 
+  service,
   (req, thr) => IO(println("Oops: " ++ thr.getMessage))
 ).orNotFound
 
@@ -442,7 +442,7 @@ val errorHandlingService = ErrorHandling.httpRoutes[IO](service).orNotFound
 val errorHandlingClient = Client.fromHttpApp(errorHandlingService)
 ```
 For the first request (the service without `ErrorHandling`) we have to `.attempt`
-to get a value that is renderable in this document, for the second request we get a response.  
+to get a value that is renderable in this document, for the second request we get a response.
 ```scala mdoc
 client.status(boomRequest).attempt.unsafeRunSync()
 errorHandlingClient.status(boomRequest).unsafeRunSync()
@@ -451,7 +451,7 @@ errorHandlingClient.status(boomRequest).unsafeRunSync()
 ### Metrics
 
 Middleware to record service metrics. Requires an implementation of [MetricsOps] to receive metrics
-data. Also provided are implementations for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/) 
+data. Also provided are implementations for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/)
 and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 
 ```scala mdoc:silent
@@ -461,9 +461,9 @@ import org.http4s.metrics.{MetricsOps, TerminationType}
 val metricsOps = new MetricsOps[IO] {
   def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
     IO(println("increaseActiveRequests"))
-    
+
   def decreaseActiveRequests(classifier: Option[String]): IO[Unit] = IO.unit
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] = 
+  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] =
     IO.unit
   def recordTotalTime(
     method: Method,
@@ -542,8 +542,8 @@ bodyCacheClient.expect[String](randomRequest).unsafeRunSync()
 
 Brackets the handling of the request ensuring an action happens before the service handles
 the request (`acquire`) and another after the response is complete (`release`),
-the result of `acquire` is threaded to the underlying service. 
-It's used to implement `MaxActiveRequests` and `ConcurrentRequests`. 
+the result of `acquire` is threaded to the underlying service.
+It's used to implement `MaxActiveRequests` and `ConcurrentRequests`.
 See [BracketRequestResponse] for more constructors.
 
 ```scala mdoc:silent
