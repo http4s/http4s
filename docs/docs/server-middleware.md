@@ -56,7 +56,7 @@ val reverseRequest = Request[IO](Method.POST, uri"/reverse")
 val client = Client.fromHttpApp(service.orNotFound)
 ```
 
-Also note that these examples might use non-idiomatic constructs like `unsafeRunSync` and mutable collections for
+Also note that these examples might use non-idiomatic constructs like `unsafeRunSync` for
 conciseness.
 
 @:navigationTree {
@@ -294,34 +294,26 @@ import org.http4s.server.middleware.ConcurrentRequests
 import org.http4s.server.{ContextMiddleware, HttpMiddleware}
 import org.http4s.ContextRequest
 import cats.data.Kleisli
-import cats.effect.Ref
 
 // a utility that drops the context from the request, since our service expects
 // a plain request
 def dropContext[A](middleware: ContextMiddleware[IO, A]): HttpMiddleware[IO] =
   routes => middleware(Kleisli((c: ContextRequest[IO, A]) => routes(c.req)))
 
-val concurrentLog = Ref[IO].of(List.empty[String]).unsafeRunSync()
-
 val concurrentService =
   ConcurrentRequests.route[IO](
-      onIncrement = total => 
-        concurrentLog.update(_ :+ s"someone comes to town, total=$total"),
-      onDecrement = total => 
-        concurrentLog.update(_ :+ s"someone leaves town, total=$total")
+      onIncrement = total => IO(println(s"someone comes to town, total=$total")),
+      onDecrement = total => IO(println(s"someone leaves town, total=$total"))
   ).map((middle: ContextMiddleware[IO, Long]) => 
     dropContext(middle)(service).orNotFound
   )
 
 val concurrentClient = concurrentService.map(Client.fromHttpApp[IO])
-
 ```
-We drain the body (with `.expect[Unit]`) so that we observe the request ending:
 ```scala mdoc
 concurrentClient.flatMap(cl =>
   List.fill(3)(waitRequest).parTraverse(req => cl.expect[Unit](req))
 ).void.unsafeRunSync()
-concurrentLog.get.unsafeRunSync()
 ```
 
 ### EntityLimiter
@@ -424,21 +416,16 @@ Could be used for logging and monitoring.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.ErrorAction
-import scala.collection.mutable.ArrayBuffer
-
-val log = ArrayBuffer.empty[String]
 
 val errorActionService = ErrorAction.httpRoutes[IO](
   service, 
-  (req, thr) => IO(log += ("Oops: " ++ thr.getMessage))
+  (req, thr) => IO(println("Oops: " ++ thr.getMessage))
 ).orNotFound
 
 val errorActionClient = Client.fromHttpApp(errorActionService)
-
 ```
 ```scala mdoc
 errorActionClient.expect[Unit](boomRequest).attempt.unsafeRunSync()
-log
 ```
 
 ### ErrorHandling
@@ -450,11 +437,9 @@ exceptions from reaching the backend and thus makes the service more backend-agn
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.ErrorHandling
-import scala.collection.mutable.ArrayBuffer
 
 val errorHandlingService = ErrorHandling.httpRoutes[IO](service).orNotFound
 val errorHandlingClient = Client.fromHttpApp(errorHandlingService)
-
 ```
 For the first request (the service without `ErrorHandling`) we have to `.attempt`
 to get a value that is renderable in this document, for the second request we get a response.  
@@ -472,13 +457,10 @@ and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 ```scala mdoc:silent
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.{MetricsOps, TerminationType}
-import scala.collection.mutable.ArrayBuffer
-
-val metricsLog = ArrayBuffer.empty[String]
 
 val metricsOps = new MetricsOps[IO] {
   def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
-    IO(metricsLog += "increaseActiveRequests")
+    IO(println("increaseActiveRequests"))
     
   def decreaseActiveRequests(classifier: Option[String]): IO[Unit] = IO.unit
   def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] = 
@@ -494,7 +476,7 @@ val metricsOps = new MetricsOps[IO] {
     elapsed: Long,
     terminationType: TerminationType,
     classifier: Option[String]
-  ): IO[Unit] = IO(metricsLog += ("abnormalTermination - " ++ terminationType.toString))
+  ): IO[Unit] = IO(println(s"abnormalTermination - $terminationType"))
 }
 
 val metricsService = Metrics[IO](metricsOps)(service).orNotFound
@@ -503,7 +485,6 @@ val metricsClient = Client.fromHttpApp(metricsService)
 ```scala mdoc
 metricsClient.expect[Unit](boomRequest).attempt.void.unsafeRunSync()
 metricsClient.expect[Unit](okRequest).unsafeRunSync()
-metricsLog
 ```
 
 ### RequestLogger, ResponseLogger, Logger
@@ -513,23 +494,18 @@ logs the request, `Logger` logs both.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.Logger
-import scala.collection.mutable.ArrayBuffer
-
-val loggerLog = ArrayBuffer.empty[String]
 
 val loggerService = Logger.httpRoutes[IO](
   logHeaders = false,
   logBody = true,
   redactHeadersWhen = _ => false,
-  logAction = Some((msg: String) => IO(loggerLog += msg))
+  logAction = Some((msg: String) => IO(println(msg)))
 )(service).orNotFound
 
 val loggerClient = Client.fromHttpApp(loggerService)
-
 ```
 ```scala mdoc
 loggerClient.expect[Unit](reverseRequest.withEntity("mood")).unsafeRunSync()
-loggerLog
 ```
 
 ## Advanced
