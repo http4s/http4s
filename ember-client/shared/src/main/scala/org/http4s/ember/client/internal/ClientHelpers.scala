@@ -217,8 +217,8 @@ private[client] object ClientHelpers {
         if (requestClose || responseClose) F.unit
         else
           nextBytes.set(bytes) *>
-            canBeReused.set(Reusable.Reuse) *>
-            startNextRead // start the next read before returning to pool
+            startNextRead *> // start the next read before returning to pool
+            canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
       case None => F.unit
     }
 
