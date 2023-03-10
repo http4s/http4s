@@ -17,6 +17,7 @@ import org.typelevel.ci._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.http4s.client.Client
 import cats.effect.unsafe.IORuntime
 import scala.concurrent.duration._
 import cats.effect.std.Random
@@ -52,12 +53,8 @@ val postRequest = Request[IO](Method.POST, uri"/post")
 val waitRequest = Request[IO](Method.GET, uri"/wait")
 val boomRequest = Request[IO](Method.GET, uri"/boom")
 val reverseRequest = Request[IO](Method.POST, uri"/reverse")
+val client = Client.fromHttpApp(service.orNotFound)
 ```
-The provided examples will use the pattern `service(request)` to show the effects of the middleware, and sometimes
-drain the response body with `response.as[Unit]`, this is necessary when the middleware depends on the request's
-completion (like `MaxActiveRequests`) but in other cases we might choose to omit that. When testing middleware
-in this manner (without running a client and a server) be aware of how it interacts with the response body and
-consume it if necessary. 
 
 Also note that these examples might use non-idiomatic constructs like `unsafeRunSync` and mutable collections for
 conciseness.
@@ -83,11 +80,12 @@ val cacheService = Caching.cache(
   service
 ).orNotFound
 
+val cacheClient = Client.fromHttpApp(cacheService)
 ```
 ```scala mdoc
-cacheService(okRequest).unsafeRunSync().headers
-cacheService(badRequest).unsafeRunSync().headers
-cacheService(postRequest).unsafeRunSync().headers
+cacheClient.run(okRequest).use(_.headers.pure[IO]).unsafeRunSync()
+cacheClient.run(badRequest).use(_.headers.pure[IO]).unsafeRunSync()
+cacheClient.run(postRequest).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ### Date
@@ -97,9 +95,10 @@ Adds the current date to the response.
 import org.http4s.server.middleware.Date
 
 val dateService = Date.httpRoutes(service).orNotFound
+val dateClient = Client.fromHttpApp(dateService)
 ```
 ```scala mdoc
-dateService(okRequest).unsafeRunSync().headers
+dateClient.run(okRequest).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ### HeaderEcho
@@ -109,9 +108,10 @@ Adds headers included in the request to the response.
 import org.http4s.server.middleware.HeaderEcho
 
 val echoService = HeaderEcho.httpRoutes(echoHeadersWhen = _ => true)(service).orNotFound
+val echoClient = Client.fromHttpApp(echoService)
 ```
 ```scala mdoc
-echoService(okRequest.putHeaders("Hello" -> "hi")).unsafeRunSync().headers
+echoClient.run(okRequest.putHeaders("Hello" -> "hi")).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ### ResponseTiming
@@ -122,9 +122,10 @@ Sets response header with the request duration.
 import org.http4s.server.middleware.ResponseTiming
 
 val timingService = ResponseTiming(service.orNotFound)
+val timingClient = Client.fromHttpApp(timingService)
 ```
 ```scala mdoc
-timingService(okRequest).unsafeRunSync().headers
+timingClient.run(okRequest).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ### RequestId
@@ -145,16 +146,15 @@ val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
     // use request id to correlate logs with the request
     IO(println(s"request received, cid=$reqId")) *> Ok()
 })
-val responseIO = requestIdService.orNotFound(okRequest)
 
-// generated request id can be correlated with logs
-val resp = responseIO.unsafeRunSync()
+val requestIdClient = Client.fromHttpApp(requestIdService.orNotFound)
 ```
 Note: `req.attributes.lookup(RequestId.requestIdAttrKey)` can also be used to lookup the request id
 extracted from the header, or the generated request id.
 ```scala mdoc
-resp.headers
-resp.attributes.lookup(RequestId.requestIdAttrKey)
+requestIdClient.run(okRequest).use(resp =>
+  (resp.headers, resp.attributes.lookup(RequestId.requestIdAttrKey)).pure[IO]
+).unsafeRunSync()
 ```
 
 ### StaticHeaders
@@ -165,9 +165,10 @@ Adds static headers to the response.
 import org.http4s.server.middleware.StaticHeaders
 
 val staticHeadersService = StaticHeaders(Headers("X-Hello" -> "hi"))(service).orNotFound
+val staticHeaderClient = Client.fromHttpApp(staticHeadersService)
 ```
 ```scala mdoc
-staticHeadersService(okRequest).unsafeRunSync().headers
+staticHeaderClient.run(okRequest).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ## Request rewriting
@@ -180,16 +181,17 @@ Removes a trailing slash from the requested url so that requests with trailing s
 import org.http4s.server.middleware.AutoSlash
 
 val autoSlashService = AutoSlash(service).orNotFound
+val autoSlashClient = Client.fromHttpApp(autoSlashService)
 val okWithSlash = Request[IO](Method.GET, uri"/ok/")
 ```
 ```scala mdoc
 // without the middleware the request with trailing slash fails
-service.orNotFound(okRequest).unsafeRunSync().status
-service.orNotFound(okWithSlash).unsafeRunSync().status
+client.status(okRequest).unsafeRunSync()
+client.status(okWithSlash).unsafeRunSync()
 
 // with the middleware both work
-autoSlashService(okRequest).unsafeRunSync().status
-autoSlashService(okWithSlash).unsafeRunSync().status
+autoSlashClient.status(okRequest).unsafeRunSync()
+autoSlashClient.status(okWithSlash).unsafeRunSync()
 ```
 
 ### DefaultHead
@@ -200,13 +202,12 @@ but no body. An attempt is made to interrupt the process of generating the body.
 import org.http4s.server.middleware.DefaultHead
 
 val headService = DefaultHead(service).orNotFound
+val headClient = Client.fromHttpApp(headService)
 ```
-`/forever` has an infinite body but the `HEAD` request completes without body and includes the headers:
+`/forever` has an infinite body but the `HEAD` request terminates and includes the headers:
 ```scala mdoc
-headService(Request[IO](Method.HEAD, uri"/forever"))
-  .flatMap(r => 
-    r.bodyText.compile.last.map(body => (body, r.status, r.headers))
-  ).unsafeRunSync()
+headClient.status(Request[IO](Method.HEAD, uri"/forever")).unsafeRunSync()
+headClient.run(Request[IO](Method.HEAD, uri"/forever")).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ### HttpMethodOverrider
@@ -224,11 +225,12 @@ val overrideService = HttpMethodOverrider(
     Set(Method.GET)
   )
 ).orNotFound
+val overrideClient = Client.fromHttpApp(overrideService)
 val overrideRequest = Request[IO](Method.GET, uri"/post?realMethod=POST")
 ```
 ```scala mdoc
-service.orNotFound(overrideRequest).unsafeRunSync().status
-overrideService(overrideRequest).unsafeRunSync().status
+client.status(overrideRequest).unsafeRunSync()
+overrideClient.status(overrideRequest).unsafeRunSync()
 ```
 
 ### HttpsRedirect
@@ -239,11 +241,12 @@ header is usually provided by a load-balancer to indicate which protocol the cli
 import org.http4s.server.middleware.HttpsRedirect
 
 val httpsRedirectService = HttpsRedirect(service).orNotFound
+val httpsRedirectClient = Client.fromHttpApp(httpsRedirectService)
 val httpRequest = okRequest
   .putHeaders("Host" -> "example.com", "X-Forwarded-Proto" -> "http")
 ```
 ```scala mdoc
-httpsRedirectService(httpRequest).map(r => (r.headers, r.status)).unsafeRunSync()
+httpsRedirectClient.run(httpRequest).use(r => (r.headers, r.status).pure[IO]).unsafeRunSync()
 ```
 
 ### TranslateUri
@@ -254,10 +257,11 @@ import org.http4s.server.middleware.TranslateUri
 
 val translateService = TranslateUri(prefix = "a")(service).orNotFound
 val translateRequest = Request[IO](Method.GET, uri"/a/b/c")
+val translateClient = Client.fromHttpApp(translateService)
 ```
 The following is successful even though `/b/c` is defined, and not `/a/b/c`:
 ```scala mdoc
-translateService(translateRequest).unsafeRunSync().status
+translateClient.status(translateRequest).unsafeRunSync()
 ```
 
 ### UrlFormLifter
@@ -269,12 +273,14 @@ import org.http4s.server.middleware.UrlFormLifter
 import org.http4s.UrlForm
 
 val urlFormService = UrlFormLifter.httpApp(service.orNotFound)
+val urlFormClient = Client.fromHttpApp(urlFormService)
+
 val formRequest = Request[IO](Method.POST, uri"/queryForm")
   .withEntity(UrlForm.single("name", "John"))
 ```
 Even though the `/queryForm` route takes query parameters, the form request works:
 ```scala mdoc
-urlFormService(formRequest).flatMap(_.bodyText.compile.lastOrError).unsafeRunSync()
+urlFormClient.expect[String](formRequest).unsafeRunSync()
 ```
 
 ## Scaling and resource management
@@ -307,11 +313,13 @@ val concurrentService =
     dropContext(middle)(service).orNotFound
   )
 
+val concurrentClient = concurrentService.map(Client.fromHttpApp[IO])
+
 ```
-We drain the body (with `.as[Unit]`) so that we observe the request ending: 
+We drain the body (with `.expect[Unit]`) so that we observe the request ending:
 ```scala mdoc
-concurrentService.flatMap(svc =>
-  List.fill(3)(waitRequest).parTraverse(req => svc(req).flatMap(_.as[Unit]))
+concurrentClient.flatMap(cl =>
+  List.fill(3)(waitRequest).parTraverse(req => cl.expect[Unit](req))
 ).void.unsafeRunSync()
 concurrentLog.get.unsafeRunSync()
 ```
@@ -332,12 +340,13 @@ applying this limit.
 import org.http4s.server.middleware.EntityLimiter
 
 val limiterService = EntityLimiter.httpApp(service.orNotFound, limit = 16)
+val limiterClient = Client.fromHttpApp(limiterService)
 val smallRequest = postRequest.withEntity("*" * 15)
 val bigRequest = postRequest.withEntity("*" * 16)
 ```
 ```scala mdoc
-limiterService(smallRequest).map(_.status).unsafeRunSync()
-limiterService(bigRequest).attempt.unsafeRunSync()
+limiterClient.status(smallRequest).unsafeRunSync()
+limiterClient.status(bigRequest).attempt.unsafeRunSync()
 ```
 
 ### MaxActiveRequests
@@ -351,13 +360,13 @@ import org.http4s.server.middleware.MaxActiveRequests
 // creating the middleware is effectful
 val maxService = MaxActiveRequests.forHttpApp[IO](maxActive = 2)
   .map(middleware => middleware(service.orNotFound))
+
+val maxClient = maxService.map(Client.fromHttpApp[IO])
 ```
 Some requests will fail if the limit is reached:
 ```scala mdoc
-maxService.flatMap(service =>
-  List.fill(5)(waitRequest).parTraverse(req => 
-    service(req).flatMap(rsp => rsp.as[Unit].map(_ => rsp.status)).attempt
-  )
+maxClient.flatMap(cl =>
+  List.fill(5)(waitRequest).parTraverse(req => cl.status(req))
 ).unsafeRunSync()
 ```
 
@@ -376,14 +385,14 @@ val throttleService = Throttle.httpApp[IO](
   amount = 1,
   per = 10.milliseconds
 )(service.orNotFound)
+
+val throttleClient = throttleService.map(Client.fromHttpApp[IO])
+
 ```
-We'll submit request every 5ms and refill a token every 10ms:
+We'll submit request every 5 ms and refill a token every 10 ms:
 ```scala mdoc
-throttleService.flatMap(service =>
-  List.fill(5)(okRequest).traverse(req =>
-    IO.sleep(5.millis) >>
-      service(req).flatMap(rsp => rsp.as[Unit].map(_ => rsp.status)).attempt
-  )
+throttleClient.flatMap(cl =>
+  List.fill(5)(okRequest).traverse(req => IO.sleep(5.millis) >> cl.status(req))
 ).unsafeRunSync()
 ```
 
@@ -397,10 +406,11 @@ then is the response returned.
 import org.http4s.server.middleware.Timeout
 
 val timeoutService = Timeout.httpApp[IO](timeout = 5.milliseconds)(service.orNotFound)
+val timeoutClient = Client.fromHttpApp(timeoutService)
 ```
 `/wait` takes 10 ms to finish so it's cancelled:
 ```scala mdoc
-timeoutService(waitRequest).map(_.status).timed.unsafeRunSync()
+timeoutClient.status(waitRequest).timed.unsafeRunSync()
 ```
 
 ## Error handling and Logging
@@ -416,15 +426,18 @@ Could be used for logging and monitoring.
 import org.http4s.server.middleware.ErrorAction
 import scala.collection.mutable.ArrayBuffer
 
-val log = ArrayBuffer.empty[String] 
-  
+val log = ArrayBuffer.empty[String]
+
 val errorActionService = ErrorAction.httpRoutes[IO](
   service, 
   (req, thr) => IO(log += ("Oops: " ++ thr.getMessage))
 ).orNotFound
+
+val errorActionClient = Client.fromHttpApp(errorActionService)
+
 ```
 ```scala mdoc
-errorActionService(boomRequest).attempt.void.unsafeRunSync()
+errorActionClient.expect[Unit](boomRequest).attempt.unsafeRunSync()
 log
 ```
 
@@ -440,12 +453,14 @@ import org.http4s.server.middleware.ErrorHandling
 import scala.collection.mutable.ArrayBuffer
 
 val errorHandlingService = ErrorHandling.httpRoutes[IO](service).orNotFound
+val errorHandlingClient = Client.fromHttpApp(errorHandlingService)
+
 ```
 For the first request (the service without `ErrorHandling`) we have to `.attempt`
 to get a value that is renderable in this document, for the second request we get a response.  
 ```scala mdoc
-service.orNotFound(boomRequest).attempt.unsafeRunSync()
-errorHandlingService(boomRequest).map(_.status).unsafeRunSync()
+client.status(boomRequest).attempt.unsafeRunSync()
+errorHandlingClient.status(boomRequest).unsafeRunSync()
 ```
 
 ### Metrics
@@ -483,10 +498,11 @@ val metricsOps = new MetricsOps[IO] {
 }
 
 val metricsService = Metrics[IO](metricsOps)(service).orNotFound
+val metricsClient = Client.fromHttpApp(metricsService)
 ```
 ```scala mdoc
-metricsService(boomRequest).attempt.void.unsafeRunSync()
-metricsService(okRequest).void.unsafeRunSync()
+metricsClient.expect[Unit](boomRequest).attempt.void.unsafeRunSync()
+metricsClient.expect[Unit](okRequest).unsafeRunSync()
 metricsLog
 ```
 
@@ -508,10 +524,11 @@ val loggerService = Logger.httpRoutes[IO](
   logAction = Some((msg: String) => IO(loggerLog += msg))
 )(service).orNotFound
 
+val loggerClient = Client.fromHttpApp(loggerService)
+
 ```
 ```scala mdoc
-loggerService(reverseRequest.withEntity("mood")).flatMap(_.as[Unit])
-  .void.unsafeRunSync()
+loggerClient.expect[Unit](reverseRequest.withEntity("mood")).unsafeRunSync()
 loggerLog
 ```
 
@@ -535,11 +552,14 @@ val randomRequest = Request[IO](Method.GET, uri"/doubleRead")
       Random.scalaUtilRandom[IO].flatMap(_.nextInt).map(random => random.toString)
     )
   )
+
+val bodyCacheClient = Client.fromHttpApp(bodyCacheService)
+
 ```
 `/doubleRead` reads the body twice, when using the middleware we see that both read values the same:
 ```scala mdoc
-service.orNotFound(randomRequest).flatMap(r => r.as[String]).unsafeRunSync()
-bodyCacheService(randomRequest).flatMap(r => r.as[String]).unsafeRunSync()
+client.expect[String](randomRequest).unsafeRunSync()
+bodyCacheClient.expect[String](randomRequest).unsafeRunSync()
 ```
 
 ### BracketRequestResponse
@@ -568,9 +588,11 @@ val bracketService = bracketMiddleware(
   }
 ).orNotFound
 
+val bracketClient = Client.fromHttpApp(bracketService)
+
 ```
 ```scala mdoc
-bracketService(okRequest).flatMap(r => r.as[String]).unsafeRunSync()
+bracketClient.expect[String](okRequest).unsafeRunSync()
 ref.get.unsafeRunSync()
 ```
 
@@ -585,10 +607,11 @@ Similarly to `BodyRequest` in this example we use a response body that always pr
 import org.http4s.server.middleware.ChunkAggregator
 
 val chunkAggregatorService = ChunkAggregator.httpRoutes(service).orNotFound
+val chunkAggregatorClient = Client.fromHttpApp(chunkAggregatorService)
 ```
 ```scala mdoc
-chunkAggregatorService(Request[IO](Method.GET, uri"/random"))
-  .flatMap(r => (r.as[String], r.as[String]).mapN((a, b) => s"$a == $b"))
+chunkAggregatorClient.run(Request[IO](Method.GET, uri"/random"))
+  .use(r => (r.as[String], r.as[String]).mapN((a, b) => s"$a == $b"))
   .unsafeRunSync()
 ```
 
@@ -636,10 +659,11 @@ val ctxRoutes = ContextRoutes.of[UserId, IO] {
 }
 
 val contextService = middleware(ctxRoutes).orNotFound
+val contextClient = Client.fromHttpApp(contextService)
 val contextRequest = Request[IO](Method.GET, uri"/ok").putHeaders(UserId("Jack"))
 ```
 ```scala mdoc
-contextService(contextRequest).flatMap(_.bodyText.compile.lastOrError).unsafeRunSync()
+contextClient.expect[String](contextRequest).unsafeRunSync()
 ```
 
 [Authentication]: auth.md
