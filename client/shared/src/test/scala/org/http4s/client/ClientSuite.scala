@@ -147,4 +147,20 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       .attempt
       .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
   }
+
+  test("mock client should drain the body if it has not been consumed") {
+
+    def app(finalized: Ref[IO, Boolean]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .pipeBodyThrough(_.onFinalize(finalized.set(true)))
+        .pure[IO]
+    }
+
+    for {
+      finalized <- Ref.of[IO, Boolean](false)
+      client = Client.fromHttpApp(app(finalized))
+      _ <- client.status(Request[IO]()).void
+      result <- finalized.get
+    } yield assertEquals(result, true)
+  }
 }

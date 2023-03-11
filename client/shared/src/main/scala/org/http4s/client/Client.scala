@@ -22,6 +22,7 @@ import cats.effect.Ref
 import cats.effect._
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
+import cats.effect.kernel.Resource.ExitCase
 import cats.syntax.all._
 import cats.~>
 import fs2._
@@ -289,16 +290,37 @@ object Client {
       go(source).stream
     }
 
-    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
-      Ref[F].of(false).map { disposed =>
-        val req0 = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
-        Resource
-          .eval(app(req0))
-          .onFinalize(disposed.set(true))
-          .map(_.pipeBodyThrough(until(disposed)))
-      }
+    def run(
+        message: Message[F],
+        refOp: Option[Ref[F, Boolean]] = None,
+    ): Resource[F, Response[F]] = message match {
+      case req: Request[F] =>
+        Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+          val reqAugmented =
+            addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+          Resource
+            .eval(app(reqAugmented))
+            .onFinalize(disposed.set(true))
+            .flatMap(run(_, Option(disposed)))
+        }
+      case resp: Response[F] =>
+        Resource.eval(refOp.fold(Ref[F].of(false))(F.pure)).flatMap { r =>
+          Resource
+            .pure(resp.pipeBodyThrough(until(r)(_).onFinalizeCase {
+              case ExitCase.Canceled | ExitCase.Errored(_) => F.unit
+              case ExitCase.Succeeded => r.set(true)
+            }))
+            .onFinalize {
+              r.get.ifM(
+                F.unit,
+                resp.body.compile.drain.flatMap(_ => r.set(true)),
+              )
+            }
+        }
 
-    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+    }
+
+    Client((req: Request[F]) => run(req))
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
