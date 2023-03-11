@@ -22,6 +22,7 @@ import cats.effect.unsafe.IORuntime
 import scala.concurrent.duration._
 import cats.effect.std.Random
 import fs2.Stream
+import cats.effect.std.Console
 
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
 
@@ -58,6 +59,24 @@ val client = Client.fromHttpApp(service.orNotFound)
 
 Also note that these examples might use non-idiomatic constructs like `unsafeRunSync` for
 conciseness.
+
+
+```scala mdoc:invisible
+// we define our own Console[IO] to sidestep some mdoc issues: https://github.com/scalameta/mdoc/issues/517
+import cats.Show
+implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
+  val mdocConsoleOut = scala.Console.out
+  def println[A](a: A)(implicit s: Show[A] = Show.fromToString[A]): IO[Unit] = {
+    val str = s.show(a)
+    IO.blocking(mdocConsoleOut.println(str)) 
+  }
+
+  def print[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+  def error[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+  def errorln[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+  def readLineWithCharset(charset: java.nio.charset.Charset): IO[String] = IO.pure("")
+}
+```
 
 @:navigationTree {
     entries = [ { target = "#" } ]
@@ -144,7 +163,7 @@ val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
   case req =>
     val reqId = req.headers.get(ci"X-Request-ID").fold("null")(_.head.value)
     // use request id to correlate logs with the request
-    IO(println(s"request received, cid=$reqId")) *> Ok()
+    Console[IO].println(s"request received, cid=$reqId") *> Ok()
 })
 
 val requestIdClient = Client.fromHttpApp(requestIdService.orNotFound)
@@ -302,8 +321,8 @@ def dropContext[A](middleware: ContextMiddleware[IO, A]): HttpMiddleware[IO] =
 
 val concurrentService =
   ConcurrentRequests.route[IO](
-      onIncrement = total => IO(println(s"someone comes to town, total=$total")),
-      onDecrement = total => IO(println(s"someone leaves town, total=$total"))
+      onIncrement = total => Console[IO].println(s"someone comes to town, total=$total"),
+      onDecrement = total => Console[IO].println(s"someone leaves town, total=$total")
   ).map((middle: ContextMiddleware[IO, Long]) =>
     dropContext(middle)(service).orNotFound
   )
@@ -419,7 +438,7 @@ import org.http4s.server.middleware.ErrorAction
 
 val errorActionService = ErrorAction.httpRoutes[IO](
   service,
-  (req, thr) => IO(println("Oops: " ++ thr.getMessage))
+  (req, thr) => Console[IO].println("Oops: " ++ thr.getMessage)
 ).orNotFound
 
 val errorActionClient = Client.fromHttpApp(errorActionService)
@@ -460,7 +479,7 @@ import org.http4s.metrics.{MetricsOps, TerminationType}
 
 val metricsOps = new MetricsOps[IO] {
   def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
-    IO(println("increaseActiveRequests"))
+    Console[IO].println("increaseActiveRequests")
 
   def decreaseActiveRequests(classifier: Option[String]): IO[Unit] = IO.unit
   def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] =
@@ -476,7 +495,7 @@ val metricsOps = new MetricsOps[IO] {
     elapsed: Long,
     terminationType: TerminationType,
     classifier: Option[String]
-  ): IO[Unit] = IO(println(s"abnormalTermination - $terminationType"))
+  ): IO[Unit] = Console[IO].println(s"abnormalTermination - $terminationType")
 }
 
 val metricsService = Metrics[IO](metricsOps)(service).orNotFound
@@ -499,7 +518,7 @@ val loggerService = Logger.httpRoutes[IO](
   logHeaders = false,
   logBody = true,
   redactHeadersWhen = _ => false,
-  logAction = Some((msg: String) => IO(println(msg)))
+  logAction = Some((msg: String) => Console[IO].println(msg))
 )(service).orNotFound
 
 val loggerClient = Client.fromHttpApp(loggerService)
