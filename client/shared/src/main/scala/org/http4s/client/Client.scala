@@ -20,6 +20,7 @@ package client
 import cats.data._
 import cats.effect.Ref
 import cats.effect._
+import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
 import cats.effect.kernel.Resource.ExitCase
@@ -313,7 +314,7 @@ object Client {
             .onFinalize {
               r.get.ifM(
                 F.unit,
-                resp.body.compile.drain.flatMap(_ => r.set(true)),
+                resp.body.compile.drain.guarantee(r.set(true)),
               )
             }
         }
