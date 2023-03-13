@@ -24,6 +24,7 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.client.middleware.UnixSocket
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.core.h2.H2Keys
 
 import scala.concurrent.duration._
 
@@ -38,16 +39,19 @@ class EmberUnixSocketSuite extends Http4sSuite {
       _ <- EmberServerBuilder
         .default[IO]
         .withUnixSocketConfig(UnixSockets[IO], localSocket)
+        .withHttp2
+        .withShutdownTimeout(1.second)
         .withHttpApp(app)
         .build
       client <- EmberClientBuilder
         .default[IO]
         .withUnixSockets(UnixSockets[IO])
+        .withHttp2
         .build
         .map(UnixSocket(localSocket))
       _ <- Resource.eval(IO.sleep(4.seconds))
-      resp <- client.run(Request[IO](Method.GET))
-      body <- Resource.eval(resp.bodyText.compile.string)
+      resp <- client.run(Request[IO](Method.GET).withAttribute(H2Keys.Http2PriorKnowledge, ()))
+      body <- Resource.eval(resp.as[String])
     } yield {
       assertEquals(resp.status, Status.Ok)
       assertEquals(body, "Hello Unix Sockets!")

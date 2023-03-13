@@ -20,15 +20,17 @@ import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
 import cats.syntax.all._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
 import fs2._
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 private[h2] class H2Connection[F[_]](
-    host: com.comcast.ip4s.Host,
-    port: com.comcast.ip4s.Port,
+    address: Either[UnixSocketAddress, SocketAddress[Host]],
     connectionType: H2Connection.ConnectionType,
     localSettings: H2Frame.Settings.ConnectionSettings,
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
@@ -45,6 +47,8 @@ private[h2] class H2Connection[F[_]](
     socket: Socket[F],
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
+
+  private[this] def addrStr = address.fold(_.toString, _.toString)
 
   def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
@@ -160,7 +164,7 @@ private[h2] class H2Connection[F[_]](
             state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
               socket.isOpen.ifM(
                 socket.write(Chunk.byteVector(bv)) >>
-                  chunk.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
+                  chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
                 new SocketException("Socket closed when attempting to write").raiseError,
               )
           } else {
@@ -174,7 +178,7 @@ private[h2] class H2Connection[F[_]](
             }
             socket.isOpen.ifM(
               socket.write(Chunk.byteVector(bv)) >>
-                nonData.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
+                nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
               new SocketException("Socket closed when attempting to write").raiseError,
             ) >>
               s.writeBlock.get.rethrow >>
@@ -192,7 +196,7 @@ private[h2] class H2Connection[F[_]](
   //  Currently will backpressure at the data frame till its cleared
 
   def readLoop: F[Unit] = {
-    def connectionTerminated: String = s"Connection $host:$port readLoop Terminated"
+    def connectionTerminated: String = s"Connection $addrStr readLoop Terminated"
     val readFromSocket: F[Option[Chunk[Byte]]] =
       socket.read(localSettings.initialWindowSize.windowSize)
 
@@ -521,7 +525,7 @@ private[h2] class H2Connection[F[_]](
     def readLoopAux(acc: ByteVector): F[Unit] =
       readNextFrame(acc).flatMap {
         case Some((frame, nacc)) =>
-          logger.debug(s"$host:$port Read - $frame") >>
+          logger.debug(s"$addrStr Read - $frame") >>
             state.get.flatMap(processFrame(frame, _)) >>
             readLoopAux(nacc)
         case None => F.unit
