@@ -153,6 +153,18 @@ class H2StreamSuite extends Http4sSuite {
     } yield ()
   }
 
+    test("H2Stream sendMessageBody empty message without 'Trailer' header closes Stream") {
+    val config = defaultSettings
+
+    for {
+      sq <- streamAndQueue(config)
+      (stream, queue) = sq
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+      _ <- stream.sendMessageBody(resp)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
+    } yield ()
+  }
+
   test("H2Stream sendMessageBody empty message with 'Trailer' header keeps stream open") {
     val config = defaultSettings
 
