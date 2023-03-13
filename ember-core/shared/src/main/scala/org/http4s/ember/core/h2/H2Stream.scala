@@ -91,8 +91,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
         }
         .compile
         .drain
-        .onError{
-          case _ => rstStream(H2Error.InternalError)
+        .onError { case _ =>
+          rstStream(H2Error.InternalError)
         }
     )
   }
@@ -232,7 +232,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
                           checkLengthOf(resp) >>
-                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed else Applicative[F].unit)
+                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
@@ -246,7 +247,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
                           checkLengthOf(req) >>
-                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed else Applicative[F].unit)
+                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
@@ -334,7 +336,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
-          _ <- if (isClosed && sizeReadOk) s.trailWith(List.empty) >> onClosed else Applicative[F].unit
+          _ <-
+            if (isClosed && sizeReadOk) s.trailWith(List.empty) >> onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
         goAway(H2Error.ProtocolError)

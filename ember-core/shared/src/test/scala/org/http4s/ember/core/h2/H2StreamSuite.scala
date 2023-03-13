@@ -153,7 +153,7 @@ class H2StreamSuite extends Http4sSuite {
     } yield ()
   }
 
-    test("H2Stream sendMessageBody empty message without 'Trailer' header closes Stream") {
+  test("H2Stream sendMessageBody empty message without 'Trailer' header closes Stream") {
     val config = defaultSettings
 
     for {
