@@ -22,6 +22,7 @@ import cats.arrow.FunctionK
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.syntax.all._
+import fs2.concurrent.Channel
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.multipart.Multipart
@@ -163,4 +164,26 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       result <- finalized.get
     } yield assertEquals(result, true)
   }
+
+  test("mock client should drain the body if it has been partially") {
+
+    val entity = asciiBytes"foo"
+
+    def app(channel: Channel[IO, Byte]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity(entity)
+        .pipeBodyThrough(_.evalTap(channel.send))
+        .pure[IO]
+    }
+
+    for {
+      channel <- Channel.unbounded[IO, Byte]
+      client = Client.fromHttpApp(app(channel))
+      _ <- client.run(Request[IO]()).use(_.body.take(1).compile.drain)
+      _ <- channel.close.void
+      result <- channel.stream.compile.toVector
+    } yield assertEquals(result, entity.toSeq)
+
+  }
+
 }

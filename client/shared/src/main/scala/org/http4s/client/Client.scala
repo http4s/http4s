@@ -23,10 +23,10 @@ import cats.effect._
 import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
-import cats.effect.kernel.Resource.ExitCase
 import cats.syntax.all._
 import cats.~>
 import fs2._
+import fs2.concurrent.Channel
 import org.http4s.headers.Host
 
 import java.io.IOException
@@ -305,19 +305,22 @@ object Client {
             .flatMap(run(_, Option(disposed)))
         }
       case resp: Response[F] =>
-        Resource.eval(refOp.fold(Ref[F].of(false))(F.pure)).flatMap { r =>
-          Resource
-            .pure(resp.pipeBodyThrough(until(r)(_).onFinalizeCase {
-              case ExitCase.Canceled | ExitCase.Errored(_) => F.unit
-              case ExitCase.Succeeded => r.set(true)
-            }))
-            .onFinalize {
-              r.get.ifM(
-                F.unit,
-                resp.body.compile.drain.guarantee(r.set(true)),
-              )
-            }
-        }
+        for {
+          disposed <- Resource.eval(refOp.fold(Ref[F].of(false))(F.pure))
+          channel <- Resource.make(Channel.unbounded[F, Byte])(_.close.void)
+          r = resp.withBodyStream(
+            channel.stream
+              .through(until(disposed)(_))
+              .onFinalize(channel.stream.compile.drain.guarantee(disposed.set(true)))
+              .concurrently(channel.sendAll(resp.body))
+          )
+          _ <- Resource.onFinalize {
+            disposed.get.ifM(
+              F.unit,
+              r.body.compile.drain.guarantee(disposed.set(true)),
+            )
+          }
+        } yield r
 
     }
 
