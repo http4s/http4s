@@ -32,6 +32,9 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import scala.concurrent.duration._
 
+import Parser.{char, string}
+import Rfc5234.{digit, sp}
+
 /** An HTTP-date value represents time as an instance of Coordinated Universal
   * Time (UTC). It expresses time at a resolution of one second.  By using it
   * over java.time.Instant in the model, we assure that if two headers render
@@ -150,111 +153,108 @@ object HttpDate {
   def unsafeFromZonedDateTime(dateTime: ZonedDateTime): HttpDate =
     unsafeFromInstant(dateTime.toInstant)
 
+  private def mkHttpDate(
+      year: Int,
+      month: Int,
+      day: Int,
+      hour: Int,
+      min: Int,
+      sec: Int,
+  ): Option[HttpDate] =
+    try {
+      val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
+      Some(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
+    } catch {
+      case _: DateTimeException =>
+        None
+    }
+  /* day-name     = %x4D.6F.6E ; "Mon", case-sensitive
+   *              / %x54.75.65 ; "Tue", case-sensitive
+   *              / %x57.65.64 ; "Wed", case-sensitive
+   *              / %x54.68.75 ; "Thu", case-sensitive
+   *              / %x46.72.69 ; "Fri", case-sensitive
+   *              / %x53.61.74 ; "Sat", case-sensitive
+   *              / %x53.75.6E ; "Sun", case-sensitive
+   */
+  private val dayName =
+    List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+      .map(string)
+      .zipWithIndex
+      .map { case (s, i) => string(s).as(i) }
+      .reduceLeft(_.orElse(_))
+      .soft
+
+  /* day          = 2DIGIT */
+  private val day = (digit ~ digit).string.map(_.toInt)
+
+  /* month        = %x4A.61.6E ; "Jan", case-sensitive
+   *              / %x46.65.62 ; "Feb", case-sensitive
+   *              / %x4D.61.72 ; "Mar", case-sensitive
+   *              / %x41.70.72 ; "Apr", case-sensitive
+   *              / %x4D.61.79 ; "May", case-sensitive
+   *              / %x4A.75.6E ; "Jun", case-sensitive
+   *              / %x4A.75.6C ; "Jul", case-sensitive
+   *              / %x41.75.67 ; "Aug", case-sensitive
+   *              / %x53.65.70 ; "Sep", case-sensitive
+   *              / %x4F.63.74 ; "Oct", case-sensitive
+   *              / %x4E.6F.76 ; "Nov", case-sensitive
+   *              / %x44.65.63 ; "Dec", case-sensitive
+   */
+  private val month =
+    List(
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ).zipWithIndex
+      .map { case (s, i) => string(s).as(i + 1) }
+      .reduceLeft(_.orElse(_))
+
+  /* year         = 4DIGIT */
+  private val year = (digit ~ digit ~ digit ~ digit).string.map(_.toInt)
+
+  /* date1        = day SP month SP year
+   *              ; e.g., 02 Jun 1982
+   */
+  private val date1 = (day <* sp) ~ (month <* sp) ~ year
+
+  /* hour         = 2DIGIT */
+  private val hour = (digit ~ digit).string.map(_.toInt)
+
+  /* minute       = 2DIGIT */
+  private val minute = (digit ~ digit).string.map(_.toInt)
+
+  /* second       = 2DIGIT */
+  private val second = (digit ~ digit).string.map(_.toInt)
+
+  private val colon = char(':')
+  /* time-of-day  = hour ":" minute ":" second
+   *              ; 00:00:00 - 23:59:60 (leap second)
+   */
+  private val timeOfDay = (hour <* colon) ~ (minute <* colon) ~ second
+
+  /* IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT
+   * ; fixed length/zone/capitalization subset of the format
+   * ; see Section 3.3 of [RFC5322]
+   *
+   * GMT          = %x47.4D.54 ; "GMT", case-sensitive
+   */
+  private[http4s] val imfFixdate =
+    ((dayName <* string(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string(" GMT"))).mapFilter {
+      case ((_, ((day, month), year)), ((hour, min), sec)) =>
+        mkHttpDate(year, month, day, hour, min, sec)
+    }
+
   /** `HTTP-date = IMF-fixdate / obs-date` */
   private[http4s] val parser: Parser[HttpDate] = {
-    import Parser.{char, string}
-    import Rfc5234.{digit, sp}
-
-    def mkHttpDate(
-        year: Int,
-        month: Int,
-        day: Int,
-        hour: Int,
-        min: Int,
-        sec: Int,
-    ): Option[HttpDate] =
-      try {
-        val dt = ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC)
-        Some(org.http4s.HttpDate.unsafeFromZonedDateTime(dt))
-      } catch {
-        case _: DateTimeException =>
-          None
-      }
-
-    /* day-name     = %x4D.6F.6E ; "Mon", case-sensitive
-     *              / %x54.75.65 ; "Tue", case-sensitive
-     *              / %x57.65.64 ; "Wed", case-sensitive
-     *              / %x54.68.75 ; "Thu", case-sensitive
-     *              / %x46.72.69 ; "Fri", case-sensitive
-     *              / %x53.61.74 ; "Sat", case-sensitive
-     *              / %x53.75.6E ; "Sun", case-sensitive
-     */
-    val dayName =
-      List("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-        .map(string)
-        .zipWithIndex
-        .map { case (s, i) => string(s).as(i) }
-        .reduceLeft(_.orElse(_))
-        .soft
-
-    /* day          = 2DIGIT */
-    val day = (digit ~ digit).string.map(_.toInt)
-
-    /* month        = %x4A.61.6E ; "Jan", case-sensitive
-     *              / %x46.65.62 ; "Feb", case-sensitive
-     *              / %x4D.61.72 ; "Mar", case-sensitive
-     *              / %x41.70.72 ; "Apr", case-sensitive
-     *              / %x4D.61.79 ; "May", case-sensitive
-     *              / %x4A.75.6E ; "Jun", case-sensitive
-     *              / %x4A.75.6C ; "Jul", case-sensitive
-     *              / %x41.75.67 ; "Aug", case-sensitive
-     *              / %x53.65.70 ; "Sep", case-sensitive
-     *              / %x4F.63.74 ; "Oct", case-sensitive
-     *              / %x4E.6F.76 ; "Nov", case-sensitive
-     *              / %x44.65.63 ; "Dec", case-sensitive
-     */
-    val month =
-      List(
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ).zipWithIndex
-        .map { case (s, i) => string(s).as(i + 1) }
-        .reduceLeft(_.orElse(_))
-
-    /* year         = 4DIGIT */
-    val year = (digit ~ digit ~ digit ~ digit).string.map(_.toInt)
-
-    /* date1        = day SP month SP year
-     *              ; e.g., 02 Jun 1982
-     */
-    val date1 = (day <* sp) ~ (month <* sp) ~ year
-
-    /* hour         = 2DIGIT */
-    val hour = (digit ~ digit).string.map(_.toInt)
-
-    /* minute       = 2DIGIT */
-    val minute = (digit ~ digit).string.map(_.toInt)
-
-    /* second       = 2DIGIT */
-    val second = (digit ~ digit).string.map(_.toInt)
-
-    val colon = char(':')
-    /* time-of-day  = hour ":" minute ":" second
-     *              ; 00:00:00 - 23:59:60 (leap second)
-     */
-    val timeOfDay = (hour <* colon) ~ (minute <* colon) ~ second
-
-    /* IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT
-     * ; fixed length/zone/capitalization subset of the format
-     * ; see Section 3.3 of [RFC5322]
-     *
-     * GMT          = %x47.4D.54 ; "GMT", case-sensitive
-     */
-    val imfFixdate =
-      ((dayName <* string(", ")) ~ (date1 <* sp) ~ (timeOfDay <* string(" GMT"))).mapFilter {
-        case ((_, ((day, month), year)), ((hour, min), sec)) =>
-          mkHttpDate(year, month, day, hour, min, sec)
-      }
 
     val twoDigit = (digit ~ digit).string.map(_.toInt)
 

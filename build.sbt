@@ -23,11 +23,11 @@ ThisBuild / githubWorkflowJobSetup ~= {
 }
 ThisBuild / githubWorkflowJobSetup ++= Seq(
   WorkflowStep.Use(
-    UseRef.Public("cachix", "install-nix-action", "v17"),
+    UseRef.Public("cachix", "install-nix-action", "v20"),
     name = Some("Install Nix"),
   ),
   WorkflowStep.Use(
-    UseRef.Public("cachix", "cachix-action", "v10"),
+    UseRef.Public("cachix", "cachix-action", "v12"),
     name = Some("Install Cachix"),
     params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
   ),
@@ -403,6 +403,12 @@ lazy val client = libraryCrossProject("client")
         "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1"
       ),
       // end wsclient
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.F"
+      ), // sealed protected
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.this"
+      ), // private
     ) ++ {
       if (tlIsScala3.value)
         Seq(
