@@ -55,6 +55,7 @@ private[client] object ClientHelpers {
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
@@ -63,6 +64,7 @@ private[client] object ClientHelpers {
       requestKey,
       tlsContextOpt,
       enableEndpointValidation,
+      enableServerNameIndication,
       sg,
       additionalSocketOptions,
     )
@@ -73,13 +75,16 @@ private[client] object ClientHelpers {
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
       unixSockets.client(address),
       tlsContextOpt,
-      false,
+      enableEndpointValidation,
+      enableServerNameIndication,
       None,
     )
   }
@@ -88,6 +93,7 @@ private[client] object ClientHelpers {
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] =
@@ -96,10 +102,11 @@ private[client] object ClientHelpers {
       .flatMap { address =>
         val s = sg.client(address, options = additionalSocketOptions)
         elevateSocket(
-          requestKey: RequestKey,
-          s: Resource[F, Socket[F]],
-          tlsContextOpt: Option[TLSContext[F]],
-          enableEndpointValidation: Boolean,
+          requestKey,
+          s,
+          tlsContextOpt,
+          enableEndpointValidation,
+          enableServerNameIndication,
           Some(address),
         )
       }
@@ -109,6 +116,7 @@ private[client] object ClientHelpers {
       initSocket: Resource[F, Socket[F]],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       optionNames: Option[SocketAddress[Host]],
   ): Resource[F, RequestKeySocket[F]] =
     for {
@@ -122,7 +130,13 @@ private[client] object ClientHelpers {
           } { tlsContext =>
             tlsContext
               .clientBuilder(iSocket)
-              .withParameters(Util.mkClientTLSParameters(optionNames, enableEndpointValidation))
+              .withParameters(
+                Util.mkClientTLSParameters(
+                  optionNames,
+                  enableEndpointValidation,
+                  enableServerNameIndication,
+                )
+              )
               .build
               .widen[Socket[F]]
           }
