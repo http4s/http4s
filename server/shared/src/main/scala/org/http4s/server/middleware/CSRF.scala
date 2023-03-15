@@ -40,9 +40,8 @@ import org.http4s.headers.Referer
 import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.internal.decodeHexString
-import org.http4s.internal.encodeHexString
 import org.typelevel.ci._
+import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
 
 import java.nio.charset.StandardCharsets
@@ -104,7 +103,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
       joined <- F.delay(rawToken + "-" + clock.millis())
       data <- F.fromEither(ByteVector.encodeUtf8(joined))
       out <- Hmac[M].digest(key, data)
-    } yield lift(joined + "-" + encodeHexString(out.toArray))
+    } yield lift(joined + "-" + out.toHex(Alphabets.HexUppercase))
 
   /** Generate a new token */
   def generateToken[M[_]](implicit F: Async[M]): M[CSRFToken] =
@@ -170,9 +169,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
         Hmac[M]
           .digest(key, ByteVector.view((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8)))
           .map { out =>
-            decodeHexString(signed) match {
+            ByteVector.fromHex(signed, Alphabets.HexUppercase) match {
               case Some(decoded) =>
-                if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
+                if (SecureEq[ByteVector].eqv(out, decoded))
                   Right(raw)
                 else
                   Left(CSRFCheckFailed)
@@ -524,7 +523,10 @@ object CSRF {
 
   /** Generate an unsigned CSRF token from a `SecureRandom` */
   private[middleware] def genTokenString[F[_]: Sync]: F[String] =
-    CachedRandom.nextBytes(CSRFTokenLength).to[F].map(encodeHexString)
+    CachedRandom
+      .nextBytes(CSRFTokenLength)
+      .map(arr => ByteVector.view(arr).toHex(Alphabets.HexUppercase))
+      .to[F]
 
   /** Generate a signing Key for the CSRF token */
   def generateSigningKey[F[_]]()(implicit F: Async[F]): F[ByteVector] =

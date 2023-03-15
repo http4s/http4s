@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,29 @@
  */
 
 package org.http4s
-package bench
+package headers
 
-import org.openjdk.jmh.annotations._
+import cats.parse.Parser
+import org.typelevel.ci._
 
-import java.util.concurrent.TimeUnit
+/** Sunset Header - RFC 8594
+  *
+  * https://www.rfc-editor.org/rfc/rfc8594
+  */
+object Sunset {
+  def parse(s: String): ParseResult[Sunset] =
+    ParseResult.fromParser(parser, "Invalid Sunset header")(s)
 
-// sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.EncodeHexBench"
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@State(Scope.Benchmark)
-class EncodeHexBench {
-  val bytes: Array[Byte] = {
-    val r = new scala.util.Random(2597)
-    val bs = new Array[Byte](8192)
-    r.nextBytes(bs)
-    bs
-  }
+  /* `Date = HTTP-date` */
+  private[http4s] val parser: Parser[`Sunset`] =
+    HttpDate.parser.map(apply)
 
-  @Benchmark
-  def encodeHex: Array[Char] =
-    org.http4s.internal.encodeHex(bytes)
+  implicit val headerInstance: Header[Sunset, Header.Single] =
+    Header.createRendered(
+      ci"Sunset",
+      _.date,
+      parse,
+    )
 }
+
+final case class Sunset(date: HttpDate)
