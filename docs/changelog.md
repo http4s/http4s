@@ -3,6 +3,50 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.19-RC3 (2023-03-15)
+
+This release candidate ships several fixes to Ember client and server. It is built against Cats Effect v3.5.0-RC3 and FS2 v3.7.0-RC2.
+
+## What's Changed
+
+### http4s-core
+
+* Add Deprecation and Sunset Headers by @zan-preston in https://github.com/http4s/http4s/pull/6991
+
+### http4s-ember-core
+
+* All received messages in h2 could have trailers by @ChristopherDavenport in https://github.com/http4s/http4s/pull/7021
+* Redirect `H2Connection.writeLoop` errors to logger by @armanbilge in https://github.com/http4s/http4s/pull/7016
+
+### http4s-ember-client
+
+* Add ability to disable SNI in Ember by @joan38 in https://github.com/http4s/http4s/pull/6990
+* Detect terminated `EmberConnection`s in ember client prior to attempting a request by @armanbilge in https://github.com/http4s/http4s/pull/6980
+
+### http4s-ember-server
+
+* Handle EndOfStream error in Ember WebSocket server by @zAPFy in https://github.com/http4s/http4s/pull/7008
+* Special Case Error Handler For Unparsable Request Line by @isomarcte in https://github.com/http4s/http4s/pull/6934
+
+### http4s-circe
+
+* Update circe-core, circe-generic, ... to 0.14.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7012
+
+### Behind the scenes
+
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7007
+* Update nix and cachix actions by @armanbilge in https://github.com/http4s/http4s/pull/7011
+* Update sbt-http4s-org to 0.14.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7013
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7022
+* Update netty-buffer, netty-codec-http to 4.1.90.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7023
+
+## New Contributors
+
+* @zan-preston made their first contribution in https://github.com/http4s/http4s/pull/6991
+* @zAPFy made their first contribution in https://github.com/http4s/http4s/pull/7008
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.19-RC2...v0.23.19-RC3
+
 # v0.23.19-RC2 (2023-02-28)
 
 This release candidate updates to Cats Effect v3.5.0-RC3 and FS2 v3.7.0-RC2.
