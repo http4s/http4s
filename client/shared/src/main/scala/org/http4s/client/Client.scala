@@ -321,7 +321,7 @@ object Client {
             .eval(disposed.get)
             .ifM(
               Stream.eval(F.raiseError(new IOException("response was disposed"))),
-              Stream.empty.covaryAll[F, Byte],
+              Stream.empty,
             )
 
           r = resp.withBodyStream(
