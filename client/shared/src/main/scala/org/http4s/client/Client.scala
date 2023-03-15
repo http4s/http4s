@@ -18,8 +18,8 @@ package org.http4s
 package client
 
 import cats.data._
-import cats.effect.Ref
 import cats.effect._
+import cats.effect.implicits.genSpawnOps
 import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
@@ -307,19 +307,43 @@ object Client {
       case resp: Response[F] =>
         for {
           disposed <- Resource.eval(refOp.fold(Ref[F].of(false))(F.pure))
-          channel <- Resource.make(Channel.unbounded[F, Byte])(_.close.void)
+          channel <- Resource.eval(Channel.synchronous[F, Byte])
+
+          _ <- resp.body
+            .evalMap(channel.send)
+            .takeWhile(_.isRight)
+            .onFinalize(channel.close.void)
+            .compile
+            .drain
+            .background
+
+          ifDisposed = Stream
+            .eval(disposed.get)
+            .ifM(
+              Stream.eval(F.raiseError(new IOException("response was disposed"))),
+              Stream.empty.covaryAll[F, Byte],
+            )
+
           r = resp.withBodyStream(
             channel.stream
-              .through(until(disposed)(_))
-              .onFinalize(channel.stream.compile.drain.guarantee(disposed.set(true)))
-              .concurrently(channel.sendAll(resp.body))
+              .ifEmpty(ifDisposed)
+              .onFinalize(
+                channel.stream.compile.drain
+                  .guarantee(disposed.set(true))
+              )
           )
+
           _ <- Resource.onFinalize {
-            disposed.get.ifM(
-              F.unit,
-              r.body.compile.drain.guarantee(disposed.set(true)),
-            )
+            channel.close.void.guarantee {
+              disposed.get
+                .ifM(
+                  F.unit,
+                  r.body.compile.drain.void,
+                )
+                .guarantee(disposed.set(true))
+            }
           }
+
         } yield r
 
     }

@@ -151,38 +151,115 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
 
   test("mock client should drain the body if it has not been consumed") {
 
-    def app(finalized: Ref[IO, Boolean]) = HttpApp[IO] { (_: Request[IO]) =>
+    def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
       Response[IO]()
-        .pipeBodyThrough(_.onFinalize(finalized.set(true)))
+        .pipeBodyThrough(_.onFinalize(compiled.update(_ + 1)))
         .pure[IO]
     }
 
     for {
-      finalized <- Ref.of[IO, Boolean](false)
-      client = Client.fromHttpApp(app(finalized))
+      compiledCounter <- Ref.of[IO, Int](0)
+      client = Client.fromHttpApp(app(compiledCounter))
       _ <- client.status(Request[IO]()).void
-      result <- finalized.get
-    } yield assertEquals(result, true)
+      compiled <- compiledCounter.get
+    } yield assertEquals(compiled, 1)
   }
 
-  test("mock client should drain the body if it has been partially") {
+  test("mock client should drain the body if it has been partially consumed") {
 
     val entity = asciiBytes"foo"
 
-    def app(channel: Channel[IO, Byte]) = HttpApp[IO] { (_: Request[IO]) =>
+    def app(channel: Channel[IO, Byte], compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
       Response[IO]()
         .withEntity(entity)
-        .pipeBodyThrough(_.evalTap(channel.send))
+        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(compiled.update(_ + 1)))
         .pure[IO]
     }
 
     for {
+      compiledCounter <- Ref.of[IO, Int](0)
       channel <- Channel.unbounded[IO, Byte]
-      client = Client.fromHttpApp(app(channel))
-      _ <- client.run(Request[IO]()).use(_.body.take(1).compile.drain)
+      client = Client.fromHttpApp(app(channel, compiledCounter))
+      result <- client.run(Request[IO]()).use(_.body.take(1).compile.toVector)
       _ <- channel.close.void
-      result <- channel.stream.compile.toVector
-    } yield assertEquals(result, entity.toSeq)
+      resultWithDrained <- channel.stream.compile.toVector
+      compiled <- compiledCounter.get
+    } yield {
+      assertEquals(result, entity.take(1).toSeq.toVector)
+      assertEquals(resultWithDrained, entity.toSeq.toVector)
+      assertEquals(compiled, 1)
+    }
+
+  }
+
+  test("mock client should drain the body if the client fails") {
+
+    val entity = asciiBytes"foo"
+    val expectedErrorMsg = "error"
+
+    def app(channel: Channel[IO, Byte], finalized: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity(entity)
+        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(finalized.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      channel <- Channel.unbounded[IO, Byte]
+      client = Client.fromHttpApp(app(channel, compiledCounter))
+      result <- client
+        .run(Request[IO]())
+        .use { r =>
+          r.body
+            .merge(fs2.Stream.raiseError[IO](new Exception(expectedErrorMsg)))
+            .compile
+            .toVector
+            .attempt
+        }
+      _ <- channel.close.void
+      resultWithDrained <- channel.stream.compile.toVector
+      compiled <- compiledCounter.get
+    } yield {
+      assertEquals(result.left.toOption.map(_.getMessage), expectedErrorMsg.some)
+      assertEquals(compiled, 1)
+      assertEquals(resultWithDrained, entity.toSeq.toVector)
+    }
+
+  }
+
+  test("mock client should drain the body if the client was interrupted") {
+
+    val entity = asciiBytes"foo"
+
+    def app(channel: Channel[IO, Byte], finalized: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity(entity)
+        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(finalized.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      byteCounter <- Ref.of[IO, Int](0)
+      channel <- Channel.unbounded[IO, Byte]
+      client = Client.fromHttpApp(app(channel, compiledCounter))
+      _ <- client
+        .run(Request[IO]())
+        .use { r =>
+          r.body
+            .evalTap(_ => byteCounter.update(_ + 1))
+            .interruptWhen(fs2.Stream.eval(byteCounter.get.map(_ > 1)))
+            .compile
+            .toVector
+        }
+      _ <- channel.close.void
+      resultWithDrained <- channel.stream.compile.toVector
+      compiled <- compiledCounter.get
+    } yield {
+      assertEquals(compiled, 1)
+      assertEquals(resultWithDrained, entity.toSeq.toVector)
+    }
 
   }
 
