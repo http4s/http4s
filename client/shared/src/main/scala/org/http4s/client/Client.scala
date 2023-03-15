@@ -307,12 +307,10 @@ object Client {
       case resp: Response[F] =>
         for {
           disposed <- Resource.eval(refOp.fold(Ref[F].of(false))(F.pure))
-          channel <- Resource.eval(Channel.synchronous[F, Byte])
+          channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
 
-          _ <- resp.body
-            .evalMap(channel.send)
-            .takeWhile(_.isRight)
-            .onFinalize(channel.close.void)
+          _ <- resp.body.chunks
+            .through(channel.sendAll)
             .compile
             .drain
             .background
@@ -325,7 +323,7 @@ object Client {
             )
 
           r = resp.withBodyStream(
-            channel.stream
+            channel.stream.unchunks
               .ifEmpty(ifDisposed)
               .onFinalize(
                 channel.stream.compile.drain
