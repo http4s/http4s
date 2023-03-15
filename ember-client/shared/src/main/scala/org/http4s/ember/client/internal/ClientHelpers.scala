@@ -29,6 +29,7 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
@@ -162,24 +163,31 @@ private[client] object ClientHelpers {
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket) >>
-        connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val parse = Parser.Response.parser(maxResponseHeaderSize)(
-            head,
+      writeRequestToSocket(req, connection.keySocket.socket).productR {
+        val parse = (
+          // leftover bytes from last request
+          connection.nextBytes.getAndSet(Array.emptyByteArray),
+          // bytes from the pre-emptive read in this connection, which probably has not completed yet, hence the timout
+          connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
+        ).flatMapN { (head, firstRead) =>
+          Parser.Response.parser(maxResponseHeaderSize)(
+            firstRead.foldLeft(head)(Util.concatBytes(_, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
-          timeoutToMaybe(
-            parse,
-            timeout,
-            Defer[F].defer(
-              ApplicativeThrow[F].raiseError(
-                new java.util.concurrent.TimeoutException(
-                  s"Timed Out on EmberClient Header Receive Timeout: $timeout"
-                )
-              )
-            ),
-          )
         }
+
+        timeoutToMaybe(
+          parse,
+          timeout,
+          Defer[F].defer(
+            ApplicativeThrow[F].raiseError(
+              new java.util.concurrent.TimeoutException(
+                s"Timed Out on EmberClient Header Receive Timeout: $timeout"
+              )
+            )
+          ),
+        )
+      }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
@@ -213,6 +221,7 @@ private[client] object ClientHelpers {
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
       canBeReused: Ref[F, Reusable],
+      startNextRead: F[Unit],
   )(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
@@ -220,7 +229,10 @@ private[client] object ClientHelpers {
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
-        else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+        else
+          nextBytes.set(bytes) *>
+            startNextRead *> // start the next read before returning to pool
+            canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
       case None => F.unit
     }
 
@@ -242,7 +254,7 @@ private[client] object ClientHelpers {
   ): Resource[F, Managed[F, EmberConnection[F]]] =
     pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
       Resource
-        .eval(managed.value.keySocket.socket.isOpen)
+        .eval(managed.value.isValid)
         .ifM(
           managed.pure[Resource[F, *]],
           // Already Closed,

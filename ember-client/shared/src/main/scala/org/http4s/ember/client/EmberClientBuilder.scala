@@ -247,24 +247,25 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           )
       builder =
         KeyPool.Builder
-          .apply[F, RequestKey, EmberConnection[F]](
-            (requestKey: RequestKey) =>
-              EmberConnection(
-                org.http4s.ember.client.internal.ClientHelpers
-                  .requestKeyToSocketWithKey[F](
-                    requestKey,
-                    tlsContextOptWithDefault,
-                    checkEndpointIdentification,
-                    serverNameIndication,
-                    sg,
-                    additionalSocketOptions,
-                  )
-              ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            (connection: EmberConnection[F]) =>
-              logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
-              ) >>
-                connection.cleanup,
+          .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
+            EmberConnection(
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  serverNameIndication,
+                  sg,
+                  additionalSocketOptions,
+                ),
+              chunkSize,
+            ) <* Resource
+              .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
+              .onFinalize(
+                logger.trace(
+                  s"Shutting Down Connection - RequestKey: ${requestKey}"
+                )
+              )
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -317,6 +318,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   drain,
                   managed.value.nextBytes,
                   managed.canBeReused,
+                  managed.value.startNextRead,
                 )
               case _ => Applicative[F].unit
             }
@@ -340,19 +342,17 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
               )
           )
           .flatMap(unixSockets =>
-            Resource
-              .make(
-                EmberConnection(
-                  ClientHelpers.unixSocket(
-                    request,
-                    unixSockets,
-                    address,
-                    tlsContextOpt,
-                    enableEndpointValidation,
-                    enableServerNameIndication,
-                  )
-                )
-              )(ec => ec.shutdown)
+            EmberConnection(
+              ClientHelpers.unixSocket(
+                request,
+                unixSockets,
+                address,
+                tlsContextOpt,
+                enableEndpointValidation,
+                enableServerNameIndication,
+              ),
+              chunkSize,
+            )
           )
           .flatMap(connection =>
             Resource.eval(
