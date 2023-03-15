@@ -232,7 +232,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
                           checkLengthOf(resp) >>
-                          (if (headers.endStream) s.trailWith(List.empty)
+                          (if (headers.endStream) s.trailWith(List.empty).void
                            else Applicative[F].unit) >>
                           (if (newstate == StreamState.Closed) onClosed
                            else Applicative[F].unit)
@@ -249,7 +249,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
                           checkLengthOf(req) >>
-                          (if (headers.endStream) s.trailWith(List.empty)
+                          (if (headers.endStream) s.trailWith(List.empty).void
                            else Applicative[F].unit) >>
                           (if (newstate == StreamState.Closed) onClosed
                            else Applicative[F].unit)
@@ -340,7 +340,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
-          _ <- if (data.endStream) s.trailWith(List.empty) else Applicative[F].unit
+          _ <- if (data.endStream) s.trailWith(List.empty).void else Applicative[F].unit
           _ <-
             if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
