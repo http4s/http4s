@@ -335,9 +335,8 @@ object Client {
             disposed.get
               .ifM(
                 F.unit,
-                r.body.compile.drain.void,
+                r.body.compile.drain,
               )
-              .guarantee(disposed.set(true))
           }
 
         } yield r
