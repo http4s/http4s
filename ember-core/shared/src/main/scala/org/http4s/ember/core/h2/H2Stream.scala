@@ -232,7 +232,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
                           checkLengthOf(resp) >>
-                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed
+                          (if (headers.endStream) s.trailWith(List.empty)
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
                            else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
@@ -247,7 +249,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
                           checkLengthOf(req) >>
-                          (if (newstate == StreamState.Closed) s.trailWith(List.empty) >> onClosed
+                          (if (headers.endStream) s.trailWith(List.empty)
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
                            else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
@@ -336,8 +340,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
+          _ <- if (data.endStream) s.trailWith(List.empty) else Applicative[F].unit
           _ <-
-            if (isClosed && sizeReadOk) s.trailWith(List.empty) >> onClosed else Applicative[F].unit
+            if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
         goAway(H2Error.ProtocolError)
@@ -358,9 +363,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
       _ <- s.request.complete(Left(t))
       _ <- s.response.complete(Left(t))
       _ <- s.readBuffer.offer(Left(t))
+      _ <- s.trailers.complete(Left(t))
       _ <- onClosed
     } yield ()
-
   }
 
   // Broadcast Frame
