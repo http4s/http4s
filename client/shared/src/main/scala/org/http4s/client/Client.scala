@@ -332,14 +332,12 @@ object Client {
           )
 
           _ <- Resource.onFinalize {
-            channel.close.void.guarantee {
-              disposed.get
-                .ifM(
-                  F.unit,
-                  r.body.compile.drain.void,
-                )
-                .guarantee(disposed.set(true))
-            }
+            disposed.get
+              .ifM(
+                F.unit,
+                r.body.compile.drain.void,
+              )
+              .guarantee(disposed.set(true))
           }
 
         } yield r
