@@ -76,6 +76,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
   )(implicit F: Async[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
@@ -101,6 +102,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       true,
       webSocketKey,
       enableHttp2,
+      requestLineParseErrorHandler,
     )
   }
 
@@ -124,6 +126,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       logger: Logger[F],
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
   ): Stream[F, Nothing] = {
     val server =
       // Our interface has an issue
@@ -154,6 +157,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       false,
       webSocketKey,
       enableHttp2,
+      requestLineParseErrorHandler,
     )
   }
 
@@ -174,6 +178,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       createRequestVault: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
   ): Stream[F, Nothing] = {
     val streams: Stream[F, Stream[F, Nothing]] = server
       .interruptWhen(shutdown.signal.attempt)
@@ -214,6 +219,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   webSocketKey,
                   ByteVector.empty,
                   enableHttp2,
+                  requestLineParseErrorHandler,
                 ).drain
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
@@ -236,6 +242,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           webSocketKey,
                           bv, // Pass read bytes we thought might be the prelude
                           enableHttp2,
+                          requestLineParseErrorHandler,
                         ).drain
                       case Right(_) =>
                         Stream
@@ -265,6 +272,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       webSocketKey,
                       ByteVector.empty,
                       enableHttp2,
+                      requestLineParseErrorHandler,
                     ).drain
                 }
             }
@@ -408,6 +416,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
       enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
@@ -506,8 +515,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   EmberException.ReadTimeout(_) =>
                 Applicative[F].pure(None)
               case err =>
-                errorHandler(err)
-                  .handleError(_ => serverFailure)
+                (err match {
+                  case err: Parser.Request.ReqPrelude.ParsePreludeError =>
+                    requestLineParseErrorHandler(err)
+                  case err =>
+                    errorHandler(err)
+                }).handleError(_ => serverFailure.covary[F])
                   .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
                   .as(None)
             }
