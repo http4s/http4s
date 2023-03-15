@@ -20,7 +20,6 @@ package client
 import cats.data._
 import cats.effect._
 import cats.effect.implicits.genSpawnOps
-import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
 import cats.syntax.all._
@@ -311,6 +310,7 @@ object Client {
 
           _ <- resp.body.chunks
             .through(channel.sendAll)
+            .onFinalize(disposed.set(true))
             .compile
             .drain
             .background
@@ -327,7 +327,6 @@ object Client {
               .ifEmpty(ifDisposed)
               .onFinalize(
                 channel.stream.compile.drain
-                  .guarantee(disposed.set(true))
               )
           )
 
@@ -337,7 +336,6 @@ object Client {
                 F.unit,
                 r.body.compile.drain.void,
               )
-              .guarantee(disposed.set(true))
           }
 
         } yield r
