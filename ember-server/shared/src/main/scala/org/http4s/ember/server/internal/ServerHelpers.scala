@@ -19,6 +19,7 @@ package org.http4s.ember.server.internal
 import cats._
 import cats.effect._
 import cats.effect.kernel.Resource
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
@@ -75,31 +76,39 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       enableHttp2: Boolean,
   )(implicit F: Async[F]): Stream[F, Nothing] = {
-    val server: Stream[F, Socket[F]] =
-      Stream
-        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
-        .attempt
-        .evalTap(e => ready.complete(e.map(_._1)))
-        .rethrow
-        .flatMap(_._2)
-    serverInternal(
-      server,
-      httpApp: HttpApp[F],
-      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-      shutdown: Shutdown[F],
-      // Defaults
-      errorHandler: Throwable => F[Response[F]],
-      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
-      maxConnections: Int,
-      receiveBufferSize: Int,
-      maxHeaderSize: Int,
-      requestHeaderReceiveTimeout: Duration,
-      idleTimeout: Duration,
-      logger: Logger[F],
-      true,
-      webSocketKey,
-      enableHttp2,
-    )
+    val res =
+      Resource
+        .make(
+          sg
+            .serverResource(host, Some(port), additionalSocketOptions)
+            .attempt
+            .evalTap(e => ready.complete(e.map(_._1)))
+            .rethrow
+            .allocated
+            .flatMap { case ((_, sockets), fin) =>
+              serverInternal(
+                sockets,
+                httpApp: HttpApp[F],
+                tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+                shutdown: Shutdown[F],
+                // Defaults
+                errorHandler: Throwable => F[Response[F]],
+                onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+                maxConnections: Int,
+                receiveBufferSize: Int,
+                maxHeaderSize: Int,
+                requestHeaderReceiveTimeout: Duration,
+                idleTimeout: Duration,
+                logger: Logger[F],
+                true,
+                webSocketKey,
+                enableHttp2,
+              ).compile.drain.start.tupleRight(fin)
+            }
+        ) { case (fiber, fin) => fin.guarantee(fiber.join.void) } >> Resource.eval(shutdown.signal)
+
+    Stream.resource(res).drain
+
   }
 
   def unixSocketServer[F[_]: Async](
@@ -212,6 +221,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                   webSocketKey,
                   ByteVector.empty,
                   enableHttp2,
+                  shutdown,
                 ).drain
               case (socket, None) => // Cleartext Protocol
                 enableHttp2 match {
@@ -234,6 +244,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                           webSocketKey,
                           bv, // Pass read bytes we thought might be the prelude
                           enableHttp2,
+                          shutdown,
                         ).drain
                       case Right(_) =>
                         Stream
@@ -263,6 +274,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                       webSocketKey,
                       ByteVector.empty,
                       enableHttp2,
+                      shutdown,
                     ).drain
                 }
             }
@@ -366,8 +378,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
       resp: Response[F],
+      isShutdown: Boolean,
   ): F[Response[F]] = {
-    val connection = connectionFor(req.httpVersion, req.headers)
+    val connection = if (isShutdown) close else connectionFor(req.httpVersion, req.headers)
     for {
       date <- HttpDate.current[F].map(Date(_))
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
@@ -387,6 +400,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       webSocketKey: Key[WebSocketContext[F]],
       initialBuffer: ByteVector,
       enableHttp2: Boolean,
+      shutdown: Shutdown[F],
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
@@ -396,103 +410,111 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)
       }
     Stream
-      .unfoldEval[F, State, Response[F]](initialBuffer.toArray -> false) { case (buffer, reuse) =>
-        val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
-          // next request has already been (partially) received
-          buffer.pure[F]
-        } else if (reuse) {
-          // the connection is keep-alive, but we don't have any bytes.
-          // we want to be on the idle timeout until the next request is received.
-          read
-            .flatMap {
-              case Some(chunk) => chunk.toArray.pure[F]
-              case None => Concurrent[F].raiseError(EmberException.EmptyStream())
-            }
-        } else {
-          // first request begins immediately
-          Array.emptyByteArray.pure[F]
-        }
+      .unfoldEval[F, State, (Response[F], Boolean)](initialBuffer.toArray -> false) {
+        case (buffer, reuse) =>
+          val initRead: F[Array[Byte]] = if (buffer.nonEmpty) {
+            // next request has already been (partially) received
+            buffer.pure[F]
+          } else if (reuse) {
+            // the connection is keep-alive, but we don't have any bytes.
+            // we want to be on the idle timeout until the next request is received.
+            read
+              .flatMap {
+                case Some(chunk) => chunk.toArray.pure[F]
+                case None => Concurrent[F].raiseError(EmberException.EmptyStream())
+              }
+          } else {
+            // first request begins immediately
+            Array.emptyByteArray.pure[F]
+          }
 
-        val result = initRead.flatMap { initBuffer =>
-          runApp(
-            initBuffer,
-            read,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            finalApp,
-            errorHandler,
-            socket,
-            createRequestVault,
-          )
-        }
+          val result = initRead.flatMap { initBuffer =>
+            runApp(
+              initBuffer,
+              read,
+              maxHeaderSize,
+              requestHeaderReceiveTimeout,
+              finalApp,
+              errorHandler,
+              socket,
+              createRequestVault,
+            )
+          }
 
-        result.attempt.flatMap {
-          case Right((req, resp, drain)) =>
-            // TODO: Should we pay this cost for every HTTP request?
-            // Intercept the response for various upgrade paths
-            resp.attributes.lookup(webSocketKey) match {
-              case Some(ctx) =>
-                drain.flatMap {
-                  case Some(buffer) =>
-                    WebSocketHelpers
-                      .upgrade(
-                        socket,
-                        req,
-                        ctx,
-                        buffer,
-                        receiveBufferSize,
-                        idleTimeout,
-                        onWriteFailure,
-                        errorHandler,
-                        logger,
-                      )
-                      .as(None)
-                  case None =>
-                    Applicative[F].pure(None)
-                }
-              case None =>
-                resp.attributes.lookup(H2Keys.H2cUpgrade) match {
-                  // Http1.1
-                  case None =>
-                    for {
-                      nextResp <- postProcessResponse(req, resp)
-                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                      nextBuffer <- drain
-                    } yield nextBuffer.map(buffer => (nextResp, (buffer, true)))
-                  // h2c escalation of the connection
-                  case Some((settings, newReq)) =>
-                    for {
-                      nextResp <- postProcessResponse(req, resp)
-                      _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
-                      _ <- H2Server.requireConnectionPreface(socket)
-                      out <- H2Server
-                        .fromSocket(
+          result.attempt.flatMap {
+            case Right((req, resp, drain)) =>
+              // TODO: Should we pay this cost for every HTTP request?
+              // Intercept the response for various upgrade paths
+              resp.attributes.lookup(webSocketKey) match {
+                case Some(ctx) =>
+                  drain.flatMap {
+                    case Some(buffer) =>
+                      WebSocketHelpers
+                        .upgrade(
                           socket,
-                          httpApp,
-                          H2Frame.Settings.ConnectionSettings.default,
+                          req,
+                          ctx,
+                          buffer,
+                          receiveBufferSize,
+                          idleTimeout,
+                          onWriteFailure,
+                          errorHandler,
                           logger,
-                          settings,
-                          newReq.some,
                         )
-                        .use(_ => Async[F].never[Unit])
                         .as(None)
-                    } yield out
-                }
-            }
-          case Left(err) =>
-            err match {
-              case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
-                  EmberException.ReadTimeout(_) =>
-                Applicative[F].pure(None)
-              case err =>
-                errorHandler(err)
-                  .handleError(_ => serverFailure.covary[F])
-                  .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
-                  .as(None)
-            }
-        }
+                    case None =>
+                      Applicative[F].pure(None)
+                  }
+                case None =>
+                  resp.attributes.lookup(H2Keys.H2cUpgrade) match {
+                    // Http1.1
+                    case None =>
+                      for {
+                        // Check shutdown again so we set `Connection: close` if necessary
+                        isShutdown <- shutdown.isShutdown
+                        nextResp <- postProcessResponse(req, resp, isShutdown)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        nextBuffer <- drain
+                      } yield nextBuffer.map(buffer => ((nextResp, isShutdown), (buffer, true)))
+                    // h2c escalation of the connection
+                    case Some((settings, newReq)) =>
+                      for {
+                        // Check shutdown again so we set `Connection: close` if necessary
+                        isShutdown <- shutdown.isShutdown
+                        nextResp <- postProcessResponse(req, resp, isShutdown)
+                        _ <- send(socket)(Some(req), nextResp, idleTimeout, onWriteFailure)
+                        _ <- H2Server.requireConnectionPreface(socket)
+                        out <- H2Server
+                          .fromSocket(
+                            socket,
+                            httpApp,
+                            H2Frame.Settings.ConnectionSettings.default,
+                            logger,
+                            settings,
+                            newReq.some,
+                          )
+                          .use(_ => Async[F].never[Unit])
+                          .as(None)
+                      } yield out
+                  }
+              }
+            case Left(err) =>
+              err match {
+                case EmberException.EmptyStream() | EmberException.RequestHeadersTimeout(_) |
+                    EmberException.ReadTimeout(_) =>
+                  Applicative[F].pure(None)
+                case err =>
+                  errorHandler(err)
+                    .handleError(_ => serverFailure.covary[F])
+                    .flatMap(send(socket)(None, _, idleTimeout, onWriteFailure))
+                    .as(None)
+              }
+          }
       }
-      .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
+      .takeWhile { case (resp, isShutdown) =>
+        !isShutdown && resp.headers.get[Connection].exists(_.hasKeepAlive)
+      }
+      .interruptWhen[F]((shutdown.signal >> Async[F].sleep(shutdown.shutdownGracePeriod)).attempt)
       .drain
   }
 

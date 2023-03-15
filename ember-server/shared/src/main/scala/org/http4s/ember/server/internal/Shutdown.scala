@@ -21,12 +21,13 @@ import cats.effect.implicits._
 import cats.syntax.all._
 import fs2.Stream
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration._
 
 private[server] abstract class Shutdown[F[_]] {
   def await: F[Unit]
   def signal: F[Unit]
+  def isShutdown: F[Boolean]
+  def shutdownGracePeriod: Duration
   def newConnection: F[Unit]
   def removeConnection: F[Unit]
 
@@ -70,6 +71,10 @@ private[server] object Shutdown {
           .uncancelable
           .flatten
 
+      override val isShutdown: F[Boolean] = unblockStart.tryGet.map(_.isDefined)
+
+      override val shutdownGracePeriod: Duration = timeout
+
       override val signal: F[Unit] =
         unblockStart.get
 
@@ -98,6 +103,8 @@ private[server] object Shutdown {
       new Shutdown[F] {
         override val await: F[Unit] = unblock.complete(()).void
         override val signal: F[Unit] = unblock.get
+        override val isShutdown: F[Boolean] = F.pure(true)
+        override val shutdownGracePeriod: Duration = 0.millis
         override val newConnection: F[Unit] = F.unit
         override val removeConnection: F[Unit] = F.unit
         override val trackConnection: Stream[F, Unit] = Stream.emit(())
