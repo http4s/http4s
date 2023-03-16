@@ -21,11 +21,11 @@ ThisBuild / githubWorkflowJobSetup ~= {
 }
 ThisBuild / githubWorkflowJobSetup ++= Seq(
   WorkflowStep.Use(
-    UseRef.Public("cachix", "install-nix-action", "v17"),
+    UseRef.Public("cachix", "install-nix-action", "v20"),
     name = Some("Install Nix"),
   ),
   WorkflowStep.Use(
-    UseRef.Public("cachix", "cachix-action", "v10"),
+    UseRef.Public("cachix", "cachix-action", "v12"),
     name = Some("Install Cachix"),
     params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
   ),

@@ -25,6 +25,7 @@ import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
 import fs2.io.file.Files
+import fs2.io.file.Flags
 import fs2.io.file.Path
 import org.http4s.Charset.`UTF-8`
 import org.http4s.multipart.Multipart
@@ -283,15 +284,31 @@ object EntityDecoder {
   // File operations
 
   def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    binFileImpl(path, Files[F].writeAll(path))
+
+  def binFile[F[_]: Files: Concurrent](path: Path, flags: Flags): EntityDecoder[F, Path] =
+    binFileImpl(path, Files[F].writeAll(path, flags))
+
+  private[this] def binFileImpl[F[_]: Concurrent](
+      path: Path,
+      pipe: Pipe[F, Byte, Nothing],
+  ): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = Files[F].writeAll(path)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).as(path)
     }
 
   def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    textFileImpl(path, Files[F].writeAll(path))
+
+  def textFile[F[_]: Files: Concurrent](path: Path, flags: Flags): EntityDecoder[F, Path] =
+    textFileImpl(path, Files[F].writeAll(path, flags))
+
+  private[this] def textFileImpl[F[_]: Concurrent](
+      path: Path,
+      pipe: Pipe[F, Byte, Nothing],
+  ): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = Files[F].writeAll(path)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).as(path)
     }
 
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =

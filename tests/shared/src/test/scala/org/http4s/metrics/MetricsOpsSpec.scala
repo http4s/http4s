@@ -27,76 +27,66 @@ import org.scalacheck.Prop
 
 import java.util.UUID
 
-import MetricsOps.classifierFMethodWithOptionallyExcludedPath
-
-object MetricsOpsSpec {
+class MetricsOpsSpec extends Http4sSuite {
 
   implicit private val arbUUID: Arbitrary[UUID] =
     Arbitrary(Gen.uuid)
-}
 
-class MetricsOpsSpec extends Http4sSuite {
+  test("classifierFMethodWithOptionallyExcludedPath should properly exclude UUIDs") {
+    Prop.forAll { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
+      val request: Request[IO] = Request[IO](
+        method = method,
+        uri = Uri.unsafeFromString(s"/users/$uuid/comments"),
+      )
 
-  import MetricsOpsSpec.arbUUID
+      val excludeUUIDs: String => Boolean = { (str: String) =>
+        Either
+          .catchOnly[IllegalArgumentException](UUID.fromString(str))
+          .isRight
+      }
 
-  {
-    test("classifierFMethodWithOptionallyExcludedPath should properly exclude UUIDs") {
-      Prop.forAll { (method: Method, uuid: UUID, excludedValue: String, separator: String) =>
-        val request: Request[IO] = Request[IO](
-          method = method,
-          uri = Uri.unsafeFromString(s"/users/$uuid/comments"),
+      val classifier: Request[IO] => Option[String] =
+        MetricsOps.classifierFMethodWithOptionallyExcludedPath(
+          exclude = excludeUUIDs,
+          excludedValue = excludedValue,
+          pathSeparator = separator,
         )
 
-        val excludeUUIDs: String => Boolean = { (str: String) =>
-          Either
-            .catchOnly[IllegalArgumentException](UUID.fromString(str))
-            .isRight
-        }
+      val result: Option[String] =
+        classifier(request)
 
-        val classifier: Request[IO] => Option[String] =
-          classifierFMethodWithOptionallyExcludedPath(
-            exclude = excludeUUIDs,
-            excludedValue = excludedValue,
-            pathSeparator = separator,
-          )
-
-        val result: Option[String] =
-          classifier(request)
-
-        val expected: Option[String] =
-          Some(
-            method.name +
-              separator +
-              "users" +
-              separator +
-              excludedValue +
-              separator +
-              "comments"
-          )
-
-        result === expected
-      }
-    }
-    test("classifierFMethodWithOptionallyExcludedPath should return '$method' if the path is '/'") {
-      Prop.forAll { (method: Method) =>
-        val request: Request[IO] = Request[IO](
-          method = method,
-          uri = uri"""/""",
+      val expected: Option[String] =
+        Some(
+          method.name +
+            separator +
+            "users" +
+            separator +
+            excludedValue +
+            separator +
+            "comments"
         )
 
-        val classifier: Request[IO] => Option[String] =
-          classifierFMethodWithOptionallyExcludedPath(
-            _ => true,
-            "*",
-            "_",
-          )
-
-        val result: Option[String] =
-          classifier(request)
-
-        result === Some(method.name)
-      }
+      result === expected
     }
   }
+  test("classifierFMethodWithOptionallyExcludedPath should return '$method' if the path is '/'") {
+    Prop.forAll { (method: Method) =>
+      val request: Request[IO] = Request[IO](
+        method = method,
+        uri = uri"""/""",
+      )
 
+      val classifier: Request[IO] => Option[String] =
+        MetricsOps.classifierFMethodWithOptionallyExcludedPath(
+          _ => true,
+          "*",
+          "_",
+        )
+
+      val result: Option[String] =
+        classifier(request)
+
+      result === Some(method.name)
+    }
+  }
 }

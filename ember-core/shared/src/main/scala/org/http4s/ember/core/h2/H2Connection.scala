@@ -188,6 +188,7 @@ private[h2] class H2Connection[F[_]](
         }
         firstGoAway.getOrElse(F.unit) >> go(chunk)
       }
+      .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
