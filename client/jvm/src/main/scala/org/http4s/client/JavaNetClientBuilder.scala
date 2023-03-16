@@ -17,7 +17,6 @@
 package org.http4s
 package client
 
-import cats.effect.Async
 import cats.effect.Resource
 import cats.effect.Sync
 import cats.syntax.all._
