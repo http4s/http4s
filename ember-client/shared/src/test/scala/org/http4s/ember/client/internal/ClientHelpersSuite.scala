@@ -115,6 +115,7 @@ class ClientHelpersSuite extends Http4sSuite {
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse,
+          IO.unit,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.Reuse)
@@ -133,6 +134,7 @@ class ClientHelpersSuite extends Http4sSuite {
         IO.pure(Some(Array[Byte](1, 2, 3))),
         nextBytes,
         reuse,
+        IO.unit,
       )
       drained <- nextBytes.get
     } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
@@ -149,6 +151,7 @@ class ClientHelpersSuite extends Http4sSuite {
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse,
+          IO.unit,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -167,6 +170,7 @@ class ClientHelpersSuite extends Http4sSuite {
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse,
+          IO.unit,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -185,6 +189,7 @@ class ClientHelpersSuite extends Http4sSuite {
           IO.pure(None),
           nextBytes,
           reuse,
+          IO.unit,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
