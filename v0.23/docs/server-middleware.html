@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
+    <title>Server Middleware</title>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Bjørn Madsen"/>
+    
+      <meta name="author" content="André Rouel"/>
+    
+      <meta name="author" content="Brad Fritz"/>
+    
+      <meta name="author" content="Bryce L. Anderson"/>
+    
+      <meta name="author" content="Ivan Porto Carrero"/>
+    
+      <meta name="author" content="Carlos Encarnacion"/>
+    
+      <meta name="author" content="Christopher Davenport"/>
+    
+      <meta name="author" content="Carlos Quiroz"/>
+    
+      <meta name="author" content="Heikki Vesalainen"/>
+    
+      <meta name="author" content="Paulo Siqueira"/>
+    
+      <meta name="author" content="Jean-Rémi Desjardins"/>
+    
+      <meta name="author" content="Jose Cardona"/>
+    
+      <meta name="author" content="Julien Truffaut"/>
+    
+      <meta name="author" content="Rodolfo Hansen"/>
+    
+      <meta name="author" content="Simon Hafner"/>
+    
+      <meta name="author" content="Arya Irani"/>
+    
+      <meta name="author" content="Ross A. Baker"/>
+    
+      <meta name="author" content="Sheng Chen"/>
+    
+      <meta name="author" content="Fabio Labella"/>
+    
+    
+      <meta name="description" content="Documentation for http4s"/>
+    
+    
+      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
+    
+      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
+    
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
+    
+    <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../styles/styles.css" />
+    <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
+    <script src="../../helium/laika-helium.js"></script>
+    <script src="../../helium/laika-versions.js"></script>
+    <script>initVersions("../../", "/docs/server-middleware.html", "v0.23");</script>
+    
+    <script> /* for avoiding page load transitions */ </script>
+  </head>
+
+  <body>
+
+    <header id="top-bar">
+
+      <div class="row">
+        <a id="nav-icon">
+          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
+        </a>
+        
+        <div id="version-menu-container">
+          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+            
+            Version 0.23
+            
+          </a>
+          <nav id="version-menu">
+            <ul id="version-list" class="nav-list">
+            </ul>
+          </nav>
+        </div>
+        
+      </div>
+
+      <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+
+      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a></span>
+
+    </header>
+
+    <nav id="sidebar">
+
+      <div class="row">
+        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a>
+      </div>
+
+      <ul class="nav-list">
+        <li class="level1"><a href="../../versions.html">Versions</a></li>
+        <li class="level1"><a href="../../changelog.html">Changelog</a></li>
+        <li class="level1"><a href="../../getting-help.html">Getting Help</a></li>
+        <li class="level1"><a href="../../contributing.html">Contributing</a></li>
+        <li class="level1"><a href="../../adopters.html">Adopters</a></li>
+        <li class="level1"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+        <li class="level1"><a href="../../further-reading.html">Further Reading</a></li>
+        <li class="level1 nav-header">User Guide</li>
+        <li class="level2"><a href="quickstart.html">Quick Start</a></li>
+        <li class="level2"><a href="integrations.html">Integrations</a></li>
+        <li class="level2"><a href="upgrading.html">Upgrading</a></li>
+        <li class="level2"><a href="service.html">Service</a></li>
+        <li class="level2"><a href="dsl.html">The http4s DSL</a></li>
+        <li class="level2"><a href="middleware.html">Middleware</a></li>
+        <li class="level2"><a href="auth.html">Authentication</a></li>
+        <li class="level2"><a href="cors.html">CORS</a></li>
+        <li class="level2"><a href="csrf.html">CSRF</a></li>
+        <li class="level2"><a href="gzip.html">GZip Compression</a></li>
+        <li class="level2"><a href="hsts.html">HSTS</a></li>
+        <li class="level2"><a href="static.html">Static Files</a></li>
+        <li class="level2"><a href="client.html">HTTP Client</a></li>
+        <li class="level2"><a href="entity.html">Entity Handling</a></li>
+        <li class="level2"><a href="streaming.html">Streaming</a></li>
+        <li class="level2"><a href="json.html">JSON Handling</a></li>
+        <li class="level2"><a href="testing.html">Testing</a></li>
+        <li class="level2"><a href="uri.html">URI Handling</a></li>
+        <li class="level2"><a href="deployment.html">Deployment</a></li>
+        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+        <li class="level2 active"><a href="#">Server Middleware</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+      </ul>
+
+      <ul class="nav-list">
+        <li class="level1 nav-header">Related Projects</li>
+        
+          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
+        
+          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-okhttp-client/">http4s-okhttp-client</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-tomcat/">http4s-tomcat</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-play-json/">http4s-play-json</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
+        
+          <li class="level2"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
+        
+          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+        
+          <li class="level2"><a href="https://github.com/typelevel/feral/">feral</a></li>
+        
+      </ul>
+
+    </nav>
+
+    <div id="container">
+
+      <nav id="page-nav">
+        <p class="header"><a href="#">Server Middleware</a></p>
+
+        <ul class="nav-list">
+          <li class="level1"><a href="#headers">Headers</a></li>
+          <li class="level2"><a href="#caching">Caching</a></li>
+          <li class="level2"><a href="#date">Date</a></li>
+          <li class="level2"><a href="#headerecho">HeaderEcho</a></li>
+          <li class="level2"><a href="#responsetiming">ResponseTiming</a></li>
+          <li class="level2"><a href="#requestid">RequestId</a></li>
+          <li class="level2"><a href="#staticheaders">StaticHeaders</a></li>
+          <li class="level1"><a href="#request-rewriting">Request rewriting</a></li>
+          <li class="level2"><a href="#autoslash">AutoSlash</a></li>
+          <li class="level2"><a href="#defaulthead">DefaultHead</a></li>
+          <li class="level2"><a href="#httpmethodoverrider">HttpMethodOverrider</a></li>
+          <li class="level2"><a href="#httpsredirect">HttpsRedirect</a></li>
+          <li class="level2"><a href="#translateuri">TranslateUri</a></li>
+          <li class="level2"><a href="#urlformlifter">UrlFormLifter</a></li>
+          <li class="level1"><a href="#scaling-and-resource-management">Scaling and resource management</a></li>
+          <li class="level2"><a href="#concurrentrequests">ConcurrentRequests</a></li>
+          <li class="level2"><a href="#entitylimiter">EntityLimiter</a></li>
+          <li class="level2"><a href="#maxactiverequests">MaxActiveRequests</a></li>
+          <li class="level2"><a href="#throttle">Throttle</a></li>
+          <li class="level2"><a href="#timeout">Timeout</a></li>
+          <li class="level1"><a href="#error-handling-and-logging">Error handling and Logging</a></li>
+          <li class="level2"><a href="#erroraction">ErrorAction</a></li>
+          <li class="level2"><a href="#errorhandling">ErrorHandling</a></li>
+          <li class="level2"><a href="#metrics">Metrics</a></li>
+          <li class="level2"><a href="#requestlogger-responselogger-logger">RequestLogger, ResponseLogger, Logger</a></li>
+          <li class="level1"><a href="#advanced">Advanced</a></li>
+          <li class="level2"><a href="#bodycache">BodyCache</a></li>
+          <li class="level2"><a href="#bracketrequestresponse">BracketRequestResponse</a></li>
+          <li class="level2"><a href="#chunkaggregator">ChunkAggregator</a></li>
+          <li class="level2"><a href="#jsonp">Jsonp</a></li>
+          <li class="level2"><a href="#contextmiddleware">ContextMiddleware</a></li>
+        </ul>
+
+        <p class="footer"></p>
+      </nav>
+
+      <main class="content">
+
+        <h1 id="server-middleware" class="title">Server Middleware</h1>
+        <p>Http4s includes some middleware out of the box in the <code>org.http4s.server.middleware</code>
+        package. Some of it is documented in its own page:</p>
+        <ul>
+          <li><a href="auth.html">Authentication</a></li>
+          <li>Cross Origin Resource Sharing (<a href="cors.html">CORS</a>)</li>
+          <li>Response Compression (<a href="gzip.html">GZip</a>)</li>
+          <li><a href="hsts.html">HSTS</a></li>
+          <li><a href="hsts.html">CSRF</a></li>
+        </ul>
+        <p>We&#39;ll describe and provide examples for the remaining middleware, but first we set up our service:</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">ci</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">Client</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">std</span><span>.</span><span class="type-name">Random</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="type-name">Stream</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">std</span><span>.</span><span class="type-name">Console</span><span>
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span><span>
+
+</span><span class="keyword">object</span><span> </span><span class="type-name">NameQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">String</span><span>](</span><span class="string-literal">&quot;name&quot;</span><span>)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;bad&quot;</span><span> =&gt; </span><span class="type-name">BadRequest</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;ok&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;post&quot;</span><span> =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Unit</span><span>] &gt;&gt; </span><span class="type-name">Ok</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;b&quot;</span><span> / </span><span class="string-literal">&quot;c&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;queryForm&quot;</span><span> :? </span><span class="type-name">NameQueryParamMatcher</span><span>(</span><span class="identifier">name</span><span>) =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;hello </span><span class="substitution">$name</span><span class="string-literal">&quot;</span><span>)
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;wait&quot;</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">sleep</span><span>(</span><span class="number-literal">10</span><span>.</span><span class="identifier">millis</span><span>) &gt;&gt; </span><span class="type-name">Ok</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;boom&quot;</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">raiseError</span><span>(</span><span class="keyword">new</span><span> </span><span class="type-name">RuntimeException</span><span>(</span><span class="string-literal">&quot;boom!&quot;</span><span>))
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;reverse&quot;</span><span> =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="identifier">s</span><span>.</span><span class="identifier">reverse</span><span>))
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;forever&quot;</span><span> =&gt; </span><span class="type-name">IO</span><span>(
+    </span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;hello&quot;</span><span> -&gt; </span><span class="string-literal">&quot;hi&quot;</span><span>))
+      .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">Stream</span><span>.</span><span class="identifier">constant</span><span>(</span><span class="string-literal">&quot;a&quot;</span><span>).</span><span class="identifier">covary</span><span>[</span><span class="type-name">IO</span><span>])
+  )
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;doubleRead&quot;</span><span> =&gt; (</span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>], </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>])
+    .</span><span class="identifier">flatMapN</span><span>((</span><span class="identifier">a</span><span>, </span><span class="identifier">b</span><span>) =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;</span><span class="substitution">$a</span><span class="string-literal"> == </span><span class="substitution">$b</span><span class="string-literal">&quot;</span><span>))
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;random&quot;</span><span> =&gt; </span><span class="type-name">Random</span><span>.</span><span class="identifier">scalaUtilRandom</span><span>[</span><span class="type-name">IO</span><span>]
+    .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">nextInt</span><span>)
+    .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">random</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="identifier">random</span><span>.</span><span class="identifier">toString</span><span>))
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">okRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">badRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/bad&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">postRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/post&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">waitRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/wait&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">boomRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/boom&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">reverseRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/reverse&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)</span></code></pre>
+        <p>Also note that these examples might use non-idiomatic constructs like <code>unsafeRunSync</code> for
+        conciseness.</p>
+        <ul class="nav-list">
+          <li class="level1 active"><a href="#">Server Middleware</a></li>
+          <li class="level2"><a href="#headers">Headers</a></li>
+          <li class="level3"><a href="#caching">Caching</a></li>
+          <li class="level3"><a href="#date">Date</a></li>
+          <li class="level3"><a href="#headerecho">HeaderEcho</a></li>
+          <li class="level3"><a href="#responsetiming">ResponseTiming</a></li>
+          <li class="level3"><a href="#requestid">RequestId</a></li>
+          <li class="level3"><a href="#staticheaders">StaticHeaders</a></li>
+          <li class="level2"><a href="#request-rewriting">Request rewriting</a></li>
+          <li class="level3"><a href="#autoslash">AutoSlash</a></li>
+          <li class="level3"><a href="#defaulthead">DefaultHead</a></li>
+          <li class="level3"><a href="#httpmethodoverrider">HttpMethodOverrider</a></li>
+          <li class="level3"><a href="#httpsredirect">HttpsRedirect</a></li>
+          <li class="level3"><a href="#translateuri">TranslateUri</a></li>
+          <li class="level3"><a href="#urlformlifter">UrlFormLifter</a></li>
+          <li class="level2"><a href="#scaling-and-resource-management">Scaling and resource management</a></li>
+          <li class="level3"><a href="#concurrentrequests">ConcurrentRequests</a></li>
+          <li class="level3"><a href="#entitylimiter">EntityLimiter</a></li>
+          <li class="level3"><a href="#maxactiverequests">MaxActiveRequests</a></li>
+          <li class="level3"><a href="#throttle">Throttle</a></li>
+          <li class="level3"><a href="#timeout">Timeout</a></li>
+          <li class="level2"><a href="#error-handling-and-logging">Error handling and Logging</a></li>
+          <li class="level3"><a href="#erroraction">ErrorAction</a></li>
+          <li class="level3"><a href="#errorhandling">ErrorHandling</a></li>
+          <li class="level3"><a href="#metrics">Metrics</a></li>
+          <li class="level3"><a href="#requestlogger-responselogger-logger">RequestLogger, ResponseLogger, Logger</a></li>
+          <li class="level2"><a href="#advanced">Advanced</a></li>
+          <li class="level3"><a href="#bodycache">BodyCache</a></li>
+          <li class="level3"><a href="#bracketrequestresponse">BracketRequestResponse</a></li>
+          <li class="level3"><a href="#chunkaggregator">ChunkAggregator</a></li>
+          <li class="level3"><a href="#jsonp">Jsonp</a></li>
+          <li class="level3"><a href="#contextmiddleware">ContextMiddleware</a></li>
+        </ul>
+        
+        <h2 id="headers" class="section">Headers<a class="anchor-link right" href="#headers"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="caching" class="section">Caching<a class="anchor-link right" href="#caching"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>This middleware adds response headers so that clients know how to cache a response. It performs no server-side caching.
+        Below is one example of usage, see <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/org/http4s/server/middleware/Caching$.html">Caching</a> for more methods.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Caching</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">cacheService</span><span> = </span><span class="type-name">Caching</span><span>.</span><span class="identifier">cache</span><span>(
+  </span><span class="number-literal">3</span><span>.</span><span class="identifier">hours</span><span>,
+  </span><span class="identifier">isPublic</span><span> = </span><span class="type-name">Left</span><span>(</span><span class="type-name">CacheDirective</span><span>.</span><span class="identifier">public</span><span>),
+  </span><span class="identifier">methodToSetOn</span><span> = </span><span class="identifier">_</span><span> == </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>,
+  </span><span class="identifier">statusToSetOn</span><span> = </span><span class="identifier">_</span><span>.</span><span class="identifier">isSuccess</span><span>,
+  </span><span class="identifier">service</span><span>
+).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">cacheClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">cacheService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res0: Headers = Headers(Content-Length: 0, Cache-Control: public, max-age=10800, Date: Thu, 16 Mar 2023 19:29:48 GMT, Expires: Thu, 16 Mar 2023 22:29:48 GMT)
+</span><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res1: Headers = Headers(Content-Length: 0)
+</span><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">postRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res2: Headers = Headers(Content-Length: 0)</span></code></pre>
+        
+        <h3 id="date" class="section">Date<a class="anchor-link right" href="#date"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Adds the current date to the response.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Date</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">dateService</span><span> = </span><span class="type-name">Date</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">dateClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">dateService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">dateClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res3: Headers = Headers(Content-Length: 0, Date: Thu, 16 Mar 2023 19:29:48 GMT)</span></code></pre>
+        
+        <h3 id="headerecho" class="section">HeaderEcho<a class="anchor-link right" href="#headerecho"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Adds headers included in the request to the response.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">HeaderEcho</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">echoService</span><span> = </span><span class="type-name">HeaderEcho</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">echoHeadersWhen</span><span> = </span><span class="identifier">_</span><span> =&gt; </span><span class="boolean-literal">true</span><span>)(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">echoClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">echoService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">echoClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>.</span><span class="identifier">putHeaders</span><span>(</span><span class="string-literal">&quot;Hello&quot;</span><span> -&gt; </span><span class="string-literal">&quot;hi&quot;</span><span>)).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res4: Headers = Headers(Content-Length: 0, Hello: hi)</span></code></pre>
+        
+        <h3 id="responsetiming" class="section">ResponseTiming<a class="anchor-link right" href="#responsetiming"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Sets response header with the request duration.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ResponseTiming</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">timingService</span><span> = </span><span class="type-name">ResponseTiming</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">timingClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">timingService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">timingClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res5: Headers = Headers(Content-Length: 0, X-Response-Time: 3)</span></code></pre>
+        
+        <h3 id="requestid" class="section">RequestId<a class="anchor-link right" href="#requestid"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Use the <code>RequestId</code> middleware to automatically generate a <code>X-Request-ID</code> header for a request,
+        if one wasn&#39;t supplied. Adds a <code>X-Request-ID</code> header to the response with the id generated
+        or supplied as part of the request.</p>
+        <p>This <a href="https://devcenter.heroku.com/articles/http-request-id">heroku guide</a> gives a brief explanation
+        as to why this header is useful.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">RequestId</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">requestIdService</span><span> = </span><span class="type-name">RequestId</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> =&gt;
+    </span><span class="keyword">val</span><span> </span><span class="identifier">reqId</span><span> = </span><span class="identifier">req</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">get</span><span>(</span><span class="string-literal">ci&quot;X-Request-ID&quot;</span><span>).</span><span class="identifier">fold</span><span>(</span><span class="string-literal">&quot;null&quot;</span><span>)(</span><span class="identifier">_</span><span>.</span><span class="identifier">head</span><span>.</span><span class="identifier">value</span><span>)
+    </span><span class="comment">// use request id to correlate logs with the request
+</span><span>    </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;request received, cid=</span><span class="substitution">$reqId</span><span class="string-literal">&quot;</span><span>) *&gt; </span><span class="type-name">Ok</span><span>()
+})
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">requestIdClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">requestIdService</span><span>.</span><span class="identifier">orNotFound</span><span>)</span></code></pre>
+        <p>Note: <code>req.attributes.lookup(RequestId.requestIdAttrKey)</code> can also be used to lookup the request id
+        extracted from the header, or the generated request id.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">requestIdClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">resp</span><span> =&gt;
+  (</span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>, </span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)).</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]
+).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// request received, cid=0ab965ab-1022-4545-96e4-1b57884e2b0c
+// res6: (Headers, Option[String]) = (
+//   Headers(Content-Length: 0, X-Request-ID: 0ab965ab-1022-4545-96e4-1b57884e2b0c),
+//   Some(value = &quot;0ab965ab-1022-4545-96e4-1b57884e2b0c&quot;)
+// )</span></code></pre>
+        
+        <h3 id="staticheaders" class="section">StaticHeaders<a class="anchor-link right" href="#staticheaders"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Adds static headers to the response.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">StaticHeaders</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">staticHeadersService</span><span> = </span><span class="type-name">StaticHeaders</span><span>(</span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;X-Hello&quot;</span><span> -&gt; </span><span class="string-literal">&quot;hi&quot;</span><span>))(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">staticHeaderClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">staticHeadersService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">staticHeaderClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res7: Headers = Headers(X-Hello: hi, Content-Length: 0)</span></code></pre>
+        
+        <h2 id="request-rewriting" class="section">Request rewriting<a class="anchor-link right" href="#request-rewriting"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="autoslash" class="section">AutoSlash<a class="anchor-link right" href="#autoslash"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Removes a trailing slash from the requested url so that requests with trailing slash map to the route without.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">AutoSlash</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">autoSlashService</span><span> = </span><span class="type-name">AutoSlash</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">autoSlashClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">autoSlashService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">okWithSlash</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok/&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// without the middleware the request with trailing slash fails
+</span><span class="identifier">client</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res8: Status = Status(code = 200)
+</span><span class="identifier">client</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">okWithSlash</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res9: Status = Status(code = 404)
+</span><span>
+</span><span class="comment">// with the middleware both work
+</span><span class="identifier">autoSlashClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res10: Status = Status(code = 200)
+</span><span class="identifier">autoSlashClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">okWithSlash</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res11: Status = Status(code = 200)</span></code></pre>
+        
+        <h3 id="defaulthead" class="section">DefaultHead<a class="anchor-link right" href="#defaulthead"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Provides a naive implementation of a HEAD request for any GET routes. The response has the same headers
+        but no body. An attempt is made to interrupt the process of generating the body.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">DefaultHead</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">headService</span><span> = </span><span class="type-name">DefaultHead</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">headClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">headService</span><span>)</span></code></pre>
+        <p><code>/forever</code> has an infinite body but the <code>HEAD</code> request terminates and includes the headers:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">headClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">HEAD</span><span>, </span><span class="string-literal">uri&quot;/forever&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res12: Status = Status(code = 200)
+</span><span class="identifier">headClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">HEAD</span><span>, </span><span class="string-literal">uri&quot;/forever&quot;</span><span>)).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res13: Headers = Headers(hello: hi, Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked)</span></code></pre>
+        
+        <h3 id="httpmethodoverrider" class="section">HttpMethodOverrider<a class="anchor-link right" href="#httpmethodoverrider"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Allows a client to &quot;disguise&quot; the http verb of a request by indicating the desired verb somewhere else in the request.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">HttpMethodOverrider</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">HttpMethodOverrider</span><span>.{</span><span class="type-name">HttpMethodOverriderConfig</span><span>, </span><span class="type-name">QueryOverrideStrategy</span><span>}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">overrideService</span><span> = </span><span class="type-name">HttpMethodOverrider</span><span>(
+  </span><span class="identifier">service</span><span>,
+  </span><span class="type-name">HttpMethodOverriderConfig</span><span>(
+    </span><span class="type-name">QueryOverrideStrategy</span><span>(</span><span class="identifier">paramName</span><span> = </span><span class="string-literal">&quot;realMethod&quot;</span><span>),
+    </span><span class="type-name">Set</span><span>(</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>)
+  )
+).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">overrideClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">overrideService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">overrideRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/post?realMethod=POST&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">overrideRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res14: Status = Status(code = 404)
+</span><span class="identifier">overrideClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">overrideRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res15: Status = Status(code = 200)</span></code></pre>
+        
+        <h3 id="httpsredirect" class="section">HttpsRedirect<a class="anchor-link right" href="#httpsredirect"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Redirects requests to https when the <code>X-Forwarded-Proto</code> header is <code>http</code>. This
+        header is usually provided by a load-balancer to indicate which protocol the client used.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">HttpsRedirect</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">httpsRedirectService</span><span> = </span><span class="type-name">HttpsRedirect</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">httpsRedirectClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">httpsRedirectService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">httpRequest</span><span> = </span><span class="identifier">okRequest</span><span>
+  .</span><span class="identifier">putHeaders</span><span>(</span><span class="string-literal">&quot;Host&quot;</span><span> -&gt; </span><span class="string-literal">&quot;example.com&quot;</span><span>, </span><span class="string-literal">&quot;X-Forwarded-Proto&quot;</span><span> -&gt; </span><span class="string-literal">&quot;http&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">httpsRedirectClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">httpRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">r</span><span> =&gt; (</span><span class="identifier">r</span><span>.</span><span class="identifier">headers</span><span>, </span><span class="identifier">r</span><span>.</span><span class="identifier">status</span><span>).</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res16: (Headers, Status) = (
+//   Headers(Location: https://example.com/ok, Content-Type: text/xml),
+//   Status(code = 301)
+// )</span></code></pre>
+        
+        <h3 id="translateuri" class="section">TranslateUri<a class="anchor-link right" href="#translateuri"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Removes a prefix from the path of the requested url.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">TranslateUri</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">translateService</span><span> = </span><span class="type-name">TranslateUri</span><span>(</span><span class="identifier">prefix</span><span> = </span><span class="string-literal">&quot;a&quot;</span><span>)(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">translateRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/a/b/c&quot;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">translateClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">translateService</span><span>)</span></code></pre>
+        <p>The following is successful even though <code>/b/c</code> is defined, and not <code>/a/b/c</code>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">translateClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">translateRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res17: Status = Status(code = 200)</span></code></pre>
+        
+        <h3 id="urlformlifter" class="section">UrlFormLifter<a class="anchor-link right" href="#urlformlifter"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Transform <code>x-www-form-urlencoded</code> parameters into query parameters.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">UrlFormLifter</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">UrlForm</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">urlFormService</span><span> = </span><span class="type-name">UrlFormLifter</span><span>.</span><span class="identifier">httpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">urlFormClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">urlFormService</span><span>)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">formRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/queryForm&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">UrlForm</span><span>.</span><span class="identifier">single</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="string-literal">&quot;John&quot;</span><span>))</span></code></pre>
+        <p>Even though the <code>/queryForm</code> route takes query parameters, the form request works:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">urlFormClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">formRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res18: String = &quot;hello John&quot;</span></code></pre>
+        
+        <h2 id="scaling-and-resource-management" class="section">Scaling and resource management<a class="anchor-link right" href="#scaling-and-resource-management"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="concurrentrequests" class="section">ConcurrentRequests<a class="anchor-link right" href="#concurrentrequests"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>React to requests being accepted and completed, could be used for metrics.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ConcurrentRequests</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.{</span><span class="type-name">ContextMiddleware</span><span>, </span><span class="type-name">HttpMiddleware</span><span>}
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">ContextRequest</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">data</span><span>.</span><span class="type-name">Kleisli</span><span>
+
+</span><span class="comment">// a utility that drops the context from the request, since our service expects
+// a plain request
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">dropContext</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">middleware</span><span>: </span><span class="type-name">ContextMiddleware</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">A</span><span>]): </span><span class="type-name">HttpMiddleware</span><span>[</span><span class="type-name">IO</span><span>] =
+  </span><span class="identifier">routes</span><span> =&gt; </span><span class="identifier">middleware</span><span>(</span><span class="type-name">Kleisli</span><span>((</span><span class="identifier">c</span><span>: </span><span class="type-name">ContextRequest</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">A</span><span>]) =&gt; </span><span class="identifier">routes</span><span>(</span><span class="identifier">c</span><span>.</span><span class="identifier">req</span><span>)))
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">concurrentService</span><span> =
+  </span><span class="type-name">ConcurrentRequests</span><span>.</span><span class="identifier">route</span><span>[</span><span class="type-name">IO</span><span>](
+      </span><span class="identifier">onIncrement</span><span> = </span><span class="identifier">total</span><span> =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;someone comes to town, total=</span><span class="substitution">$total</span><span class="string-literal">&quot;</span><span>),
+      </span><span class="identifier">onDecrement</span><span> = </span><span class="identifier">total</span><span> =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;someone leaves town, total=</span><span class="substitution">$total</span><span class="string-literal">&quot;</span><span>)
+  ).</span><span class="identifier">map</span><span>((</span><span class="identifier">middle</span><span>: </span><span class="type-name">ContextMiddleware</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Long</span><span>]) =&gt;
+    </span><span class="identifier">dropContext</span><span>(</span><span class="identifier">middle</span><span>)(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+  )
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">concurrentClient</span><span> = </span><span class="identifier">concurrentService</span><span>.</span><span class="identifier">map</span><span>(</span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>[</span><span class="type-name">IO</span><span>])</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">concurrentClient</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">cl</span><span> =&gt;
+  </span><span class="type-name">List</span><span>.</span><span class="identifier">fill</span><span>(</span><span class="number-literal">3</span><span>)(</span><span class="identifier">waitRequest</span><span>).</span><span class="identifier">parTraverse</span><span>(</span><span class="identifier">req</span><span> =&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">req</span><span>))
+).</span><span class="identifier">void</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// someone comes to town, total=2
+// someone comes to town, total=3
+// someone comes to town, total=1
+// someone leaves town, total=1
+// someone leaves town, total=0
+// someone leaves town, total=2</span></code></pre>
+        
+        <h3 id="entitylimiter" class="section">EntityLimiter<a class="anchor-link right" href="#entitylimiter"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Ensures the request body is under a specific length. It does so by inspecting
+        the body, not by simply checking <code>Content-Length</code> (which could be spoofed).
+        This could be useful for file uploads, or to prevent attacks that exploit
+        a service that loads the whole body into memory. Note that many <code>EntityDecoder</code>s
+        are susceptible to this form of attack: the <code>String</code> entity decoder
+        will read the complete value into memory, while a json entity decoder might build
+        the full AST before attempting to decode. For this reason it&#39;s advisable to
+        apply this middleware unless something else, like a reverse proxy, is
+        applying this limit.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">EntityLimiter</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">limiterService</span><span> = </span><span class="type-name">EntityLimiter</span><span>.</span><span class="identifier">httpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>, </span><span class="identifier">limit</span><span> = </span><span class="number-literal">16</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">limiterClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">limiterService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">smallRequest</span><span> = </span><span class="identifier">postRequest</span><span>.</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;*&quot;</span><span> * </span><span class="number-literal">15</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">bigRequest</span><span> = </span><span class="identifier">postRequest</span><span>.</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;*&quot;</span><span> * </span><span class="number-literal">16</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">limiterClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">smallRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res20: Status = Status(code = 200)
+</span><span class="identifier">limiterClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">bigRequest</span><span>).</span><span class="identifier">attempt</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res21: Either[Throwable, Status] = Left(value = EntityTooLarge(limit = 16L))</span></code></pre>
+        
+        <h3 id="maxactiverequests" class="section">MaxActiveRequests<a class="anchor-link right" href="#maxactiverequests"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Limit the number of active requests by rejecting requests over a certain limit.
+        This can be useful to ensure that your service remains responsive during high loads.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">MaxActiveRequests</span><span>
+
+</span><span class="comment">// creating the middleware is effectful
+</span><span class="keyword">val</span><span> </span><span class="identifier">maxService</span><span> = </span><span class="type-name">MaxActiveRequests</span><span>.</span><span class="identifier">forHttpApp</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">maxActive</span><span> = </span><span class="number-literal">2</span><span>)
+  .</span><span class="identifier">map</span><span>(</span><span class="identifier">middleware</span><span> =&gt; </span><span class="identifier">middleware</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>))
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">maxClient</span><span> = </span><span class="identifier">maxService</span><span>.</span><span class="identifier">map</span><span>(</span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>[</span><span class="type-name">IO</span><span>])</span></code></pre>
+        <p>Some requests will fail if the limit is reached:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">maxClient</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">cl</span><span> =&gt;
+  </span><span class="type-name">List</span><span>.</span><span class="identifier">fill</span><span>(</span><span class="number-literal">5</span><span>)(</span><span class="identifier">waitRequest</span><span>).</span><span class="identifier">parTraverse</span><span>(</span><span class="identifier">req</span><span> =&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">req</span><span>))
+).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res22: List[Status] = List(
+//   Status(code = 200),
+//   Status(code = 200),
+//   Status(code = 503),
+//   Status(code = 503),
+//   Status(code = 503)
+// )</span></code></pre>
+        
+        <h3 id="throttle" class="section">Throttle<a class="anchor-link right" href="#throttle"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Reject requests that exceed a given rate. An in-memory implementation of a
+        <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/org/http4s/server/middleware/Throttle$$TokenBucket.html">TokenBucket</a> - which refills at a given rate - is provided, but other strategies
+        can be used.
+        Like <code>MaxActiveRequest</code> this can be used prevent a service from being affect
+        by high load.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Throttle</span><span>
+
+</span><span class="comment">// creating the middleware is effectful because of the default token bucket
+</span><span class="keyword">val</span><span> </span><span class="identifier">throttleService</span><span> = </span><span class="type-name">Throttle</span><span>.</span><span class="identifier">httpApp</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">amount</span><span> = </span><span class="number-literal">1</span><span>,
+  </span><span class="identifier">per</span><span> = </span><span class="number-literal">10</span><span>.</span><span class="identifier">milliseconds</span><span>
+)(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">throttleClient</span><span> = </span><span class="identifier">throttleService</span><span>.</span><span class="identifier">map</span><span>(</span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>[</span><span class="type-name">IO</span><span>])</span></code></pre>
+        <p>We&#39;ll submit request every 5 ms and refill a token every 10 ms:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">throttleClient</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">cl</span><span> =&gt;
+  </span><span class="type-name">List</span><span>.</span><span class="identifier">fill</span><span>(</span><span class="number-literal">5</span><span>)(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">traverse</span><span>(</span><span class="identifier">req</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">sleep</span><span>(</span><span class="number-literal">5</span><span>.</span><span class="identifier">millis</span><span>) &gt;&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">req</span><span>))
+).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res23: List[Status] = List(
+//   Status(code = 200),
+//   Status(code = 429),
+//   Status(code = 200),
+//   Status(code = 429),
+//   Status(code = 200)
+// )</span></code></pre>
+        
+        <h3 id="timeout" class="section">Timeout<a class="anchor-link right" href="#timeout"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Limits how long the underlying service takes to respond. The service is
+        cancelled, if there are uncancelable effects they are completed and only
+        then is the response returned.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Timeout</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">timeoutService</span><span> = </span><span class="type-name">Timeout</span><span>.</span><span class="identifier">httpApp</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">timeout</span><span> = </span><span class="number-literal">5</span><span>.</span><span class="identifier">milliseconds</span><span>)(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">timeoutClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">timeoutService</span><span>)</span></code></pre>
+        <p><code>/wait</code> takes 10 ms to finish so it&#39;s cancelled:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">timeoutClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">waitRequest</span><span>).</span><span class="identifier">timed</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res24: (FiniteDuration, Status) = (6229136 nanoseconds, Status(code = 503))</span></code></pre>
+        
+        <h2 id="error-handling-and-logging" class="section">Error handling and Logging<a class="anchor-link right" href="#error-handling-and-logging"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="erroraction" class="section">ErrorAction<a class="anchor-link right" href="#erroraction"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Triggers an action if an error occurs while processing the request. Applies
+        to the error channel (like <code>IO.raiseError</code>, or <code>MonadThrow[F].raiseError</code>)
+        not http responses that indicate errors (like <code>BadRequest</code>).
+        Could be used for logging and monitoring.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorAction</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">errorActionService</span><span> = </span><span class="type-name">ErrorAction</span><span>.</span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">service</span><span>,
+  (</span><span class="identifier">req</span><span>, </span><span class="identifier">thr</span><span>) =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">&quot;Oops: &quot;</span><span> ++ </span><span class="identifier">thr</span><span>.</span><span class="identifier">getMessage</span><span>)
+).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">errorActionClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">errorActionService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">errorActionClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">boomRequest</span><span>).</span><span class="identifier">attempt</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// Oops: boom!
+// res25: Either[Throwable, Unit] = Left(
+//   value = java.lang.RuntimeException: boom!
+// )</span></code></pre>
+        
+        <h3 id="errorhandling" class="section">ErrorHandling<a class="anchor-link right" href="#errorhandling"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Interprets error conditions into an http response. This will interact with other
+        middleware that handles exceptions, like <code>ErrorAction</code>.
+        Different backends might handle exceptions differently, <code>ErrorAction</code> prevents
+        exceptions from reaching the backend and thus makes the service more backend-agnostic.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorHandling</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">errorHandlingService</span><span> = </span><span class="type-name">ErrorHandling</span><span>.</span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">errorHandlingClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">errorHandlingService</span><span>)</span></code></pre>
+        <p>For the first request (the service without <code>ErrorHandling</code>) we have to <code>.attempt</code>
+        to get a value that is renderable in this document, for the second request we get a response.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">boomRequest</span><span>).</span><span class="identifier">attempt</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res26: Either[Throwable, Status] = Left(
+//   value = java.lang.RuntimeException: boom!
+// )
+</span><span class="identifier">errorHandlingClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">boomRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res27: Status = Status(code = 500)</span></code></pre>
+        
+        <h3 id="metrics" class="section">Metrics<a class="anchor-link right" href="#metrics"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Middleware to record service metrics. Requires an implementation of <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/org/http4s/server/middleware/Metrics$$MetricsOps.html">MetricsOps</a> to receive metrics
+        data. Also provided are implementations for <a href="https://http4s.github.io/http4s-dropwizard-metrics/">Dropwizard</a>
+        and <a href="https://http4s.github.io/http4s-prometheus-metrics/">Prometheus</a> metrics.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Metrics</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">metrics</span><span>.{</span><span class="type-name">MetricsOps</span><span>, </span><span class="type-name">TerminationType</span><span>}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">metricsOps</span><span> = </span><span class="keyword">new</span><span> </span><span class="type-name">MetricsOps</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">increaseActiveRequests</span><span>(</span><span class="identifier">classifier</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] =
+    </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">&quot;increaseActiveRequests&quot;</span><span>)
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">decreaseActiveRequests</span><span>(</span><span class="identifier">classifier</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">unit</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">recordHeadersTime</span><span>(</span><span class="identifier">method</span><span>: </span><span class="type-name">Method</span><span>, </span><span class="identifier">elapsed</span><span>: </span><span class="type-name">Long</span><span>, </span><span class="identifier">classifier</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] =
+    </span><span class="type-name">IO</span><span>.</span><span class="identifier">unit</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">recordTotalTime</span><span>(
+    </span><span class="identifier">method</span><span>: </span><span class="type-name">Method</span><span>,
+    </span><span class="identifier">status</span><span>: </span><span class="type-name">Status</span><span>,
+    </span><span class="identifier">elapsed</span><span>: </span><span class="type-name">Long</span><span>,
+    </span><span class="identifier">classifier</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="type-name">String</span><span>]
+  ): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] = </span><span class="type-name">IO</span><span>.</span><span class="identifier">unit</span><span>
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">recordAbnormalTermination</span><span>(
+    </span><span class="identifier">elapsed</span><span>: </span><span class="type-name">Long</span><span>,
+    </span><span class="identifier">terminationType</span><span>: </span><span class="type-name">TerminationType</span><span>,
+    </span><span class="identifier">classifier</span><span>: </span><span class="type-name">Option</span><span>[</span><span class="type-name">String</span><span>]
+  ): </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] = </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;abnormalTermination - </span><span class="substitution">$terminationType</span><span class="string-literal">&quot;</span><span>)
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">metricsService</span><span> = </span><span class="type-name">Metrics</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">metricsOps</span><span>)(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">metricsClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">metricsService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">metricsClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">boomRequest</span><span>).</span><span class="identifier">attempt</span><span>.</span><span class="identifier">void</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// increaseActiveRequests
+// abnormalTermination - Error(java.lang.RuntimeException: boom!)
+</span><span class="identifier">metricsClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// increaseActiveRequests</span></code></pre>
+        
+        <h3 id="requestlogger-responselogger-logger" class="section">RequestLogger, ResponseLogger, Logger<a class="anchor-link right" href="#requestlogger-responselogger-logger"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Log requests and responses. <code>ResponseLogger</code> logs the responses, <code>RequestLogger</code>
+        logs the request, <code>Logger</code> logs both.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Logger</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">loggerService</span><span> = </span><span class="type-name">Logger</span><span>.</span><span class="identifier">httpRoutes</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">logHeaders</span><span> = </span><span class="boolean-literal">false</span><span>,
+  </span><span class="identifier">logBody</span><span> = </span><span class="boolean-literal">true</span><span>,
+  </span><span class="identifier">redactHeadersWhen</span><span> = </span><span class="identifier">_</span><span> =&gt; </span><span class="boolean-literal">false</span><span>,
+  </span><span class="identifier">logAction</span><span> = </span><span class="type-name">Some</span><span>((</span><span class="identifier">msg</span><span>: </span><span class="type-name">String</span><span>) =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>))
+)(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">loggerClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">loggerService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">loggerClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">reverseRequest</span><span>.</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;mood&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// HTTP/1.1 POST /reverse body=&quot;mood&quot;
+// HTTP/1.1 200 OK body=&quot;doom&quot;</span></code></pre>
+        
+        <h2 id="advanced" class="section">Advanced<a class="anchor-link right" href="#advanced"><i class="icofont-laika">&#xef71;</i></a></h2>
+        
+        <h3 id="bodycache" class="section">BodyCache<a class="anchor-link right" href="#bodycache"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Consumes and caches a request body so that it can be reused later.
+        Usually reading the body twice is unsafe, this middleware ensures the body is always the same,
+        at the cost of keeping it in memory.</p>
+        <p>In this example we use a request body that always produces a different value once read:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">BodyCache</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">bodyCacheService</span><span> = </span><span class="type-name">BodyCache</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">randomRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/doubleRead&quot;</span><span>)
+  .</span><span class="identifier">withEntity</span><span>(
+    </span><span class="type-name">Stream</span><span>.</span><span class="identifier">eval</span><span>(
+      </span><span class="type-name">Random</span><span>.</span><span class="identifier">scalaUtilRandom</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">nextInt</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">random</span><span> =&gt; </span><span class="identifier">random</span><span>.</span><span class="identifier">toString</span><span>)
+    )
+  )
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">bodyCacheClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">bodyCacheService</span><span>)</span></code></pre>
+        <p><code>/doubleRead</code> reads the body twice, when using the middleware we see that both read values the same:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">randomRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res31: String = &quot;-993761936 == -1318039617&quot;
+</span><span class="identifier">bodyCacheClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">randomRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res32: String = &quot;-1855851408 == -1855851408&quot;</span></code></pre>
+        
+        <h3 id="bracketrequestresponse" class="section">BracketRequestResponse<a class="anchor-link right" href="#bracketrequestresponse"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Brackets the handling of the request ensuring an action happens before the service handles
+        the request (<code>acquire</code>) and another after the response is complete (<code>release</code>),
+        the result of <code>acquire</code> is threaded to the underlying service.
+        It&#39;s used to implement <code>MaxActiveRequests</code> and <code>ConcurrentRequests</code>.
+        See <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/0.23.18/org/http4s/server/middleware/BracketRequestResponse$.html">BracketRequestResponse</a> for more constructors.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">BracketRequestResponse</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">ContextRoutes</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="type-name">Ref</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">ref</span><span> = </span><span class="type-name">Ref</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">of</span><span>(</span><span class="number-literal">0</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">bracketMiddleware</span><span> = </span><span class="type-name">BracketRequestResponse</span><span>.</span><span class="identifier">bracketRequestResponseRoutes</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Int</span><span>](
+  </span><span class="identifier">acquire</span><span> = </span><span class="identifier">ref</span><span>.</span><span class="identifier">updateAndGet</span><span>(</span><span class="identifier">_</span><span> + </span><span class="number-literal">1</span><span>))(
+  </span><span class="identifier">release</span><span> = </span><span class="identifier">_</span><span> =&gt; </span><span class="identifier">ref</span><span>.</span><span class="identifier">update</span><span>(</span><span class="identifier">_</span><span> - </span><span class="number-literal">1</span><span>)
+)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">bracketService</span><span> = </span><span class="identifier">bracketMiddleware</span><span>(
+  </span><span class="type-name">ContextRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">Int</span><span>, </span><span class="type-name">IO</span><span>] {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;ok&quot;</span><span> </span><span class="identifier">as</span><span> </span><span class="identifier">n</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;</span><span class="substitution">$n</span><span class="string-literal">&quot;</span><span>)
+  }
+).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">bracketClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">bracketService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">bracketClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res33: String = &quot;1&quot;
+</span><span class="identifier">ref</span><span>.</span><span class="identifier">get</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res34: Int = 0</span></code></pre>
+        
+        <h3 id="chunkaggregator" class="section">ChunkAggregator<a class="anchor-link right" href="#chunkaggregator"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Consumes and caches a response body so that it can be reused later.
+        Usually reading the body twice is unsafe, this middleware ensures the body is always the same,
+        at the cost of keeping it in memory.</p>
+        <p>Similarly to <code>BodyRequest</code> in this example we use a response body that always produces a different value:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ChunkAggregator</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">chunkAggregatorService</span><span> = </span><span class="type-name">ChunkAggregator</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">chunkAggregatorClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">chunkAggregatorService</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">chunkAggregatorClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/random&quot;</span><span>))
+  .</span><span class="identifier">use</span><span>(</span><span class="identifier">r</span><span> =&gt; (</span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>], </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>]).</span><span class="identifier">mapN</span><span>((</span><span class="identifier">a</span><span>, </span><span class="identifier">b</span><span>) =&gt; </span><span class="string-literal">s&quot;</span><span class="substitution">$a</span><span class="string-literal"> == </span><span class="substitution">$b</span><span class="string-literal">&quot;</span><span>))
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res35: String = &quot;1913947958 == 1913947958&quot;</span></code></pre>
+        
+        <h3 id="jsonp" class="section">Jsonp<a class="anchor-link right" href="#jsonp"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>Jsonp is a javascript technique to load json data without using <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest">XMLHttpRequest</a>,
+        which bypasses the same-origin security policy implemented in browsers.
+        Jsonp usage is discouraged and can often be replaced with correct CORS configuration.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Jsonp</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">jsonRoutes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;json&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;a&quot;: 1}&quot;&quot;&quot;</span><span>)
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">jsonService</span><span> = </span><span class="type-name">Jsonp</span><span>(</span><span class="identifier">callbackParam</span><span> = </span><span class="string-literal">&quot;handleJson&quot;</span><span>)(</span><span class="identifier">jsonRoutes</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">jsonClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">jsonService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">jsonRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/json&quot;</span><span>)
+
+</span><span class="identifier">jsonClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">jsonRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()</span></code></pre>
+        
+        <h3 id="contextmiddleware" class="section">ContextMiddleware<a class="anchor-link right" href="#contextmiddleware"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <p>This middleware allows extracting context from a request and propagating it down to the routes.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">ContextMiddleware</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="type-name">ContextRoutes</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">data</span><span>.{</span><span class="type-name">Kleisli</span><span>, </span><span class="type-name">OptionT</span><span>}
+
+</span><span class="comment">// create a custom header
+</span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">UserId</span><span>(</span><span class="identifier">raw</span><span>: </span><span class="type-name">String</span><span>)
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userIdHeader</span><span>: </span><span class="type-name">Header</span><span>[</span><span class="type-name">UserId</span><span>, </span><span class="type-name">Header</span><span>.</span><span class="type-name">Single</span><span>] =
+  </span><span class="type-name">Header</span><span>.</span><span class="identifier">createRendered</span><span>(</span><span class="string-literal">ci&quot;X-UserId&quot;</span><span>, </span><span class="identifier">_</span><span>.</span><span class="identifier">raw</span><span>, </span><span class="identifier">s</span><span> =&gt; </span><span class="type-name">Right</span><span>(</span><span class="type-name">UserId</span><span>(</span><span class="identifier">s</span><span>)))
+
+</span><span class="comment">// middleware to read the user id from the request
+</span><span class="keyword">val</span><span> </span><span class="identifier">middleware</span><span> = </span><span class="type-name">ContextMiddleware</span><span>(
+  </span><span class="type-name">Kleisli</span><span>((</span><span class="identifier">r</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt; </span><span class="type-name">OptionT</span><span>.</span><span class="identifier">fromOption</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">r</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">get</span><span>[</span><span class="type-name">UserId</span><span>]))
+)
+
+</span><span class="comment">// routes that expect a user id as context
+</span><span class="keyword">val</span><span> </span><span class="identifier">ctxRoutes</span><span> = </span><span class="type-name">ContextRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">UserId</span><span>, </span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;ok&quot;</span><span> </span><span class="identifier">as</span><span> </span><span class="identifier">userId</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;hello </span><span class="substitution">${userId.raw}</span><span class="string-literal">&quot;</span><span>)
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">contextService</span><span> = </span><span class="identifier">middleware</span><span>(</span><span class="identifier">ctxRoutes</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">contextClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">contextService</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">contextRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok&quot;</span><span>).</span><span class="identifier">putHeaders</span><span>(</span><span class="type-name">UserId</span><span>(</span><span class="string-literal">&quot;Jack&quot;</span><span>))</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">contextClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">contextRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res37: String = &quot;hello Jack&quot;</span></code></pre>
+
+        <hr style="margin-top: 30px"/>
+        <footer style="font-size: 90%; text-align: center">
+          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+        </footer>
+
+      </main>
+
+    </div>
+
+  </body>
+</html>
