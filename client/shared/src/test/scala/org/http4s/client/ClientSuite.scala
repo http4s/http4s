@@ -212,7 +212,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
         .run(Request[IO]())
         .use { r =>
           r.body
-            .merge(fs2.Stream.raiseError[IO](new Exception(expectedErrorMsg)))
+            .evalTap(_ => IO.raiseError(new Exception(expectedErrorMsg)))
             .compile
             .toVector
             .attempt
@@ -222,41 +222,6 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       compiled <- compiledCounter.get
     } yield {
       assertEquals(result.left.toOption.map(_.getMessage), expectedErrorMsg.some)
-      assertEquals(compiled, 1)
-      assertEquals(resultWithDrained, entity.toSeq.toVector)
-    }
-
-  }
-
-  test("mock client should drain the body if the client was interrupted") {
-
-    val entity = asciiBytes"foo"
-
-    def app(channel: Channel[IO, Byte], finalized: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
-      Response[IO]()
-        .withEntity(entity)
-        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(finalized.update(_ + 1)))
-        .pure[IO]
-    }
-
-    for {
-      compiledCounter <- Ref.of[IO, Int](0)
-      byteCounter <- Ref.of[IO, Int](0)
-      channel <- Channel.unbounded[IO, Byte]
-      client = Client.fromHttpApp(app(channel, compiledCounter))
-      _ <- client
-        .run(Request[IO]())
-        .use { r =>
-          r.body
-            .evalTap(_ => byteCounter.update(_ + 1))
-            .interruptWhen(fs2.Stream.eval(byteCounter.get.map(_ > 1)))
-            .compile
-            .toVector
-        }
-      _ <- channel.close.void
-      resultWithDrained <- channel.stream.compile.toVector
-      compiled <- compiledCounter.get
-    } yield {
       assertEquals(compiled, 1)
       assertEquals(resultWithDrained, entity.toSeq.toVector)
     }

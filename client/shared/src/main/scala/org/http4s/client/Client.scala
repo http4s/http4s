@@ -313,21 +313,19 @@ object Client {
             .through(channel.sendAll)
             .compile
             .drain
+            .uncancelable
             .background
 
-          ifDisposed = Stream
-            .eval(disposed.get)
-            .ifM(
-              Stream.eval(F.raiseError(new IOException("response was disposed"))),
-              Stream.empty,
-            )
-
           r = resp.withBodyStream(
-            channel.stream.unchunks
-              .ifEmpty(ifDisposed)
-              .onFinalize(
-                channel.stream.compile.drain
-                  .guarantee(disposed.set(true))
+            Stream
+              .eval(disposed.get)
+              .ifM(
+                Stream.eval(F.raiseError(new IOException("response was disposed"))),
+                channel.stream.unchunks
+                  .onFinalize(
+                    channel.stream.compile.drain
+                      .guarantee(disposed.set(true))
+                  ),
               )
           )
 
