@@ -18,47 +18,15 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.effect.Async
 import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Chunk
-import fs2.Pipe
-import fs2.Pull
-import fs2.RaiseThrowable
-import fs2.Stream
 
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
-import java.nio.charset.MalformedInputException
-import java.nio.charset.UnmappableCharacterException
-import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 
 package object internal extends InternalPlatform {
-
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
-      implicit
-      // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
-      F: Async[F]
-  ): F[A] =
-    fcs.flatMap { cs =>
-      F.async_ { cb =>
-        cs.handle[Unit] {
-          { (result: A, err: Throwable) =>
-            err match {
-              case null => cb(Right(result))
-              case _: CancellationException => ()
-              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-              case ex => cb(Left(ex))
-            }
-          }: java.util.function.BiFunction[A, Throwable, Unit]
-        }
-        ()
-      }
-    }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],
@@ -92,69 +60,6 @@ package object internal extends InternalPlatform {
       i += 1
     }
     h
-  }
-
-  @deprecated("Use fs2.text.decodeWithCharset", "0.23.5")
-  def decode[F[_]: RaiseThrowable](charset: Charset): Pipe[F, Byte, String] = { in =>
-    val decoder = charset.nioCharset.newDecoder
-    val byteBufferSize = 16
-    val byteBuffer = ByteBuffer.allocate(byteBufferSize)
-    val charBuffer =
-      CharBuffer.allocate(math.ceil(byteBufferSize.toDouble * decoder.averageCharsPerByte).toInt)
-
-    def skipByteOrderMark(chunk: Chunk[Byte]): Chunk[Byte] =
-      if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
-        chunk.drop(3)
-      else chunk
-
-    def out = {
-      val s = charBuffer.flip().toString()
-      charBuffer.clear()
-      if (s.isEmpty) Pull.done else Pull.output1(s)
-    }
-
-    Pull
-      .loop[F, String, Stream[F, Byte]] { stream =>
-        stream.pull.unconsN(byteBuffer.remaining(), allowFewer = true).flatMap {
-          case None =>
-            byteBuffer.flip()
-            val result = decoder.decode(byteBuffer, charBuffer, true)
-            byteBuffer.compact()
-            result match {
-              case _ if result.isUnderflow =>
-                def flushLoop: Pull[F, String, Unit] =
-                  decoder.flush(charBuffer) match {
-                    case result if result.isUnderflow =>
-                      out
-                    case result if result.isOverflow =>
-                      out >> flushLoop
-                  }
-                flushLoop.as(None)
-              case _ if result.isOverflow =>
-                out.as(Some(Stream.empty))
-              case _ if result.isMalformed =>
-                Pull.raiseError(new MalformedInputException(result.length()))
-              case _ if result.isUnmappable =>
-                Pull.raiseError(new UnmappableCharacterException(result.length()))
-            }
-          case Some((chunk, stream)) =>
-            val chunkWithoutBom = skipByteOrderMark(chunk)
-            byteBuffer.put(chunkWithoutBom.toArray)
-            byteBuffer.flip()
-            val result = decoder.decode(byteBuffer, charBuffer, false)
-            byteBuffer.compact()
-            result match {
-              case _ if result.isUnderflow || result.isOverflow =>
-                out.as(Some(stream))
-              case _ if result.isMalformed =>
-                Pull.raiseError(new MalformedInputException(result.length()))
-              case _ if result.isUnmappable =>
-                Pull.raiseError(new UnmappableCharacterException(result.length()))
-            }
-        }
-      }(in)
-      .void
-      .stream
   }
 
   private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
