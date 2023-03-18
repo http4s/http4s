@@ -615,7 +615,7 @@ val chunkAggregatorClient = Client.fromHttpApp(chunkAggregatorService)
 ```
 ```scala mdoc
 chunkAggregatorClient
-  .expect[String](Request[IO](Method.POST, uri"/postText").withEntity("foo"))
+  .expect[String](Request[IO](Method.POST, uri"/echo").withEntity("foo"))
   .map(e => s"$e == foofoo")
   .unsafeRunSync()
 ```
