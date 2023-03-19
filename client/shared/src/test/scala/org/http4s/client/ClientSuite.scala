@@ -21,6 +21,7 @@ import cats._
 import cats.arrow.FunctionK
 import cats.effect._
 import cats.effect.kernel.Deferred
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import fs2.concurrent.Channel
 import org.http4s.dsl.Http4sDsl
@@ -194,24 +195,26 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
 
   }
 
-  test("mock client should fail if the internal channel is not synchronous") {
+  test("mock client should not read the body eagerly") {
 
     def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
       Response[IO]()
         .withEntity("foo")
-        .pipeBodyThrough(_.onFinalize(compiled.update(_ + 1)))
+        .pipeBodyThrough(_ ++ fs2.Stream.exec(compiled.update(_ + 1)))
         .pure[IO]
     }
 
-    for {
+    val test = for {
       compiledCounter <- Ref.of[IO, Int](0)
       client = Client.fromHttpApp(app(compiledCounter))
       _ <- client.run(Request[IO]()).use { _ =>
-        IO.sleep(1.millis) *>
+        IO.sleep(1.second) *>
           compiledCounter.get.assertEquals(0)
       }
       _ <- compiledCounter.get.assertEquals(1)
     } yield ()
+
+    TestControl.executeEmbed(test)
   }
 
   test("mock client should drain the body if the client fails") {
