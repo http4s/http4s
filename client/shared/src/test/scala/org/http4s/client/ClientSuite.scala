@@ -31,6 +31,8 @@ import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
 import scodec.bits._
 
+import scala.concurrent.duration.DurationInt
+
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
     Response[IO](Ok).withEntity(r.body).pure[IO]
@@ -190,6 +192,26 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       assertEquals(compiled, 1)
     }
 
+  }
+
+  test("mock client should fail if the internal channel is not synchronous") {
+
+    def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity("foo")
+        .pipeBodyThrough(_.onFinalize(compiled.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      client = Client.fromHttpApp(app(compiledCounter))
+      _ <- client.run(Request[IO]()).use { _ =>
+        IO.sleep(1.millis) *>
+          compiledCounter.get.assertEquals(0)
+      }
+      _ <- compiledCounter.get.assertEquals(1)
+    } yield ()
   }
 
   test("mock client should drain the body if the client fails") {
