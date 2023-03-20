@@ -291,57 +291,54 @@ object Client {
       go(source).stream
     }
 
-    def run(
-        message: Message[F],
-        refOp: Option[Ref[F, Boolean]] = None,
-    ): Resource[F, Response[F]] = message match {
-      case req: Request[F] =>
-        Resource.eval(Ref[F].of(false)).flatMap { disposed =>
-          val reqAugmented =
-            addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
-          Resource
-            .eval(app(reqAugmented))
-            .onFinalize(disposed.set(true))
-            .flatMap(run(_, Option(disposed)))
+    def processResponse(
+        response: Response[F],
+        disposed: Ref[F, Boolean],
+    ): Resource[F, Response[F]] =
+      for {
+        channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
+
+        _ <- response.body.chunks
+          .through(channel.sendAll)
+          .compile
+          .drain
+          .uncancelable
+          .background
+
+        r = response.withBodyStream(
+          Stream
+            .eval(disposed.get)
+            .ifM(
+              Stream.raiseError[F](new IOException("response was disposed")),
+              channel.stream.unchunks
+                .onFinalize(
+                  channel.stream.compile.drain
+                    .guarantee(disposed.set(true))
+                ),
+            )
+        )
+
+        _ <- Resource.onFinalize {
+          disposed.get
+            .ifM(
+              F.unit,
+              r.body.compile.drain,
+            )
         }
-      case resp: Response[F] =>
-        for {
-          disposed <- Resource.eval(refOp.fold(Ref[F].of(false))(F.pure))
-          channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
 
-          _ <- resp.body.chunks
-            .through(channel.sendAll)
-            .compile
-            .drain
-            .uncancelable
-            .background
+      } yield r
 
-          r = resp.withBodyStream(
-            Stream
-              .eval(disposed.get)
-              .ifM(
-                Stream.eval(F.raiseError(new IOException("response was disposed"))),
-                channel.stream.unchunks
-                  .onFinalize(
-                    channel.stream.compile.drain
-                      .guarantee(disposed.set(true))
-                  ),
-              )
-          )
+    def run(req: Request[F]): Resource[F, Response[F]] =
+      Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+        val reqAugmented =
+          addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        Resource
+          .eval(app(reqAugmented))
+          .onFinalize(disposed.set(true))
+          .flatMap(processResponse(_, disposed))
+      }
 
-          _ <- Resource.onFinalize {
-            disposed.get
-              .ifM(
-                F.unit,
-                r.body.compile.drain,
-              )
-          }
-
-        } yield r
-
-    }
-
-    Client((req: Request[F]) => run(req))
+    Client(run)
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types
