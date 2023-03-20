@@ -18,130 +18,15 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.effect.Async
 import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import fs2.Chunk
-import fs2.Pipe
-import fs2.Pull
-import fs2.RaiseThrowable
-import fs2.Stream
 
-import java.nio.ByteBuffer
-import java.nio.CharBuffer
-import java.nio.charset.MalformedInputException
-import java.nio.charset.UnmappableCharacterException
-import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
-import scala.util.control.NoStackTrace
 
 package object internal extends InternalPlatform {
-
-  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private val Digits: Array[Char] =
-    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
-
-  /** Encode a byte Array into a hexadecimal string
-    *
-    * @param data the array
-    * @return a hexadecimal encoded string
-    */
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private[http4s] final def encodeHexString(data: Array[Byte]): String =
-    new String(encodeHex(data))
-
-  /** Encode a string to a Hexadecimal string representation
-    * Adapted from apache commons Hex.encodeHex
-    */
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private[http4s] final def encodeHex(data: Array[Byte]): Array[Char] = {
-    val l = data.length
-    val out = new Array[Char](l << 1)
-    // two characters form the hex value.
-    def iterateData(out: Array[Char], l: Int): Array[Char] = {
-      def innerEncode(l: Int, i: Int, j: Int): Array[Char] =
-        i match {
-          case k if k < l =>
-            out(j) = Digits((0xf0 & data(k)) >>> 4)
-            out(j + 1) = Digits(0x0f & data(k))
-            innerEncode(l, k + 1, j + 2)
-          case _ => out
-        }
-      innerEncode(l, 0, 0)
-    }
-    iterateData(out, l)
-  }
-
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
-    decodeHex(data.toCharArray)
-
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private object HexDecodeException extends Exception with NoStackTrace
-
-  /** Dirty, optimized hex decoding based off of apache
-    * common hex decoding, ported over to scala
-    *
-    * @param data
-    * @return
-    */
-  @deprecated("Will be removed in 1.0.", "0.23.19")
-  private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
-    def toDigit(ch: Char): Int = {
-      val digit = Character.digit(ch, 16)
-      if (digit == -1)
-        throw HexDecodeException
-      else
-        digit
-    }
-
-    val len = data.length
-    if ((len & 0x01) != 0) None
-    val out = new Array[Byte](len >> 1)
-    var f: Int = -1
-    // two characters form the hex value.
-    try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xff).toByte
-
-        i += 1
-      }
-      Some(out)
-    } catch {
-      case HexDecodeException => None
-    }
-  }
-
-  private[http4s] def fromCompletionStage[F[_], CF[x] <: CompletionStage[x], A](fcs: F[CF[A]])(
-      implicit
-      // Concurrent is intentional, see https://github.com/http4s/http4s/pull/3255#discussion_r395719880
-      F: Async[F]
-  ): F[A] =
-    fcs.flatMap { cs =>
-      F.async_ { cb =>
-        cs.handle[Unit] {
-          { (result: A, err: Throwable) =>
-            err match {
-              case null => cb(Right(result))
-              case _: CancellationException => ()
-              case ex: CompletionException if ex.getCause ne null => cb(Left(ex.getCause))
-              case ex => cb(Left(ex))
-            }
-          }: java.util.function.BiFunction[A, Throwable, Unit]
-        }
-        ()
-      }
-    }
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],
@@ -175,69 +60,6 @@ package object internal extends InternalPlatform {
       i += 1
     }
     h
-  }
-
-  @deprecated("Use fs2.text.decodeWithCharset", "0.23.5")
-  def decode[F[_]: RaiseThrowable](charset: Charset): Pipe[F, Byte, String] = { in =>
-    val decoder = charset.nioCharset.newDecoder
-    val byteBufferSize = 16
-    val byteBuffer = ByteBuffer.allocate(byteBufferSize)
-    val charBuffer =
-      CharBuffer.allocate(math.ceil(byteBufferSize.toDouble * decoder.averageCharsPerByte).toInt)
-
-    def skipByteOrderMark(chunk: Chunk[Byte]): Chunk[Byte] =
-      if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
-        chunk.drop(3)
-      else chunk
-
-    def out = {
-      val s = charBuffer.flip().toString()
-      charBuffer.clear()
-      if (s.isEmpty) Pull.done else Pull.output1(s)
-    }
-
-    Pull
-      .loop[F, String, Stream[F, Byte]] { stream =>
-        stream.pull.unconsN(byteBuffer.remaining(), allowFewer = true).flatMap {
-          case None =>
-            byteBuffer.flip()
-            val result = decoder.decode(byteBuffer, charBuffer, true)
-            byteBuffer.compact()
-            result match {
-              case _ if result.isUnderflow =>
-                def flushLoop: Pull[F, String, Unit] =
-                  decoder.flush(charBuffer) match {
-                    case result if result.isUnderflow =>
-                      out
-                    case result if result.isOverflow =>
-                      out >> flushLoop
-                  }
-                flushLoop.as(None)
-              case _ if result.isOverflow =>
-                out.as(Some(Stream.empty))
-              case _ if result.isMalformed =>
-                Pull.raiseError(new MalformedInputException(result.length()))
-              case _ if result.isUnmappable =>
-                Pull.raiseError(new UnmappableCharacterException(result.length()))
-            }
-          case Some((chunk, stream)) =>
-            val chunkWithoutBom = skipByteOrderMark(chunk)
-            byteBuffer.put(chunkWithoutBom.toArray)
-            byteBuffer.flip()
-            val result = decoder.decode(byteBuffer, charBuffer, false)
-            byteBuffer.compact()
-            result match {
-              case _ if result.isUnderflow || result.isOverflow =>
-                out.as(Some(stream))
-              case _ if result.isMalformed =>
-                Pull.raiseError(new MalformedInputException(result.length()))
-              case _ if result.isUnmappable =>
-                Pull.raiseError(new UnmappableCharacterException(result.length()))
-            }
-        }
-      }(in)
-      .void
-      .stream
   }
 
   private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
