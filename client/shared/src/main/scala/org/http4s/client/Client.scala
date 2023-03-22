@@ -296,7 +296,9 @@ object Client {
         disposed: Ref[F, Boolean],
     ): Resource[F, Response[F]] =
       for {
-        channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
+        channel <- Resource.make(
+          Channel.synchronous[F, Chunk[Byte]]
+        )(_.stream.compile.drain)
 
         _ <- response.body.chunks
           .through(channel.sendAll)
