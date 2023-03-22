@@ -305,7 +305,7 @@ object Client {
           .drain
           .uncancelable
 
-        _ <- Resource.make(producer.start)(_ => channel.stream.compile.drain).map(_.join)
+        _ <- Resource.make(producer.start)(p => channel.stream.compile.drain.guarantee(p.join.void))
 
         r = response.withBodyStream(
           Stream
