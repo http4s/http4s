@@ -111,7 +111,7 @@ object Http4sPlugin extends AutoPlugin {
     val disciplineCore = "1.5.1"
     val epollcat = "0.1.4"
     val fs2 = "3.7.0-RC2"
-    val ip4s = "3.2.0"
+    val ip4s = "3.3.0"
     val hpack = "1.0.4"
     val javaWebSocket = "1.5.3"
     val jawn = "1.4.0"
