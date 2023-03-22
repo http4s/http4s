@@ -23,6 +23,7 @@ import cats.effect.implicits.genSpawnOps
 import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
+import cats.effect.kernel.Resource
 import cats.syntax.all._
 import cats.~>
 import fs2._
@@ -296,16 +297,15 @@ object Client {
         disposed: Ref[F, Boolean],
     ): Resource[F, Response[F]] =
       for {
-        channel <- Resource.make(
-          Channel.synchronous[F, Chunk[Byte]]
-        )(_.stream.compile.drain)
+        channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
 
-        _ <- response.body.chunks
+        producer = response.body.chunks
           .through(channel.sendAll)
           .compile
           .drain
           .uncancelable
-          .background
+
+        _ <- Resource.make(producer.start)(_ => channel.stream.compile.drain).map(_.join)
 
         r = response.withBodyStream(
           Stream
