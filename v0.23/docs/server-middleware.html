@@ -288,6 +288,7 @@
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;bad&quot;</span><span> =&gt; </span><span class="type-name">BadRequest</span><span>()
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;ok&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
   </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;post&quot;</span><span> =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Unit</span><span>] &gt;&gt; </span><span class="type-name">Ok</span><span>()
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;echo&quot;</span><span> =&gt; </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Ok</span><span>(</span><span class="identifier">_</span><span>))
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;b&quot;</span><span> / </span><span class="string-literal">&quot;c&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
   </span><span class="keyword">case</span><span> </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;queryForm&quot;</span><span> :? </span><span class="type-name">NameQueryParamMatcher</span><span>(</span><span class="identifier">name</span><span>) =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;hello </span><span class="substitution">$name</span><span class="string-literal">&quot;</span><span>)
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;wait&quot;</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">sleep</span><span>(</span><span class="number-literal">10</span><span>.</span><span class="identifier">millis</span><span>) &gt;&gt; </span><span class="type-name">Ok</span><span>()
@@ -365,7 +366,7 @@
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">cacheClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">cacheService</span><span>)</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res0: Headers = Headers(Content-Length: 0, Cache-Control: public, max-age=10800, Date: Wed, 22 Mar 2023 22:56:46 GMT, Expires: Thu, 23 Mar 2023 01:56:46 GMT)
+</span><span class="comment">// res0: Headers = Headers(Content-Length: 0, Cache-Control: public, max-age=10800, Date: Thu, 23 Mar 2023 05:31:32 GMT, Expires: Thu, 23 Mar 2023 08:31:32 GMT)
 </span><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Headers = Headers(Content-Length: 0)
 </span><span class="identifier">cacheClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">postRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -378,7 +379,7 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">dateService</span><span> = </span><span class="type-name">Date</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">dateClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">dateService</span><span>)</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">dateClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res3: Headers = Headers(Content-Length: 0, Date: Wed, 22 Mar 2023 22:56:46 GMT)</span></code></pre>
+</span><span class="comment">// res3: Headers = Headers(Content-Length: 0, Date: Thu, 23 Mar 2023 05:31:32 GMT)</span></code></pre>
         
         <h3 id="headerecho" class="section">HeaderEcho<a class="anchor-link right" href="#headerecho"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Adds headers included in the request to the response.</p>
@@ -396,7 +397,7 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">timingService</span><span> = </span><span class="type-name">ResponseTiming</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
 </span><span class="keyword">val</span><span> </span><span class="identifier">timingClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">timingService</span><span>)</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">timingClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res5: Headers = Headers(Content-Length: 0, X-Response-Time: 2)</span></code></pre>
+</span><span class="comment">// res5: Headers = Headers(Content-Length: 0, X-Response-Time: 3)</span></code></pre>
         
         <h3 id="requestid" class="section">RequestId<a class="anchor-link right" href="#requestid"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Use the <code>RequestId</code> middleware to automatically generate a <code>X-Request-ID</code> header for a request,
@@ -419,10 +420,10 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">requestIdClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">okRequest</span><span>).</span><span class="identifier">use</span><span>(</span><span class="identifier">resp</span><span> =&gt;
   (</span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>, </span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)).</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]
 ).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// request received, cid=9d5a3798-6599-4e24-ba39-cd88a88f7fbd
+</span><span class="comment">// request received, cid=c1cefef4-9fe7-4f50-96d0-762659803b40
 // res6: (Headers, Option[String]) = (
-//   Headers(Content-Length: 0, X-Request-ID: 9d5a3798-6599-4e24-ba39-cd88a88f7fbd),
-//   Some(value = &quot;9d5a3798-6599-4e24-ba39-cd88a88f7fbd&quot;)
+//   Headers(Content-Length: 0, X-Request-ID: c1cefef4-9fe7-4f50-96d0-762659803b40),
+//   Some(value = &quot;c1cefef4-9fe7-4f50-96d0-762659803b40&quot;)
 // )</span></code></pre>
         
         <h3 id="staticheaders" class="section">StaticHeaders<a class="anchor-link right" href="#staticheaders"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -553,8 +554,8 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">concurrentClient</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">cl</span><span> =&gt;
   </span><span class="type-name">List</span><span>.</span><span class="identifier">fill</span><span>(</span><span class="number-literal">3</span><span>)(</span><span class="identifier">waitRequest</span><span>).</span><span class="identifier">parTraverse</span><span>(</span><span class="identifier">req</span><span> =&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="identifier">req</span><span>))
 ).</span><span class="identifier">void</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// someone comes to town, total=1
-// someone comes to town, total=3
+</span><span class="comment">// someone comes to town, total=3
+// someone comes to town, total=1
 // someone comes to town, total=2
 // someone leaves town, total=2
 // someone leaves town, total=1
@@ -626,8 +627,8 @@
 //   Status(code = 200),
 //   Status(code = 429),
 //   Status(code = 200),
-//   Status(code = 429),
-//   Status(code = 200)
+//   Status(code = 200),
+//   Status(code = 429)
 // )</span></code></pre>
         
         <h3 id="timeout" class="section">Timeout<a class="anchor-link right" href="#timeout"><i class="icofont-laika">&#xef71;</i></a></h3>
@@ -640,7 +641,7 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">timeoutClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">timeoutService</span><span>)</span></code></pre>
         <p><code>/wait</code> takes 10 ms to finish so it&#39;s cancelled:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">timeoutClient</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">waitRequest</span><span>).</span><span class="identifier">timed</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res24: (FiniteDuration, Status) = (5866625 nanoseconds, Status(code = 503))</span></code></pre>
+</span><span class="comment">// res24: (FiniteDuration, Status) = (12541065 nanoseconds, Status(code = 503))</span></code></pre>
         
         <h2 id="error-handling-and-logging" class="section">Error handling and Logging<a class="anchor-link right" href="#error-handling-and-logging"><i class="icofont-laika">&#xef71;</i></a></h2>
         
@@ -755,9 +756,9 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyCacheClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">bodyCacheService</span><span>)</span></code></pre>
         <p><code>/doubleRead</code> reads the body twice, when using the middleware we see that both read values the same:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">randomRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res31: String = &quot;731686688 == -1323106344&quot;
+</span><span class="comment">// res31: String = &quot;176190101 == -2117043790&quot;
 </span><span class="identifier">bodyCacheClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">randomRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res32: String = &quot;1016728565 == 1016728565&quot;</span></code></pre>
+</span><span class="comment">// res32: String = &quot;-1189949386 == -1189949386&quot;</span></code></pre>
         
         <h3 id="bracketrequestresponse" class="section">BracketRequestResponse<a class="anchor-link right" href="#bracketrequestresponse"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Brackets the handling of the request ensuring an action happens before the service handles
@@ -795,12 +796,21 @@
         <p>Similarly to <code>BodyRequest</code> in this example we use a response body that always produces a different value:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ChunkAggregator</span><span>
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">chunkAggregatorService</span><span> = </span><span class="type-name">ChunkAggregator</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>).</span><span class="identifier">orNotFound</span><span>
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">doubleBodyMiddleware</span><span>(</span><span class="identifier">service</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>]): </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Kleisli</span><span> { (</span><span class="identifier">req</span><span>: </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>]) =&gt;
+  </span><span class="identifier">service</span><span>(</span><span class="identifier">req</span><span>).</span><span class="identifier">map</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Status</span><span>.</span><span class="type-name">Successful</span><span>(</span><span class="identifier">resp</span><span>) =&gt;
+      </span><span class="identifier">resp</span><span>.</span><span class="identifier">withBodyStream</span><span>(</span><span class="identifier">resp</span><span>.</span><span class="identifier">body</span><span> ++ </span><span class="identifier">resp</span><span>.</span><span class="identifier">body</span><span>)
+    </span><span class="keyword">case</span><span> </span><span class="identifier">resp</span><span> =&gt; </span><span class="identifier">resp</span><span>
+  }
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">chunkAggregatorService</span><span> = </span><span class="identifier">doubleBodyMiddleware</span><span>(</span><span class="type-name">ChunkAggregator</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="identifier">service</span><span>)).</span><span class="identifier">orNotFound</span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">chunkAggregatorClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">chunkAggregatorService</span><span>)</span></code></pre>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">chunkAggregatorClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/random&quot;</span><span>))
-  .</span><span class="identifier">use</span><span>(</span><span class="identifier">r</span><span> =&gt; (</span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>], </span><span class="identifier">r</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>]).</span><span class="identifier">mapN</span><span>((</span><span class="identifier">a</span><span>, </span><span class="identifier">b</span><span>) =&gt; </span><span class="string-literal">s&quot;</span><span class="substitution">$a</span><span class="string-literal"> == </span><span class="substitution">$b</span><span class="string-literal">&quot;</span><span>))
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">chunkAggregatorClient</span><span>
+  .</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/echo&quot;</span><span>).</span><span class="identifier">withEntity</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>))
+  .</span><span class="identifier">map</span><span>(</span><span class="identifier">e</span><span> =&gt; </span><span class="string-literal">s&quot;</span><span class="substitution">$e</span><span class="string-literal"> == foofoo&quot;</span><span>)
   .</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res35: String = &quot;-529546766 == -529546766&quot;</span></code></pre>
+</span><span class="comment">// res35: String = &quot;foofoo == foofoo&quot;</span></code></pre>
         
         <h3 id="jsonp" class="section">Jsonp<a class="anchor-link right" href="#jsonp"><i class="icofont-laika">&#xef71;</i></a></h3>
         <p>Jsonp is a javascript technique to load json data without using <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest">XMLHttpRequest</a>,
