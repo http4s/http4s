@@ -32,6 +32,7 @@ val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" => BadRequest()
   case GET -> Root / "ok" => Ok()
   case r @ POST -> Root / "post" => r.as[Unit] >> Ok()
+  case r @ POST -> Root / "echo" => r.as[String].flatMap(Ok(_))
   case GET -> Root / "b" / "c" => Ok()
   case POST -> Root / "queryForm" :? NameQueryParamMatcher(name) => Ok(s"hello $name")
   case GET -> Root / "wait" => IO.sleep(10.millis) >> Ok()
@@ -601,12 +602,21 @@ Similarly to `BodyRequest` in this example we use a response body that always pr
 ```scala mdoc:silent
 import org.http4s.server.middleware.ChunkAggregator
 
-val chunkAggregatorService = ChunkAggregator.httpRoutes(service).orNotFound
+def doubleBodyMiddleware(service: HttpRoutes[IO]): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
+  service(req).map {
+    case Status.Successful(resp) =>
+      resp.withBodyStream(resp.body ++ resp.body)
+    case resp => resp
+  }
+}
+
+val chunkAggregatorService = doubleBodyMiddleware(ChunkAggregator.httpRoutes(service)).orNotFound
 val chunkAggregatorClient = Client.fromHttpApp(chunkAggregatorService)
 ```
 ```scala mdoc
-chunkAggregatorClient.run(Request[IO](Method.GET, uri"/random"))
-  .use(r => (r.as[String], r.as[String]).mapN((a, b) => s"$a == $b"))
+chunkAggregatorClient
+  .expect[String](Request[IO](Method.POST, uri"/echo").withEntity("foo"))
+  .map(e => s"$e == foofoo")
   .unsafeRunSync()
 ```
 
