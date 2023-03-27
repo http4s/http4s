@@ -19,6 +19,7 @@ package headers
 
 import cats.parse.Parser
 import cats.parse.Parser.charIn
+import cats.parse.Parser.char
 import cats.parse.Rfc5234.alpha
 import cats.parse.Rfc5234.digit
 import org.typelevel.ci._
@@ -36,9 +37,7 @@ object `Sec-WebSocket-Key` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Key`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Key header")(s)
 
-  private[this] val tchar: Parser[Char] = charIn("=+/").orElse(digit).orElse(alpha)
-
-  private[this] val token: Parser[String] = tchar.rep.string
+  private[this] val token: Parser[String] = ((charIn("+/").orElse(digit).orElse(alpha)).rep ~ char('=').rep0(0, 2)).string
 
   private[http4s] val parser = token.mapFilter { t =>
     Try(unsafeFromString(t)).toOption
