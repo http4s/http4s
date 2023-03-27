@@ -24,8 +24,8 @@ import com.comcast.ip4s._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.UnixSockets
 import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
