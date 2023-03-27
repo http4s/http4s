@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-This brings in the [Ember HTTP client and server implementation][ember] as well as the the [routing DSL][dsl]. This is _most likely_ what you want. Other [integration modules][integrations] are available as well, such as for working with [JSON], or using alternative client/server implementations, such as [Netty]. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.
+This brings in the [Ember HTTP client and server implementation][ember] as well as the [routing DSL][dsl]. This is _most likely_ what you want. Other [integration modules][integrations] are available as well, such as for working with [JSON], or using alternative client/server implementations, such as [Netty]. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.
 
 Depending on your usecase, you may want to consider one of several other http4s modules. For example, if you are writing a library, you probably want to develop it against the generic http4s interfaces, without hard-coding a particular implementation, such as Ember.
 

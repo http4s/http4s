@@ -282,6 +282,7 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+    githubWorkflowArtifactUpload := false,
   )
   .nativeSettings(
     libraryDependencies ++= Seq(

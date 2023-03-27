@@ -154,59 +154,9 @@ Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` h
 our header added to it. But, `apiRequest` did not go through the middleware and did
 not have the header added to it's `Result`.
 
-## Included Middleware
-Http4s includes some middleware Out of the Box in the `org.http4s.server.middleware`
-package. These include:
+## Included middleware
 
-* [Authentication]
-* Cross Origin Resource Sharing ([CORS])
-* Response Compression ([GZip])
-* [Service Timeout]
-* [Jsonp]
-* [Virtual Host]
-* [Metrics]
-* [`X-Request-ID` header]
-
-And a few others.
-
-### Metrics Middleware
-
-Apart from the middleware mentioned in the previous section. There is, as well,
-Out of the Box middleware for [Dropwizard](https://http4s.github.io/http4s-dropwizard-metrics/) and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
-
-### X-Request-ID Middleware
-
-Use the `RequestId` middleware to automatically generate a `X-Request-ID` header to a request,
-if one wasn't supplied. Adds a `X-Request-ID` header to the response with the id generated
-or supplied as part of the request.
-
-This [heroku guide](https://devcenter.heroku.com/articles/http-request-id) gives a brief explanation
-as to why this header is useful.
-
-```scala mdoc:silent
-import org.http4s.server.middleware.RequestId
-import org.typelevel.ci._
-
-val requestIdService = RequestId.httpRoutes(HttpRoutes.of[IO] {
-  case req =>
-    val reqId = req.headers.get(ci"X-Request-ID").fold("null")(_.head.value)
-    // use request id to correlate logs with the request
-    IO(println(s"request received, cid=$reqId")) *> Ok()
-})
-val responseIO = requestIdService.orNotFound(goodRequest)
-```
-
-Note: `req.attributes.lookup(RequestId.requestIdAttrKey)` can also be used to lookup the request id
-extracted from the header, or the generated request id.
-
-```scala mdoc
-// generated request id can be correlated with logs
-val resp = responseIO.unsafeRunSync()
-// X-Request-ID header added to response
-resp.headers
-// the request id is also available using attributes
-resp.attributes.lookup(RequestId.requestIdAttrKey)
-```
+See [Server Middleware].
 
 [service]: service.md
 [dsl]: dsl.md
@@ -214,6 +164,7 @@ resp.attributes.lookup(RequestId.requestIdAttrKey)
 [CORS]: cors.md
 [GZip]: gzip.md
 [HSTS]: hsts.md
+[Server Middleware]: server-middleware.md
 [Service Timeout]: @API_URL@/org/http4s/server/middleware/Timeout$
 [Jsonp]: @API_URL@/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: @API_URL@/org/http4s/server/middleware/VirtualHost$
