@@ -255,6 +255,12 @@ object FileService {
     ): Config[F] = apply(systemPath, pathPrefix, bufferSize, cacheStrategy)(F, Files.forAsync(F))
   }
 
+  @deprecated("Use overload with Files constraint", "0.23.19")
+  private[staticcontent] def apply[F[_]](
+      config: Config[F],
+      F: Async[F],
+  ): HttpRoutes[F] = apply(config)(Files.forAsync(F), F)
+
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
   private[staticcontent] def apply[F[_]: Files](
       config: Config[F]
