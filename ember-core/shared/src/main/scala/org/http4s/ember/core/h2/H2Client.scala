@@ -320,7 +320,7 @@ private[ember] class H2Client[F[_]](
 
 private[ember] object H2Client {
   private type TinyClient[F[_]] = Request[F] => Resource[F, Response[F]]
-  def impl[F[_]: Async](
+  def impl[F[_]: Async: Network](
       onPushPromise: (
           org.http4s.Request[fs2.Pure],
           F[org.http4s.Response[F]],
