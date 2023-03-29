@@ -39,6 +39,7 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -49,7 +50,6 @@ import scala.annotation.nowarn
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import scodec.bits.ByteVector
 
 object arbitrary extends ArbitraryInstancesBinCompat0
 
