@@ -28,7 +28,7 @@ import scodec.bits.ByteVector
 import java.util.Base64
 import scala.util.Try
 
-final class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
+final case class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
   lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes.toArray)
 }
 
@@ -46,7 +46,7 @@ object `Sec-WebSocket-Accept` {
 
   private def unsafeFromString(hash: String): `Sec-WebSocket-Accept` = {
     val bytes = Base64.getDecoder().decode(hash)
-    new `Sec-WebSocket-Accept`(ByteVector(bytes))
+    `Sec-WebSocket-Accept`(ByteVector(bytes))
   }
 
   implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =
