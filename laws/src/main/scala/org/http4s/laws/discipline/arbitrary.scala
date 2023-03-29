@@ -42,12 +42,14 @@ import org.typelevel.ci.testing.arbitraries._
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.nowarn
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
+import scodec.bits.ByteVector
 
 object arbitrary extends ArbitraryInstancesBinCompat0
 
@@ -629,6 +631,27 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         codings <- getArbitrary[NonEmptyList[TransferCoding]]
       } yield `Transfer-Encoding`(codings)
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketAcceptHeader
+      : Arbitrary[`Sec-WebSocket-Accept`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(_ ++ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes)
+        .map(java.security.MessageDigest.getInstance("SHA-1").digest)
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Accept`(_))
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketKeyHeader: Arbitrary[`Sec-WebSocket-Key`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Key`(_))
     }
 
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
