@@ -637,9 +637,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       : Arbitrary[`Sec-WebSocket-Accept`] =
     Arbitrary {
       Gen
-        .containerOfN[Array, Byte](16, getArbitrary[Byte])
-        .map(_ ++ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes)
-        .map(java.security.MessageDigest.getInstance("SHA-1").digest)
+        .containerOfN[Array, Byte](20, getArbitrary[Byte])
         .map(Base64.getEncoder().encode)
         .map(ByteVector(_))
         .map(`Sec-WebSocket-Accept`(_))
