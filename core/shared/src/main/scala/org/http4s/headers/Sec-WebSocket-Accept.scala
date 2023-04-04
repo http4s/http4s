@@ -24,8 +24,8 @@ import scodec.bits.ByteVector
 import java.util.Base64
 import scala.util.Try
 
-final case class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
-  lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes.toArray)
+final case class `Sec-WebSocket-Accept`(hashedKey: ByteVector) {
+  lazy val hashString: String = Base64.getEncoder().encodeToString(hashedKey.toArray)
 }
 
 object `Sec-WebSocket-Accept` {
