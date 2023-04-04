@@ -17,11 +17,7 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser
-import cats.parse.Parser.char
-import cats.parse.Parser.charIn
-import cats.parse.Rfc5234.alpha
-import cats.parse.Rfc5234.digit
+import org.http4s.internal.parsing.Rfc4648
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
@@ -37,10 +33,7 @@ object `Sec-WebSocket-Accept` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
-  private[this] val token: Parser[String] =
-    (charIn("+/").orElse(digit).orElse(alpha).rep ~ char('=').rep0(0, 2)).string
-
-  private[http4s] val parser = token.mapFilter { t =>
+  private[http4s] val parser = Rfc4648.Base64.token.mapFilter { t =>
     Try(unsafeFromString(t)).toOption
   }
 
