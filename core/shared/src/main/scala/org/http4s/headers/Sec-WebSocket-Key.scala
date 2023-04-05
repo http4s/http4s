@@ -25,7 +25,7 @@ import java.util.Base64
 import scala.util.Try
 
 final case class `Sec-WebSocket-Key`(hashedKey: ByteVector) {
-  lazy val hashString: String = Base64.getEncoder().encodeToString(hashedKey.toArray)
+  lazy val hashString: String = Base64.getEncoder().encodeToString(hashedKey.toArrayUnsafe)
 }
 
 object `Sec-WebSocket-Key` {
@@ -39,7 +39,7 @@ object `Sec-WebSocket-Key` {
 
   private def unsafeFromString(hash: String): `Sec-WebSocket-Key` = {
     val bytes = Base64.getDecoder().decode(hash)
-    `Sec-WebSocket-Key`(ByteVector(bytes))
+    `Sec-WebSocket-Key`(ByteVector.view(bytes))
   }
 
   implicit val headerInstance: Header[`Sec-WebSocket-Key`, Header.Single] =
