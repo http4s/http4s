@@ -39,9 +39,11 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.nowarn
@@ -629,6 +631,25 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         codings <- getArbitrary[NonEmptyList[TransferCoding]]
       } yield `Transfer-Encoding`(codings)
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketAcceptHeader
+      : Arbitrary[`Sec-WebSocket-Accept`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](20, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Accept`(_))
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketKeyHeader: Arbitrary[`Sec-WebSocket-Key`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Key`(_))
     }
 
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
