@@ -20,6 +20,7 @@ package websocket
 import cats.Functor
 import cats.syntax.all._
 import cats.~>
+import org.typelevel.ci.CIStringSyntax
 
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],
@@ -33,5 +34,8 @@ final case class WebSocketContext[F[_]](
       headers,
       fk(failureResponse).map(_.mapK(fk)),
     )
+
+  def subprotocol: Option[String] =
+    headers.get(ci"Sec-WebSocket-Protocol").map(_.head.value)
 
 }

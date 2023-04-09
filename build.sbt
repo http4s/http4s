@@ -460,7 +460,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
       nettyCodecHttp,
     )
   )
-  .dependsOn(client, theDsl)
+  .dependsOn(client, theDsl, server, tests % Test)
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
