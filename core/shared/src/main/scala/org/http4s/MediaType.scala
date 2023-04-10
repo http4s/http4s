@@ -264,7 +264,7 @@ object MediaType extends MimeDB {
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
   // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
-  lazy val `application/graphql` = new MediaType("application", "graphql", true)
+  lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
