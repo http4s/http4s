@@ -27,10 +27,10 @@ import cats.effect.kernel.Outcome
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import cats.~>
-import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 /** Simple middleware for logging responses as they are processed
   */
@@ -81,12 +81,16 @@ object ResponseLogger {
       else {
         response.entity match {
           case Entity.Default(_, _) =>
-            F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
-              val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+            F.ref(ByteVector.empty).map { byteVector =>
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
               val logPipe: Pipe[F, Byte, Byte] =
-                _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                  .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
+                _.observe(
+                  _.chunks.flatMap(c => Stream.exec(byteVector.update(_ ++ c.toByteVector)))
+                )
+                  .onFinalizeWeak(
+                    byteVector.get
+                      .flatMap(bv => logMessage(response.withEntity(Entity.strict(bv))))
+                  )
 
               response.pipeBodyThrough(logPipe)
             }
