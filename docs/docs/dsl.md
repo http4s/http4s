@@ -37,6 +37,8 @@ We'll need the following imports to get started:
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+import io.circe.generic.auto._
+import org.http4s.circe.CirceEntityCodec.* 
 ```
 
 If you're in a REPL, we also need a runtime:
@@ -97,8 +99,6 @@ Cool.
 ### Parsing request body
 
 ```scala mdoc
-import io.circe.generic.auto._
-import org.http4s.circe.CirceEntityCodec.* 
 
 final case class SomeUser(name: String, email: String)
 
