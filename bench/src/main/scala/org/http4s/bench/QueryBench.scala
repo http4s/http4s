@@ -18,6 +18,8 @@ package org.http4s.bench
 
 import org.http4s.Query
 import org.http4s.Query.KeyValue
+import org.http4s.QueryParam
+import org.http4s.QueryParamEncoder
 import org.openjdk.jmh.annotations._
 
 import java.util.UUID
@@ -83,4 +85,26 @@ class QueryBench {
   @Benchmark
   def prependRawQuery: Query =
     generateKeyValue() +: rawQuery
+
+  sealed case class Key(key: String)
+
+  object Key {
+    implicit val queryParam: QueryParam[Key] =
+      QueryParam.fromKey("foo")
+  }
+
+  sealed case class Value(value: String)
+
+  object Value {
+    implicit val queryParamEncoder: QueryParamEncoder[Value] =
+      QueryParamEncoder[String].contramap(_.value)
+  }
+
+  @Benchmark
+  def withQueryParamRawQuery: Query =
+    rawQuery.withQueryParam[Value, Key](Key("foo"), Value("bar"))
+
+  @Benchmark
+  def withQueryParamParsedQuery: Query =
+    parsedQuery.withQueryParam[Value, Key](Key("foo"), Value("bar"))
 }
