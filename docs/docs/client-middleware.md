@@ -8,7 +8,6 @@ First we prepare a server that we can make requests to:
 ```scala mdoc:silent
 import cats.effect._
 import cats.syntax.all._
-import org.typelevel.ci._
 import org.http4s._
 import org.http4s.headers._
 import org.http4s.dsl.io._
@@ -187,30 +186,34 @@ flakyService.flatMap { service =>
 while not needing to use the network.
 
 This middleware allows a client to make requests to a domain socket.
-Docker uses domain sockets for communicating, for exemple between the docker daemon and the
-command-line application. The following example, which can be run with `scala-cli`,
-will list the docker containers on your machine.
-```scala
-//> using lib "org.typelevel::toolkit::0.0.5"
-
-import cats.effect.*
-import io.circe.*
-import org.http4s.ember.client.*
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.circe.*
-import org.http4s.client.middleware.UnixSocket
+```scala mdoc:silent
+import fs2.io.file._
 import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
+import org.http4s.client.middleware.UnixSocket
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.server.EmberServerBuilder
 
-object Main extends IOApp.Simple {
-  def run = EmberClientBuilder.default[IO].build.use { client =>
-    val socketClient = UnixSocket[IO](UnixSocketAddress("/var/run/docker.sock"))(client)
-    val request = Request[IO](Method.GET, uri"http://localhost/containers/json")
+val localSocket = Files[IO].tempFile(None, "", ".sock", None)
+  .map(path => UnixSocketAddress(path.toString))
 
-    socketClient.expect[Json](request)
-      .flatMap(IO.println)
-  }
-}
+def server(socket: UnixSocketAddress) = EmberServerBuilder
+  .default[IO]
+  .withUnixSocketConfig(UnixSockets[IO], socket) // bind to a domain socket
+  .withHttpApp(service.orNotFound)
+  .withShutdownTimeout(1.second)
+  .build
+  .evalTap(_ => IO.sleep(4.seconds))
+
+def client(socket: UnixSocketAddress) = EmberClientBuilder
+  .default[IO]
+  .build
+  .map(UnixSocket[IO](socket)) // apply the middleware
+```
+```scala mdoc
+localSocket.flatMap(socket => server(socket) *> client(socket))
+  .use(cl => cl.status(Request[IO](uri = uri"/ok")))
+  .unsafeRunSync()
 ```
 
 [CookieJar]: @API_URL@org/http4s/client/middleware/CookieJar$.html
