@@ -18,7 +18,8 @@ following to your build.sbt:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-dsl" % http4sVersion  
+  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-circe" % http4sVersion
 )
 ```
 
