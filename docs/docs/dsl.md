@@ -18,7 +18,7 @@ following to your build.sbt:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-dsl" % http4sVersion  
 )
 ```
 
@@ -93,6 +93,29 @@ val response = serviceIO.unsafeRunSync()
 
 Cool.
 
+### Parsing request body
+
+```scala mdoc
+import io.circe.generic.auto._
+import org.http4s.circe.CirceEntityCodec.* 
+
+final case class SomeUser(name: String, email: String)
+
+def decodeTestRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
+  case req @ POST -> Root / "as" =>
+    for {
+      user <- req.as[SomeUser]
+      res <- Ok(s"Hello, ${user.name}")
+    } yield res
+}
+
+def decode2TestRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
+  case req @ POST -> Root / "decode" =>
+    req.decode[SomeUser] { user =>
+      Ok(s"Hello, ${user.name}")
+    }
+}
+```
 
 ## Generating Responses
 
