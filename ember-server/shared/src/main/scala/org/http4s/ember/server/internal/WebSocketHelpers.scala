@@ -117,10 +117,8 @@ private[internal] object WebSocketHelpers {
   )(implicit F: Temporal[F]): F[Unit] = {
     val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
 
-    def writeFrame(frame: WebSocketFrame): F[Unit] = {
-      val bytes = frameToBytes(frame)
-      timeoutMaybe(socket.write(bytes), idleTimeout)
-    }
+    def writeFrame(frame: WebSocketFrame): F[Unit] =
+      frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
 
     val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 
@@ -187,12 +185,11 @@ private[internal] object WebSocketHelpers {
       case x => F.pure(Some(x))
     }
 
-  private def frameToBytes(frame: WebSocketFrame): Chunk[Byte] =
+  private def frameToBytes(frame: WebSocketFrame): List[Chunk[Byte]] =
     nonClientTranscoder
       .frameToBuffer(frame)
-      .foldLeft(Chunk.empty[Byte]) { case (acc, buffer) =>
-        acc ++ Chunk.byteBuffer(buffer)
-      }
+      .toList
+      .map(Chunk.byteBuffer)
 
   private def decodeFrames[F[_]](implicit F: ApplicativeThrow[F]): Pipe[F, Byte, WebSocketFrame] =
     stream => {
