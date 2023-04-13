@@ -38,7 +38,7 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 import io.circe.generic.auto._
-import org.http4s.circe.CirceEntityCodec.* 
+import org.http4s.circe.CirceEntityCodec._ 
 ```
 
 If you're in a REPL, we also need a runtime:
