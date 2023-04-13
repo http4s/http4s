@@ -41,6 +41,8 @@ import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+import scala.concurrent.duration._
+
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def service[F[_]](
@@ -188,6 +190,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       )
       _ <- client.connect
       _ <- client.close
+      _ <- IO.sleep(100.millis) // wait update the Close
       msg <- ref.get
     } yield assertEquals(msg, "close")
   }
