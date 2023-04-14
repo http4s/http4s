@@ -119,12 +119,8 @@ object StaticFile {
                 case other => throw other
               },
               f = { inputStream =>
-                Some(
-                  Response(
-                    headers = headers,
-                    entity = Entity(readInputStream[F](F.pure(inputStream), DefaultBufferSize)),
-                  )
-                )
+                val e = Entity.stream(readInputStream[F](F.pure(inputStream), DefaultBufferSize))
+                Some(Response(headers = headers, entity = e))
               },
             )
         } else
@@ -210,7 +206,7 @@ object StaticFile {
 
                   val r = Response(
                     headers = hs,
-                    entity = Entity(body),
+                    entity = Entity.stream(body),
                     attributes = Vault.empty.insert(staticPathKey, f),
                   )
 

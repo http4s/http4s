@@ -80,7 +80,7 @@ object RequestLogger {
       else
         Resource.suspend {
           req.entity match {
-            case Entity.Default(_, _) =>
+            case Entity.Streamed(_, _) =>
               (F.ref(false), F.ref(Vector.empty[Chunk[Byte]])).mapN { case (hasLogged, vec) =>
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 

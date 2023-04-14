@@ -159,7 +159,7 @@ Content-Type: application/pdf
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
+        entity = Entity.stream(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 
@@ -192,7 +192,7 @@ I am a big moose
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
+        entity = Entity.stream(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 

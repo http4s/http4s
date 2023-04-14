@@ -123,7 +123,7 @@ object EntityEncoder {
   ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
-        Entity(a.flatMap(W.toEntity(_).body))
+        Entity.stream(a.flatMap(W.toEntity(_).body))
 
       override def headers: Headers =
         W.headers.get[`Transfer-Encoding`] match {
@@ -160,15 +160,15 @@ object EntityEncoder {
     * `Transfer-Encoding: chunked` header is set, as we cannot know
     * the content length without running the stream.
     */
-  implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
+  implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, Stream[F, Byte]] =
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked.pure[NonEmptyList])) { body =>
-      Entity(body, None)
+      Entity.stream(body, None)
     }
 
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def pathEncoder[F[_]: Files]: EntityEncoder[F, fs2.io.file.Path] =
     encodeBy[F, fs2.io.file.Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(Files[F].readAll(p))
+      Entity.stream(Files[F].readAll(p))
     }
 
   implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
