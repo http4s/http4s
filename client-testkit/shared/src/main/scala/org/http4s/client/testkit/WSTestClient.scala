@@ -23,6 +23,7 @@ import cats.Foldable
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.Resource
+import cats.effect.implicits._
 import cats.effect.std.Queue
 import cats.implicits._
 import fs2.Stream
@@ -32,6 +33,7 @@ import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketCombinedPipe
+import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketSeparatePipe
 
@@ -51,7 +53,74 @@ object WSTestClient {
     */
   def fromHttpWebSocketApp[F[_]: Concurrent](
       respondToPings: Boolean
-  )(f: WebSocketBuilder2[F] => HttpApp[F]): F[WSClient[F]] =
+  )(f: WebSocketBuilder2[F] => HttpApp[F]): F[WSClient[F]] = {
+
+    def processSeparatedSocket(
+        socket: WebSocketSeparatePipe[F],
+        subProtocol: Option[String],
+    ): Resource[F, WSConnection[F]] =
+      for {
+        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
+        _ <- socket.send.evalTap(clientReceiveQueue.offer).compile.drain.background
+
+        clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
+        consumer = Stream
+          .fromQueueNoneTerminated[F, WebSocketFrame](clientSendQueue)
+          .through(socket.receive)
+          .compile
+          .drain
+
+        _ <- Resource.make(consumer.start)(f => clientSendQueue.offer(None).guarantee(f.join.void))
+
+        _ <- Resource.onFinalize(socket.onClose)
+
+      } yield new WSConnection[F] {
+        def send(wsf: WSFrame): F[Unit] =
+          wsf.toWebSocketFrame.flatMap(f => clientSendQueue.offer(f.some))
+
+        def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
+          wsfs.traverse_(send)
+
+        def receive: F[Option[WSFrame]] =
+          clientReceiveQueue.take.map(_.toWSFrame.some)
+
+        def subprotocol: Option[String] = subProtocol
+      }
+
+    def processCombinedSocket(
+        socket: WebSocketCombinedPipe[F],
+        subProtocol: Option[String],
+    ): Resource[F, WSConnection[F]] =
+      for {
+
+        clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
+        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
+        receiveSend = Stream
+          .fromQueueNoneTerminated[F, WebSocketFrame](clientSendQueue)
+          .through(socket.receiveSend)
+          .evalTap(clientReceiveQueue.offer)
+          .compile
+          .drain
+
+        _ <- Resource.make(receiveSend.start)(f =>
+          clientReceiveQueue.tryTake *> clientSendQueue.offer(None).guarantee(f.join.void)
+        )
+
+        _ <- Resource.onFinalize(socket.onClose)
+
+      } yield new WSConnection[F] {
+        def send(wsf: WSFrame): F[Unit] =
+          wsf.toWebSocketFrame.flatMap(f => clientSendQueue.offer(f.some))
+
+        def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
+          wsfs.traverse_(send)
+
+        def receive: F[Option[WSFrame]] =
+          clientReceiveQueue.take.map(_.toWSFrame.some)
+
+        def subprotocol: Option[String] = subProtocol
+      }
+
     for {
       wsb <- WebSocketBuilder2[F]
       app = f(wsb)
@@ -60,59 +129,18 @@ object WSTestClient {
         .eval(app.run(Request[F](method = req.method, uri = req.uri, headers = req.headers)))
         .flatMap { response =>
           response.attributes.lookup(wsb.webSocketKey) match {
-            case Some(context) =>
-              context.webSocket match {
-                case WebSocketSeparatePipe(s, r, c) =>
-                  Resource
-                    .pure(new WSConnection[F] {
-
-                      def send(wsf: WSFrame): F[Unit] =
-                        Stream.eval(wsf.toWebSocketFrame).through(r).compile.drain
-
-                      def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
-                        wsfs.traverse_(send)
-
-                      def receive: F[Option[WSFrame]] =
-                        s.map(_.toWSFrame).head.compile.last
-
-                      def subprotocol: Option[String] = context.subprotocol
-                    })
-                    .onFinalize(c)
-                case wscp: WebSocketCombinedPipe[F] =>
-                  Resource
-                    .liftK(Queue.unbounded[F, WebSocketFrame])
-                    .map { queue =>
-                      new WSConnection[F] {
-                        def send(wsf: WSFrame): F[Unit] =
-                          Stream
-                            .eval(wsf.toWebSocketFrame)
-                            .through(wscp.receiveSend)
-                            .evalTap(queue.offer)
-                            .compile
-                            .drain
-
-                        def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
-                          wsfs.traverse_(send)
-
-                        def receive: F[Option[WSFrame]] =
-                          queue.tryTake.map(_.map(_.toWSFrame))
-
-                        def subprotocol: Option[String] = context.subprotocol
-                      }
-
-                    }
-                    .onFinalize(wscp.onClose)
-
-              }
+            case Some(c @ WebSocketContext(webSocket: WebSocketSeparatePipe[F], _, _)) =>
+              processSeparatedSocket(webSocket, c.subprotocol)
+            case Some(c @ WebSocketContext(webSocket: WebSocketCombinedPipe[F], _, _)) =>
+              processCombinedSocket(webSocket, c.subprotocol)
             case _ =>
-              Resource.raiseError[F, WSConnection[F], Throwable](
-                new WebSocketClientInitException()
-              )
+              Resource.raiseError[F, WSConnection[F], Throwable](new WebSocketClientInitException())
           }
 
         }
 
     }
+  }
 
   implicit private[http4s] class WsFrameOps[F[_]: Concurrent](val wsFrame: WSFrame) {
     def toWebSocketFrame: F[WebSocketFrame] =

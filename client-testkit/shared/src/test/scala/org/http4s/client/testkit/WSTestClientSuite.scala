@@ -84,29 +84,55 @@ class WSTestClientSuite extends Http4sSuite {
     }
   }
 
+  test("client should not lose frames") {
+    val msg = "hello"
+    val app = fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
+      HttpRoutes
+        .of[IO] { case GET -> Root / "ws" =>
+          wsb
+            .withHeaders(Headers("Sec-WebSocket-Protocol" -> "data"))
+            .build(
+              Stream.emits(List(WebSocketFrame.Text(msg), WebSocketFrame.Text(msg))).covary[IO],
+              _.as(()),
+            )
+        }
+        .orNotFound
+    }
+
+    app.toResource.flatMap(_.connect(WSRequest(uri"/ws"))).use { connection =>
+      for {
+        r1 <- connection.receive
+        r2 <- connection.receive
+      } yield assertEquals(List(r1, r2).flatten, List(WSFrame.Text(msg), WSFrame.Text(msg)))
+    }
+
+  }
+
   test("combined pipe should handle all messages") {
     val expectedMsg = "hello"
     Resource
-      .liftK(combinedPipeWsApp)
+      .eval(combinedPipeWsApp)
       .flatMap(_.connect(WSRequest(uri"/ws")))
-      .use { connection =>
-        assertEquals(connection.subprotocol, Some("data"))
+      .use { conn =>
         for {
-          _ <- connection.send(WSFrame.Text(expectedMsg))
-          _ <- connection.send(WSFrame.Text(expectedMsg))
-          _ <- connection.send(WSFrame.Close(1000, "OK"))
-          results <- connection.receiveStream.compile.toList
-        } yield results
+          _ <- conn.send(WSFrame.Text(expectedMsg))
+          r1 <- conn.receive
+          _ <- conn.send(WSFrame.Text(expectedMsg))
+          r2 <- conn.receive
+          _ <- conn.send(WSFrame.Close(1000, "OK"))
+          r3 <- conn.receive
+        } yield List(r1, r2, r3).flatten
       }
       .assertEquals(
         List(WSFrame.Text(expectedMsg), WSFrame.Text(expectedMsg), WSFrame.Close(1000, "OK"))
       )
+
   }
 
   test("if app doesn't respond with a websocket, the connection initialization should fail") {
 
     Resource
-      .liftK(
+      .eval(
         fromHttpWebSocketApp[IO]((_: WebSocketBuilder2[IO]) =>
           HttpRoutes
             .of[IO] { case GET -> Root / "ws" =>
