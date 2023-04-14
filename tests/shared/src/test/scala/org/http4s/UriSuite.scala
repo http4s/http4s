@@ -1425,6 +1425,12 @@ class UriSuite extends Http4sSuite {
     assertEquals(ori, res)
   }
 
+  property("resolving root sets path to root") {
+    forAll { (uri: Uri) =>
+      assertEquals(uri.resolve(uri"/").path, Uri.Path.Root)
+    }
+  }
+
   checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
   checkAll("Uri.Path", EqTests[Uri.Path].eqv)
 
