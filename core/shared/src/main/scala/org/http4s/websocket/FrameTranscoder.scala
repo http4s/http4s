@@ -140,7 +140,7 @@ class FrameTranscoder(val isClient: Boolean) {
       buff.flip
       Array[ByteBuffer](buff)
     } else {
-      buff.put(in.data.toByteBuffer)
+      in.data.copyToBuffer(buff)
       buff.flip
       Array[ByteBuffer](buff)
     }
