@@ -198,7 +198,7 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+      xs.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
         m :+ (k -> Some(s))
       }
     )
@@ -223,7 +223,7 @@ object Query {
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
+      case (m, (k, vs)) => vs.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
     })
 
   private def parse(query: String): Vector[KeyValue] =
@@ -234,12 +234,12 @@ object Query {
         case Left(_) => Vector.empty
       }
 
-  /* query       = *( pchar / "/" / "?" )
-   *
-   * These are illegal, but common in the wild.  We will be
-   * "conservative in our sending behavior and liberal in our
-   * receiving behavior", and encode them.
-   */
+  /** query       = *( pchar / "/" / "?" )
+    *
+    * These are illegal, but common in the wild.  We will be
+    * "conservative in our sending behavior and liberal in our
+    * receiving behavior", and encode them.
+    */
   private[http4s] lazy val parser: Parser0[Query] = {
     import cats.parse.Parser.charIn
     import Rfc3986.pchar

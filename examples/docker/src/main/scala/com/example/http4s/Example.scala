@@ -18,6 +18,7 @@ package com.example.http4s.blaze
 
 import cats.effect._
 import com.comcast.ip4s._
+import fs2.io.net.Network
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.server.EmberServerBuilder
@@ -29,7 +30,7 @@ object Main extends IOApp {
 }
 
 object ExampleApp {
-  def serverStream[F[_]: Async]: Resource[F, Server] =
+  def serverStream[F[_]: Async: Network]: Resource[F, Server] =
     EmberServerBuilder.default
       .withPort(port"8080")
       .withHost(host"0.0.0.0")

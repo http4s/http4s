@@ -21,7 +21,7 @@ import cats.syntax.traverse._
 import org.http4s.Header
 import org.http4s.Method
 import org.http4s.ParseResult
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci.CIString
 import org.typelevel.ci.CIStringSyntax
 
@@ -30,8 +30,8 @@ object `Access-Control-Allow-Methods` {
   val name: CIString = ci"Access-Control-Allow-Methods"
 
   private[http4s] val parser =
-    Rfc7230
-      .headerRep(Rfc7230.token.map(CIString(_)))
+    CommonRules
+      .headerRep(CommonRules.token.map(CIString(_)))
       .mapFilter { list =>
         val parsedMethodList = list.traverse { ciMethod =>
           Method.fromString(ciMethod.toString).toOption

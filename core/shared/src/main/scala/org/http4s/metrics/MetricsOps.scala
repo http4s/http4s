@@ -145,20 +145,19 @@ object MetricsOps {
   ): Request[F] => Option[String] = { (request: Request[F]) =>
     val initial: String = request.method.name
 
-    val pathList: List[String] =
-      request.pathInfo.segments.map(_.decoded()).toList
+    val excluded =
+      request.pathInfo.segments
+        .map { segment =>
+          val decoded = segment.decoded()
+          if (exclude(decoded)) excludedValue else decoded
+        }
 
-    val minusExcluded: List[String] = pathList.map { (value: String) =>
-      if (exclude(value)) excludedValue else value
-    }
-
-    val result: String =
-      minusExcluded match {
-        case Nil => initial
-        case nonEmpty @ _ :: _ =>
-          initial + pathSeparator + Foldable[List]
-            .intercalate(nonEmpty, pathSeparator)
-      }
+    val result =
+      if (excluded.isEmpty)
+        initial
+      else
+        initial + pathSeparator + Foldable[Vector]
+          .intercalate(excluded, pathSeparator)
 
     Some(result)
   }

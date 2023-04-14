@@ -28,10 +28,10 @@ import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
 
-  private val SPACE = " "
-  private val CRLF = "\r\n"
-  val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
-  val zeroContentLengthRaw = "Content-Length: 0"
+  private[this] final val SPACE = " "
+  private[this] final val CRLF = "\r\n"
+  private[this] final val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  private[this] final val zeroContentLengthRaw = "Content-Length: 0"
 
   def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
     var chunked = resp.isChunked
@@ -47,31 +47,25 @@ private[ember] object Encoder {
         .append(resp.status.renderString)
         .append(CRLF)
 
-      resp.headers
-        .get[`Content-Length`]
-        .foreach { _ =>
-          appliedContentLength = true
-        }
-
       // Apply each header followed by a CRLF
       resp.headers.foreach { h =>
         if (h.isNameValid) {
-          stringBuilder
-            .append(h.name)
-            .append(": ")
+          appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
+
+          stringBuilder.append(h.name).append(": ")
           appendSanitized(stringBuilder, h.value)
           stringBuilder.append(CRLF)
-          ()
         }
       }
-      if (!appliedContentLength && resp.body == EmptyBody && resp.status.isEntityAllowed) {
+
+      def isEmptyBody = resp.body eq EmptyBody
+      def isEntityAllowed = resp.status.isEntityAllowed
+      if (!appliedContentLength && isEmptyBody && isEntityAllowed) {
         stringBuilder.append(zeroContentLengthRaw).append(CRLF)
         chunked = false
-        ()
-      } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
+      } else if (!chunked && !appliedContentLength && isEntityAllowed) {
         stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
         chunked = true
-        ()
       }
       // Final CRLF terminates headers and signals body to follow.
       stringBuilder.append(CRLF)
@@ -83,10 +77,10 @@ private[ember] object Encoder {
     else
       (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
         .chunkMin(writeBufferSize)
-        .flatMap(Stream.chunk)
+        .unchunks
   }
 
-  private val NoPayloadMethods: Set[Method] =
+  private[this] val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
   def reqToBytes[F[_]: ApplicativeThrow](
@@ -121,33 +115,25 @@ private[ember] object Encoder {
               .append(CRLF)
           }
 
-        req.headers
-          .get[`Content-Length`]
-          .foreach { _ =>
-            appliedContentLength = true
-          }
-
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
           if (h.isNameValid) {
-            stringBuilder
-              .append(h.name)
-              .append(": ")
+            appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
+
+            stringBuilder.append(h.name).append(": ")
             appendSanitized(stringBuilder, h.value)
             stringBuilder.append(CRLF)
-            ()
           }
         }
 
-        if (
-          !appliedContentLength && req.body == EmptyBody && !NoPayloadMethods.contains(req.method)
-        ) {
+        def isEmptyBody = req.body eq EmptyBody
+        def isNoPayloadMethod = NoPayloadMethods.contains(req.method)
+        if (!appliedContentLength && isEmptyBody && !isNoPayloadMethod) {
           stringBuilder.append(zeroContentLengthRaw).append(CRLF)
           chunked = false
-        } else if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
+        } else if (!chunked && !appliedContentLength && !isNoPayloadMethod) {
           stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
-          ()
         }
 
         // Final CRLF terminates headers and signals body to follow.
@@ -159,9 +145,9 @@ private[ember] object Encoder {
       else
         (Stream.chunk(Chunk.array(initSection)) ++ req.body)
           .chunkMin(writeBufferSize)
-          .flatMap(Stream.chunk)
+          .unchunks
     }
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
+  private[this] val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }

@@ -18,6 +18,7 @@ package org.http4s
 package server
 package staticcontent
 
+import cats.MonadThrow
 import cats.data.Kleisli
 import cats.data.NonEmptyList
 import cats.data.OptionT
@@ -234,7 +235,7 @@ object FileService {
       cacheStrategy,
     )
 
-    def apply[F[_]: Async](
+    def apply[F[_]: Async: Files](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
@@ -243,10 +244,27 @@ object FileService {
       val pathCollector: Fs2PathCollector[F] = (f, c, r) => filesOnly(f, c, r)
       Config(systemPath, pathCollector, pathPrefix, cacheStrategy, bufferSize)
     }
+
+    @deprecated("Use overload with Files constraint", "0.23.19")
+    def apply[F[_]](
+        systemPath: String,
+        pathPrefix: String,
+        bufferSize: Int,
+        cacheStrategy: CacheStrategy[F],
+        F: Async[F],
+    ): Config[F] = apply(systemPath, pathPrefix, bufferSize, cacheStrategy)(F, Files.forAsync(F))
   }
 
+  @deprecated("Use overload with Files constraint", "0.23.19")
+  private[staticcontent] def apply[F[_]](
+      config: Config[F],
+      F: Async[F],
+  ): HttpRoutes[F] = apply(config)(Files.forAsync(F), F)
+
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Async[F]): HttpRoutes[F] = {
+  private[staticcontent] def apply[F[_]: Files](
+      config: Config[F]
+  )(implicit F: Async[F]): HttpRoutes[F] = {
     object BadTraversal extends Exception with NoStackTrace
     def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
       val resolvePath: F[Path] =
@@ -301,8 +319,8 @@ object FileService {
     Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
-  private def filesOnly[F[_]](path: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]
+  private def filesOnly[F[_]: Files](path: Path, config: Config[F], req: Request[F])(implicit
+      F: MonadThrow[F]
   ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
       if (attr.isDirectory)
@@ -327,8 +345,8 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]](file: Path, config: Config[F], req: Request[F])(implicit
-      F: Async[F]
+  private def getPartialContentFile[F[_]: Files](file: Path, config: Config[F], req: Request[F])(
+      implicit F: MonadThrow[F]
   ): F[Option[Response[F]]] =
     Files[F].getBasicFileAttributes(file).flatMap { attr =>
       def nope: F[Option[Response[F]]] =

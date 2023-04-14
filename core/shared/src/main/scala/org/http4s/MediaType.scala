@@ -110,7 +110,7 @@ object MediaRange {
 
   private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
     import Parser.char
-    import org.http4s.internal.parsing.Rfc7230.{ows, quotedString, token}
+    import org.http4s.internal.parsing.CommonRules.{ows, quotedString, token}
 
     val escapedString = "\\\\"
     val unescapedString = "\\"
@@ -145,7 +145,7 @@ object MediaRange {
 
   private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser[A] = {
     import Parser.string
-    import org.http4s.internal.parsing.Rfc7230.token
+    import org.http4s.internal.parsing.CommonRules.token
 
     val anyStr1 = string("*")
 
@@ -263,6 +263,8 @@ object MediaType extends MimeDB {
 
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
+  // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
+  lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
@@ -270,7 +272,7 @@ object MediaType extends MimeDB {
   private[this] var _all: Map[(String, String), MediaType] = null
   def all: Map[(String, String), MediaType] = {
     if (_all eq null)
-      _all = (`text/event-stream` :: allMediaTypes)
+      _all = (`text/event-stream` :: `application/graphql` :: allMediaTypes)
         .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
         .toMap
     _all

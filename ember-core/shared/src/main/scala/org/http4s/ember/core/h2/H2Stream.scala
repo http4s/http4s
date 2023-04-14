@@ -25,7 +25,6 @@ import fs2._
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
-import org.http4s.headers.Trailer
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -71,20 +70,31 @@ private[h2] class H2Stream[F[_]: Concurrent](
         new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
     }
 
+  /** Send [[Message]] in chunks according to remote receiver's max frame size.
+    * On empty [[Message]], send an empty DATA frame if there are no trailer headers.
+    *
+    * @param mess the [[Message]] to send
+    */
   def sendMessageBody(mess: Message[F]): F[Unit] = {
-    val trailers = mess.attributes.lookup(Message.Keys.TrailerHeaders[F])
-    mess.body.chunks.noneTerminate.zipWithNext
-      .foreach {
-        case (Some(c), Some(Some(_))) =>
-          sendData(c.toByteVector, false)
-        case (Some(c), Some(None) | None) =>
-          sendData(c.toByteVector, trailers.isEmpty)
-        case (None, _) =>
-          if (trailers.isDefined) Applicative[F].unit
-          else sendData(ByteVector.empty, true)
-      }
-      .compile
-      .drain
+    val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
+    val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
+    maxFrameSize.flatMap(maxFrameSize =>
+      mess.body
+        .ifEmpty[F, Byte](
+          Stream.exec(sendData(ByteVector.empty, true).whenA(noTrailers))
+        )
+        .chunkLimit(maxFrameSize)
+        .zipWithNext
+        .foreach { case (c, nextChunk) =>
+          val isEndStream = nextChunk.isEmpty && noTrailers
+          sendData(c.toByteVector, isEndStream)
+        }
+        .compile
+        .drain
+        .onError { case _ =>
+          rstStream(H2Error.InternalError)
+        }
+    )
   }
 
   def sendTrailerHeaders(mess: Message[F]): F[Unit] =
@@ -184,10 +194,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
     state.get.flatMap { s =>
       def attribute(mess: Message[Pure]): mess.Self = {
         val iMess = mess.withAttribute(H2Keys.StreamIdentifier, id)
-        if (mess.headers.get[Trailer].isDefined) {
-          val trailerF = s.trailers.get.rethrow
-          iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
-        } else iMess
+        val trailerF = s.trailers.get.rethrow
+        iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
       }
 
       s.state match {
@@ -224,12 +232,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
                           checkLengthOf(resp) >>
-                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
+                          (if (headers.endStream) s.trailWith(List.empty).void
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h).void
+                  case _ => s.trailWith(h.toList).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {
@@ -238,12 +249,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
                           checkLengthOf(req) >>
-                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
+                          (if (headers.endStream) s.trailWith(List.empty).void
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h).void
+                  case _ => s.trailWith(h.toList).void
                 }
             }
           } yield ()
@@ -326,7 +340,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
-          _ <- if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
+          _ <- if (data.endStream) s.trailWith(List.empty).void else Applicative[F].unit
+          _ <-
+            if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
         goAway(H2Error.ProtocolError)
@@ -347,9 +363,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
       _ <- s.request.complete(Left(t))
       _ <- s.response.complete(Left(t))
       _ <- s.readBuffer.offer(Left(t))
+      _ <- s.trailers.complete(Left(t))
       _ <- onClosed
     } yield ()
-
   }
 
   // Broadcast Frame
@@ -361,6 +377,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     _ <- s.request.complete(Left(t))
     _ <- s.response.complete(Left(t))
     _ <- s.readBuffer.offer(Left(t))
+    _ <- s.trailers.complete(Left(t))
     _ <- onClosed
   } yield ()
 
@@ -373,6 +390,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     _ <- s.request.complete(Left(t))
     _ <- s.response.complete(Left(t))
     _ <- s.readBuffer.offer(Left(t))
+    _ <- s.trailers.complete(Left(t))
     _ <- onClosed
   } yield ()
 
@@ -453,8 +471,8 @@ private[h2] object H2Stream {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"
 
-    private[h2] def trailWith(rawHs: NonEmptyList[(String, String)]): F[Boolean] = {
-      val hs = Headers(rawHs.toList.map(Header.ToRaw.keyValuesToRaw): _*)
+    private[h2] def trailWith(rawHs: List[(String, String)]): F[Boolean] = {
+      val hs = Headers(rawHs.map(Header.ToRaw.keyValuesToRaw): _*)
       trailers.complete(Either.right(hs))
     }
 

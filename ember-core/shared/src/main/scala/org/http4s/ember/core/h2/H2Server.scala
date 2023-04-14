@@ -24,6 +24,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -194,8 +195,10 @@ private[ember] object H2Server {
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
     def initH2Connection: F[H2Connection[F]] = for {
-      address <- socket.remoteAddress
-      (remotehost, remoteport) = (address.host, address.port)
+      address <- socket.remoteAddress.attempt.map(
+        // TODO, only used for logging
+        _.leftMap(_ => UnixSocketAddress("unknown.sock"))
+      )
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
       stateRef <-
@@ -220,8 +223,7 @@ private[ember] object H2Server {
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
     } yield new H2Connection(
-      remotehost,
-      remoteport,
+      address,
       H2Connection.ConnectionType.Server,
       localSettings,
       ref,
@@ -280,17 +282,15 @@ private[ember] object H2Server {
             _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
           } yield (resp.body, stream)
 
-        val pp = resp.attributes.lookup(H2Keys.PushPromises)
-        for {
-          // Push Promises
-          pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
-          streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-            Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-          )(l => l.traverse(sender))
-          // _ <- Console.make[F].println("Writing Streams Commpleted")
-          responses <- streams.parTraverse { case (req, stream) => respond(req, stream) }
-          _ <- responses.parTraverse { case (_, stream) => sendData(resp, stream) }
-        } yield ()
+        resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
+          h2.state.get.flatMap {
+            case s if s.remoteSettings.enablePush.isEnabled =>
+              l.traverse(sender)
+                .flatMap(_.parTraverse { case (req, stream) => respond(req, stream) })
+                .flatMap(_.parTraverse_ { case (_, stream) => sendData(resp, stream) })
+            case _ => Applicative[F].unit
+          }
+        }
       }
 
       for {
@@ -307,8 +307,10 @@ private[ember] object H2Server {
     def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .map(i => Stream.eval(processCreatedStream(h2, i).attempt))
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
+          processCreatedStream(h2, i)
+            .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
+        )
         .compile
         .drain
         .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }

@@ -57,10 +57,10 @@ private[http4s] object Rfc6265
       )
     )
 
-/* This is a relaxed implementation based on spec implemented by Chromium
- * US-ASCII characters excluding CTLs and semicolon
- *  See https://groups.google.com/a/chromium.org/g/chromium-discuss/c/T3oHExJMr0M
- * */
+/** This is a relaxed implementation based on spec implemented by Chromium
+  * US-ASCII characters excluding CTLs and semicolon
+  * @see [[https://groups.google.com/a/chromium.org/g/chromium-discuss/c/T3oHExJMr0M]]
+  */
 private[http4s] object RelaxedCookies
     extends Cookies(
       cookieOctet = charIn(

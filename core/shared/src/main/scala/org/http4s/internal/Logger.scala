@@ -27,6 +27,7 @@ import org.http4s.Message
 import org.http4s.Request
 import org.http4s.Response
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 object Logger {
 
@@ -46,12 +47,16 @@ object Logger {
       val isJson = message.contentType.exists(mT =>
         mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
       )
-      val bodyStream = if (!isBinary || isJson) {
-        message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
-      } else {
-        message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
-      }
-      Some(bodyStream.compile.string)
+      val string =
+        if (!isBinary || isJson)
+          message
+            .bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
+            .compile
+            .string
+        else
+          message.body.compile.to(ByteVector).map(_.toHex)
+
+      Some(string)
     } else None
 
   def logMessage[F[_]](message: Message[F])(
