@@ -149,10 +149,10 @@ object BracketRequestResponse {
           .as(contextResponse.response.some)
           .handleErrorWith(err => F.raiseError(ReleaseError(err)))
 
-      case Entity.Default(body, size) =>
+      case Entity.Streamed(body, size) =>
         F.pure(Some(
           contextResponse.response.withEntity(
-            Entity.Default(
+            Entity.Streamed(
               body.onFinalizeCaseWeak(ec => release(contextRequest.context, Option(contextResponse.context), ec.toOutcome)),
               size,
             ))
@@ -214,10 +214,10 @@ object BracketRequestResponse {
                     .as(response)
                     .handleErrorWith(err => F.raiseError(ReleaseError(err)))
 
-                case Entity.Default(body, size) =>
+                case Entity.Streamed(body, size) =>
                   F.pure(
                     response.withEntity(
-                      Entity.Default(
+                      Entity.Streamed(
                         body.onFinalizeCaseWeak(ec => release(a, ec.toOutcome)),
                         size,
                       )

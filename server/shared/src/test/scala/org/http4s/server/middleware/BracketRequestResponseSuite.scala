@@ -182,7 +182,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
 
   testConcurrentRequestsRunning(
     mkEntity = context =>
-      Entity.Default(
+      Entity.Streamed(
         fs2.Stream
           .eval(IO.delay(Chunk.array(context.toString.getBytes)))
           .unchunks,
@@ -298,7 +298,7 @@ final class BracketRequestResponseSuite extends Http4sSuite {
 
   testReleaseCountAttempts(
     mkEntity = context =>
-      Entity.Default(
+      Entity.Streamed(
         fs2.Stream
           .eval(IO.delay(Chunk.array(context.toString.getBytes)))
           .unchunks,
