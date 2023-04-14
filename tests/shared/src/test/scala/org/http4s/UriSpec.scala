@@ -40,7 +40,7 @@ import org.typelevel.ci._
 import scala.collection.immutable.Seq
 
 // TODO: this needs some more filling out
-class UriSpec extends Http4sSuite {
+class UriSuite extends Http4sSuite {
   sealed case class Ttl(seconds: Int)
   object Ttl {
     implicit val queryParamInstance: QueryParamEncoder[Ttl] with QueryParam[Ttl] =
@@ -1401,6 +1401,28 @@ class UriSpec extends Http4sSuite {
       val (l, r) = path.splitAt(1)
       assertEquals(l.concat(r), path)
     }
+  }
+
+  test("toOriginForm strips scheme and authority") {
+    uri"http://example.com/foo?q".toOriginForm == uri"/foo?q"
+  }
+
+  test("toOriginForm strips fragment") {
+    uri"/foo?q#top".toOriginForm == uri"/foo?q"
+  }
+
+  test("toOriginForm infers an empty path") {
+    uri"http://example.com".toOriginForm == uri"/"
+  }
+
+  test("toOriginForm infers paths relative to root") {
+    uri"dubious".toOriginForm == uri"/dubious"
+  }
+
+  test("Use lazy query model parsing in uri parsing") {
+    val ori = "http://domain.com/path?param1=asd;fgh"
+    val res = org.http4s.Uri.unsafeFromString(ori).renderString
+    assertEquals(ori, res)
   }
 
   checkAll("Uri.Path", SemigroupTests[Uri.Path].semigroup)
