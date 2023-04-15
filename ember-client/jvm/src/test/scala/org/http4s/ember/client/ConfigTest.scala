@@ -1,9 +1,8 @@
-package org.http4s.ember.client.internal
+package org.http4s.ember.client
 
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
 import org.http4s.Http4sSuite
-import org.http4s.ember.client._
 import org.http4s.headers.`User-Agent`
 import org.http4s.internal.parsing.CommonRules.CommentDefaultMaxDepth
 import pureconfig._

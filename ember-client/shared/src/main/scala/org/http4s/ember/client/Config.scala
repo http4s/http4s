@@ -9,6 +9,7 @@ import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 import scala.util.chaining._
 
+@SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
 final case class Config private (
     maxTotal: Int = Defaults.maxTotal,
     idleTimeInPool: Duration = Defaults.idleTimeInPool,

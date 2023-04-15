@@ -1,10 +1,12 @@
 package org.http4s.ember.server
 
-import com.comcast.ip4s.{Host, Port}
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.Port
 import com.typesafe.config.ConfigFactory
-import org.http4s.ember.server.Config.{TLSConfig, UnixSocketConfig}
 import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s.Http4sSuite
+import org.http4s.ember.server.Config.TLSConfig
+import org.http4s.ember.server.Config.UnixSocketConfig
 import pureconfig._
 import pureconfig.error.CannotConvert
 import pureconfig.generic.semiauto._

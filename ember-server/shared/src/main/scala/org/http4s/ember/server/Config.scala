@@ -4,17 +4,18 @@ import cats.effect._
 import com.comcast.ip4s._
 import fs2.io.net.Network
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.{UnixSocketAddress, UnixSockets}
-import org.http4s.ember.server.Config.{TLSConfig, UnixSocketConfig}
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
+import org.http4s.ember.server.Config.TLSConfig
+import org.http4s.ember.server.Config.UnixSocketConfig
 import org.http4s.ember.server.EmberServerBuilder.Defaults
 
-import java.security.AlgorithmConstraints
-import javax.net.ssl.{SNIMatcher, SNIServerName, SSLEngine}
 import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 import scala.util.chaining._
 
-final case class Config(
+@SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
+final case class Config private (
     host: Option[Host] = Host.fromString(Defaults.host),
     port: Port = Port.fromInt(Defaults.port).get,
     tlsConfig: Option[TLSConfig] = None,
@@ -31,10 +32,7 @@ final case class Config(
   def toBuilder[F[_]: Async: Network](
       unixSockets: Option[UnixSockets[F]] = None,
       tlsContext: Option[TLSContext[F]] = None,
-      algorithmConstraints: Option[AlgorithmConstraints] = None,
-      serverNames: Option[List[SNIServerName]] = None,
-      sniMatchers: Option[List[SNIMatcher]] = None,
-      handshakeApplicationProtocolSelector: Option[(SSLEngine, List[String]) => String] = None,
+      makeTLSParams: Option[TLSConfig => TLSParameters] = None,
   ): EmberServerBuilder[F] = EmberServerBuilder.default
     .pipe { builder =>
       host match {
@@ -44,26 +42,13 @@ final case class Config(
     }
     .withPort(port)
     .pipe { builder =>
-      tlsContext.zip(tlsConfig) match {
-        case Some((tlsContext, tlsConfig)) =>
-          import tlsConfig._
-          val tlsParameters = TLSParameters(
-            algorithmConstraints,
-            applicationProtocols,
-            cipherSuites,
-            enableRetransmissions,
-            endpointIdentificationAlgorithm,
-            maximumPacketSize,
-            protocols,
-            serverNames,
-            sniMatchers,
-            useCipherSuitesOrder,
-            needClientAuth,
-            wantClientAuth,
-            handshakeApplicationProtocolSelector,
-          )
+      (tlsContext, makeTLSParams.zip(tlsConfig)) match {
+        case (Some(tlsContext), Some((makeTLSParams, tlsConfig))) =>
+          val tlsParameters = makeTLSParams(tlsConfig)
           builder.withTLS(tlsContext, tlsParameters)
-        case None =>
+        case (Some(tlsContext), None) =>
+          builder.withTLS(tlsContext)
+        case (None, None) =>
           builder.withoutTLS
       }
     }

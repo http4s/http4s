@@ -647,7 +647,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
   .jvmSettings(
     libraryDependencies ++= Seq(
       "com.github.pureconfig" %% "pureconfig" % "0.17.2" % Test,
-      log4catsSlf4j
+      log4catsSlf4j,
     )
   )
   .jsSettings(
