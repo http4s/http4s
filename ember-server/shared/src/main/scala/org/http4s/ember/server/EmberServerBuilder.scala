@@ -202,6 +202,20 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(WebSocketBuilder2[F])
+      config = ServerHelpers.InternalServerConfig(
+        errorHandler,
+        onWriteFailure,
+        maxConnections,
+        receiveBufferSize,
+        maxHeaderSize,
+        requestHeaderReceiveTimeout,
+        idleTimeout,
+        logger,
+        wsBuilder.webSocketKey,
+        enableHttp2,
+        requestLineParseErrorHandler,
+        shutdown,
+      )
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -213,18 +227,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
-              shutdown,
-              errorHandler,
-              onWriteFailure,
-              maxConnections,
-              receiveBufferSize,
-              maxHeaderSize,
-              requestHeaderReceiveTimeout,
-              idleTimeout,
-              logger,
-              wsBuilder.webSocketKey,
-              enableHttp2,
-              requestLineParseErrorHandler,
+              config,
             )
             .compile
             .drain
@@ -239,18 +242,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             httpApp(wsBuilder),
             tlsInfoOpt,
             ready,
-            shutdown,
-            errorHandler,
-            onWriteFailure,
-            maxConnections,
-            receiveBufferSize,
-            maxHeaderSize,
-            requestHeaderReceiveTimeout,
-            idleTimeout,
-            logger,
-            wsBuilder.webSocketKey,
-            enableHttp2,
-            requestLineParseErrorHandler,
+            config,
           )
           .compile
           .drain
