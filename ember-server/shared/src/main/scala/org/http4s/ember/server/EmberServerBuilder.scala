@@ -284,7 +284,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
       unixSocketConfig = None,
-      enableHttp2 = false,
+      enableHttp2 = Defaults.enableHttp2,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
     )
 
@@ -292,7 +292,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
   def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
     default(async, Network.forAsync(async))
 
-  private object Defaults {
+  private[server] object Defaults {
     val host: String = server.defaults.IPv4Host
     val port: Int = server.defaults.HttpPort
 
@@ -330,5 +330,6 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     val idleTimeout: Duration = server.defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
     val additionalSocketOptions: List[SocketOption] = Nil
+    val enableHttp2: Boolean = false
   }
 }
