@@ -64,7 +64,7 @@ final case class Config private (
           builder.withTLS(tlsContext, tlsParameters)
         case (Some(tlsContext), None) =>
           builder.withTLS(tlsContext)
-        case (None, None) =>
+        case (None, _) =>
           builder.withoutTLS
       }
     }
