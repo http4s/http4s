@@ -331,8 +331,15 @@ private[ember] class H2Client[F[_]](
 }
 
 private[ember] object H2Client {
+  private[this] type SwitchBoard[F[_]] = Map[H2Client.RequestKey, (H2Connection[F], F[Unit])]
+
+  implicit private[this] class SwitchBoardOps[F[_]](private val sb: SwitchBoard[F]) extends AnyVal {
+    def shutAllDown(implicit F: Async[F]): F[Unit] =
+      sb.toList.traverse_ { case (_, (_, s)) => s }.attempt.void
+  }
+
   private type TinyClient[F[_]] = Request[F] => Resource[F, Response[F]]
-  def impl[F[_]: Async: Network](
+  def impl[F[_]: Network](
       onPushPromise: (
           org.http4s.Request[fs2.Pure],
           F[org.http4s.Response[F]],
@@ -343,31 +350,22 @@ private[ember] object H2Client {
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
-  ): Resource[F, TinyClient[F] => TinyClient[F]] =
-    for {
-      mapH2 <- Resource.make {
-        Concurrent[F].ref(
-          Map[H2Client.RequestKey, (H2Connection[F], F[Unit])]()
-        )
-      } { ref =>
-        ref.get.flatMap(_.toList.traverse_ { case (_, (_, s)) => s }.attempt.void)
-      }
-      socketMap <- Resource.eval(
-        Concurrent[F].ref(Map[H2Client.RequestKey, SocketType]())
-      )
+  )(implicit F: Async[F]): Resource[F, TinyClient[F] => TinyClient[F]] = {
 
-      _ <- Stream
-        .awakeDelay(1.seconds)
-        .evalMap(_ => mapH2.get)
-        .flatMap(m => Stream.emits(m.toList))
-        .evalMap { case (t, (connection, shutdown)) =>
-          connection.state.get.flatMap { s =>
-            if (s.closed) mapH2.update(m => m - t) >> shutdown else Applicative[F].unit
-          }.attempt
+    def cleanSwitchBoard(mapH2: Ref[F, SwitchBoard[F]]): F[Unit] =
+      mapH2.get.flatMap {
+        _.toList.traverse_ { case (reqKey, (connection, shutdown)) =>
+          connection.state.get
+            .flatMap { s =>
+              F.whenA(s.closed)(mapH2.update(m => m - reqKey) >> shutdown.attempt.void)
+            }
         }
-        .compile
-        .drain
-        .background
+      } >> F.sleep(1.seconds) >> cleanSwitchBoard(mapH2)
+
+    for {
+      mapH2 <- Resource.make(F.ref(Map.empty: SwitchBoard[F]))(_.get.flatMap(_.shutAllDown))
+      socketMap <- Resource.eval(Concurrent[F].ref(Map[H2Client.RequestKey, SocketType]()))
+      _ <- cleanSwitchBoard(mapH2).background
       h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
@@ -389,6 +387,7 @@ private[ember] object H2Client {
           }
       }
     }
+  }
 
   sealed trait SocketType extends Product with Serializable
   case object Http2 extends SocketType
