@@ -29,6 +29,10 @@ import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
+// Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+//
+// The default values in the constructor are not actually applied (defaults from `apply` are).
+// But they still need to be present to enable tools like PureConfig.
 final case class Config private (
     host: Option[Host] = Host.fromString(Defaults.host),
     port: Port = Port.fromInt(Defaults.port).get,
@@ -134,6 +138,7 @@ object Config {
   private def unapply(c: Config): Any = this
 
   @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
+  // Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
   final case class UnixSocketConfig private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean,
@@ -159,6 +164,10 @@ object Config {
   }
 
   @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
+  // Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+  //
+  // The default values in the constructor are not actually applied (defaults from `apply` are).
+  // But they still need to be present to enable tools like PureConfig.
   final case class TLSConfig private (
       applicationProtocols: Option[List[String]] = None,
       cipherSuites: Option[List[String]] = None,

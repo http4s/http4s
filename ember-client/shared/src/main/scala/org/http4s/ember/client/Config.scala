@@ -26,6 +26,10 @@ import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
+// Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+//
+// The default values in the constructor are not actually applied (defaults from `apply` are).
+// But they still need to be present to enable tools like PureConfig.
 final case class Config private (
     maxTotal: Int = Defaults.maxTotal,
     idleTimeInPool: Duration = Defaults.idleTimeInPool,
