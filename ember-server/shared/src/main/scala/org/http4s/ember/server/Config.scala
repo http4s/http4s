@@ -211,7 +211,7 @@ object Config {
     private def unapply(c: TLSConfig): Any = this
   }
 
-  implicit private[client] final class ChainingOps[A](private val self: A) extends AnyVal {
+  implicit private[server] final class ChainingOps[A](private val self: A) extends AnyVal {
     def pipe[B](f: A => B): B = f(self)
   }
 }
