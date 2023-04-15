@@ -22,13 +22,11 @@ import fs2.io.net.Network
 import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
-import org.http4s.ember.server.Config.TLSConfig
-import org.http4s.ember.server.Config.UnixSocketConfig
+import org.http4s.ember.server.Config._
 import org.http4s.ember.server.EmberServerBuilder.Defaults
 
 import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
-import scala.util.chaining._
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
 final case class Config private (
@@ -211,5 +209,9 @@ object Config {
 
     @nowarn("msg=never used")
     private def unapply(c: TLSConfig): Any = this
+  }
+
+  implicit private[client] final class ChainingOps[A](private val self: A) extends AnyVal {
+    def pipe[B](f: A => B): B = f(self)
   }
 }

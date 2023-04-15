@@ -18,12 +18,12 @@ package org.http4s.ember.client
 
 import cats.effect._
 import fs2.io.net.Network
+import org.http4s.ember.client.Config._
 import org.http4s.ember.client.EmberClientBuilder.Defaults
 import org.http4s.headers.`User-Agent`
 
 import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
-import scala.util.chaining._
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
 final case class Config private (
@@ -99,4 +99,8 @@ object Config {
 
   @nowarn("msg=never used")
   private def unapply(c: Config): Any = this
+
+  implicit private[client] final class ChainingOps[A](private val self: A) extends AnyVal {
+    def pipe[B](f: A => B): B = f(self)
+  }
 }
