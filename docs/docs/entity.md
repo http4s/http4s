@@ -17,7 +17,7 @@ type `Entity[F]`.
 
 - `Strict` - stands for an entity that is completely loaded into memory; 
 
-- `Default` - stands for a streamed entity that could be the finite or potentially 
+- `Streamed` - stands for a streamed entity that could be the finite or potentially 
 infinite size. Stream is represented by `fs2.Stream[F, Byte]`. To understand `fs2.Stream`, 
 take a look at the [introduction-to-functional-streams].
 
