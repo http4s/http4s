@@ -56,13 +56,13 @@ final case class Config private (
     }
     .withPort(port)
     .pipe { builder =>
-      (tlsContext, makeTLSParams.zip(tlsConfig)) match {
-        case (Some(tlsContext), Some((makeTLSParams, tlsConfig))) =>
+      (tlsContext, makeTLSParams, tlsConfig) match {
+        case (Some(tlsContext), Some(makeTLSParams), Some(tlsConfig)) =>
           val tlsParameters = makeTLSParams(tlsConfig)
           builder.withTLS(tlsContext, tlsParameters)
-        case (Some(tlsContext), None) =>
+        case (Some(tlsContext), _, _) =>
           builder.withTLS(tlsContext)
-        case (None, _) =>
+        case (None, _, _) =>
           builder.withoutTLS
       }
     }
@@ -73,15 +73,15 @@ final case class Config private (
     .withIdleTimeout(idleTimeout)
     .withShutdownTimeout(shutdownTimeout)
     .pipe { builder =>
-      unixSockets.zip(unixSocketConfig) match {
-        case Some((unixSockets, unixSocketConfig)) =>
+      (unixSockets, unixSocketConfig) match {
+        case (Some(unixSockets), Some(unixSocketConfig)) =>
           builder.withUnixSocketConfig(
             unixSockets,
             unixSocketConfig.unixSocketAddress,
             unixSocketConfig.deleteIfExists,
             unixSocketConfig.deleteOnClose,
           )
-        case None =>
+        case (_, _) =>
           builder.withoutUnixSocketConfig
       }
     }
