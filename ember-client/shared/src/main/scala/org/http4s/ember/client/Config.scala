@@ -26,7 +26,10 @@ import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
-// Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+// Whenever you add a new field to maintain backward compatibility:
+//  * add the field to `copy`
+//  * create a new `apply`
+//  * add a new case to `fromProduct`
 //
 // The default values in the constructor are not actually applied (defaults from `apply` are).
 // But they still need to be present to enable tools like PureConfig.
@@ -100,6 +103,34 @@ object Config {
     serverNameIndication,
     enableHttp2,
   )
+
+  @nowarn
+  def fromProduct(p: Product): Config = p match {
+    case p: Product10[
+          Int,
+          Duration,
+          Int,
+          Int,
+          Duration,
+          Duration,
+          Option[`User-Agent`],
+          Boolean,
+          Boolean,
+          Boolean,
+        ] =>
+      Config(
+        p._1,
+        p._2,
+        p._3,
+        p._4,
+        p._5,
+        p._6,
+        p._7,
+        p._8,
+        p._9,
+        p._10,
+      )
+  }
 
   @nowarn("msg=never used")
   private def unapply(c: Config): Any = this

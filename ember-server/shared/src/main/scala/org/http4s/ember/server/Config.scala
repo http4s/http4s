@@ -29,7 +29,10 @@ import scala.annotation.nowarn
 import scala.concurrent.duration.Duration
 
 @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
-// Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+// Whenever you add a new field to maintain backward compatibility:
+//  * add the field to `copy`
+//  * create a new `apply`
+//  * add a new case to `fromProduct`
 //
 // The default values in the constructor are not actually applied (defaults from `apply` are).
 // But they still need to be present to enable tools like PureConfig.
@@ -102,7 +105,7 @@ final case class Config private (
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       shutdownTimeout: Duration,
-      unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)],
+      unixSocketConfig: Option[UnixSocketConfig],
       enableHttp2: Boolean,
   ): Any = this
 }
@@ -134,11 +137,44 @@ object Config {
     enableHttp2,
   )
 
+  @nowarn
+  def fromProduct(p: Product): Config = p match {
+    case p: Product11[
+          Option[Host],
+          Port,
+          Option[TLSConfig],
+          Int,
+          Int,
+          Int,
+          Duration,
+          Duration,
+          Duration,
+          Option[UnixSocketConfig],
+          Boolean,
+        ] =>
+      Config(
+        p._1,
+        p._2,
+        p._3,
+        p._4,
+        p._5,
+        p._6,
+        p._7,
+        p._8,
+        p._9,
+        p._10,
+        p._11,
+      )
+  }
+
   @nowarn("msg=never used")
   private def unapply(c: Config): Any = this
 
   @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
-  // Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+  // Whenever you add a new field to maintain backward compatibility:
+  //  * add the field to `copy`
+  //  * create a new `apply`
+  //  * add a new case to `fromProduct`
   final case class UnixSocketConfig private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean,
@@ -159,12 +195,29 @@ object Config {
         deleteOnClose: Boolean,
     ): UnixSocketConfig = new UnixSocketConfig(unixSocketAddress, deleteIfExists, deleteOnClose)
 
+    @nowarn
+    def fromProduct(p: Product): UnixSocketConfig = p match {
+      case p: Product3[
+            UnixSocketAddress,
+            Boolean,
+            Boolean,
+          ] =>
+        UnixSocketConfig(
+          p._1,
+          p._2,
+          p._3,
+        )
+    }
+
     @nowarn("msg=never used")
     private def unapply(c: UnixSocketConfig): Any = this
   }
 
   @SuppressWarnings(Array("scalafix:Http4sGeneralLinters.nonValidatingCopyConstructor"))
-  // Whenever you add a new field, add it to `copy` and create a new `apply` to maintain backward compatibility.
+  // Whenever you add a new field to maintain backward compatibility:
+  //  * add the field to `copy`
+  //  * create a new `apply`
+  //  * add a new case to `fromProduct`
   //
   // The default values in the constructor are not actually applied (defaults from `apply` are).
   // But they still need to be present to enable tools like PureConfig.
@@ -215,6 +268,32 @@ object Config {
       needClientAuth,
       wantClientAuth,
     )
+
+    @nowarn
+    def fromProduct(p: Product): TLSConfig = p match {
+      case p: Product9[
+            Option[List[String]],
+            Option[List[String]],
+            Option[Boolean],
+            Option[String],
+            Option[Int],
+            Option[List[String]],
+            Boolean,
+            Boolean,
+            Boolean,
+          ] =>
+        TLSConfig(
+          p._1,
+          p._2,
+          p._3,
+          p._4,
+          p._5,
+          p._6,
+          p._7,
+          p._8,
+          p._9,
+        )
+    }
 
     @nowarn("msg=never used")
     private def unapply(c: TLSConfig): Any = this
