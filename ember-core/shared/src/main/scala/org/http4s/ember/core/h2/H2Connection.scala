@@ -29,6 +29,8 @@ import fs2.io.net.unixsocket.UnixSocketAddress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
+import H2Frame.Settings.SettingsInitialWindowSize
+
 private[h2] class H2Connection[F[_]](
     address: Either[UnixSocketAddress, SocketAddress[Host]],
     connectionType: H2Connection.ConnectionType,
@@ -559,6 +561,26 @@ private[h2] object H2Connection {
       headersInProgress: Option[(H2Frame.Headers, List[H2Frame.Continuation])],
       pushPromiseInProgress: Option[(H2Frame.PushPromise, List[H2Frame.Continuation])],
   )
+
+  def initState[F[_]](
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+      writeWindow: SettingsInitialWindowSize,
+      readWindow: SettingsInitialWindowSize,
+  )(implicit F: Async[F]): F[Ref[F, State[F]]] =
+    Deferred[F, Either[Throwable, Unit]].flatMap { writeBlock =>
+      val state = H2Connection.State(
+        remoteSettings,
+        writeWindow.windowSize,
+        writeBlock,
+        readWindow.windowSize,
+        highestStream = 0,
+        remoteHighestStream = 0,
+        closed = false,
+        headersInProgress = None,
+        pushPromiseInProgress = None,
+      )
+      F.ref(state)
+    }
 
   final case class KillWithoutMessage()
       extends RuntimeException
