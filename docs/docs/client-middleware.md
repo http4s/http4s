@@ -182,7 +182,7 @@ flakyService.flatMap { service =>
 ```
 
 ## UnixSocket
-[Domain sockets] are an operating system feature which allows comunication between processes
+[Unix domain sockets] are an operating system feature which allows communication between processes
 while not needing to use the network.
 
 This middleware allows a client to make requests to a domain socket.
