@@ -137,7 +137,6 @@ object Config {
     enableHttp2,
   )
 
-  @nowarn
   def fromProduct(p: Product): Config = p.productArity match {
     case 11 =>
       Config(
@@ -183,7 +182,6 @@ object Config {
         deleteOnClose: Boolean,
     ): UnixSocketConfig = new UnixSocketConfig(unixSocketAddress, deleteIfExists, deleteOnClose)
 
-    @nowarn
     def fromProduct(p: Product): UnixSocketConfig = p.productArity match {
       case 3 =>
         UnixSocketConfig(
@@ -253,7 +251,6 @@ object Config {
       wantClientAuth,
     )
 
-    @nowarn
     def fromProduct(p: Product): TLSConfig = p.productArity match {
       case 9 =>
         TLSConfig(

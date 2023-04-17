@@ -104,7 +104,6 @@ object Config {
     enableHttp2,
   )
 
-  @nowarn
   def fromProduct(p: Product): Config = p.productArity match {
     case 10 =>
       Config(
