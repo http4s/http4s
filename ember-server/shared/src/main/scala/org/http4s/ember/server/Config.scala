@@ -138,32 +138,20 @@ object Config {
   )
 
   @nowarn
-  def fromProduct(p: Product): Config = p match {
-    case p: Product11[
-          Option[Host],
-          Port,
-          Option[TLSConfig],
-          Int,
-          Int,
-          Int,
-          Duration,
-          Duration,
-          Duration,
-          Option[UnixSocketConfig],
-          Boolean,
-        ] =>
+  def fromProduct(p: Product): Config = p.productArity match {
+    case 11 =>
       Config(
-        p._1,
-        p._2,
-        p._3,
-        p._4,
-        p._5,
-        p._6,
-        p._7,
-        p._8,
-        p._9,
-        p._10,
-        p._11,
+        p.productElement(0).asInstanceOf[Option[Host]],
+        p.productElement(1).asInstanceOf[Port],
+        p.productElement(2).asInstanceOf[Option[TLSConfig]],
+        p.productElement(3).asInstanceOf[Int],
+        p.productElement(4).asInstanceOf[Int],
+        p.productElement(5).asInstanceOf[Int],
+        p.productElement(6).asInstanceOf[Duration],
+        p.productElement(7).asInstanceOf[Duration],
+        p.productElement(8).asInstanceOf[Duration],
+        p.productElement(9).asInstanceOf[Option[UnixSocketConfig]],
+        p.productElement(10).asInstanceOf[Boolean],
       )
   }
 
@@ -196,16 +184,12 @@ object Config {
     ): UnixSocketConfig = new UnixSocketConfig(unixSocketAddress, deleteIfExists, deleteOnClose)
 
     @nowarn
-    def fromProduct(p: Product): UnixSocketConfig = p match {
-      case p: Product3[
-            UnixSocketAddress,
-            Boolean,
-            Boolean,
-          ] =>
+    def fromProduct(p: Product): UnixSocketConfig = p.productArity match {
+      case 3 =>
         UnixSocketConfig(
-          p._1,
-          p._2,
-          p._3,
+          p.productElement(0).asInstanceOf[UnixSocketAddress],
+          p.productElement(1).asInstanceOf[Boolean],
+          p.productElement(2).asInstanceOf[Boolean],
         )
     }
 
@@ -270,28 +254,18 @@ object Config {
     )
 
     @nowarn
-    def fromProduct(p: Product): TLSConfig = p match {
-      case p: Product9[
-            Option[List[String]],
-            Option[List[String]],
-            Option[Boolean],
-            Option[String],
-            Option[Int],
-            Option[List[String]],
-            Boolean,
-            Boolean,
-            Boolean,
-          ] =>
+    def fromProduct(p: Product): TLSConfig = p.productArity match {
+      case 9 =>
         TLSConfig(
-          p._1,
-          p._2,
-          p._3,
-          p._4,
-          p._5,
-          p._6,
-          p._7,
-          p._8,
-          p._9,
+          p.productElement(0).asInstanceOf[Option[List[String]]],
+          p.productElement(1).asInstanceOf[Option[List[String]]],
+          p.productElement(2).asInstanceOf[Option[Boolean]],
+          p.productElement(3).asInstanceOf[Option[String]],
+          p.productElement(4).asInstanceOf[Option[Int]],
+          p.productElement(5).asInstanceOf[Option[List[String]]],
+          p.productElement(6).asInstanceOf[Boolean],
+          p.productElement(7).asInstanceOf[Boolean],
+          p.productElement(8).asInstanceOf[Boolean],
         )
     }
 

@@ -105,30 +105,19 @@ object Config {
   )
 
   @nowarn
-  def fromProduct(p: Product): Config = p match {
-    case p: Product10[
-          Int,
-          Duration,
-          Int,
-          Int,
-          Duration,
-          Duration,
-          Option[`User-Agent`],
-          Boolean,
-          Boolean,
-          Boolean,
-        ] =>
+  def fromProduct(p: Product): Config = p.productArity match {
+    case 10 =>
       Config(
-        p._1,
-        p._2,
-        p._3,
-        p._4,
-        p._5,
-        p._6,
-        p._7,
-        p._8,
-        p._9,
-        p._10,
+        p.productElement(0).asInstanceOf[Int],
+        p.productElement(1).asInstanceOf[Duration],
+        p.productElement(2).asInstanceOf[Int],
+        p.productElement(3).asInstanceOf[Int],
+        p.productElement(4).asInstanceOf[Duration],
+        p.productElement(5).asInstanceOf[Duration],
+        p.productElement(6).asInstanceOf[Option[`User-Agent`]],
+        p.productElement(7).asInstanceOf[Boolean],
+        p.productElement(8).asInstanceOf[Boolean],
+        p.productElement(9).asInstanceOf[Boolean],
       )
   }
 
