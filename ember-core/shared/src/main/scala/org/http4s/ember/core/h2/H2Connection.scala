@@ -145,53 +145,55 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
+  private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
+    def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
+      val fullDataSize = chunk.foldLeft(0) {
+        case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
+        case (init, _) => init
+      }
+      // println(s"Next Write Block Window - data: $fullDataSize window:${s.writeWindow} $s")
+
+      if (fullDataSize <= s.writeWindow && s.writeWindow > 0) {
+        val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
+          acc ++ H2Frame.toByteVector(frame)
+        }
+        state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
+          socket.isOpen.ifM(
+            socket.write(Chunk.byteVector(bv)) >>
+              chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
+            new SocketException("Socket closed when attempting to write").raiseError,
+          )
+      } else {
+        val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
+          case None => (chunk, Chunk.empty[H2Frame])
+          case Some(ix) => chunk.splitAt(ix)
+        }
+
+        val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
+          acc ++ H2Frame.toByteVector(frame)
+        }
+        socket.isOpen.ifM(
+          socket.write(Chunk.byteVector(bv)) >>
+            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
+          new SocketException("Socket closed when attempting to write").raiseError,
+        ) >>
+          s.writeBlock.get.rethrow >>
+          go(after)
+      }
+    }
+    val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
+      mapRef.get.flatMap { m =>
+        m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+      } >> state.update(s => s.copy(closed = true))
+    }
+    firstGoAway.getOrElse(F.unit) >> go(chunk)
+  }
+
   def writeLoop: Stream[F, Nothing] =
     Stream
       .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
       .chunks
-      .foreach { chunk =>
-        def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
-          val fullDataSize = chunk.foldLeft(0) {
-            case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
-            case (init, _) => init
-          }
-          // println(s"Next Write Block Window - data: $fullDataSize window:${s.writeWindow} $s")
-
-          if (fullDataSize <= s.writeWindow && s.writeWindow > 0) {
-            val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
-              acc ++ H2Frame.toByteVector(frame)
-            }
-            state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
-              socket.isOpen.ifM(
-                socket.write(Chunk.byteVector(bv)) >>
-                  chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-                new SocketException("Socket closed when attempting to write").raiseError,
-              )
-          } else {
-            val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
-              case None => (chunk, Chunk.empty[H2Frame])
-              case Some(ix) => chunk.splitAt(ix)
-            }
-
-            val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
-              acc ++ H2Frame.toByteVector(frame)
-            }
-            socket.isOpen.ifM(
-              socket.write(Chunk.byteVector(bv)) >>
-                nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-              new SocketException("Socket closed when attempting to write").raiseError,
-            ) >>
-              s.writeBlock.get.rethrow >>
-              go(after)
-          }
-        }
-        val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
-          mapRef.get.flatMap { m =>
-            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-          } >> state.update(s => s.copy(closed = true))
-        }
-        firstGoAway.getOrElse(F.unit) >> go(chunk)
-      }
+      .foreach(writeChunk)
       .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
