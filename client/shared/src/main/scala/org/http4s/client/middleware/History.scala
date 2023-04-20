@@ -17,8 +17,9 @@ object History {
         val method = req.method
         val uri = req.uri
 
-        Resource.eval(history.update(l => (HistoryEntry(date, method, uri) +: l).take(maxSize)))
-        client.run(req)
+        Resource.eval(history.update(l => (HistoryEntry(date, method, uri) +: l).take(maxSize))).flatMap(_ => client.run(req))
+
       })
   }
+
 }

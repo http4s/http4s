@@ -4,10 +4,12 @@ import cats.effect.{IO, Ref}
 import cats.syntax.all._
 import org.http4s.client.Client
 import org.http4s.client.middleware.History.HistoryEntry
-import org.http4s.{Http4sSuite, HttpDate, HttpRoutes, Method, Request, Response, Status, Uri}
+import org.http4s.{Http4sSuite, HttpDate, HttpRoutes, Request, Response, Status}
 import org.http4s.dsl.io._
 import org.http4s.headers.Date
 import org.http4s.implicits.http4sLiteralsSyntax
+
+import java.time.Instant
 
 
 // uses munit
@@ -37,17 +39,13 @@ class HistorySuite extends Http4sSuite {
           case "" => InternalServerError()
         }
       case _ -> Root / status =>
-        IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
+        Ok()
     }
     .orNotFound
 
   private val defaultClient = Client.fromHttpApp(app)
 
-  //    val req = Request[IO](uri = uri"/request")
-
-  // old way was bad!
-  //    emptyHistoryRef.unsafeRunSync() == Ref.of[IO, Vector[HistoryEntry]](Vector.empty).unsafeRunSync()
-  test("History middeware should return empty history if no sites have been visited"){
+  test("History middeware should return empty history if no sites have been visited") {
     val expected: Vector[HistoryEntry] = Vector.empty
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
@@ -56,20 +54,17 @@ class HistorySuite extends Http4sSuite {
     }
   }
 
-  // creating a LOT of Refs... what Refs are being tested
-//  test("History middeware should return 1 history item if 1 sites have been visited/req run"){
-//    val historyRef = Ref.of[IO, Vector[HistoryEntry]](Vector.empty)
-//    val clientWrapped: Client[IO] = historyRef.map(h => History.apply(
-//      defaultClient, h, 3)).unsafeRunSync()
-//    // can play with a specific date
-//    val req = Request[IO](uri = uri"/request").putHeaders(Date(HttpDate.current[IO].unsafeRunSync()))
-//    clientWrapped.run(req)
-//
-////    val date2 = Date(HttpDate.current[IO].unsafeRunSync())
-//    val expectedEntry = HistoryEntry(req.headers.get[Date].get.date, req.method, req.uri)
-//
-//    historyRef.unsafeRunSync() == Ref.of[IO, Vector[HistoryEntry]](Vector(expectedEntry)).unsafeRunSync()
-//  }
+  test("History middeware should return 1 history item if 1 sites have been visited/req run") {
+    val date = Date(HttpDate.unsafeFromInstant(Instant.now()))
+    val req = Request[IO](uri = uri"/request").putHeaders(date)
+    val expected = Vector(HistoryEntry(req.headers.get[Date].get.date, req.method, req.uri))
+
+    Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
+      History.apply(defaultClient, ref, 3).run(req).use(_ => ().pure[IO]).flatMap(_ => ref.get)
+    }
+      .assertEquals(expected)
+
+  }
 
   // retry w/o creating so many darn Refs...
   // this isn't working :(
