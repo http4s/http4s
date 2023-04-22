@@ -184,6 +184,18 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
   }
 
+  private[this] def decodeHeadersBlock(
+      headerBlock: ByteVector,
+      continuations: Seq[H2Frame.Continuation],
+  ): F[NonEmptyList[(String, String)]] = {
+    val block = headerBlock ++ continuations.foldLeft(ByteVector.empty) { case (acc, cont) =>
+      acc ++ cont.headerBlockFragment
+    }
+    hpack.decodeHeaders(block).onError { case e =>
+      logger.error(e)("Issue in headers") >> goAway(H2Error.CompressionError)
+    }
+  }
+
   def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =
@@ -201,13 +213,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
       s.state match {
         case StreamState.Open | StreamState.HalfClosedLocal | StreamState.Idle |
             StreamState.ReservedRemote =>
-          val block = headers.headerBlock ++ continuations.foldLeft(ByteVector.empty) {
-            case (acc, cont) => acc ++ cont.headerBlockFragment
-          }
           for {
-            h <- hpack.decodeHeaders(block).onError { case e =>
-              logger.error(e)(s"Issue in headers") >> goAway(H2Error.CompressionError)
-            }
+            h <- decodeHeadersBlock(headers.headerBlock, continuations)
             newstate =
               if (headers.endStream) s.state match {
                 case StreamState.Open => StreamState.HalfClosedRemote // Client
@@ -277,13 +284,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
       case H2Connection.ConnectionType.Client =>
         s.state match {
           case StreamState.Idle =>
-            val block = headers.headerBlock ++ continuations.foldLeft(ByteVector.empty) {
-              case (acc, cont) => acc ++ cont.headerBlockFragment
-            }
             for {
-              h <- hpack.decodeHeaders(block).onError { case e =>
-                logger.error(e)("Issue in headers"); goAway(H2Error.CompressionError)
-              }
+              h <- decodeHeadersBlock(headers.headerBlock, continuations)
               _ <- state.update(s => s.copy(state = StreamState.ReservedRemote))
               _ <- PseudoHeaders.headersToRequestNoBody(h) match {
                 case Some(req) =>
