@@ -175,6 +175,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)
   lazy val log4catsNoop = Def.setting("org.typelevel" %%% "log4cats-noop" % V.log4cats)
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
+  lazy val log4catsJSConsole = Def.setting("org.typelevel" %%% "log4cats-js-console" % V.log4cats)
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)
   lazy val log4s = Def.setting("org.log4s" %%% "log4s" % V.log4s)
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
