@@ -93,7 +93,7 @@ private[h2] object Hpack extends HpackPlatform {
   }
 
   private final class ByteVectorOutputStream(size: Int) extends ByteArrayOutputStream(size) {
-    def toByteVector() = ByteVector.view(buf, 0, count)
+    def toByteVector(): ByteVector = ByteVector.view(buf, 0, count)
   }
 
 }
