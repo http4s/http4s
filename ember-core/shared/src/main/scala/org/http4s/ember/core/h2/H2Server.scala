@@ -215,7 +215,7 @@ private[ember] object H2Server {
             None,
           )
         )
-      queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+      queue <- cats.effect.std.Queue.unbounded[F, H2Frame] // TODO revisit
       hpack <- Hpack.create[F]
       settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
       streamCreationLock <- Semaphore[F](1)
@@ -320,7 +320,7 @@ private[ember] object H2Server {
     for {
       h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
+      _ <- Resource.eval(h2.outgoing.offer(settingsFrame))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(

@@ -21,7 +21,6 @@ import cats.effect.IO
 import cats.effect.Ref
 import cats.effect.std.Queue
 import cats.syntax.all._
-import fs2.Chunk
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
@@ -36,7 +35,7 @@ class H2StreamSuite extends Http4sSuite {
 
   def streamAndQueue(
       config: H2Frame.Settings.ConnectionSettings
-  ): IO[(H2Stream[IO], Queue[IO, Chunk[H2Frame]])] =
+  ): IO[(H2Stream[IO], Queue[IO, H2Frame])] =
     for {
       writeBlock <- Deferred[IO, Either[Throwable, Unit]]
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
@@ -59,7 +58,7 @@ class H2StreamSuite extends Http4sSuite {
       )
       hpack <- Hpack.create[IO]
       logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
-      outgoing <- Queue.unbounded[IO, Chunk[H2Frame]]
+      outgoing <- Queue.unbounded[IO, H2Frame]
       stream = new H2Stream[IO](
         1,
         defaultSettings,
@@ -76,7 +75,7 @@ class H2StreamSuite extends Http4sSuite {
 
   private def testMessageSize(
       stream: H2Stream[IO],
-      outgoing: Queue[IO, Chunk[H2Frame]],
+      outgoing: Queue[IO, H2Frame],
       frameSize: Int,
       messageSize: Int,
       numFrames: Int,
@@ -86,7 +85,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       _ <- stream.sendMessageBody(sample)
-      chunks <- outgoing.take.replicateA(numFrames).map(_.flatMap(_.toList))
+      chunks <- outgoing.take.replicateA(numFrames)
       data = chunks.collect { case H2Frame.Data(_, data, _, _) => data }
       _ <- assertIO(IO(data.size), numFrames)
       _ <- assertIO(IO(data.map(_.size).sum), messageSize.toLong)

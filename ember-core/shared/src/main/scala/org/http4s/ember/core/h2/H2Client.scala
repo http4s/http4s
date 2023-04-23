@@ -212,7 +212,7 @@ private[ember] class H2Client[F[_]](
               None,
             )
           )
-        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+        queue <- cats.effect.std.Queue.unbounded[F, H2Frame] // TODO revisit
         hpack <- Hpack.create[F]
         settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
         streamCreationLock <- cats.effect.std.Semaphore[F](1)
@@ -274,10 +274,8 @@ private[ember] class H2Client[F[_]](
         .onError { case e => logger.info(e)(s"Server Connection Processing Halted") } // Idle etc.
     }
 
-    def processSettings(h2: H2Connection[F]): F[Unit] = {
-      val localSetts = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
-      h2.outgoing.offer(Chunk.singleton(localSetts))
-    }
+    def pushSettings(h2: H2Connection[F]): F[Unit] =
+      h2.outgoing.offer(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
 
     for {
       h2 <- Resource.eval(createH2Connection)
@@ -285,7 +283,7 @@ private[ember] class H2Client[F[_]](
       _ <- h2.writeLoop.compile.drain.background
       _ <- clearClosed(h2).background
       _ <- pullCreatedStreams(h2).background
-      _ <- Resource.eval(processSettings(h2))
+      _ <- Resource.eval(pushSettings(h2))
     } yield h2
   }
 
