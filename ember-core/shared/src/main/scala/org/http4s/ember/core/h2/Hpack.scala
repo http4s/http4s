@@ -33,22 +33,22 @@ private[h2] trait Hpack[F[_]] {
 
 private[h2] object Hpack extends HpackPlatform {
   def create[F[_]: Async]: F[Hpack[F]] = for {
-    eLock <- Semaphore[F](1)
-    dLock <- Semaphore[F](1)
+    eLock <- Mutex[F]
+    dLock <- Mutex[F]
     e <- Sync[F].delay(new Encoder(4096))
     d <- Sync[F].delay(new Decoder(65536, 4096))
   } yield new Impl(eLock, e, dLock, d)
 
   private class Impl[F[_]: Async](
-      encodeLock: Semaphore[F],
+      encodeLock: Mutex[F],
       tEncoder: Encoder,
-      decodeLock: Semaphore[F],
+      decodeLock: Mutex[F],
       tDecoder: Decoder,
   ) extends Hpack[F] {
     def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
-      encodeLock.permit.use(_ => Hpack.encodeHeaders[F](tEncoder, headers.toList))
+      encodeLock.lock.surround(Hpack.encodeHeaders[F](tEncoder, headers.toList))
     def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
-      decodeLock.permit.use(_ => Hpack.decodeHeaders[F](tDecoder, bv))
+      decodeLock.lock.surround(Hpack.decodeHeaders[F](tDecoder, bv))
 
   }
 
