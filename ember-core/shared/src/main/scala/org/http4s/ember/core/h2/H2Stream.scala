@@ -110,36 +110,38 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
 
   // TODO Check Settings to Split Headers into Headers and Continuation
-  def sendHeaders(headers: NonEmptyList[(String, String, Boolean)], endStream: Boolean): F[Unit] =
+  def sendHeaders(headers: NonEmptyList[(String, String, Boolean)], endStream: Boolean): F[Unit] = {
+    import StreamState._
+
+    def nextState(fromState: StreamState): StreamState = (fromState, endStream) match {
+      case (Idle, false) => Open
+      case (Idle, true) => HalfClosedLocal
+      case (HalfClosedRemote, false) => HalfClosedRemote
+      case (HalfClosedRemote, true) => Closed
+      case (Open, false) => Open
+      case (Open, true) => HalfClosedLocal
+      case (ReservedLocal, true) => Closed
+      case (ReservedLocal, false) => HalfClosedRemote
+      case (s, _) => s // Hopefully Impossible
+    }
+
     state.get.flatMap { s =>
       s.state match {
-        case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
-            StreamState.ReservedLocal =>
-          hpack.encodeHeaders(headers).flatMap { bv =>
-            val f = H2Frame.Headers(id, None, endStream, true, bv, None)
-            enqueue.offer(Chunk.singleton(f))
-          } <*
-            state
-              .modify { b =>
-                val newState: StreamState = (b.state, endStream) match {
-                  case (StreamState.Idle, false) => StreamState.Open
-                  case (StreamState.Idle, true) => StreamState.HalfClosedLocal
-                  case (StreamState.HalfClosedRemote, false) => StreamState.HalfClosedRemote
-                  case (StreamState.HalfClosedRemote, true) => StreamState.Closed
-                  case (StreamState.Open, false) => StreamState.Open
-                  case (StreamState.Open, true) => StreamState.HalfClosedLocal
-                  case (StreamState.ReservedLocal, true) => StreamState.Closed
-                  case (StreamState.ReservedLocal, false) => StreamState.HalfClosedRemote
-                  case (s, _) => s // Hopefully Impossible
-                }
-                (b.copy(state = newState), newState)
-              }
-              .flatMap { state =>
-                if (state == StreamState.Closed) onClosed else Applicative[F].unit
-              }
+        case Idle | HalfClosedRemote | Open | ReservedLocal =>
+          for {
+            bv <- hpack.encodeHeaders(headers)
+            headerFrame = H2Frame.Headers(id, None, endStream, true, bv, None)
+            _ <- enqueue.offer(Chunk.singleton(headerFrame))
+            newState <- state.modify { b =>
+              val newState: StreamState = nextState(b.state)
+              (b.copy(state = newState), newState)
+            }
+            _ <- if (newState == Closed) onClosed else Applicative[F].unit
+          } yield ()
         case _ => new IllegalStateException("Stream Was Closed").raiseError
       }
     }
+  }
 
   def sendData(bv: ByteVector, endStream: Boolean): F[Unit] = state.get.flatMap { s =>
     s.state match {
