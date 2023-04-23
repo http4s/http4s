@@ -167,17 +167,16 @@ private[h2] class H2Stream[F[_]: Concurrent](
           }
         } else {
           if (s.writeWindow > 0) {
-            for {
-              t <- state.modify { s =>
+            state
+              .modify { s =>
                 val head = bv.take(s.writeWindow)
                 val tail = bv.drop(s.writeWindow)
                 (s.copy(writeWindow = s.writeWindow - head.size.toInt), (head, tail))
               }
-              (head, tail) = t
-              _ <- enqueue.offer(Chunk.singleton(H2Frame.Data(id, head, None, false)))
-              out <- sendData(tail, endStream)
-            } yield out
-
+              .flatMap { case (head, tail) =>
+                val frame = H2Frame.Data(id, head, None, false)
+                enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
+              }
           } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
         }
       case _ => new IllegalStateException("Stream Was Closed").raiseError
