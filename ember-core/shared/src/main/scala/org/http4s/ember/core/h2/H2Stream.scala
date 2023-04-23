@@ -183,6 +183,18 @@ private[h2] class H2Stream[F[_]: Concurrent](
     }
   }
 
+  def sendInitialRequest(req: org.http4s.Request[Pure]): F[Unit] =
+    for {
+      s <- state.modify { s =>
+        val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
+        (x, x)
+      }
+      _ <- s.request.complete(Either.right(req))
+      er = req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector))
+      _ <- s.readBuffer.send(Either.right(er))
+      _ <- s.writeBlock.complete(Either.unit)
+    } yield ()
+
   def receiveHeaders(headers: H2Frame.Headers, continuations: H2Frame.Continuation*): F[Unit] = {
 
     def checkLengthOf(mess: Message[Pure]): F[Unit] =

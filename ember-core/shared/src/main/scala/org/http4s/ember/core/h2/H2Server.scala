@@ -179,17 +179,8 @@ private[ember] object H2Server {
 
     // h2c Initial Request Communication on h2c Upgrade
     def sendInitialRequest(h2: H2Connection[F])(req: Request[Pure]): F[Unit] =
-      for {
-        h2Stream <- h2.initiateRemoteStreamById(1)
-        s <- h2Stream.state.modify { s =>
-          val x = s.copy(state = H2Stream.StreamState.HalfClosedRemote)
-          (x, x)
-        }
-        _ <- s.request.complete(Either.right(req))
-        er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-        _ <- s.readBuffer.send(er)
-        _ <- s.writeBlock.complete(Either.unit)
-      } yield ()
+      h2.initiateRemoteStreamById(1).flatMap(_.sendInitialRequest(req)) >>
+        h2.createdStreams.offer(1)
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
@@ -313,9 +304,7 @@ private[ember] object H2Server {
       _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
-      _ <- Resource.eval(
-        initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
-      )
+      _ <- Resource.eval(initialRequest.traverse_(sendInitialRequest(h2)))
       _ <- clearClosedStreams(h2).background
       _ <- processCreatedStreams(h2).background
       _ <- Resource.eval(
