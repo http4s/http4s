@@ -18,7 +18,6 @@ package org.http4s.ember.core.h2
 
 import cats._
 import cats.effect._
-import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2._
@@ -199,35 +198,22 @@ private[ember] object H2Server {
         // TODO, only used for logging
         _.leftMap(_ => UnixSocketAddress("unknown.sock"))
       )
-      ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-      stateRef <- H2Connection.initState[F](
+      initState <- H2Connection.initState[F](
         initialRemoteSettings,
         defaultSettings.initialWindowSize,
         localSettings.initialWindowSize,
       )
-      queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-      hpack <- Hpack.create[F]
-      settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-      streamCreationLock <- Semaphore[F](1)
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-      created <- cats.effect.std.Queue.unbounded[F, Int]
-      closed <- cats.effect.std.Queue.unbounded[F, Int]
-    } yield new H2Connection(
-      address,
-      H2Connection.ConnectionType.Server,
-      localSettings,
-      ref,
-      stateRef,
-      queue,
-      created,
-      closed,
-      hpack,
-      streamCreationLock.permit,
-      settingsAck,
-      ByteVector.empty,
-      socket,
-      logger,
-    )
+      conn <- H2Connection.init(
+        address,
+        H2Connection.ConnectionType.Server,
+        localSettings,
+        initState,
+        ByteVector.empty,
+        socket,
+        logger,
+      )
+    } yield conn
 
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream

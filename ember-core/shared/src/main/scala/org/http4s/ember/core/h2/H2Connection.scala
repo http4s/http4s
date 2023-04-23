@@ -19,6 +19,7 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
@@ -40,12 +41,11 @@ private[h2] class H2Connection[F[_]](
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
     val outgoing: cats.effect.std.Queue[F, Chunk[H2Frame]],
     // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
-
     val createdStreams: cats.effect.std.Queue[F, Int],
     val closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
     val streamCreateAndHeaders: Resource[F, Unit],
-    val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
+    settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
     acc: ByteVector, // Any Bytes Already Read
     socket: Socket[F],
     logger: Logger[F],
@@ -569,9 +569,9 @@ private[h2] object H2Connection {
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: SettingsInitialWindowSize,
       readWindow: SettingsInitialWindowSize,
-  )(implicit F: Async[F]): F[Ref[F, State[F]]] =
-    Deferred[F, Either[Throwable, Unit]].flatMap { writeBlock =>
-      val state = H2Connection.State(
+  )(implicit F: Async[F]): F[State[F]] =
+    Deferred[F, Either[Throwable, Unit]].map { writeBlock =>
+      H2Connection.State(
         remoteSettings,
         writeWindow.windowSize,
         writeBlock,
@@ -582,8 +582,43 @@ private[h2] object H2Connection {
         headersInProgress = None,
         pushPromiseInProgress = None,
       )
-      F.ref(state)
     }
+
+  def init[F[_]](
+      address: Either[UnixSocketAddress, SocketAddress[Host]],
+      connectionType: H2Connection.ConnectionType,
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      initState: H2Connection.State[F],
+      // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
+      acc: ByteVector, // Any Bytes Already Read
+      socket: Socket[F],
+      logger: Logger[F],
+  )(implicit F: Async[F]): F[H2Connection[F]] =
+    for {
+      mapRef <- F.ref(Map[Int, H2Stream[F]]())
+      streamCreationLock <- Semaphore[F](1)
+      stateRef <- Concurrent[F].ref(initState)
+      hpack <- Hpack.create[F]
+      settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+      outgoing <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+      createdStreams <- cats.effect.std.Queue.unbounded[F, Int]
+      closedStreams <- cats.effect.std.Queue.unbounded[F, Int]
+    } yield new H2Connection[F](
+      address,
+      connectionType,
+      localSettings,
+      mapRef,
+      stateRef,
+      outgoing,
+      createdStreams,
+      closedStreams,
+      hpack,
+      streamCreationLock.permit,
+      settingsAck,
+      acc,
+      socket,
+      logger,
+    )
 
   final case class KillWithoutMessage()
       extends RuntimeException

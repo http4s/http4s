@@ -196,35 +196,22 @@ private[ember] class H2Client[F[_]](
       for {
         socketAdd <- RequestKey.getAddress(key)
         _ <- socket.write(Chunk.byteVector(Preface.clientBV))
-        ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-        stateRef <- H2Connection.initState[F](
+        initState <- H2Connection.initState[F](
           defaultSettings,
           defaultSettings.initialWindowSize,
           localSettings.initialWindowSize,
         )
-        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-        hpack <- Hpack.create[F]
-        settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-        streamCreationLock <- cats.effect.std.Semaphore[F](1)
         // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-        created <- cats.effect.std.Queue.unbounded[F, Int]
-        closed <- cats.effect.std.Queue.unbounded[F, Int]
-      } yield new H2Connection(
-        socketAdd,
-        H2Connection.ConnectionType.Client,
-        localSettings,
-        ref,
-        stateRef,
-        queue,
-        created,
-        closed,
-        hpack,
-        streamCreationLock.permit,
-        settingsAck,
-        acc,
-        socket,
-        logger,
-      )
+        conn <- H2Connection.init(
+          socketAdd,
+          H2Connection.ConnectionType.Client,
+          localSettings,
+          initState,
+          acc,
+          socket,
+          logger,
+        )
+      } yield conn
 
     def clearClosed(h2: H2Connection[F]): F[Unit] =
       Stream
