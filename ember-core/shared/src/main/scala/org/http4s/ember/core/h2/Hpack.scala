@@ -22,7 +22,6 @@ import cats.effect.std._
 import cats.syntax.all._
 import scodec.bits._
 
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ListBuffer
@@ -58,7 +57,7 @@ private[h2] object Hpack extends HpackPlatform {
       bv: ByteVector,
   ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
     val buffer = new ListBuffer[(String, String)]
-    val is = new ByteArrayInputStream(bv.toArray)
+    val is = bv.toInputStream
     val listener = new HeaderListener {
       def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
         buffer.+=(
