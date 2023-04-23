@@ -190,7 +190,7 @@ private[h2] class H2Connection[F[_]](
 
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .fromQueueUnterminated[F, H2Frame](outgoing, Int.MaxValue)
+      .fromQueueUnterminated[F, H2Frame](outgoing, 1)
       .chunks
       .foreach(writeChunk)
       .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
