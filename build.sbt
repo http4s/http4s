@@ -236,7 +236,8 @@ lazy val core = libraryCrossProject("core")
     },
   )
   .jsSettings(
-    jsVersionIntroduced("0.23.5")
+    jsVersionIntroduced("0.23.5"),
+    libraryDependencies ++= Seq(log4catsJSConsole.value),
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
