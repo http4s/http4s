@@ -24,7 +24,6 @@ import scodec.bits._
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import scala.collection.mutable.ListBuffer
 
 private[h2] trait Hpack[F[_]] {
   def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]
@@ -56,7 +55,7 @@ private[h2] object Hpack extends HpackPlatform {
       tDecoder: Decoder,
       bv: ByteVector,
   ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
-    val buffer = new ListBuffer[(String, String)]
+    val buffer = List.newBuilder[(String, String)]
     val is = bv.toInputStream
     val listener = new HeaderListener {
       def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
@@ -73,9 +72,9 @@ private[h2] object Hpack extends HpackPlatform {
     tDecoder.decode(is, listener)
     tDecoder.endHeaderBlock()
 
-    val decoded = buffer.toList
-    NonEmptyList.fromList(decoded).toRight(new NoSuchElementException("Header List Was Empty"))
-  }.rethrow
+    val decoded = buffer.result()
+    NonEmptyList.fromListUnsafe(decoded)
+  }
 
   def encodeHeaders[F[_]: Sync](
       tEncoder: Encoder,
