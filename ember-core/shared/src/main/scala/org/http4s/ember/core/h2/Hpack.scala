@@ -80,7 +80,7 @@ private[h2] object Hpack extends HpackPlatform {
       tEncoder: Encoder,
       headers: List[(String, String, Boolean)],
   ): F[ByteVector] = Sync[F].delay {
-    val os = new ByteArrayOutputStream(1024)
+    val os = new ByteVectorOutputStream(1024)
     headers.foreach { h =>
       tEncoder.encodeHeader(
         os,
@@ -89,7 +89,11 @@ private[h2] object Hpack extends HpackPlatform {
         h._3,
       )
     }
-    ByteVector.view(os.toByteArray())
+    os.toByteVector()
+  }
+
+  private final class ByteVectorOutputStream(size: Int) extends ByteArrayOutputStream(size) {
+    def toByteVector() = ByteVector.view(buf, 0, count)
   }
 
 }
