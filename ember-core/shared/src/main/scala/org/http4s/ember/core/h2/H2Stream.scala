@@ -38,15 +38,18 @@ private[h2] class H2Stream[F[_]: Concurrent](
     val id: Int,
     localSettings: H2Frame.Settings.ConnectionSettings,
     connectionType: H2Connection.ConnectionType,
-    val remoteSettings: F[H2Frame.Settings.ConnectionSettings],
+    remoteSettings: F[H2Frame.Settings.ConnectionSettings],
     val state: Ref[F, H2Stream.State[F]],
-    val hpack: Hpack[F],
-    val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
-    val onClosed: F[Unit],
-    val goAway: H2Error => F[Unit],
+    hpack: Hpack[F],
+    enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    onClosed: F[Unit],
+    goAway: H2Error => F[Unit],
     private[this] val logger: Logger[F],
 ) {
   import H2Stream.StreamState
+
+  private[this] def enqueueFrame(frame: H2Frame): F[Unit] =
+    enqueue.offer(Chunk.singleton(frame))
 
   def sendPushPromise(originating: Int, headers: NonEmptyList[(String, String, Boolean)]): F[Unit] =
     connectionType match {
@@ -54,12 +57,10 @@ private[h2] class H2Stream[F[_]: Concurrent](
         state.get.flatMap { s =>
           s.state match {
             case StreamState.Idle =>
-              for {
-                h <- hpack.encodeHeaders(headers)
-                frame = H2Frame.PushPromise(originating, true, id, h, None)
-                _ <- state.update(s => s.copy(state = StreamState.ReservedLocal))
-                _ <- enqueue.offer(Chunk.singleton(frame))
-              } yield ()
+              hpack.encodeHeaders(headers).flatMap { h =>
+                state.update(s => s.copy(state = StreamState.ReservedLocal)) >>
+                enqueueFrame(H2Frame.PushPromise(originating, true, id, h, None))
+              }
             case _ =>
               new IllegalStateException(
                 "Push Promises are only allowed on an idle Stream"
@@ -85,9 +86,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
         )
         .chunkLimit(maxFrameSize)
         .zipWithNext
-        .foreach { case (c, nextChunk) =>
-          val isEndStream = nextChunk.isEmpty && noTrailers
-          sendData(c.toByteVector, isEndStream)
+        .foreach { case (ch, next) =>
+          sendData(ch.toByteVector, endStream = next.isEmpty && noTrailers)
         }
         .compile
         .drain
@@ -116,8 +116,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
         case StreamState.Idle | StreamState.HalfClosedRemote | StreamState.Open |
             StreamState.ReservedLocal =>
           hpack.encodeHeaders(headers).flatMap { bv =>
-            val f = H2Frame.Headers(id, None, endStream, true, bv, None)
-            enqueue.offer(Chunk.singleton(f))
+            enqueueFrame(H2Frame.Headers(id, None, endStream, true, bv, None))
           } <*
             state
               .modify { b =>
@@ -145,7 +144,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     s.state match {
       case StreamState.Open | StreamState.HalfClosedRemote =>
         if (bv.size.toInt <= s.writeWindow && s.writeWindow > 0) {
-          enqueue.offer(Chunk.singleton(H2Frame.Data(id, bv, None, endStream))) >> {
+          enqueueFrame(H2Frame.Data(id, bv, None, endStream)) >> {
             state
               .modify { s =>
                 val newState = if (endStream) {
@@ -175,7 +174,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
               }
               .flatMap { case (head, tail) =>
                 val frame = H2Frame.Data(id, head, None, false)
-                enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
+                enqueueFrame(frame) >> sendData(tail, endStream)
               }
           } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
         }
@@ -337,7 +336,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
           _ <-
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
-              enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
+              enqueueFrame(H2Frame.WindowUpdate(id, windowSize - newSize))
             } else Applicative[F].unit
           _ <- if (data.endStream) s.trailWith(List.empty).void else Applicative[F].unit
           _ <-
@@ -356,6 +355,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     val rst = error.toRst(id)
     for {
       s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
+      _ <- enqueueFrame(rst)
       _ <- enqueue.offer(Chunk.singleton(rst))
       _ <- s.cancelWith(s"Sending RstStream, cancelling: $rst")
       _ <- onClosed
