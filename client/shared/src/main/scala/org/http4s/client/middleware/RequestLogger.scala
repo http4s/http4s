@@ -45,23 +45,23 @@ object RequestLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
-  def logWithBody[F[_]: Async](
+  def logWithEntity[F[_]: Async](
       logHeaders: Boolean,
-      logBody: Entity[F] => Option[F[String]],
+      logEntity: Entity[F] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { request =>
-      InternalLogger.logMessageWithBody(request)(
+      InternalLogger.logMessageWithEntity(request)(
         logHeaders,
-        logBody,
+        logEntity,
         logAction.getOrElse(defaultLogAction[F]),
         redactHeadersWhen,
       )
     }
 
   @deprecated(
-    "Use RequestLogger.logWithBody that utilizes Entity model for a Message body",
+    "Use RequestLogger.logWithEntity that utilizes Entity model for a Message body",
     "1.0.0-M39",
   )
   def logBodyText[F[_]: Async](
@@ -70,7 +70,7 @@ object RequestLogger {
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
-    logWithBody(
+    logWithEntity(
       logHeaders,
       (entity: Entity[F]) => logBody(entity.body),
       redactHeadersWhen,

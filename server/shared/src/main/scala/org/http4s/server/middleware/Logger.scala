@@ -50,9 +50,9 @@ object Logger {
     )
   }
 
-  def logWithBody[G[_], F[_]](
+  def logWithEntity[G[_], F[_]](
       logHeaders: Boolean,
-      logBody: Entity[F] => Option[F[String]],
+      logEntity: Entity[F] => Option[F[String]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
@@ -60,13 +60,15 @@ object Logger {
     val log: String => F[Unit] = logAction.getOrElse { s =>
       logger.info(s).to[F]
     }
-    ResponseLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(
-      RequestLogger.impl(logHeaders, Right(logBody), fk, redactHeadersWhen, log.pure[Option])(http)
+    ResponseLogger.impl(logHeaders, Right(logEntity), fk, redactHeadersWhen, log.pure[Option])(
+      RequestLogger.impl(logHeaders, Right(logEntity), fk, redactHeadersWhen, log.pure[Option])(
+        http
+      )
     )
   }
 
   @deprecated(
-    "Use Logger.logWithBody that utilizes Entity model for a Message body",
+    "Use Logger.logWithEntity that utilizes Entity model for a Message body",
     "1.0.0-M39",
   )
   def logBodyText[G[_], F[_]](
@@ -76,7 +78,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] =
-    logWithBody[G, F](
+    logWithEntity[G, F](
       logHeaders,
       (entity: Entity[F]) => logBody(entity.body),
       fk,
@@ -92,16 +94,16 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpAppLogBody[F[_]: Async](
+  def httpAppLogEntity[F[_]: Async](
       logHeaders: Boolean,
-      logBody: Entity[F] => Option[F[String]],
+      logEntity: Entity[F] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
-    logWithBody(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
+    logWithEntity(logHeaders, logEntity, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
   @deprecated(
-    "Use Logger.httpAppLogBody that utilizes Entity model for a Message body",
+    "Use Logger.httpAppLogEntity that utilizes Entity model for a Message body",
     "1.0.0-M39",
   )
   def httpAppLogBodyText[F[_]: Async](
@@ -110,7 +112,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
-    httpAppLogBody(
+    httpAppLogEntity(
       logHeaders,
       (entity: Entity[F]) => logBody(entity.body),
       redactHeadersWhen,
@@ -125,16 +127,16 @@ object Logger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpRoutesLogBody[F[_]: Async](
+  def httpRoutesLogEntity[F[_]: Async](
       logHeaders: Boolean,
-      logBody: Entity[F] => Option[F[String]],
+      logEntity: Entity[F] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    logWithBody(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+    logWithEntity(logHeaders, logEntity, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
   @deprecated(
-    "Use Logger.httpRoutesLogBody that utilizes Entity model for a Message body",
+    "Use Logger.httpRoutesLogEntity that utilizes Entity model for a Message body",
     "1.0.0-M39",
   )
   def httpRoutesLogBodyText[F[_]: Async](
@@ -143,7 +145,7 @@ object Logger {
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    httpRoutesLogBody(
+    httpRoutesLogEntity(
       logHeaders,
       (entity: Entity[F]) => logBody(entity.body),
       redactHeadersWhen,
