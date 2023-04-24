@@ -54,13 +54,10 @@ class EmberParserBench {
  */
 
 object EmberParserBench {
-
-  @State(Scope.Benchmark)
-  class BenchState {
+   {
     val maxHeaderSize: Int = 256 * 1024
-    var req: Request[IO] = _
-    var resp: Response[IO] = _
-    var reqBytes: Array[Byte] = _
+     req: Request[IO] = _
+    
     var respBytes: Array[Byte] = _
     val read: IO[Option[Chunk[Byte]]] =
       IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
