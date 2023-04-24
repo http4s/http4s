@@ -17,7 +17,7 @@
 package org.http4s.ember.bench
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
+import cats.effect.unsafe.implicit
 import fs2.Chunk
 import org.http4s._
 import org.http4s.ember.core.Parser
