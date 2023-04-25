@@ -233,9 +233,8 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     case (server, dispatcher) =>
       val n = 10
       val messages =
-        List
-          .tabulate(n)(i => (Opcode.TEXT, byteBuffer(i.toString()), false))
-          .appended(Opcode.TEXT, byteBuffer(n.toString()), true)
+        List.tabulate(n)(i => (Opcode.TEXT, byteBuffer(i.toString()), false)) ++
+          List((Opcode.TEXT, byteBuffer(n.toString()), true))
 
       for {
         client <- createClient(
