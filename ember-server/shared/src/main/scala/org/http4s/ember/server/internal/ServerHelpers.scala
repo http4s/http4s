@@ -287,7 +287,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         def fullConnectionErrorHandler(t: Throwable): F[Unit] =
           connectionErrorHandler.applyOrElse(
             t,
-            logger.error(_)("Request handler failed with exception"),
+            (t: Throwable) => logger.error(t)("Request handler failed with exception")
           )
         handler.handleErrorWith { t =>
           Stream.eval(fullConnectionErrorHandler(t)).drain
