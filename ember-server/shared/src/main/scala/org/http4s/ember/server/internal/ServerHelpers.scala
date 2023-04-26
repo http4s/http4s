@@ -296,12 +296,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   //     case Some(value) => Stream.chunk(value)
   //   }
 
-  private[internal] def upgradeSocket[F[_]: Monad](
+  private[internal] def upgradeSocket[F[_]](
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F],
       enableHttp2: Boolean,
-  ): Resource[F, (Socket[F], Option[String])] =
+  )(implicit M: MonadError[F, Throwable]): Resource[F, (Socket[F], Option[String])] =
     tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
       case (context, params) =>
         val newParams = if (enableHttp2) {
@@ -317,7 +317,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           .build
           .evalMap(tlsSocket =>
             tlsSocket.write(fs2.Chunk.empty) >>
-              tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
+              tlsSocket.applicationProtocol
+                .map(protocol => (tlsSocket: Socket[F], protocol.some))
+                .handleErrorWith {
+                  case _: NoSuchElementException =>
+                    (tlsSocket: Socket[F], None: Option[String]).pure[F]
+                  case other => M.raiseError(other)
+                }
           )
     }
 
