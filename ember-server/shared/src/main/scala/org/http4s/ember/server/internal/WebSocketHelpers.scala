@@ -42,6 +42,7 @@ import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -234,49 +235,6 @@ private[internal] object WebSocketHelpers {
         }
 
       go(stream, Array.emptyByteArray).void.stream
-    }
-
-  private def aggregateFragment[F[_]]: Pipe[F, WebSocketFrame, WebSocketFrame] =
-    stream => {
-      // Takes a chunk of WebSocketFrames and aggregates fragmented frames into one frame.
-      def aggregate(
-          frames: Chunk[WebSocketFrame]
-      ): (Chunk[WebSocketFrame], Chunk[WebSocketFrame]) = {
-        val initialState = (Chunk.empty[WebSocketFrame], Chunk.empty[WebSocketFrame])
-        frames.foldLeft(initialState) {
-          // Current frame is a single frame (not fragmented), or the last one of a sequence of fragments.
-          case ((result, fragments), curFrame) if curFrame.last =>
-            val fragmentSum = fragments ++ Chunk(curFrame)
-            val aggregatedData = fragmentSum.map(_.data).foldLeft(ByteVector.empty)(_ ++ _)
-            val aggregatedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
-              firstFrame match {
-                case WebSocketFrame.Text(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Text(aggregatedData, true))
-                case WebSocketFrame.Binary(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Binary(aggregatedData, true))
-                case _: WebSocketFrame =>
-                  result ++ Chunk(curFrame)
-              }
-            }
-            (aggregatedFrame, Chunk.empty)
-          // Current frame is in the middle of a sequence of fragments.
-          case ((result, fragments), curFrame) =>
-            (result, fragments ++ Chunk(curFrame))
-        }
-      }
-
-      def go(
-          rest: Stream[F, WebSocketFrame],
-          next: Chunk[WebSocketFrame],
-      ): Pull[F, WebSocketFrame, Unit] =
-        rest.pull.uncons.flatMap {
-          case Some((chunk, stream)) =>
-            val (aggregated, remaining) = aggregate(next ++ chunk)
-            Pull.output(aggregated) >> go(stream, remaining)
-          case None => Pull.done
-        }
-
-      go(stream, Chunk.empty).void.stream
     }
 
   private def clientHandshake[F[_]](req: Request[F]): Either[ClientHandshakeError, String] = {
