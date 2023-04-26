@@ -132,12 +132,11 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
-  /**
-   * Called when an error occurs while attempting to read a connection. For example on JVM `javax.net.ssl.SSLException`
-   * may be thrown if the client doesn't speak SSL. If the [[PartialFunction]] does not match the error is just logged.
-   */
+  /** Called when an error occurs while attempting to read a connection. For example on JVM `javax.net.ssl.SSLException`
+    * may be thrown if the client doesn't speak SSL. If the [[PartialFunction]] does not match the error is just logged.
+    */
   def withConnectionErrorHandler(
-    errorHandler: PartialFunction[Throwable, F[Unit]]
+      errorHandler: PartialFunction[Throwable, F[Unit]]
   ): EmberServerBuilder[F] =
     copy(connectionErrorHandler = errorHandler)
 
@@ -316,7 +315,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     private val serverFailure =
       Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
-    def connectionErrorHandler[F[_] : Applicative]: PartialFunction[Throwable, F[Unit]] =
+    def connectionErrorHandler[F[_]: Applicative]: PartialFunction[Throwable, F[Unit]] =
       PartialFunction.empty[Throwable, F[Unit]]
 
     // Effectful Handler - Perhaps a Logger

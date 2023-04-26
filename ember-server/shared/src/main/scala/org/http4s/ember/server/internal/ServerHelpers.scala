@@ -163,11 +163,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
-  /**
-   * @param connectionErrorHandler called when an error occurs while attempting to read a connection. For example on JVM
-   *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
-   *                               default this just logs the error.
-   */
+  /** @param connectionErrorHandler called when an error occurs while attempting to read a connection. For example on JVM
+    *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
+    *                               default this just logs the error.
+    */
   def serverInternal[F[_]: Async](
       server: Stream[F, Socket[F]],
       httpApp: HttpApp[F],
@@ -285,9 +284,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 }
             }
 
-        def fullConnectionErrorHandler(t: Throwable): F[Unit] = {
-          connectionErrorHandler.applyOrElse(t, logger.error(_)("Request handler failed with exception"))
-        }
+        def fullConnectionErrorHandler(t: Throwable): F[Unit] =
+          connectionErrorHandler.applyOrElse(
+            t,
+            logger.error(_)("Request handler failed with exception"),
+          )
         handler.handleErrorWith { t =>
           Stream.eval(fullConnectionErrorHandler(t)).drain
         }
