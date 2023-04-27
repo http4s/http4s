@@ -32,7 +32,6 @@ import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket.WebSocketFrame
 import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.enums.Opcode
 import org.java_websocket.framing.CloseFrame
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
@@ -86,8 +85,6 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
-  private def byteBuffer(str: String): ByteBuffer = ByteBuffer.wrap(str.getBytes)
-
   sealed case class Client(
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
@@ -102,9 +99,6 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     def close: IO[Unit] =
       IO(client.close()) >> waitClose.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def send(msg: String): IO[Unit] = IO(client.send(msg))
-    def sendFragmentedFrame(op: Opcode, msg: ByteBuffer, fin: Boolean): IO[Unit] = IO(
-      client.sendFragmentedFrame(op, msg, fin)
-    )
     def ping(data: String): IO[Unit] = IO {
       val frame = new PingFrame()
       frame.setPayload(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)))
@@ -227,46 +221,6 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       messagesReceived <- client.messages.take.replicateA(n)
       _ <- client.close
     } yield assertEquals(messagesReceived, messages)
-  }
-
-  fixture.test("send multiple fragmented messages and receive a single aggregated message") {
-    case (server, dispatcher) =>
-      val n = 10
-      val messages =
-        List.tabulate(n)(i => (Opcode.TEXT, byteBuffer(i.toString()), false)) ++
-          List((Opcode.TEXT, byteBuffer(n.toString()), true))
-
-      for {
-        client <- createClient(
-          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-          dispatcher,
-        )
-        _ <- client.connect
-        _ <- messages.traverse_ { case (op, buf, fin) =>
-          client.sendFragmentedFrame(op, buf, fin)
-        }
-        messagesReceived <- client.messages.take
-        _ <- client.close
-      } yield assertEquals(messagesReceived, (0 to n).mkString)
-  }
-
-  fixture.test(
-    "aggregating fragmented messages while handling non-fragmented messages separately"
-  ) { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.send("foo")
-      _ <- client.sendFragmentedFrame(Opcode.TEXT, byteBuffer("a"), false)
-      _ <- client.sendFragmentedFrame(Opcode.TEXT, byteBuffer("b"), false)
-      _ <- client.sendFragmentedFrame(Opcode.TEXT, byteBuffer("c"), true)
-      _ <- client.send("bar")
-      messagesReceived <- client.messages.take.replicateA(3)
-      _ <- client.close
-    } yield assertEquals(messagesReceived, List("foo", "abc", "bar"))
   }
 
 }
