@@ -254,7 +254,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1a52ff76
+//    = org.typelevel.vault.Vault@484698e3
 // )</span></code></pre>
         <p>That didn&#39;t do all that much. Lets build out our CSRF Middleware by creating a <code>CSRFBuilder</code></p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookieName</span><span> = </span><span class="string-literal">&quot;csrf-token&quot;</span><span>
@@ -276,9 +276,9 @@
 </span><span class="comment">// resp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=1BB0C92EE233A30E74897A0559365984BDCF5EAF28004071A127DDA902F4487E-1682684531615-9913FA25F4B72ECDC7EF71B2BC7F6D384C92B3DD; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=247599910CEC598F3D8ACBE5D13F2DF87E3989A63F92C5B4779A04A9B5346572-1682685280831-6FF37DBD86322C8636F23015AFB695794233BFAD; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@7121253a
+//    = org.typelevel.vault.Vault@46b70172
 // )</span></code></pre>
         <p>Notice how the response has the CSRF cookies added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -294,7 +294,7 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookie</span><span> = </span><span class="identifier">resp</span><span>.</span><span class="identifier">cookies</span><span>.</span><span class="identifier">head</span><span>
 </span><span class="comment">// cookie: ResponseCookie = ResponseCookie(
 //   name = &quot;csrf-token&quot;,
-//   content = &quot;1BB0C92EE233A30E74897A0559365984BDCF5EAF28004071A127DDA902F4487E-1682684531615-9913FA25F4B72ECDC7EF71B2BC7F6D384C92B3DD&quot;,
+//   content = &quot;247599910CEC598F3D8ACBE5D13F2DF87E3989A63F92C5B4779A04A9B5346572-1682685280831-6FF37DBD86322C8636F23015AFB695794233BFAD&quot;,
 //   expires = None,
 //   maxAge = None,
 //   domain = Some(value = &quot;localhost&quot;),
@@ -313,18 +313,18 @@
 //    = POST,
 //    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Origin: http://localhost, X-Csrf-Token: 1BB0C92EE233A30E74897A0559365984BDCF5EAF28004071A127DDA902F4487E-1682684531615-9913FA25F4B72ECDC7EF71B2BC7F6D384C92B3DD, Cookie: csrf-token=1BB0C92EE233A30E74897A0559365984BDCF5EAF28004071A127DDA902F4487E-1682684531615-9913FA25F4B72ECDC7EF71B2BC7F6D384C92B3DD),
+//    = Headers(Origin: http://localhost, X-Csrf-Token: 247599910CEC598F3D8ACBE5D13F2DF87E3989A63F92C5B4779A04A9B5346572-1682685280831-6FF37DBD86322C8636F23015AFB695794233BFAD, Cookie: csrf-token=247599910CEC598F3D8ACBE5D13F2DF87E3989A63F92C5B4779A04A9B5346572-1682685280831-6FF37DBD86322C8636F23015AFB695794233BFAD),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@28d5469a
+//    = org.typelevel.vault.Vault@5d3615d5
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">validateResp</span><span> =
   </span><span class="identifier">csrf</span><span>.</span><span class="identifier">validate</span><span>()(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)(</span><span class="identifier">dummyPostRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// validateResp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=1BB0C92EE233A30E74897A0559365984BDCF5EAF28004071A127DDA902F4487E-1682684531653-A008853F2025C90874842F748017F858817B05B3; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=247599910CEC598F3D8ACBE5D13F2DF87E3989A63F92C5B4779A04A9B5346572-1682685280877-3A02FAB007068D19C5AB0FD609E338E59DAE154A; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2571b5b9
+//    = org.typelevel.vault.Vault@21cb0f10
 // )</span></code></pre>
 
         <hr style="margin-top: 30px"/>
