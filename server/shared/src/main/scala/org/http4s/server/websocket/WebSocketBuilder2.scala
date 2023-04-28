@@ -27,6 +27,7 @@ import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.vault.Key
 
@@ -44,6 +45,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
     filterPingPongs: Boolean,
+    defragFrame: Boolean,
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
@@ -54,6 +56,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       onHandshakeFailure: F[Response[F]] = this.onHandshakeFailure,
       onClose: F[Unit] = this.onClose,
       filterPingPongs: Boolean = this.filterPingPongs,
+      defragFrame: Boolean = this.defragFrame,
       webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
@@ -61,6 +64,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     onHandshakeFailure,
     onClose,
     filterPingPongs,
+    defragFrame,
     webSocketKey,
   )
 
@@ -79,6 +83,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withFilterPingPongs(filterPingPongs: Boolean): WebSocketBuilder2[F] =
     copy(filterPingPongs = filterPingPongs)
 
+  def withdefragFrame(defragFrame: Boolean): WebSocketBuilder2[F] =
+    copy(defragFrame = defragFrame)
+
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
@@ -87,6 +94,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       fk(onHandshakeFailure).map(_.mapK(fk)),
       fk(onClose),
       filterPingPongs,
+      defragFrame,
       webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
     )
 
@@ -126,11 +134,12 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def build(sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame]): F[Response[F]] = {
 
     val finalSendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] =
-      if (filterPingPongs)
-        sendReceive.compose(inputStream => inputStream.filterNot(isPingPong))
-      else
-        sendReceive
-
+      (filterPingPongs, defragFrame) match {
+        case (true, false) => sendReceive.compose(filterPingPongFrames)
+        case (false, false) => sendReceive
+        case (true, true) => sendReceive.compose(aggregateFragment.compose(filterPingPongFrames))
+        case (false, true) => sendReceive.compose(aggregateFragment)
+      }
     buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
   }
 
@@ -161,10 +170,12 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   ): F[Response[F]] = {
 
     val finalReceive: Pipe[F, WebSocketFrame, Unit] =
-      if (filterPingPongs)
-        _.filterNot(isPingPong).through(receive)
-      else
-        receive
+      (filterPingPongs, defragFrame) match {
+        case (true, false) => receive.compose(filterPingPongFrames)
+        case (false, false) => receive
+        case (true, true) => receive.compose(aggregateFragment.compose(filterPingPongFrames))
+        case (false, true) => receive.compose(aggregateFragment)
+      }
 
     buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
   }
@@ -174,6 +185,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     case _: WebSocketFrame.Pong => true
     case _ => false
   }
+
+  private def filterPingPongFrames: Pipe[F, WebSocketFrame, WebSocketFrame] = inputStream =>
+    inputStream.filterNot(isPingPong)
 
 }
 
@@ -201,6 +215,7 @@ object WebSocketBuilder2 {
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
       filterPingPongs = true,
+      defragFrame = true,
       webSocketKey = webSocketKey,
     )
 
@@ -210,6 +225,7 @@ object WebSocketBuilder2 {
       onHandshakeFailure: F[Response[F]],
       onClose: F[Unit],
       filterPingPongs: Boolean,
+      defragFrame: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
@@ -218,6 +234,7 @@ object WebSocketBuilder2 {
       onHandshakeFailure = onHandshakeFailure,
       onClose = onClose,
       filterPingPongs = filterPingPongs,
+      defragFrame = defragFrame,
       webSocketKey = webSocketKey,
     ) {}
 }
