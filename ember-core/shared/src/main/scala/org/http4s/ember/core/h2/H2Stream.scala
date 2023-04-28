@@ -358,12 +358,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     for {
       s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
       _ <- enqueue.offer(Chunk.singleton(rst))
-      t = new CancellationException(s"Sending RstStream, cancelling: $rst")
-      _ <- s.writeBlock.complete(Left(t))
-      _ <- s.request.complete(Left(t))
-      _ <- s.response.complete(Left(t))
-      _ <- s.readBuffer.offer(Left(t))
-      _ <- s.trailers.complete(Left(t))
+      _ <- s.cancelWith(s"Sending RstStream, cancelling: $rst")
       _ <- onClosed
     } yield ()
   }
@@ -372,25 +367,13 @@ private[h2] class H2Stream[F[_]: Concurrent](
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new CancellationException(s"Received GoAway, cancelling: $goAway")
-    _ <- s.writeBlock.complete(Left(t))
-    _ <- s.request.complete(Left(t))
-    _ <- s.response.complete(Left(t))
-    _ <- s.readBuffer.offer(Left(t))
-    _ <- s.trailers.complete(Left(t))
+    _ <- s.cancelWith(s"Received GoAway, cancelling: $goAway")
     _ <- onClosed
   } yield ()
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new CancellationException(
-      s"Received RstStream, cancelling: $rst"
-    ) // Unsure of this, but also unsure about exposing custom throwable
-    _ <- s.writeBlock.complete(Left(t))
-    _ <- s.request.complete(Left(t))
-    _ <- s.response.complete(Left(t))
-    _ <- s.readBuffer.offer(Left(t))
-    _ <- s.trailers.complete(Left(t))
+    _ <- s.cancelWith(s"Received RstStream, cancelling: $rst")
     _ <- onClosed
   } yield ()
 
@@ -474,6 +457,16 @@ private[h2] object H2Stream {
     private[h2] def trailWith(rawHs: List[(String, String)]): F[Boolean] = {
       val hs = Headers(rawHs.map(Header.ToRaw.keyValuesToRaw): _*)
       trailers.complete(Either.right(hs))
+    }
+
+    private[H2Stream] def cancelWith(msg: String)(implicit F: Monad[F]): F[Unit] = {
+      // Unsure of this, but also unsure about exposing custom throwable
+      val t = new CancellationException(msg)
+      writeBlock.complete(Left(t)) >>
+        request.complete(Left(t)) >>
+        response.complete(Left(t)) >>
+        readBuffer.offer(Left(t)) >>
+        trailers.complete(Left(t)).void
     }
 
     def isClosed: Boolean = state == StreamState.HalfClosedRemote || state == StreamState.Closed
