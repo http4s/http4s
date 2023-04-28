@@ -38,6 +38,8 @@ import org.typelevel.vault.Key
   *                              default: NotImplemented
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
+  * @param defragFrame Indicates whether to defragment the WebSocket frame or not.
+  *                           default: true
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
@@ -49,6 +51,28 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
 ) {
   import WebSocketBuilder2.impl
+
+  @deprecated(
+    "Kept for binary compatiblity. Use the constructor that includes `defragFrame` as an argument",
+    "0.23.19",
+  )
+  def this(
+      headers: Headers,
+      onNonWebSocketRequest: F[Response[F]],
+      onHandshakeFailure: F[Response[F]],
+      onClose: F[Unit],
+      filterPingPongs: Boolean,
+      webSocketKey: Key[WebSocketContext[F]],
+  ) =
+    this(
+      headers = headers,
+      onNonWebSocketRequest = onNonWebSocketRequest,
+      onHandshakeFailure = onHandshakeFailure,
+      onClose = onClose,
+      filterPingPongs = filterPingPongs,
+      defragFrame = false,
+      webSocketKey = webSocketKey,
+    )
 
   private def copy(
       headers: Headers = this.headers,
