@@ -38,7 +38,7 @@ import org.typelevel.vault.Key
   *                              default: NotImplemented
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
-  * @param defragFrame Indicates whether to defragment the WebSocket frame or not.
+  * @param defragFrame Indicates whether incoming WebSocket frames are defragmented or not.
   *                           default: true
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
@@ -107,7 +107,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withFilterPingPongs(filterPingPongs: Boolean): WebSocketBuilder2[F] =
     copy(filterPingPongs = filterPingPongs)
 
-  def withdefragFrame(defragFrame: Boolean): WebSocketBuilder2[F] =
+  def withDefragFrame(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
   /** Transform the parameterized effect from F to G. */
