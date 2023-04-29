@@ -42,7 +42,6 @@ import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -129,7 +128,6 @@ private[internal] object WebSocketHelpers {
           incoming
             .through(decodeFrames[F])
             .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
-            .through(aggregateFragment)
             .through(receiveSend)
             .foreach(writeFrame) -> onClose
         case WebSocketSeparatePipe(send, receive, onClose) =>
@@ -151,7 +149,6 @@ private[internal] object WebSocketHelpers {
           val reader = incoming
             .through(decodeFrames[F])
             .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
-            .through(aggregateFragment)
             .through(receive)
 
           reader.concurrently(writer) -> onClose
