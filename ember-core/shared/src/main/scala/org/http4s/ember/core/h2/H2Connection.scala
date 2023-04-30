@@ -23,6 +23,7 @@ import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
 import fs2._
+import fs2.concurrent.Channel
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -67,7 +68,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -89,7 +90,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      closedStreams.offer(id),
+      body.close *> closedStreams.offer(id),
       goAway,
       logger,
     )
@@ -103,7 +104,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -125,7 +126,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      closedStreams.offer(id),
+      body.close *> closedStreams.offer(id),
       goAway,
       logger,
     )
