@@ -333,7 +333,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
             )
           )
           _ <-
-            if (sizeReadOk) s.readBuffer.send(Right(data.data))
+            if (sizeReadOk) s.readBuffer.send(Right(data.data)).void
             else rstStream(H2Error.ProtocolError)
 
           _ <-
