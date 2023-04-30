@@ -544,6 +544,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.ember.core.h2.H2Stream#State.apply"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State._8"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
