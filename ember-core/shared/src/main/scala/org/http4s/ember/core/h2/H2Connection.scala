@@ -23,7 +23,6 @@ import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
 import fs2._
-import fs2.concurrent.Channel
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -66,24 +65,11 @@ private[h2] class H2Connection[F[_]](
     }
     (settings, id) = t
 
-    writeBlock <- Deferred[F, Either[Throwable, Unit]]
-    request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
-    response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
-    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
-    refState <- Ref.of[F, H2Stream.State[F]](
-      H2Stream.State(
-        H2Stream.StreamState.Idle,
-        settings.initialWindowSize.windowSize,
-        writeBlock,
-        localSettings.initialWindowSize.windowSize,
-        request,
-        response,
-        trailers,
-        body,
-        None,
-      )
+    h2StreamState <- H2Stream.initState(
+      settings.initialWindowSize.windowSize,
+      localSettings.initialWindowSize.windowSize,
     )
+    refState <- Ref.of[F, H2Stream.State[F]](h2StreamState)
     stream = new H2Stream(
       id,
       localSettings,
@@ -92,7 +78,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      body.close *> closedStreams.offer(id),
+      h2StreamState.readBuffer.close *> closedStreams.offer(id),
       goAway,
       logger,
     )
@@ -102,24 +88,11 @@ private[h2] class H2Connection[F[_]](
   def initiateRemoteStreamById(id: Int): F[H2Stream[F]] = for {
     t <- state.get.map(s => (s.remoteSettings, s.remoteHighestStream))
     (settings, highestStream) = t
-    writeBlock <- Deferred[F, Either[Throwable, Unit]]
-    request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
-    response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
-    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
-    refState <- Ref.of[F, H2Stream.State[F]](
-      H2Stream.State(
-        H2Stream.StreamState.Idle,
-        settings.initialWindowSize.windowSize,
-        writeBlock,
-        localSettings.initialWindowSize.windowSize,
-        request,
-        response,
-        trailers,
-        body,
-        None,
-      )
+    h2StreamState <- H2Stream.initState(
+      settings.initialWindowSize.windowSize,
+      localSettings.initialWindowSize.windowSize,
     )
+    refState <- Ref.of[F, H2Stream.State[F]](h2StreamState)
     stream = new H2Stream(
       id,
       localSettings,
@@ -128,7 +101,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      body.close *> closedStreams.offer(id),
+      h2StreamState.readBuffer.close *> closedStreams.offer(id),
       goAway,
       logger,
     )

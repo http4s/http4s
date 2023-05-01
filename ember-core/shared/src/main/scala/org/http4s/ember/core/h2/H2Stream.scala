@@ -451,6 +451,25 @@ private[h2] object H2Stream {
 
   }
 
+  def initState[F[_]](writeWindow: Int, readWindow: Int)(implicit F: Concurrent[F]): F[State[F]] =
+    for {
+      writeBlock <- Deferred[F, Either[Throwable, Unit]]
+      request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
+      response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
+      trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
+      body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+    } yield State[F](
+      state = H2Stream.StreamState.Idle,
+      writeWindow,
+      writeBlock,
+      readWindow,
+      request,
+      response,
+      trailers,
+      body,
+      contentLengthCheck = None,
+    )
+
   sealed trait StreamState
   object StreamState {
     /*
