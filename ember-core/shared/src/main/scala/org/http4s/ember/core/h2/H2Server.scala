@@ -200,21 +200,11 @@ private[ember] object H2Server {
         _.leftMap(_ => UnixSocketAddress("unknown.sock"))
       )
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-      initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
-      stateRef <-
-        Concurrent[F].ref(
-          H2Connection.State(
-            initialRemoteSettings,
-            defaultSettings.initialWindowSize.windowSize,
-            initialWriteBlock,
-            localSettings.initialWindowSize.windowSize,
-            0,
-            0,
-            false,
-            None,
-            None,
-          )
-        )
+      stateRef <- H2Connection.initState[F](
+        initialRemoteSettings,
+        defaultSettings.initialWindowSize,
+        localSettings.initialWindowSize,
+      )
       queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
       hpack <- Hpack.create[F]
       settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
