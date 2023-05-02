@@ -32,7 +32,8 @@ private[http4s] object WebSocketFrameAggregator {
           case ((fragments, result), curFrame) if curFrame.last =>
             // Current frame is a single frame (not fragmented), or the last one of a sequence of fragments.
             val fragmentSum = fragments ++ Chunk(curFrame)
-            val aggregatedData = fragmentSum.map(_.data).foldLeft(ByteVector.empty)(_ ++ _)
+            val aggregatedData =
+              fragmentSum.foldLeft(ByteVector.empty)((sum, f) => sum ++ f.data)
             val aggregatedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
               firstFrame match {
                 case WebSocketFrame.Text(_, _) =>
