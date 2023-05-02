@@ -26,11 +26,11 @@ import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Text
 import scodec.bits._
 
-class WebSocketFrameAggregatorSuite extends Http4sSuite {
+class WebSocketFrameDefragmenterSuite extends Http4sSuite {
 
-  import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
+  import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
 
-  test("WebSocketFrameAggregator should not do anything to a single frame") {
+  test("WebSocketFrameDefragmenter should not do anything to a single frame") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
@@ -39,7 +39,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
           Ping(utf8Bytes"ping"),
           Close(utf8Bytes"close"),
         )
-        .through(aggregateFragment[SyncIO])
+        .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -52,7 +52,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
     )
   }
 
-  test("WebSocketFrameAggregator should aggregate fragmented Text frame") {
+  test("WebSocketFrameDefragmenter should defrag fragmented Text frame") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
@@ -62,7 +62,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
           Continuation(utf8Bytes"l", false),
           Continuation(utf8Bytes"o", true),
         )
-        .through(aggregateFragment[SyncIO])
+        .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -72,7 +72,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
     )
   }
 
-  test("WebSocketFrameAggregator should aggregate fragmented Binary frame") {
+  test("WebSocketFrameDefragmenter should defrag fragmented Binary frame") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
@@ -82,7 +82,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
           Continuation(utf8Bytes"l", false),
           Continuation(utf8Bytes"d", true),
         )
-        .through(aggregateFragment[SyncIO])
+        .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -92,7 +92,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
     )
   }
 
-  test("WebSocketFrameAggregator properly handles both fragmented and single frame") {
+  test("WebSocketFrameDefragmenter properly handles both fragmented and single frame") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
@@ -104,7 +104,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
           Continuation(utf8Bytes"a", false),
           Continuation(utf8Bytes"z", true),
         )
-        .through(aggregateFragment[SyncIO])
+        .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
@@ -116,7 +116,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
     )
   }
 
-  test("WebSocketFrameAggregator handles more practical frame streams appropriately") {
+  test("WebSocketFrameDefragmenter handles more practical frame streams appropriately") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
@@ -135,7 +135,7 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
           Continuation(utf8Bytes"r", true),
           Close(utf8Bytes"close"),
         )
-        .through(aggregateFragment[SyncIO])
+        .through(defragFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList

@@ -20,11 +20,11 @@ import fs2.Chunk
 import fs2.Pipe
 import scodec.bits.ByteVector
 
-private[http4s] object WebSocketFrameAggregator {
-  def aggregateFragment[F[_]]: Pipe[F, WebSocketFrame, WebSocketFrame] =
+private[http4s] object WebSocketFrameDefragmenter {
+  def defragFragment[F[_]]: Pipe[F, WebSocketFrame, WebSocketFrame] =
     stream => {
-      // Takes a chunk of WebSocketFrames and aggregates fragmented frames into one frame.
-      def aggregate(
+      // Takes a chunk of WebSocketFrames and defrags fragmented frames into one frame.
+      def defrag(
           frames: Chunk[WebSocketFrame]
       ): (Chunk[WebSocketFrame], Chunk[WebSocketFrame]) = {
         val initialState = (Chunk.empty[WebSocketFrame], Chunk.empty[WebSocketFrame])
@@ -32,20 +32,20 @@ private[http4s] object WebSocketFrameAggregator {
           case ((fragments, result), curFrame) if curFrame.last =>
             // Current frame is a single frame (not fragmented), or the last one of a sequence of fragments.
             val fragmentSum = fragments ++ Chunk(curFrame)
-            val aggregatedData =
+            val defraggedData =
               fragmentSum.foldLeft(ByteVector.empty)((sum, f) => sum ++ f.data)
-            val aggregatedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
+            val defraggedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
               firstFrame match {
                 case WebSocketFrame.Text(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Text(aggregatedData, true))
+                  result ++ Chunk(WebSocketFrame.Text(defraggedData, true))
                 case WebSocketFrame.Binary(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Binary(aggregatedData, true))
+                  result ++ Chunk(WebSocketFrame.Binary(defraggedData, true))
                 case _: WebSocketFrame =>
                   // Here we handle ControlFrames (such as `Ping` or `Close`) that come in singly.
                   result ++ Chunk(curFrame)
               }
             }
-            (Chunk.empty, aggregatedFrame)
+            (Chunk.empty, defraggedFrame)
           case ((fragments, result), curFrame) =>
             // Current frame is in the middle of a sequence of fragments.
             (fragments ++ Chunk(curFrame), result)
@@ -54,8 +54,8 @@ private[http4s] object WebSocketFrameAggregator {
 
       stream
         .scanChunks(Chunk.empty[WebSocketFrame]) { (remaining, chunk) =>
-          val (next, aggregated) = aggregate(remaining ++ chunk)
-          (next, aggregated)
+          val (next, defragged) = defrag(remaining ++ chunk)
+          (next, defragged)
         }
     }
 }

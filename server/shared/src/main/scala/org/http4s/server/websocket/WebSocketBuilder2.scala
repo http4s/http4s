@@ -27,7 +27,7 @@ import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
+import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
 import org.http4s.websocket.WebSocketSeparatePipe
 import org.typelevel.vault.Key
 
@@ -161,8 +161,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       (filterPingPongs, defragFrame) match {
         case (true, false) => sendReceive.compose(filterPingPongFrames)
         case (false, false) => sendReceive
-        case (true, true) => sendReceive.compose(aggregateFragment.compose(filterPingPongFrames))
-        case (false, true) => sendReceive.compose(aggregateFragment)
+        case (true, true) => sendReceive.compose(defragFragment.compose(filterPingPongFrames))
+        case (false, true) => sendReceive.compose(defragFragment)
       }
     buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
   }
@@ -197,8 +197,8 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       (filterPingPongs, defragFrame) match {
         case (true, false) => receive.compose(filterPingPongFrames)
         case (false, false) => receive
-        case (true, true) => receive.compose(aggregateFragment.compose(filterPingPongFrames))
-        case (false, true) => receive.compose(aggregateFragment)
+        case (true, true) => receive.compose(defragFragment.compose(filterPingPongFrames))
+        case (false, true) => receive.compose(defragFragment)
       }
 
     buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
