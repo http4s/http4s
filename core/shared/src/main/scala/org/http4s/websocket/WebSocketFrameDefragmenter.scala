@@ -31,24 +31,24 @@ private[http4s] object WebSocketFrameDefragmenter {
         frames.foldLeft(initialState) {
           case ((fragments, result), curFrame) if curFrame.last =>
             // Current frame is a single frame (not fragmented), or the last one of a sequence of fragments.
-            val fragmentSum = fragments ++ Chunk(curFrame)
+            val fragmentSum = fragments ++ Chunk.singleton(curFrame)
             val defraggedData =
               fragmentSum.foldLeft(ByteVector.empty)((sum, f) => sum ++ f.data)
             val defraggedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
               firstFrame match {
                 case WebSocketFrame.Text(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Text(defraggedData, true))
+                  result ++ Chunk.singleton(WebSocketFrame.Text(defraggedData, true))
                 case WebSocketFrame.Binary(_, _) =>
-                  result ++ Chunk(WebSocketFrame.Binary(defraggedData, true))
+                  result ++ Chunk.singleton(WebSocketFrame.Binary(defraggedData, true))
                 case _: WebSocketFrame =>
                   // Here we handle ControlFrames (such as `Ping` or `Close`) that come in singly.
-                  result ++ Chunk(curFrame)
+                  result ++ Chunk.singleton(curFrame)
               }
             }
             (Chunk.empty, defraggedFrame)
           case ((fragments, result), curFrame) =>
             // Current frame is in the middle of a sequence of fragments.
-            (fragments ++ Chunk(curFrame), result)
+            (fragments ++ Chunk.singleton(curFrame), result)
         }
       }
 
