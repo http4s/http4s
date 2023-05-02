@@ -24,24 +24,20 @@ import org.http4s.websocket.WebSocketFrame.Close
 import org.http4s.websocket.WebSocketFrame.Continuation
 import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Text
-import scodec.bits.ByteVector
-
-import java.nio.charset.StandardCharsets.UTF_8
+import scodec.bits._
 
 class WebSocketFrameAggregatorSuite extends Http4sSuite {
 
   import org.http4s.websocket.WebSocketFrameAggregator.aggregateFragment
-
-  private def byteVector(str: String) = ByteVector.view(str.getBytes(UTF_8))
 
   test("WebSocketFrameAggregator should not do anything to a single frame") {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
           Text("text", true),
-          Binary(byteVector("binary"), true),
-          Ping(byteVector("ping")),
-          Close(byteVector("close")),
+          Binary(utf8Bytes"binary", true),
+          Ping(utf8Bytes"ping"),
+          Close(utf8Bytes"close"),
         )
         .through(aggregateFragment[SyncIO])
 
@@ -49,9 +45,9 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
       stream.compile.toList.unsafeRunSync(),
       List(
         Text("text", true),
-        Binary(byteVector("binary"), true),
-        Ping(byteVector("ping")),
-        Close(byteVector("close")),
+        Binary(utf8Bytes"binary", true),
+        Ping(utf8Bytes"ping"),
+        Close(utf8Bytes"close"),
       ),
     )
   }
@@ -61,10 +57,10 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
       Stream
         .apply(
           Text("h", false),
-          Continuation(byteVector("e"), false),
-          Continuation(byteVector("l"), false),
-          Continuation(byteVector("l"), false),
-          Continuation(byteVector("o"), true),
+          Continuation(utf8Bytes"e", false),
+          Continuation(utf8Bytes"l", false),
+          Continuation(utf8Bytes"l", false),
+          Continuation(utf8Bytes"o", true),
         )
         .through(aggregateFragment[SyncIO])
 
@@ -80,18 +76,18 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
     val stream: Stream[SyncIO, WebSocketFrame] =
       Stream
         .apply(
-          Binary(byteVector("w"), false),
-          Continuation(byteVector("o"), false),
-          Continuation(byteVector("r"), false),
-          Continuation(byteVector("l"), false),
-          Continuation(byteVector("d"), true),
+          Binary(utf8Bytes"w", false),
+          Continuation(utf8Bytes"o", false),
+          Continuation(utf8Bytes"r", false),
+          Continuation(utf8Bytes"l", false),
+          Continuation(utf8Bytes"d", true),
         )
         .through(aggregateFragment[SyncIO])
 
     assertEquals(
       stream.compile.toList.unsafeRunSync(),
       List(
-        Binary(byteVector("world"), true)
+        Binary(utf8Bytes"world", true)
       ),
     )
   }
@@ -101,12 +97,12 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
       Stream
         .apply(
           Text("F", false),
-          Continuation(byteVector("o"), false),
-          Continuation(byteVector("o"), true),
+          Continuation(utf8Bytes"o", false),
+          Continuation(utf8Bytes"o", true),
           Text("Bar", true),
           Text("B", false),
-          Continuation(byteVector("a"), false),
-          Continuation(byteVector("z"), true),
+          Continuation(utf8Bytes"a", false),
+          Continuation(utf8Bytes"z", true),
         )
         .through(aggregateFragment[SyncIO])
 
@@ -125,19 +121,19 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
       Stream
         .apply(
           Text("F", false),
-          Continuation(byteVector("o"), false),
-          Continuation(byteVector("o"), false),
-          Continuation(byteVector("o"), true),
-          Binary(byteVector("binary"), true),
+          Continuation(utf8Bytes"o", false),
+          Continuation(utf8Bytes"o", false),
+          Continuation(utf8Bytes"o", true),
+          Binary(utf8Bytes"binary", true),
           Text("some text", true),
-          Ping(byteVector("ping")),
-          Binary(byteVector("bin"), false),
-          Continuation(byteVector("Message"), true),
-          Ping(byteVector("ping")),
+          Ping(utf8Bytes"ping"),
+          Binary(utf8Bytes"bin", false),
+          Continuation(utf8Bytes"Message", true),
+          Ping(utf8Bytes"ping"),
           Text("B", false),
-          Continuation(byteVector("a"), false),
-          Continuation(byteVector("r"), true),
-          Close(byteVector("close")),
+          Continuation(utf8Bytes"a", false),
+          Continuation(utf8Bytes"r", true),
+          Close(utf8Bytes"close"),
         )
         .through(aggregateFragment[SyncIO])
 
@@ -146,13 +142,13 @@ class WebSocketFrameAggregatorSuite extends Http4sSuite {
         .unsafeRunSync(),
       List(
         Text("Fooo", true),
-        Binary(byteVector("binary"), true),
+        Binary(utf8Bytes"binary", true),
         Text("some text", true),
-        Ping(byteVector("ping")),
-        Binary(byteVector("binMessage"), true),
-        Ping(byteVector("ping")),
+        Ping(utf8Bytes"ping"),
+        Binary(utf8Bytes"binMessage", true),
+        Ping(utf8Bytes"ping"),
         Text("Bar", true),
-        Close(byteVector("close")),
+        Close(utf8Bytes"close"),
       ),
     )
   }
