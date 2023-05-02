@@ -107,7 +107,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withFilterPingPongs(filterPingPongs: Boolean): WebSocketBuilder2[F] =
     copy(filterPingPongs = filterPingPongs)
 
-  def withDefragFrame(defragFrame: Boolean): WebSocketBuilder2[F] =
+  def withDefragment(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
   /** Transform the parameterized effect from F to G. */
