@@ -171,9 +171,23 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "org.http4s.MimeDB#application_parts#application_3.org$http4s$MimeDB$application_parts$application_3$$_part_3_="
       ),
-
       // package-private, and only broken on JS/Native
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Charset.availableCharsets"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.headersInProgress"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.pushPromiseInProgress"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.copy$default$9"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Connection#State.this"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -207,6 +221,27 @@ lazy val core = libraryCrossProject("core")
             "org.http4s.MimeDB.org$http4s$MimeDB$$_allMediaTypes_="
           ),
           ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Message.logger"),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.apply"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.this"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.headersInProgress"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.pushPromiseInProgress"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.copy"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State.copy$default$9"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Connection#State._9"
+          ),
         )
       else Seq.empty
     },

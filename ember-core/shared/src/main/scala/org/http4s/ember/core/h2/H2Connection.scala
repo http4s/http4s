@@ -229,15 +229,12 @@ private[h2] class H2Connection[F[_]](
             }
         }
 
-    def processFrame(frame: H2Frame, s: H2Connection.State[F]): F[Unit] = (frame, s) match {
+    def processFrame(h2F: H2Frame, s: H2Connection.State[F]): F[Unit] = (h2F, s.inProgress) match {
       // Headers and Continuation Frames are Stateful
       // Headers if not closed MUST
-      case (
-            c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None),
-          ) =>
+      case (c @ H2Frame.Continuation(id, true, _), Some((Left(h), cs))) =>
         if (h.identifier == id) {
-          state.update(s => s.copy(headersInProgress = None)) >>
+          state.update(_.copy(inProgress = None)) >>
             mapRef.get.map(_.get(id)).flatMap {
               case Some(s) =>
                 s.receiveHeaders(h, cs ::: c :: Nil: _*)
@@ -254,12 +251,9 @@ private[h2] class H2Connection[F[_]](
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
             goAway(H2Error.ProtocolError)
         }
-      case (
-            c @ H2Frame.Continuation(id, true, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some((p, cs))),
-          ) =>
+      case (c @ H2Frame.Continuation(id, true, _), Some((Right(p), cs))) =>
         if (p.promisedStreamId == id) {
-          state.update(s => s.copy(headersInProgress = None)) >>
+          state.update(_.copy(inProgress = None)) >>
             mapRef.get.map(_.get(id)).flatMap {
               case Some(s) =>
                 s.receivePushPromise(p, cs ::: c :: Nil: _*)
@@ -277,41 +271,36 @@ private[h2] class H2Connection[F[_]](
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
             goAway(H2Error.ProtocolError)
         }
-      case (
-            c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, None, Some((h, cs))),
-          ) =>
+      case (c @ H2Frame.Continuation(id, false, _), Some((Right(h), cs))) =>
         if (h.identifier == id) {
-          state.update(s => s.copy(pushPromiseInProgress = (h, cs ::: c :: Nil).some))
+          state.update(_.copy(inProgress = Some(Right(h) -> (cs ::: c :: Nil))))
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
             goAway(H2Error.ProtocolError)
         }
 
-      case (
-            c @ H2Frame.Continuation(id, false, _),
-            H2Connection.State(_, _, _, _, _, _, _, Some((h, cs)), None),
-          ) =>
+      case (c @ H2Frame.Continuation(id, false, _), Some((Left(h), cs))) =>
         if (h.identifier == id) {
-          state.update(s => s.copy(headersInProgress = (h, cs ::: c :: Nil).some))
+          state.update(_.copy(inProgress = Some(Left(h) -> (cs ::: c :: Nil))))
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
             goAway(H2Error.ProtocolError)
         }
-      case (f, H2Connection.State(_, _, _, _, _, _, _, Some(_), None)) =>
+
+      case (f, Some((Left(_), _))) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for headers in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
         ) >>
           goAway(H2Error.ProtocolError)
-      case (f, H2Connection.State(_, _, _, _, _, _, _, None, Some(_))) =>
+      case (f, Some((Right(_), _))) =>
         // Only Continuation Frames Are Valid While there is a value
         logger.warn(
           s"Continuation for push promise in process, retrieved unexpected frame $f -  Protocol Error - Issuing GoAway"
         ) >>
           goAway(H2Error.ProtocolError)
 
-      case (h @ H2Frame.Headers(i, sd, _, true, headerBlock, _), s) =>
+      case (h @ H2Frame.Headers(i, sd, _, true, headerBlock, _), _) =>
         val size = headerBlock.size.toInt
         if (size > s.remoteSettings.maxFrameSize.frameSize) {
           logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
@@ -344,14 +333,13 @@ private[h2] class H2Connection[F[_]](
               }
           }
         }
-      case (h @ H2Frame.Headers(i, sd, _, false, headerBlock, _), s) =>
+      case (h @ H2Frame.Headers(i, sd, _, false, headerBlock, _), _) =>
         val size = headerBlock.size.toInt
         if (size > s.remoteSettings.maxFrameSize.frameSize) goAway(H2Error.FrameSizeError)
         else if (sd.exists(s => s.dependency == i)) goAway(H2Error.ProtocolError)
-        else {
-          state.update(s => s.copy(headersInProgress = Some((h, List.empty))))
-        }
-      case (h @ H2Frame.PushPromise(_, true, i, headerBlock, _), s) =>
+        else state.update(_.copy(inProgress = Some(Left(h) -> List.empty)))
+
+      case (h @ H2Frame.PushPromise(_, true, i, headerBlock, _), _) =>
         val size = headerBlock.size.toInt
         if (connectionType == H2Connection.ConnectionType.Server) {
           logger.warn(
@@ -383,12 +371,10 @@ private[h2] class H2Connection[F[_]](
               }
           }
         }
-      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), s) =>
+      case (h @ H2Frame.PushPromise(_, false, _, headerBlock, _), _) =>
         val size = headerBlock.size.toInt
         if (size > s.remoteSettings.maxFrameSize.frameSize) goAway(H2Error.FrameSizeError)
-        else {
-          state.update(s => s.copy(pushPromiseInProgress = Some((h, List.empty))))
-        }
+        else state.update(_.copy(inProgress = Some(Right(h), List.empty)))
 
       case (H2Frame.Continuation(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
@@ -553,6 +539,8 @@ private[h2] class H2Connection[F[_]](
 }
 
 private[h2] object H2Connection {
+  type InProgress = (Either[H2Frame.Headers, H2Frame.PushPromise], List[H2Frame.Continuation])
+
   final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: Int,
@@ -561,8 +549,7 @@ private[h2] object H2Connection {
       highestStream: Int,
       remoteHighestStream: Int,
       closed: Boolean,
-      headersInProgress: Option[(H2Frame.Headers, List[H2Frame.Continuation])],
-      pushPromiseInProgress: Option[(H2Frame.PushPromise, List[H2Frame.Continuation])],
+      inProgress: Option[(Either[H2Frame.Headers, H2Frame.PushPromise], List[H2Frame.Continuation])],
   )
 
   def initState[F[_]](
@@ -579,8 +566,7 @@ private[h2] object H2Connection {
         highestStream = 0,
         remoteHighestStream = 0,
         closed = false,
-        headersInProgress = None,
-        pushPromiseInProgress = None,
+        inProgress = None,
       )
       F.ref(state)
     }
