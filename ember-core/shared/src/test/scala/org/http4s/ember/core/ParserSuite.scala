@@ -481,7 +481,8 @@ class ParsingSuite extends Http4sSuite {
   test(
     "Response Prelude should parse an expected value even if the status reason phrase is missing"
   ) {
-    val raw = "HTTP/1.1 200 "
+    val raw = """HTTP/1.1 200 
+        |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
     Parser.Response.RespPrelude
@@ -497,7 +498,8 @@ class ParsingSuite extends Http4sSuite {
   test(
     "Response Prelude should parse an expected value even if status reason phrase & SP are missing"
   ) {
-    val raw = "HTTP/1.1 200"
+    val raw = """HTTP/1.1 200
+        |""".stripMargin
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
     Parser.Response.RespPrelude
