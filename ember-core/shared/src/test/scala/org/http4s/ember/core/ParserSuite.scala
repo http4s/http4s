@@ -481,8 +481,23 @@ class ParsingSuite extends Http4sSuite {
   test(
     "Response Prelude should parse an expected value even if the status reason phrase is missing"
   ) {
-    val raw = """HTTP/1.1 200
-        |""".stripMargin
+    val raw = "HTTP/1.1 200 "
+    val asHttp = Helpers.httpifyString(raw)
+    val bv = asHttp.getBytes()
+    Parser.Response.RespPrelude
+      .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+          assertEquals(prelude.status, Status.Ok)
+        case Left(_) => fail("Prelude was not right")
+      }
+  }
+
+  test(
+    "Response Prelude should parse an expected value even if status reason phrase & SP are missing"
+  ) {
+    val raw = "HTTP/1.1 200"
     val asHttp = Helpers.httpifyString(raw)
     val bv = asHttp.getBytes()
     Parser.Response.RespPrelude
@@ -499,10 +514,10 @@ class ParsingSuite extends Http4sSuite {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
-        "HTTP/1.1 200 OK\r\n",
+        "HTTP/1.1 200 \r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\n",
-        "helloHTTP/1.1 200 OK\r\n", // this is the crucial part
+        "helloHTTP/1.1 200 \r\n", // this is the crucial part
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\nworld",
       )

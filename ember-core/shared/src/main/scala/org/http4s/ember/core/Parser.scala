@@ -511,7 +511,9 @@ private[ember] object Parser {
                 state = 2
                 start = idx + 1
               } else if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
-                // no reason phrase in the response
+                // Even though a status line must have this pattern (rfc7230)
+                //    status-line = HTTP-version SP status-code SP reason-phrase CRLF
+                // some servers might remove the last SP if they do not implement the reason phrase
                 val codeInt = new String(buffer, start, idx - start - 1).toInt
                 setStatusFromInt(codeInt)
               }
