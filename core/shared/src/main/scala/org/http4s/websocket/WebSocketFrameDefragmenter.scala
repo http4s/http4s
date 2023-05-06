@@ -29,8 +29,10 @@ private[http4s] object WebSocketFrameDefragmenter {
       ): (Chunk[WebSocketFrame], Chunk[WebSocketFrame]) = {
         val initialState = (Chunk.empty[WebSocketFrame], Chunk.empty[WebSocketFrame])
         frames.foldLeft(initialState) {
-          case ((fragments, result), curFrame) if curFrame.last =>
-            // Current frame is a single frame (not fragmented), or the last one of a sequence of fragments.
+          case ((fragments, result), curFrame @ WebSocketFrame.Continuation(_, true)) =>
+            // Current frame is the last one of a sequence of fragments.
+            // Defrag all data accumulated in `fragments` into a single frame
+            // and push it to `result` chunks.
             val fragmentSum = fragments ++ Chunk.singleton(curFrame)
             val defraggedData =
               fragmentSum.foldLeft(ByteVector.empty)((sum, f) => sum ++ f.data)
@@ -41,14 +43,26 @@ private[http4s] object WebSocketFrameDefragmenter {
                 case WebSocketFrame.Binary(_, _) =>
                   result ++ Chunk.singleton(WebSocketFrame.Binary(defraggedData, true))
                 case _: WebSocketFrame =>
-                  // Here we handle ControlFrames (such as `Ping` or `Close`) that come in singly.
-                  result ++ Chunk.singleton(curFrame)
+                  // Here is an illegal path, since the first frame of a fragmented frame
+                  // must be Text or Binary.
+                  // We just push `fragments` and `curFrame` to `result` chunks without any defragmentation.
+                  result ++ fragments ++ Chunk.singleton(curFrame)
               }
             }
             (Chunk.empty, defraggedFrame)
-          case ((fragments, result), curFrame) =>
+          case ((fragments, result), curFrame) if curFrame.last && fragments.isEmpty =>
+            // Current frame is a single, not fragmented frame.
+            // Just pushing `curFrame` into the `result` chunks.
+            (Chunk.empty, result ++ Chunk.singleton(curFrame))
+          case ((fragments, result), curFrame) if !curFrame.last =>
             // Current frame is in the middle of a sequence of fragments.
+            // Just pushing `curFrame` into the `fragments` chunks.
             (fragments ++ Chunk.singleton(curFrame), result)
+          case ((fragments, result), curFrame) =>
+            // Here is an illegal path, e.g. the fragmented frame is not terminated
+            // by a continuation frame with fin bit true.
+            // We just push `fragments` and `curFrame` to `result` chunks without any defragmentation.
+            (Chunk.empty, result ++ fragments ++ Chunk.singleton(curFrame))
         }
       }
 

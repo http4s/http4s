@@ -153,4 +153,141 @@ class WebSocketFrameDefragmenterSuite extends Http4sSuite {
     )
   }
 
+  /* The following test is prepared to demonstrate the behavior of invalid
+   * websocket frame sequences that are not specified in the Websocket specification.
+   * The websocketFrameDefragmenter does not defrag for such sequences.
+   */
+
+  test(
+    "invalid sequence where a continuation frame with fin flag true is not placed at the end 1"
+  ) {
+    // A continuation frame with a fin bit true should always be preceded by
+    // a frame with a fin bit false. If an invalid sequence such as the following
+    // is received, websocketFrameDefragmenter does not do any defragmentation
+    // and outputs the invalid sequence as it is.
+    val stream: Stream[SyncIO, WebSocketFrame] = Stream
+      .apply(
+        Text("text1", false),
+        Text("text2", true),
+      )
+      .through(defragFragment)
+
+    assertEquals(
+      stream.compile.toList.unsafeRunSync(),
+      List(
+        Text("text1", false),
+        Text("text2", true),
+      ),
+    )
+
+  }
+
+  test(
+    "invalid sequence where a continuation frame with fin flag true is not placed at the end 2"
+  ) {
+    // A sequence of fragmented frames should end with a continuation frame
+    // with the fin flag true. If an invalid sequence such as the following
+    // is received, websocketFrameDefragmenter does not do any defragmentation
+    // and outputs the invalid sequence as it is.
+    val stream: Stream[SyncIO, WebSocketFrame] = Stream
+      .apply(
+        Text("text1", false),
+        Continuation(utf8Bytes"text2", false),
+        Continuation(utf8Bytes"text3", false),
+        Close(utf8Bytes"close"),
+      )
+      .through(defragFragment)
+
+    assertEquals(
+      stream.compile.toList.unsafeRunSync(),
+      List(
+        Text("text1", false),
+        Continuation(utf8Bytes"text2", false),
+        Continuation(utf8Bytes"text3", false),
+        Close(utf8Bytes"close"),
+      ),
+    )
+
+  }
+
+  test(
+    "invalid sequence where there is no frame with fin bit false before continuation frame with fin bit true"
+  ) {
+    // A continuation frame with a fin bit true should always be preceded by
+    // a frame with a fin bit false. If an invalid sequence such as the following
+    // is received, websocketFrameDefragmenter does not do any defragmentation
+    // and outputs the invalid sequence as it is.
+    val stream: Stream[SyncIO, WebSocketFrame] = Stream
+      .apply(
+        Text("text1", true),
+        Continuation(utf8Bytes"illegal continuation", true),
+        Text("text2", true),
+      )
+      .through(defragFragment)
+
+    assertEquals(
+      stream.compile.toList.unsafeRunSync(),
+      List(
+        Text("text1", true),
+        Continuation(utf8Bytes"illegal continuation", true),
+        Text("text2", true),
+      ),
+    )
+
+  }
+
+  test("The beginning of the sequence is not text or binary") {
+    // The first frame of a fragmented sequence should be text or binary.
+    // If an invalid sequence such as the following is received,
+    // websocketFrameDefragmenter does not do any defragmentation
+    // and outputs the invalid sequence as it is.
+    val stream: Stream[SyncIO, WebSocketFrame] = Stream
+      .apply(
+        Continuation(utf8Bytes"h", false),
+        Continuation(utf8Bytes"e", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"o", true),
+      )
+      .through(defragFragment)
+
+    assertEquals(
+      stream.compile.toList.unsafeRunSync(),
+      List(
+        Continuation(utf8Bytes"h", false),
+        Continuation(utf8Bytes"e", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"o", true),
+      ),
+    )
+
+  }
+
+  test("WebSocketFrameDefragmenter should defrag normal sequence after illegal sequence") {
+    val stream: Stream[SyncIO, WebSocketFrame] = Stream
+      .apply(
+        Text("text1", true),
+        // This frame is invalid
+        Continuation(utf8Bytes"illegal continuation", true),
+        // Sequece after here is valid
+        Text("h", false),
+        Continuation(utf8Bytes"e", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"l", false),
+        Continuation(utf8Bytes"o", true),
+      )
+      .through(defragFragment)
+
+    assertEquals(
+      stream.compile.toList.unsafeRunSync(),
+      List(
+        Text("text1", true),
+        Continuation(utf8Bytes"illegal continuation", true),
+        Text("hello", true),
+      ),
+    )
+
+  }
+
 }
