@@ -21,9 +21,67 @@ import fs2.Pipe
 import scodec.bits.ByteVector
 
 private[http4s] object WebSocketFrameDefragmenter {
+
+  /** This function provides a pipe that defrags a sequence of fragmented WebSocket Frames,
+    * according to RFC 6455.
+    *
+    * For example, the sequence of fragmented frames below is transformed by the pipe provided
+    * by this function as follows:
+    *
+    * - Original webSocketFrame sequence
+    *     |
+    *     +-- Text("h", false)
+    *     |
+    *     +-- Continuation("e", false)
+    *     |
+    *     +-- Continuation("l", false)
+    *     |
+    *     +-- Continuation("l", false)
+    *     |
+    *     +-- Continuation("o", true)
+    *
+    * - Converted webSocketFrame sequence
+    *     |
+    *     +-- Text("hello", true)
+    *
+    * The above diagram represents a sequence where a single Text Frame is followed by
+    * four Continuation frames and these frames are transformed into a single defragmented Text frame.
+    * (note that the first argument of each frame indicates its data and the second indicates its fin bit)
+    *
+    * This function is only effective for valid sequences that have been defined in the RFC for WebSocket,
+    * and please note that defrag processing will NOT be performed for any other invalid sequence.
+    *
+    * For example, the following is an illustration of the transformation for an invalid sequence:
+    *
+    * - Original webSocketFrame sequence
+    *     |
+    *     +-- Text("text1", false)
+    *     |
+    *     +-- Continuation("text2", false)
+    *     |
+    *     +-- Continuation("text3", false)
+    *     |
+    *     +-- Close("close")
+    *
+    * - Converted webSocketFrame sequence
+    *     |
+    *     +-- Text("text1", false)
+    *     |
+    *     +-- Continuation("text2", false)
+    *     |
+    *     +-- Continuation("text3", false)
+    *     |
+    *     +-- Close("close")
+    *
+    * The fragmented sequence that is started with `Text("text1", false)` should be closed
+    * by a Continuation frame with the fin bit true, but the original webSocketFrame sequence above
+    * does not fulfill that requirement. This pipe does not perform defragmentation
+    * for such sequences and just emits the invalid sequence as is.
+    *
+    * @return A [[Pipe]] that defrags the fragmented frames
+    */
   def defragFragment[F[_]]: Pipe[F, WebSocketFrame, WebSocketFrame] =
     stream => {
-      // Takes a chunk of WebSocketFrames and defrags fragmented frames into one frame.
       def defrag(
           frames: Chunk[WebSocketFrame]
       ): (Chunk[WebSocketFrame], Chunk[WebSocketFrame]) = {

@@ -39,7 +39,11 @@ import org.typelevel.vault.Key
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   * @param defragFrame Indicates whether incoming WebSocket frames are defragmented or not.
-  *                           default: true
+  *                    If this flag is true, frames fragmented according to rfc6455 will arrive defragged
+  *                    in the user-provided recieve handler. Note that this defrag feature is '''true''' by default.
+  *                    To prevent WebSocketBuilder2 from handling defrag, you must explicitly call withDefragment(false).
+  *                    For more information on defrag processing, see the WebSocketFrameDefragmenter comment.
+  *                    default: true
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
