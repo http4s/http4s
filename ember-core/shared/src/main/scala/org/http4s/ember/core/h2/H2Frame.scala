@@ -243,82 +243,57 @@ private[ember] object H2Frame {
 
     def fromRaw(rawFrame: RawFrame): Either[H2Error, Headers] =
       rawFrame.`type` match {
-        case `type` =>
-          val endStream = (rawFrame.flags & (0x01 << 0)) != 0
-          val endHeaders = (rawFrame.flags & (0x01 << 2)) != 0
-          val padded = (rawFrame.flags & (0x01 << 3)) != 0
-          val priority = (rawFrame.flags & (0x01 << 5)) != 0
-
-          (priority, padded) match {
-            case (false, false) =>
-              Headers(
-                rawFrame.identifier,
-                None,
-                endStream,
-                endHeaders,
-                rawFrame.payload,
-                None,
-              ).asRight
-            case (true, true) =>
-              // This hurts. And is SO inefficient
-              val bv = rawFrame.payload
-              val padLength = bv.get(0)
-              val pad = bv.takeRight(padLength)
-              val rest = bv.dropRight(padLength).drop(1)
-              val s0 = rest.get(0)
-              val s1 = rest.get(1)
-              val s2 = rest.get(2)
-              val s3 = rest.get(3)
-              val weight = rest.get(4)
-              val mod0 = s0 & ~(1 << 7)
-              val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
-              val exclusive = (s0 & (0x01 << 7)) != 0
-              val payload = rest.drop(5)
-              Headers(
-                rawFrame.identifier,
-                Some(StreamDependency(exclusive, dependsOnStream, weight)),
-                endStream,
-                endHeaders,
-                payload,
-                Some(pad),
-              ).asRight
-            case (true, false) =>
-              val rest = rawFrame.payload
-              val s0 = rest.get(0)
-              val s1 = rest.get(1)
-              val s2 = rest.get(2)
-              val s3 = rest.get(3)
-              val weight = rest.get(4)
-              val mod0 = s0 & ~(1 << 7)
-              val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
-              val exclusive = (s0 & (0x01 << 7)) != 0
-              val payload = rest.drop(5)
-
-              Headers(
-                rawFrame.identifier,
-                Some(StreamDependency(exclusive, dependsOnStream, weight)),
-                endStream,
-                endHeaders,
-                payload,
-                None,
-              ).asRight
-
-            case (false, true) =>
-              val bv = rawFrame.payload
-              val padLength = bv.get(0)
-              val pad = bv.takeRight(padLength)
-              val payload = bv.dropRight(padLength).drop(1)
-              Headers(
-                rawFrame.identifier,
-                None,
-                endStream,
-                endHeaders,
-                payload,
-                Some(pad),
-              ).asRight
-          }
+        case `type` => Either.right(fromRawAux(rawFrame))
         case _ => Either.left(H2Error.InternalError)
       }
+
+    private def fromRawAux(rawFrame: RawFrame): Headers = {
+      val endStream = (rawFrame.flags & (0x01 << 0)) != 0
+      val endHeaders = (rawFrame.flags & (0x01 << 2)) != 0
+      val padded = (rawFrame.flags & (0x01 << 3)) != 0
+      val priority = (rawFrame.flags & (0x01 << 5)) != 0
+
+      def buildHeaders(
+          dependency: Option[StreamDependency],
+          pay: ByteVector,
+          pad: Option[ByteVector],
+      ): Headers =
+        Headers(rawFrame.identifier, dependency, endStream, endHeaders, pay, pad)
+
+      def streamDependency(rest: ByteVector): StreamDependency = {
+        val s0 = rest.get(0)
+        val s1 = rest.get(1)
+        val s2 = rest.get(2)
+        val s3 = rest.get(3)
+        val weight = rest.get(4)
+        val mod0 = s0 & ~(1 << 7)
+        val dependsOnStream = (mod0 << 24) + (s1 << 16) + (s2 << 8) + (s3 << 0)
+        val exclusive = (s0 & (0x01 << 7)) != 0
+        StreamDependency(exclusive, dependsOnStream, weight)
+      }
+
+      (priority, padded) match {
+        case (false, false) => buildHeaders(None, rawFrame.payload, None)
+        case (false, true) =>
+          val bv = rawFrame.payload
+          val padLength = bv.get(0)
+          val pad = bv.takeRight(padLength)
+          val payload = bv.dropRight(padLength).drop(1)
+          buildHeaders(None, payload, Some(pad))
+        case (true, false) =>
+          val rest = rawFrame.payload
+          buildHeaders(Some(streamDependency(rest)), rest.drop(5), None)
+        case (true, true) =>
+          // This hurts. And is SO inefficient
+          val bv = rawFrame.payload
+          val padLength = bv.get(0)
+          val rest = bv.dropRight(padLength).drop(1)
+          val pad = bv.takeRight(padLength)
+          val payload = rest.drop(5)
+          buildHeaders(Some(streamDependency(rest)), payload, Some(pad))
+      }
+    }
+
     def toRaw(headers: Headers): RawFrame = {
       val flags = {
         var init = 0
