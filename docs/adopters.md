@@ -31,6 +31,9 @@
 [iHeartRadio](https://www.iheart.com/)
 : Uses http4s for internal web services
 
+[ITV](https://www.itv.com/)
+: Uses http4s extensively for backend applications and internal libraries.
+
 [MYOB](https://myob.com)
 : Uses http4s for some API and Web services.
 
