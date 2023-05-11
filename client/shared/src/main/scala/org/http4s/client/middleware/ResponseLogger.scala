@@ -50,19 +50,37 @@ object ResponseLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
+  def logWithEntity[F[_]: Async](
+      logHeaders: Boolean,
+      logEntity: Entity[F] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: Option[String => F[Unit]] = None,
+  )(client: Client[F]): Client[F] =
+    impl(client, logBody = true) { response =>
+      InternalLogger.logMessageWithEntity(response)(
+        logHeaders,
+        logEntity,
+        logAction.getOrElse(defaultLogAction[F]),
+        redactHeadersWhen,
+      )
+    }
+
+  @deprecated(
+    "Use ResponseLogger.logWithEntity that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
   def logBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
-    impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText(response)(
-        logHeaders,
-        logBody,
-        redactHeadersWhen,
-      )(logAction.getOrElse(defaultLogAction[F]))
-    }
+    logWithEntity(
+      logHeaders,
+      (entity: Entity[F]) => logBody(entity.body),
+      redactHeadersWhen,
+      logAction,
+    )(client)
 
   def customized[F[_]: Async](
       client: Client[F],

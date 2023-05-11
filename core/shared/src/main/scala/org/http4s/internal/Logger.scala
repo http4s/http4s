@@ -74,16 +74,17 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
-    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody(message)(logBody)
+    val logBodyText = (_: Entity[F]) => defaultLogBody(message)(logBody)
 
-    logMessageWithBodyText(message)(logHeaders, logBodyText, redactHeadersWhen)(log)
+    logMessageWithEntity(message)(logHeaders, logBodyText, log, redactHeadersWhen)
   }
 
-  def logMessageWithBodyText[F[_]](message: Message[F])(
+  def logMessageWithEntity[F[_]](message: Message[F])(
       logHeaders: Boolean,
-      logBodyText: Stream[F, Byte] => Option[F[String]],
+      logEntity: Entity[F] => Option[F[String]],
+      log: String => F[Unit],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-  )(log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
+  )(implicit F: Monad[F]): F[Unit] = {
     def prelude =
       message match {
         case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"
@@ -93,7 +94,7 @@ object Logger {
     val headers: String = defaultLogHeaders(message)(logHeaders, redactHeadersWhen)
 
     val bodyText: F[String] =
-      logBodyText(message.body) match {
+      logEntity(message.entity) match {
         case Some(textF) => textF.map(text => s"""body="$text"""")
         case None => F.pure("")
       }
@@ -105,4 +106,19 @@ object Logger {
       .flatMap(log)
   }
 
+  @deprecated(
+    "Use Logger.logMessageWithEntity that utilizes Entity model for a Message body",
+    "1.0.0-M39",
+  )
+  def logMessageWithBodyText[F[_]](message: Message[F])(
+      logHeaders: Boolean,
+      logBodyText: Stream[F, Byte] => Option[F[String]],
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Monad[F]): F[Unit] =
+    logMessageWithEntity(message)(
+      logHeaders,
+      (entity: Entity[F]) => logBodyText(entity.body),
+      log,
+      redactHeadersWhen,
+    )
 }
