@@ -15,15 +15,17 @@
  */
 
 package org.http4s
+package headers
 
-import cats.effect.SyncIO
-import org.typelevel.log4cats
+import org.http4s.laws.discipline.arbitrary._
 
-private[http4s] object Platform {
-  final val isJvm = true
-  final val isJs = false
-  final val isNative = false
+class SecWebSocketAcceptSuite extends HeaderLaws {
+  checkAll("Sec-WebSocket-Accept", headerLaws[`Sec-WebSocket-Accept`])
 
-  lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] =
-    log4cats.slf4j.Slf4jFactory.create[SyncIO]
+  // https://datatracker.ietf.org/doc/html/rfc6455#page-8
+  val rfc6455ExampleSecWebSocketAccept = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo="
+
+  test("parser accepts RFC 6455 example Sec-WebSocket-Accept") {
+    assert(`Sec-WebSocket-Accept`.parse(rfc6455ExampleSecWebSocketAccept).isRight)
+  }
 }

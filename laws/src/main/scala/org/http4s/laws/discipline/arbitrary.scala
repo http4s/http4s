@@ -43,6 +43,7 @@ import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
@@ -622,6 +623,25 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield `Transfer-Encoding`(codings)
     }
 
+  implicit val http4sTestingArbitraryForSecWebSocketAcceptHeader
+      : Arbitrary[`Sec-WebSocket-Accept`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](20, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Accept`(_))
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketKeyHeader: Arbitrary[`Sec-WebSocket-Key`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Key`(_))
+    }
+
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
@@ -1109,7 +1129,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
     val genExtension = for {
-      extName <- genToken
+      extName <- genToken.filterNot(t => t === "timeout" || t === "max")
       quotedStringEquivWithoutQuotes =
         genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))

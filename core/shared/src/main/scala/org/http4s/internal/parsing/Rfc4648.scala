@@ -15,15 +15,23 @@
  */
 
 package org.http4s
+package internal.parsing
 
-import cats.effect.SyncIO
-import org.typelevel.log4cats
+import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
 
-private[http4s] object Platform {
-  final val isJvm = true
-  final val isJs = false
-  final val isNative = false
+/** Common rules defined in Rfc4648
+  *
+  * @see [[https://datatracker.ietf.org/doc/html/rfc4648]]
+  */
 
-  lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] =
-    log4cats.slf4j.Slf4jFactory.create[SyncIO]
+private[http4s] object Rfc4648 {
+  object Base64 {
+    /* https://datatracker.ietf.org/doc/html/rfc4648#page-5 */
+    val token: Parser[String] =
+      (charIn("+/").orElse(digit).orElse(alpha).rep ~ char('=').rep0(0, 2)).string
+  }
 }
