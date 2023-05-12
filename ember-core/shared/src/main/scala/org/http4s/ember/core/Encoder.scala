@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core
 
+import cats.Applicative
 import cats.ApplicativeThrow
 import fs2._
 import org.http4s._
@@ -33,7 +34,10 @@ private[ember] object Encoder {
   private[this] final val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
   private[this] final val zeroContentLengthRaw = "Content-Length: 0"
 
-  def respToBytes[F[_]](resp: Response[F], writeBufferSize: Int = 32 * 1024): Stream[F, Byte] = {
+  def respToBytes[F[_]: Applicative](
+      resp: Response[F],
+      writeBufferSize: Int = 32 * 1024,
+  ): Stream[F, Byte] = {
     var chunked = resp.isChunked
     // resp.status.isEntityAllowed TODO
     val initSection = {
@@ -73,7 +77,9 @@ private[ember] object Encoder {
     }
 
     if (chunked)
-      Stream.chunk(Chunk.array(initSection)) ++ resp.body.through(ChunkedEncoding.encode[F])
+      Stream.chunk(Chunk.array(initSection)) ++ resp.body.through(
+        ChunkedEncoding.encode[F](resp.trailerHeaders)
+      )
     else
       (Stream.chunk(Chunk.array(initSection)) ++ resp.body)
         .chunkMin(writeBufferSize)
@@ -141,7 +147,9 @@ private[ember] object Encoder {
         stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1)
       }
       if (chunked)
-        Stream.chunk(Chunk.array(initSection)) ++ req.body.through(ChunkedEncoding.encode[F])
+        Stream.chunk(Chunk.array(initSection)) ++ req.body.through(
+          ChunkedEncoding.encode[F](req.trailerHeaders)
+        )
       else
         (Stream.chunk(Chunk.array(initSection)) ++ req.body)
           .chunkMin(writeBufferSize)
