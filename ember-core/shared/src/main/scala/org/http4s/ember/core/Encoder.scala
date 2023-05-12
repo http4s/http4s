@@ -149,10 +149,9 @@ private[ember] object Encoder {
       }
       val initSectionChunk = Chunk.array(initSection)
       if (chunked)
-        Stream.chunk(initSectionChunk) ++ Stream.chunk(Chunk.array(initSection)) ++ req.body
-          .through(
-            ChunkedEncoding.encode[F](req.trailerHeaders)
-          )
+        Stream.chunk(initSectionChunk) ++ req.body.through(
+          ChunkedEncoding.encode[F](req.trailerHeaders)
+        )
       else {
         req.entity match {
           case Entity.Streamed(body, _) =>
