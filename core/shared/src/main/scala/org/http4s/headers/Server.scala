@@ -17,9 +17,14 @@
 package org.http4s
 package headers
 
+import cats.parse.Parser
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci.CIString
+
+import scala.annotation.nowarn
 
 object Server extends HeaderCompanion[Server]("Server") {
 
@@ -28,26 +33,43 @@ object Server extends HeaderCompanion[Server]("Server") {
   def apply(id: ProductId, tail: ProductIdOrComment*): Server =
     apply(id, tail.toList)
 
-  private[http4s] val parser =
-    ProductIdOrComment.serverAgentParser.map {
+  @nowarn("cat=deprecation")
+  @deprecated("Use parse(Int) instead", "0.23.17")
+  override def parse(s: String): ParseResult[`Server`] =
+    parse(CommonRules.CommentDefaultMaxDepth)(s)
+
+  def parse(maxDepth: Int)(s: String): ParseResult[`Server`] =
+    parsePartiallyApplied(maxDepth)(s)
+
+  private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`Server`] =
+    ParseResult.fromParser(parser(maxDepth), "Invalid Server header")
+
+  @deprecated("Use parser(Int) instead", "0.23.17")
+  private[http4s] val parser: Parser[Server] =
+    parser(Rfc7230.CommentDefaultMaxDepth)
+
+  private[http4s] def parser(maxDepth: Int): Parser[Server] =
+    ProductIdOrComment.serverAgentParser(maxDepth).map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         Server(product, tokens)
     }
 
   implicit val headerInstance: Header[Server, Header.Single] =
-    createRendered { h =>
-      new Renderable {
-        def render(writer: Writer): writer.type = {
-          writer << h.product
-          h.rest.foreach {
-            case p: ProductId => writer << ' ' << p
-            case ProductComment(c) => writer << ' ' << '(' << c << ')'
+    Header.createRendered(
+      name,
+      h =>
+        new Renderable {
+          def render(writer: Writer): writer.type = {
+            writer << h.product
+            h.rest.foreach {
+              case p: ProductId => writer << ' ' << p
+              case ProductComment(c) => writer << ' ' << '(' << c << ')'
+            }
+            writer
           }
-          writer
-        }
-      }
-    }
-
+        },
+      parsePartiallyApplied(CommonRules.CommentDefaultMaxDepth),
+    )
 }
 
 /** Server header

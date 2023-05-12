@@ -17,11 +17,11 @@
 package org.http4s.websocket
 
 import cats.effect.SyncIO
+import cats.syntax.either._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import scodec.bits.ByteVector
+import scodec.bits._
 
-import java.nio.charset.StandardCharsets._
 import java.util.Base64
 import scala.util.Random
 
@@ -66,7 +66,7 @@ private[http4s] object WebSocketHandshake {
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
           .map {
-            case (_, v) if genAcceptKey(key) == v => Right(())
+            case (_, v) if genAcceptKey(key) == v => Either.unit
             case (_, v) => Left(s"Invalid key: $v")
           }
           .getOrElse(Left("Missing Sec-WebSocket-Accept header"))
@@ -140,7 +140,7 @@ private[http4s] object WebSocketHandshake {
   }
 
   private val magicString =
-    ByteVector.view("258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII))
+    asciiBytes"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),

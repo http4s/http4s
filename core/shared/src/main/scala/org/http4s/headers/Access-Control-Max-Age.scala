@@ -18,7 +18,7 @@ package org.http4s
 package headers
 
 import org.http4s.parser.AdditionalRules
-import org.typelevel.ci.CIStringSyntax
+import org.typelevel.ci._
 
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.duration.FiniteDuration
@@ -28,6 +28,8 @@ import scala.util.Try
 trait `Access-Control-Max-Age`
 
 object `Access-Control-Max-Age` {
+
+  val name: CIString = ci"Access-Control-Max-Age"
 
   /** A value of -1 of the age parameter will disable caching. */
   case object NoCaching extends `Access-Control-Max-Age`
@@ -66,7 +68,7 @@ object `Access-Control-Max-Age` {
 
   implicit val headerInstance: Header[`Access-Control-Max-Age`, Header.Single] =
     Header.createRendered(
-      ci"Access-Control-Max-Age",
+      name,
       {
         case Cache(age) => age
         case NoCaching => -1

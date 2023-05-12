@@ -141,8 +141,15 @@ private[ember] object ChunkedEncoding {
         .map { case (headerP, rest) => Trailers(headerP.headers, rest) }
     }
 
-  private val lastChunk: Chunk[Byte] =
-    Chunk.byteVector((ByteVector('0') ++ crlf).compact)
+  private[this] val lastChunk: Stream[fs2.Pure, Byte] = {
+    val bytes = Array[Byte]('0', '\r', '\n')
+    Stream.chunk(Chunk.array(bytes))
+  }
+
+  private[this] val finalCrlf: Stream[fs2.Pure, Byte] = {
+    val bytes = Array[Byte]('\r', '\n')
+    Stream.chunk(Chunk.array(bytes))
+  }
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
@@ -154,9 +161,9 @@ private[ember] object ChunkedEncoding {
           ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
         )
     _.mapChunks(ch => encodeChunk(ch.toByteVector)) ++
-      Stream.chunk(lastChunk) ++
+      lastChunk ++
       Stream.evalUnChunk(trailers.map(encodeTrailers(_))) ++
-      Stream.chunk(Chunk.byteVector(crlf))
+      finalCrlf
   }
 
   private def encodeTrailers(trailers: Headers): Chunk[Byte] = {

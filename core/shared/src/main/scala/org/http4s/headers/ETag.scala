@@ -35,10 +35,10 @@ object ETag {
   def parse(s: String): ParseResult[ETag] =
     ParseResult.fromParser(parser, "Invalid ETag header")(s)
 
-  /* `ETag = entity-tag`
-   *
-   * @see [[https://datatracker.ietf.org/doc/html/rfc7232#section-2.3]]
-   */
+  /** `ETag = entity-tag`
+    *
+    * @see [[https://datatracker.ietf.org/doc/html/rfc7232#section-2.3]]
+    */
   private[http4s] val parser: Parser[ETag] =
     entityTagParser.map(ETag.apply)
 

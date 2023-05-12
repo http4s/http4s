@@ -22,12 +22,13 @@
             jdk.package = jdk;
             nodejs.enable = true;
             native.enable = true;
+            nodejs.package = pkgs.nodejs-18_x;
             native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl ];
           };
         };
       in
       rec {
-        devShell = devShells."temurin@8";
+        devShell = mkShell pkgs.jdk8;
 
         devShells = {
           "temurin@8" = mkShell pkgs.temurin-bin-8;

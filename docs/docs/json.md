@@ -82,9 +82,8 @@ The same `EntityEncoder[Json]` we use on server responses is also
 useful on client requests:
 
 ```scala mdoc:silent
-import org.http4s.client.dsl.io._
-
-POST(json"""{"name": "Alice"}""", uri"/hello")
+Request[IO](Method.POST, uri"/hello")
+  .withEntity(json"""{"name": "Alice"}""")
 ```
 
 ## Encoding case classes as JSON
@@ -132,7 +131,8 @@ and responses for our case classes:
 
 ```scala mdoc
 Ok(Hello("Alice").asJson).unsafeRunSync()
-POST(User("Bob").asJson, uri"/hello")
+Request[IO](Method.POST, uri"/hello")
+  .withEntity(User("Bob").asJson)
 ```
 
 If within some route we serve json only, we can use:
@@ -158,7 +158,9 @@ response body to JSON using the [`as` syntax]:
 
 ```scala mdoc
 Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync()
-POST("""{"name":"Bob"}""", uri"/hello").as[Json].unsafeRunSync()
+Request[IO](Method.POST, uri"/hello")
+  .withEntity("""{"name":"Bob"}""")
+  .as[Json].unsafeRunSync()
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -176,7 +178,9 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
-POST("""{"name":"Bob"}""", uri"/hello").as[User].unsafeRunSync()
+Request[IO](Method.POST, uri"/hello")
+  .withEntity("""{"name":"Bob"}""")
+  .as[User].unsafeRunSync()
 ```
 
 If we are always decoding from JSON to a typed model, we can use
@@ -261,14 +265,14 @@ val shutdown = server.allocated.unsafeRunSync()._2
 Now let's make a client for the service above:
 
 ```scala mdoc:silent
-import org.http4s.client.dsl.io._
 import org.http4s.ember.client._
 import cats.effect.IO
 import io.circe.generic.auto._
 
 def helloClient(name: String): IO[Hello] = {
-  // Encode a User request
-  val req = POST(User(name).asJson, uri"http://localhost:8080/hello")
+  // Encode a User request  
+  val req = Request[IO](Method.POST, uri"http://localhost:8080/hello")
+    .withEntity(User(name).asJson)
   // Create a client
   // Note: this client is used exactly once, and discarded
   // Ideally you should .build.use it once, and share it for multiple requests

@@ -39,9 +39,11 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.nowarn
@@ -507,6 +509,20 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Date(httpDate)
     }
 
+  implicit val http4sTestingArbitraryForDeprecationHeader: Arbitrary[headers.Deprecation] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Deprecation(httpDate)
+    }
+
+  implicit val http4sTestingArbitraryForSunsetHeader: Arbitrary[headers.Sunset] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Sunset(httpDate)
+    }
+
   val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
@@ -615,6 +631,25 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       for {
         codings <- getArbitrary[NonEmptyList[TransferCoding]]
       } yield `Transfer-Encoding`(codings)
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketAcceptHeader
+      : Arbitrary[`Sec-WebSocket-Accept`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](20, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Accept`(_))
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketKeyHeader: Arbitrary[`Sec-WebSocket-Key`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Key`(_))
     }
 
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
@@ -1082,7 +1117,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
     val genExtension = for {
-      extName <- genToken
+      extName <- genToken.filterNot(t => t === "timeout" || t === "max")
       quotedStringEquivWithoutQuotes =
         genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))

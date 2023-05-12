@@ -23,7 +23,6 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._
-import org.typelevel.ci._
 
 import scala.concurrent.duration._
 
@@ -204,7 +203,7 @@ class AuthenticationSuite extends Http4sSuite {
             "response" -> response,
             "method" -> method,
           )
-          val header = Authorization(Credentials.AuthParams(ci"Digest", params))
+          val header = Authorization(Credentials.AuthParams(AuthScheme.Digest, params))
 
           val req2 = Request[IO](uri = uri"/", headers = Headers(header))
           digest(req2).flatMap { res2 =>
@@ -351,7 +350,7 @@ class AuthenticationSuite extends Http4sSuite {
           .parTraverse { i =>
             val invalidParams = params.toList.take(i) ++ params.toList.drop(i + 1)
             val header = Authorization(
-              Credentials.AuthParams(ci"Digest", invalidParams.head, invalidParams.tail: _*)
+              Credentials.AuthParams(AuthScheme.Digest, invalidParams.head, invalidParams.tail: _*)
             )
             val req = Request[IO](uri = uri"/", headers = Headers(header))
             digestAuthService.orNotFound(req).map(_.status)

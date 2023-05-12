@@ -178,7 +178,7 @@ class AuthMiddlewareSuite extends Http4sSuite {
     service.orNotFound(Request[IO](method = Method.GET)).map(_.status).assertEquals(Unauthorized)
   }
 
-  test("compose authedRoutesand not fall through") {
+  test("compose authedRoutes and not fall through") {
     val userId: User = 42
 
     val authUser: Kleisli[OptionT[IO, *], Request[IO], User] =

@@ -18,7 +18,9 @@ package org.http4s
 package server
 package middleware
 
+import cats.arrow.FunctionK
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
 import cats.~>
@@ -28,7 +30,7 @@ import cats.~>
   *
   * The params are merged into the existing paras _after_ the existing query params. This
   * means that if the query already contains the pair "foo" -> Some("bar"), parameters on
-  * the body must be acessed through `multiParams`.
+  * the body must be accessed through `multiParams`.
   */
 object UrlFormLifter {
   def apply[F[_]: Sync, G[_]: Concurrent](f: G ~> F)(
@@ -67,4 +69,13 @@ object UrlFormLifter {
 
   private def checkRequest[F[_]](req: Request[F]): Boolean =
     req.method == Method.POST || req.method == Method.PUT
+
+  def httpRoutes[F[_]: Async](
+      httpRoutes: HttpRoutes[F],
+      strictDecode: Boolean = false,
+  ): HttpRoutes[F] =
+    apply(OptionT.liftK)(httpRoutes, strictDecode)
+
+  def httpApp[F[_]: Async](httpApp: HttpApp[F], strictDecode: Boolean = false): HttpApp[F] =
+    apply(FunctionK.id[F])(httpApp, strictDecode)
 }

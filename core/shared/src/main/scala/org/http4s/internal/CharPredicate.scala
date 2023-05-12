@@ -27,10 +27,17 @@ sealed abstract class CharPredicate extends (Char => Boolean) {
     */
   def isMaskBased: Boolean = this.isInstanceOf[MaskBased]
 
+  @deprecated("Unsafe method. Use CharPredicate.asMaskBasedOpt instead", "0.23.17")
   def asMaskBased: MaskBased =
     this match {
       case x: MaskBased => x
       case _ => sys.error("CharPredicate is not MaskBased")
+    }
+
+  def asMaskBasedOpt: Option[MaskBased] =
+    this match {
+      case x: MaskBased => Some(x)
+      case _ => None
     }
 
   def ++(that: CharPredicate): CharPredicate

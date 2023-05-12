@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,23 @@
  */
 
 package org.http4s
-package bench
+package internal.parsing
 
-import org.openjdk.jmh.annotations._
+import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
 
-import java.util.concurrent.TimeUnit
+/** Common rules defined in Rfc4648
+  *
+  * @see [[https://datatracker.ietf.org/doc/html/rfc4648]]
+  */
 
-// sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.EncodeHexBench"
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@State(Scope.Benchmark)
-class EncodeHexBench {
-  val bytes: Array[Byte] = {
-    val r = new scala.util.Random(2597)
-    val bs = new Array[Byte](8192)
-    r.nextBytes(bs)
-    bs
+private[http4s] object Rfc4648 {
+  object Base64 {
+    /* https://datatracker.ietf.org/doc/html/rfc4648#page-5 */
+    val token: Parser[String] =
+      (charIn("+/").orElse(digit).orElse(alpha).rep ~ char('=').rep0(0, 2)).string
   }
-
-  @Benchmark
-  def encodeHex: Array[Char] =
-    org.http4s.internal.encodeHex(bytes)
 }

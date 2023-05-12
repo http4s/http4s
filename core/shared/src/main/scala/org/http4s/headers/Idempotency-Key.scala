@@ -18,8 +18,8 @@ package org.http4s.headers
 
 import org.http4s.Header
 import org.http4s.ParseResult
-import org.http4s.internal.parsing.Rfc7230.quotedString
-import org.http4s.internal.parsing.Rfc7230.token
+import org.http4s.internal.parsing.CommonRules.quotedString
+import org.http4s.internal.parsing.CommonRules.token
 import org.typelevel.ci._
 
 object `Idempotency-Key` {

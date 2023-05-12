@@ -20,8 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.parse.Rfc5234
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc2616
-import org.http4s.internal.parsing.Rfc7230
 import org.typelevel.ci._
 
 object `Content-Language` {
@@ -37,7 +37,7 @@ object `Content-Language` {
         case (main: String, sub: collection.Seq[String]) =>
           LanguageTag(main, QValue.One, sub)
       }
-    Rfc7230.headerRep1(languageTag).map { tags =>
+    CommonRules.headerRep1(languageTag).map { tags =>
       headers.`Content-Language`(tags)
     }
   }

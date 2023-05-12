@@ -41,6 +41,7 @@ import scala.util.control.NoStackTrace
 package object internal extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
@@ -49,12 +50,14 @@ package object internal extends InternalPlatform {
     * @param data the array
     * @return a hexadecimal encoded string
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def encodeHexString(data: Array[Byte]): String =
     new String(encodeHex(data))
 
   /** Encode a string to a Hexadecimal string representation
     * Adapted from apache commons Hex.encodeHex
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def encodeHex(data: Array[Byte]): Array[Char] = {
     val l = data.length
     val out = new Array[Char](l << 1)
@@ -73,9 +76,11 @@ package object internal extends InternalPlatform {
     iterateData(out, l)
   }
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
     decodeHex(data.toCharArray)
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private object HexDecodeException extends Exception with NoStackTrace
 
   /** Dirty, optimized hex decoding based off of apache
@@ -84,6 +89,7 @@ package object internal extends InternalPlatform {
     * @param data
     * @return
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
     def toDigit(ch: Char): Int = {
       val digit = Character.digit(ch, 16)
@@ -160,7 +166,7 @@ package object internal extends InternalPlatform {
     var i = 0
     val len = s.length
     while (i < len) {
-      // Strings are equal igoring case if either their uppercase or lowercase
+      // Strings are equal ignoring case if either their uppercase or lowercase
       // forms are equal. Equality of one does not imply the other, so we need
       // to go in both directions. A character is not guaranteed to make this
       // round trip, but it doesn't matter as long as all equal characters

@@ -28,6 +28,7 @@ import org.http4s.headers.Connection
 import org.typelevel.ci._
 
 import java.time.Instant
+import java.util.Arrays
 import java.util.Locale
 import scala.concurrent.duration._
 
@@ -128,5 +129,21 @@ private[ember] object Util extends UtilPlatform {
       case _ => sys.error("unsupported http version")
     }
   }
+
+  def concatBytes(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] =
+    if (a1.length == 0) {
+      a2 match {
+        case slice: Chunk.ArraySlice[Byte]
+            if slice.values.isInstanceOf[Array[Byte]] &&
+              slice.offset == 0 &&
+              slice.values.length == slice.length =>
+          slice.values
+        case _ => a2.toArray
+      }
+    } else {
+      val res = Arrays.copyOf(a1, a1.length + a2.size)
+      a2.copyToArray(res, a1.length)
+      res
+    }
 
 }

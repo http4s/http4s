@@ -55,6 +55,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val logger: Logger[F],
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
+    private val requestLineParseErrorHandler: Throwable => F[Response[F]],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -79,6 +80,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
+      requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -98,6 +100,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       logger = logger,
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
+      requestLineParseErrorHandler = requestLineParseErrorHandler,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -126,7 +129,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
-  @deprecated("0.21.17", "Use withErrorHandler - Do not allow the F to fail")
+  @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
   def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
     withErrorHandler { case e => onError(e).pure[F] }
 
@@ -157,8 +160,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
   def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
 
-  def withHttp2 = copy(enableHttp2 = true)
-  def withoutHttp2 = copy(enableHttp2 = false)
+  def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
+  def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
   def withUnixSocketConfig(
@@ -166,10 +169,32 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
-  ) =
+  ): EmberServerBuilder[F] =
     copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
-  def withoutUnixSocketConfig =
+  def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
+
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOption]
+  ): EmberServerBuilder[F] =
+    copy(additionalSocketOptions = additionalSocketOptions)
+
+  /** An error handler which will run in cases where the server is unable to
+    * parse the "start-line" (http 2 name) or "request-line" (http 1.1
+    * name). This is the first line of the request, e.g. "GET / HTTP/1.1".
+    *
+    * In this case, RFC 9112 (HTTP 2) says a 400 should be returned.
+    *
+    * This handler allows for configuring the behavior. The default as of
+    * 0.23.19 is to return a 400.
+    *
+    * @see [[https://www.rfc-editor.org/rfc/rfc9112#section-2.2-9 RFC 9112]]
+    * @see [[https://www.rfc-editor.org/rfc/rfc7230 RFC 7230]]
+    */
+  def withRequestLineParseErrorHandler(
+      requestLineParseErrorHandler: Throwable => F[Response[F]]
+  ): EmberServerBuilder[F] =
+    copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
 
   def build: Resource[F, Server] =
     for {
@@ -199,6 +224,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               logger,
               wsBuilder.webSocketKey,
               enableHttp2,
+              requestLineParseErrorHandler,
             )
             .compile
             .drain
@@ -224,6 +250,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             logger,
             wsBuilder.webSocketKey,
             enableHttp2,
+            requestLineParseErrorHandler,
           )
           .compile
           .drain
@@ -256,8 +283,9 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
-      None,
-      false,
+      unixSocketConfig = None,
+      enableHttp2 = false,
+      requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
@@ -278,9 +306,17 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       serverFailure.covary[F].pure[F]
     }
 
-    @deprecated("0.21.17", "Use errorHandler, default fallback of failure InternalServerFailure")
+    @deprecated("Use errorHandler, default fallback of failure InternalServerFailure", "0.21.17")
     def onError[F[_]]: Throwable => Response[F] = { (_: Throwable) =>
       serverFailure.covary[F]
+    }
+
+    def requestLineParseErrorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case _ =>
+      Response(
+        Status.BadRequest,
+        HttpVersion.`HTTP/1.1`,
+        Headers(org.http4s.headers.`Content-Length`.zero),
+      ).pure[F]
     }
 
     def onWriteFailure[F[_]: Applicative]

@@ -180,12 +180,15 @@ class ServerSentEventSpec extends Http4sSuite {
     )
   }
 
-  test("EntityDecoder[EventStream] should decode to original event stream") {
+  test("EntityEncoder[EventStream] should decode to original event stream") {
     for {
       r <- Response[IO]()
         .withEntity(eventStream)
-        .as[EventStream[IO]]
-        .flatMap(_.dropLast.compile.toVector)
+        .body
+        .through(ServerSentEvent.decoder)
+        .dropLast
+        .compile
+        .toVector
       e <- eventStream.compile.toVector
     } yield assertEquals(r, e)
   }

@@ -12,10 +12,64 @@ include:
   syntactically correct, but semantically incorrect.  A well-formed
   JSON request that is missing expected fields may generate this
   failure.
-* `MediaTypeMissing`: indiciates that the message had no media type,
+* `MediaTypeMissing`: indicates that the message had no media type,
   and the server wasn't willing to infer it.
-* `MediaTypeMismatch`: indiciates that the server received a media
+* `MediaTypeMismatch`: indicates that the server received a media
   type that it wasn't prepared to handle.
+
+# For Beginners
+
+When you start from a "clean slate" with http4s, one of the things you're likely to notice, is that http4s is swallowing your exceptions - let's see if we can prove it. Assuming you've gotten the hello world example started, let's introduce another route, which is going to error out.
+
+```
+val errorRoute: HttpRoutes[IO] = HttpRoutes.of[IO] { 
+      case req @ GET -> "error" =>
+        throw new Exception("Hey don't swallow me")
+}
+```
+Once you've added that to your app and hit the "error" route, what you'll find, is that it returns a `500` response code... and no messages, and the console that hosts the http4s dev server is also showing you ... nothing. 
+
+Now, in general swallowing exceptions in software engineering is widely considered bad practise - now we have no idea our program is going wrong! Presumably in the case of http4s, having your public facing webserver "secure by default" trumps that consideration. 
+
+http4s provides an answer to this seeming paradox, in the form of [middleware](middleware.md). As this section is written by a beginner, we're going to assume you want to know your code is throwing exceptions and take the beginners path of least resistance to surfacing them. You probably have a server, instantiated something like this; 
+
+```
+EmberServerBuilder
+  .default[IO]
+  .withPort(port"8081")
+  .withHost(host"localhost")
+  .withHttpApp(errorRoute)
+  .build
+```
+
+We're going to make it look like this, instead. 
+
+```
+import org.http4s.server.middleware.ErrorAction
+import org.http4s.server.middleware.ErrorHandling
+
+...
+
+val withErrorLogging = ErrorHandling.Recover.total(
+  ErrorAction.log(
+    errorRoute,
+    messageFailureLogAction = (t, msg) => 
+      IO.println(msg) >>
+      IO.println(t),                
+    serviceErrorLogAction = (t, msg) => 
+      IO.println(msg) >>
+      IO.println(t)   
+  )
+)
+
+EmberServerBuilder
+  .default[IO]
+  .withPort(port"8081")
+  .withHost(host"localhost")
+  .withHttpApp(withErrorLogging)
+  .build
+```
+And now, you'll get told which endpoint is failing, and get the stacktrace printed to the console. Leveling up your error handling experience through fancy logging frameworks, tracing et al is left as an excercise for the (no longer beginner) reader... 
 
 ## Logging
 

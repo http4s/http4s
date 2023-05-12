@@ -19,13 +19,12 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.data._
 import cats.effect._
-import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
+import fs2.concurrent.Channel
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
-import org.http4s.headers.Trailer
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -69,6 +68,45 @@ private[h2] class H2Stream[F[_]: Concurrent](
         }
       case H2Connection.ConnectionType.Client =>
         new IllegalStateException("Clients Are Not Allowed To Send PushPromises").raiseError
+    }
+
+  /** Send [[Message]] in chunks according to remote receiver's max frame size.
+    * On empty [[Message]], send an empty DATA frame if there are no trailer headers.
+    *
+    * @param mess the [[Message]] to send
+    */
+  def sendMessageBody(mess: Message[F]): F[Unit] = {
+    val noTrailers = !mess.attributes.contains(Message.Keys.TrailerHeaders[F])
+    val maxFrameSize = remoteSettings.map(_.maxFrameSize.frameSize)
+    maxFrameSize.flatMap(maxFrameSize =>
+      mess.body
+        .ifEmpty[F, Byte](
+          Stream.exec(sendData(ByteVector.empty, true).whenA(noTrailers))
+        )
+        .chunkLimit(maxFrameSize)
+        .zipWithNext
+        .foreach { case (c, nextChunk) =>
+          val isEndStream = nextChunk.isEmpty && noTrailers
+          sendData(c.toByteVector, isEndStream)
+        }
+        .compile
+        .drain
+        .onError { case _ =>
+          rstStream(H2Error.InternalError)
+        }
+    )
+  }
+
+  def sendTrailerHeaders(mess: Message[F]): F[Unit] =
+    mess.attributes.lookup(Message.Keys.TrailerHeaders[F]) match {
+      case None => Applicative[F].unit
+      case Some(fhs) =>
+        fhs.flatMap { hs =>
+          hs.headers
+            .map(a => (a.name.toString.toLowerCase(), a.value, false))
+            .toNel
+            .traverse_(sendHeaders(_, true))
+        }
     }
 
   // TODO Check Settings to Split Headers into Headers and Continuation
@@ -129,17 +167,16 @@ private[h2] class H2Stream[F[_]: Concurrent](
           }
         } else {
           if (s.writeWindow > 0) {
-            for {
-              t <- state.modify { s =>
+            state
+              .modify { s =>
                 val head = bv.take(s.writeWindow)
                 val tail = bv.drop(s.writeWindow)
                 (s.copy(writeWindow = s.writeWindow - head.size.toInt), (head, tail))
               }
-              (head, tail) = t
-              _ <- enqueue.offer(Chunk.singleton(H2Frame.Data(id, head, None, false)))
-              out <- sendData(tail, endStream)
-            } yield out
-
+              .flatMap { case (head, tail) =>
+                val frame = H2Frame.Data(id, head, None, false)
+                enqueue.offer(Chunk.singleton(frame)) >> sendData(tail, endStream)
+              }
           } else s.writeBlock.get.rethrow >> sendData(bv, endStream)
         }
       case _ => new IllegalStateException("Stream Was Closed").raiseError
@@ -156,10 +193,8 @@ private[h2] class H2Stream[F[_]: Concurrent](
     state.get.flatMap { s =>
       def attribute(mess: Message[Pure]): mess.Self = {
         val iMess = mess.withAttribute(H2Keys.StreamIdentifier, id)
-        if (mess.headers.get[Trailer].isDefined) {
-          val trailerF = s.trailers.get.rethrow
-          iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
-        } else iMess
+        val trailerF = s.trailers.get.rethrow
+        iMess.withAttribute(org.http4s.Message.Keys.TrailerHeaders[F], trailerF)
       }
 
       s.state match {
@@ -196,12 +231,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(resp) =>
                         response.complete(Either.right(attribute(resp))) >>
                           checkLengthOf(resp) >>
-                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
+                          (if (headers.endStream) s.trailWith(List.empty).void
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h).void
+                  case _ => s.trailWith(h.toList).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {
@@ -210,12 +248,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
                       case Some(req) =>
                         request.complete(Either.right(attribute(req))) >>
                           checkLengthOf(req) >>
-                          (if (newstate == StreamState.Closed) onClosed else Applicative[F].unit)
+                          (if (headers.endStream) s.trailWith(List.empty).void
+                           else Applicative[F].unit) >>
+                          (if (newstate == StreamState.Closed) onClosed
+                           else Applicative[F].unit)
                       case None =>
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h).void
+                  case _ => s.trailWith(h.toList).void
                 }
             }
           } yield ()
@@ -291,14 +332,16 @@ private[h2] class H2Stream[F[_]: Concurrent](
             )
           )
           _ <-
-            if (sizeReadOk) s.readBuffer.offer(Either.right(data.data))
+            if (sizeReadOk) s.readBuffer.send(Right(data.data)).void
             else rstStream(H2Error.ProtocolError)
 
           _ <-
             if (needsWindowUpdate && !isClosed && sizeReadOk) {
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
-          _ <- if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
+          _ <- if (data.endStream) s.trailWith(List.empty).void else Applicative[F].unit
+          _ <-
+            if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
         } yield ()
       case StreamState.Idle =>
         goAway(H2Error.ProtocolError)
@@ -314,37 +357,22 @@ private[h2] class H2Stream[F[_]: Concurrent](
     for {
       s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
       _ <- enqueue.offer(Chunk.singleton(rst))
-      t = new CancellationException(s"Sending RstStream, cancelling: $rst")
-      _ <- s.writeBlock.complete(Left(t))
-      _ <- s.request.complete(Left(t))
-      _ <- s.response.complete(Left(t))
-      _ <- s.readBuffer.offer(Left(t))
+      _ <- s.cancelWith(s"Sending RstStream, cancelling: $rst")
       _ <- onClosed
     } yield ()
-
   }
 
   // Broadcast Frame
   // Will eventually allow us to know we can retry if we are above the processed window declared
   def receiveGoAway(goAway: H2Frame.GoAway): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new CancellationException(s"Received GoAway, cancelling: $goAway")
-    _ <- s.writeBlock.complete(Left(t))
-    _ <- s.request.complete(Left(t))
-    _ <- s.response.complete(Left(t))
-    _ <- s.readBuffer.offer(Left(t))
+    _ <- s.cancelWith(s"Received GoAway, cancelling: $goAway")
     _ <- onClosed
   } yield ()
 
   def receiveRstStream(rst: H2Frame.RstStream): F[Unit] = for {
     s <- state.modify(s => (s.copy(state = StreamState.Closed), s))
-    t = new CancellationException(
-      s"Received RstStream, cancelling: $rst"
-    ) // Unsure of this, but also unsure about exposing custom throwable
-    _ <- s.writeBlock.complete(Left(t))
-    _ <- s.request.complete(Left(t))
-    _ <- s.response.complete(Left(t))
-    _ <- s.readBuffer.offer(Left(t))
+    _ <- s.cancelWith(s"Received RstStream, cancelling: $rst")
     _ <- onClosed
   } yield ()
 
@@ -363,7 +391,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
 
     _ <- {
       if (!valid) rstStream(H2Error.FlowControlError)
-      else oldWriteBlock.complete(Right(())).void
+      else oldWriteBlock.complete(Either.unit).void
     }
   } yield ()
 
@@ -376,36 +404,15 @@ private[h2] class H2Stream[F[_]: Concurrent](
       (newS, s.writeBlock)
     }
 
-    _ <- oldWriteBlock.complete(Right(())).void
+    _ <- oldWriteBlock.complete(Either.unit).void
   } yield ()
 
   def getRequest: F[org.http4s.Request[fs2.Pure]] = state.get.flatMap(_.request.get.rethrow)
   def getResponse: F[org.http4s.Response[fs2.Pure]] = state.get.flatMap(_.response.get.rethrow)
 
-  def readBody: Stream[F, Byte] = {
-    def pullBuffer(buffer: Queue[F, Either[Throwable, ByteVector]]): Pull[F, Byte, Unit] =
-      Pull.eval(buffer.tryTake).flatMap {
-        case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> pullBuffer(buffer)
-        case Some(Left(e)) => Pull.raiseError(e)
-        case None => Pull.done
-      }
-
-    def p1(state: H2Stream.State[F]): Pull[F, Byte, Unit] =
-      Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
-        case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
-        case Left(Left(e)) => Pull.raiseError(e)
-        case Right(_) => Pull.done
-      }
-
-    def loop: Pull[F, Byte, Unit] =
-      Pull.eval(state.get).flatMap { state =>
-        if (state.isClosed)
-          pullBuffer(state.readBuffer)
-        else
-          p1(state) >> pullBuffer(state.readBuffer) >> loop
-      }
-
-    loop.stream
+  def readBody: Stream[F, Byte] = Stream.force(state.get.map(_.readBuffer.stream)).flatMap {
+    case Right(bv) => Stream.chunk(Chunk.byteVector(bv))
+    case Left(ex) => Stream.raiseError(ex)
   }
 
 }
@@ -419,15 +426,25 @@ private[h2] object H2Stream {
       request: Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]],
       response: Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]],
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
-      readBuffer: Queue[F, Either[Throwable, ByteVector]],
+      readBuffer: Channel[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
   ) {
     override def toString: String =
       s"H2Stream.State(state=$state, writeWindow=$writeWindow, readWindow=$readWindow, contentLengthCheck=$contentLengthCheck)"
 
-    private[h2] def trailWith(rawHs: NonEmptyList[(String, String)]): F[Boolean] = {
-      val hs = Headers(rawHs.toList.map(Header.ToRaw.keyValuesToRaw): _*)
+    private[h2] def trailWith(rawHs: List[(String, String)]): F[Boolean] = {
+      val hs = Headers(rawHs.map(Header.ToRaw.keyValuesToRaw): _*)
       trailers.complete(Either.right(hs))
+    }
+
+    private[H2Stream] def cancelWith(msg: String)(implicit F: Monad[F]): F[Unit] = {
+      // Unsure of this, but also unsure about exposing custom throwable
+      val t = new CancellationException(msg)
+      writeBlock.complete(Left(t)) >>
+        request.complete(Left(t)) >>
+        response.complete(Left(t)) >>
+        readBuffer.send(Left(t)) >>
+        trailers.complete(Left(t)).void
     }
 
     def isClosed: Boolean = state == StreamState.HalfClosedRemote || state == StreamState.Closed

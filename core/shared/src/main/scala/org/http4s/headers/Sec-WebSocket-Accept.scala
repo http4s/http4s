@@ -17,18 +17,15 @@
 package org.http4s
 package headers
 
-import cats.parse.Parser
-import cats.parse.Parser.charIn
-import cats.parse.Rfc5234.alpha
-import cats.parse.Rfc5234.digit
+import org.http4s.internal.parsing.Rfc4648
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
 import java.util.Base64
 import scala.util.Try
 
-final class `Sec-WebSocket-Accept`(hashBytes: ByteVector) {
-  lazy val hashString: String = Base64.getEncoder().encodeToString(hashBytes.toArray)
+final case class `Sec-WebSocket-Accept`(hashedKey: ByteVector) {
+  lazy val hashString: String = Base64.getEncoder().encodeToString(hashedKey.toArrayUnsafe)
 }
 
 object `Sec-WebSocket-Accept` {
@@ -36,17 +33,13 @@ object `Sec-WebSocket-Accept` {
   def parse(s: String): ParseResult[`Sec-WebSocket-Accept`] =
     ParseResult.fromParser(parser, "Invalid Sec-WebSocket-Accept header")(s)
 
-  private[this] val tchar: Parser[Char] = charIn("=").orElse(digit).orElse(alpha)
-
-  private[this] val token: Parser[String] = tchar.rep.string
-
-  private[http4s] val parser = token.mapFilter { t =>
+  private[http4s] val parser = Rfc4648.Base64.token.mapFilter { t =>
     Try(unsafeFromString(t)).toOption
   }
 
   private def unsafeFromString(hash: String): `Sec-WebSocket-Accept` = {
     val bytes = Base64.getDecoder().decode(hash)
-    new `Sec-WebSocket-Accept`(ByteVector(bytes))
+    `Sec-WebSocket-Accept`(ByteVector.view(bytes))
   }
 
   implicit val headerInstance: Header[`Sec-WebSocket-Accept`, Header.Single] =

@@ -23,11 +23,11 @@ ThisBuild / githubWorkflowJobSetup ~= {
 }
 ThisBuild / githubWorkflowJobSetup ++= Seq(
   WorkflowStep.Use(
-    UseRef.Public("cachix", "install-nix-action", "v17"),
+    UseRef.Public("cachix", "install-nix-action", "v20"),
     name = Some("Install Nix"),
   ),
   WorkflowStep.Use(
-    UseRef.Public("cachix", "cachix-action", "v10"),
+    UseRef.Public("cachix", "cachix-action", "v12"),
     name = Some("Install Cachix"),
     params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
   ),
@@ -58,7 +58,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
-  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+  new NodeJSEnv(
+    NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
+  )
 }
 
 lazy val modules: List[CompositeProject] = List(
@@ -169,6 +171,9 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "org.http4s.MimeDB#application_parts#application_3.org$http4s$MimeDB$application_parts$application_3$$_part_3_="
       ),
+
+      // package-private, and only broken on JS/Native
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.http4s.Charset.availableCharsets"),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -231,7 +236,8 @@ lazy val core = libraryCrossProject("core")
     },
   )
   .jsSettings(
-    jsVersionIntroduced("0.23.5")
+    jsVersionIntroduced("0.23.5"),
+    libraryDependencies ++= Seq(log4catsJSConsole.value),
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -277,6 +283,7 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+    githubWorkflowArtifactUpload := false,
   )
   .nativeSettings(
     libraryDependencies ++= Seq(
@@ -398,6 +405,12 @@ lazy val client = libraryCrossProject("client")
         "org.http4s.client.websocket.WSConnectionHighLevel.sendClose$default$1"
       ),
       // end wsclient
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.F"
+      ), // sealed protected
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.client.JavaNetClientBuilder.this"
+      ), // private
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -448,7 +461,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
       nettyCodecHttp,
     )
   )
-  .dependsOn(client, theDsl)
+  .dependsOn(client, theDsl, server, tests % Test)
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
@@ -458,6 +471,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsCore.value,
       log4catsTesting.value % Test,
+      log4catsNoop.value % Test,
     ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
@@ -501,6 +515,38 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
       ProblemFilters.exclude[IncompatibleTemplateDefProblem](
         "org.http4s.ember.core.h2.HpackPlatform"
       ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Frame#*.type"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.H2Frame$*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Frame#Ping.empty"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.core.h2.H2Frame#Ping.emptyBV"
+      ),
+      ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.H2Client*"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.Hpack#Impl.this"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.readBuffer"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.copy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.copy$default$8"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.this"
+      ),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State.apply"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "org.http4s.ember.core.h2.H2Stream#State._8"
+      ),
     ) ++ {
       if (tlIsScala3.value)
         Seq(
@@ -518,6 +564,9 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
           ProblemFilters.exclude[MissingTypesProblem]("org.http4s.ember.core.h2.Hpack$"),
           ProblemFilters.exclude[IncompatibleTemplateDefProblem](
             "org.http4s.ember.core.h2.HpackPlatform"
+          ),
+          ProblemFilters.exclude[DirectMissingMethodProblem](
+            "org.http4s.ember.core.h2.H2Frame#*.toRaw"
           ),
         )
       else Seq.empty
@@ -685,6 +734,7 @@ lazy val bench = http4sProject("bench")
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
   .settings(
+    startYear := Some(2022),
     // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
     // By placing the app in Test scope it gets linked as part of that CI step
     Test / scalaJSUseMainModuleInitializer := true,
@@ -701,7 +751,8 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
       val sizeKB = size / 1000
       // not a hard target. increase *moderately* if need be
       // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      val targetKB = 350
+      // linking java.time.* results in a 70 KB increase
+      val targetKB = 280
       val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
       if (sizeKB < targetKB)
         log.info(msg)
@@ -873,20 +924,13 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
-      unusedCompileDependenciesTest := {},
-      nativeConfig ~= { c =>
-        Option(System.getenv("DEVSHELL_DIR")).fold(c) { devshellDir =>
-          c.withCompileOptions(c.compileOptions :+ s"-I$devshellDir/include")
-            .withLinkingOptions(c.linkingOptions :+ s"-L$devshellDir/lib")
-        }
+      Test / nativeBrewFormulas ++= {
+        if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },
-      Test / envVars ++= {
-        val ldLibPath = Option(System.getenv("DEVSHELL_DIR"))
-          .map(devshellDir => "LD_LIBRARY_PATH" -> s"$devshellDir/lib")
-        Map("S2N_DONT_MLOCK" -> "1") ++ ldLibPath.toMap
-      },
+      Test / envVars += "S2N_DONT_MLOCK" -> "1",
     )
     .enablePlugins(Http4sPlugin)
     .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))
