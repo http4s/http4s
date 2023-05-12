@@ -3,7 +3,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.23.19 (2022-05-12)
+# v0.23.19 (2023-05-12)
 
 This release updates to Cats Effect v3.5.0 which includes an important change to the cancelation semantics of the `Async#async` and `IO.async` methods. Please check the [Cats Effect release notes for v3.5.0](https://github.com/typelevel/cats-effect/releases/tag/v3.5.0) for more details. These changes do not affect Ember, but they do affect Blaze (see https://github.com/http4s/blaze/issues/772) and possibly other http4s backends.
 
