@@ -31,7 +31,7 @@ import org.http4s.HttpApp
 import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketCombinedPipe
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebSocketFrame
@@ -40,20 +40,20 @@ import org.http4s.websocket.WebSocketSeparatePipe
 object WSTestClient {
 
   def fromHttpWebSocketApp[F[_]: Concurrent](
-      f: WebSocketBuilder2[F] => HttpApp[F]
+      f: WebSocketBuilder[F] => HttpApp[F]
   ): F[WSClient[F]] =
     fromHttpWebSocketApp(respondToPings = true)(f)
 
   /** Creates a WSClient from the specified [[HttpApp]].
-    * [[org.http4s.server.websocket.WebSocketBuilder2]] is used for specifying the WebSocket connection.
+    * [[org.http4s.server.websocket.WebSocketBuilder]] is used for specifying the WebSocket connection.
     * Useful for generating pre-determined responses for requests in testing.
     *
     * @param respondToPings if true, the client will respond to ping frames with a pong frame.
-    * @param f a function that takes a [[org.http4s.server.websocket.WebSocketBuilder2]] and returns an [[HttpApp]].
+    * @param f a function that takes a [[org.http4s.server.websocket.WebSocketBuilder]] and returns an [[HttpApp]].
     */
   def fromHttpWebSocketApp[F[_]: Concurrent](
       respondToPings: Boolean
-  )(f: WebSocketBuilder2[F] => HttpApp[F]): F[WSClient[F]] = {
+  )(f: WebSocketBuilder[F] => HttpApp[F]): F[WSClient[F]] = {
 
     def processSeparatedSocket(
         socket: WebSocketSeparatePipe[F],
@@ -122,7 +122,7 @@ object WSTestClient {
       }
 
     for {
-      wsb <- WebSocketBuilder2[F]
+      wsb <- WebSocketBuilder[F]
       app = f(wsb)
     } yield WSClient[F](respondToPings) { req =>
       Resource
