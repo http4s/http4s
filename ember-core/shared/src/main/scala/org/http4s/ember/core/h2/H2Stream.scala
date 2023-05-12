@@ -19,9 +19,9 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.data._
 import cats.effect._
-import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
+import fs2.concurrent.Channel
 import org.http4s.Header
 import org.http4s.Headers
 import org.http4s.Message
@@ -332,7 +332,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
             )
           )
           _ <-
-            if (sizeReadOk) s.readBuffer.offer(Either.right(data.data))
+            if (sizeReadOk) s.readBuffer.send(Right(data.data)).void
             else rstStream(H2Error.ProtocolError)
 
           _ <-
@@ -410,30 +410,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
   def getRequest: F[org.http4s.Request[fs2.Pure]] = state.get.flatMap(_.request.get.rethrow)
   def getResponse: F[org.http4s.Response[fs2.Pure]] = state.get.flatMap(_.response.get.rethrow)
 
-  def readBody: Stream[F, Byte] = {
-    def pullBuffer(buffer: Queue[F, Either[Throwable, ByteVector]]): Pull[F, Byte, Unit] =
-      Pull.eval(buffer.tryTake).flatMap {
-        case Some(Right(s)) => Pull.output(Chunk.byteVector(s)) >> pullBuffer(buffer)
-        case Some(Left(e)) => Pull.raiseError(e)
-        case None => Pull.done
-      }
-
-    def p1(state: H2Stream.State[F]): Pull[F, Byte, Unit] =
-      Pull.eval(Concurrent[F].race(state.readBuffer.take, state.trailers.get)).flatMap {
-        case Left(Right(b)) => Pull.output(Chunk.byteVector(b))
-        case Left(Left(e)) => Pull.raiseError(e)
-        case Right(_) => Pull.done
-      }
-
-    def loop: Pull[F, Byte, Unit] =
-      Pull.eval(state.get).flatMap { state =>
-        if (state.isClosed)
-          pullBuffer(state.readBuffer)
-        else
-          p1(state) >> pullBuffer(state.readBuffer) >> loop
-      }
-
-    loop.stream
+  def readBody: Stream[F, Byte] = Stream.force(state.get.map(_.readBuffer.stream)).flatMap {
+    case Right(bv) => Stream.chunk(Chunk.byteVector(bv))
+    case Left(ex) => Stream.raiseError(ex)
   }
 
 }
@@ -447,7 +426,7 @@ private[h2] object H2Stream {
       request: Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]],
       response: Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]],
       trailers: Deferred[F, Either[Throwable, org.http4s.Headers]],
-      readBuffer: Queue[F, Either[Throwable, ByteVector]],
+      readBuffer: Channel[F, Either[Throwable, ByteVector]],
       contentLengthCheck: Option[(Long, Long)],
   ) {
     override def toString: String =
@@ -464,7 +443,7 @@ private[h2] object H2Stream {
       writeBlock.complete(Left(t)) >>
         request.complete(Left(t)) >>
         response.complete(Left(t)) >>
-        readBuffer.offer(Left(t)) >>
+        readBuffer.send(Left(t)) >>
         trailers.complete(Left(t)).void
     }
 
