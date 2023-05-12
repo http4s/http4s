@@ -122,15 +122,15 @@ private[ember] object ChunkedEncoding {
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
-    if (buffer.startsWith(Shared.crlf.toArray)) {
-      Trailers(Headers.empty, buffer.drop(crlf.size.toInt)).pure[F]
-    } else if (buffer.length < 2) {
+    if (buffer.length < 2) {
       read.flatMap {
         case None =>
           MonadThrow[F].raiseError(EmberException.ReachedEndOfStream())
         case Some(chunk) =>
-          parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
+          parseTrailers(maxHeaderSize)(Util.concatBytes(buffer, chunk), read)
       }
+    } else if (buffer(0) == '\r' && buffer(1) == '\n') {
+      Trailers(Headers.empty, buffer.drop(2)).pure[F]
     } else {
       Parser.MessageP
         .recurseFind(buffer, read, maxHeaderSize, Parser.HeaderP.ParserState.initial)(
