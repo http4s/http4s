@@ -26,7 +26,7 @@ import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSFrame
 import org.http4s.client.websocket.WSRequest
 import org.http4s.dsl.io._
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.syntax.all._
 import org.http4s.websocket.WebSocketFrame
 
@@ -37,7 +37,7 @@ class WSTestClientSuite extends Http4sSuite {
       send: Queue[IO, WebSocketFrame],
       receive: Queue[IO, WebSocketFrame],
   ): IO[WSClient[IO]] =
-    fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
+    fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder[IO]) =>
       HttpRoutes
         .of[IO] { case GET -> Root / "ws" =>
           wsb
@@ -48,7 +48,7 @@ class WSTestClientSuite extends Http4sSuite {
     }
 
   private def combinedPipeWsApp: IO[WSClient[IO]] = fromHttpWebSocketApp[IO] {
-    (wsb: WebSocketBuilder2[IO]) =>
+    (wsb: WebSocketBuilder[IO]) =>
       HttpRoutes
         .of[IO] { case GET -> Root / "ws" =>
           wsb
@@ -86,7 +86,7 @@ class WSTestClientSuite extends Http4sSuite {
 
   test("client should not lose frames") {
     val msg = "hello"
-    val app = fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
+    val app = fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder[IO]) =>
       HttpRoutes
         .of[IO] { case GET -> Root / "ws" =>
           wsb
@@ -133,7 +133,7 @@ class WSTestClientSuite extends Http4sSuite {
 
     Resource
       .eval(
-        fromHttpWebSocketApp[IO]((_: WebSocketBuilder2[IO]) =>
+        fromHttpWebSocketApp[IO]((_: WebSocketBuilder[IO]) =>
           HttpRoutes
             .of[IO] { case GET -> Root / "ws" =>
               Ok("Hello")
