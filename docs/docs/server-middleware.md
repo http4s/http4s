@@ -676,7 +676,7 @@ contextClient.expect[String](contextRequest).unsafeRunSync()
 [CORS]: cors.md
 [GZip]: gzip.md
 [HSTS]: hsts.md
-[CSRF]: hsts.md
+[CSRF]: csrf.md
 [Caching]: @API_URL@org/http4s/server/middleware/Caching$.html
 [TokenBucket]: @API_URL@org/http4s/server/middleware/Throttle$$TokenBucket.html
 [MetricsOps]: @API_URL@org/http4s/server/middleware/Metrics$$MetricsOps.html
