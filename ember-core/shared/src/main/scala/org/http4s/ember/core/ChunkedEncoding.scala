@@ -185,12 +185,13 @@ private[ember] object ChunkedEncoding {
     Chunk.array(stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1))
   }
 
-  def encodeChunk(chunk: Chunk[Byte]): Chunk[Byte] =
+  def encodeChunk(chunk: Chunk[Byte], trailers: Headers): Chunk[Byte] =
     if (chunk.isEmpty) {
       chunk
     } else {
       Chunk.array(chunk.size.toHexString.toUpperCase.getBytes) ++
-        Chunk.byteVector(crlf) ++ chunk ++ Chunk.byteVector(crlf) ++ lastChunk
+        Chunk.byteVector(crlf) ++ chunk ++ Chunk.byteVector(crlf) ++ lastChunk ++
+        encodeTrailers(trailers) ++ Chunk.byteVector(crlf)
     }
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */
