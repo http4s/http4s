@@ -131,19 +131,19 @@ HttpRoutes.of[IO] {
 Some other examples are:
 
 ```scala mdoc
-HttpRoutes.of[IO]{
+HttpRoutes.of[IO] {
     case _ => Conflict()
 }.orNotFound.run(getRoot).unsafeRunSync()
 ```
 
 ```scala mdoc
-HttpRoutes.of[IO]{
+HttpRoutes.of[IO] {
     case _ => Created()
 }.orNotFound.run(getRoot).unsafeRunSync()
 ```
 
 ```scala mdoc
-HttpRoutes.of[IO]{
+HttpRoutes.of[IO] {
     case _ => Forbidden()
 }.orNotFound.run(getRoot).unsafeRunSync()
 ```
