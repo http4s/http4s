@@ -73,4 +73,36 @@ object ContextRoutes {
     */
   def empty[T, F[_]: Applicative]: ContextRoutes[T, F] =
     Kleisli.liftF(OptionT.none)
+
+  /** Lifts an effectful [[Response]] into an [[ContextRoutes]].
+    *
+    * @tparam F the effect of the [[ContextRoutes]]
+    * @param fr the effectful [[Response]] to lift
+    * @return an [[ContextRoutes]] that always returns `fr`
+    */
+  def liftF[T, F[_]](fr: OptionT[F, Response[F]]): ContextRoutes[T, F] =
+    Kleisli.liftF(fr)
+
+  /** Lifts a [[Response]] into an [[ContextRoutes]].
+    *
+    * @tparam F the base effect of the [[ContextRoutes]]
+    * @param r the [[Response]] to lift
+    * @return an [[ContextRoutes]] that always returns `r` in effect `OptionT[F, *]`
+    */
+  def pure[T, F[_]](r: Response[F])(implicit FO: Applicative[OptionT[F, *]]): ContextRoutes[T, F] =
+    Kleisli.pure(r)
+
+  /** Transforms an [[ContextRequest]] on its input.  The application of the
+    * transformed function is suspended in `F` to permit more
+    * efficient combination of routes via `SemigroupK`.
+    *
+    * @tparam F the base effect of the [[ContextRoutes]]
+    * @param f  a function to apply to the [[ContextRequest]]
+    * @param fa the [[ContextRoutes]] to transform
+    * @return An [[ContextRoutes]] whose input is transformed by `f` before
+    *         being applied to `fa`
+    */
+  def local[T, F[_]: Monad](f: ContextRequest[F, T] => ContextRequest[F, T])(
+      fa: ContextRoutes[T, F]
+  ): ContextRoutes[T, F] = Kleisli(req => Monad[OptionT[F, *]].unit >> fa.run(f(req)))
 }
