@@ -24,7 +24,6 @@ import fs2._
 import fs2.text.utf8
 import munit._
 import munit.catseffect._
-import org.scalacheck.Prop
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.noop.NoOpFactory
 

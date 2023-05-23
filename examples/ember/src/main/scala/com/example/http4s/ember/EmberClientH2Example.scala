@@ -21,7 +21,7 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.io.net._
 import org.http4s._
-import org.http4s.ember.client.EmberClientBuilder
+import _root_.org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.h2._
 import org.http4s.implicits._
 import org.typelevel.log4cats.slf4j._

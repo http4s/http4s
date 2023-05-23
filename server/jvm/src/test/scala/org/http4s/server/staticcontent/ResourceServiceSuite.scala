@@ -36,7 +36,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val defaultBase = getClass.getResource("/").getPath.toString
   // val routes = resourceService(config)
   private val builder = resourceServiceBuilder[IO]("")
-  def routes: HttpRoutes[IO] = builder.toRoutes.syncStep.unsafeRunSync().toOption.get
+  def routes: HttpRoutes[IO] = builder.toRoutes.syncStep(Int.MaxValue).unsafeRunSync().toOption.get
   private val defaultBase = getClass.getResource("/").getPath.toString
 
   test("Respect UriTranslation") {

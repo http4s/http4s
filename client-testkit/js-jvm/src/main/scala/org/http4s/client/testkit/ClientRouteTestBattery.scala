@@ -31,14 +31,20 @@ import org.http4s.implicits._
 import org.http4s.multipart.Multiparts
 import org.http4s.multipart.Part
 import org.typelevel.ci._
-
 import java.util.Arrays
 import java.util.Locale
+
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.noop.NoOpFactory
+
 import scala.concurrent.duration._
 
 private[http4s] abstract class ClientRouteTestBattery(name: String)
     extends CatsEffectSuite
     with Http4sClientDsl[IO] {
+
+  implicit val loggerFactory: LoggerFactory[IO] = NoOpFactory[IO]
+
   val timeout: FiniteDuration = 20.seconds
 
   def clientResource: Resource[IO, Client[IO]]

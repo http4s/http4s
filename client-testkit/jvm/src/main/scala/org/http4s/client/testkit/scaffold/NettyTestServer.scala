@@ -74,7 +74,7 @@ private[http4s] object NettyTestServer {
         .channelFactory(new ChannelFactory[NioServerSocketChannel] {
           override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
         })
-        .handler(new LoggingHandler(LogLevel.INFO))
+        .handler(new LoggingHandler())
         .childHandler(new ChannelInitializer[NioSocketChannel]() {
           def initChannel(ch: NioSocketChannel): Unit = {
             dispatcher.unsafeRunSync(

@@ -284,10 +284,6 @@ object EmberServerBuilder {
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
     )
 
-  @deprecated("Use the overload which accepts a Network", "0.23.16")
-  def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
-    default(async, Network.forAsync(async))
-
   private object Defaults {
     val host: String = server.defaults.IPv4Host
     val port: Int = server.defaults.HttpPort

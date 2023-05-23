@@ -131,11 +131,6 @@ lazy val core = libraryCrossProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
-  .platformsSettings(JVMPlatform, JSPlatform)(
-    libraryDependencies ++= Seq(
-      log4s.value
-    )
-  )
   .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies ++= Seq(
       log4catsNoop.value,
@@ -287,7 +282,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
     emberClient % "test->compile",
   )
 
-lazy val emberClient = libraryCrossProject("ember-client", CrossType.Pure)
+lazy val emberClient = libraryCrossProject("ember-client")
   .settings(
     description := "ember implementation for http4s clients",
     startYear := Some(2019),

@@ -31,7 +31,7 @@ import org.typelevel.log4cats.LoggerFactory
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-    def defaultRedactHeadersWhen(name: CIString): Boolean =
+  def defaultRedactHeadersWhen(name: CIString): Boolean =
     Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
 
   def apply[G[_], F[_]: LoggerFactory](
@@ -102,7 +102,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
-  )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
+  )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
 }

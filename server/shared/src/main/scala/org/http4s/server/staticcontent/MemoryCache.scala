@@ -19,6 +19,7 @@ package server
 package staticcontent
 
 import cats.effect.Concurrent
+import cats.syntax.apply._
 import cats.syntax.functor._
 import org.typelevel.log4cats.LoggerFactory
 import scodec.bits.ByteVector

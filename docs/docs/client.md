@@ -24,6 +24,7 @@ Here's a quick example app to print the response of a GET request.
 import cats.effect.{IO, IOApp}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.client.Client
+import org.typelevel.log4cats.slf4j._
 
 object Hello extends IOApp.Simple {
 

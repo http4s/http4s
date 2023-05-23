@@ -411,10 +411,6 @@ object EmberClientBuilder {
       pushPromiseSupport = None,
     )
 
-  @deprecated("Use the overload which accepts a Network", "0.23.16")
-  def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
-    default(async, Network.forAsync(async))
-
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
