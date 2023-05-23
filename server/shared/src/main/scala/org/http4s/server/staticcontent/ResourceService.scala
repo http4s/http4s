@@ -25,6 +25,7 @@ import cats.syntax.all._
 import org.http4s.server.middleware.TranslateUri
 import org.typelevel.log4cats.LoggerFactory
 
+import java.io.File
 import java.nio.file.Paths
 import scala.util.Failure
 import scala.util.Success
@@ -104,7 +105,7 @@ class ResourceServiceBuilder[F[_]: LoggerFactory] private (
               }
               .flatMap { path =>
                 StaticFile.fromResource(
-                  path.toString,
+                  path.toString.replace(File.separatorChar, '/'),
                   Some(request),
                   preferGzipped = preferGzipped,
                   classLoader,

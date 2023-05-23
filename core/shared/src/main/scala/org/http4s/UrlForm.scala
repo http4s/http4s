@@ -73,15 +73,15 @@ class UrlForm private (val values: Map[String, Chain[String]]) extends AnyVal {
   def updateFormFields[T](key: String, vals: Chain[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
     vals.foldLeft(this)(_.updateFormField(key, _)(ev))
 
-  /* same as `updateFormField(key, value)` */
+  /** Same as `updateFormField(key, value)` */
   def +?[T: QueryParamEncoder](key: String, value: T): UrlForm =
     updateFormField(key, value)
 
-  /* same as `updateParamEncoder`(key, value) */
+  /** Same as `updateParamEncoder`(key, value) */
   def +?[T: QueryParamEncoder](key: String, value: Option[T]): UrlForm =
     updateFormField(key, value)
 
-  /* same as `updatedParamEncoders`(key, vals) */
+  /** Same as `updatedParamEncoders`(key, vals) */
   def ++?[T: QueryParamEncoder](key: String, vals: Chain[T]): UrlForm =
     updateFormFields(key, vals)
 }
@@ -94,11 +94,25 @@ object UrlForm {
     if (values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
+  def single(key: String, value: String): UrlForm =
+    new UrlForm(Map(key -> Chain.one(value)))
+
   def apply(values: (String, String)*): UrlForm =
-    values.foldLeft(empty)(_ + _)
+    values match {
+      case Seq() => empty
+      case Seq(x) => single(x._1, x._2)
+      case h +: tail => tail.foldLeft(single(h._1, h._2))(_ + _)
+    }
 
   def fromChain(values: Chain[(String, String)]): UrlForm =
-    apply(values.toList: _*)
+    values.knownSize match {
+      case 0 => empty
+      case 1 =>
+        val h = values.headOption.get
+        single(h._1, h._2)
+      case _ =>
+        values.foldLeft(empty)(_ + _)
+    }
 
   implicit def entityEncoder(implicit charset: Charset = `UTF-8`): EntityEncoder.Pure[UrlForm] =
     EntityEncoder.stringEncoder
@@ -134,7 +148,7 @@ object UrlForm {
   )(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser
       .parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(q.multiParams.view.mapValues(Chain.fromSeq).toMap))
+      .map(q => UrlForm(q.multiParams.map(x => x._1 -> Chain.fromSeq(x._2))))
       .leftMap { parseFailure =>
         MalformedMessageBodyFailure(parseFailure.message, None)
       }

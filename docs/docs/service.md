@@ -63,7 +63,7 @@ matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
-```scala mdoc
+```scala mdoc:silent
 val helloWorldService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -84,7 +84,7 @@ We've defined `tweetsEncoder` as being implicit so that we don't need to explici
 reference it when serving the response, which can be seen as
 `getPopularTweets().flatMap(Ok(_))`.
 
-```scala mdoc
+```scala mdoc:silent
 case class Tweet(id: Int, message: String)
 
 implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
@@ -127,7 +127,7 @@ import scala.concurrent.duration._
 import org.typelevel.log4cats.slf4j._
 ```
 
-```scala mdoc
+```scala mdoc:silent
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val server = EmberServerBuilder
@@ -142,7 +142,7 @@ The `withHttpApp` call associates the specified routes with this http server ins
 
 We start a server resource in the background.
 
-```scala mdoc
+```scala mdoc:silent
 val shutdown = server.allocated.unsafeRunSync()._2
 ```
 
@@ -156,7 +156,7 @@ $ curl http://localhost:8080/hello/Pete
 
 We can shut down the server by canceling its fiber.
 
-```scala mdoc
+```scala mdoc:silent
 shutdown.unsafeRunSync()
 ```
 

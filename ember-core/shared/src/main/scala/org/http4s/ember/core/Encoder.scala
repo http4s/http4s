@@ -28,10 +28,10 @@ import java.nio.charset.StandardCharsets
 
 private[ember] object Encoder {
 
-  private val SPACE = " "
-  private val CRLF = "\r\n"
-  val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
-  val zeroContentLengthRaw = "Content-Length: 0"
+  private[this] final val SPACE = " "
+  private[this] final val CRLF = "\r\n"
+  private[this] final val chunkedTransferEncodingHeaderRaw = "Transfer-Encoding: chunked"
+  private[this] final val zeroContentLengthRaw = "Content-Length: 0"
 
   def initSection[F[_]](resp: Response[F]): (Array[Byte], Boolean) = {
     var chunked = resp.isChunked
@@ -48,25 +48,21 @@ private[ember] object Encoder {
     // Apply each header followed by a CRLF
     resp.headers.foreach { h =>
       if (h.isNameValid) {
+        appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
         stringBuilder
           .append(h.name)
           .append(": ")
         appendSanitized(stringBuilder, h.value)
         stringBuilder.append(CRLF)
-        if (h.name == `Content-Length`.name) {
-          appliedContentLength = true
-        }
         ()
       }
     }
     if (!appliedContentLength && resp.entity == Entity.Empty && resp.status.isEntityAllowed) {
       stringBuilder.append(zeroContentLengthRaw).append(CRLF)
       chunked = false
-      ()
     } else if (!chunked && !appliedContentLength && resp.status.isEntityAllowed) {
       stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
       chunked = true
-      ()
     }
     // Final CRLF terminates headers and signals body to follow.
     stringBuilder.append(CRLF)
@@ -86,10 +82,10 @@ private[ember] object Encoder {
     else
       (Stream.chunk(initSectionChunk) ++ resp.body)
         .chunkMin(writeBufferSize)
-        .flatMap(Stream.chunk)
+        .unchunks
   }
 
-  private val NoPayloadMethods: Set[Method] =
+  private[this] val NoPayloadMethods: Set[Method] =
     Set(Method.GET, Method.DELETE, Method.CONNECT, Method.TRACE)
 
   def reqToBytes[F[_]: ApplicativeThrow](
@@ -127,22 +123,21 @@ private[ember] object Encoder {
         // Apply each header followed by a CRLF
         req.headers.foreach { h =>
           if (h.isNameValid) {
-            stringBuilder
-              .append(h.name)
-              .append(": ")
+            appliedContentLength = appliedContentLength || h.name == `Content-Length`.name
+
+            stringBuilder.append(h.name).append(": ")
             appendSanitized(stringBuilder, h.value)
             stringBuilder.append(CRLF)
-            if (h.name == `Content-Length`.name) {
-              appliedContentLength = true
-            }
-            ()
           }
         }
 
-        if (!chunked && !appliedContentLength && !NoPayloadMethods.contains(req.method)) {
+        def isNoPayloadMethod = NoPayloadMethods.contains(req.method)
+        if (!appliedContentLength && req.entity == Entity.Empty && !isNoPayloadMethod) {
+          stringBuilder.append(zeroContentLengthRaw).append(CRLF)
+          chunked = false
+        } else if (!chunked && !appliedContentLength && !isNoPayloadMethod) {
           stringBuilder.append(chunkedTransferEncodingHeaderRaw).append(CRLF)
           chunked = true
-          ()
         }
 
         // Final CRLF terminates headers and signals body to follow.
@@ -154,10 +149,10 @@ private[ember] object Encoder {
         Stream.chunk(initSectionChunk) ++ req.body.through(ChunkedEncoding.encode[F])
       else {
         req.entity match {
-          case Entity.Default(body, _) =>
+          case Entity.Streamed(body, _) =>
             (Stream.chunk(initSectionChunk) ++ body)
               .chunkMin(writeBufferSize)
-              .flatMap(Stream.chunk)
+              .unchunks
           case Entity.Strict(bytes) =>
             Stream.chunk(initSectionChunk ++ Chunk.byteVector(bytes))
           case Entity.Empty =>
@@ -167,5 +162,5 @@ private[ember] object Encoder {
     }
   }
 
-  private val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
+  private[this] val ForbiddenUriCharacters = CharPredicate(0x0.toChar, '\r', '\n')
 }

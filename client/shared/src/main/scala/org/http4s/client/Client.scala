@@ -22,7 +22,6 @@ import cats.effect.Ref
 import cats.effect._
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
-import cats.syntax.all._
 import cats.~>
 import fs2._
 import org.http4s.headers.Host
@@ -79,6 +78,7 @@ trait Client[F[_]] {
       d: EntityDecoder[F, A]
   ): F[A]
 
+  @deprecated("Use req.flatMap(expect(_))", "0.23.16")
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
@@ -117,12 +117,14 @@ trait Client[F[_]] {
     * The underlying HTTP connection is released at the completion of the
     * decoding.
     */
+  @deprecated("Use req.flatMap(fetchAs(_))", "0.23.16")
   def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A]
 
   /** Submits a request and returns the response status */
   def status(req: Request[F]): F[Status]
 
   /** Submits a request and returns the response status */
+  @deprecated("Use req.flatMap(status(_))", "0.23.16")
   def status(req: F[Request[F]]): F[Status]
 
   /** Submits a GET request to the URI and returns the response status */
@@ -139,6 +141,7 @@ trait Client[F[_]] {
   /** Submits a request and returns true if and only if the response status is
     * successful
     */
+  @deprecated("Use req.flatMap(successful(_))", "0.23.16")
   def successful(req: F[Request[F]]): F[Boolean]
 
   /** Submits a GET request, and provides a callback to process the response.
@@ -233,7 +236,9 @@ object Client {
     *
     * @param app the [[HttpApp]] to respond to requests to this client
     */
-  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Async[F]): Client[F] = {
+  def fromHttpApp[F[_]](
+      app: HttpApp[F]
+  )(implicit F: Concurrent[F]): Client[F] = {
     def until[A](disposed: Ref[F, Boolean])(source: Stream[F, A]): Stream[F, A] = {
       def go(stream: Stream[F, A]): Pull[F, A, Unit] =
         stream.pull.uncons.flatMap {
@@ -248,33 +253,38 @@ object Client {
       go(source).stream
     }
 
-    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
-      Ref[F].of(false).map { disposed =>
-        val req0 = {
-          val entity = req.entity match {
-            case Entity.Empty | Entity.Strict(_) =>
-              req
-            case Entity.Default(_, _) =>
-              req.pipeBodyThrough(until(disposed))
-          }
-
-          addHostHeaderIfUriIsAbsolute(entity)
+    def run(
+        message: Message[F],
+        refOp: Option[Ref[F, Boolean]] = None,
+    ): Resource[F, Response[F]] = message.entity match {
+      case Entity.Empty | Entity.Strict(_) =>
+        message match {
+          case req: Request[F] =>
+            val reqAugmented = addHostHeaderIfUriIsAbsolute(req)
+            Resource.eval(app(reqAugmented)).flatMap(run(_))
+          case resp: Response[F] =>
+            Resource.pure(resp)
         }
-
-        Resource
-          .eval(app(req0))
-          .onFinalize(disposed.set(true))
-          .map { resp =>
-            resp.entity match {
-              case Entity.Empty | Entity.Strict(_) =>
-                resp
-              case Entity.Default(_, _) =>
-                resp.pipeBodyThrough(until(disposed))
+      case Entity.Streamed(_, _) =>
+        message match {
+          case req: Request[F] =>
+            Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+              val reqAugmented =
+                addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+              Resource
+                .eval(app(reqAugmented))
+                .onFinalize(disposed.set(true))
+                .flatMap(run(_, Option(disposed)))
             }
-          }
-      }
-
-    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+          case resp: Response[F] =>
+            Resource.eval(refOp.fold(Ref[F].of(false))(F.pure)).flatMap { r =>
+              Resource
+                .pure(resp.pipeBodyThrough(until(r)))
+                .onFinalize(r.set(true))
+            }
+        }
+    }
+    Client((req: Request[F]) => run(req))
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types

@@ -74,7 +74,7 @@ object BodyCache {
         true
       case Entity.Strict(chunk) =>
         chunk.isEmpty
-      case Entity.Default(_, _) =>
+      case Entity.Streamed(_, _) =>
         req.contentLength.contains(0L)
     }
 }

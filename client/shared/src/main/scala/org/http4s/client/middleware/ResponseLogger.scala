@@ -18,7 +18,10 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect._
+import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
@@ -85,7 +88,7 @@ object ResponseLogger {
         Resource.eval(logMessage(response).as(response))
       else
         response.entity match {
-          case Entity.Default(_, _) =>
+          case Entity.Streamed(_, _) =>
             Resource.suspend {
               F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
                 val dumpChunksToVec: Pipe[F, Byte, Nothing] =

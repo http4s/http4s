@@ -84,7 +84,7 @@ private[http4s] object IncomingMessage {
     }
 
     private def body[F[_]: Async] =
-      Entity.Default(
+      Entity.Streamed(
         Stream.resource(fs2.io.suspendReadableAndRead()(incomingMessage)).flatMap(_._2),
         None,
       )

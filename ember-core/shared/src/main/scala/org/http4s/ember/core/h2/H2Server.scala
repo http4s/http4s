@@ -116,7 +116,15 @@ private[ember] object H2Server {
         val upgrade = connectionCheck && upgradeCheck
         (settings, upgrade) match {
           case (Some(settings), true) =>
-            val bb: F[ByteVector] = req.body.compile.to(ByteVector)
+            val bb: F[ByteVector] =
+              req.entity match {
+                case Entity.Empty =>
+                  Applicative[F].pure(ByteVector.empty)
+                case Entity.Strict(bv) =>
+                  Applicative[F].pure(bv)
+                case Entity.Streamed(body, _) =>
+                  body.compile.to(ByteVector)
+              }
             val fres: F[Response[F]] = bb.map { bv =>
               val newReq: Request[fs2.Pure] = Request[fs2.Pure](
                 req.method,
@@ -185,15 +193,19 @@ private[ember] object H2Server {
           (x, x)
         }
         _ <- s.request.complete(Either.right(req))
-        er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-        _ <- s.readBuffer.offer(er)
-        _ <- s.writeBlock.complete(Either.right(()))
+        bv = req.entity match {
+          case Entity.Empty => ByteVector.empty
+          case Entity.Strict(bv) => bv
+          case Entity.Streamed(body, _) => body.compile.to(ByteVector)
+        }
+        _ <- s.readBuffer.offer(Either.right(bv))
+        _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
-    def initH2Connection: F[(H2Connection[F], Semaphore[F])] = for {
+    def initH2Connection: F[H2Connection[F]] = for {
       address <- socket.remoteAddress
       (remotehost, remoteport) = (address.host, address.port)
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
@@ -219,24 +231,23 @@ private[ember] object H2Server {
       // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
-      h2 = new H2Connection(
-        remotehost,
-        remoteport,
-        H2Connection.ConnectionType.Server,
-        localSettings,
-        ref,
-        stateRef,
-        queue,
-        created,
-        closed,
-        hpack,
-        streamCreationLock.permit,
-        settingsAck,
-        ByteVector.empty,
-        socket,
-        logger,
-      )
-    } yield (h2, streamCreationLock)
+    } yield new H2Connection(
+      remotehost,
+      remoteport,
+      H2Connection.ConnectionType.Server,
+      localSettings,
+      ref,
+      stateRef,
+      queue,
+      created,
+      closed,
+      hpack,
+      streamCreationLock.permit,
+      settingsAck,
+      ByteVector.empty,
+      socket,
+      logger,
+    )
 
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
@@ -254,95 +265,79 @@ private[ember] object H2Server {
 
     def processCreatedStream(
         h2: H2Connection[F],
-        streamCreationLock: Semaphore[F],
-        i: Int,
-    ): F[Unit] =
-      for {
-        stream <- h2.mapRef.get.map(_.get(i)).map(_.get) // FOLD
-        req <- stream.getRequest.map(_.withBodyStream(stream.readBody))
-        resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
-        // Push Promises
-        pp = resp.attributes.lookup(H2Keys.PushPromises)
-        pushEnabled <- h2.state.get.map(_.remoteSettings.enablePush.isEnabled)
-        streams <- (Alternative[Option].guard(pushEnabled) >> pp).fold(
-          Applicative[F].pure(List.empty[(Request[fs2.Pure], H2Stream[F])])
-        ) { l =>
-          l.traverse { req =>
-            streamCreationLock.permit.use[(Request[Pure], H2Stream[F])](_ =>
-              h2.initiateLocalStream.flatMap { stream =>
-                stream
-                  .sendPushPromise(i, PseudoHeaders.requestToHeaders(req))
-                  .map(_ => (req, stream))
-              }
-            )
-          }
-        }
-        // _ <- Console.make[F].println("Writing Streams Commpleted")
-        responses <- streams.parTraverse { case (req, stream) =>
-          for {
-            resp <- httpApp(req)
-            // _ <- Console.make[F].println("Push Promise Response Completed")
-            _ <- stream.sendHeaders(
-              PseudoHeaders.responseToHeaders(resp),
-              false,
-            ) // PP Response
-          } yield (resp.body, stream)
-        }
+        streamIx: Int,
+    ): F[Unit] = {
+      def fulfillPushPromises(resp: Response[F]): F[Unit] = {
+        def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
+          h2.streamCreateAndHeaders.use[(Request[Pure], H2Stream[F])](_ =>
+            h2.initiateLocalStream.flatMap { stream =>
+              stream
+                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+                .map(_ => (req, stream))
+            }
+          )
 
-        _ <- responses.parTraverse { case (_, stream) =>
+        def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks
-            .evalMap(c => stream.sendData(c.toByteVector, false))
+            .foreach(c => stream.sendData(c.toByteVector, false))
             .compile
             .drain >> // PP Resp Body
             stream.sendData(ByteVector.empty, true)
-        }
-        trailers = resp.attributes.lookup(Message.Keys.TrailerHeaders[F])
-        _ <- resp.body.chunks.noneTerminate.zipWithNext
-          .evalMap {
-            case (Some(c), Some(Some(_))) => stream.sendData(c.toByteVector, false)
-            case (Some(c), Some(None) | None) =>
-              if (trailers.isDefined) stream.sendData(c.toByteVector, false)
-              else stream.sendData(c.toByteVector, true)
-            case (None, _) =>
-              if (trailers.isDefined) Applicative[F].unit
-              else stream.sendData(ByteVector.empty, true)
-          }
-          .compile
-          .drain // Initial Resp Body
-        optTrailers <- trailers.sequence
-        optNel = optTrailers.flatMap(h =>
-          h.headers.map(a => (a.name.toString.toLowerCase(), a.value, false)).toNel
-        )
-        _ <- optNel.traverse(nel => stream.sendHeaders(nel, true))
-      } yield ()
 
-    def processCreatedStreams(h2: H2Connection[F], streamCreationLock: Semaphore[F]): F[Unit] =
+        def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
+          for {
+            resp <- httpApp(req.covary[F])
+            // _ <- Console.make[F].println("Push Promise Response Completed")
+            pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
+            _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
+          } yield (resp.body, stream)
+
+        resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
+          h2.state.get.flatMap {
+            case s if s.remoteSettings.enablePush.isEnabled =>
+              l.traverse(sender)
+                .flatMap(_.parTraverse { case (req, stream) => respond(req, stream) })
+                .flatMap(_.parTraverse_ { case (_, stream) => sendData(resp, stream) })
+            case _ => Applicative[F].unit
+          }
+        }
+      }
+
+      for {
+        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
+        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+        resp <- httpApp(req)
+        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
+        _ <- fulfillPushPromises(resp)
+        _ <- stream.sendMessageBody(resp) // Initial Resp Body
+        _ <- stream.sendTrailerHeaders(resp)
+      } yield ()
+    }
+
+    def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
       Stream
         .fromQueueUnterminated(h2.createdStreams)
-        .map(i => Stream.eval(processCreatedStream(h2, streamCreationLock, i).attempt))
-        .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
+        .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
+          processCreatedStream(h2, i)
+            .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))
+        )
         .compile
         .drain
         .onError { case e => logger.error(e)(s"Server Connection Processing Halted") }
 
+    val settingsFrame = H2Frame.Settings.ConnectionSettings.toSettings(localSettings)
+
     for {
-      pair <- Resource.eval(initH2Connection)
-      h2 = pair._1
-      streamCreationLock = pair._2
+      h2 <- Resource.eval(initH2Connection)
       _ <- h2.writeLoop.compile.drain.background
-      _ <- Resource.eval(
-        h2.outgoing.offer(
-          Chunk.singleton(H2Frame.Settings.ConnectionSettings.toSettings(localSettings))
-        )
-      )
+      _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade
       _ <- Resource.eval(
         initialRequest.traverse_(req => sendInitialRequest(h2)(req) >> h2.createdStreams.offer(1))
       )
       _ <- clearClosedStreams(h2).background
-      _ <- processCreatedStreams(h2, streamCreationLock).background
+      _ <- processCreatedStreams(h2).background
       _ <- Resource.eval(
         h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )

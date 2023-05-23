@@ -26,7 +26,7 @@ or you could use the URLTemplates.
 
 Use the methods on the [uri class].
 
-```scala mdoc
+```scala mdoc:silent
 val docs = uri.withPath(path"/docs/0.15")
 val docs2 = uri / "docs" / "0.15"
 assert(docs == docs2)
@@ -36,15 +36,15 @@ assert(docs == docs2)
 
 ```scala mdoc:silent
 import org.http4s.UriTemplate._
-```
 
-```scala mdoc
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName("http4s.org"))),
   scheme = Some(Uri.Scheme.http),
   path = List(PathElm("docs"), PathElm("0.15"))
 )
+```
 
+```scala mdoc
 template.toUriIfPossible
 ```
 

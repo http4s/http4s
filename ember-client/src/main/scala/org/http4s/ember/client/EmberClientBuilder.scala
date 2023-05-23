@@ -42,7 +42,7 @@ import org.typelevel.log4cats.LoggerFactory
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
-final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
+final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
@@ -56,13 +56,14 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
     val additionalSocketOptions: List[SocketOption],
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
+    val serverNameIndication: Boolean,
     val retryPolicy: RetryPolicy[F],
     private val unixSockets: Option[UnixSockets[F]],
     private val enableHttp2: Boolean,
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
     ],
-) { self =>
+) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
@@ -78,6 +79,7 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
+      serverNameIndication: Boolean = self.serverNameIndication,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
       unixSockets: Option[UnixSockets[F]] = self.unixSockets,
       enableHttp2: Boolean = self.enableHttp2,
@@ -99,6 +101,7 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
+      serverNameIndication = serverNameIndication,
       retryPolicy = retryPolicy,
       unixSockets = unixSockets,
       enableHttp2 = enableHttp2,
@@ -179,6 +182,18 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
   def withoutCheckEndpointAuthentication: EmberClientBuilder[F] =
     copy(checkEndpointIdentification = false)
 
+  /** Sets whether or not to enable Server Name Indication on the `TLSContext`.
+    * Enabled by default. When enabled the hostname will be indicated during SSL/TLS handshaking.
+    * This is important to reach a web server that is responsible for multiple hostnames so that it
+    * can use the correct certificate.
+    */
+  def withServerNameIndication(serverNameIndication: Boolean): EmberClientBuilder[F] =
+    copy(serverNameIndication = serverNameIndication)
+
+  /** Disables Server Name Indication */
+  def withoutServerNameIndication: EmberClientBuilder[F] =
+    copy(serverNameIndication = false)
+
   /** Sets the `RetryPolicy`. */
   def withRetryPolicy(retryPolicy: RetryPolicy[F]): EmberClientBuilder[F] =
     copy(retryPolicy = retryPolicy)
@@ -226,28 +241,32 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
-      tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F])
-      )
+      tlsContextOptWithDefault <-
+        tlsContextOpt
+          .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
+            _.some.pure[Resource[F, *]]
+          )
       builder =
         KeyPool.Builder
-          .apply[F, RequestKey, EmberConnection[F]](
-            (requestKey: RequestKey) =>
-              EmberConnection(
-                org.http4s.ember.client.internal.ClientHelpers
-                  .requestKeyToSocketWithKey[F](
-                    requestKey,
-                    tlsContextOptWithDefault,
-                    checkEndpointIdentification,
-                    sg,
-                    additionalSocketOptions,
-                  )
-              ) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            (connection: EmberConnection[F]) =>
-              logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}"
-              ) >>
-                connection.cleanup,
+          .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
+            EmberConnection(
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  serverNameIndication,
+                  sg,
+                  additionalSocketOptions,
+                ),
+              chunkSize,
+            ) <* Resource
+              .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
+              .onFinalize(
+                logger.trace(
+                  s"Shutting Down Connection - RequestKey: ${requestKey}"
+                )
+              )
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -264,6 +283,7 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
           else
             default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
           checkEndpointIdentification,
+          serverNameIndication,
         )
       }
     } yield {
@@ -299,6 +319,7 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
                   drain,
                   managed.value.nextBytes,
                   managed.canBeReused,
+                  managed.value.startNextRead,
                 )
               case _ => Applicative[F].unit
             }
@@ -308,16 +329,31 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
       def unixSocketClient(
           request: Request[F],
           address: UnixSocketAddress,
+          enableEndpointValidation: Boolean,
+          enableServerNameIndication: Boolean,
       ): Resource[F, Response[F]] =
         Resource
-          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
-          .flatMap(unixSockets =>
-            Resource
-              .make(
-                EmberConnection(
-                  ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)
+          .eval(
+            unixSockets
+              .orElse(defaultUnixSockets)
+              .liftTo(
+                new RuntimeException(
+                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
                 )
-              )(ec => ec.shutdown)
+              )
+          )
+          .flatMap(unixSockets =>
+            EmberConnection(
+              ClientHelpers.unixSocket(
+                request,
+                unixSockets,
+                address,
+                tlsContextOpt,
+                enableEndpointValidation,
+                enableServerNameIndication,
+              ),
+              chunkSize,
+            )
           )
           .flatMap(connection =>
             Resource.eval(
@@ -337,9 +373,9 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
       val client = Client[F] { request =>
         request.attributes
           .lookup(Request.Keys.UnixSocketAddress)
-          .fold(webClient(request)) { (address: UnixSocketAddress) =>
-            unixSocketClient(request, address)
-          }
+          .fold(webClient(request))(
+            unixSocketClient(request, _, checkEndpointIdentification, serverNameIndication)
+          )
       }
       val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
       val iClient = new EmberClient[F](stackClient, pool)
@@ -353,7 +389,7 @@ final class EmberClientBuilder[F[_]: Async: LoggerFactory] private (
 
 object EmberClientBuilder {
 
-  def default[F[_]: Async: LoggerFactory] =
+  def default[F[_]: Async: Network: LoggerFactory] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       sgOpt = None,
@@ -368,11 +404,16 @@ object EmberClientBuilder {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
+      serverNameIndication = true,
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
       enableHttp2 = false,
       pushPromiseSupport = None,
     )
+
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
+    default(async, Network.forAsync(async))
 
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100

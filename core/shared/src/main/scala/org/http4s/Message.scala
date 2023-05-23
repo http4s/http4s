@@ -37,10 +37,9 @@ import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
-import scodec.bits.ByteVector
+import scodec.bits._
 
 import java.io.File
-import java.nio.charset.StandardCharsets
 import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 
@@ -77,7 +76,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
-    * @param w [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
+    * @param w [[EntityEncoder]] with which to convert the body to an [[Entity]]
     * @tparam T type of the Body
     * @return a new message with the new body
     */
@@ -104,7 +103,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * a consequence headers may be incoherent with the body.
     */
   def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
-    change(entity = Entity(body))
+    change(entity = Entity.stream(body))
 
   /** Set an [[Entity.Empty]] entity on this message, and remove all payload headers
     * that make no sense with an empty body.
@@ -273,7 +272,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
               _.withContentLength(`Content-Length`.unsafeFromLong(bytes.size))
             )
         )
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         withLimit(body).covary[F1].compile.to(ByteVector).map { byteVector =>
           self
             .withEntity(Entity.strict(byteVector))
@@ -501,7 +500,7 @@ final class Request[+F[_]] private (
     entity match {
       case Entity.Empty | Entity.Strict(_) =>
         true
-      case Entity.Default(_, _) =>
+      case Entity.Streamed(_, _) =>
         false
     }
 
@@ -663,21 +662,21 @@ final class Response[+F[_]] private (
   def addCookie(cookie: ResponseCookie): Response[F] =
     transformHeaders(_.add(`Set-Cookie`(cookie)))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] header with the provided values */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
     addCookie(ResponseCookie(name, content, expires))
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified
     * cookie from the client
     */
   def removeCookie(cookie: ResponseCookie): Response[F] =
     addCookie(cookie.clearCookie)
 
-  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.`Set-Cookie`]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
     addCookie(ResponseCookie(name, "").clearCookie)
 
-  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+  /** Returns a list of cookies from the [[org.http4s.headers.`Set-Cookie`]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion.
     */
@@ -758,7 +757,7 @@ object Response extends KleisliSyntax {
   val notFound: Response[Pure] =
     Response(
       Status.NotFound,
-      entity = Entity.Strict(ByteVector.view("Not found".getBytes(StandardCharsets.UTF_8))), // TODO
+      entity = Entity.utf8String("Not found"), // TODO
       headers = Headers(
         `Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         `Content-Length`.unsafeFromLong(9L),

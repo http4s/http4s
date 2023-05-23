@@ -114,6 +114,28 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(Headers.apply(headers), headers)
   }
 
+  test("Headers#mkString") {
+    val h1 = Headers("Header-One" -> "value one", "Header-Two" -> "value two")
+    val h2 = Headers(
+      "Header-One" -> "value one",
+      "Header-Two" -> "value two",
+      "Header-Three" -> "value three",
+    )
+    val expectedString1 = "Headers(Header-One: value one, Header-Two: value two)"
+    val expectedString2 =
+      "Headers(Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>)"
+    val expectedString3 = "Header-One: value one, Header-Two: value two"
+    val expectedString4 = "Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>"
+
+    assertEquals(
+      h1.mkString("Headers(", ", ", ")", Headers.SensitiveHeaders.contains),
+      expectedString1,
+    )
+    assertEquals(h2.mkString("Headers(", ", ", ")", _.toString == "Header-Three"), expectedString2)
+    assertEquals(h1.mkString(", ", Headers.SensitiveHeaders.contains), expectedString3)
+    assertEquals(h2.mkString(", ", _.toString == "Header-Three"), expectedString4)
+  }
+
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)
   checkAll("Order[Headers]", OrderTests[Headers].order)
 }

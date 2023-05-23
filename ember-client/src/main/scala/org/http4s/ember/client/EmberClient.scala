@@ -44,7 +44,12 @@ final class EmberClient[F[_]] private[client] (
   ): F[Throwable] = F match {
     case concurrentF: Concurrent[F @unchecked] =>
       implicit val C = concurrentF
-      resp.body.compile.drain.as(UnexpectedStatus(resp.status, req.method, req.uri))
+      resp.entity match {
+        case Entity.Empty | Entity.Strict(_) =>
+          F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
+        case Entity.Streamed(body, _) =>
+          body.compile.drain.as(UnexpectedStatus(resp.status, req.method, req.uri))
+      }
 
     case _ =>
       F.pure(UnexpectedStatus(resp.status, req.method, req.uri))

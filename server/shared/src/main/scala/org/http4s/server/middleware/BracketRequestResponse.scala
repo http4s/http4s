@@ -23,7 +23,7 @@ import cats.implicits._
 import org.http4s._
 import org.http4s.server._
 
-/** Middelwares which allow for bracketing on a Request/Response, including
+/** Middlewares which allow for bracketing on a Request/Response, including
   * the completion of the Response body stream.
   *
   * These are analogous to `cats.effect.Bracket` and `fs2.Stream.bracket`. The
@@ -121,21 +121,45 @@ object BracketRequestResponse {
         OptionT(
           acquire(request).flatMap(contextRequest =>
             bracketRoutes(contextRequest)
-              .foldF(release(contextRequest.context, None, Outcome.succeeded(F.unit)) *> F.pure(
-                None: Option[Response[F]]))(contextResponse =>
-                F.pure(Some(contextResponse.response.pipeBodyThrough(
-                  _.onFinalizeCaseWeak(ec =>
-                    release(contextRequest.context, Some(contextResponse.context), ec.toOutcome)))))
-              )
+              .foldF(
+                release(contextRequest.context, None, Outcome.succeeded(F.unit)) *>
+                  F.pure(None: Option[Response[F]])
+              )(prepareResponse(contextRequest, _)(release))
               .guaranteeCase {
                   case Outcome.Succeeded(_) =>
                     F.unit
+
+                  // release has been attempted; it's supposed to be run only once
+                  case Outcome.Errored(ReleaseError(_)) =>
+                    F.unit
+
                   case otherwise =>
                     release(contextRequest.context, None, otherwise.void)
-
               })
         ))
-    // format: on
+
+  private def prepareResponse[F[_], A, B](
+      contextRequest: ContextRequest[F, A],
+      contextResponse: ContextResponse[F, B],
+  )(release: (A, Option[B], Outcome[F, Throwable, Unit]) => F[Unit])(
+      implicit F: MonadCancelThrow[F]): F[Option[Response[F]]] =
+    contextResponse.response.entity match {
+      case Entity.Empty | Entity.Strict(_) =>
+        release(contextRequest.context, Option(contextResponse.context), Outcome.succeeded(F.unit))
+          .as(contextResponse.response.some)
+          .handleErrorWith(err => F.raiseError(ReleaseError(err)))
+
+      case Entity.Streamed(body, size) =>
+        F.pure(Some(
+          contextResponse.response.withEntity(
+            Entity.Streamed(
+              body.onFinalizeCaseWeak(ec => release(contextRequest.context, Option(contextResponse.context), ec.toOutcome)),
+              size,
+            ))
+          )
+        )
+    }
+  // format: on
 
   /** Bracket on the start of a request and the completion of processing the
     * response ''body Stream''.
@@ -183,10 +207,32 @@ object BracketRequestResponse {
         acquire.flatMap((a: A) =>
           contextService
             .run(ContextRequest(a, request))
-            .map(_.pipeBodyThrough(_.onFinalizeCaseWeak(ec => release(a, ec.toOutcome))))
+            .flatMap { response =>
+              response.entity match {
+                case Entity.Empty | Entity.Strict(_) =>
+                  release(a, Outcome.succeeded(F.unit))
+                    .as(response)
+                    .handleErrorWith(err => F.raiseError(ReleaseError(err)))
+
+                case Entity.Streamed(body, size) =>
+                  F.pure(
+                    response.withEntity(
+                      Entity.Streamed(
+                        body.onFinalizeCaseWeak(ec => release(a, ec.toOutcome)),
+                        size,
+                      )
+                    )
+                  )
+              }
+            }
             .guaranteeCase {
               case Outcome.Succeeded(_) =>
                 F.unit
+
+              // release has been attempted; it's supposed to be run only once
+              case Outcome.Errored(ReleaseError(_)) =>
+                F.unit
+
               case otherwise =>
                 release(a, otherwise.void)
 
@@ -251,4 +297,7 @@ object BracketRequestResponse {
         resource.allocated
       )(_._2)(F)(contextApp0)
   }
+
+  private[http4s] final case class ReleaseError(override val getCause: Throwable)
+      extends RuntimeException
 }

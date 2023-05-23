@@ -29,8 +29,6 @@ import org.typelevel.ci.CIString
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.vault.Key
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.math.min
 import scala.math.pow
@@ -60,7 +58,7 @@ object Retry {
     val logger = LoggerFactory[F].getLogger
 
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
-      val headers = request.headers.redactSensitive(redactWhen).headers.mkString(",")
+      val headers = request.headers.mkString(",", redactWhen)
       val uri = request.uri.renderString
       val method = request.method
       s"method=$method uri=$uri headers=$headers"
@@ -77,13 +75,13 @@ object Retry {
         retryHeader
           .map { h =>
             h.retry match {
-              case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
-              case Right(secs) => secs
+              case Left(date) => F.realTime.map(date.toDuration - _)
+              case Right(secs) => secs.seconds.pure[F]
             }
           }
-          .getOrElse(0L)
-      val sleepDuration = headerDuration.seconds.max(duration)
-      F.sleep(sleepDuration) >> retryLoop(req, attempts + 1, hotswap)
+          .getOrElse(0.seconds.pure[F])
+      val sleepDuration = headerDuration.map(_.max(duration))
+      sleepDuration.flatMap(F.sleep(_)) >> retryLoop(req, attempts + 1, hotswap)
     }
 
     def retryLoop(

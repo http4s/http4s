@@ -40,8 +40,7 @@ object Cookie {
         Cookie(NonEmptyList(head, tail))
     }
 
-    /* We also see trailing semi-colons in the wild, and grudgingly tolerate them
-     * here. */
+    // We also see trailing semi-colons in the wild, and grudgingly tolerate them here
     cookieString <* char(';').?
   }
 

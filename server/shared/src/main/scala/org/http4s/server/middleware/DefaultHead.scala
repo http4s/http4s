@@ -18,12 +18,12 @@ package org.http4s
 package server
 package middleware
 
+import cats.Applicative
 import cats.Functor
+import cats.Monad
 import cats.MonoidK
 import cats.data.Kleisli
-import cats.effect.Concurrent
 import cats.syntax.all._
-import fs2.Stream
 import org.http4s.Method.GET
 import org.http4s.Method.HEAD
 
@@ -35,7 +35,9 @@ import org.http4s.Method.HEAD
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor, G[_]: Concurrent](http: Http[F, G])(implicit F: MonoidK[F]): Http[F, G] =
+  def apply[F[_]: Functor, G[_]: Applicative](
+      http: Http[F, G]
+  )(implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
         case HEAD => http(req) <+> http(req.withMethod(GET)).map(drainBody[G])
@@ -43,16 +45,18 @@ object DefaultHead {
       }
     }
 
-  def httpRoutes[F[_]: Concurrent](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(httpRoutes)
 
-  private[this] def drainBody[G[_]: Concurrent](response: Response[G]): Response[G] =
+  private[this] def drainBody[G[_]](
+      response: Response[G]
+  )(implicit G: Applicative[G]): Response[G] =
     response.entity match {
       case Entity.Empty =>
         response
       case Entity.Strict(_) =>
         response.withEntity(Entity.empty)
-      case Entity.Default(_, _) =>
-        response.pipeBodyThrough(_.interruptWhen[G](Stream(true)).drain)
+      case Entity.Streamed(_, _) =>
+        response.pipeBodyThrough(_.interruptWhen[G](G.pure(Either.unit[Throwable])).drain)
     }
 }

@@ -24,11 +24,9 @@ import fs2.io.file.Path
 import fs2.io.readInputStream
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
-import scodec.bits.ByteVector
 
 import java.io.InputStream
 import java.net.URL
-import java.nio.charset.StandardCharsets.UTF_8
 
 final case class Part[+F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
@@ -44,16 +42,13 @@ object Part {
   def formData(name: String, value: String, headers: Header.ToRaw*): Part[fs2.Pure] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Entity.Strict(ByteVector.view(value.getBytes(UTF_8))),
+      Entity.utf8String(value),
     )
 
-  def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] =
-    fileData(
-      name,
-      path.fileName.toString,
-      Entity(Files[F].readAll(path, ChunkSize, Flags.Read)),
-      headers: _*
-    )
+  def fileData[F[_]: Files](name: String, path: Path, headers: Header.ToRaw*): Part[F] = {
+    val entity = Entity.stream(Files[F].readAll(path, ChunkSize, Flags.Read))
+    fileData(name, path.fileName.toString, entity, headers: _*)
+  }
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
@@ -82,5 +77,5 @@ object Part {
       in: => InputStream,
       headers: Header.ToRaw*
   )(implicit F: Sync[F]): Part[F] =
-    fileData(name, filename, Entity(readInputStream(F.delay(in), ChunkSize)), headers: _*)
+    fileData(name, filename, Entity.stream(readInputStream(F.delay(in), ChunkSize)), headers: _*)
 }

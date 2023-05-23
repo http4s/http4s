@@ -26,10 +26,13 @@ import org.typelevel.log4cats.LoggerFactory
 /** Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
+  def defaultRedactHeadersWhen(name: CIString): Boolean =
+    Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
+
   def apply[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -41,7 +44,7 @@ object Logger {
   def logBodyText[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     ResponseLogger.logBodyText(logHeaders, logBody, redactHeadersWhen, logAction)(
@@ -53,7 +56,7 @@ object Logger {
   def logMessage[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
   )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
@@ -61,7 +64,7 @@ object Logger {
   def colored[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+      redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       requestColor: String = RequestLogger.defaultRequestColor,
       responseColor: Response[F] => String = ResponseLogger.defaultResponseColor[F] _,
       logAction: Option[String => F[Unit]] = None,

@@ -132,7 +132,7 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 
   protected def sanitizedResponsePrefix: String
   protected def expectedMsg: String =
-    s"Expected one of the following media ranges: ${expected.map(_.show).mkString(", ")}"
+    s"Expected one of the following media ranges: ${expected.iterator.map(_.show).mkString(", ")}"
   protected def responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =

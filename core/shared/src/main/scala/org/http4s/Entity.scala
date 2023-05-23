@@ -32,28 +32,42 @@ sealed trait Entity[+F[_]] {
 }
 
 object Entity {
-  def apply[F[_]](body: EntityBody[F], length: Option[Long] = None): Entity[F] =
-    Default(body, length)
+
+  @deprecated("Use Entity.stream instead", "1.0.0-M38")
+  def apply[F[_]](body: Stream[F, Byte], length: Option[Long] = None): Entity[F] =
+    stream(body, length)
+
+  def stream[F[_]](body: Stream[F, Byte], length: Option[Long] = None): Entity[F] =
+    Streamed(body, length)
 
   // The type parameter aids type inference in Message constructors.
   def empty[F[_]]: Entity[F] = Empty
   def strict(bytes: ByteVector): Entity[Pure] = Strict(bytes)
 
-  final case class Default[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
+  /** Generates a Strict entity with the string encoded the given charset. */
+  def string(str: String, charset: Charset): Entity[Pure] =
+    Entity.Strict(ByteVector(str.getBytes(charset.nioCharset)))
+
+  /** Generates a Strict entity with the string encoded the given charset. */
+  def utf8String(str: String): Entity[Pure] =
+    string(str, Charset.`UTF-8`)
+
+  final case class Streamed[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
     def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1] = that match {
-      case d: Default[F1] => Default(body ++ d.body, (length, d.length).mapN(_ + _))
-      case strict @ Strict(bytes) => Default(body ++ strict.body, length.map(_ + bytes.size))
+      case d: Streamed[F1] => Streamed(body ++ d.body, (length, d.length).mapN(_ + _))
+      case strict @ Strict(bytes) => Streamed(body ++ strict.body, length.map(_ + bytes.size))
       case Empty => this
     }
 
-    def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] = Default(body.translate(fk), length)
+    def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G] =
+      Streamed(body.translate(fk), length)
 
     override def toString: String = length match {
       case None =>
-        "Entity.Default"
+        "Entity.Streamed"
 
       case Some(dataSize) =>
-        s"Entity.Default($dataSize bytes total)"
+        s"Entity.Streamed($dataSize bytes total)"
     }
   }
 
@@ -63,7 +77,7 @@ object Entity {
     val length: Option[Long] = Some(bytes.size)
 
     def ++[F1[x] >: Pure[x]](that: Entity[F1]): Entity[F1] = that match {
-      case d: Default[F1] => Default(body ++ d.body, d.length.map(bytes.size + _))
+      case d: Streamed[F1] => Streamed(body ++ d.body, d.length.map(bytes.size + _))
       case Strict(bytes2) => Strict(bytes ++ bytes2)
       case Empty => this
     }

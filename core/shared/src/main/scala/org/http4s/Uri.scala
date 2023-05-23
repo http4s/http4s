@@ -425,13 +425,13 @@ object Uri extends UriPlatform {
     def splitAt(idx: Int): (Path, Path) =
       if (idx <= 0) {
         (Path.empty, this)
-      } else if (idx < segments.size) {
+      } else if (segments.sizeIs > idx) {
         val (start, end) = segments.splitAt(idx)
         (
           Path(start, absolute = absolute),
           Path(end, absolute = true, endsWithSlash = endsWithSlash),
         )
-      } else if (idx == segments.size) {
+      } else if (segments.sizeIs == idx) {
         (Path(segments, absolute = absolute), if (endsWithSlash) Path.Root else Path.empty)
       } else {
         (this, Path.empty)
@@ -464,6 +464,7 @@ object Uri extends UriPlatform {
       override def equals(obj: Any): Boolean =
         obj match {
           case s: Segment => s.encoded == encoded
+          case _ => false
         }
 
       override def hashCode(): Int = encoded.hashCode
@@ -608,7 +609,7 @@ object Uri extends UriPlatform {
     *
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
-  final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+  final case class UserInfo private (
       username: String,
       password: Option[String],
   ) extends Ordered[UserInfo] {
@@ -678,6 +679,12 @@ object Uri extends UriPlatform {
   }
 
   object Host {
+
+    def fromString(s: String): ParseResult[Host] =
+      ParseResult.fromParser(Parser.host, "Invalid host")(s)
+
+    def unsafeFromString(s: String): Host =
+      fromString(s).fold(throw _, identity)
 
     /** Create a [[Host]] value from an [[com.comcast.ip4s.IpAddress]].
       *
@@ -1120,10 +1127,11 @@ object Uri extends UriPlatform {
     }
 
   private[http4s] object Parser {
-    /* port        = *DIGIT
-     *
-     * Limitation: we only parse up to Int. The spec allows bigint!
-     */
+
+    /** port        = *DIGIT
+      *
+      * Limitation: we only parse up to Int. The spec allows bigint!
+      */
     private[http4s] val port: Parser0[Option[Int]] = {
       import Rfc3986.digit
 

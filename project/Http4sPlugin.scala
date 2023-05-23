@@ -7,9 +7,11 @@ import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 import sbt.Keys._
 import sbt._
+import org.typelevel.sbt.TypelevelKernelPlugin.autoImport._
 import org.typelevel.sbt.gha.GenerativeKeys._
 import org.typelevel.sbt.gha.GitHubActionsKeys._
 import org.typelevel.sbt.gha.JavaSpec
+import explicitdeps.ExplicitDepsPlugin.autoImport._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -22,8 +24,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.8"
-  val scala_3 = "3.1.3"
+  val scala_213 = "2.13.10"
+  val scala_3 = "3.2.2"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -43,6 +45,8 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
+    libraryDependencies += scalacCompatAnnotation,
+    unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
   )
 
   def extractApiVersion(version: String) = {
@@ -94,39 +98,41 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
-    val caseInsensitive = "1.2.0"
-    val cats = "2.8.0"
-    val catsEffect = "3.3.14"
-    val catsParse = "0.3.8"
-    val circe = "0.14.2"
-    val crypto = "0.2.3"
+    val caseInsensitive = "1.3.0"
+    val cats = "2.9.0"
+    val catsEffect = "3.5.0-RC3"
+    val catsParse = "0.3.9"
+    val circe = "0.14.5"
+    val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
-    val fs2 = "3.2.12"
-    val ip4s = "3.1.3"
-    val hpack = "1.0.3"
+    val epollcat = "0.1.4"
+    val fs2 = "3.7.0-RC2"
+    val ip4s = "3.2.0"
+    val hpack = "1.0.4"
     val javaWebSocket = "1.5.3"
     val jawn = "1.4.0"
-    val jawnFs2 = "2.2.0"
-    val jnrUnixSocket = "0.38.17"
-    val keypool = "0.4.7"
+    val jawnFs2 = "2.4.0"
+    val jnrUnixSocket = "0.38.19"
+    val keypool = "0.4.8"
     val literally = "1.1.0"
     val logback = "1.2.6"
-    val log4cats = "2.4.0"
-    val munit = "0.7.29"
-    val munitCatsEffect = "1.0.7"
-    val munitDiscipline = "1.0.9"
-    val netty = "4.1.79.Final"
+    val log4cats = "2.5.0"
+    val munit = "1.0.0-M7"
+    val munitCatsEffect = "2.0.0-M3"
+    val munitDiscipline = "2.0.0-M3"
+    val netty = "4.1.90.Final"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.16.0"
-    val scalacheckEffect = "1.0.4"
-    val scalaJavaLocales = "1.4.1"
-    val scalaJavaTime = "2.4.0"
-    val scodecBits = "1.1.34"
+    val scalacCompat = "0.1.0"
+    val scalacheck = "1.17.0"
+    val scalacheckEffect = "2.0.0-M2"
+    val scalaJavaLocales = "1.5.1"
+    val scalaJavaTime = "2.5.0"
+    val scodecBits = "1.1.37"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.2.1"
+    val vault = "3.5.0"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
@@ -150,6 +156,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val crypto = Def.setting("org.http4s" %%% "http4s-crypto" % V.crypto)
   lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
   lazy val disciplineCore = Def.setting("org.typelevel" %%% "discipline-core" % V.disciplineCore)
+  lazy val epollcat = Def.setting("com.armanbilge" %%% "epollcat" % V.epollcat)
   lazy val fs2Core = Def.setting("co.fs2" %%% "fs2-core" % V.fs2)
   lazy val fs2Io = Def.setting("co.fs2" %%% "fs2-io" % V.fs2)
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)
@@ -168,11 +175,13 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
   lazy val munit = Def.setting("org.scalameta" %%% "munit" % V.munit)
   lazy val munitCatsEffect =
-    Def.setting("org.typelevel" %%% "munit-cats-effect-3" % V.munitCatsEffect)
+    Def.setting("org.typelevel" %%% "munit-cats-effect" % V.munitCatsEffect)
   lazy val munitDiscipline = Def.setting("org.typelevel" %%% "discipline-munit" % V.munitDiscipline)
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
+  lazy val scalacCompatAnnotation =
+    "org.typelevel" %% "scalac-compat-annotation" % V.scalacCompat % CompileTime
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)

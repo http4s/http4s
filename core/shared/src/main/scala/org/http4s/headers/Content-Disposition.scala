@@ -20,9 +20,9 @@ package headers
 import cats.parse.Parser
 import cats.parse.Rfc5234
 import org.http4s.internal.CharPredicate
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc2616
 import org.http4s.internal.parsing.Rfc3986
-import org.http4s.internal.parsing.Rfc7230
 import org.http4s.util.Renderable
 import org.http4s.util.Writer
 import org.typelevel.ci._
@@ -73,14 +73,14 @@ object `Content-Disposition` {
         new String(xs.toArray, charset)
       }
 
-    val value = Rfc7230.token | Rfc7230.quotedString
+    val value = CommonRules.token | CommonRules.quotedString
 
     val parameter = for {
-      tok <- Rfc7230.token <* Parser.string("=") <* Rfc7230.ows
+      tok <- CommonRules.token <* Parser.string("=") <* CommonRules.ows
       v <- if (tok.endsWith("*")) extValue else value
     } yield (CIString(tok), v)
 
-    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
+    (CommonRules.token ~ (Parser.string(";") *> CommonRules.ows *> parameter).rep0).map {
       case (token: String, params: List[(CIString, String)]) =>
         `Content-Disposition`(token, params.toMap)
     }

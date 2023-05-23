@@ -27,10 +27,17 @@ sealed abstract class CharPredicate extends (Char => Boolean) {
     */
   def isMaskBased: Boolean = this.isInstanceOf[MaskBased]
 
+  @deprecated("Unsafe method. Use CharPredicate.asMaskBasedOpt instead", "0.23.17")
   def asMaskBased: MaskBased =
     this match {
       case x: MaskBased => x
       case _ => sys.error("CharPredicate is not MaskBased")
+    }
+
+  def asMaskBasedOpt: Option[MaskBased] =
+    this match {
+      case x: MaskBased => Some(x)
+      case _ => None
     }
 
   def ++(that: CharPredicate): CharPredicate
@@ -135,7 +142,7 @@ object CharPredicate {
 
     implicit def fromChars(chars: Seq[Char]): ApplyMagnet =
       chars match {
-        case _ if chars.size < 128 & !chars.exists(unmaskable) =>
+        case _ if chars.sizeIs < 128 & !chars.exists(unmaskable) =>
           @tailrec def rec(ix: Int, result: CharPredicate): CharPredicate =
             if (ix == chars.length) result else rec(ix + 1, result ++ chars(ix))
           new ApplyMagnet(rec(0, Empty))
@@ -147,8 +154,6 @@ object CharPredicate {
   // /////////////////////// PRIVATE ////////////////////////////
 
   private def unmaskable(c: Char) = c >= 128
-
-  // scalafix:off Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
 
   // efficient handling of 7bit-ASCII chars
   final case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
@@ -344,6 +349,4 @@ object CharPredicate {
 
     override def toString(): String = "CharPredicate.General@" + System.identityHashCode(this)
   }
-
-  // scalafix:on
 }

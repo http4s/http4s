@@ -22,19 +22,21 @@ import cats.arrow.FunctionK
 import cats.effect._
 import cats.effect.kernel.Deferred
 import cats.syntax.all._
+import fs2.Stream
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.multipart.Multipart
 import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
-import scodec.bits.ByteVector
+import scodec.bits._
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
     Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpApp(app)
+  val stream = Stream.range(0, 5).map(_.toString)
 
   test("mock client should read body before dispose") {
     client.expect[String](Request[IO](POST).withEntity("foo")).assertEquals("foo")
@@ -51,6 +53,28 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       .attempt
       .map(_.left.toOption.get.getMessage)
       .assertEquals("response was disposed")
+  }
+
+  test("mock client should read stream body before dispose") {
+    client.expect[String](Request[IO](POST).withEntity(stream)).assertEquals("01234")
+  }
+
+  test("mock client should fail to read stream body after dispose") {
+    Request[IO](POST)
+      .withEntity(stream)
+      .pure[IO]
+      .flatMap { req =>
+        // This is bad. Don't do this.
+        client.run(req).use(IO.pure).flatMap(_.as[String])
+      }
+      .interceptMessage[java.io.IOException]("response was disposed")
+  }
+
+  test("mock client with stream request should read strict body") {
+    val app = HttpApp[IO] { _ =>
+      Response[IO](Ok).withEntity("foo").pure[IO]
+    }
+    Client.fromHttpApp(app).expect[String](Request[IO](POST).withEntity(stream)).assertEquals("foo")
   }
 
   test("mock client should include a Host header in requests whose URIs are absolute") {
@@ -132,7 +156,7 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     case object MyThrowable extends Throwable
     val app = HttpApp[IO] { (_: Request[IO]) =>
       Response[IO](Status.Ok)
-        .withEntity(ByteVector("foo".getBytes))
+        .withEntity(asciiBytes"foo")
         .pure[IO]
     }
     val client = Client.fromHttpApp(app)

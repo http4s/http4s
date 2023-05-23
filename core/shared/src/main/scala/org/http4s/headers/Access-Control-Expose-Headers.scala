@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `Access-Control-Expose-Headers` {
@@ -31,7 +31,9 @@ object `Access-Control-Expose-Headers` {
 
   // https://fetch.spec.whatwg.org/#http-new-header-syntax (as of commit 613aad98fb19bf44fc95c4e9a332706d68795da8)
   private[http4s] val parser =
-    Rfc7230.headerRep(Rfc7230.token.map(CIString(_))).map(`Access-Control-Expose-Headers`(_))
+    CommonRules
+      .headerRep(CommonRules.token.map(CIString(_)))
+      .map(`Access-Control-Expose-Headers`(_))
 
   implicit val headerInstance: Header[`Access-Control-Expose-Headers`, Header.Recurring] =
     Header.createRendered(

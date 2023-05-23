@@ -33,7 +33,13 @@ class MultipartSuite extends Http4sSuite {
   private val url = uri"https://example.com/path/to/some/where"
 
   private val multiparts =
-    Random.scalaUtilRandom[IO].map(Multiparts.fromRandom[IO]).syncStep.unsafeRunSync().toOption.get
+    Random
+      .scalaUtilRandom[IO]
+      .map(Multiparts.fromRandom[IO])
+      .syncStep(Int.MaxValue)
+      .unsafeRunSync()
+      .toOption
+      .get
 
   def eqPartIO(a: Part[IO], b: Part[IO]): IO[Boolean] =
     for {
@@ -153,7 +159,7 @@ Content-Type: application/pdf
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
+        entity = Entity.stream(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 
@@ -186,7 +192,7 @@ I am a big moose
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        entity = Entity(Stream.emit(body).through(text.utf8.encode)),
+        entity = Entity.stream(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
 

@@ -54,7 +54,7 @@ First, let's assume we want to use [Circe] for JSON support. Please see [json] f
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % "@VERSION@",
-  "io.circe" %% "circe-generic" % "@CIRCE_VERSION"
+  "io.circe" %% "circe-generic" % "@CIRCE_VERSION@"
 )
 ```
 

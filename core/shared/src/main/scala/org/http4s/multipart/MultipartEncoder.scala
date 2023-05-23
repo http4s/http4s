@@ -27,7 +27,7 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =
-    Entity(renderParts(mp.boundary)(mp.parts), None)
+    Entity.stream(renderParts(mp.boundary)(mp.parts), None)
 
   val dash: String = "--"
 

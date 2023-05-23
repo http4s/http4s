@@ -18,7 +18,9 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect._
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
@@ -83,7 +85,7 @@ object RequestLogger {
       else
         Resource.suspend {
           req.entity match {
-            case Entity.Default(_, _) =>
+            case Entity.Streamed(_, _) =>
               (F.ref(false), F.ref(Vector.empty[Chunk[Byte]])).mapN { case (hasLogged, vec) =>
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 

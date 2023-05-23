@@ -498,6 +498,20 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Date(httpDate)
     }
 
+  implicit val http4sTestingArbitraryForDeprecationHeader: Arbitrary[headers.Deprecation] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Deprecation(httpDate)
+    }
+
+  implicit val http4sTestingArbitraryForSunsetHeader: Arbitrary[headers.Sunset] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Sunset(httpDate)
+    }
+
   val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
@@ -869,11 +883,11 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
     val chunkedEntityGen =
       http4sTestingGenForPureByteStream
-        .map(Entity(_))
+        .map(Entity.stream(_))
 
     val chunkedWithKnowingLengthGen =
       genByteStreamWithKnowingSize.map { case (body, size) =>
-        Entity(body, Some(size.toLong))
+        Entity.stream(body, Some(size.toLong))
       }
 
     Arbitrary(
@@ -996,7 +1010,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, Entity(body))
+      } yield try Request(method, uri, httpVersion, headers, Entity.stream(body))
       catch {
         case t: Throwable => t.printStackTrace(); throw t
       }
@@ -1022,7 +1036,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield Response(status, httpVersion, headers, Entity(body))
+      } yield Response(status, httpVersion, headers, Entity.stream(body))
     }
 
   implicit val http4sTestingArbitraryForSegment: Arbitrary[Uri.Path.Segment] =
@@ -1136,6 +1150,15 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       values <- listOf(http4sGenMediaType)
     } yield headers.`Accept-Post`(values)
   }
+
+  implicit val arbitraryCrossOriginResourcePolicy: Arbitrary[`Cross-Origin-Resource-Policy`] =
+    Arbitrary[`Cross-Origin-Resource-Policy`](
+      Gen.oneOf(
+        `Cross-Origin-Resource-Policy`.SameSite,
+        `Cross-Origin-Resource-Policy`.SameOrigin,
+        `Cross-Origin-Resource-Policy`.CrossOrigin,
+      )
+    )
 
   val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
   val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)

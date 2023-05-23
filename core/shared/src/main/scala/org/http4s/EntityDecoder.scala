@@ -25,6 +25,7 @@ import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
 import fs2.io.file.Files
+import fs2.io.file.Flags
 import fs2.io.file.Path
 import org.http4s.Charset.`UTF-8`
 import org.http4s.multipart.Multipart
@@ -139,7 +140,7 @@ trait EntityDecoder[F[_], T] { self =>
     this.asInstanceOf[EntityDecoder[F, T2]]
 }
 
-/** EntityDecoder is used to attempt to decode an [[EntityBody]]
+/** EntityDecoder is used to attempt to decode an [[Entity]]
   * This companion object provides a way to create `new EntityDecoder`s along
   * with some commonly used instances which can be resolved implicitly.
   */
@@ -206,7 +207,7 @@ object EntityDecoder {
   /** Helper method which simply gathers the body into a single Chunk */
   def collectBinary[F[_]: Concurrent](m: Media[F]): DecodeResult[F, Chunk[Byte]] = {
     val chunkF = m.entity match {
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         body.chunks.compile.to(Chunk).map(_.flatten)
 
       case Entity.Strict(b) =>
@@ -222,7 +223,7 @@ object EntityDecoder {
   /** Helper method which simply gathers the body into a single ByteVector */
   private def collectByteVector[F[_]: Concurrent](m: Media[F]): DecodeResult[F, ByteVector] = {
     val byteVectorF = m.entity match {
-      case Entity.Default(body, _) =>
+      case Entity.Streamed(body, _) =>
         body.compile.to(ByteVector)
 
       case Entity.Strict(b) =>
@@ -248,7 +249,7 @@ object EntityDecoder {
     new EntityDecoder[F, T] {
       override def decode(m: Media[F], strict: Boolean): DecodeResult[F, T] =
         m.entity match {
-          case Entity.Default(body, _) =>
+          case Entity.Streamed(body, _) =>
             DecodeResult(body.compile.drain *> F.raiseError(t))
 
           case Entity.Strict(_) | Entity.Empty =>
@@ -283,15 +284,31 @@ object EntityDecoder {
   // File operations
 
   def binFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    binFileImpl(path, Files[F].writeAll(path))
+
+  def binFile[F[_]: Files: Concurrent](path: Path, flags: Flags): EntityDecoder[F, Path] =
+    binFileImpl(path, Files[F].writeAll(path, flags))
+
+  private[this] def binFileImpl[F[_]: Concurrent](
+      path: Path,
+      pipe: Pipe[F, Byte, Nothing],
+  ): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val pipe = Files[F].writeAll(path)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).as(path)
     }
 
   def textFile[F[_]: Files: Concurrent](path: Path): EntityDecoder[F, Path] =
+    textFileImpl(path, Files[F].writeAll(path))
+
+  def textFile[F[_]: Files: Concurrent](path: Path, flags: Flags): EntityDecoder[F, Path] =
+    textFileImpl(path, Files[F].writeAll(path, flags))
+
+  private[this] def textFileImpl[F[_]: Concurrent](
+      path: Path,
+      pipe: Pipe[F, Byte, Nothing],
+  ): EntityDecoder[F, Path] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val pipe = Files[F].writeAll(path)
-      DecodeResult.success(msg.body.through(pipe).compile.drain).map(_ => path)
+      DecodeResult.success(msg.body.through(pipe).compile.drain).as(path)
     }
 
   implicit def multipart[F[_]: Concurrent]: EntityDecoder[F, Multipart[F]] =
@@ -378,6 +395,7 @@ object EntityDecoder {
   ): EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.mixedMultipart(headerLimit, maxSizeBeforeWrite, maxParts, failOnLimit)
 
+  @deprecated("Broken. An entity decoder cannot return a Stream", "0.23.17")
   implicit def eventStream[F[_]: Applicative]: EntityDecoder[F, EventStream[F]] =
     EntityDecoder.decodeBy(MediaType.`text/event-stream`) { msg =>
       DecodeResult.successT(msg.body.through(ServerSentEvent.decoder))
@@ -387,7 +405,7 @@ object EntityDecoder {
   implicit def void[F[_]: Concurrent]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       msg.entity match {
-        case Entity.Default(body, _) =>
+        case Entity.Streamed(body, _) =>
           DecodeResult.success(body.compile.drain)
 
         case Entity.Strict(_) | Entity.Empty =>

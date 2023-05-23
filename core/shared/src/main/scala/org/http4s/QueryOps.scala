@@ -35,11 +35,14 @@ trait QueryOps {
 
   /** alias for withQueryParam */
   def +?[T: QueryParam]: Self =
-    _withQueryParam(QueryParam[T].key, Nil)
+    _withQueryParam(QueryParam[T].key, None)
 
   /** alias for withQueryParam */
   def +*?[T: QueryParamKeyLike: QueryParamEncoder](value: T): Self =
-    _withQueryParam(QueryParamKeyLike[T].getKey(value), QueryParamEncoder[T].encode(value) :: Nil)
+    _withQueryParam(
+      QueryParamKeyLike[T].getKey(value),
+      Some(QueryParamEncoder[T].encode(value).value),
+    )
 
   /** alias for withQueryParam */
   def +*?[T: QueryParam: QueryParamEncoder](values: collection.Seq[T]): Self =
@@ -51,7 +54,7 @@ trait QueryOps {
 
   /** alias for withQueryParam */
   def +?[K: QueryParamKeyLike](name: K): Self =
-    _withQueryParam(QueryParamKeyLike[K].getKey(name), Nil)
+    _withQueryParam(QueryParamKeyLike[K].getKey(name), None)
 
   /** alias for withQueryParam
     *
@@ -134,14 +137,14 @@ trait QueryOps {
     * replaced with an empty list.
     */
   def withQueryParam[T: QueryParam]: Self =
-    _withQueryParam(QueryParam[T].key, Nil)
+    _withQueryParam(QueryParam[T].key, None)
 
   /** Creates a new `Self` with the specified parameter in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
     * replaced with an empty list.
     */
   def withQueryParam[K: QueryParamKeyLike](key: K): Self =
-    _withQueryParam(QueryParamKeyLike[K].getKey(key), Nil)
+    _withQueryParam(QueryParamKeyLike[K].getKey(key), None)
 
   /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
@@ -149,7 +152,10 @@ trait QueryOps {
     * instance of `Self` will be returned.
     */
   def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, value: T): Self =
-    _withQueryParam(QueryParamKeyLike[K].getKey(key), QueryParamEncoder[T].encode(value) :: Nil)
+    _withQueryParam(
+      QueryParamKeyLike[K].getKey(key),
+      Some(QueryParamEncoder[T].encode(value).value),
+    )
 
   /** Creates maybe a new `Self` with the specified parameters in the [[Query]].
     * If a parameter with the given `key` already exists the values will be
@@ -187,6 +193,17 @@ trait QueryOps {
 
   private def _withQueryParam(
       name: QueryParameterKey,
+      value: Option[String],
+  ): Self =
+    if (query == Query.blank || query == Query.empty) {
+      replaceQuery(Query(name.value -> value))
+    } else {
+      val baseQuery = query.toVector.filter(_._1 != name.value)
+      replaceQuery(Query.fromVector(baseQuery :+ (name.value -> value)))
+    }
+
+  private def _withQueryParam(
+      name: QueryParameterKey,
       values: collection.Seq[QueryParameterValue],
   ): Self = {
     val q = if (query == Query.blank) Query.empty else query
@@ -194,33 +211,12 @@ trait QueryOps {
     val vec =
       if (values.isEmpty) baseQuery :+ (name.value -> None)
       else
-        values.toList.foldLeft(baseQuery) { case (vec, v) =>
+        values.foldLeft(baseQuery) { case (vec, v) =>
           vec :+ (name.value -> Some(v.value))
         }
 
     replaceQuery(Query.fromVector(vec))
   }
-
-  /*
-  /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
-   * If the value is empty the same instance of `Self` will be returned.
-   * If a parameter with the given `key` already exists the values will be
-   * replaced.
-   */
-  def withMaybeQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParamKeyLike[K].getKey(key), value map QueryParamEncoder[T].encode)
-
-  /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
-   * If the value is empty or if the parameter to be added equal the existing
-   * entry the same instance of `Self` will be returned.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced.
-   */
-  def withMaybeQueryParam[T: QueryParam: QueryParamEncoder](value: Maybe[T]): Self =
-    _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
-   */
 
   /** Creates maybe a new `Self` with the specified parameter in the [[Query]].
     * If the value is empty or if the parameter to be added equal the existing

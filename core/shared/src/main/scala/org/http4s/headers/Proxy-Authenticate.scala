@@ -36,7 +36,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import org.http4s.Header
-import org.http4s.internal.parsing.Rfc7235
+import org.http4s.internal.parsing.AuthRules
 import org.typelevel.ci._
 
 object `Proxy-Authenticate` {
@@ -45,7 +45,7 @@ object `Proxy-Authenticate` {
     apply(NonEmptyList(head, tail.toList))
 
   private[http4s] val parser: Parser[`Proxy-Authenticate`] =
-    Rfc7235.challenges.map(`Proxy-Authenticate`.apply)
+    AuthRules.challenges.map(`Proxy-Authenticate`.apply)
 
   def parse(s: String): ParseResult[`Proxy-Authenticate`] =
     ParseResult.fromParser(parser, "Invalid Proxy-Authenticate header")(s)

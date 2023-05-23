@@ -50,4 +50,4 @@ object `Sec-WebSocket-Version` {
 
 final case class `Sec-WebSocket-Version` private (
     version: Long
-) // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+)

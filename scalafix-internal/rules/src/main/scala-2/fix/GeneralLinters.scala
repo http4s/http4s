@@ -22,7 +22,7 @@ import scala.meta._
 
 class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
   override def fix(implicit doc: SemanticDocument): Patch =
-    noFinalObject + noNonFinalCaseClass + leakingSealedHierarchy + nonValidatingCopyConstructor
+    noFinalObject + noNonFinalCaseClass + leakingSealedHierarchy
 
   def noFinalObject(implicit doc: SemanticDocument) =
     doc.tree.collect { case o @ Defn.Object(mods, _, _) =>
@@ -64,14 +64,6 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
         doCheck(t, mods, inits)
     }.asPatch
   }
-
-  def nonValidatingCopyConstructor(implicit doc: SemanticDocument) =
-    doc.tree.collect {
-      case c @ Defn.Class(mods, _, _, Ctor.Primary(ctorMods, _, _), _)
-          if mods.exists(_.is[Mod.Case]) && ctorMods
-            .exists(_.is[Mod.Private]) && !mods.exists(_.is[Mod.Abstract]) =>
-        Patch.lint(NonValidatingCopyConstructor(c))
-    }.asPatch
 }
 
 final case class CaseClassWithoutAccessModifier(c: Defn.Class) extends Diagnostic {
@@ -88,13 +80,4 @@ final case class LeakingSealedHierarchy(t: Tree) extends Diagnostic {
   override def position: Position = t.pos
 
   override def categoryID: String = "leakingSealedHierarchy"
-}
-
-final case class NonValidatingCopyConstructor(c: Defn.Class) extends Diagnostic {
-  override def message: String =
-    "Case classes with private constructors should be abstract to prevent exposing a non-validating copy constructor"
-
-  override def position: Position = c.pos
-
-  override def categoryID: String = "nonValidatingCopyConstructor"
 }

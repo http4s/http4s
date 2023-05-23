@@ -29,7 +29,7 @@ class CharsetRangeSuite extends Http4sSuite {
     }
   }
 
-  test("atomic charset ranges should match their own charsest") {
+  test("atomic charset ranges should match their own charsets") {
     forAll(arbitrary[CharsetRange.Atom]) { range =>
       range.matches(range.charset)
     }

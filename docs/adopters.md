@@ -31,6 +31,9 @@
 [iHeartRadio](https://www.iheart.com/)
 : Uses http4s for internal web services
 
+[ITV](https://www.itv.com/)
+: Uses http4s extensively for backend applications and internal libraries.
+
 [MYOB](https://myob.com)
 : Uses http4s for some API and Web services.
 
@@ -95,6 +98,9 @@
 
 [rho](https://github.com/http4s/rho)
 : A self-documenting DSL built on http4s
+
+[scala k8s](https://github.com/hnaderi/scala-k8s)
+: Kubernetes client, data models and typesafe manifest generation for scala, scalajs, and scala native; with support for http4s clients on all platforms 
 
 [tsec](https://github.com/jmcardon/tsec)
 : A type-safe, functional, general purpose security and cryptography library
@@ -181,5 +187,5 @@ G8 templates provide a fast way to get started with SBT projects by just running
 ----
 
 @:style(footer)
-[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/website/src/hugo/content/adopters.md), alphabetically, if you please.
+[@:icon(edit) Add yourself](https://github.com/http4s/http4s/edit/main/docs/adopters.md), alphabetically, if you please.
 @:@

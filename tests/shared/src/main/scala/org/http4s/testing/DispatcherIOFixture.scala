@@ -23,6 +23,6 @@ import munit.CatsEffectSuite
 
 trait DispatcherIOFixture { this: CatsEffectSuite =>
 
-  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFixture(Dispatcher[IO])
+  def dispatcher: SyncIO[FunFixture[Dispatcher[IO]]] = ResourceFunFixture(Dispatcher.parallel[IO])
 
 }

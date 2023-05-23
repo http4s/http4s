@@ -16,15 +16,30 @@ ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
+ThisBuild / githubWorkflowJobSetup ~= {
+  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+}
+ThisBuild / githubWorkflowJobSetup ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "install-nix-action", "v20"),
+    name = Some("Install Nix"),
+  ),
+  WorkflowStep.Use(
+    UseRef.Public("cachix", "cachix-action", "v12"),
+    name = Some("Install Cachix"),
+    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+  ),
+)
+
+ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
+
 ThisBuild / githubWorkflowAddedJobs ++= Seq(
   WorkflowJob(
     id = "coverage",
     name = "Generate coverage report",
     scalas = List(scala_213),
     javas = List(JavaSpec.temurin("8")),
-    steps = List(WorkflowStep.CheckoutFull) ++
-      WorkflowStep.SetupJava(List(JavaSpec.temurin("8"))) ++
-      githubWorkflowGeneratedCacheSteps.value ++
+    steps = githubWorkflowJobSetup.value.toList ++
       List(
         WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
         WorkflowStep.Use(
@@ -41,7 +56,9 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
-  new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")))
+  new NodeJSEnv(
+    NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
+  )
 }
 
 lazy val modules: List[CompositeProject] = List(
@@ -114,11 +131,29 @@ lazy val core = libraryCrossProject("core")
     },
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-lang", "scala-reflect"),
   )
-  .jsSettings(
+  .platformsSettings(JVMPlatform, JSPlatform)(
     libraryDependencies ++= Seq(
+      log4s.value
+    )
+  )
+  .platformsSettings(JSPlatform, NativePlatform)(
+    libraryDependencies ++= Seq(
+      log4catsNoop.value,
       scalaJavaLocalesEnUS.value,
       scalaJavaTime.value,
     )
+  )
+  .jvmSettings(
+    libraryDependencies ++= {
+      Seq(log4catsSlf4j)
+    },
+    libraryDependencies ++= {
+      if (tlIsScala3.value) Seq.empty
+      else
+        Seq(
+          slf4jApi // residual dependency from macros
+        )
+    },
   )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
@@ -157,6 +192,11 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+  )
+  .nativeSettings(
+    libraryDependencies ++= Seq(
+      epollcat.value
+    )
   )
   .dependsOn(core, laws)
 
@@ -218,12 +258,13 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsCore.value,
       log4catsTesting.value % Test,
+      log4catsNoop.value % Test,
     ),
   )
   .jvmSettings(
     libraryDependencies += twitterHpack
   )
-  .jsSettings(
+  .platformsSettings(JSPlatform, NativePlatform)(
     libraryDependencies += hpack.value
   )
   .dependsOn(core, tests % Test)
@@ -303,6 +344,7 @@ lazy val bench = http4sProject("bench")
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
   .settings(
+    startYear := Some(2022),
     // CI automatically links SJS test artifacts in a separate step, to avoid OOMs while running tests
     // By placing the app in Test scope it gets linked as part of that CI step
     Test / scalaJSUseMainModuleInitializer := true,
@@ -319,7 +361,8 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
       val sizeKB = size / 1000
       // not a hard target. increase *moderately* if need be
       // linking MimeDB results in a 100 KB increase. don't let that happen :)
-      val targetKB = 350
+      // linking java.time.* results in a 70 KB increase
+      val targetKB = 280
       val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
       if (sizeKB < targetKB)
         log.info(msg)
@@ -346,7 +389,7 @@ lazy val unidocs = http4sProject("unidocs")
           scalafixInternalRules,
           scalafixInternalTests,
           docs,
-        ) ++ root.js.aggregate): _*
+        ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
     coverageEnabled := false,
   )
@@ -475,7 +518,7 @@ def http4sProject(name: String) =
 
 def http4sCrossProject(name: String, crossType: CrossType) =
   sbtcrossproject
-    .CrossProject(name, file(name))(JVMPlatform, JSPlatform)
+    .CrossProject(name, file(name))(JVMPlatform, JSPlatform, NativePlatform)
     .withoutSuffixFor(JVMPlatform)
     .crossType(crossType)
     .settings(commonSettings)
@@ -493,8 +536,13 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeSettings(
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      unusedCompileDependenciesTest := {},
+      Test / envVars += "S2N_DONT_MLOCK" -> "1",
+    )
     .enablePlugins(Http4sPlugin)
-    .jsConfigure(_.disablePlugins(DoctestPlugin))
+    .configurePlatforms(JSPlatform, NativePlatform)(_.disablePlugins(DoctestPlugin))
     .configure(_.dependsOn(scalafixInternalRules % ScalafixConfig))
 
 def libraryProject(name: String) = http4sProject(name)

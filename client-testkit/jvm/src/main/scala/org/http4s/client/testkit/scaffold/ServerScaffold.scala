@@ -44,7 +44,7 @@ private[http4s] object ServerScaffold {
       F: Async[F]
   ): Resource[F, ServerScaffold[F]] =
     for {
-      dispatcher <- Dispatcher[F]
+      dispatcher <- Dispatcher.parallel[F]
       scaffold <- apply(num, secure, RoutesToNettyAdapter[F](routes, dispatcher))
     } yield scaffold
 
@@ -63,7 +63,7 @@ private[http4s] object ServerScaffold {
       implicit F: Async[F]
   ): Resource[F, ServerScaffold[F]] =
     for {
-      dispatcher <- Dispatcher[F]
+      dispatcher <- Dispatcher.parallel[F]
       maybeSsl <-
         if (secure) Resource.eval[F, SSLContext](makeSslContext[F]).map(Some(_))
         else Resource.pure[F, Option[SSLContext]](None)

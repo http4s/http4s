@@ -23,43 +23,51 @@ import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
 import org.http4s._
-import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.core.EmberException
 import org.http4s.implicits._
 import org.http4s.server.Server
 
+import scala.concurrent.duration._
+
 class EmberServerSuite extends Http4sSuite {
 
-  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
-    val dsl = new Http4sDsl[F] {}
-    import dsl._
+  def service: HttpApp[IO] = {
+    import org.http4s.dsl.io._
 
     HttpRoutes
-      .of[F] {
+      .of[IO] {
         case GET -> Root =>
           Ok("Hello!")
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
+        case GET -> Root / "failed-stream" =>
+          Ok(Stream.raiseError[IO](new RuntimeException("BOOM")).covaryOutput[String])
       }
       .orNotFound
   }
 
-  def url(address: SocketAddress[Host], path: String = ""): String =
-    s"http://${address.host}:${address.port.value}$path"
+  def url(address: SocketAddress[Host], path: String = ""): Uri =
+    Uri.unsafeFromString(
+      s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
+    )
 
-  val serverResource: Resource[IO, Server] =
+  def serverResource(
+      f: EmberServerBuilder[IO] => EmberServerBuilder[IO] = identity
+  ): Resource[IO, Server] =
+    f(
+      EmberServerBuilder
+        .default[IO]
+        .withPort(port"0")
+        .withHttpApp(service)
+    ).build
+
+  private val client = ResourceFunFixture(EmberClientBuilder.default[IO].build)
+
+  private def server(receiveBufferSize: Int = 256 * 1024) = ResourceFunFixture(
     EmberServerBuilder
       .default[IO]
-      .withPort(port"0")
-      .withHttpApp(service[IO])
-      .build
-
-  private val client = ResourceFixture(EmberClientBuilder.default[IO].build)
-
-  private def server(receiveBufferSize: Int = 256 * 1024) = ResourceFixture(
-    EmberServerBuilder
-      .default[IO]
-      .withHttpApp(service[IO])
+      .withHttpApp(service)
       .withPort(port"0")
       .withReceiveBufferSize(receiveBufferSize)
       .build
@@ -74,11 +82,32 @@ class EmberServerSuite extends Http4sSuite {
       .assertEquals(Status.Ok)
   }
 
+  fixture().test("connection closed when response body stream fails") { case (server, client) =>
+    val req = Request[IO](uri = url(server.address, "/failed-stream"))
+    client
+      .stream(req)
+      .flatMap(_.body)
+      .compile
+      .drain
+      .timeout(1.second)
+      .intercept[EmberException.ReachedEndOfStream] >>
+      // server should still be alive
+      client
+        .get(url(server.address))(_.status.pure[IO])
+        .assertEquals(Status.Ok)
+  }
+
   client.test("server shuts down after exiting resource scope") { client =>
-    serverResource.use(server => IO.pure(server.address)).flatMap { address =>
+    serverResource().use(server => IO.pure(server.address)).flatMap { address =>
       client
         .get(url(address))(_.status.pure[IO])
         .intercept[ConnectException]
+    }
+  }
+
+  client.test("shutdown timeout of 0 doesn't reset connections") { client =>
+    serverResource(_.withShutdownTimeout(0.nanos)).use { server =>
+      client.expect[String](url(server.address)).assertEquals("Hello!")
     }
   }
 
@@ -102,14 +131,27 @@ class EmberServerSuite extends Http4sSuite {
         Stream.emit("hello").repeatN(256).through(fs2.text.utf8.encode)
       val expected = "hello" * 256
 
-      val uri = Uri
-        .fromString(url(server.address, "/echo"))
-        .toOption
-        .get
+      val uri = url(server.address, "/echo")
       val request = POST(body, uri)
       for {
         r1 <- client.fetchAs[String](request)
         r2 <- client.fetchAs[String](request)
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
+
+  client.test("#4935 - client can detect a terminated connection") { client =>
+    def runReq(server: Server) = {
+      val req =
+        Request[IO](Method.POST, uri = url(server.address, "/echo")).withEntity("Hello!")
+      client.expect[String](req).assertEquals("Hello!")
+    }
+
+    serverResource(_.withShutdownTimeout(0.nanos))
+      .use(server => runReq(server).as(server.address.port))
+      .flatMap { port =>
+        IO.sleep(1.second) *> // so server shutdown propagates
+          serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+      }
+  }
+
 }

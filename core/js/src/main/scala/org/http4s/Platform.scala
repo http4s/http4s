@@ -19,4 +19,5 @@ package org.http4s
 private[http4s] object Platform {
   final val isJvm = false
   final val isJs = true
+  final val isNative = false
 }
