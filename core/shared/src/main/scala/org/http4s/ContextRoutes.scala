@@ -29,7 +29,7 @@ object ContextRoutes {
     * routes via `SemigroupK`.
     *
     * @tparam F the effect of the [[ContextRoutes]]
-    * @tparam T the type of the auth info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
     * @param run the function to lift
     * @return an [[ContextRoutes]] that wraps `run`
     */
@@ -43,6 +43,7 @@ object ContextRoutes {
     * of authed services via `SemigroupK`.
     *
     * @tparam F the base effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
     * @param pf the partial function to lift
     * @return An [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
@@ -57,6 +58,7 @@ object ContextRoutes {
     * constraints when not combining many routes.
     *
     * @tparam F the base effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
     * @param pf the partial function to lift
     * @return A [[ContextRoutes]] that returns some [[Response]] in an `OptionT[F, *]`
     * wherever `pf` is defined, an `OptionT.none` wherever it is not
@@ -86,6 +88,7 @@ object ContextRoutes {
   /** Lifts a [[Response]] into an [[ContextRoutes]].
     *
     * @tparam F the base effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
     * @param r the [[Response]] to lift
     * @return an [[ContextRoutes]] that always returns `r` in effect `OptionT[F, *]`
     */
@@ -97,6 +100,7 @@ object ContextRoutes {
     * efficient combination of routes via `SemigroupK`.
     *
     * @tparam F the base effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
     * @param f  a function to apply to the [[ContextRequest]]
     * @param fa the [[ContextRoutes]] to transform
     * @return An [[ContextRoutes]] whose input is transformed by `f` before
@@ -105,4 +109,16 @@ object ContextRoutes {
   def local[T, F[_]: Monad](f: ContextRequest[F, T] => ContextRequest[F, T])(
       fa: ContextRoutes[T, F]
   ): ContextRoutes[T, F] = Kleisli(req => Monad[OptionT[F, *]].unit >> fa.run(f(req)))
+
+  /** Converts a [[ContextRoutes]] to [[HttpRoutes]].  The application of `routes`
+    * is suspended in `F` to permit more efficient combination of
+    * routes via `SemigroupK`.
+    *
+    * @tparam F the effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]]
+    * @param routes the [[ContextRoutes]] to transform
+    * @return an [[ContextRoutes]] that wraps `run`
+    */
+  def toHttpRoutes[F[_]: Monad](routes: ContextRoutes[Unit, F]): HttpRoutes[F] =
+    Kleisli(req => Monad[OptionT[F, *]].unit >> routes.run(ContextRequest((), req)))
 }
