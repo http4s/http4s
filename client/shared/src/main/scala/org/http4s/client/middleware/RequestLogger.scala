@@ -18,7 +18,8 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.{Concurrent, Resource}
+import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
