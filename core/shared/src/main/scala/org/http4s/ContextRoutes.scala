@@ -18,6 +18,7 @@ package org.http4s
 
 import cats.Applicative
 import cats.Monad
+import cats.Monoid
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.syntax.all._
@@ -110,8 +111,8 @@ object ContextRoutes {
       fa: ContextRoutes[T, F]
   ): ContextRoutes[T, F] = Kleisli(req => Monad[OptionT[F, *]].unit >> fa.run(f(req)))
 
-  /** Converts a [[ContextRoutes]] to [[HttpRoutes]].  The application of `routes`
-    * is suspended in `F` to permit more efficient combination of
+  /** Converts a [[ContextRoutes]] to [[HttpRoutes]]. It uses a `Monoid.empty` to supply a value for the emptyContext.
+    * The application of `routes` is suspended in `F` to permit more efficient combination of
     * routes via `SemigroupK`.
     *
     * @tparam F the effect of the [[ContextRoutes]]
@@ -119,6 +120,19 @@ object ContextRoutes {
     * @param routes the [[ContextRoutes]] to transform
     * @return an [[ContextRoutes]] that wraps `run`
     */
-  def toHttpRoutes[F[_]: Monad](routes: ContextRoutes[Unit, F]): HttpRoutes[F] =
-    Kleisli(req => Monad[OptionT[F, *]].unit >> routes.run(ContextRequest((), req)))
+  def toHttpRoutes[T: Monoid, F[_]](routes: ContextRoutes[T, F]): HttpRoutes[F] =
+    toHttpRoutes(Monoid[T].empty)(routes)
+
+  /** Converts a [[ContextRoutes]] to [[HttpRoutes]].
+    * The application of `routes` is suspended in `F` to permit more efficient combination of
+    * routes via `SemigroupK`.
+    *
+    * @tparam F the effect of the [[ContextRoutes]]
+    * @tparam T the type of the context info in the [[ContextRequest]] accepted by the [[ContextRoutes]].
+    * @param emptyContext the empty context
+    * @param routes the [[ContextRoutes]] to transform
+    * @return an [[ContextRoutes]] that wraps `run`
+    */
+  def toHttpRoutes[T, F[_]](emptyContext: T)(routes: ContextRoutes[T, F]): HttpRoutes[F] =
+    Kleisli(req => routes.run(ContextRequest(emptyContext, req)))
 }
