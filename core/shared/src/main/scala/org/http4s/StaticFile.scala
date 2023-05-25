@@ -170,7 +170,7 @@ object StaticFile {
         OptionT.none
       }
 
-  def fromPath[F[_]: Files](
+  def fromPath[F[_]: Files: LoggerFactory](
       f: Path,
       start: Long,
       end: Long,
@@ -178,10 +178,9 @@ object StaticFile {
       req: Option[Request[F]],
       etagCalculator: Path => F[String],
   )(implicit
-      F: MonadError[F, Throwable],
-      factory: LoggerFactory[F],
+      F: MonadError[F, Throwable]
   ): OptionT[F, Response[F]] = {
-    implicit val logger: Logger[F] = factory.getLogger
+    implicit val logger: Logger[F] = LoggerFactory[F].getLogger
 
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))

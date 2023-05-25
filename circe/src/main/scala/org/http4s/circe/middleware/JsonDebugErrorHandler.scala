@@ -28,23 +28,23 @@ import org.typelevel.ci._
 import org.typelevel.log4cats.LoggerFactory
 
 object JsonDebugErrorHandler {
-  private[this] def messageFailureLogger[F[_]: LoggerFactory] =
-    LoggerFactory[F].getLoggerFromName(
-      "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
-    )
-  private[this] def serviceErrorLogger[F[_]: LoggerFactory] =
-    LoggerFactory[F].getLoggerFromName(
-      "org.http4s.circe.middleware.jsondebugerrorhandler.service-errors"
-    )
 
   // Can be parametric on my other PR is merged.
   def apply[F[_]: Concurrent: LoggerFactory, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-  ): Kleisli[F, Request[G], Response[G]] =
+  ): Kleisli[F, Request[G], Response[G]] = {
+    val serviceErrorLogger = LoggerFactory[F].getLoggerFromName(
+      "org.http4s.circe.middleware.jsondebugerrorhandler.service-errors"
+    )
+
+    val messageFailureLogger = LoggerFactory[F].getLoggerFromName(
+      "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
+    )
+
     Kleisli { req =>
-      implicit def entEnc[M[_]]: EntityEncoder.Pure[JsonErrorHandlerResponse[M]] =
-        JsonErrorHandlerResponse.entEnc[M](redactWhen)
+      implicit def entEnc: EntityEncoder.Pure[JsonErrorHandlerResponse[G]] =
+        JsonErrorHandlerResponse.entEnc[G](redactWhen)
 
       service
         .run(req)
@@ -79,6 +79,7 @@ object JsonDebugErrorHandler {
               )
         }
     }
+  }
 
   private final case class JsonErrorHandlerResponse[F[_]](
       req: Request[F],

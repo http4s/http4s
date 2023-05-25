@@ -17,18 +17,19 @@
 package com.example.http4s.ember
 
 import _root_.io.circe.Json
-import _root_.org.http4s.ember.client.EmberClientBuilder
-import _root_.org.typelevel.log4cats.Logger
-import _root_.org.typelevel.log4cats.slf4j.Slf4jLogger
 import cats.effect._
 import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.client._
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits._
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.SelfAwareStructuredLogger
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._
@@ -42,6 +43,8 @@ object EmberClientSimpleExample extends IOApp {
   val httpBinPng: Request[IO] = Request[IO](Method.GET, uri"https://httpbin.org/image/png")
 
   val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
   def run(args: List[String]): IO[ExitCode] =
     EmberClientBuilder

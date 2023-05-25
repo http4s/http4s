@@ -123,11 +123,14 @@ import com.comcast.ip4s._
 import org.http4s.ember.server._
 import org.http4s.implicits._
 import org.http4s.server.Router
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 import scala.concurrent.duration._
-import org.typelevel.log4cats.slf4j._
 ```
 
 ```scala mdoc:silent
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+  
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
 val server = EmberServerBuilder
@@ -175,11 +178,14 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.ember.server._
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 ```
 
 ```scala mdoc:silent
 object Main extends IOApp {
+
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
   val helloWorldService = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>

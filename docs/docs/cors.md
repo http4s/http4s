@@ -30,14 +30,16 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 ```
 
-If you're in a REPL, we also need a runtime:
+If you're in a REPL, we also need a runtime and a logger factory:
 
 ```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 ```
 
 Let's start by making a simple service.
@@ -111,7 +113,6 @@ val corsMethodSvc = CORS.policy
   .apply(service)
   .unsafeRunSync()
 ```
-  .unsafeRunSync()
 
 ```scala mdoc
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync()

@@ -21,9 +21,13 @@ import com.comcast.ip4s._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.staticcontent._
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object SimpleHttpServer extends IOApp {
+
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+  
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
@@ -61,6 +65,8 @@ For custom behaviour, `StaticFile.fromPath` can also be used directly in a route
 import org.http4s._
 import org.http4s.dsl.io._
 import fs2.io.file.Path
+
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
 val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>

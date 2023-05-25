@@ -16,15 +16,16 @@
 
 package com.example.http4s.ember
 
-import _root_.org.http4s.ember.client.EmberClientBuilder
 import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2.io.net._
 import org.http4s._
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.h2._
 import org.http4s.implicits._
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object EmberClientH2Example extends IOApp {
 
@@ -51,6 +52,9 @@ object EmberClientH2Example extends IOApp {
       Resource
         .eval(Network[F].tlsContext.insecure)
         .flatMap { tls =>
+          implicit val loggerFactory: LoggerFactory[F] =
+            Slf4jFactory.create[F]
+
           EmberClientBuilder
             .default[F]
             .withHttp2

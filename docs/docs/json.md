@@ -229,7 +229,8 @@ import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.implicits._
-import org.typelevel.log4cats.slf4j._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import scala.concurrent.duration._
 
@@ -237,6 +238,8 @@ case class User(name: String)
 case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
+
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
 val jsonApp = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>
