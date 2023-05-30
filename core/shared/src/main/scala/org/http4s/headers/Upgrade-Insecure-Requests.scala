@@ -21,23 +21,22 @@ import cats.parse.Parser
 import cats.parse.Parser.char
 import org.typelevel.ci._
 
-sealed abstract class `Upgrade-Insecure-Requests`(val value: String)
-    extends Product
-    with Serializable
+sealed trait `Upgrade-Insecure-Requests`
 
-object `Upgrade-Insecure-Requests` {
-  case object Upgrade extends `Upgrade-Insecure-Requests`("1")
+case object `Upgrade-Insecure-Requests` extends `Upgrade-Insecure-Requests` {
 
   private[http4s] val parser: Parser[`Upgrade-Insecure-Requests`] =
-    char('1').as(Upgrade)
+    char('1').as(`Upgrade-Insecure-Requests`)
 
   def parse(s: String): ParseResult[`Upgrade-Insecure-Requests`] =
     ParseResult.fromParser(parser, "Invalid Upgrade-Insecure-Requests header")(s)
 
+  private[http4s] val headerValue = "1"
+
   implicit val headerInstance: Header[`Upgrade-Insecure-Requests`, Header.Single] =
     Header.create(
       ci"Upgrade-Insecure-Requests",
-      _.value,
+      _ => headerValue,
       parse,
     )
 

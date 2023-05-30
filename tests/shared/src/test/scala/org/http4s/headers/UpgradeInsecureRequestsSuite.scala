@@ -23,10 +23,10 @@ import org.http4s.laws.discipline.arbitrary._
 class UpgradeInsecureRequestsSuite extends HeaderLaws {
   checkAll("Upgrade-Insecure-Requests", headerLaws[`Upgrade-Insecure-Requests`])
 
-  test("parsing 1 into Upgrade") {
+  test("parsing 1 into Upgrade-Insecure-Requests") {
     assertEquals(
       `Upgrade-Insecure-Requests`.parser.parseAll("1"),
-      `Upgrade-Insecure-Requests`.Upgrade.asRight,
+      `Upgrade-Insecure-Requests`.asRight,
     )
   }
 }

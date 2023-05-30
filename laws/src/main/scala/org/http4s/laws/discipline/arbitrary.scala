@@ -1158,7 +1158,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 
   implicit val arbUpgradeInsecureRequests: Arbitrary[`Upgrade-Insecure-Requests`] =
-    Arbitrary[`Upgrade-Insecure-Requests`](`Upgrade-Insecure-Requests`.Upgrade)
+    Arbitrary[`Upgrade-Insecure-Requests`](`Upgrade-Insecure-Requests`)
 
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
