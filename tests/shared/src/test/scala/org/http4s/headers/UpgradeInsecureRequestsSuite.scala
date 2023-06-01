@@ -25,7 +25,7 @@ class UpgradeInsecureRequestsSuite extends HeaderLaws {
 
   test("parsing 1 into Upgrade-Insecure-Requests") {
     assertEquals(
-      `Upgrade-Insecure-Requests`.parser.parseAll("1"),
+      `Upgrade-Insecure-Requests`.parse("1"),
       `Upgrade-Insecure-Requests`.asRight,
     )
   }

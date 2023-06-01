@@ -21,17 +21,17 @@ import cats.parse.Parser
 import cats.parse.Parser.char
 import org.typelevel.ci._
 
-sealed trait `Upgrade-Insecure-Requests`
+sealed abstract class `Upgrade-Insecure-Requests`
 
 case object `Upgrade-Insecure-Requests` extends `Upgrade-Insecure-Requests` {
 
-  private[http4s] val parser: Parser[`Upgrade-Insecure-Requests`] =
+  private[this] val parser: Parser[`Upgrade-Insecure-Requests`] =
     char('1').as(`Upgrade-Insecure-Requests`)
 
   def parse(s: String): ParseResult[`Upgrade-Insecure-Requests`] =
     ParseResult.fromParser(parser, "Invalid Upgrade-Insecure-Requests header")(s)
 
-  private[http4s] val headerValue = "1"
+  private[this] val headerValue = "1"
 
   implicit val headerInstance: Header[`Upgrade-Insecure-Requests`, Header.Single] =
     Header.create(
