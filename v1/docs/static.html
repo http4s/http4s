@@ -150,8 +150,8 @@
         <li class="level2"><a href="testing.html">Testing</a></li>
         <li class="level2"><a href="uri.html">URI Handling</a></li>
         <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -246,8 +246,13 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">EmberServerBuilder</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">Server</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">staticcontent</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="type-name">LoggerFactory</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="identifier">slf4j</span><span>.</span><span class="type-name">Slf4jFactory</span><span>
 
 </span><span class="keyword">object</span><span> </span><span class="type-name">SimpleHttpServer</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">IOApp</span><span> {
+
+  </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
+  
   </span><span class="keyword">override</span><span> </span><span class="keyword">def</span><span> </span><span class="declaration-name">run</span><span>(</span><span class="identifier">args</span><span>: </span><span class="type-name">List</span><span>[</span><span class="type-name">String</span><span>]): </span><span class="type-name">IO</span><span>[</span><span class="type-name">ExitCode</span><span>] =
     </span><span class="identifier">app</span><span>.</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">never</span><span>).</span><span class="identifier">as</span><span>(</span><span class="type-name">ExitCode</span><span>.</span><span class="type-name">Success</span><span>)
 
@@ -277,6 +282,8 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">file</span><span>.</span><span class="type-name">Path</span><span>
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">routes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;index.html&quot;</span><span> =&gt;

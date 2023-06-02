@@ -150,8 +150,8 @@
         <li class="level2"><a href="testing.html">Testing</a></li>
         <li class="level2"><a href="uri.html">URI Handling</a></li>
         <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -249,7 +249,8 @@
   </span><span class="comment">// Optional for auto-derivation of JSON codecs
 </span><span>  </span><span class="string-literal">&quot;io.circe&quot;</span><span> %% </span><span class="string-literal">&quot;circe-generic&quot;</span><span> % </span><span class="string-literal">&quot;0.14.5&quot;</span><span>,
   </span><span class="comment">// Optional for string interpolation to JSON model
-</span><span>  </span><span class="string-literal">&quot;io.circe&quot;</span><span> %% </span><span class="string-literal">&quot;circe-literal&quot;</span><span> % </span><span class="string-literal">&quot;0.14.5&quot;</span><span>
+</span><span>  </span><span class="string-literal">&quot;io.circe&quot;</span><span> %% </span><span class="string-literal">&quot;circe-literal&quot;</span><span> % </span><span class="string-literal">&quot;0.14.5&quot;</span><span>,
+  </span><span class="string-literal">&quot;org.typelevel&quot;</span><span> %% </span><span class="string-literal">&quot;log4cats-slf4j&quot;</span><span> % </span><span class="identifier">log4catsVersion</span><span>,
 )
 
 </span><span class="identifier">addCompilerPlugin</span><span>(</span><span class="string-literal">&quot;org.scalamacros&quot;</span><span> % </span><span class="string-literal">&quot;paradise&quot;</span><span> % </span><span class="string-literal">&quot;2.1.0&quot;</span><span> </span><span class="identifier">cross</span><span> </span><span class="type-name">CrossVersion</span><span>.</span><span class="identifier">full</span><span>)</span></code></pre>
@@ -293,13 +294,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@26fa2284,
+//         at = scodec.bits.ByteVector$AtByteBuffer@34aad1be,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@3c06f66d
+//    = org.typelevel.vault.Vault@4b396c6f
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -322,7 +323,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@6d83da6e
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@33c8f99d
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -342,13 +343,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@34a319be,
+//         at = scodec.bits.ByteVector$AtByteBuffer@5c3ced17,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@433af3ac
+//    = org.typelevel.vault.Vault@3ef9f00f
 // )
 </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
   .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>)
@@ -366,13 +367,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@4804d038,
+//         at = scodec.bits.ByteVector$AtByteBuffer@3e23b9ab,
 //         offset = 0L,
 //         size = 14L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@3b2733fc
+//    = org.typelevel.vault.Vault@4ad3bbe3
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -404,7 +405,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@1765a3cf
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@71bcb3fb
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
@@ -440,6 +441,8 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="type-name">LoggerFactory</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="identifier">slf4j</span><span>.</span><span class="type-name">Slf4jFactory</span><span>
 
 </span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span><span>
 
@@ -447,6 +450,8 @@
 </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Hello</span><span>(</span><span class="identifier">greeting</span><span>: </span><span class="type-name">String</span><span>)
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">decoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">jsonApp</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;hello&quot;</span><span> =&gt;

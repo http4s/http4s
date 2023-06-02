@@ -150,8 +150,8 @@
         <li class="level2"><a href="testing.html">Testing</a></li>
         <li class="level2"><a href="uri.html">URI Handling</a></li>
         <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
+        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -230,16 +230,20 @@
         <p>Examples in this document have the following dependencies.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
-  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>
+  </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
+  </span><span class="string-literal">&quot;org.typelevel&quot;</span><span> %% </span><span class="string-literal">&quot;log4cats-slf4j&quot;</span><span> % </span><span class="identifier">log4catsVersion</span><span>,
 )</span></code></pre>
         <p>And we need some imports.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span></code></pre>
-        <p>If you&#39;re in a REPL, we also need a runtime:</p>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="type-name">LoggerFactory</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="identifier">slf4j</span><span>.</span><span class="type-name">Slf4jFactory</span></code></pre>
+        <p>If you&#39;re in a REPL, we also need a runtime and a logger factory:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
-</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]</span></code></pre>
         <p>Let&#39;s start by making a simple service that returns a (relatively) large string
         in its body. We&#39;ll use <code>as[String]</code> to examine the body.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
@@ -257,13 +261,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@6ce96c12,
+//         at = scodec.bits.ByteVector$AtArray@478e5db2,
 //         offset = 0L,
 //         size = 117L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@3ba32972
+//    = org.typelevel.vault.Vault@43f89da7
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">body</span><span> = </span><span class="identifier">response</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// body: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -281,13 +285,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@4170ea41,
+//         at = scodec.bits.ByteVector$AtArray@15aa5223,
 //         offset = 0L,
 //         size = 117L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@498dcbbd
+//    = org.typelevel.vault.Vault@3157106e
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyNormal</span><span> = </span><span class="identifier">respNormal</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyNormal: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -303,7 +307,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Accept-Encoding: gzip),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6ea3a762
+//    = org.typelevel.vault.Vault@401a83b
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -313,7 +317,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //    = Streamed(body = Stream(..), length = None),
-//    = org.typelevel.vault.Vault@4ce9fb7d
+//    = org.typelevel.vault.Vault@31308b9
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyZip</span><span> = </span><span class="identifier">respZip</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyZip: String = &quot;\u001f\ufffd\b\u0000\u0000\u0000\u0000\u0000\u0000\u0003\ufffdT(J-HM,Q\u022d,N\ufffdIS(\ufffdH\ufffdS\ufffdT\ufffdU(\ufffdKI-R(.)J-.\ufffdS\ufffd2\u0000UX\ufffd&lt;u\u0000\u0000\u0000&quot;
