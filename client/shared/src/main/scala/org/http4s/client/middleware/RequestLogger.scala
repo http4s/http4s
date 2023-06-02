@@ -18,27 +18,27 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect.Async
+import cats.effect.Concurrent
 import cats.effect.Resource
-import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
-  private[this] val logger = Platform.loggerFactory.getLogger
+  private def defaultLogAction[F[_]: log4cats.Logger](s: String): F[Unit] =
+    log4cats.Logger[F].info(s)
 
-  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = logger.info(s).to[F]
-
-  def apply[F[_]: Async](
+  def apply[F[_]: Concurrent: log4cats.LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(client: Client[F]): Client[F] =
+  )(client: Client[F]): Client[F] = {
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody) { request =>
       Logger.logMessage(request)(
         logHeaders,
@@ -46,13 +46,15 @@ object RequestLogger {
         redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
+  }
 
-  def logBodyText[F[_]: Async](
+  def logBodyText[F[_]: Concurrent: log4cats.LoggerFactory](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
-  )(client: Client[F]): Client[F] =
+  )(client: Client[F]): Client[F] = {
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody = true) { request =>
       InternalLogger.logMessageWithBodyText(request)(
         logHeaders,
@@ -60,20 +62,22 @@ object RequestLogger {
         redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
-
-  def customized[F[_]: Async](
+  }
+  def customized[F[_]: Concurrent: log4cats.LoggerFactory](
       client: Client[F],
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None,
-  )(requestToText: Request[F] => F[String]): Client[F] =
+  )(requestToText: Request[F] => F[String]): Client[F] = {
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     impl(client, logBody) { request =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       requestToText(request).flatMap(log)
     }
+  }
 
   private def impl[F[_]](client: Client[F], logBody: Boolean)(
       logMessage: Request[F] => F[Unit]
-  )(implicit F: Async[F]): Client[F] =
+  )(implicit F: Concurrent[F], logger: log4cats.Logger[F]): Client[F] =
     Client { req =>
       if (!logBody)
         Resource.eval(logMessage(req)) *> client.run(req)
@@ -89,7 +93,7 @@ object RequestLogger {
                   .ifM(
                     F.unit,
                     logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
-                      logger.error(t)("Error logging request body").to[F]
+                      logger.error(t)("Error logging request body")
                     },
                   )
 
@@ -111,7 +115,7 @@ object RequestLogger {
             case Entity.Strict(_) | Entity.Empty =>
               logMessage(req)
                 .handleErrorWith { t =>
-                  logger.error(t)("Error logging request body").to[F]
+                  logger.error(t)("Error logging request body")
                 }
                 .as(client.run(req))
           }
@@ -121,13 +125,13 @@ object RequestLogger {
 
   val defaultRequestColor: String = Console.BLUE
 
-  def colored[F[_]](
+  def colored[F[_]: log4cats.LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       color: String = defaultRequestColor,
       logAction: Option[String => F[Unit]] = None,
-  )(client: Client[F])(implicit F: Async[F]): Client[F] =
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
     customized(client, logBody, logAction) { request =>
       import Console._
       val methodColor =
@@ -143,7 +147,7 @@ object RequestLogger {
       val bodyText: F[String] =
         InternalLogger.defaultLogBody(request)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
-          case None => Sync[F].pure("")
+          case None => "".pure
         }
 
       def spaced(x: String): String = if (x.isEmpty) x else s" $x"

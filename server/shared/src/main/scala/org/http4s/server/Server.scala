@@ -20,8 +20,6 @@ package server
 import com.comcast.ip4s
 
 abstract class Server {
-  private[server] val logger = Platform.loggerFactory.getLogger
-
   def address: ip4s.SocketAddress[ip4s.IpAddress]
 
   def baseUri: Uri =

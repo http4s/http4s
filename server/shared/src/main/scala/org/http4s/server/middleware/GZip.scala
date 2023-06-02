@@ -18,30 +18,34 @@ package org.http4s
 package server
 package middleware
 
+import cats.Applicative
 import cats.Functor
+import cats.Monad
 import cats.data.Kleisli
 import cats.syntax.all._
 import fs2.compression._
 import org.http4s.headers._
+import org.typelevel.log4cats
 
 object GZip {
-  private[this] val logger = Platform.loggerFactory.getLogger
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor, G[_]: Compression](
+  def apply[F[_]: Monad: log4cats.LoggerFactory, G[_]: Compression](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
-  ): Http[F, G] =
+  ): Http[F, G] = {
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     Kleisli { (req: Request[G]) =>
       req.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          http(req).map(zipOrPass(_, bufferSize, level, isZippable))
+          http(req).flatMap(zipOrPass[F, G](_, bufferSize, level, isZippable))
         case _ => http(req)
       }
     }
+  }
 
   def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
     val contentType = resp.headers.get[`Content-Type`]
@@ -56,24 +60,24 @@ object GZip {
       ContentCoding.`x-gzip`
     )
 
-  private def zipOrPass[F[_]: Compression](
-      response: Response[F],
+  private def zipOrPass[F[_]: Applicative: log4cats.Logger, G[_]: Compression](
+      response: Response[G],
       bufferSize: Int,
       level: DeflateParams.Level,
-      isZippable: Response[F] => Boolean,
-  ): Response[F] =
+      isZippable: Response[G] => Boolean,
+  ): F[Response[G]] =
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
-      case resp => resp // Don't touch it, Content-Encoding already set
+      case resp => resp.pure // Don't touch it, Content-Encoding already set
     }
 
-  private def zipResponse[F[_]: Compression](
+  private def zipResponse[F[_]: Functor: log4cats.Logger, G[_]: Compression](
       bufferSize: Int,
       level: DeflateParams.Level,
-      resp: Response[F],
-  ): Response[F] = {
+      resp: Response[G],
+  ): F[Response[G]] = {
     val compressPipe =
-      Compression[F].gzip(
+      Compression[G].gzip(
         fileName = None,
         modificationTime = None,
         comment = None,
@@ -83,10 +87,14 @@ object GZip {
           header = ZLibParams.Header.GZIP,
         ),
       )
-    logger.trace("GZip middleware encoding content").unsafeRunSync()
-    resp
-      .removeHeader[`Content-Length`]
-      .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-      .pipeBodyThrough(compressPipe)
+    log4cats
+      .Logger[F]
+      .trace("GZip middleware encoding content")
+      .as(
+        resp
+          .removeHeader[`Content-Length`]
+          .putHeaders(`Content-Encoding`(ContentCoding.gzip))
+          .pipeBodyThrough(compressPipe)
+      )
   }
 }

@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   // Optional for auto-derivation of JSON codecs
   "io.circe" %% "circe-generic" % "@CIRCE_VERSION@",
   // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % "@CIRCE_VERSION@"
+  "io.circe" %% "circe-literal" % "@CIRCE_VERSION@",
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
@@ -228,6 +229,8 @@ import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.implicits._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import scala.concurrent.duration._
 
@@ -235,6 +238,8 @@ case class User(name: String)
 case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
+
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
 val jsonApp = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>

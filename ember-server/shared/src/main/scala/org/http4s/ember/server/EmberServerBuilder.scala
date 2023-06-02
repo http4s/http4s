@@ -33,6 +33,7 @@ import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
+import org.typelevel.log4cats.LoggerFactory
 
 import scala.concurrent.duration._
 
@@ -260,8 +261,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     }
 }
 
-object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
-  def default[F[_]: Async: Network]: EmberServerBuilder[F] =
+object EmberServerBuilder {
+  def default[F[_]: Async: Network: LoggerFactory]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -277,15 +278,11 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = defaultLogger[F],
+      logger = LoggerFactory[F].getLogger,
       unixSocketConfig = None,
       enableHttp2 = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
     )
-
-  @deprecated("Use the overload which accepts a Network", "0.23.16")
-  def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
-    default(async, Network.forAsync(async))
 
   private object Defaults {
     val host: String = server.defaults.IPv4Host

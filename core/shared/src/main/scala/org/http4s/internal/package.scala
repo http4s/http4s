@@ -26,7 +26,7 @@ import fs2.Chunk
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
-package object internal extends InternalPlatform {
+package object internal {
 
   private[http4s] def unsafeToCompletionStage[F[_], A](
       fa: F[A],

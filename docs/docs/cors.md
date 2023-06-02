@@ -18,7 +18,8 @@ Examples in this document have the following dependencies.
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-server" % http4sVersion
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 ```
 
@@ -29,13 +30,16 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 ```
 
-If you're in a REPL, we also need a runtime:
+If you're in a REPL, we also need a runtime and a logger factory:
 
 ```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 ```
 
 Let's start by making a simple service.
@@ -58,7 +62,7 @@ Now we can wrap the service in the `CORS` middleware.
 ```scala mdoc:silent
 import org.http4s.server.middleware._
 
-val corsService = CORS.policy.withAllowOriginAll(service)
+val corsService = CORS.policy.withAllowOriginAll(service).unsafeRunSync()
 ```
 
 ```scala mdoc
@@ -107,6 +111,7 @@ val corsMethodSvc = CORS.policy
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+  .unsafeRunSync()
 ```
 
 ```scala mdoc
@@ -131,6 +136,7 @@ val corsOriginSvc = CORS.policy
   .withAllowCredentials(false)
   .withMaxAge(1.day)
   .apply(service)
+  .unsafeRunSync()
 ```
 
 ```scala mdoc

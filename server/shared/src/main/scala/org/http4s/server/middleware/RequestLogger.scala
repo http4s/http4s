@@ -22,7 +22,7 @@ import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.implicits._
-import cats.effect.kernel.Async
+import cats.effect.kernel.Concurrent
 import cats.effect.kernel.MonadCancelThrow
 import cats.effect.kernel.Outcome
 import cats.syntax.all._
@@ -31,36 +31,37 @@ import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats.LoggerFactory
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
-  private[this] val logger = Platform.loggerFactory.getLogger
 
-  def apply[G[_], F[_]](
+  def apply[G[_], F[_]: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit
-      F: Async[F],
+      F: Concurrent[F],
       G: MonadCancelThrow[G],
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
-  private[server] def impl[G[_], F[_]](
+  private[server] def impl[G[_], F[_]: LoggerFactory](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
       logAction: Option[String => F[Unit]],
   )(http: Http[G, F])(implicit
-      F: Async[F],
+      F: Concurrent[F],
       G: MonadCancelThrow[G],
   ): Http[G, F] = {
+    val logger = LoggerFactory[F].getLogger
     val log = logAction.fold { (s: String) =>
-      logger.info(s).to[F]
+      logger.info(s)
     }(identity)
 
     def logMessage(r: Request[F]): F[Unit] =
@@ -119,7 +120,7 @@ object RequestLogger {
     }
   }
 
-  def httpApp[F[_]: Async](
+  def httpApp[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -127,7 +128,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutes[F[_]: Async](
+  def httpRoutes[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -135,7 +136,7 @@ object RequestLogger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpAppLogBodyText[F[_]: Async](
+  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -143,7 +144,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutesLogBodyText[F[_]: Async](
+  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
