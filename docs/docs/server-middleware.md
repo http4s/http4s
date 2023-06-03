@@ -23,8 +23,11 @@ import scala.concurrent.duration._
 import cats.effect.std.Random
 import fs2.Stream
 import cats.effect.std.Console
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
 object NameQueryParamMatcher extends QueryParamDecoderMatcher[String]("name")
 
