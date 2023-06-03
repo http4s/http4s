@@ -8,7 +8,8 @@ Examples in this document have the following dependencies.
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-server" % http4sVersion
+  "org.http4s" %% "http4s-server" % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j" % log4catsVersion,
 )
 ```
 
@@ -19,13 +20,16 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 ```
 
-If you're in a REPL, we also need a runtime:
+If you're in a REPL, we also need a runtime and a logger factory:
 
 ```scala mdoc:silent
 import cats.effect.unsafe.IORuntime
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 ```
 
 Let's start by making a simple service that returns a (relatively) large string

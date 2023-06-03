@@ -26,6 +26,7 @@ import com.comcast.ip4s.SocketAddress
 import io.netty.channel.ChannelInboundHandler
 import io.netty.handler.codec.http.HttpMethod
 import org.http4s.HttpRoutes
+import org.typelevel.log4cats.LoggerFactory
 
 import java.security.KeyStore
 import java.security.Security
@@ -39,7 +40,7 @@ private[http4s] class ServerScaffold[F[_]] private (val servers: Vector[TestServ
 private[http4s] object ServerScaffold {
 
   // high-level API
-  def apply[F[_]](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
+  def apply[F[_]: LoggerFactory](num: Int, secure: Boolean, routes: HttpRoutes[F])(implicit
       F: Async[F]
   ): Resource[F, ServerScaffold[F]] =
     for {
@@ -48,14 +49,18 @@ private[http4s] object ServerScaffold {
     } yield scaffold
 
   // mid-level API
-  def apply[F[_]](num: Int, secure: Boolean, handlers: Map[(HttpMethod, String), Handler])(implicit
+  def apply[F[_]: LoggerFactory](
+      num: Int,
+      secure: Boolean,
+      handlers: Map[(HttpMethod, String), Handler],
+  )(implicit
       F: Async[F]
   ): Resource[F, ServerScaffold[F]] =
     apply[F](num, secure, HandlersToNettyAdapter(handlers))
 
   // low-level API
-  def apply[F[_]](num: Int, secure: Boolean, makeHandler: F[ChannelInboundHandler])(implicit
-      F: Async[F]
+  def apply[F[_]: LoggerFactory](num: Int, secure: Boolean, makeHandler: F[ChannelInboundHandler])(
+      implicit F: Async[F]
   ): Resource[F, ServerScaffold[F]] =
     for {
       dispatcher <- Dispatcher.parallel[F]

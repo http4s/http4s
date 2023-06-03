@@ -17,9 +17,10 @@
 package org.http4s
 package server
 
-import cats.effect.kernel.Async
+import cats.effect.kernel.Concurrent
 import fs2.io.file.Files
 import org.http4s.headers.`Accept-Ranges`
+import org.typelevel.log4cats.LoggerFactory
 
 /** Helpers for serving static content from http4s
   *
@@ -29,16 +30,14 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]](basePath: String): ResourceServiceBuilder[F] =
+  def resourceServiceBuilder[F[_]: LoggerFactory](basePath: String): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  def fileService[F[_]: Async: Files](config: FileService.Config[F]): HttpRoutes[F] =
+  def fileService[F[_]: Concurrent: Files: LoggerFactory](
+      config: FileService.Config[F]
+  ): HttpRoutes[F] =
     FileService(config)
-
-  @deprecated("Use overload with Files constraint", "0.23.19")
-  def fileService[F[_]](config: FileService.Config[F], F: Async[F]): HttpRoutes[F] =
-    fileService(config)(F, Files.forAsync(F))
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
   def webjarServiceBuilder[F[_]]: WebjarServiceBuilder[F] =

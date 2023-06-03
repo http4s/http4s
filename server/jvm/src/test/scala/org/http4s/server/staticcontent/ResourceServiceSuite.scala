@@ -36,7 +36,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
   // val defaultBase = getClass.getResource("/").getPath.toString
   // val routes = resourceService(config)
   private val builder = resourceServiceBuilder[IO]("")
-  def routes: HttpRoutes[IO] = builder.toRoutes
+  def routes: HttpRoutes[IO] = builder.toRoutes.syncStep(Int.MaxValue).unsafeRunSync().toOption.get
   private val defaultBase = getClass.getResource("/").getPath.toString
 
   test("Respect UriTranslation") {
@@ -69,12 +69,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
   test("Respect the path prefix") {
     val relativePath = "testresource.txt"
-    val s0 = builder.withPathPrefix("/path-prefix").toRoutes
-    val file = Paths.get(defaultBase).resolve(relativePath).toFile
-    val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
-    val req = Request[IO](uri = uri)
-    IO(file.exists()).assert *>
-      s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
+    builder.withPathPrefix("/path-prefix").toRoutes.flatMap { s0 =>
+      val file = Paths.get(defaultBase).resolve(relativePath).toFile
+      val uri = Uri.unsafeFromString("/path-prefix/" + relativePath)
+      val req = Request[IO](uri = uri)
+      IO(file.exists()).assert *>
+        s0.orNotFound(req).map(_.status).assertEquals(Status.Ok)
+    }
   }
 
   test("Return a 400 if the request tries to escape the context") {
@@ -84,9 +85,10 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = builder.withBasePath("/testDir").toRoutes
-    IO(file.exists()).assert *>
-      s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+    builder.withBasePath("/testDir").toRoutes.flatMap { s0 =>
+      IO(file.exists()).assert *>
+        s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+    }
   }
 
   test("Return a 400 on path traversal, even if it's inside the context") {
@@ -107,9 +109,10 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = builder.toRoutes
-    IO(file.exists()).assert *>
-      s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+    builder.toRoutes.flatMap { s0 =>
+      IO(file.exists()).assert *>
+        s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+    }
   }
 
   test(
@@ -120,11 +123,13 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("/test" + relativePath)
     val req = Request[IO](uri = uri)
-    val s0 = builder
+    builder
       .withPathPrefix("/test")
       .toRoutes
-    IO(file.exists()).assert *>
-      s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+      .flatMap { s0 =>
+        IO(file.exists()).assert *>
+          s0.orNotFound(req).map(_.status).assertEquals(Status.NotFound)
+      }
   }
 
   test("Return a 400 Not Found if the request tries to escape the context with /") {
@@ -133,9 +138,10 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
 
     val uri = Uri.unsafeFromString("///" + absPath)
     val req = Request[IO](uri = uri)
-    val s0 = builder.toRoutes
-    IO(file.exists()).assert *>
-      s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+    builder.toRoutes.flatMap { s0 =>
+      IO(file.exists()).assert *>
+        s0.orNotFound(req).map(_.status).assertEquals(Status.BadRequest)
+    }
   }
 
   test("Try to serve pre-gzipped content if asked to") {
@@ -143,7 +149,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       uri = Uri.fromString("/testresource.txt").yolo,
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
-    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.flatMap(_.orNotFound(req))
 
     testResourceGzipped.flatMap { testResourceGzipped =>
       Stream
@@ -165,7 +171,7 @@ class ResourceServiceSuite extends Http4sSuite with StaticContentShared {
       uri = Uri.fromString("/testresource2.txt").yolo,
       headers = Headers(`Accept-Encoding`(ContentCoding.gzip)),
     )
-    val rb = builder.withPreferGzipped(true).toRoutes.orNotFound(req)
+    val rb = builder.withPreferGzipped(true).toRoutes.flatMap(_.orNotFound(req))
 
     testResource.flatMap { testResource =>
       Stream.eval(rb).flatMap(_.body.chunks).compile.lastOrError.assertEquals(testResource) *>

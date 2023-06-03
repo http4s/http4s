@@ -118,7 +118,6 @@ object Http4sPlugin extends AutoPlugin {
     val literally = "1.1.0"
     val logback = "1.2.6"
     val log4cats = "2.6.0"
-    val log4s = "1.10.0"
     val munit = "1.0.0-M7"
     val munitCatsEffect = "2.0.0-M3"
     val munitDiscipline = "2.0.0-M3"
@@ -174,7 +173,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
   lazy val log4catsJSConsole = Def.setting("org.typelevel" %%% "log4cats-js-console" % V.log4cats)
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)
-  lazy val log4s = Def.setting("org.log4s" %%% "log4s" % V.log4s)
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
   lazy val munit = Def.setting("org.scalameta" %%% "munit" % V.munit)
   lazy val munitCatsEffect =

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.server
+package org.http4s.ember.client
 
-import cats.effect.Async
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
+import fs2.io.net.unixsocket.UnixSockets
 
-private[server] trait EmberServerBuilderCompanionPlatform {
+private[client] trait EmberClientBuilderPlatform {
 
-  private[server] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
+  private[client] def defaultUnixSockets[F[_]]: Option[UnixSockets[F]] =
+    None
 
 }

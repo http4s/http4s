@@ -18,33 +18,33 @@ package org.http4s.circe.middleware
 
 import cats.data._
 import cats.effect._
+import cats.syntax.all._
 import io.circe._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.headers.Connection
 import org.typelevel.ci._
+import org.typelevel.log4cats.LoggerFactory
 
 object JsonDebugErrorHandler {
-  private[this] val messageFailureLogger =
-    Platform.loggerFactory.getLoggerFromName(
-      "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
-    )
-  private[this] val serviceErrorLogger =
-    Platform.loggerFactory.getLoggerFromName(
+
+  // Can be parametric on my other PR is merged.
+  def apply[F[_]: Concurrent: LoggerFactory, G[_]](
+      service: Kleisli[F, Request[G], Response[G]],
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  ): Kleisli[F, Request[G], Response[G]] = {
+    val serviceErrorLogger = LoggerFactory[F].getLoggerFromName(
       "org.http4s.circe.middleware.jsondebugerrorhandler.service-errors"
     )
 
-  // Can be parametric on my other PR is merged.
-  def apply[F[_]: Concurrent, G[_]](
-      service: Kleisli[F, Request[G], Response[G]],
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-  ): Kleisli[F, Request[G], Response[G]] =
+    val messageFailureLogger = LoggerFactory[F].getLoggerFromName(
+      "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
+    )
+
     Kleisli { req =>
-      import cats.syntax.applicative._
-      import cats.syntax.applicativeError._
-      implicit def entEnc[M[_]]: EntityEncoder.Pure[JsonErrorHandlerResponse[M]] =
-        JsonErrorHandlerResponse.entEnc[M](redactWhen)
+      implicit def entEnc: EntityEncoder.Pure[JsonErrorHandlerResponse[G]] =
+        JsonErrorHandlerResponse.entEnc[G](redactWhen)
 
       service
         .run(req)
@@ -55,29 +55,31 @@ object JsonDebugErrorHandler {
                 s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                     .getOrElse("<unknown>")}"""
               )
-              .unsafeRunSync()
-            val firstResp = mf.toHttpResponse[G](req.httpVersion)
-            Response[G](
-              status = firstResp.status,
-              httpVersion = firstResp.httpVersion,
-              headers = firstResp.headers.redactSensitive(redactWhen),
-            ).withEntity(JsonErrorHandlerResponse[G](req, mf)).pure[F]
+              .as {
+                val firstResp = mf.toHttpResponse[G](req.httpVersion)
+                Response[G](
+                  status = firstResp.status,
+                  httpVersion = firstResp.httpVersion,
+                  headers = firstResp.headers.redactSensitive(redactWhen),
+                ).withEntity(JsonErrorHandlerResponse[G](req, mf))
+              }
           case t =>
             serviceErrorLogger
               .error(t)(
                 s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
                     .getOrElse("<unknown>")}"""
               )
-              .unsafeRunSync()
-            Response[G](
-              Status.InternalServerError,
-              req.httpVersion,
-              Headers(Connection.close),
-            )
-              .withEntity(JsonErrorHandlerResponse[G](req, t))
-              .pure[F]
+              .as(
+                Response[G](
+                  Status.InternalServerError,
+                  req.httpVersion,
+                  Headers(Connection.close),
+                )
+                  .withEntity(JsonErrorHandlerResponse[G](req, t))
+              )
         }
     }
+  }
 
   private final case class JsonErrorHandlerResponse[F[_]](
       req: Request[F],

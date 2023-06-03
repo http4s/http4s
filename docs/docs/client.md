@@ -24,8 +24,13 @@ Here's a quick example app to print the response of a GET request.
 import cats.effect.{IO, IOApp}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.client.Client
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Hello extends IOApp.Simple {
+  
+  private implicit val loggerFactory: LoggerFactory[IO] =
+    Slf4jFactory.create[IO]
 
   def printHello(client: Client[IO]): IO[Unit] =
     client
@@ -53,9 +58,10 @@ scalaVersion := "2.13.8" // Also supports 3.x
 val http4sVersion = "@VERSION@"
 
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-ember-client" % http4sVersion,
-  "org.http4s" %% "http4s-ember-server" % http4sVersion,
-  "org.http4s" %% "http4s-dsl"          % http4sVersion,
+  "org.http4s"    %% "http4s-ember-client" % http4sVersion,
+  "org.http4s"    %% "http4s-ember-server" % http4sVersion,
+  "org.http4s"    %% "http4s-dsl"          % http4sVersion,
+  "org.typelevel" %% "log4cats-slf4j"      % log4catsVersion,
 )
 ```
 
@@ -68,6 +74,10 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 
 val app = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
@@ -126,7 +136,7 @@ EmberClientBuilder
   .use { client =>
     // use `client` here, returning an `IO`.
     client.expect[String]("http://localhost:8080/hello/Ember")
-}
+  }
 ```
 
 In the above example `.build` returns a `Resource[IO, Client]`.

@@ -21,6 +21,7 @@ package middleware
 import cats.effect._
 import fs2.Stream
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats.LoggerFactory
 
 /** Simple Middleware for Logging All Requests and Responses
   */
@@ -28,7 +29,7 @@ object Logger {
   def defaultRedactHeadersWhen(name: CIString): Boolean =
     Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
 
-  def apply[F[_]: Async](
+  def apply[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -40,7 +41,7 @@ object Logger {
       )
     )
 
-  def logBodyText[F[_]: Async](
+  def logBodyText[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -56,11 +57,11 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
-  )(log: String => F[Unit])(implicit F: Async[F]): F[Unit] =
+  )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] =
     org.http4s.internal.Logger
       .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
 
-  def colored[F[_]: Async](
+  def colored[F[_]: Concurrent: LoggerFactory](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,

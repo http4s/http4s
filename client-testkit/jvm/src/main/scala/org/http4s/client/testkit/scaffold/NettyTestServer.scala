@@ -33,6 +33,7 @@ import io.netty.handler.codec.http._
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Uri
+import org.typelevel.log4cats.LoggerFactory
 
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -57,43 +58,47 @@ private[http4s] class NettyTestServer[F[_]](
 }
 
 private[http4s] object NettyTestServer {
-  private val logger = org.http4s.Platform.loggerFactory.getLoggerFromClass(this.getClass)
-
-  def apply[F[_]: Async](
+  def apply[F[_]: Async: LoggerFactory](
       port: Int,
       makeHandler: F[ChannelInboundHandler],
       sslContext: Option[SSLContext],
       dispatcher: Dispatcher[F],
-  ): Resource[F, NettyTestServer[F]] = for {
-    bossGroup <- nioEventLoopGroup[F]
-    workerGroup <- nioEventLoopGroup[F]
-    establishedConnections <- Resource.eval(Ref[F].of(0L))
-    bootstrap = new ServerBootstrap()
-      .group(bossGroup, workerGroup)
-      .channelFactory(new ChannelFactory[NioServerSocketChannel] {
-        override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
-      })
-      .handler(new LoggingHandler())
-      .childHandler(new ChannelInitializer[NioSocketChannel]() {
-        def initChannel(ch: NioSocketChannel): Unit = {
-          logger.trace(s"Accepted new connection from [${ch.remoteAddress()}].").unsafeRunSync()
-          dispatcher.unsafeRunSync(establishedConnections.update(_ + 1))
-          sslContext.foreach { sslContext =>
-            val engine = sslContext.createSSLEngine()
-            engine.setUseClientMode(false)
-            ch.pipeline().addLast(new SslHandler(engine))
+  ): Resource[F, NettyTestServer[F]] = {
+    val logger = LoggerFactory[F].getLogger
+    for {
+      bossGroup <- nioEventLoopGroup[F]
+      workerGroup <- nioEventLoopGroup[F]
+      establishedConnections <- Resource.eval(Ref[F].of(0L))
+      bootstrap = new ServerBootstrap()
+        .group(bossGroup, workerGroup)
+        .channelFactory(new ChannelFactory[NioServerSocketChannel] {
+          override def newChannel(): NioServerSocketChannel = new NioServerSocketChannel()
+        })
+        .handler(new LoggingHandler())
+        .childHandler(new ChannelInitializer[NioSocketChannel]() {
+          def initChannel(ch: NioSocketChannel): Unit = {
+            dispatcher.unsafeRunSync(
+              logger.trace(
+                s"Accepted new connection from [${ch.remoteAddress()}]."
+              ) *> establishedConnections.update(_ + 1)
+            )
+            sslContext.foreach { sslContext =>
+              val engine = sslContext.createSSLEngine()
+              engine.setUseClientMode(false)
+              ch.pipeline().addLast(new SslHandler(engine))
+            }
+            ch.pipeline()
+              .addLast(new HttpRequestDecoder())
+              .addLast(new HttpResponseEncoder())
+              .addLast(dispatcher.unsafeRunSync(makeHandler))
+            ()
           }
-          ch.pipeline()
-            .addLast(new HttpRequestDecoder())
-            .addLast(new HttpResponseEncoder())
-            .addLast(dispatcher.unsafeRunSync(makeHandler))
-          ()
-        }
-      })
-    channel <- server[F](bootstrap, port)
-    localInetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
-    localAddress <- Resource.eval(toSocketAddress(localInetSocketAddress).liftTo[F])
-  } yield new NettyTestServer(establishedConnections, localAddress, secure = sslContext.isDefined)
+        })
+      channel <- server[F](bootstrap, port)
+      localInetSocketAddress = channel.localAddress().asInstanceOf[InetSocketAddress]
+      localAddress <- Resource.eval(toSocketAddress(localInetSocketAddress).liftTo[F])
+    } yield new NettyTestServer(establishedConnections, localAddress, secure = sslContext.isDefined)
+  }
 
   private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
     Resource.make(

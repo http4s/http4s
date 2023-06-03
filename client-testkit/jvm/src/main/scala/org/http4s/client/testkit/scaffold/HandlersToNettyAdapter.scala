@@ -17,6 +17,7 @@
 package org.http4s.client.testkit.scaffold
 
 import cats.effect.Sync
+import cats.effect.SyncIO
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel._
@@ -25,6 +26,7 @@ import io.netty.handler.codec.http.HttpResponseStatus._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.net.URI
 
@@ -46,7 +48,7 @@ private[http4s] class HandlersToNettyAdapter private (
     fallbackHandler: Handler,
 ) extends SimpleChannelInboundHandler[HttpObject] {
 
-  private val logger = org.http4s.Platform.loggerFactory.getLoggerFromClass(this.getClass)
+  private val logger = Slf4jLogger.getLogger[SyncIO]
 
   private var currentRequest: HttpRequest = null
   private var currentHandler: Handler = null

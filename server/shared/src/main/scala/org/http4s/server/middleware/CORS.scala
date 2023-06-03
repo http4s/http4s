@@ -22,124 +22,12 @@ import cats.Applicative
 import cats.Monad
 import cats.data.Kleisli
 import cats.syntax.all._
-import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.typelevel.ci._
-import org.typelevel.scalaccompat.annotation._
+import org.typelevel.log4cats.LoggerFactory
 
 import scala.concurrent.duration._
-import scala.util.hashing.MurmurHash3
-
-/** CORS middleware config options.
-  * You can give an instance of this class to the CORS middleware,
-  * to specify its behavior
-  */
-
-@deprecated(
-  """Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
-  "0.21.27",
-)
-final class CORSConfig private (
-    val anyOrigin: Boolean,
-    val allowCredentials: Boolean,
-    val maxAge: FiniteDuration,
-    val anyMethod: Boolean,
-    val allowedOrigins: String => Boolean,
-    val allowedMethods: Option[Set[Method]],
-    val allowedHeaders: Option[Set[String]],
-    val exposedHeaders: Option[Set[String]],
-) {
-
-  private def copy(
-      anyOrigin: Boolean = anyOrigin,
-      allowCredentials: Boolean = allowCredentials,
-      maxAge: FiniteDuration = maxAge,
-      anyMethod: Boolean = anyMethod,
-      allowedOrigins: String => Boolean = allowedOrigins,
-      allowedMethods: Option[Set[Method]] = allowedMethods,
-      allowedHeaders: Option[Set[String]] = allowedHeaders,
-      exposedHeaders: Option[Set[String]] = exposedHeaders,
-  ) = new CORSConfig(
-    anyOrigin,
-    allowCredentials,
-    maxAge,
-    anyMethod,
-    allowedOrigins,
-    allowedMethods,
-    allowedHeaders,
-    exposedHeaders,
-  )
-
-  def withAnyOrigin(anyOrigin: Boolean): CORSConfig = copy(anyOrigin = anyOrigin)
-
-  def withAllowCredentials(allowCredentials: Boolean): CORSConfig =
-    copy(allowCredentials = allowCredentials)
-
-  def withMaxAge(maxAge: FiniteDuration): CORSConfig = copy(maxAge = maxAge)
-
-  def withAnyMethod(anyMethod: Boolean): CORSConfig = copy(anyMethod = anyMethod)
-
-  def withAllowedOrigins(allowedOrigins: String => Boolean): CORSConfig =
-    copy(allowedOrigins = allowedOrigins)
-
-  def withAllowedMethods(allowedMethods: Option[Set[Method]]): CORSConfig =
-    copy(allowedMethods = allowedMethods)
-
-  def withAllowedHeaders(allowedHeaders: Option[Set[String]]): CORSConfig =
-    copy(allowedHeaders = allowedHeaders)
-
-  def withExposedHeaders(exposedHeaders: Option[Set[String]]): CORSConfig =
-    copy(exposedHeaders = exposedHeaders)
-
-  override def equals(x: Any): Boolean = x match {
-    case config: CORSConfig =>
-      anyOrigin === config.anyOrigin &&
-      allowCredentials === config.allowCredentials &&
-      maxAge === config.maxAge &&
-      anyMethod === config.anyMethod &&
-      allowedOrigins == config.allowedOrigins &&
-      allowedMethods === config.allowedMethods &&
-      allowedHeaders === config.allowedHeaders &&
-      exposedHeaders === config.exposedHeaders
-    case _ => false
-  }
-
-  override def hashCode(): Int = {
-    var hash = CORSConfig.hashSeed
-    hash = MurmurHash3.mix(hash, anyOrigin.##)
-    hash = MurmurHash3.mix(hash, allowCredentials.##)
-    hash = MurmurHash3.mix(hash, maxAge.##)
-    hash = MurmurHash3.mix(hash, anyMethod.##)
-    hash = MurmurHash3.mix(hash, allowedOrigins.##)
-    hash = MurmurHash3.mix(hash, allowedMethods.##)
-    hash = MurmurHash3.mix(hash, allowedHeaders.##)
-    hash = MurmurHash3.mixLast(hash, exposedHeaders.##)
-    hash
-  }
-
-  override def toString(): String =
-    s"CORSConfig($anyOrigin,$allowCredentials,$maxAge,$anyMethod,$allowedOrigins,$allowedMethods,$allowedHeaders,$exposedHeaders)"
-}
-
-@deprecated(
-  """Deficient. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
-  "0.21.27",
-)
-object CORSConfig {
-  private val hashSeed = MurmurHash3.stringHash("CORSConfig")
-
-  val default: CORSConfig = new CORSConfig(
-    anyOrigin = true,
-    allowCredentials = true,
-    maxAge = 1.day,
-    anyMethod = true,
-    allowedOrigins = _ => false,
-    allowedMethods = None,
-    allowedHeaders = Set("Content-Type", "Authorization", "*").some,
-    exposedHeaders = Set("*").some,
-  )
-}
 
 /** Implements the CORS protocol.  The actual middleware is a [[CORSPolicy]],
   * which can be obtained via [[policy]].
@@ -148,7 +36,6 @@ object CORSConfig {
   * @see [[https://fetch.spec.whatwg.org/#http-cors-protocol CORS protocol specification]]
   */
 object CORS {
-  private[CORS] val logger = Platform.loggerFactory.getLogger
 
   /** The default CORS policy:
     * - Sends `Access-Control-Allow-Origin: *`
@@ -170,126 +57,6 @@ object CORS {
     CORSPolicy.MaxAge.Default,
   )
 
-  @deprecated(
-    "Not the actual default CORS Vary heder, and will be removed from the public API.",
-    "0.21.27",
-  )
-  val defaultVaryHeader: Header.Raw = Header.Raw(ci"Vary", "Origin,Access-Control-Request-Method")
-
-  @deprecated(
-    "The default `CORSConfig` is insecure. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.",
-    "0.21.27",
-  )
-  def DefaultCORSConfig: CORSConfig =
-    CORSConfig.default.withAnyOrigin(true).withAllowCredentials(true).withMaxAge(1.day)
-
-  /** CORS middleware
-    * This middleware provides clients with CORS information
-    * based on information in CORS config.
-    * Currently, you cannot make permissions depend on request details
-    */
-  @deprecated(
-    "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
-    "0.21.27",
-  )
-  @nowarn3("cat=deprecation")
-  def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
-      F: Applicative[F]
-  ): Http[F, G] = {
-    if (config.anyOrigin && config.allowCredentials)
-      logger
-        .warn(
-          "Insecure CORS config detected: `anyOrigin=true` and `allowCredentials=true` are mutually exclusive. `Access-Control-Allow-Credentials` header will not be sent. Change either flag to false to remove this warning."
-        )
-        .unsafeRunSync()
-    Kleisli { req =>
-      // In the case of an options request we want to return a simple response with the correct Headers set.
-      def createOptionsResponse(
-          origin: Origin,
-          acrm: `Access-Control-Request-Method`,
-      ): Response[G] =
-        corsHeaders(origin, acrm.method, isPreflight = true)(Response())
-
-      def methodBasedHeader(isPreflight: Boolean) =
-        if (isPreflight)
-          config.allowedHeaders.map(headerFromStrings("Access-Control-Allow-Headers", _))
-        else
-          config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
-
-      def varyHeader(response: Response[G]): Response[G] =
-        response.headers.get(ci"Vary") match {
-          case None => response.putHeaders(defaultVaryHeader)
-          case _ => response
-        }
-
-      def allowCredentialsHeader(resp: Response[G]): Response[G] =
-        if (!config.anyOrigin && config.allowCredentials)
-          resp.putHeaders("Access-Control-Allow-Credentials" -> "true")
-        else
-          resp
-
-      def corsHeaders(origin: Origin, method: Method, isPreflight: Boolean)(
-          resp: Response[G]
-      ): Response[G] = {
-        val withMethodBasedHeader = methodBasedHeader(isPreflight)
-          .fold(resp)(h => resp.putHeaders(h))
-
-        varyHeader(allowCredentialsHeader(withMethodBasedHeader))
-          .putHeaders(
-            `Access-Control-Allow-Methods`(config.allowedMethods.getOrElse(Set(method))),
-            // TODO model me
-            "Access-Control-Allow-Origin" -> origin.value,
-            `Access-Control-Max-Age`.unsafeFromLong(config.maxAge.toSeconds.max(-1)),
-          )
-      }
-
-      def allowCORS(origin: Origin, method: Method): Boolean = {
-        def allowOrigin = config.anyOrigin || config.allowedOrigins(origin.value)
-        def allowMethod = config.anyMethod || config.allowedMethods.exists(_.exists(_ === method))
-        allowOrigin && allowMethod
-      }
-
-      def headerFromStrings(headerName: String, values: Set[String]): Header.Raw =
-        Header.Raw(CIString(headerName), values.mkString("", ", ", ""))
-
-      (
-        req.method,
-        req.headers.get[Origin],
-        req.headers.get[`Access-Control-Request-Method`],
-      ) match {
-        case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm.method) =>
-          logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}").unsafeRunSync()
-          createOptionsResponse(origin, acrm).pure[F]
-        case (_, Some(origin), _) =>
-          if (allowCORS(origin, req.method))
-            http(req).map { resp =>
-              logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}").unsafeRunSync()
-              corsHeaders(origin, req.method, isPreflight = false)(resp)
-            }
-          else {
-            logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}").unsafeRunSync()
-            Response[G](status = Status.Forbidden).pure[F]
-          }
-        case _ =>
-          // This request is out of scope for CORS
-          http(req)
-      }
-    }
-  }
-
-  @deprecated(
-    """Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
-    "0.21.27",
-  )
-  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    apply(httpRoutes, CORSConfig.default)
-
-  @deprecated(
-    """Hardcoded to an insecure config. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6.""",
-    "0.21.27",
-  )
-  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
-    apply(httpApp, CORSConfig.default)
 }
 
 /** A middleware that applies the CORS protocol to any `Http` value.
@@ -317,7 +84,9 @@ sealed class CORSPolicy(
 ) {
   import CORSPolicy._
 
-  def apply[F[_]: Applicative, G[_]](http: Http[F, G]): Http[F, G] = {
+  def apply[F[_]: Applicative, G[_]: Applicative: LoggerFactory](
+      http: Http[F, G]
+  ): G[Http[F, G]] = {
     val allowCredentialsHeader =
       allowCredentials match {
         case AllowCredentials.Allow =>
@@ -511,20 +280,19 @@ sealed class CORSPolicy(
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
-      logger
+      LoggerFactory[G].getLogger
         .warn(
           "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses."
         )
-        .unsafeRunSync()
-      http
+        .as(http)
     } else
-      Kleisli(dispatch)
+      Kleisli(dispatch).pure[G]
   }
 
-  def httpRoutes[F[_]: Monad](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+  def httpRoutes[F[_]: Monad: LoggerFactory](httpRoutes: HttpRoutes[F]): F[HttpRoutes[F]] =
     apply(httpRoutes)
 
-  def httpApp[F[_]: Applicative](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Applicative: LoggerFactory](httpApp: HttpApp[F]): F[HttpApp[F]] =
     apply(httpApp)
 
   private def copy(
@@ -718,7 +486,6 @@ sealed class CORSPolicy(
 }
 
 object CORSPolicy {
-  private val logger = Platform.loggerFactory.getLogger
 
   private object CommonHeaders {
     val someAllowOriginWildcard: Option[Header.Raw] =
