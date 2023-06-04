@@ -150,6 +150,9 @@ lazy val core = libraryCrossProject("core")
         )
     },
   )
+  .jsSettings(
+    libraryDependencies ++= Seq(log4catsJSConsole.value)
+  )
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
   .settings(
@@ -187,6 +190,7 @@ lazy val tests = libraryCrossProject("tests")
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
+    githubWorkflowArtifactUpload := false,
   )
   .nativeSettings(
     libraryDependencies ++= Seq(
@@ -243,7 +247,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
       log4catsSlf4j,
     )
   )
-  .dependsOn(client, theDsl)
+  .dependsOn(client, theDsl, server, tests % Test)
 
 lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   .settings(
@@ -531,9 +535,12 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     .jsSettings(
       Test / scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
     )
+    .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
       tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
-      unusedCompileDependenciesTest := {},
+      Test / nativeBrewFormulas ++= {
+        if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
+      },
       Test / envVars += "S2N_DONT_MLOCK" -> "1",
     )
     .enablePlugins(Http4sPlugin)

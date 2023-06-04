@@ -22,6 +22,7 @@ import cats.effect.Ref
 import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Chunk
+import fs2.concurrent.Channel
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
@@ -42,7 +43,7 @@ class H2StreamSuite extends Http4sSuite {
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
-      readBuffer <- Queue.unbounded[IO, Either[Throwable, ByteVector]]
+      readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
 
       state <- Ref[IO].of(
         H2Stream.State[IO](

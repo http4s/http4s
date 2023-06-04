@@ -48,7 +48,7 @@ object EmberClientH2Example extends IOApp {
       Applicative[F].pure(Outcome.succeeded(Applicative[F].unit))
     }
 
-    def test[F[_]: Async]: F[Unit] =
+    def test[F[_]: Async: Network]: F[Unit] =
       Resource
         .eval(Network[F].tlsContext.insecure)
         .flatMap { tls =>

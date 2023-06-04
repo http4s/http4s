@@ -3,6 +3,93 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.19 (2023-05-12)
+
+This release updates to Cats Effect v3.5.0 which includes an important change to the cancelation semantics of the `Async#async` and `IO.async` methods. Please check the [Cats Effect release notes for v3.5.0](https://github.com/typelevel/cats-effect/releases/tag/v3.5.0) for more details. These changes do not affect Ember, but they do affect Blaze (see https://github.com/http4s/blaze/issues/772) and possibly other http4s backends.
+
+## What's Changed
+
+### http4s-core
+
+* Add X-Content-Type-Options header by @sierikov in https://github.com/http4s/http4s/pull/6981
+* Fix base64 parser for http headers Web-Socket-Key and Web-Socket-Accept by @danghieutrung in https://github.com/http4s/http4s/pull/7037
+* Add application/graphql media type by @keirlawson in https://github.com/http4s/http4s/pull/7055
+* Update log4cats-core, log4cats-noop, ... to 2.6.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7084
+* Fix resolving of root / URIs by @armanbilge in https://github.com/http4s/http4s/pull/7064
+* Update cats-effect, cats-effect-std, ... to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7110
+* Update fs2-core, fs2-io to 3.7.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7112
+
+### http4s-laws
+
+* Fix Keep Alive property flake test by @kovstas in https://github.com/http4s/http4s/pull/7019
+
+### http4s-server
+
+* Tweak the `Router#translate` by @danicheg in https://github.com/http4s/http4s/pull/7083
+
+### http4s-client
+
+* Fix `Client.fromHttpApp` does not drain bodies by @kovstas in https://github.com/http4s/http4s/pull/7020
+
+### http4s-client-testkit
+
+* add WSTestClient builder from HttpApp by @kovstas in https://github.com/http4s/http4s/pull/7053
+
+### http4s-ember-core
+
+* Support ember http/2 over unix sockets by @armanbilge in https://github.com/http4s/http4s/pull/7039
+* `Hpack` optimizations by @armanbilge in https://github.com/http4s/http4s/pull/7086
+* Use `Channel` for H2 `readBuffer` by @armanbilge in https://github.com/http4s/http4s/pull/7096
+* Encode trailer headers in Ember by @armanbilge in https://github.com/http4s/http4s/pull/6756
+
+### Documentation
+
+* Server middleware documentation by @fredshonorio in https://github.com/http4s/http4s/pull/6992
+* Fix typo on the quickstart page by @danicheg in https://github.com/http4s/http4s/pull/7026
+* Fix a broken link to JDKHttpClient in the docs by @satorg in https://github.com/http4s/http4s/pull/7045
+* Document ErrorAction middleware by @Quafadas in https://github.com/http4s/http4s/pull/6953
+
+### Behind the scenes
+
+* Don't upload test artifacts by @armanbilge in https://github.com/http4s/http4s/pull/7027
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7032
+* Update ip4s-core, ip4s-test-kit to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7033
+* Update nscplugin, sbt-scala-native, ... to 0.4.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7034
+* Update logback-classic to 1.2.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7035
+* Update fs2-core, fs2-io to 3.7.0-RC4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7036
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7040
+* Update scalafmt-core to 3.7.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7041
+* Tweak `build.sbt` by @danicheg in https://github.com/http4s/http4s/pull/7042
+* Update netty-buffer, netty-codec-http to 4.1.91.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7043
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7044
+* Update sbt-scala-native-crossproject to 1.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7047
+* Update sbt-revolver to 0.10.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7051
+* Update sbt-scalajs, scalajs-compiler, ... to 1.13.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7056
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7057
+* Adopt scala-native-config-brew by @armanbilge in https://github.com/http4s/http4s/pull/6724
+* Update sbt-scala-native-crossproject to 1.3.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7071
+* Update cats-effect, cats-effect-std, ... to 3.5.0-RC4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7074
+* Ember-Core H2Connection: extract "WriteChunk" auxiliary function. by @diesalbla in https://github.com/http4s/http4s/pull/7069
+* Update sbt-http4s-org to 0.14.12 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7076
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7089
+* Update netty-buffer, netty-codec-http to 4.1.92.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7090
+* Ember-Core H2Stream - Extract "cancelWith" method. by @diesalbla in https://github.com/http4s/http4s/pull/7075
+* Update cats-effect, cats-effect-std, ... to 3.5.0-RC5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7094
+* Ember-Core State - Extract factory method by @diesalbla in https://github.com/http4s/http4s/pull/7070
+* Ember-Core / H2Stream / sendData: for-comp is not tail-recursive. by @diesalbla in https://github.com/http4s/http4s/pull/7079
+* Update fs2-core, fs2-io to 3.7.0-RC5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7098
+* Update case-insensitive, ... to 1.4.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7109
+* Update sbt to 1.8.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7111
+
+## New Contributors
+
+* @sierikov made their first contribution in https://github.com/http4s/http4s/pull/6981
+* @kovstas made their first contribution in https://github.com/http4s/http4s/pull/7019
+* @danghieutrung made their first contribution in https://github.com/http4s/http4s/pull/7037
+* @Quafadas made their first contribution in https://github.com/http4s/http4s/pull/6953
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.19-RC3...v0.23.19
+
 # v0.23.19-RC3 (2023-03-15)
 
 This release candidate ships several fixes to Ember client and server. It is built against Cats Effect v3.5.0-RC3 and FS2 v3.7.0-RC2.

@@ -15,27 +15,17 @@
  */
 
 package org.http4s
-package websocket
+package headers
 
-import cats.Functor
-import cats.syntax.all._
-import cats.~>
-import org.typelevel.ci.CIStringSyntax
+import org.http4s.laws.discipline.arbitrary._
 
-final case class WebSocketContext[F[_]](
-    webSocket: WebSocket[F],
-    headers: Headers,
-    failureResponse: F[Response[F]],
-) {
+class SecWebSocketKeySuite extends HeaderLaws {
+  checkAll("Sec-WebSocket-Key", headerLaws[`Sec-WebSocket-Key`])
 
-  def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
-    WebSocketContext[G](
-      webSocket.imapK(fk)(gk),
-      headers,
-      fk(failureResponse).map(_.mapK(fk)),
-    )
+  // https://datatracker.ietf.org/doc/html/rfc6455#page-7
+  val rfc6455ExampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
-  def subprotocol: Option[String] =
-    headers.get(ci"Sec-WebSocket-Protocol").map(_.head.value)
-
+  test("parser accepts RFC 6455 example Sec-WebSocket-Key") {
+    assert(`Sec-WebSocket-Key`.parse(rfc6455ExampleSecWebSocketKey).isRight)
+  }
 }

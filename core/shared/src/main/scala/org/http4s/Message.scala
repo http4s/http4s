@@ -40,6 +40,7 @@ import org.typelevel.vault._
 import scodec.bits._
 
 import java.io.File
+import scala.collection.immutable.Map
 import scala.util.control.NoStackTrace
 import scala.util.hashing.MurmurHash3
 

@@ -367,8 +367,10 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         case Entity.Strict(bytes) =>
           val (initSection, chunked) = Encoder.initSection(resp)
           if (chunked) {
-            val encodedChunk = ChunkedEncoding.encodeChunk(Chunk.byteVector(bytes))
-            timeoutMaybe(socket.write(Chunk.array(initSection) ++ encodedChunk), idleTimeout)
+            resp.trailerHeaders.flatMap { trailers =>
+              val encodedChunk = ChunkedEncoding.encodeChunk(Chunk.byteVector(bytes), trailers)
+              timeoutMaybe(socket.write(Chunk.array(initSection) ++ encodedChunk), idleTimeout)
+            }
           } else {
             timeoutMaybe(
               socket.write(Chunk.array(initSection) ++ Chunk.byteVector(bytes)),

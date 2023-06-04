@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core
 
+import cats.Applicative
 import cats.ApplicativeThrow
 import fs2._
 import org.http4s._
@@ -69,7 +70,7 @@ private[ember] object Encoder {
     (stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1), chunked)
   }
 
-  def respToBytes[F[_]](
+  def respToBytes[F[_]: Applicative](
       resp: Response[F],
       writeBufferSize: Int = 32 * 1024,
   ): Stream[F, Byte] = {
@@ -78,7 +79,9 @@ private[ember] object Encoder {
     val initSectionChunk = Chunk.array(initSectionBytes)
 
     if (chunked)
-      Stream.chunk(initSectionChunk) ++ resp.body.through(ChunkedEncoding.encode[F])
+      Stream.chunk(initSectionChunk) ++ resp.body.through(
+        ChunkedEncoding.encode[F](resp.trailerHeaders)
+      )
     else
       (Stream.chunk(initSectionChunk) ++ resp.body)
         .chunkMin(writeBufferSize)
@@ -146,7 +149,9 @@ private[ember] object Encoder {
       }
       val initSectionChunk = Chunk.array(initSection)
       if (chunked)
-        Stream.chunk(initSectionChunk) ++ req.body.through(ChunkedEncoding.encode[F])
+        Stream.chunk(initSectionChunk) ++ req.body.through(
+          ChunkedEncoding.encode[F](req.trailerHeaders)
+        )
       else {
         req.entity match {
           case Entity.Streamed(body, _) =>

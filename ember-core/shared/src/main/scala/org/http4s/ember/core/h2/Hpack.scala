@@ -22,10 +22,8 @@ import cats.effect.std._
 import cats.syntax.all._
 import scodec.bits._
 
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import scala.collection.mutable.ListBuffer
 
 private[h2] trait Hpack[F[_]] {
   def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector]
@@ -34,22 +32,22 @@ private[h2] trait Hpack[F[_]] {
 
 private[h2] object Hpack extends HpackPlatform {
   def create[F[_]: Async]: F[Hpack[F]] = for {
-    eLock <- Semaphore[F](1)
-    dLock <- Semaphore[F](1)
+    eLock <- Mutex[F]
+    dLock <- Mutex[F]
     e <- Sync[F].delay(new Encoder(4096))
     d <- Sync[F].delay(new Decoder(65536, 4096))
   } yield new Impl(eLock, e, dLock, d)
 
   private class Impl[F[_]: Async](
-      encodeLock: Semaphore[F],
+      encodeLock: Mutex[F],
       tEncoder: Encoder,
-      decodeLock: Semaphore[F],
+      decodeLock: Mutex[F],
       tDecoder: Decoder,
   ) extends Hpack[F] {
     def encodeHeaders(headers: NonEmptyList[(String, String, Boolean)]): F[ByteVector] =
-      encodeLock.permit.use(_ => Hpack.encodeHeaders[F](tEncoder, headers.toList))
+      encodeLock.lock.surround(Hpack.encodeHeaders[F](tEncoder, headers.toList))
     def decodeHeaders(bv: ByteVector): F[NonEmptyList[(String, String)]] =
-      decodeLock.permit.use(_ => Hpack.decodeHeaders[F](tDecoder, bv))
+      decodeLock.lock.surround(Hpack.decodeHeaders[F](tDecoder, bv))
 
   }
 
@@ -57,8 +55,8 @@ private[h2] object Hpack extends HpackPlatform {
       tDecoder: Decoder,
       bv: ByteVector,
   ): F[NonEmptyList[(String, String)]] = Sync[F].delay {
-    val buffer = new ListBuffer[(String, String)]
-    val is = new ByteArrayInputStream(bv.toArray)
+    val buffer = List.newBuilder[(String, String)]
+    val is = bv.toInputStream
     val listener = new HeaderListener {
       def addHeader(name: Array[Byte], value: Array[Byte], sensitive: Boolean): Unit = {
         buffer.+=(
@@ -74,15 +72,15 @@ private[h2] object Hpack extends HpackPlatform {
     tDecoder.decode(is, listener)
     tDecoder.endHeaderBlock()
 
-    val decoded = buffer.toList
-    NonEmptyList.fromList(decoded).toRight(new NoSuchElementException("Header List Was Empty"))
-  }.rethrow
+    val decoded = buffer.result()
+    NonEmptyList.fromListUnsafe(decoded)
+  }
 
   def encodeHeaders[F[_]: Sync](
       tEncoder: Encoder,
       headers: List[(String, String, Boolean)],
   ): F[ByteVector] = Sync[F].delay {
-    val os = new ByteArrayOutputStream(1024)
+    val os = new ByteVectorOutputStream(1024)
     headers.foreach { h =>
       tEncoder.encodeHeader(
         os,
@@ -91,7 +89,11 @@ private[h2] object Hpack extends HpackPlatform {
         h._3,
       )
     }
-    ByteVector.view(os.toByteArray())
+    os.toByteVector()
+  }
+
+  private final class ByteVectorOutputStream(size: Int) extends ByteArrayOutputStream(size) {
+    def toByteVector(): ByteVector = ByteVector.view(buf, 0, count)
   }
 
 }

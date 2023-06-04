@@ -109,11 +109,11 @@ jobs:
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target tests/jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target tests/js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target tests/native/target bench/target project/target
+        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
 
       - name: Compress target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target tests/jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target tests/js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target tests/native/target bench/target project/target
+        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
@@ -232,6 +232,40 @@ jobs:
 
       - name: Publish
         run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' tlCiRelease'
+
+  validate-steward:
+    name: Validate Steward Config
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        scala: [2.13.6]
+        java: [temurin@11]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (fast)
+        uses: actions/checkout@v3
+
+      - name: Download Java (temurin@17)
+        id: download-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: typelevel/download-java@v2
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Java (temurin@17)
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: jdkfile
+          java-version: 17
+          jdkFile: ${{ steps.download-java-temurin-17.outputs.jdkFile }}
+
+      - uses: coursier/setup-action@v1
+        with:
+          apps: scala-steward
+
+      - run: scala-steward validate-repo-config .scala-steward.conf
 
   coverage:
     name: Generate coverage report

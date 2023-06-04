@@ -15,27 +15,23 @@
  */
 
 package org.http4s
-package websocket
+package internal.parsing
 
-import cats.Functor
-import cats.syntax.all._
-import cats.~>
-import org.typelevel.ci.CIStringSyntax
+import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Rfc5234.alpha
+import cats.parse.Rfc5234.digit
 
-final case class WebSocketContext[F[_]](
-    webSocket: WebSocket[F],
-    headers: Headers,
-    failureResponse: F[Response[F]],
-) {
+/** Common rules defined in Rfc4648
+  *
+  * @see [[https://datatracker.ietf.org/doc/html/rfc4648]]
+  */
 
-  def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
-    WebSocketContext[G](
-      webSocket.imapK(fk)(gk),
-      headers,
-      fk(failureResponse).map(_.mapK(fk)),
-    )
-
-  def subprotocol: Option[String] =
-    headers.get(ci"Sec-WebSocket-Protocol").map(_.head.value)
-
+private[http4s] object Rfc4648 {
+  object Base64 {
+    /* https://datatracker.ietf.org/doc/html/rfc4648#page-5 */
+    val token: Parser[String] =
+      (charIn("+/").orElse(digit).orElse(alpha).rep ~ char('=').rep0(0, 2)).string
+  }
 }

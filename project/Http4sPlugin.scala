@@ -98,17 +98,17 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
-    val caseInsensitive = "1.3.0"
+    val caseInsensitive = "1.4.0"
     val cats = "2.9.0"
-    val catsEffect = "3.5.0-RC3"
+    val catsEffect = "3.5.0"
     val catsParse = "0.3.9"
     val circe = "0.14.5"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.5.1"
     val epollcat = "0.1.4"
-    val fs2 = "3.7.0-RC2"
-    val ip4s = "3.2.0"
+    val fs2 = "3.7.0"
+    val ip4s = "3.3.0"
     val hpack = "1.0.4"
     val javaWebSocket = "1.5.3"
     val jawn = "1.4.0"
@@ -121,7 +121,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.0.0-M7"
     val munitCatsEffect = "2.0.0-M3"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.90.Final"
+    val netty = "4.1.92.Final"
     val quasiquotes = "2.1.0"
     val scalacCompat = "0.1.0"
     val scalacheck = "1.17.0"
@@ -171,6 +171,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4catsCore = Def.setting("org.typelevel" %%% "log4cats-core" % V.log4cats)
   lazy val log4catsNoop = Def.setting("org.typelevel" %%% "log4cats-noop" % V.log4cats)
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % V.log4cats
+  lazy val log4catsJSConsole = Def.setting("org.typelevel" %%% "log4cats-js-console" % V.log4cats)
   lazy val log4catsTesting = Def.setting("org.typelevel" %%% "log4cats-testing" % V.log4cats)
   lazy val logbackClassic = "ch.qos.logback" % "logback-classic" % V.logback
   lazy val munit = Def.setting("org.scalameta" %%% "munit" % V.munit)

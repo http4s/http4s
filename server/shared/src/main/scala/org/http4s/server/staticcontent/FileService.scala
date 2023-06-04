@@ -66,6 +66,7 @@ object FileService {
       val pathCollector: PathCollector[F] = (p, c, r) => filesOnly(p, c, r)
       Config(systemPath, pathCollector, pathPrefix, bufferSize, cacheStrategy)
     }
+
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */

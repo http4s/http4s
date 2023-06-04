@@ -278,6 +278,7 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
         H2Client.impl[F](
           pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
           context,
+          unixSockets,
           logger,
           if (pushPromiseSupport.isDefined) default
           else
