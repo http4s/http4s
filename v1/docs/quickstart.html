@@ -152,6 +152,7 @@
         <li class="level2"><a href="deployment.html">Deployment</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
         <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="server-middleware.html">Server Middleware</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -237,7 +238,7 @@
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-ember-server&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span>          % </span><span class="identifier">http4sVersion</span><span>,
 )</span></code></pre>
-        <p>This brings in the <a href="integrations.html#ember">Ember HTTP client and server implementation</a> as well as the the <a href="dsl.html">routing DSL</a>. This is <em>most likely</em> what you want. Other <a href="integrations.html">integration modules</a> are available as well, such as for working with <a href="json.html">JSON</a>, or using alternative client/server implementations, such as <a href="https://github.com/http4s/http4s-netty">Netty</a>. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.</p>
+        <p>This brings in the <a href="integrations.html#ember">Ember HTTP client and server implementation</a> as well as the <a href="dsl.html">routing DSL</a>. This is <em>most likely</em> what you want. Other <a href="integrations.html">integration modules</a> are available as well, such as for working with <a href="json.html">JSON</a>, or using alternative client/server implementations, such as <a href="https://github.com/http4s/http4s-netty">Netty</a>. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.</p>
         <p>Depending on your usecase, you may want to consider one of several other http4s modules. For example, if you are writing a library, you probably want to develop it against the generic http4s interfaces, without hard-coding a particular implementation, such as Ember.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-core&quot;</span><span>         % </span><span class="identifier">http4sVersion</span><span>,

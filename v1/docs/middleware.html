@@ -152,6 +152,7 @@
         <li class="level2"><a href="deployment.html">Deployment</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
         <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="server-middleware.html">Server Middleware</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -218,9 +219,7 @@
 
         <ul class="nav-list">
           <li class="level1"><a href="#composing-services-with-middleware">Composing Services with Middleware</a></li>
-          <li class="level1"><a href="#included-middleware">Included Middleware</a></li>
-          <li class="level2"><a href="#metrics-middleware">Metrics Middleware</a></li>
-          <li class="level2"><a href="#x-request-id-middleware">X-Request-ID Middleware</a></li>
+          <li class="level1"><a href="#included-middleware">Included middleware</a></li>
         </ul>
 
         <p class="footer"></p>
@@ -283,7 +282,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@53f9343e
+//    = org.typelevel.vault.Vault@283b794c
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[IO[A]] = (
@@ -291,7 +290,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@19a4e7da
+//    = org.typelevel.vault.Vault@1b7863b9
 // )</span></code></pre>
         <p>Now, we&#39;ll apply the service to our middleware function to create a new service, and try it out.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">modifiedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);</span></code></pre>
@@ -301,7 +300,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6a151feb
+//    = org.typelevel.vault.Vault@52d6655a
 // )
 </span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[IO[A]] = (
@@ -309,7 +308,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@40a18d64
+//    = org.typelevel.vault.Vault@e01eaea
 // )</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
         <p>If you intend to use you middleware in multiple places, you may want to implement
@@ -332,7 +331,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@5a63198a
+//    = org.typelevel.vault.Vault@7d03137f
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[IO[A]] = (
@@ -340,7 +339,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6447af2b
+//    = org.typelevel.vault.Vault@25bed2cd
 // )</span></code></pre>
         <p>Let&#39;s consider Authentication middleware as an example. Authentication
         middleware is a function that takes <code>AuthedRoutes[F]</code> 
@@ -374,7 +373,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@26ef0e0f
+//    = org.typelevel.vault.Vault@44a38f95
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[IO[A]] = (
@@ -382,65 +381,14 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6a696d1b
+//    = org.typelevel.vault.Vault@45746b51
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
         not have the header added to it&#39;s <code>Result</code>.</p>
         
-        <h2 id="included-middleware" class="section">Included Middleware<a class="anchor-link right" href="#included-middleware"><i class="icofont-laika">&#xef71;</i></a></h2>
-        <p>Http4s includes some middleware Out of the Box in the <code>org.http4s.server.middleware</code>
-        package. These include:</p>
-        <ul>
-          <li><a href="auth.html">Authentication</a></li>
-          <li>Cross Origin Resource Sharing (<a href="cors.html">CORS</a>)</li>
-          <li>Response Compression (<a href="gzip.html">GZip</a>)</li>
-          <li><a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/server/middleware/Timeout$">Service Timeout</a></li>
-          <li><a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/server/middleware/Jsonp$">Jsonp</a></li>
-          <li><a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/server/middleware/VirtualHost$">Virtual Host</a></li>
-          <li><a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/server/middleware/Metrics$">Metrics</a></li>
-          <li><a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M39//org/http4s/server/middleware/RequestId$"><code>X-Request-ID</code> header</a></li>
-        </ul>
-        <p>And a few others.</p>
-        
-        <h3 id="metrics-middleware" class="section">Metrics Middleware<a class="anchor-link right" href="#metrics-middleware"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <p>Apart from the middleware mentioned in the previous section. There is, as well,
-        Out of the Box middleware for <a href="https://http4s.github.io/http4s-dropwizard-metrics/">Dropwizard</a> and <a href="https://http4s.github.io/http4s-prometheus-metrics/">Prometheus</a> metrics.</p>
-        
-        <h3 id="x-request-id-middleware" class="section">X-Request-ID Middleware<a class="anchor-link right" href="#x-request-id-middleware"><i class="icofont-laika">&#xef71;</i></a></h3>
-        <p>Use the <code>RequestId</code> middleware to automatically generate a <code>X-Request-ID</code> header to a request,
-        if one wasn&#39;t supplied. Adds a <code>X-Request-ID</code> header to the response with the id generated
-        or supplied as part of the request.</p>
-        <p>This <a href="https://devcenter.heroku.com/articles/http-request-id">heroku guide</a> gives a brief explanation
-        as to why this header is useful.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">RequestId</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">ci</span><span>.</span><span class="identifier">_</span><span>
-
-</span><span class="keyword">val</span><span> </span><span class="identifier">requestIdService</span><span> = </span><span class="type-name">RequestId</span><span>.</span><span class="identifier">httpRoutes</span><span>(</span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
-  </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> =&gt;
-    </span><span class="keyword">val</span><span> </span><span class="identifier">reqId</span><span> = </span><span class="identifier">req</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">get</span><span>(</span><span class="string-literal">ci&quot;X-Request-ID&quot;</span><span>).</span><span class="identifier">fold</span><span>(</span><span class="string-literal">&quot;null&quot;</span><span>)(</span><span class="identifier">_</span><span>.</span><span class="identifier">head</span><span>.</span><span class="identifier">value</span><span>)
-    </span><span class="comment">// use request id to correlate logs with the request
-</span><span>    </span><span class="type-name">IO</span><span>(</span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;request received, cid=</span><span class="substitution">$reqId</span><span class="string-literal">&quot;</span><span>)) *&gt; </span><span class="type-name">Ok</span><span>()
-})
-</span><span class="keyword">val</span><span> </span><span class="identifier">responseIO</span><span> = </span><span class="identifier">requestIdService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>)</span></code></pre>
-        <p>Note: <code>req.attributes.lookup(RequestId.requestIdAttrKey)</code> can also be used to lookup the request id
-        extracted from the header, or the generated request id.</p>
-        <pre><code class="nohighlight"><span class="comment">// generated request id can be correlated with logs
-</span><span class="keyword">val</span><span> </span><span class="identifier">resp</span><span> = </span><span class="identifier">responseIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// request received, cid=1c970f42-f686-4b5e-9f20-0d0b49108159
-// resp: Response[IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, X-Request-ID: 1c970f42-f686-4b5e-9f20-0d0b49108159),
-//    = Entity.Empty,
-//    = org.typelevel.vault.Vault@28048695
-// )
-// X-Request-ID header added to response
-</span><span class="identifier">resp</span><span>.</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res8: Headers = Headers(Content-Length: 0, X-Request-ID: 1c970f42-f686-4b5e-9f20-0d0b49108159)
-// the request id is also available using attributes
-</span><span class="identifier">resp</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">RequestId</span><span>.</span><span class="identifier">requestIdAttrKey</span><span>)
-</span><span class="comment">// res9: Option[String] = Some(value = &quot;1c970f42-f686-4b5e-9f20-0d0b49108159&quot;)</span></code></pre>
+        <h2 id="included-middleware" class="section">Included middleware<a class="anchor-link right" href="#included-middleware"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <p>See <a href="server-middleware.html">Server Middleware</a>.</p>
 
         <hr style="margin-top: 30px"/>
         <footer style="font-size: 90%; text-align: center">
