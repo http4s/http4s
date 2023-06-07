@@ -27,7 +27,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.10"
-  val scala_212 = "2.12.17"
+  val scala_212 = "2.12.18"
   val scala_3 = "3.3.0"
 
   override lazy val globalSettings = Seq(
