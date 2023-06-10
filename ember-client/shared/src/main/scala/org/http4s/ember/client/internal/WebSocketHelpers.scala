@@ -17,20 +17,26 @@
 package org.http4s.ember.client.internal
 
 import cats.MonadThrow
+import cats.data.NonEmptyList
 import cats.syntax.all._
+import org.http4s.Status
 import org.http4s._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import org.http4s.headers.Connection
 import org.http4s.headers._
-import org.http4s.syntax.all._
 import org.http4s.websocket.Rfc6455
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
-private[internal] object WebSocketHelpers {
+private[client] object WebSocketHelpers {
 
-  private[this] val webSocketProtocol = Protocol(ci"websocket", None)
+  private[internal] val supportedWebSocketVersion = 13L
+
+  private[internal] val upgradeCi = ci"upgrade"
+  private[internal] val webSocketProtocol = Protocol(ci"websocket", None)
+  private[internal] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
+  private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
 
   /** Validate the opening handshake response from the server
     * https://datatracker.ietf.org/doc/html/rfc6455#page-6
@@ -38,21 +44,25 @@ private[internal] object WebSocketHelpers {
   def validateServerHandshake[F[_]](
       response: Response[F],
       secWebSocketKey: String,
-  )(implicit F: MonadThrow[F]): F[Boolean] =
-    serverHandshake(response) match {
-      case Right(key) =>
-        clientHandshake(secWebSocketKey).map(_ == ByteVector(key.getBytes()))
-      case Left(_) => F.pure(false)
-    }
+  )(implicit F: MonadThrow[F]): F[Either[ServerHandshakeError, Unit]] =
+    for {
+      secWebSocketAccept <- serverHandshake(response).pure[F]
+      correctSecWebSocketAccept <- clientHandshake(secWebSocketKey)
+      validated = secWebSocketAccept.flatMap(s =>
+        if (s == correctSecWebSocketAccept) Either.unit else Left(InvalidSecWebSocketAccept)
+      )
+    } yield validated
 
   private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
 
-  private def clientHandshake[F[_]](value: String)(implicit F: MonadThrow[F]): F[ByteVector] = for {
+  private[internal] def clientHandshake[F[_]](
+      value: String
+  )(implicit F: MonadThrow[F]): F[ByteVector] = for {
     value <- ByteVector.encodeAscii(value).liftTo[F]
     digest <- Hash[F].digest(HashAlgorithm.SHA1, value ++ magic)
   } yield digest
 
-  private def serverHandshake[F[_]](res: Response[F]): Either[ServerHandshakeError, String] = {
+  private def serverHandshake[F[_]](res: Response[F]): Either[ServerHandshakeError, ByteVector] = {
     val status = res.status match {
       case Status.SwitchingProtocols => Either.unit
       case _ => Left(InvalidStatus)
@@ -69,8 +79,8 @@ private[internal] object WebSocketHelpers {
     }
 
     val secWebSocketAcceptKey = res.headers.get[`Sec-WebSocket-Accept`] match {
-      case Some(header) => Right(header.value)
-      case None => Left(AcceptKeyNotFound)
+      case Some(header) => Right(header.hashedKey)
+      case None => Left(SecWebSocketAcceptNotFound)
     }
 
     (status, connection, upgrade, secWebSocketAcceptKey).mapN {
@@ -90,6 +100,11 @@ private[internal] object WebSocketHelpers {
         Status.UpgradeRequired,
         "Upgrade required for WebSocket communication.",
       )
-  case object AcceptKeyNotFound
+  case object SecWebSocketAcceptNotFound
       extends ServerHandshakeError(Status.BadRequest, "Sec-WebSocket-Accept header not present.")
+  case object InvalidSecWebSocketAccept
+      extends ServerHandshakeError(
+        Status.BadRequest,
+        "Sec-WebSocket-Accept does not correspond to the Sec-WebSocket-Key",
+      )
 }
