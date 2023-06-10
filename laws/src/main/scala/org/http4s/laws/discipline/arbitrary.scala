@@ -59,7 +59,8 @@ object arbitrary extends ArbitraryInstancesBinCompat0
 )
 object ArbitraryInstances extends ArbitraryInstancesBinCompat0
 
-private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat0 =>
+private[discipline] trait ArbitraryInstances {
+  this: ArbitraryInstancesBinCompat0 =>
 
   implicit private class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -669,6 +670,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       getArbitrary[String].suchThat { s =>
         !s.contains("\r") && !s.contains("\n")
       }
+
     Arbitrary(
       for {
         data <- frequency(
@@ -934,6 +936,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       mrs <- getArbitrary[Set[MediaRange]]
     } yield new EntityDecoder[F, A] {
       def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
+
       def consumes = mrs
     })
 
@@ -1023,6 +1026,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         case t: Throwable => t.printStackTrace(); throw t
       }
     }
+
   implicit private[http4s] def http4sTestingArbitraryForContextRequest[F[_], A: Arbitrary]
       : Arbitrary[ContextRequest[F, A]] =
     // TODO this is bad because the underlying generators are bad
@@ -1152,6 +1156,9 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   }
   val dntGen: Gen[DNT] = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
+
+  implicit val arbUpgradeInsecureRequests: Arbitrary[`Upgrade-Insecure-Requests`] =
+    Arbitrary[`Upgrade-Insecure-Requests`](`Upgrade-Insecure-Requests`)
 
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
