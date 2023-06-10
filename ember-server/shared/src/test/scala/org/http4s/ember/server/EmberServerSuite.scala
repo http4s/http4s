@@ -155,7 +155,7 @@ class EmberServerSuite extends Http4sSuite {
       }
   }
 
-  test("#7146 - HTTP/2 request with body".only) {
+  test("#7146 - HTTP/2 request with body") {
     val server = EmberServerBuilder
       .default[IO]
       .withPort(port"0")
