@@ -340,7 +340,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
               enqueue.offer(Chunk.singleton(H2Frame.WindowUpdate(id, windowSize - newSize)))
             } else Applicative[F].unit
           _ <-
-            if (data.endStream) s.readBuffer.close *> s.trailWith(List.empty)
+            if (data.endStream) s.readBuffer.close *> s.trailWith(List.empty).void
             else Applicative[F].unit
           _ <-
             if (isClosed && sizeReadOk) onClosed else Applicative[F].unit
