@@ -261,39 +261,46 @@ object Client {
         response: Response[F],
         disposed: Ref[F, Boolean],
     ): Resource[F, Response[F]] =
-      for {
-        channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
+      response.entity match {
+        case Entity.Empty | Entity.Strict(_) =>
+          Resource.pure(response)
+        case Entity.Streamed(_, _) =>
+          for {
+            channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
 
-        producer = response.body.chunks
-          .through(channel.sendAll)
-          .compile
-          .drain
-          .uncancelable
+            producer = response.body.chunks
+              .through(channel.sendAll)
+              .compile
+              .drain
+              .uncancelable
 
-        _ <- Resource.make(producer.start)(p => channel.stream.compile.drain.guarantee(p.join.void))
-
-        r = response.withBodyStream(
-          Stream
-            .eval(disposed.get)
-            .ifM(
-              Stream.raiseError[F](new IOException("response was disposed")),
-              channel.stream.unchunks
-                .onFinalize(
-                  channel.stream.compile.drain
-                    .guarantee(disposed.set(true))
-                ),
+            _ <- Resource.make(producer.start)(p =>
+              channel.stream.compile.drain.guarantee(p.join.void)
             )
-        )
 
-        _ <- Resource.onFinalize {
-          disposed.get
-            .ifM(
-              F.unit,
-              r.body.compile.drain,
+            r = response.withBodyStream(
+              Stream
+                .eval(disposed.get)
+                .ifM(
+                  Stream.raiseError[F](new IOException("response was disposed")),
+                  channel.stream.unchunks
+                    .onFinalize(
+                      channel.stream.compile.drain
+                        .guarantee(disposed.set(true))
+                    ),
+                )
             )
-        }
 
-      } yield r
+            _ <- Resource.onFinalize {
+              disposed.get
+                .ifM(
+                  F.unit,
+                  r.body.compile.drain,
+                )
+            }
+
+          } yield r
+      }
 
     def run(req: Request[F]): Resource[F, Response[F]] =
       Resource.eval(Ref[F].of(false)).flatMap { disposed =>
