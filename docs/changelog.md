@@ -3,6 +3,57 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.20 (2023-06-12)
+
+This release fixes a critical regression in Ember HTTP/2. It also upgrades to Scala 3.3.0 LTS.
+
+## What's Changed
+
+### http4s-core
+
+* Add missing constructors to `ContextRoutes` by @hamnis in https://github.com/http4s/http4s/pull/7123
+* Add `Upgrade-Insecure-Requests` header model by @diogocanut in https://github.com/http4s/http4s/pull/7129
+* Update scala3-library, ... to 3.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7131
+
+### http4s-server
+
+* Add handling for fragmented frames in WebSockets by @mox692 in https://github.com/http4s/http4s/pull/7091
+
+### http4s-ember-core
+
+* Close `H2Stream` `readBuffer` on `data.endStream` by @armanbilge in https://github.com/http4s/http4s/pull/7147
+
+### Documentation
+
+* fixes wrong link in "Server Middleware" page in the docs #7117 by @rsemlal in https://github.com/http4s/http4s/pull/7118
+* Added more examples to the doc (shortcut to create Responses) by @walesho in https://github.com/http4s/http4s/pull/7120
+
+### Behind the scenes
+
+* Fix release date by @armanbilge in https://github.com/http4s/http4s/pull/7114
+* Update http4s-circe, http4s-ember-client, ... to 0.23.19 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7116
+* Update netty-buffer, netty-codec-http to 4.1.93.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7124
+* Update scalafmt-core to 3.7.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7130
+* Update jawn-parser to 1.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7132
+* Update sbt-scoverage to 2.0.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7134
+* Update sbt-jmh to 0.4.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7136
+* Update nscplugin, sbt-scala-native, ... to 0.4.14 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7139
+* Update epollcat to 0.1.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7140
+* Update jnr-unixsocket to 0.38.20 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7141
+* Update sbt to 1.9.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7133
+* Update sbt-http4s-org to 0.14.13 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7137
+* Update scala-library, scala-reflect to 2.12.18 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7143
+* Update scala-library, scala-reflect to 2.13.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7144
+
+## New Contributors
+
+* @rsemlal made their first contribution in https://github.com/http4s/http4s/pull/7118
+* @walesho made their first contribution in https://github.com/http4s/http4s/pull/7120
+* @diogocanut made their first contribution in https://github.com/http4s/http4s/pull/7129
+* @mox692 made their first contribution in https://github.com/http4s/http4s/pull/7091
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.19...v0.23.20
+
 # v0.23.19 (2023-05-12)
 
 This release updates to Cats Effect v3.5.0 which includes an important change to the cancelation semantics of the `Async#async` and `IO.async` methods. Please check the [Cats Effect release notes for v3.5.0](https://github.com/typelevel/cats-effect/releases/tag/v3.5.0) for more details. These changes do not affect Ember, but they do affect Blaze (see https://github.com/http4s/blaze/issues/772) and possibly other http4s backends.
