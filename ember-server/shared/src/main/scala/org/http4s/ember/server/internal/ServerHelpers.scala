@@ -365,11 +365,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
       .compile
       .drain
-      .attempt
-      .flatMap {
-        case Left(err) => onWriteFailure(request, resp, err) *> MonadThrow[F].raiseError(err)
-        case Right(()) => Applicative[F].unit
-      }
+      .onError(onWriteFailure(request, resp, _))
 
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
@@ -507,6 +503,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       }
       .takeWhile(_.headers.get[Connection].exists(_.hasKeepAlive))
       .drain
+      .mask
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
