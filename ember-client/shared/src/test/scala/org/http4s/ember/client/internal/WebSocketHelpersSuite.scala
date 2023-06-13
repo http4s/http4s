@@ -64,6 +64,24 @@ class WebSocketHelpersSuite extends Http4sSuite {
       val hashString = secWebSocketKey.hashString
       (
         for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO](Status.SwitchingProtocols)
+              .withHeaders(
+                Headers(`Sec-WebSocket-Accept`(hashBytes), upgradeWebSocket)
+              ),
+            hashString,
+          )
+        } yield result
+      ).map(result => assertEquals(result, Left(UpgradeRequired)))
+    }
+  }
+
+  test("Invalidate websocket response without Sec-WebSocket-Accept header") {
+    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
+      val hashString = secWebSocketKey.hashString
+      (
+        for {
           result <- validateServerHandshake(
             Response[IO](Status.SwitchingProtocols)
               .withHeaders(
