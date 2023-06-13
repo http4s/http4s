@@ -365,7 +365,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
       .compile
       .drain
-      .onError(onWriteFailure(request, resp, _))
+      .onError { case err =>
+        onWriteFailure(request, resp, err)
+      }
 
   private[internal] def postProcessResponse[F[_]: Concurrent: Clock](
       req: Request[F],
