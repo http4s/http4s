@@ -21,6 +21,7 @@ import org.http4s._
 import org.http4s.ember.client.internal.WebSocketHelpers._
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.effect.PropF.forAllF
 
 class WebSocketHelpersSuite extends Http4sSuite {
@@ -28,16 +29,18 @@ class WebSocketHelpersSuite extends Http4sSuite {
   test("Invalidate websocket response without HTTP Status 101") {
     forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
       val hashString = secWebSocketKey.hashString
-      (for {
-        hashBytes <- clientHandshake[IO](hashString)
-        result <- validateServerHandshake(
-          Response[IO]()
-            .withHeaders(
-              Headers(`Sec-WebSocket-Accept`(hashBytes), upgradeWebSocket, connectionUpgrade)
-            ),
-          hashString,
-        )
-      } yield result).map(result => assertEquals(result, Left(InvalidStatus)))
+      (
+        for {
+          hashBytes <- clientHandshake[IO](hashString)
+          result <- validateServerHandshake(
+            Response[IO]()
+              .withHeaders(
+                Headers(`Sec-WebSocket-Accept`(hashBytes), upgradeWebSocket, connectionUpgrade)
+              ),
+            hashString,
+          )
+        } yield result
+      ).map(result => assertEquals(result, Left(InvalidStatus)))
     }
   }
 
@@ -94,21 +97,28 @@ class WebSocketHelpersSuite extends Http4sSuite {
     }
   }
 
+  val genSecWebSocketKeyTuple = (for {
+    secWebSocketKey1 <- arbitrary[`Sec-WebSocket-Key`]
+    secWebSocketKey2 <- arbitrary[`Sec-WebSocket-Key`]
+  } yield (secWebSocketKey1, secWebSocketKey2)).suchThat { case (x1, x2) => x1 != x2 }
+
   test("Invalidate websocket response with invalid SecWebSocketAccept key") {
-    forAllF { (secWebSocketKey: `Sec-WebSocket-Key`) =>
-      val hashString = secWebSocketKey.hashString
-      (
-        for {
-          hashBytes <- clientHandshake[IO](hashString)
-          result <- validateServerHandshake(
-            Response[IO](Status.SwitchingProtocols)
-              .withHeaders(
-                Headers(`Sec-WebSocket-Accept`(hashBytes), connectionUpgrade, upgradeWebSocket)
-              ),
-            "invalidHashString",
-          )
-        } yield result
-      ).map(result => assertEquals(result, Left(InvalidSecWebSocketAccept)))
+    forAllF[IO, (`Sec-WebSocket-Key`, `Sec-WebSocket-Key`), IO[Unit]](genSecWebSocketKeyTuple) {
+      secWebSocketKeyTuple =>
+        val hashString1 = secWebSocketKeyTuple._1.hashString
+        val hashString2 = secWebSocketKeyTuple._2.hashString
+        (
+          for {
+            hashBytes1 <- clientHandshake[IO](hashString1)
+            result <- validateServerHandshake(
+              Response[IO](Status.SwitchingProtocols)
+                .withHeaders(
+                  Headers(`Sec-WebSocket-Accept`(hashBytes1), connectionUpgrade, upgradeWebSocket)
+                ),
+              hashString2,
+            )
+          } yield result
+        ).map(result => assertEquals(result, Left(InvalidSecWebSocketAccept)))
     }
   }
 
