@@ -104,9 +104,9 @@ class WebSocketHelpersSuite extends Http4sSuite {
 
   test("Invalidate websocket response with invalid SecWebSocketAccept key") {
     forAllF[IO, (`Sec-WebSocket-Key`, `Sec-WebSocket-Key`), IO[Unit]](genSecWebSocketKeyTuple) {
-      secWebSocketKeyTuple =>
-        val hashString1 = secWebSocketKeyTuple._1.hashString
-        val hashString2 = secWebSocketKeyTuple._2.hashString
+      case (secWebSocketKey1, secWebSocketKey2) =>
+        val hashString1 = secWebSocketKey1.hashString
+        val hashString2 = secWebSocketKey2.hashString
         (
           for {
             hashBytes1 <- clientHandshake[IO](hashString1)
