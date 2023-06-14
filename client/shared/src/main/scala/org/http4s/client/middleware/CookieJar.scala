@@ -44,6 +44,10 @@ trait CookieJar[F[_]] {
     */
   def addCookies[G[_]: Foldable](cookies: G[(ResponseCookie, Uri)]): F[Unit]
 
+  /** Extract the cookies from the middleware
+    */
+  def cookies: F[List[ResponseCookie]]
+
   /** Enrich a Request with the cookies available
     */
   def enrichRequest[G[_]](r: Request[G]): F[Request[G]]
@@ -120,6 +124,8 @@ object CookieJar {
         now <- HttpDate.current[F]
         out <- ref.update(extractFromResponseCookies(_)(cookies, now))
       } yield out
+
+    override def cookies: F[List[ResponseCookie]] = ref.get.map(_.values.map(_.cookie).toList)
 
     override def enrichRequest[N[_]](r: Request[N]): F[Request[N]] =
       for {
