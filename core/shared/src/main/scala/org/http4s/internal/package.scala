@@ -18,60 +18,16 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.effect.Sync
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
-import fs2.Chunk
-
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 
 package object internal {
-
-  private[http4s] def unsafeToCompletionStage[F[_], A](
-      fa: F[A],
-      dispatcher: Dispatcher[F],
-  )(implicit F: Sync[F]): CompletionStage[A] = {
-    val cf = new CompletableFuture[A]()
-    dispatcher.unsafeToFuture(fa.attemptTap {
-      case Right(a) => F.delay { cf.complete(a); () }
-      case Left(e) => F.delay { cf.completeExceptionally(e); () }
-    })
-    cf
-  }
 
   private[http4s] def bug(message: String): AssertionError =
     new AssertionError(
       s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}"
     )
 
-  private val utf8Bom: Chunk[Byte] = Chunk(0xef.toByte, 0xbb.toByte, 0xbf.toByte)
-
-  private[http4s] def skipUtf8ByteOrderMark(chunk: Chunk[Byte]): Chunk[Byte] =
-    if (chunk.size >= 3 && chunk.take(3) == utf8Bom)
-      chunk.drop(3)
-    else chunk
-
   // Helper functions for writing Order instances //
-
-  /** This is the same as `Order.by(f).compare(a, b)`, but with the parameters
-    * re-arraigned to make it easier to partially apply the function to two
-    * instances of a type before supplying the `A => B`.
-    *
-    * The intended use case is that `f: A => B` will extract out a single
-    * field from two instances of some Product type and then compare the value
-    * of the field. This can then be done in turn for each field of a Product,
-    * significantly reducing the amount of code needed to write an `Order`
-    * instance for a Product with many fields.
-    *
-    * See the `Order` instance for `Uri` for an example of this usage.
-    */
-  private[http4s] def compareField[A, B: Order](
-      a: A,
-      b: A,
-      f: A => B,
-  ): Int =
-    Order.by[A, B](f).compare(a, b)
 
   /** Given at least one `Int` intended to represent the result of a comparison
     * of two fields of some Product type, reduce the result to the first
