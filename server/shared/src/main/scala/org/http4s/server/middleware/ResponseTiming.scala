@@ -38,15 +38,24 @@ object ResponseTiming {
     * @param timeUnit the units of measure for this timing
     * @param headerName the name to use for the header containing the timing info
     */
-  def apply[F[_]](
+  def apply[F[_]: Sync](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
       headerName: CIString = ci"X-Response-Time",
-  )(implicit F: Sync[F], clock: Clock[F]): HttpApp[F] =
+  ): HttpApp[F] =
     Kleisli { req =>
-      http(req).timed(clock).map { case (processingTime, resp) =>
+      http(req).timed.map { case (processingTime, resp) =>
         val header = Header.Raw(headerName, s"${processingTime.toUnit(timeUnit).toLong}")
         resp.putHeaders(header)
       }
     }
+
+  @deprecated("Use `apply` with single type constraint", "0.23.21")
+  def apply[F[_]](
+      http: HttpApp[F],
+      timeUnit: TimeUnit,
+      headerName: CIString,
+      F: Sync[F],
+      clock: Clock[F],
+  ): HttpApp[F] = apply(http, timeUnit, headerName)(F)
 }
