@@ -108,7 +108,7 @@ object JsonDebugErrorHandler {
         "method" -> req.method.name.asJson,
         "uri" -> Json
           .obj(
-            "scheme" -> req.uri.scheme.map(_.value).asJson,
+            "scheme" -> req.uri.scheme.map(_.value.toString).asJson,
             "authority" -> req.uri.authority
               .map(auth =>
                 Json

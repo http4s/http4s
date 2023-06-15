@@ -287,9 +287,9 @@ private[ember] class H2Client[F[_]](
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
     val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
-    val useTLS = req.uri.scheme.map(_.value) match {
-      case Some("http") => false
-      case Some("https") => true
+    val useTLS = req.uri.scheme match {
+      case Some(Scheme.http) => false
+      case Some(Scheme.https) => true
       // How Do we Choose when to use TLS, for http/1.1 this is simple its with
       // this, but with http2, there can be arbitrary schemes
       // but also probably wrong if doing websockets over http/1.1

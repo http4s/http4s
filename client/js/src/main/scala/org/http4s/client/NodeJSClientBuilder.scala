@@ -51,7 +51,7 @@ private[client] sealed abstract class NodeJSClientBuilder[F[_]](implicit protect
       F.async[IncomingMessage] { cb =>
         val options = new RequestOptions {
           method = req.method.renderString
-          protocol = req.uri.scheme.map(_.value + ":").orUndefined
+          protocol = req.uri.scheme.map(_.value.toString + ":").orUndefined
           host = req.uri.authority.map { authority =>
             authority.host match {
               case Uri.RegName(n) => n.toString

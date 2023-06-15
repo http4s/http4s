@@ -786,7 +786,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   }
 
   implicit val http4sTestingCogenForScheme: Cogen[Uri.Scheme] =
-    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+    Cogen[CIString].contramap(_.value)
 
   implicit val http4sTestingArbitraryForTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
     Gen.oneOf(
