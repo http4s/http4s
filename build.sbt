@@ -285,11 +285,6 @@ lazy val tests = libraryCrossProject("tests")
     ),
     githubWorkflowArtifactUpload := false,
   )
-  .nativeSettings(
-    libraryDependencies ++= Seq(
-      epollcat.value
-    )
-  )
   .dependsOn(core, laws)
 
 lazy val server = libraryCrossProject("server")
