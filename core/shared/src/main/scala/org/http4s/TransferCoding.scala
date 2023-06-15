@@ -30,41 +30,29 @@ import cats.Order
 import cats.Show
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.hashLower
+import cats.syntax.all._
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.util._
+import org.typelevel.ci._
 
-class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
-  override def equals(o: Any): Boolean =
-    o match {
-      case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
-      case _ => false
-    }
-
-  private[this] var hash = 0
-  override def hashCode(): Int = {
-    if (hash == 0)
-      hash = hashLower(coding)
-    hash
-  }
-
+final case class TransferCoding private (coding: CIString)
+    extends Ordered[TransferCoding]
+    with Renderable {
   override def toString: String = s"TransferCoding($coding)"
 
   override def compare(other: TransferCoding): Int =
-    coding.compareToIgnoreCase(other.coding)
+    coding.compare(other.coding)
 
   override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
 object TransferCoding {
-  private class TransferCodingImpl(coding: String) extends TransferCoding(coding)
-
   // https://www.iana.org/assignments/http-parameters/http-parameters.xml#transfer-coding
-  val chunked: TransferCoding = new TransferCodingImpl("chunked")
-  val compress: TransferCoding = new TransferCodingImpl("compress")
-  val deflate: TransferCoding = new TransferCodingImpl("deflate")
-  val gzip: TransferCoding = new TransferCodingImpl("gzip")
-  val identity: TransferCoding = new TransferCodingImpl("identity")
+  val chunked: TransferCoding = TransferCoding(ci"chunked")
+  val compress: TransferCoding = TransferCoding(ci"compress")
+  val deflate: TransferCoding = TransferCoding(ci"deflate")
+  val gzip: TransferCoding = TransferCoding(ci"gzip")
+  val identity: TransferCoding = TransferCoding(ci"identity")
 
   def parse(s: String): ParseResult[TransferCoding] =
     ParseResult.fromParser(parser, "Invalid transfer coding")(s)
@@ -88,7 +76,7 @@ object TransferCoding {
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =
     Order.fromComparable
   implicit val http4sShowForTransferCoding: Show[TransferCoding] =
-    Show.show(_.coding)
+    Show[CIString].contramap(_.coding)
   implicit val http4sInstancesForTransferCoding: HttpCodec[TransferCoding] =
     new HttpCodec[TransferCoding] {
       override def parse(s: String): ParseResult[TransferCoding] =

@@ -44,7 +44,6 @@ import scodec.bits.ByteVector
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Base64
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -799,7 +798,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   }
 
   implicit val http4sTestingCogenForTransferCoding: Cogen[TransferCoding] =
-    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
+    Cogen[CIString].contramap(_.coding)
 
   implicit val http4sTestingAbitraryForPath: Arbitrary[Uri.Path] = Arbitrary {
     val genSegmentNzNc =
