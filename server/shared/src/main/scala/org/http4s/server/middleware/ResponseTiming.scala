@@ -18,6 +18,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.Functor
 import cats.data.Kleisli
 import cats.effect._
 import cats.effect.syntax.clock._
@@ -38,7 +39,7 @@ object ResponseTiming {
     * @param timeUnit the units of measure for this timing
     * @param headerName the name to use for the header containing the timing info
     */
-  def apply[F[_]: Sync](
+  def apply[F[_]: Functor: Clock](
       http: HttpApp[F],
       timeUnit: TimeUnit = MILLISECONDS,
       headerName: CIString = ci"X-Response-Time",
@@ -50,12 +51,12 @@ object ResponseTiming {
       }
     }
 
-  @deprecated("Use `apply` with single type constraint", "0.23.21")
+  @deprecated("Use `apply` with Functor and Clock type constraints", "0.23.21")
   def apply[F[_]](
       http: HttpApp[F],
       timeUnit: TimeUnit,
       headerName: CIString,
       F: Sync[F],
       clock: Clock[F],
-  ): HttpApp[F] = apply(http, timeUnit, headerName)(F)
+  ): HttpApp[F] = apply(http, timeUnit, headerName)(F, clock)
 }
