@@ -20,6 +20,7 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.syntax.clock._
 import cats.syntax.all._
 import org.typelevel.ci._
 
@@ -43,12 +44,9 @@ object ResponseTiming {
       headerName: CIString = ci"X-Response-Time",
   )(implicit F: Sync[F], clock: Clock[F]): HttpApp[F] =
     Kleisli { req =>
-      val getTime = clock.monotonic.map(_.toUnit(timeUnit).toLong)
-      for {
-        before <- getTime
-        resp <- http(req)
-        after <- getTime
-        header = Header.Raw(headerName, s"${after - before}")
-      } yield resp.putHeaders(header)
+      http(req).timed(clock).map { case (processingTime, resp) =>
+        val header = Header.Raw(headerName, s"${processingTime.toUnit(timeUnit).toLong}")
+        resp.putHeaders(header)
+      }
     }
 }
