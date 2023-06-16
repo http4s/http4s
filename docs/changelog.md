@@ -3,6 +3,32 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.21 (2023-06-16)
+
+This release fixes another regression in Ember HTTP/2.
+
+## What's Changed
+
+### http4s-server
+
+* Use `ClockOps` in `ResponseTiming` Middleware by @danicheg in https://github.com/http4s/http4s/pull/7163
+
+### http4s-ember-core
+
+* Close H2 `readBuffer` on `headers.endStream` by @armanbilge in https://github.com/http4s/http4s/pull/7156
+* Use `ClockOps` in `Util#readWithTimeout` by @danicheg in https://github.com/http4s/http4s/pull/7162
+
+### http4s-ember-server
+
+* Mask errors in Ember server `runConnection` by @armanbilge in https://github.com/http4s/http4s/pull/7157
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client, ... to 0.23.20 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7153
+* Simplify type in `H2Server#h2cUpgradeHttpRoute` by @danicheg in https://github.com/http4s/http4s/pull/7159
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.20...v0.23.21
+
 # v0.23.20 (2023-06-12)
 
 This release fixes a critical regression in Ember HTTP/2. It also upgrades to Scala 3.3.0 LTS.
