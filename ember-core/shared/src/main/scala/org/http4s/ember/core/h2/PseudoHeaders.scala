@@ -45,7 +45,7 @@ private[h2] object PseudoHeaders {
     }
     val l = NonEmptyList.of(
       (METHOD, req.method.toString, false),
-      (SCHEME, req.uri.scheme.map(_.value).getOrElse("https"), false) ::
+      (SCHEME, req.uri.scheme.map(_.value.toString).getOrElse("https"), false) ::
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
         req.headers.headers

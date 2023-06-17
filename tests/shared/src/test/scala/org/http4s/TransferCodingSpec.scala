@@ -27,13 +27,13 @@ class TransferCodingSpec extends Http4sSuite {
 
   test("equals should be consistent with equalsIgnoreCase of the codings") {
     Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
-      (a == b) == a.coding.equalsIgnoreCase(b.coding)
+      (a == b) == a.coding.toString.equalsIgnoreCase(b.coding.toString)
     }
   }
 
   test("compare should be consistent with coding.compareToIgnoreCase") {
     Prop.forAll { (a: TransferCoding, b: TransferCoding) =>
-      a.coding.compareToIgnoreCase(b.coding) == a.compare(b)
+      a.coding.toString.compareToIgnoreCase(b.coding.toString) == a.compare(b)
     }
   }
 
@@ -45,7 +45,7 @@ class TransferCodingSpec extends Http4sSuite {
 
   test("parse should parse single items") {
     Prop.forAll { (a: TransferCoding) =>
-      TransferCoding.parseList(a.coding) == ParseResult.success(NonEmptyList.one(a))
+      TransferCoding.parseList(a.coding.toString) == ParseResult.success(NonEmptyList.one(a))
     }
   }
   test("parse should parse multiple items") {
@@ -57,7 +57,7 @@ class TransferCodingSpec extends Http4sSuite {
 
   test("render should return coding") {
     Prop.forAll { (s: TransferCoding) =>
-      Renderer.renderString(s) == s.coding
+      Renderer.renderString(s) == s.coding.toString
     }
   }
 
