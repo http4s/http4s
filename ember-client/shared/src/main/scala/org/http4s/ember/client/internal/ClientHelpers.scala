@@ -232,15 +232,20 @@ private[client] object ClientHelpers {
       case None => F.unit
     }
 
-  // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
+  private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(
-          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
-        ) // FIXME
+
+        for {
+          host <- Host
+            .fromString(host)
+            .liftTo[F](new IllegalArgumentException("Invalid host"))
+          port <- Port
+            .fromInt(port)
+            .liftTo[F](new IllegalArgumentException("Invalid port"))
+        } yield SocketAddress[Host](host, port)
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
