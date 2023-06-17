@@ -112,7 +112,7 @@ private[client] object ClientHelpers {
         )
       }
 
-  def elevateSocket[F[_]: Sync](
+  def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
       initSocket: Resource[F, Socket[F]],
       tlsContextOpt: Option[TLSContext[F]],
@@ -122,15 +122,12 @@ private[client] object ClientHelpers {
   ): Resource[F, RequestKeySocket[F]] =
     for {
       iSocket <- initSocket
-      socket <- {
-        if (requestKey.scheme === Uri.Scheme.https) {
-          tlsContextOpt.fold[Resource[F, Socket[F]]] {
-            ApplicativeThrow[Resource[F, *]].raiseError(
-              new Throwable("EmberClient Not Configured for Https")
-            )
-          } { tlsContext =>
-            tlsContext
-              .clientBuilder(iSocket)
+      socket <-
+        if (requestKey.scheme === Uri.Scheme.https)
+          tlsContextOpt.fold[Resource[F, Socket[F]]](
+            Resource.raiseError(new Throwable("EmberClient Is Not Configured for Https"))
+          )(
+            _.clientBuilder(iSocket)
               .withParameters(
                 Util.mkClientTLSParameters(
                   optionNames,
@@ -140,9 +137,8 @@ private[client] object ClientHelpers {
               )
               .build
               .widen[Socket[F]]
-          }
-        } else iSocket.pure[Resource[F, *]]
-      }
+          )
+        else iSocket.pure[Resource[F, *]]
     } yield RequestKeySocket(socket, requestKey)
 
   def request[F[_]: Async](
