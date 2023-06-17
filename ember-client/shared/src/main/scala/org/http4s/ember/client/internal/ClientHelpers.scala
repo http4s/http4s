@@ -239,12 +239,8 @@ private[client] object ClientHelpers {
         val host = auth.host.value
 
         for {
-          host <- Host
-            .fromString(host)
-            .liftTo[F](new IllegalArgumentException("Invalid host"))
-          port <- Port
-            .fromInt(port)
-            .liftTo[F](new IllegalArgumentException("Invalid port"))
+          host <- Host.fromString(host).liftTo[F](MissingHost())
+          port <- Port.fromInt(port).liftTo[F](MissingPort())
         } yield SocketAddress[Host](host, port)
     }
 
@@ -296,4 +292,8 @@ private[client] object ClientHelpers {
         case _ => false
       }
   }
+
+  private case class MissingHost() extends RuntimeException("Invalid hostname")
+
+  private case class MissingPort() extends RuntimeException("Invalid port")
 }
