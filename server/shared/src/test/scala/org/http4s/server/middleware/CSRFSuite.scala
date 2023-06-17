@@ -162,7 +162,7 @@ class CSRFSuite extends Http4sSuite {
     TestControl.execute(program).flatMap { control =>
       for {
         _ <- control.advanceAndTick(1.millis)
-        (csrf, oldToken, oldRaw) <-
+        res <-
           control.results.flatMap(_.get match {
             case Outcome.Canceled() =>
               IO.raiseError(new IllegalStateException("Canceled"))
@@ -171,6 +171,7 @@ class CSRFSuite extends Http4sSuite {
             case Outcome.Succeeded(res) =>
               IO(res)
           })
+        (csrf, oldToken, oldRaw) = res
         _ <- control.advanceAndTick(1.millis)
         response <-
           csrf.validate()(dummyRoutes)(csrf.embedInRequestCookie(passThroughRequest, oldToken))
@@ -298,7 +299,7 @@ class CSRFSuite extends Http4sSuite {
     TestControl.execute(program).flatMap { control =>
       for {
         _ <- control.advanceAndTick(1.millis)
-        (csrf, token, raw1) <-
+        res <-
           control.results.flatMap(_.get match {
             case Outcome.Canceled() =>
               IO.raiseError(new IllegalStateException("Canceled"))
@@ -307,6 +308,7 @@ class CSRFSuite extends Http4sSuite {
             case Outcome.Succeeded(res) =>
               IO(res)
           })
+        (csrf, token, raw1) = res
         _ <- control.advanceAndTick(1.millis)
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
@@ -374,7 +376,7 @@ class CSRFSuite extends Http4sSuite {
       TestControl.execute(program).flatMap { control =>
         for {
           _ <- control.advanceAndTick(1.millis)
-          (csrfCatchFailure, csrf, oldToken, oldRaw) <-
+          res <-
             control.results.flatMap(_.get match {
               case Outcome.Canceled() =>
                 IO.raiseError(new IllegalStateException("Canceled"))
@@ -383,6 +385,7 @@ class CSRFSuite extends Http4sSuite {
               case Outcome.Succeeded(res) =>
                 IO(res)
             })
+          (csrfCatchFailure, csrf, oldToken, oldRaw) = res
           _ <- control.advanceAndTick(1.millis)
           response <- csrfCatchFailure.validate()(dummyRoutes)(
             csrf.embedInRequestCookie(passThroughRequest, oldToken)
