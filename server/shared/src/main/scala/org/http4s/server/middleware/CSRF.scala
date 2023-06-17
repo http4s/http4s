@@ -25,6 +25,7 @@ import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
+import cats.effect.kernel
 import cats.effect.std.SecureRandom
 import cats.syntax.all._
 import cats.~>
@@ -78,12 +79,10 @@ import scala.util.control.NoStackTrace
   * @param headerName your CSRF header name
   * @param cookieSettings the CSRF cookie settings
   * @param key the CSRF signing key
-  * @param clock clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
     headerName: CIString,
     cookieSettings: CSRF.CookieSettings,
-    clock: Clock,
     onFailure: Response[G],
     createIfNotFound: Boolean,
     key: SecretKey[HmacAlgorithm],
@@ -91,6 +90,27 @@ final class CSRF[F[_], G[_]] private[middleware] (
     csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G],
 )(implicit F: Async[F]) { self =>
   import CSRF._
+
+  @deprecated("Use the constructor without the `java.time.Clock`", "v1.0.0-M40")
+  def this(
+      headerName: CIString,
+      cookieSettings: CSRF.CookieSettings,
+      clock: Clock,
+      onFailure: Response[G],
+      createIfNotFound: Boolean,
+      key: SecretKey[HmacAlgorithm],
+      headerCheck: Request[G] => Boolean,
+      csrfCheck: CSRF[F, G] => CSRF.CSRFCheck[F, G],
+  )(implicit F: Async[F]) =
+    this(
+      headerName,
+      cookieSettings,
+      onFailure,
+      createIfNotFound,
+      key,
+      headerCheck,
+      csrfCheck,
+    )
 
   private val csrfChecker: CSRFCheck[F, G] = csrfCheck(self)
 
@@ -100,7 +120,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def signToken[M[_]](rawToken: String)(implicit F: Async[M]): M[CSRFToken] =
     for {
-      joined <- F.delay(rawToken + "-" + clock.millis())
+      joined <- kernel.Clock[M].realTime.map(_.toMillis).map(rawToken + "-" + _)
       data <- F.fromEither(ByteVector.encodeUtf8(joined))
       out <- Hmac[M].digest(key, data)
     } yield lift(joined + "-" + out.toHex(Alphabets.HexUppercase))
@@ -278,7 +298,6 @@ object CSRF {
         httpOnly = true,
         path = Some("/"),
       ),
-      clock = Clock.systemUTC(),
       onFailure = Response[G](Status.Forbidden),
       createIfNotFound = true,
       key = SecretKeySpec(key, HmacAlgorithm.SHA1),
@@ -317,22 +336,39 @@ object CSRF {
   ): F[CSRFBuilder[F, G]] =
     buildSigningKey(keyBytes).map(k => apply(k, headerCheck))
 
-  // /
-
   class CSRFBuilder[F[_], G[_]] private[middleware] (
       headerName: CIString,
       cookieSettings: CSRF.CookieSettings,
-      clock: Clock,
       onFailure: Response[G],
       createIfNotFound: Boolean,
       key: SecretKey[HmacAlgorithm],
       headerCheck: Request[G] => Boolean,
       csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
   )(implicit F: Async[F], G: Applicative[G]) {
+
+    def this(
+        headerName: CIString,
+        cookieSettings: CSRF.CookieSettings,
+        clock: Clock,
+        onFailure: Response[G],
+        createIfNotFound: Boolean,
+        key: SecretKey[HmacAlgorithm],
+        headerCheck: Request[G] => Boolean,
+        csrfCheck: CSRF[F, G] => CSRFCheck[F, G],
+    )(implicit F: Async[F], G: Applicative[G]) =
+      this(
+        headerName,
+        cookieSettings,
+        onFailure,
+        createIfNotFound,
+        key,
+        headerCheck,
+        csrfCheck,
+      )
+
     private def copy(
         headerName: CIString = headerName,
         cookieSettings: CookieSettings = cookieSettings,
-        clock: Clock = clock,
         onFailure: Response[G] = onFailure,
         createIfNotFound: Boolean = createIfNotFound,
         key: SecretKey[HmacAlgorithm] = key,
@@ -342,7 +378,6 @@ object CSRF {
       new CSRFBuilder[F, G](
         headerName,
         cookieSettings,
-        clock,
         onFailure,
         createIfNotFound,
         key,
@@ -352,7 +387,13 @@ object CSRF {
 
     def withHeaderName(headerName: CIString): CSRFBuilder[F, G] =
       copy(headerName = headerName)
-    def withClock(clock: Clock): CSRFBuilder[F, G] = copy(clock = clock)
+
+    @deprecated(
+      "This method doesn't change anything since the `java.time.Clock` has been purged from CSRFBuilder",
+      "v1.0.0-M40",
+    )
+    def withClock(clock: Clock): CSRFBuilder[F, G] = this
+
     def withOnFailure(onFailure: Response[G]): CSRFBuilder[F, G] = copy(onFailure = onFailure)
     def withCreateIfNotFound(createIfNotFound: Boolean): CSRFBuilder[F, G] =
       copy(createIfNotFound = createIfNotFound)
@@ -381,7 +422,6 @@ object CSRF {
       new CSRF[F, G](
         headerName,
         cookieSettings,
-        clock,
         onFailure,
         createIfNotFound,
         key,
@@ -399,8 +439,6 @@ object CSRF {
       sameSite: Option[SameSite] = Some(SameSite.Lax),
       extension: Option[String] = None,
   )
-
-  // /
 
   type CSRFCheck[F[_], G[_]] = (Request[G], F[Response[G]]) => F[Response[G]]
 
@@ -430,8 +468,6 @@ object CSRF {
       tok <- snd.fold(csrf.onfailureF)(csrf.checkCSRFToken(r, http, _))
     } yield tok
   }
-
-  // /
 
   // Newtype hax. Remove when we have a better story for newtypes
   type CSRFToken
