@@ -111,21 +111,6 @@ jobs:
         if: matrix.java == 'temurin@8'
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' unusedCompileDependenciesTest'
 
-      - name: Make target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.23')
-        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
-
-      - name: Compress target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.23')
-        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
-
-      - name: Upload target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/series/0.23')
-        uses: actions/upload-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}-${{ matrix.project }}
-          path: targets.tar
-
   publish:
     name: Publish Artifacts
     needs: [build]
@@ -161,96 +146,6 @@ jobs:
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Download target directories (3.3.0, rootJS)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootJS
-
-      - name: Inflate target directories (3.3.0, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (3.3.0, rootJVM)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootJVM
-
-      - name: Inflate target directories (3.3.0, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (3.3.0, rootNative)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootNative
-
-      - name: Inflate target directories (3.3.0, rootNative)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.12.18, rootJS)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.18-rootJS
-
-      - name: Inflate target directories (2.12.18, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.12.18, rootJVM)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.18-rootJVM
-
-      - name: Inflate target directories (2.12.18, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.12.18, rootNative)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.18-rootNative
-
-      - name: Inflate target directories (2.12.18, rootNative)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13.11, rootJS)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootJS
-
-      - name: Inflate target directories (2.13.11, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13.11, rootJVM)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootJVM
-
-      - name: Inflate target directories (2.13.11, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13.11, rootNative)
-        uses: actions/download-artifact@v3
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootNative
-
-      - name: Inflate target directories (2.13.11, rootNative)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
 
       - name: Import signing key
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE == ''
