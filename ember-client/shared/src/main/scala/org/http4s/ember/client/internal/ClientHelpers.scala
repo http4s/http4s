@@ -52,7 +52,7 @@ import java.io.IOException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Sync](
+  def requestToSocketWithKey[F[_]: MonadThrow](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
@@ -71,7 +71,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def unixSocket[F[_]: Async](
+  def unixSocket[F[_]: MonadThrow](
       request: Request[F],
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
@@ -90,7 +90,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Sync](
+  def requestKeyToSocketWithKey[F[_]: MonadThrow](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
