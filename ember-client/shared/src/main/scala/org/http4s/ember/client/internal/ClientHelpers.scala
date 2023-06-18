@@ -125,7 +125,7 @@ private[client] object ClientHelpers {
       socket <-
         if (requestKey.scheme === Uri.Scheme.https)
           tlsContextOpt.fold[Resource[F, Socket[F]]](
-            Resource.raiseError(new Throwable("EmberClient Is Not Configured for Https"))
+            Resource.raiseError[F, Socket[F], Throwable](MissingTlsContext())
           )(
             _.clientBuilder(iSocket)
               .withParameters(
@@ -296,4 +296,7 @@ private[client] object ClientHelpers {
   private case class MissingHost() extends RuntimeException("Invalid hostname")
 
   private case class MissingPort() extends RuntimeException("Invalid port")
+
+  private case class MissingTlsContext()
+      extends RuntimeException("EmberClient Is Not Configured for Https")
 }
