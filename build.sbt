@@ -56,6 +56,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
   )
 )
 
+ThisBuild / githubWorkflowArtifactUpload := false
+
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
   new NodeJSEnv(
