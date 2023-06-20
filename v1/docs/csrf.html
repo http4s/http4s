@@ -162,8 +162,6 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
-        
           <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
@@ -176,11 +174,7 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-okhttp-client/">http4s-okhttp-client</a></li>
-        
           <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-tomcat/">http4s-tomcat</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
         
@@ -188,13 +182,9 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-play-json/">http4s-play-json</a></li>
+          <li class="level2"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
@@ -254,7 +244,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@19105fc6
+//    = org.typelevel.vault.Vault@136ba6c5
 // )</span></code></pre>
         <p>That didn&#39;t do all that much. Lets build out our CSRF Middleware by creating a <code>CSRFBuilder</code></p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookieName</span><span> = </span><span class="string-literal">&quot;csrf-token&quot;</span><span>
@@ -276,9 +266,9 @@
 </span><span class="comment">// resp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=C15D4AB2C2EFCDFD7B7AD6B8FDF6EBD5820213936306FE9D676538B4EF4C1FC6-1687070723819-E3F65F554AD0C029381388A710925AE512C7A84B; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=09668E250DF09205C3FFE1379B65D8D5B129EBA1CA45F53F078994010AD2290C-1687222741136-E42987BD4188A39893AFE35849D59105905A844A; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@19cdb4c7
+//    = org.typelevel.vault.Vault@3bf265eb
 // )</span></code></pre>
         <p>Notice how the response has the CSRF cookies added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -294,7 +284,7 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookie</span><span> = </span><span class="identifier">resp</span><span>.</span><span class="identifier">cookies</span><span>.</span><span class="identifier">head</span><span>
 </span><span class="comment">// cookie: ResponseCookie = ResponseCookie(
 //   name = &quot;csrf-token&quot;,
-//   content = &quot;C15D4AB2C2EFCDFD7B7AD6B8FDF6EBD5820213936306FE9D676538B4EF4C1FC6-1687070723819-E3F65F554AD0C029381388A710925AE512C7A84B&quot;,
+//   content = &quot;09668E250DF09205C3FFE1379B65D8D5B129EBA1CA45F53F078994010AD2290C-1687222741136-E42987BD4188A39893AFE35849D59105905A844A&quot;,
 //   expires = None,
 //   maxAge = None,
 //   domain = Some(value = &quot;localhost&quot;),
@@ -313,18 +303,18 @@
 //    = POST,
 //    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Origin: http://localhost, X-Csrf-Token: C15D4AB2C2EFCDFD7B7AD6B8FDF6EBD5820213936306FE9D676538B4EF4C1FC6-1687070723819-E3F65F554AD0C029381388A710925AE512C7A84B, Cookie: csrf-token=C15D4AB2C2EFCDFD7B7AD6B8FDF6EBD5820213936306FE9D676538B4EF4C1FC6-1687070723819-E3F65F554AD0C029381388A710925AE512C7A84B),
+//    = Headers(Origin: http://localhost, X-Csrf-Token: 09668E250DF09205C3FFE1379B65D8D5B129EBA1CA45F53F078994010AD2290C-1687222741136-E42987BD4188A39893AFE35849D59105905A844A, Cookie: csrf-token=09668E250DF09205C3FFE1379B65D8D5B129EBA1CA45F53F078994010AD2290C-1687222741136-E42987BD4188A39893AFE35849D59105905A844A),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@e46f06a
+//    = org.typelevel.vault.Vault@4f80cf4
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">validateResp</span><span> =
   </span><span class="identifier">csrf</span><span>.</span><span class="identifier">validate</span><span>()(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)(</span><span class="identifier">dummyPostRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// validateResp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=C15D4AB2C2EFCDFD7B7AD6B8FDF6EBD5820213936306FE9D676538B4EF4C1FC6-1687070723883-1EA66E2F8561FFD3237F31C1D7FA060FC77213F2; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=09668E250DF09205C3FFE1379B65D8D5B129EBA1CA45F53F078994010AD2290C-1687222741180-AB092CB5BDED3ED848BF3D81C65E410797B7F7B3; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@26d42b4e
+//    = org.typelevel.vault.Vault@1e7011f5
 // )</span></code></pre>
 
         <hr style="margin-top: 30px"/>

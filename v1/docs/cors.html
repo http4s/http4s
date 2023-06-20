@@ -162,8 +162,6 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
-        
           <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
@@ -176,11 +174,7 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-okhttp-client/">http4s-okhttp-client</a></li>
-        
           <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-tomcat/">http4s-tomcat</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
         
@@ -188,13 +182,9 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-play-json/">http4s-play-json</a></li>
+          <li class="level2"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
@@ -270,7 +260,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@4fa86a48
+//    = org.typelevel.vault.Vault@13b0cc2f
 // )</span></code></pre>
         <p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
@@ -282,7 +272,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@211dcc1a
+//    = org.typelevel.vault.Vault@361caee0
 // )</span></code></pre>
         <p>So far, there was no change. That&#39;s because an <code>Origin</code> header is required
         in the requests and it must include a scheme. This, of course, is the responsibility of the caller.</p>
@@ -293,7 +283,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://somewhere.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@3539b6d4
+//    = org.typelevel.vault.Vault@1665f57a
 // )
 </span><span>
 </span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">corsRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -302,7 +292,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@39cf7011
+//    = org.typelevel.vault.Vault@321922d
 // )</span></code></pre>
         <p>Notice how the response has the CORS headers added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -322,7 +312,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://google.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@76fd062e
+//    = org.typelevel.vault.Vault@50994707
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">yahooPut</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">PUT</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://yahoo.com&quot;</span><span>))
@@ -332,7 +322,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://yahoo.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@3d397d2b
+//    = org.typelevel.vault.Vault@5c19a0fd
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">duckPost</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://duckduckgo.com&quot;</span><span>))
@@ -342,7 +332,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://duckduckgo.com),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@45cee34e
+//    = org.typelevel.vault.Vault@65ee5021
 // )</span></code></pre>
         <p>Now, we&#39;ll create a configuration that limits the allowed methods to <code>GET</code>
         and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it out on our requests.</p>
@@ -361,7 +351,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@7435c1e
+//    = org.typelevel.vault.Vault@6ad1064b
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res4: Response[IO[A]] = (
@@ -369,7 +359,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@1991f6ae
+//    = org.typelevel.vault.Vault@70ead569
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[IO[A]] = (
@@ -377,7 +367,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6fb71092
+//    = org.typelevel.vault.Vault@61e59dc1
 // )</span></code></pre>
         <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
         Next, we&#39;ll create a configuration that limits the origins to &quot;yahoo.com&quot; and
@@ -400,7 +390,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@5d515ab9
+//    = org.typelevel.vault.Vault@761db684
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[IO[A]] = (
@@ -408,7 +398,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@406f5ea1
+//    = org.typelevel.vault.Vault@141c0552
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res8: Response[IO[A]] = (
@@ -416,7 +406,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@565de484
+//    = org.typelevel.vault.Vault@32fbcb25
 // )</span></code></pre>
         <p>Again, the results are as expected. You can, of course, create a configuration that
         combines limits on HTTP method, origin, and headers.</p>

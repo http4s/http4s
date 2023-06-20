@@ -162,8 +162,6 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-async-http-client">http4s-async-http-client</a></li>
-        
           <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
@@ -176,11 +174,7 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-okhttp-client/">http4s-okhttp-client</a></li>
-        
           <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-tomcat/">http4s-tomcat</a></li>
         
           <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
         
@@ -188,13 +182,9 @@
         
           <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
         
-          <li class="level2"><a href="https://github.com/http4s/http4s-play-json/">http4s-play-json</a></li>
+          <li class="level2"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-scala-xml-1/">http4s-scala-xml-1</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-dropwizard-metrics/">http4s-dropwizard-metrics</a></li>
         
           <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
         
@@ -295,13 +285,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@316de431,
+//         at = scodec.bits.ByteVector$AtByteBuffer@202b71b4,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@2c2a94bf
+//    = org.typelevel.vault.Vault@29354028
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -324,7 +314,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@79e19ceb
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@3884794a
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -344,13 +334,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@5453f1a4,
+//         at = scodec.bits.ByteVector$AtByteBuffer@1824f034,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@a41cb73
+//    = org.typelevel.vault.Vault@63799455
 // )
 </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
   .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>)
@@ -368,13 +358,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtByteBuffer@72b639e8,
+//         at = scodec.bits.ByteVector$AtByteBuffer@604eac12,
 //         offset = 0L,
 //         size = 14L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@745e591
+//    = org.typelevel.vault.Vault@7b9bc778
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -406,7 +396,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span> = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@4cd0ea0c
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@44812d6f
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
