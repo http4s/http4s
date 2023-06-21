@@ -38,7 +38,6 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.internal.UriCoding
-import org.http4s.internal.compareField
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.internal.reduceComparisons
 import org.http4s.util.Renderable
@@ -291,7 +290,7 @@ object Uri extends UriPlatform {
 
         override def compare(x: Authority, y: Authority): Int = {
           def compareAuthorities[A: Order](focus: Authority => A): Int =
-            compareField(x, y, focus)
+            Order.by[Authority, A](focus).compare(x, y)
 
           reduceComparisons(
             compareAuthorities(_.userInfo),
@@ -567,7 +566,7 @@ object Uri extends UriPlatform {
       new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
           def comparePaths[A: Order](focus: Path => A): Int =
-            compareField(x, y, focus)
+            Order.by[Path, A](focus).compare(x, y)
           reduceComparisons(
             comparePaths(_.absolute),
             Eval.later(comparePaths(_.segments)),
@@ -1100,7 +1099,7 @@ object Uri extends UriPlatform {
 
       override def compare(x: Uri, y: Uri): Int = {
         def compareUris[A: Order](focus: Uri => A): Int =
-          compareField(x, y, focus)
+          Order.by[Uri, A](focus).compare(x, y)
 
         reduceComparisons(
           compareUris(_.scheme),
