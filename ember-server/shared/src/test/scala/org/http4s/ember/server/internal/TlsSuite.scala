@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.internal
+package org.http4s.ember.server.internal
 
 import org.http4s.Http4sSuite
 

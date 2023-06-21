@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.http4s.internal
+package org.http4s.ember.server.internal
 
 import java.io.ByteArrayInputStream
 import java.security.cert.CertificateFactory

@@ -17,8 +17,8 @@
 package org.http4s.ember.server.internal
 
 import cats.syntax.all._
-import org.http4s.internal.tls.deduceKeyLength
-import org.http4s.internal.tls.getCertChain
+import org.http4s.ember.server.internal.tls.deduceKeyLength
+import org.http4s.ember.server.internal.tls.getCertChain
 import org.http4s.server.SecureSession
 import scodec.bits.ByteVector
 
