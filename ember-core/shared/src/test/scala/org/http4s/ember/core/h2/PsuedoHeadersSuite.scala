@@ -56,4 +56,19 @@ class PsuedoHeadersSuite extends Http4sSuite {
     )
     assertEquals(test, expected)
   }
+
+  test("requestToHeaders should include query in :path") {
+    val request = Request[fs2.Pure](uri = Uri().withQueryParam("q", "v"))
+
+    val test = PseudoHeaders.requestToHeaders(request)
+    val expected = NonEmptyList.of(
+      (":method", "GET", false),
+      (":scheme", "https", false),
+      (":path", "/?q=v", false),
+      (":authority", "", false),
+    )
+
+    assertEquals(test, expected)
+
+  }
 }
