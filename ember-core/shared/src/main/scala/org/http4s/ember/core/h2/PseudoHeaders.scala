@@ -38,10 +38,14 @@ private[h2] object PseudoHeaders {
 
   import org.http4s.Request
   def requestToHeaders[F[_]](req: Request[F]): NonEmptyList[(String, String, Boolean)] = {
+    // RFC 7540 §8.1.2.3 specifies :path includes path and query
     val path = {
-      val s = req.uri.path.renderString
-      if (s.isEmpty) "/"
-      else s
+      val p = req.uri.path.renderString
+      val q = req.queryString
+      val query = if (q.isEmpty) q else s"?$q"
+      if (p.isEmpty) {
+        if (req.method === Method.OPTIONS && req.uri.query.isEmpty) "*" else s"/$query"
+      } else s"$p$query"
     }
     val l = NonEmptyList.of(
       (METHOD, req.method.toString, false),
