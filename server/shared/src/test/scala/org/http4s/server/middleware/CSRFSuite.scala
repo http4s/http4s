@@ -151,6 +151,8 @@ class CSRFSuite extends Http4sSuite {
   }
 
   test("pass through and embed a slightly different token for a safe request") {
+    assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+
     val program =
       for {
         csrf <- csrfIO
@@ -275,6 +277,8 @@ class CSRFSuite extends Http4sSuite {
   }
 
   test("not return the same token to mitigate BREACH") {
+    assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+
     val program = for {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
@@ -337,6 +341,8 @@ class CSRFSuite extends Http4sSuite {
     }
 
     test("pass through and embed a slightly different token for a safe request") {
+      assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+
       val program = for {
         csrfCatchFailure <- csrfCatchFailureIO
         csrf <- csrfIO
