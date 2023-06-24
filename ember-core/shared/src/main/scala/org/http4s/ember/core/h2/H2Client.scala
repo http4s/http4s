@@ -287,9 +287,9 @@ private[ember] class H2Client[F[_]](
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
     val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
-    val useTLS = req.uri.scheme.map(_.value) match {
-      case Some("http") => false
-      case Some("https") => true
+    val useTLS = req.uri.scheme match {
+      case Some(Scheme.http) => false
+      case Some(Scheme.https) => true
       // How Do we Choose when to use TLS, for http/1.1 this is simple its with
       // this, but with http2, there can be arbitrary schemes
       // but also probably wrong if doing websockets over http/1.1
@@ -402,9 +402,9 @@ private[ember] object H2Client {
       RequestKey(uri.scheme.getOrElse(Scheme.http), authOrAddr)
     }
 
-    def getAddress[F[_]: Sync](
+    def getAddress[F[_]](
         requestKey: RequestKey
-    ): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
+    )(implicit F: MonadThrow[F]): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
       requestKey match {
         case RequestKey(s, Right(auth)) =>
           val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
@@ -413,7 +413,7 @@ private[ember] object H2Client {
             host <- Host.fromString(host).liftTo[F](MissingHost())
             port <- Port.fromInt(port).liftTo[F](MissingPort())
           } yield Right(SocketAddress[Host](host, port))
-        case RequestKey(_, Left(unixAddress)) => Sync[F].pure(Left(unixAddress))
+        case RequestKey(_, Left(unixAddress)) => F.pure(Left(unixAddress))
       }
   }
 

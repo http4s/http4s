@@ -128,6 +128,25 @@ HttpRoutes.of[IO] {
   case _ => NoContent()
 }.orNotFound.run(getRoot).unsafeRunSync()
 ```
+Some other examples are:
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Conflict()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Created()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Forbidden()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
 
 ### Headers
 

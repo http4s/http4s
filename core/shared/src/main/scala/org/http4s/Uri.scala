@@ -38,8 +38,6 @@ import cats.parse.{Parser => P}
 import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.internal.UriCoding
-import org.http4s.internal.compareField
-import org.http4s.internal.hashLower
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.internal.reduceComparisons
 import org.http4s.util.Renderable
@@ -231,29 +229,16 @@ object Uri extends UriPlatform {
     *
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.1 RFC 3986, Section 3.1, Scheme]]
     */
-  final class Scheme private[http4s] (val value: String) extends Ordered[Scheme] {
-    override def equals(o: Any): Boolean =
-      o match {
-        case that: Scheme => this.value.equalsIgnoreCase(that.value)
-        case _ => false
-      }
-
-    private[this] var hash = 0
-    override def hashCode(): Int = {
-      if (hash == 0)
-        hash = hashLower(value)
-      hash
-    }
-
+  final case class Scheme private[http4s] (value: CIString) extends Ordered[Scheme] {
     override def toString: String = s"Scheme($value)"
 
     override def compare(other: Scheme): Int =
-      value.compareToIgnoreCase(other.value)
+      value.compare(other.value)
   }
 
   object Scheme {
-    val http: Scheme = new Scheme("http")
-    val https: Scheme = new Scheme("https")
+    val http: Scheme = new Scheme(CIString("http"))
+    val https: Scheme = new Scheme(CIString("https"))
 
     @deprecated("Renamed to fromString", "0.21.0-M2")
     def parse(s: String): ParseResult[Scheme] = fromString(s)
@@ -305,7 +290,7 @@ object Uri extends UriPlatform {
 
         override def compare(x: Authority, y: Authority): Int = {
           def compareAuthorities[A: Order](focus: Authority => A): Int =
-            compareField(x, y, focus)
+            Order.by[Authority, A](focus).compare(x, y)
 
           reduceComparisons(
             compareAuthorities(_.userInfo),
@@ -581,7 +566,7 @@ object Uri extends UriPlatform {
       new Order[Path] with Semigroup[Path] with Hash[Path] {
         def compare(x: Path, y: Path): Int = {
           def comparePaths[A: Order](focus: Path => A): Int =
-            compareField(x, y, focus)
+            Order.by[Path, A](focus).compare(x, y)
           reduceComparisons(
             comparePaths(_.absolute),
             Eval.later(comparePaths(_.segments)),
@@ -1114,7 +1099,7 @@ object Uri extends UriPlatform {
 
       override def compare(x: Uri, y: Uri): Int = {
         def compareUris[A: Order](focus: Uri => A): Int =
-          compareField(x, y, focus)
+          Order.by[Uri, A](focus).compare(x, y)
 
         reduceComparisons(
           compareUris(_.scheme),
@@ -1298,7 +1283,7 @@ object Uri extends UriPlatform {
         .backtrack
         .orElse((string("http") <* not(unary)).as(Uri.Scheme.http))
         .backtrack
-        .orElse((alpha *> unary.rep0).string.map(new Uri.Scheme(_)))
+        .orElse((alpha *> unary.rep0).string.map(s => new Uri.Scheme(CIString(s))))
     }
 
     /* request-target = origin-form

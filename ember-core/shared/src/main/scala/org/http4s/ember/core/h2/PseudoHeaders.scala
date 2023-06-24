@@ -45,7 +45,7 @@ private[h2] object PseudoHeaders {
     }
     val l = NonEmptyList.of(
       (METHOD, req.method.toString, false),
-      (SCHEME, req.uri.scheme.map(_.value).getOrElse("https"), false) ::
+      (SCHEME, req.uri.scheme.map(_.value.toString).getOrElse("https"), false) ::
         (PATH, path, false) ::
         (AUTHORITY, req.uri.authority.map(_.toString).getOrElse(""), false) ::
         req.headers.headers
@@ -106,16 +106,7 @@ private[h2] object PseudoHeaders {
   def extractAuthority(headers: List[(String, String)]): Option[Uri.Authority] =
     headers.collectFirstSome {
       case (PseudoHeaders.AUTHORITY, value) =>
-        val index = value.indexOf(":")
-        if (index > 0 && index < value.length) {
-          Option(
-            Uri.Authority(
-              userInfo = None,
-              host = Uri.RegName(value.take(index)),
-              port = value.drop(index + 1).toInt.some,
-            )
-          )
-        } else Option.empty
+        Uri.fromString(value).toOption.flatMap(_.authority)
       case (_, _) => None
     }
 

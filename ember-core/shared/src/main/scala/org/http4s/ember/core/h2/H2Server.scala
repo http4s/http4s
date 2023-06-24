@@ -17,6 +17,8 @@
 package org.http4s.ember.core.h2
 
 import cats._
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
@@ -81,66 +83,65 @@ private[ember] object H2Server {
   )
   // Apply this, if it ever becomes Some, then rather than the next request, become an h2 connection
   def h2cUpgradeHttpRoute[F[_]: Concurrent]: HttpRoutes[F] =
-    cats.data.Kleisli[({ type L[A] = cats.data.OptionT[F, A] })#L, Request[F], Response[F]] {
-      (req: Request[F]) =>
-        val connectionCheck = req.headers
-          .get[org.http4s.headers.Connection]
-          .exists(connection =>
-            connection.values.contains_(ci"upgrade") && connection.values
-              .contains_(ci"http2-settings")
-          )
+    Kleisli[OptionT[F, *], Request[F], Response[F]] { (req: Request[F]) =>
+      val connectionCheck = req.headers
+        .get[org.http4s.headers.Connection]
+        .exists(connection =>
+          connection.values.contains_(ci"upgrade") && connection.values
+            .contains_(ci"http2-settings")
+        )
 
-        // checks are cascading so we execute the least amount of work
-        // if there is no upgrade, which is the likely case.
-        val upgradeCheck = connectionCheck && {
-          req.headers
-            .get(ci"upgrade")
-            .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
-        }
+      // checks are cascading so we execute the least amount of work
+      // if there is no upgrade, which is the likely case.
+      val upgradeCheck = connectionCheck && {
+        req.headers
+          .get(ci"upgrade")
+          .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
+      }
 
-        val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
-          req.headers
-            .get(ci"http2-settings")
-            .collectFirstSome(settings =>
-              settings.map(_.value).collectFirstSome { value =>
-                for {
-                  bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
-                  settings <- H2Frame.Settings
-                    .fromPayload(bv, 0, false)
-                    .toOption // This isn't an entire frame
-                  // It is Just the Payload section of the frame
-                } yield H2Frame.Settings
-                  .updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
-              }
-            )
-        } else None
-        val upgrade = connectionCheck && upgradeCheck
-        (settings, upgrade) match {
-          case (Some(settings), true) =>
-            val bb: F[ByteVector] =
-              req.entity match {
-                case Entity.Empty =>
-                  Applicative[F].pure(ByteVector.empty)
-                case Entity.Strict(bv) =>
-                  Applicative[F].pure(bv)
-                case Entity.Streamed(body, _) =>
-                  body.compile.to(ByteVector)
-              }
-            val fres: F[Response[F]] = bb.map { bv =>
-              val newReq: Request[fs2.Pure] = Request[fs2.Pure](
-                req.method,
-                req.uri,
-                HttpVersion.`HTTP/2`,
-                req.headers,
-                Entity.Strict(bv),
-                req.attributes,
-              )
-              upgradeResponse.withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
+      val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
+        req.headers
+          .get(ci"http2-settings")
+          .collectFirstSome(settings =>
+            settings.map(_.value).collectFirstSome { value =>
+              for {
+                bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
+                settings <- H2Frame.Settings
+                  .fromPayload(bv, 0, false)
+                  .toOption // This isn't an entire frame
+                // It is Just the Payload section of the frame
+              } yield H2Frame.Settings
+                .updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
             }
-            cats.data.OptionT.liftF(fres)
+          )
+      } else None
+      val upgrade = connectionCheck && upgradeCheck
+      (settings, upgrade) match {
+        case (Some(settings), true) =>
+          val bb: F[ByteVector] =
+            req.entity match {
+              case Entity.Empty =>
+                Applicative[F].pure(ByteVector.empty)
+              case Entity.Strict(bv) =>
+                Applicative[F].pure(bv)
+              case Entity.Streamed(body, _) =>
+                body.compile.to(ByteVector)
+            }
+          val fres: F[Response[F]] = bb.map { bv =>
+            val newReq: Request[fs2.Pure] = Request[fs2.Pure](
+              req.method,
+              req.uri,
+              HttpVersion.`HTTP/2`,
+              req.headers,
+              Entity.Strict(bv),
+              req.attributes,
+            )
+            upgradeResponse.withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
+          }
+          cats.data.OptionT.liftF(fres)
 
-          case (_, _) => cats.data.OptionT.none
-        }
+        case (_, _) => cats.data.OptionT.none
+      }
     }
 
   def h2cUpgradeMiddleware[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =

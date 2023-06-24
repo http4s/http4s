@@ -29,13 +29,13 @@ import org.scalacheck.Prop._
 class SchemeSuite extends munit.DisciplineSuite {
   test("equals should be consistent with equalsIgnoreCase of the values") {
     forAll { (a: Scheme, b: Scheme) =>
-      (a == b) == a.value.equalsIgnoreCase(b.value)
+      (a == b) == a.value.toString.equalsIgnoreCase(b.value.toString)
     }
   }
 
   test("compare should be consistent with value.compareToIgnoreCase") {
     forAll { (a: Scheme, b: Scheme) =>
-      assertEquals(a.value.compareToIgnoreCase(b.value), a.compare(b))
+      assertEquals(a.value.toString.compareToIgnoreCase(b.value.toString), a.compare(b))
     }
   }
 
@@ -47,7 +47,7 @@ class SchemeSuite extends munit.DisciplineSuite {
 
   test("render should return value") {
     forAll { (s: Scheme) =>
-      assertEquals(Renderer.renderString(s), s.value)
+      assertEquals(Renderer.renderString(s), s.value.toString)
     }
   }
 
