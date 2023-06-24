@@ -18,7 +18,6 @@ package org.http4s.server.middleware
 
 import cats.arrow.FunctionK
 import cats.effect.IO
-import cats.effect.kernel.Outcome
 import cats.effect.testkit.TestControl
 import org.http4s._
 import org.http4s.dsl.io._
@@ -157,22 +156,7 @@ class CSRFSuite extends Http4sSuite {
         csrf <- csrfIO
         oldToken <- csrf.generateToken[IO]
         oldRaw <- csrf.extractRaw[IO](unlift(oldToken)).flatMap(IO.fromEither)
-      } yield (csrf, oldToken, oldRaw)
-
-    TestControl.execute(program).flatMap { control =>
-      for {
-        _ <- control.advanceAndTick(1.millis)
-        res <-
-          control.results.flatMap(_.get match {
-            case Outcome.Canceled() =>
-              IO.raiseError(new IllegalStateException("Canceled"))
-            case Outcome.Errored(t) =>
-              IO.raiseError(t)
-            case Outcome.Succeeded(res) =>
-              IO(res)
-          })
-        (csrf, oldToken, oldRaw) = res
-        _ <- control.advanceAndTick(1.millis)
+        _ <- IO.sleep(1.millis)
         response <-
           csrf.validate()(dummyRoutes)(csrf.embedInRequestCookie(passThroughRequest, oldToken))
         newCookie =
@@ -180,14 +164,15 @@ class CSRFSuite extends Http4sSuite {
             .find(_.name == cookieName)
             .getOrElse(ResponseCookie("invalid", "Invalid2"))
         newToken = newCookie.content
-        _ <- control.advanceAndTick(1.millis)
+        _ <- IO.sleep(1.millis)
         newRaw <- csrf.extractRaw[IO](newCookie.content).flatMap(IO.fromEither)
       } yield {
         assertEquals(response.status, Status.Ok)
         assertNotEquals(oldToken.toString, newToken)
         assertEquals(oldRaw, newRaw)
       }
-    }
+
+    TestControl.executeEmbed(program)
   }
 
   test("not validate different tokens") {
@@ -294,35 +279,21 @@ class CSRFSuite extends Http4sSuite {
       csrf <- csrfIO
       token <- csrf.generateToken[IO]
       raw1 <- csrf.extractRaw[IO](unlift(token)).flatMap(IO.fromEither)
-    } yield (csrf, token, raw1)
-
-    TestControl.execute(program).flatMap { control =>
-      for {
-        _ <- control.advanceAndTick(1.millis)
-        res <-
-          control.results.flatMap(_.get match {
-            case Outcome.Canceled() =>
-              IO.raiseError(new IllegalStateException("Canceled"))
-            case Outcome.Errored(t) =>
-              IO.raiseError(t)
-            case Outcome.Succeeded(res) =>
-              IO(res)
-          })
-        (csrf, token, raw1) = res
-        _ <- control.advanceAndTick(1.millis)
-        res <- csrf.validate()(dummyRoutes)(
-          dummyRequest
-            .putHeaders(headerName.toString -> unlift(token))
-            .addCookie(cookieName, unlift(token))
-        )
-        rawContent = res.cookies.find(_.name == cookieName).map(_.content).getOrElse("")
-        _ <- control.advanceAndTick(1.millis)
-        raw2 <- csrf.extractRaw[IO](rawContent).flatMap(IO.fromEither)
-      } yield {
-        assertNotEquals(rawContent, token.toString)
-        assertEquals(raw1, raw2)
-      }
+      _ <- IO.sleep(1.millis)
+      res <- csrf.validate()(dummyRoutes)(
+        dummyRequest
+          .putHeaders(headerName.toString -> unlift(token))
+          .addCookie(cookieName, unlift(token))
+      )
+      rawContent = res.cookies.find(_.name == cookieName).map(_.content).getOrElse("")
+      _ <- IO.sleep(1.millis)
+      raw2 <- csrf.extractRaw[IO](rawContent).flatMap(IO.fromEither)
+    } yield {
+      assertNotEquals(rawContent, token.toString)
+      assertEquals(raw1, raw2)
     }
+
+    TestControl.executeEmbed(program)
   }
 
   test("not return a token for a failed CSRF check") {
@@ -371,38 +342,24 @@ class CSRFSuite extends Http4sSuite {
         csrf <- csrfIO
         oldToken <- csrfCatchFailure.generateToken[IO]
         oldRaw <- csrfCatchFailure.extractRaw[IO](unlift(oldToken)).flatMap(IO.fromEither)
-      } yield (csrfCatchFailure, csrf, oldToken, oldRaw)
-
-      TestControl.execute(program).flatMap { control =>
-        for {
-          _ <- control.advanceAndTick(1.millis)
-          res <-
-            control.results.flatMap(_.get match {
-              case Outcome.Canceled() =>
-                IO.raiseError(new IllegalStateException("Canceled"))
-              case Outcome.Errored(t) =>
-                IO.raiseError(t)
-              case Outcome.Succeeded(res) =>
-                IO(res)
-            })
-          (csrfCatchFailure, csrf, oldToken, oldRaw) = res
-          _ <- control.advanceAndTick(1.millis)
-          response <- csrfCatchFailure.validate()(dummyRoutes)(
-            csrf.embedInRequestCookie(passThroughRequest, oldToken)
-          )
-          _ <- control.advanceAndTick(1.millis)
-          newCookie =
-            response.cookies
-              .find(_.name == cookieName)
-              .getOrElse(ResponseCookie("invalid", "Invalid2"))
-          newToken = newCookie.content
-          newRaw <- csrfCatchFailure.extractRaw[IO](newToken).flatMap(IO.fromEither)
-        } yield {
-          assertEquals(response.status, Status.Ok)
-          assertNotEquals(oldToken.toString, newToken)
-          assertEquals(oldRaw, newRaw)
-        }
+        _ <- IO.sleep(1.millis)
+        response <- csrfCatchFailure.validate()(dummyRoutes)(
+          csrf.embedInRequestCookie(passThroughRequest, oldToken)
+        )
+        _ <- IO.sleep(1.millis)
+        newCookie =
+          response.cookies
+            .find(_.name == cookieName)
+            .getOrElse(ResponseCookie("invalid", "Invalid2"))
+        newToken = newCookie.content
+        newRaw <- csrfCatchFailure.extractRaw[IO](newToken).flatMap(IO.fromEither)
+      } yield {
+        assertEquals(response.status, Status.Ok)
+        assertNotEquals(oldToken.toString, newToken)
+        assertEquals(oldRaw, newRaw)
       }
+
+      TestControl.executeEmbed(program)
     }
 
     test("fail and catch a request without any origin, even with a token") {
