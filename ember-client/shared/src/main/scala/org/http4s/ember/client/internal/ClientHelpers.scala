@@ -52,7 +52,7 @@ import java.io.IOException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Sync](
+  def requestToSocketWithKey[F[_]: MonadThrow](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
@@ -71,7 +71,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def unixSocket[F[_]: Async](
+  def unixSocket[F[_]: MonadThrow](
       request: Request[F],
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
@@ -90,7 +90,7 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Sync](
+  def requestKeyToSocketWithKey[F[_]: MonadThrow](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
@@ -112,7 +112,7 @@ private[client] object ClientHelpers {
         )
       }
 
-  def elevateSocket[F[_]: Sync](
+  def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
       initSocket: Resource[F, Socket[F]],
       tlsContextOpt: Option[TLSContext[F]],
@@ -122,15 +122,12 @@ private[client] object ClientHelpers {
   ): Resource[F, RequestKeySocket[F]] =
     for {
       iSocket <- initSocket
-      socket <- {
-        if (requestKey.scheme === Uri.Scheme.https) {
-          tlsContextOpt.fold[Resource[F, Socket[F]]] {
-            ApplicativeThrow[Resource[F, *]].raiseError(
-              new Throwable("EmberClient Not Configured for Https")
-            )
-          } { tlsContext =>
-            tlsContext
-              .clientBuilder(iSocket)
+      socket <-
+        if (requestKey.scheme === Uri.Scheme.https)
+          tlsContextOpt.fold[Resource[F, Socket[F]]](
+            Resource.raiseError[F, Socket[F], Throwable](MissingTlsContext())
+          )(
+            _.clientBuilder(iSocket)
               .withParameters(
                 Util.mkClientTLSParameters(
                   optionNames,
@@ -140,9 +137,8 @@ private[client] object ClientHelpers {
               )
               .build
               .widen[Socket[F]]
-          }
-        } else iSocket.pure[Resource[F, *]]
-      }
+          )
+        else iSocket.pure[Resource[F, *]]
     } yield RequestKeySocket(socket, requestKey)
 
   def request[F[_]: Async](
@@ -236,15 +232,16 @@ private[client] object ClientHelpers {
       case None => F.unit
     }
 
-  // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
+  private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(
-          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
-        ) // FIXME
+
+        for {
+          host <- Host.fromString(host).liftTo[F](MissingHost())
+          port <- Port.fromInt(port).liftTo[F](MissingPort())
+        } yield SocketAddress[Host](host, port)
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
@@ -295,4 +292,11 @@ private[client] object ClientHelpers {
         case _ => false
       }
   }
+
+  private case class MissingHost() extends RuntimeException("Invalid hostname")
+
+  private case class MissingPort() extends RuntimeException("Invalid port")
+
+  private case class MissingTlsContext()
+      extends RuntimeException("EmberClient Is Not Configured for Https")
 }
