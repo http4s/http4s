@@ -996,7 +996,7 @@ class UriSuite extends Http4sSuite {
     assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))
   }
   test("Uri parameter convenience methods should set a parameter with a float values") {
-    assume(Platform.isJvm || Platform.isNative, "this test is for JVM or Native Platforms")
+    assume(Platform.isJvm || Platform.isNative, "floats on JS have semantics of double")
 
     val ps = Map("param" -> List(1.2f, 2.1f))
     assertEquals(Uri() =? ps, Uri(query = Query.unsafeFromString("param=1.2&param=2.1")))

@@ -94,7 +94,7 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should handle unmappable character") {
-    assume(Platform.isJvm, "this test is for JVM only")
+    assume(Platform.isJvm, "IBM1098 charset is unavailable on JS/Native")
 
     // https://stackoverflow.com/a/22902806
     val source = Stream(0x80.toByte, 0x81.toByte)
@@ -104,7 +104,7 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should handle overflows") {
-    assume(Platform.isJvm, "this test is for JVM only")
+    assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
 
     // Found by scalachek
     val source = Stream(-36.toByte)
@@ -114,7 +114,7 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should not crash in IllegalStateException") {
-    assume(Platform.isJvm, "this test is for JVM only")
+    assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
 
     // Found by scalachek
     val source = Stream(-1.toByte)
