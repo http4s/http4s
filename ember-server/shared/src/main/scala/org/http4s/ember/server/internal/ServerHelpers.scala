@@ -64,6 +64,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -89,6 +90,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -114,6 +116,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -144,6 +147,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -159,12 +163,17 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
+  /** @param connectionErrorHandler called when an error occurs while attempting to read a connection. For example on JVM
+    *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
+    *                               default this just logs the error.
+    */
   def serverInternal[F[_]: Async](
       server: Stream[F, Socket[F]],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -275,8 +284,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 }
             }
 
+        def fullConnectionErrorHandler(t: Throwable): F[Unit] =
+          connectionErrorHandler.applyOrElse(
+            t,
+            (t: Throwable) => logger.error(t)("Request handler failed with exception"),
+          )
         handler.handleErrorWith { t =>
-          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+          Stream.eval(fullConnectionErrorHandler(t)).drain
         }
       }
 
