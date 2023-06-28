@@ -319,8 +319,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
             tlsSocket.write(fs2.Chunk.empty) >>
               tlsSocket.applicationProtocol
                 .map(protocol => (tlsSocket: Socket[F], protocol.some))
-                .recover {
-                  case _: NoSuchElementException => (tlsSocket, Option.empty)
+                .recover { case _: NoSuchElementException =>
+                  (tlsSocket, Option.empty)
                 }
           )
     }
