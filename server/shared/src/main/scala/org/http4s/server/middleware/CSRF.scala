@@ -25,7 +25,6 @@ import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
 import cats.effect.SyncIO
-import cats.effect.kernel
 import cats.effect.std.SecureRandom
 import cats.syntax.all._
 import cats.~>
@@ -120,7 +119,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     */
   def signToken[M[_]](rawToken: String)(implicit F: Async[M]): M[CSRFToken] =
     for {
-      joined <- kernel.Clock[M].realTime.map(_.toMillis).map(rawToken + "-" + _)
+      joined <- F.realTime.map(_.toMillis).map(rawToken + "-" + _)
       data <- F.fromEither(ByteVector.encodeUtf8(joined))
       out <- Hmac[M].digest(key, data)
     } yield lift(joined + "-" + out.toHex(Alphabets.HexUppercase))

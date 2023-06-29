@@ -151,7 +151,10 @@ class CSRFSuite extends Http4sSuite {
   }
 
   test("pass through and embed a slightly different token for a safe request") {
-    assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+    assume(
+      Platform.isJvm || Platform.isNative,
+      "`TestControl` cannot be used with JS async crypto routines",
+    )
 
     val program =
       for {
@@ -277,7 +280,10 @@ class CSRFSuite extends Http4sSuite {
   }
 
   test("not return the same token to mitigate BREACH") {
-    assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+    assume(
+      Platform.isJvm || Platform.isNative,
+      "`TestControl` cannot be used with JS async crypto routines",
+    )
 
     val program = for {
       csrf <- csrfIO
@@ -341,7 +347,10 @@ class CSRFSuite extends Http4sSuite {
     }
 
     test("pass through and embed a slightly different token for a safe request") {
-      assume(Platform.isJvm || Platform.isNative, "this test runs on JVM or Native Platforms only")
+      assume(
+        Platform.isJvm || Platform.isNative,
+        "`TestControl` cannot be used with JS async crypto routines",
+      )
 
       val program = for {
         csrfCatchFailure <- csrfCatchFailureIO
