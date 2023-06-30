@@ -25,7 +25,7 @@ import fs2.Stream
 import scodec.bits.ByteVector
 
 sealed trait Entity[+F[_]] {
-  def body: EntityBody[F]
+  def body: Stream[F, Byte]
   def length: Option[Long]
   def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1]
   def translate[F1[x] >: F[x], G[_]](fk: F1 ~> G): Entity[G]
@@ -52,7 +52,7 @@ object Entity {
   def utf8String(str: String): Entity[Pure] =
     string(str, Charset.`UTF-8`)
 
-  final case class Streamed[+F[_]](body: EntityBody[F], length: Option[Long]) extends Entity[F] {
+  final case class Streamed[+F[_]](body: Stream[F, Byte], length: Option[Long]) extends Entity[F] {
     def ++[F1[x] >: F[x]](that: Entity[F1]): Entity[F1] = that match {
       case d: Streamed[F1] => Streamed(body ++ d.body, (length, d.length).mapN(_ + _))
       case strict @ Strict(bytes) => Streamed(body ++ strict.body, length.map(_ + bytes.size))
@@ -72,7 +72,8 @@ object Entity {
   }
 
   final case class Strict(bytes: ByteVector) extends Entity[Pure] {
-    def body: EntityBody[Pure] = Stream.chunk(Chunk.byteVector(bytes))
+    @deprecated("Avoid using Streams as main tool", "1.0.0-M24")
+    override def body: Stream[Pure, Byte] = Stream.chunk(Chunk.byteVector(bytes))
 
     val length: Option[Long] = Some(bytes.size)
 
@@ -89,7 +90,8 @@ object Entity {
   }
 
   case object Empty extends Entity[Pure] {
-    val body: EntityBody[Pure] = Stream.empty
+    @deprecated("Avoid using Streams as main tool", "1.0.0-M24")
+    override val body: Stream[Pure, Byte] = Stream.empty
 
     val length: Option[Long] = Some(0L)
 

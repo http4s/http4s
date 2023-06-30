@@ -290,7 +290,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
     // From ArgonautSuite, which tests similar things:
     // TODO Urgh.  We need to make testing these smoother.
     // https://github.com/http4s/http4s/issues/157
-    def getBody(body: EntityBody[IO]): IO[Array[Byte]] = body.compile.to(Array)
+    def getBody(body: Stream[IO, Byte]): IO[Array[Byte]] = body.compile.to(Array)
     val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
     val body = req
       .decode { (json: Json) =>

@@ -1,15 +1,15 @@
 
 # Streaming
 
-Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
-is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
-HTTP streaming is provided by both http4s' service support and its client support.
+Streaming lies at the heart of the http4s model of HTTP, in the sense that a large entity
+consists of a `Stream[F, Byte]`. Please see [entity] for details. 
+This provides HTTP streaming for both http4s' servers support and its client support.
 
 
 ## Streaming responses from your service
 
-Because `EntityBody[F]`s are streams anyway, returning a stream as a response from your service is
-simplicity itself:
+Because a large entity is a stream anyway, returning a stream as a response 
+from your service is simplicity itself:
 
 ```scala mdoc:silent
 import scala.concurrent.duration._
@@ -36,11 +36,11 @@ it converts a stream of JSON objects to a JSON array, which is friendlier to cli
 
 ## Consuming Streams with the Client
 
-The http4s [client] supports consuming chunked HTTP responses as a stream, again because the
-`EntityBody[F]` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
-function, which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and returns a
-`Stream[F, A]`. Since an `EntityBody[F]` is just a `Stream[F, Byte]`, then, the easiest way
-to consume a stream is just:
+The http4s [client] supports consuming chunked HTTP responses as a stream, 
+again because a large `Entity[F]` consists of a stream anyway.
+http4s' `Client` interface consumes streams with the `streaming` function, 
+which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and returns a
+`Stream[F, A]`. The easiest way to consume a stream is just:
 
 ```scala
 client.stream(req).flatMap(_.body)

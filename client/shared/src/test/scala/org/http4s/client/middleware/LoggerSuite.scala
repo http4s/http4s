@@ -19,6 +19,7 @@ package client
 package middleware
 
 import cats.effect._
+import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.syntax.all._
 import org.scalacheck.effect.PropF.forAllF
@@ -35,7 +36,7 @@ class LoggerSuite extends Http4sSuite {
       NotFound()
   }
 
-  private def body: EntityBody[IO] = fs2.Stream.emits("This is a test resource.".getBytes())
+  private def body: Stream[IO, Byte] = fs2.Stream.emits("This is a test resource.".getBytes())
 
   private val expectedBody: String = "This is a test resource."
 

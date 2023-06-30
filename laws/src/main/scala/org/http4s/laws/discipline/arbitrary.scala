@@ -885,11 +885,11 @@ private[discipline] trait ArbitraryInstances {
       }
     }
 
-  implicit def http4sTestingCogenForEntityBody[F[_]](implicit
+  implicit def http4sTestingCogenForStreamByte[F[_]](implicit
       F: Concurrent[F],
       dispatcher: Dispatcher[F],
       testContext: TestContext,
-  ): Cogen[EntityBody[F]] =
+  ): Cogen[Stream[F, Byte]] =
     cogenFuture[Vector[Byte]].contramap { stream =>
       dispatcher.unsafeToFuture(stream.compile.toVector)
     }
@@ -926,7 +926,7 @@ private[discipline] trait ArbitraryInstances {
       dispatcher: Dispatcher[F],
       testContext: TestContext,
   ): Cogen[Entity[F]] =
-    Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
+    Cogen[(Stream[F, Byte], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def http4sTestingArbitraryForEntityEncoder[F[_], A](implicit
       CA: Cogen[A]
@@ -956,14 +956,14 @@ private[discipline] trait ArbitraryInstances {
       dispatcher: Dispatcher[F],
       testContext: TestContext,
   ): Cogen[Media[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(Headers, Stream[F, Byte])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForMessage[F[_]](implicit
       F: Concurrent[F],
       dispatcher: Dispatcher[F],
       testContext: TestContext,
   ): Cogen[Message[F]] =
-    Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
+    Cogen[(Headers, Stream[F, Byte])].contramap(m => (m.headers, m.body))
 
   implicit def http4sTestingCogenForHeaders: Cogen[Headers] =
     Cogen[List[Header.Raw]].contramap(_.headers)

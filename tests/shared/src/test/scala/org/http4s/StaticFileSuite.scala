@@ -20,6 +20,7 @@ import cats.data.Nested
 import cats.effect.IO
 import cats.syntax.all._
 import fs2.Chunk
+import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Path
 import org.http4s.Status._
@@ -311,7 +312,7 @@ class StaticFileSuite extends Http4sSuite {
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
         .value
-        .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
+        .map(_.fold[Stream[IO, Byte]](sys.error("Couldn't find resource"))(_.body))
       // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for

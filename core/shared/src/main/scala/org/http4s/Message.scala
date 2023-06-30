@@ -103,7 +103,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * WARNING: this method does not modify the headers of the message, and as
     * a consequence headers may be incoherent with the body.
     */
-  def withBodyStream[F1[x] >: F[x]](body: EntityBody[F1]): SelfF[F1] =
+  def withBodyStream[F1[x] >: F[x]](body: Stream[F1, Byte]): SelfF[F1] =
     change(entity = Entity.stream(body))
 
   /** Set an [[Entity.Empty]] entity on this message, and remove all payload headers
@@ -595,7 +595,7 @@ object Request {
 
   def unapply[F[_]](
       request: Request[F]
-  ): Option[(Method, Uri, HttpVersion, Headers, EntityBody[F], Vault)] =
+  ): Option[(Method, Uri, HttpVersion, Headers, Stream[F, Byte], Vault)] =
     Some(
       (
         request.method,
@@ -750,7 +750,7 @@ object Response extends KleisliSyntax {
 
   def unapply[F[_]](
       response: Response[F]
-  ): Option[(Status, HttpVersion, Headers, EntityBody[F], Vault)] =
+  ): Option[(Status, HttpVersion, Headers, Stream[F, Byte], Vault)] =
     Some(
       (response.status, response.httpVersion, response.headers, response.body, response.attributes)
     )

@@ -274,7 +274,7 @@ object StaticFile {
       )
     } yield log.as(notModified)).sequence
 
-  private def fileToBody[F[_]: Files](f: Path, start: Long, end: Long): EntityBody[F] =
+  private def fileToBody[F[_]: Files](f: Path, start: Long, end: Long): Stream[F, Byte] =
     Files[F].readRange(f, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =

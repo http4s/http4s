@@ -277,13 +277,13 @@ private[ember] object H2Server {
             .drain >> // PP Resp Body
             stream.sendData(ByteVector.empty, true)
 
-        def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
+        def respond(req: Request[Pure], stream: H2Stream[F]): F[(Entity[F], H2Stream[F])] =
           for {
             resp <- httpApp(req.covary[F])
             // _ <- Console.make[F].println("Push Promise Response Completed")
             pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
             _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
-          } yield (resp.body, stream)
+          } yield (resp.entity, stream)
 
         resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
           h2.state.get.flatMap {
