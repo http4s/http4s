@@ -252,7 +252,7 @@ class FileServiceSuite extends Http4sSuite with StaticContentShared {
         .lastOrError
         .assertEquals(Chunk.array(testResource.toArray.slice(2, 4 + 1))) *>
         routes.orNotFound(req).map(_.status).assertEquals(Status.PartialContent)
-    // the end number is inclusive in the Range header
+      // the end number is inclusive in the Range header
     }
   }
 
