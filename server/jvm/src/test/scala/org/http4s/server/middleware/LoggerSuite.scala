@@ -41,7 +41,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
 
   private def testResource = getClass.getResourceAsStream("/testresource.txt")
 
-  private def body: EntityBody[IO] =
+  private def body: Stream[IO, Byte] =
     readInputStream[IO](IO.pure(testResource), 4096)
 
   private val expectedBody: String =

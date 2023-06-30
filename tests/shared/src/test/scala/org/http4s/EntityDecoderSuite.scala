@@ -39,7 +39,7 @@ class EntityDecoderSuite extends Http4sSuite {
     new MediaType("application", "soap+xml", MediaType.Compressible, MediaType.NotBinary)
   val `text/x-h` = new MediaType("text", "x-h")
 
-  def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
+  def getBody(body: Stream[IO, Byte]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =

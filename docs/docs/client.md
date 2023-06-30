@@ -449,10 +449,10 @@ it's this `Stream` that needs to be consumed within your effect `F`.
 Do not do this:
 
 ```scala mdoc:silent
-import org.http4s.EntityBody
+import fs2.Stream
 
 // response.body is not consumed within `F`
-httpClient.get[EntityBody[IO]]("some-url")(response => IO(response.body))
+httpClient.get[Stream[IO, Byte]]("some-url")(response => IO(response.body))
 ```
 
 [service]: service.md

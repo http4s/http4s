@@ -311,7 +311,7 @@ class StaticFileSuite extends Http4sSuite {
       val s = StaticFile
         .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
         .value
-        .map(_.fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body))
+        .map(_.fold[Stream[IO, Byte]](sys.error("Couldn't find resource"))(_.body))
       // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for

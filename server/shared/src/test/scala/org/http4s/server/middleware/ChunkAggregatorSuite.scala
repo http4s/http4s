@@ -44,14 +44,14 @@ class ChunkAggregatorSuite extends Http4sSuite {
     transferCodingGen
   )
 
-  private def response(body: EntityBody[IO], transferCodings: List[TransferCoding]) =
+  private def response(body: Stream[IO, Byte], transferCodings: List[TransferCoding]) =
     Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
       .map(_.removeHeader[`Content-Length`])
 
-  def httpRoutes(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
+  def httpRoutes(body: Stream[IO, Byte], transferCodings: List[TransferCoding]): HttpRoutes[IO] =
     HttpRoutes.liftF(OptionT.liftF(response(body, transferCodings)))
 
-  def httpApp(body: EntityBody[IO], transferCodings: List[TransferCoding]): HttpApp[IO] =
+  def httpApp(body: Stream[IO, Byte], transferCodings: List[TransferCoding]): HttpApp[IO] =
     HttpApp.liftF(response(body, transferCodings))
 
   def checkAppResponse(app: HttpApp[IO])(responseCheck: Response[IO] => IO[Boolean]): IO[Boolean] =

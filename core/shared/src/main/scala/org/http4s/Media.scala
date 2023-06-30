@@ -25,8 +25,10 @@ import org.http4s.headers._
 
 trait Media[+F[_]] {
 
+  @deprecated("Avoid using Streams as main API", "1.0.0-M24")
+  final def body: Stream[F, Byte] = entity.body
+
   def entity: Entity[F]
-  final def body: EntityBody[F] = entity.body
   def headers: Headers
   def covary[F2[x] >: F[x]]: Media[F2]
 

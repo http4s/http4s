@@ -24,6 +24,7 @@ package object http4s {
 
   type AuthScheme = CIString
 
+  @deprecated("Avoid using Streams as major API", "1.0.0-M24")
   type EntityBody[+F[_]] = Stream[F, Byte]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)

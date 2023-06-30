@@ -64,7 +64,7 @@ class DefaultHeadSuite extends Http4sSuite {
     (for {
       open <- Ref[IO].of(false)
       route = HttpRoutes.of[IO] { case GET -> _ =>
-        val body: EntityBody[IO] =
+        val body: Stream[IO, Byte] =
           Stream.bracket(open.set(true))(_ => open.set(false)).flatMap(_ => Stream.never[IO])
         Ok(body)
       }
