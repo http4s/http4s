@@ -88,7 +88,7 @@ object ResponseLogger {
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
               val logPipe: Pipe[F, Byte, Byte] =
                 _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
-                  .onFinalizeWeak(logMessage(response.withBodyStream(newBody)))
+                  .onFinalizeWeak(logMessage(response.withEntity(Entity.stream(newBody))))
 
               response.pipeBodyThrough(logPipe)
             }

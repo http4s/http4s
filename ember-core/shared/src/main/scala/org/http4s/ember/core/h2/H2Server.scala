@@ -298,7 +298,8 @@ private[ember] object H2Server {
 
       for {
         stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
-        req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
+        reqx <- stream.getRequest
+        req = reqx.covary[F].withEntity(Entity.stream(stream.readBody))
         resp <- httpApp(req)
         _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
         _ <- fulfillPushPromises(resp)

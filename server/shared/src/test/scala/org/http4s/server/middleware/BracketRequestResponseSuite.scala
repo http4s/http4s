@@ -209,11 +209,12 @@ final class BracketRequestResponseSuite extends Http4sSuite {
         ) { case (_, oc) =>
           IO(assert(oc.isError)) *> releaseRef.update(_ + 1L)
         }
+      entity = Entity.stream(Stream.raiseError[IO](error))
       routes = middleware(
         Kleisli(
           Function.const(
             OptionT.liftF(
-              IO(Response(status = Status.Ok).withBodyStream(Stream.raiseError[IO](error)))
+              IO(Response(status = Status.Ok).withEntity(entity))
             )
           )
         )

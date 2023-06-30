@@ -92,7 +92,7 @@ object RequestLogger {
                   .getAndSet(true)
                   .ifM(
                     F.unit,
-                    logMessage(req.withBodyStream(newBody)).handleErrorWith { case t =>
+                    logMessage(req.withEntity(Entity.stream(newBody))).handleErrorWith { case t =>
                       logger.error(t)("Error logging request body")
                     },
                   )

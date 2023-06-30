@@ -107,7 +107,7 @@ object RequestLogger {
                 val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
 
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-                val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+                val logRequest: F[Unit] = logMessage(req.withEntity(Entity.stream(newBody)))
 
                 http(changedRequest)
                   .guaranteeCase {

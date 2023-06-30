@@ -97,7 +97,7 @@ object ResponseLogger {
                   F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
                 ) { _ =>
                   val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
-                  logMessage(response.withBodyStream(newBody))
+                  logMessage(response.withEntity(Entity.stream(newBody)))
                     .handleErrorWith(t => logger.error(t)("Error logging response body"))
                 }
               }

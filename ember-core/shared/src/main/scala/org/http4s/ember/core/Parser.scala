@@ -349,13 +349,12 @@ private[ember] object Parser {
           if (headerP.chunked) {
             Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
               case (rest, trailers) =>
+                val encoded = ChunkedEncoding
+                  .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
                 (
                   baseReq
                     .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                    .withBodyStream(
-                      ChunkedEncoding
-                        .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
-                    ),
+                    .withEntity(Entity.stream(encoded)),
                   rest.get,
                 )
             }
@@ -409,13 +408,12 @@ private[ember] object Parser {
           if (headerP.chunked) {
             Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
               case (rest, trailers) =>
-                baseResp
+                val decoded = ChunkedEncoding
+                  .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
+                val decodedReq = baseResp
                   .withAttribute(Message.Keys.TrailerHeaders[F], trailers.get)
-                  .withBodyStream(
-                    ChunkedEncoding
-                      .decode(finalBuffer, read, maxHeaderSize, maxHeaderSize, trailers, rest)
-                  ) ->
-                  rest.get
+                  .withEntity(Entity.stream(decoded))
+                decodedReq -> rest.get
             }
           } else if (expectNoBody(prelude.status)) {
             (baseResp -> (Some(finalBuffer): Option[Array[Byte]]).pure[F]).pure[F]

@@ -56,7 +56,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   }
 
   test("response should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withEntity(Entity.stream(body))
     respApp(req).flatMap { res =>
       res
         .as[String]
@@ -74,7 +74,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   }
 
   test("request should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withEntity(Entity.stream(body))
     reqApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert
@@ -88,7 +88,7 @@ class LoggerSuite extends Http4sSuite { // TODO Can we implement this without fs
   }
 
   test("logger should not affect a Post") {
-    val req = Request[IO](uri = uri"/post", method = POST).withBodyStream(body)
+    val req = Request[IO](uri = uri"/post", method = POST).withEntity(Entity.stream(body))
     loggerApp(req).flatMap { res =>
       res.as[String].map(_ === expectedBody && res.status === Status.Ok)
     }.assert

@@ -278,7 +278,7 @@ object Client {
               channel.stream.compile.drain.guarantee(p.join.void)
             )
 
-            r = response.withBodyStream(
+            respStream =
               Stream
                 .eval(disposed.get)
                 .ifM(
@@ -289,14 +289,10 @@ object Client {
                         .guarantee(disposed.set(true))
                     ),
                 )
-            )
 
+            r = response.withEntity(Entity.stream(respStream))
             _ <- Resource.onFinalize {
-              disposed.get
-                .ifM(
-                  F.unit,
-                  r.body.compile.drain,
-                )
+              disposed.get.ifM(F.unit, respStream.compile.drain)
             }
 
           } yield r

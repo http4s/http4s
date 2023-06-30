@@ -405,7 +405,7 @@ class EntityDecoderSuite extends Http4sSuite {
     Files[IO].readAll(in).through(fs2.text.utf8.decode).compile.foldMonoid
 
   private def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-    route(req.withBodyStream(chunk(Chunk.array(binData))))
+    route(req.withEntity(Entity.stream(chunk(Chunk.array(binData)))))
 
   test("A File EntityDecoder should write a text file from a byte string") {
     Files[IO]

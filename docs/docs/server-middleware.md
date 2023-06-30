@@ -608,7 +608,7 @@ import org.http4s.server.middleware.ChunkAggregator
 def doubleBodyMiddleware(service: HttpRoutes[IO]): HttpRoutes[IO] = Kleisli { (req: Request[IO]) =>
   service(req).map {
     case Status.Successful(resp) =>
-      resp.withBodyStream(resp.body ++ resp.body)
+      resp.withEntity(Entity.stream(resp.body ++ resp.body))
     case resp => resp
   }
 }
