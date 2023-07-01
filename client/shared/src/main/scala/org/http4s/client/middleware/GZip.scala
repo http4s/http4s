@@ -67,15 +67,15 @@ object GZip {
           if header.contentCoding == ContentCoding.gzip || header.contentCoding == ContentCoding.`x-gzip` =>
         val gunzip: Pipe[F, Byte, Byte] =
           _.through(Compression[F].gunzip(bufferSize)).flatMap(_.content)
+        val decompressStream = decompressWith(gunzip).apply(response.body)
         response
           .filterHeaders(nonCompressionHeader)
-          .pipeBodyThrough(decompressWith(gunzip))
+          .withEntity(Entity.stream(decompressStream))
 
       case Some(header) if header.contentCoding == ContentCoding.deflate =>
         val deflate: Pipe[F, Byte, Byte] = Compression[F].deflate(DeflateParams(bufferSize))
-        response
-          .filterHeaders(nonCompressionHeader)
-          .pipeBodyThrough(decompressWith(deflate))
+        val decompressStream = decompressWith(deflate).apply(response.body)
+        response.filterHeaders(nonCompressionHeader).withEntity(Entity.stream(decompressStream))
 
       case _ =>
         response

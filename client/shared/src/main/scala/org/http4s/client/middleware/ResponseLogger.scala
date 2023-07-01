@@ -86,15 +86,18 @@ object ResponseLogger {
         Resource.eval(logMessage(response).as(response))
       else
         response.entity match {
-          case Entity.Streamed(_, _) =>
+          case Entity.Streamed(respStream, _) =>
             Resource.suspend {
               F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
                 val dumpChunksToVec: Pipe[F, Byte, Nothing] =
                   _.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))
 
+                val dumpedResponse =
+                  response.withEntity(Entity.stream(respStream.observe(dumpChunksToVec)))
+
                 Resource.make(
                   // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended before Finalization
-                  F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
+                  F.pure(dumpedResponse)
                 ) { _ =>
                   val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
                   logMessage(response.withEntity(Entity.stream(newBody)))

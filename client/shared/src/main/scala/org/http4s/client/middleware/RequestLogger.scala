@@ -84,7 +84,7 @@ object RequestLogger {
       else
         Resource.suspend {
           req.entity match {
-            case Entity.Streamed(_, _) =>
+            case Entity.Streamed(reqStream, _) =>
               (F.ref(false), F.ref(Vector.empty[Chunk[Byte]])).mapN { case (hasLogged, vec) =>
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
 
@@ -102,14 +102,15 @@ object RequestLogger {
                   _.observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s))))
                     .onFinalizeWeak(logOnceAtEnd)
 
-                val resp = client.run(req.pipeBodyThrough(logPipe))
+                val logReq = req.withEntity(Entity.stream(logPipe(reqStream)))
 
                 // If the request body was not consumed (ex: bodiless GET)
                 // the second best we can do is log on the response body finalizer
                 // the third best is on the response resource finalizer (ex: if the client failed to pull the body)
-                resp
-                  .map[Response[F]](_.pipeBodyThrough(_.onFinalizeWeak(logOnceAtEnd)))
-                  .onFinalize(logOnceAtEnd)
+                def logResponse(resp: Response[F]): Response[F] =
+                  resp.withEntity(Entity.stream(resp.body.onFinalize(logOnceAtEnd)))
+
+                client.run(logReq).map[Response[F]](logResponse)
               }
 
             case Entity.Strict(_) | Entity.Empty =>

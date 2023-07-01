@@ -104,17 +104,20 @@ object RequestLogger {
                 val collectChunks: Pipe[F, Byte, Nothing] =
                   _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
-                val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
+                val changedRequest = req.withEntity(Entity.stream(req.body.observe(collectChunks)))
 
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
                 val logRequest: F[Unit] = logMessage(req.withEntity(Entity.stream(newBody)))
+
+                def onResponse(resp: Response[F]): Response[F] =
+                  resp.withEntity(Entity.stream(resp.body.onFinalizeWeak(logRequest)))
 
                 http(changedRequest)
                   .guaranteeCase {
                     case Outcome.Succeeded(_) => G.unit
                     case _ => fk(logRequest)
                   }
-                  .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
+                  .map(onResponse)
               }
         }
     }

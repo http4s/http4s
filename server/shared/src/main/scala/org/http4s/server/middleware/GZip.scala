@@ -94,7 +94,7 @@ object GZip {
         resp
           .removeHeader[`Content-Length`]
           .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-          .pipeBodyThrough(compressPipe)
+          .withEntity(Entity.stream(compressPipe(resp.body)))
       )
   }
 }

@@ -118,6 +118,7 @@ sealed trait Message[+F[_]] extends Media[F] { self =>
     * WARNING: this method does not modify the headers of the message, and as
     * a consequence headers may be incoherent with the body.
     */
+  @deprecated("Avoid using streams in main API", "1.0.0-M42")
   private[http4s] def pipeBodyThrough[F1[x] >: F[x]](pipe: Pipe[F1, Byte, Byte]): SelfF[F1] =
     withEntity(Entity.stream(pipe(body)))
 

@@ -179,9 +179,8 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   test("mock client should drain the body if it has not been consumed") {
 
     def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
-      Response[IO]()
-        .pipeBodyThrough(_.onFinalize(compiled.update(_ + 1)))
-        .pure[IO]
+      val resp1 = Response[IO]()
+      resp1.withEntity(Entity.stream(resp1.body.onFinalize(compiled.update(_ + 1)))).pure[IO]
     }
 
     for {
@@ -197,10 +196,9 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     val entity = asciiBytes"foo"
 
     def app(channel: Channel[IO, Byte], compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
-      Response[IO]()
-        .withEntity(entity)
-        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(compiled.update(_ + 1)))
-        .pure[IO]
+      val resp1 = Response[IO]().withEntity(entity)
+      val str = resp1.body.evalTap(channel.send).onFinalize(compiled.update(_ + 1))
+      resp1.withEntity(Entity.stream(str)).pure[IO]
     }
 
     for {
@@ -222,10 +220,9 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   test("mock client should not read the body eagerly") {
 
     def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
-      Response[IO]()
-        .withEntity("foo")
-        .pipeBodyThrough(_ ++ fs2.Stream.exec(compiled.update(_ + 1)))
-        .pure[IO]
+      val resp1 = Response[IO]().withEntity("foo")
+      val str = resp1.body ++ fs2.Stream.exec(compiled.update(_ + 1))
+      resp1.withEntity(Entity.stream(str)).pure[IO]
     }
 
     val test = for {
@@ -247,10 +244,11 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
     val expectedErrorMsg = "error"
 
     def app(channel: Channel[IO, Byte], finalized: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
-      Response[IO]()
-        .withEntity(entity)
-        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(finalized.update(_ + 1)))
-        .pure[IO]
+      def pipe(str: Stream[IO, Byte]): Stream[IO, Byte] =
+        str.evalTap(channel.send).onFinalize(finalized.update(_ + 1))
+
+      val resp = Response[IO]().withEntity(entity)
+      resp.withEntity(Entity.stream(pipe(resp.body))).pure[IO]
     }
 
     for {

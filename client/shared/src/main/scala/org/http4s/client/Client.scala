@@ -300,10 +300,10 @@ object Client {
 
     def run(req: Request[F]): Resource[F, Response[F]] =
       Resource.eval(Ref[F].of(false)).flatMap { disposed =>
-        val reqAugmented =
-          addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+        val augmentedEntity = Entity.stream(until(disposed)(req.body))
+
         Resource
-          .eval(app(reqAugmented))
+          .eval(app(addHostHeaderIfUriIsAbsolute(req.withEntity(augmentedEntity))))
           .onFinalize(disposed.set(true))
           .flatMap(processResponse(_, disposed))
       }

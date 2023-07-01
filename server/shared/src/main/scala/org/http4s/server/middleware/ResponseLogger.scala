@@ -82,7 +82,7 @@ object ResponseLogger {
           .as(response)
       else {
         response.entity match {
-          case Entity.Streamed(_, _) =>
+          case Entity.Streamed(body, _) =>
             F.ref(Vector.empty[Chunk[Byte]]).map { vec =>
               val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
@@ -90,7 +90,7 @@ object ResponseLogger {
                 _.observe(_.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c))))
                   .onFinalizeWeak(logMessage(response.withEntity(Entity.stream(newBody))))
 
-              response.pipeBodyThrough(logPipe)
+              response.withEntity(Entity.stream(logPipe(body)))
             }
 
           case Entity.Strict(_) | Entity.Empty =>
