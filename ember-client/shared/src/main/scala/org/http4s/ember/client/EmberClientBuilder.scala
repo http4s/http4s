@@ -20,6 +20,7 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2.io.net.Network
+import fs2.io.net.Socket
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
@@ -37,6 +38,7 @@ import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
+import org.typelevel.vault._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
@@ -325,6 +327,156 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
             }
           }
         } yield responseResource._1
+
+      def unixSocketClient(
+          request: Request[F],
+          address: UnixSocketAddress,
+          enableEndpointValidation: Boolean,
+          enableServerNameIndication: Boolean,
+      ): Resource[F, Response[F]] =
+        Resource
+          .eval(
+            unixSockets
+              .orElse(defaultUnixSockets)
+              .liftTo(
+                new RuntimeException(
+                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
+                )
+              )
+          )
+          .flatMap(unixSockets =>
+            EmberConnection(
+              ClientHelpers.unixSocket(
+                request,
+                unixSockets,
+                address,
+                tlsContextOpt,
+                enableEndpointValidation,
+                enableServerNameIndication,
+              ),
+              chunkSize,
+            )
+          )
+          .flatMap(connection =>
+            Resource.eval(
+              ClientHelpers
+                .request[F](
+                  request,
+                  connection,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent,
+                )
+                .map(_._1)
+            )
+          )
+      val client = Client[F] { request =>
+        request.attributes
+          .lookup(Request.Keys.UnixSocketAddress)
+          .fold(webClient(request))(
+            unixSocketClient(request, _, checkEndpointIdentification, serverNameIndication)
+          )
+      }
+      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
+      val iClient = new EmberClient[F](stackClient, pool)
+
+      optH2.fold(iClient) { h2 =>
+        val h2Client = Client(h2(iClient.run))
+        new EmberClient(h2Client, pool)
+      }
+    }
+  
+  def buildWebSocket(webSocketKey: Key[Socket[F]]): Resource[F, Client[F]] =
+    for {
+      sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
+      tlsContextOptWithDefault <-
+        tlsContextOpt
+          .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
+            _.some.pure[Resource[F, *]]
+          )
+      builder =
+        KeyPool.Builder
+          .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
+            EmberConnection(
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  serverNameIndication,
+                  sg,
+                  additionalSocketOptions,
+                ),
+              chunkSize,
+            ) <* Resource
+              .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
+              .onFinalize(
+                logger.trace(
+                  s"Shutting Down Connection - RequestKey: ${requestKey}"
+                )
+              )
+          )
+          .withDefaultReuseState(Reusable.DontReuse)
+          .withIdleTimeAllowedInPool(idleTimeInPool)
+          .withMaxPerKey(maxPerKey)
+          .withMaxTotal(maxTotal)
+          .withOnReaperException(_ => Applicative[F].unit)
+      pool <- builder.build
+      optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
+        H2Client.impl[F](
+          pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+          context,
+          unixSockets,
+          logger,
+          if (pushPromiseSupport.isDefined) default
+          else
+            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+          checkEndpointIdentification,
+          serverNameIndication,
+        )
+      }
+    } yield {
+      def webClient(request: Request[F]): Resource[F, Response[F]] =
+        for {
+          managed <- ClientHelpers.getValidManaged(pool, request)
+          _ <- Resource.eval(
+            pool.state.flatMap { poolState =>
+              logger.trace(
+                s"Connection Taken - Key: ${managed.value.keySocket.requestKey} - Reused: ${managed.isReused} - PoolState: $poolState"
+              )
+            }
+          )
+          responseResource <- Resource.makeCaseFull((poll: Poll[F]) =>
+            poll(
+              ClientHelpers
+                .request[F](
+                  request,
+                  managed.value,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent,
+                )
+            )
+          ) { case ((response, drain), exitCase) =>
+            exitCase match {
+              case Resource.ExitCase.Succeeded =>
+                ClientHelpers.postProcessResponse(
+                  request,
+                  response,
+                  drain,
+                  managed.value.nextBytes,
+                  managed.canBeReused,
+                  managed.value.startNextRead,
+                )
+              case _ => Applicative[F].unit
+            }
+          }
+          _ <- Resource.eval(managed.canBeReused.set(Reusable.DontReuse))
+        } yield responseResource._1.withAttribute(webSocketKey, managed.value.keySocket.socket)
 
       def unixSocketClient(
           request: Request[F],
