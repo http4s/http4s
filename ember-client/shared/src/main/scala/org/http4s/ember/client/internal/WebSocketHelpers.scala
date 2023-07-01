@@ -18,16 +18,19 @@ package org.http4s.ember.client.internal
 
 import cats.MonadThrow
 import cats.data.NonEmptyList
+import cats.effect._
 import cats.syntax.all._
 import org.http4s.Status
 import org.http4s._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import org.http4s.headers.Connection
 import org.http4s.headers._
+// import org.http4s.Request
 import org.http4s.websocket.Rfc6455
 import org.typelevel.ci._
+import org.typelevel.vault._
 import scodec.bits.ByteVector
+import fs2.io.net.Socket
 
 private[client] object WebSocketHelpers {
 
@@ -37,6 +40,35 @@ private[client] object WebSocketHelpers {
   private[internal] val webSocketProtocol = Protocol(ci"websocket", None)
   private[internal] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
   private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
+  private[internal] val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
+
+  // private[this] val clientTranscoder = new FrameTranscoder(true)
+
+  private[internal] def createWebSocketKey[F[_]]: Key[Socket[F]] =
+    Key.newKey[SyncIO, Socket[F]].unsafeRunSync()
+
+  // def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
+  //     F: MonadCancel[F, Throwable]
+  // ): F[Option[Socket[F]]] = {
+  //   val webSocketKey = createWebSocketKey[F]
+  //   client.run(request).use(res => res.attributes.lookup(webSocketKey).pure[F])
+  // }
+
+  // object EmberWSClient {
+  //   def apply[F[_]](
+  //       emberClient: Client[F]
+  //   )(implicit F: Async[F]): WSClient[F] =
+  //     WSClient[F](respondToPings = false) { wsRequest =>
+  //       val httpWSRequest = Request[F]
+  //         .withUri(wsRequest.uri)
+  //         .withHeaders(wsRequest.headers)
+  //         .withMethod(Method.GET)
+  //       emberClient
+  //         .run(httpWSRequest)
+  //         .use(_)
+  //       Resource.eval(new WSConnection[F])
+  //     }
+  // }
 
   /** Validate the opening handshake response from the server
     * https://datatracker.ietf.org/doc/html/rfc6455#page-6
