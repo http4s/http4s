@@ -22,10 +22,13 @@ import cats.effect._
 import cats.syntax.all._
 import org.http4s.Status
 import org.http4s._
+import org.http4s.client.Client
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import org.http4s.headers._
-// import org.http4s.Request
+import org.http4s.Request
+import org.http4s.client.websocket.WSClient
+import org.http4s.client.websocket.WSConnection
 import org.http4s.websocket.Rfc6455
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -47,28 +50,48 @@ private[client] object WebSocketHelpers {
   private[internal] def createWebSocketKey[F[_]]: Key[Socket[F]] =
     Key.newKey[SyncIO, Socket[F]].unsafeRunSync()
 
-  // def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
-  //     F: MonadCancel[F, Throwable]
-  // ): F[Option[Socket[F]]] = {
-  //   val webSocketKey = createWebSocketKey[F]
-  //   client.run(request).use(res => res.attributes.lookup(webSocketKey).pure[F])
-  // }
+  def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
+      F: MonadCancel[F, Throwable]
+  ): Resource[F, Resource[F, Option[Socket[F]]]] = {
+    val webSocketKey = createWebSocketKey[F]
+    client
+      .run(request)
+      .map { res =>
+        Resource.eval(validateServerHandshake(res, exampleSecWebSocketKey)).map { isValid =>
+          isValid match {
+            case Left(_) => None
+            case _ =>
+              res.attributes.lookup(webSocketKey) match {
+                case Some(socket: Socket[F]) => Option(socket)
+                case None => None
+              }
+          }
+        }
+      }
+  }
 
-  // object EmberWSClient {
-  //   def apply[F[_]](
-  //       emberClient: Client[F]
-  //   )(implicit F: Async[F]): WSClient[F] =
-  //     WSClient[F](respondToPings = false) { wsRequest =>
-  //       val httpWSRequest = Request[F]
-  //         .withUri(wsRequest.uri)
-  //         .withHeaders(wsRequest.headers)
-  //         .withMethod(Method.GET)
-  //       emberClient
-  //         .run(httpWSRequest)
-  //         .use(_)
-  //       Resource.eval(new WSConnection[F])
-  //     }
-  // }
+  object EmberWSClient {
+    def apply[F[_]](
+        emberClient: Client[F]
+    )(implicit F: Async[F]): WSClient[F] =
+      WSClient[F](respondToPings = false) { wsRequest =>
+        val httpWSRequest = Request[F]()
+          .withUri(wsRequest.uri)
+          .withHeaders(wsRequest.headers)
+          .withMethod(Method.GET)
+        for {
+          socketResource <- getSocket(emberClient, httpWSRequest)
+          socketOption <- socketResource
+        } yield new WSConnection[F] {
+          def receive: F[Option[org.http4s.client.websocket.WSFrame]] = ???
+          def send(wsf: org.http4s.client.websocket.WSFrame): F[Unit] = ???
+          def sendMany[G[_], A <: org.http4s.client.websocket.WSFrame](wsfs: G[A])(implicit
+              evidence$1: cats.Foldable[G]
+          ): F[Unit] = ???
+          def subprotocol: Option[String] = ???
+        }
+      }
+  }
 
   /** Validate the opening handshake response from the server
     * https://datatracker.ietf.org/doc/html/rfc6455#page-6
