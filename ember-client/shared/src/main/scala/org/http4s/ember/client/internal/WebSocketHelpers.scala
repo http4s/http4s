@@ -16,24 +16,35 @@
 
 package org.http4s.ember.client.internal
 
+import cats.Applicative
 import cats.MonadThrow
 import cats.data.NonEmptyList
-import cats.effect._
+import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.implicits._
+import cats.effect.MonadCancel
+import cats.effect.Resource
+import cats.effect.std.Queue
+import cats.effect.SyncIO
 import cats.syntax.all._
-import org.http4s.Status
+import fs2.io.net.Socket
 import org.http4s._
 import org.http4s.client.Client
-import org.http4s.crypto.Hash
-import org.http4s.crypto.HashAlgorithm
-import org.http4s.headers._
-import org.http4s.Request
+import org.http4s.client.websocket.WSFrame
 import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSConnection
+import org.http4s.crypto.Hash
+import org.http4s.crypto.HashAlgorithm
+import org.http4s.ember.core.WebSocketHelpers.decodeFrames
+import org.http4s.ember.core.WebSocketHelpers.frameToBytes
+import org.http4s.headers._
+import org.http4s.Request
+import org.http4s.Status
 import org.http4s.websocket.Rfc6455
+import org.http4s.websocket.WebSocketFrame
 import org.typelevel.ci._
 import org.typelevel.vault._
 import scodec.bits.ByteVector
-import fs2.io.net.Socket
 
 private[client] object WebSocketHelpers {
 
@@ -57,18 +68,30 @@ private[client] object WebSocketHelpers {
     client
       .run(request)
       .map { res =>
-        Resource.eval(validateServerHandshake(res, exampleSecWebSocketKey)).map { isValid =>
-          isValid match {
-            case Left(_) => None
-            case _ =>
-              res.attributes.lookup(webSocketKey) match {
-                case Some(socket: Socket[F]) => Option(socket)
-                case None => None
-              }
-          }
-        }
+        Resource
+          .eval(validateServerHandshake(res, exampleSecWebSocketKey))
+          .map(isValid => isValid.toOption *> res.attributes.lookup(webSocketKey))
       }
   }
+
+  private def toWebSocketFrame[F[_]: Concurrent](wsFrame: WSFrame): F[WebSocketFrame] =
+    wsFrame match {
+      case WSFrame.Close(code, reason) =>
+        MonadThrow[F].fromEither(WebSocketFrame.Close(code, reason))
+      case WSFrame.Ping(data) => Applicative[F].pure(WebSocketFrame.Ping(data))
+      case WSFrame.Pong(data) => Applicative[F].pure(WebSocketFrame.Pong(data))
+      case WSFrame.Text(data, last) => Applicative[F].pure(WebSocketFrame.Text(data, last))
+      case WSFrame.Binary(data, last) => Applicative[F].pure(WebSocketFrame.Binary(data, last))
+    }
+
+  private def toWSFrame(wsf: WebSocketFrame): WSFrame =
+    wsf match {
+      case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
+      case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
+      case WebSocketFrame.Pong(data) => WSFrame.Pong(data)
+      case WebSocketFrame.Text(data, last) => WSFrame.Text(data, last)
+      case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
+    }
 
   object EmberWSClient {
     def apply[F[_]](
@@ -79,15 +102,26 @@ private[client] object WebSocketHelpers {
           .withUri(wsRequest.uri)
           .withHeaders(wsRequest.headers)
           .withMethod(Method.GET)
+
         for {
           socketResource <- getSocket(emberClient, httpWSRequest)
           socketOption <- socketResource
+          socket = socketOption.get
+
+          clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
+          clientSendQueue <- Queue.synchronous[F, WebSocketFrame].toResource
         } yield new WSConnection[F] {
-          def receive: F[Option[org.http4s.client.websocket.WSFrame]] = ???
-          def send(wsf: org.http4s.client.websocket.WSFrame): F[Unit] = ???
-          def sendMany[G[_], A <: org.http4s.client.websocket.WSFrame](wsfs: G[A])(implicit
+          def receive: F[Option[WSFrame]] = for {
+            _ <- socket.reads.through(decodeFrames(true)).evalTap(clientReceiveQueue.offer(_)).compile.drain
+            frame <- clientReceiveQueue.take.map(toWSFrame(_).some)
+          } yield frame
+          def send(wsf: WSFrame): F[Unit] = for {
+            _ <- toWebSocketFrame(wsf).map(clientSendQueue.offer(_))
+            _ <- clientSendQueue.take.map(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
+          } yield ()
+          def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
               evidence$1: cats.Foldable[G]
-          ): F[Unit] = ???
+          ): F[Unit] = wsfs.traverse_(send(_))
           def subprotocol: Option[String] = ???
         }
       }
