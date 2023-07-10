@@ -442,10 +442,10 @@ private[h2] object H2Stream {
     private[H2Stream] def cancelWith(msg: String)(implicit F: Monad[F]): F[Unit] = {
       // Unsure of this, but also unsure about exposing custom throwable
       val ex: Either[Throwable, Nothing] = Left(new CancellationException(msg))
-      writeBlock.complete(ex) >>
-        request.complete(ex) >>
-        response.complete(ex) >>
-        readBuffer.send(ex) >>
+      writeBlock.complete(ex) *>
+        request.complete(ex) *>
+        response.complete(ex) *>
+        readBuffer.send(ex) *>
         trailers.complete(ex).void
     }
 
