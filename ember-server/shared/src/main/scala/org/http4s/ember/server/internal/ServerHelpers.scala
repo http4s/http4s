@@ -328,7 +328,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         Resource
           .eval {
             logger match {
-              case l: SelfAwareLogger[F] @unchecked =>
+              case l: SelfAwareLogger[F] =>
                 l.isTraceEnabled.ifF(TLSLogger.Enabled(s => logger.trace(s)), TLSLogger.Disabled)
               case _ => TLSLogger.Enabled(s => logger.trace(s)).pure[F]
             }
