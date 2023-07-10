@@ -42,6 +42,7 @@ import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.SelfAwareLogger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
@@ -324,19 +325,29 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           H2TLS.transform(params)
         } else params
 
-        context
-          .serverBuilder(socketInit)
-          .withParameters(newParams)
-          .withLogging(s => logger.trace(s))
-          .build
-          .evalMap(tlsSocket =>
-            tlsSocket.write(fs2.Chunk.empty) >>
-              tlsSocket.applicationProtocol
-                .map(protocol => (tlsSocket: Socket[F], protocol.some))
-                .recover { case _: NoSuchElementException =>
-                  (tlsSocket, Option.empty)
-                }
-          )
+        Resource
+          .eval {
+            logger match {
+              case l: SelfAwareLogger[F] @unchecked =>
+                l.isTraceEnabled.ifF(TLSLogger.Enabled(s => logger.trace(s)), TLSLogger.Disabled)
+              case _ => TLSLogger.Enabled(s => logger.trace(s)).pure[F]
+            }
+          }
+          .flatMap { tlsLogger =>
+            context
+              .serverBuilder(socketInit)
+              .withParameters(newParams)
+              .withLogger(tlsLogger)
+              .build
+              .evalMap(tlsSocket =>
+                tlsSocket.write(fs2.Chunk.empty) >>
+                  tlsSocket.applicationProtocol
+                    .map(protocol => (tlsSocket: Socket[F], protocol.some))
+                    .recover { case _: NoSuchElementException =>
+                      (tlsSocket, Option.empty)
+                    }
+              )
+          }
     }
 
   private[internal] def runApp[F[_]](
