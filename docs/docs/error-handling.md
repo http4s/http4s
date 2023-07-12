@@ -21,7 +21,7 @@ include:
 
 When you start from a "clean slate" with http4s, one of the things you're likely to notice, is that http4s is swallowing your exceptions - let's see if we can prove it. Assuming you've gotten the hello world example started, let's introduce another route, which is going to error out.
 
-```
+```scala mdoc:silent
 val errorRoute: HttpRoutes[IO] = HttpRoutes.of[IO] { 
       case req @ GET -> "error" =>
         throw new Exception("Hey don't swallow me")
@@ -33,7 +33,7 @@ Now, in general swallowing exceptions in software engineering is widely consider
 
 http4s provides an answer to this seeming paradox, in the form of [middleware](middleware.md). As this section is written by a beginner, we're going to assume you want to know your code is throwing exceptions and take the beginners path of least resistance to surfacing them. You probably have a server, instantiated something like this; 
 
-```
+```scala mdoc:silent
 EmberServerBuilder
   .default[IO]
   .withPort(port"8081")
@@ -44,7 +44,7 @@ EmberServerBuilder
 
 We're going to make it look like this, instead. 
 
-```
+```scala mdoc:silent
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
 
