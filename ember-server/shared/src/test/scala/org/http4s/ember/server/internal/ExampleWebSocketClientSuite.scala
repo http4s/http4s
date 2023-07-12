@@ -1,20 +1,38 @@
+/*
+ * Copyright 2019 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.http4s.ember.server.internal
 
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.syntax.all._
 import com.comcast.ip4s._
-import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
 import fs2.io.net.Socket
-import java.util.Base64
 import org.http4s._
+import org.http4s.client.websocket.WSFrame
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.headers.{Connection, `Sec-WebSocket-Key`, `Sec-WebSocket-Version`, Upgrade}
+import org.http4s.headers.Connection
+import org.http4s.headers.Upgrade
+import org.http4s.headers.`Sec-WebSocket-Key`
+import org.http4s.headers.`Sec-WebSocket-Version`
 import org.http4s.server.Server
 import org.http4s.server.websocket._
 import org.http4s.testing.DispatcherIOFixture
@@ -22,6 +40,8 @@ import org.http4s.websocket._
 import org.typelevel.ci._
 import org.typelevel.vault._
 import scodec.bits.ByteVector
+
+import java.util.Base64
 
 class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -34,19 +54,13 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root =>
           Ok("Hello")
         case GET -> Root / "ws-echo" =>
-          println("ws-echhooooo")
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) =>
-              println(text)
               Stream(WebSocketFrame.Text(text))
             case _ =>
-              println("unknowwwwn")
               Stream(WebSocketFrame.Text("unknown"))
           }
           wsBuilder.build(sendReceive)
-        // case GET -> Root / "ws-close" =>
-        //   val send = Stream(WebSocketFrame.Text("foo"))
-        //   wsBuilder.build(send, _.void)
       }
       .orNotFound
   }
@@ -82,14 +96,15 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(secWebSocketKey))),
     ),
   )
-  // private[this] val clientTranscoder = new FrameTranscoder(false)
 
-  // def frameToBytes(frame: WebSocketFrame): List[Chunk[Byte]] =
-  //   clientTranscoder.frameToBuffer(frame).toList.map { buffer =>
-  //     val bytes = new Array[Byte](buffer.remaining())
-  //     buffer.get(bytes)
-  //     Chunk.array(bytes)
-  //   }
+  def toWSFrame(wsf: WebSocketFrame): WSFrame =
+    wsf match {
+      case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
+      case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
+      case WebSocketFrame.Pong(data) => WSFrame.Pong(data)
+      case WebSocketFrame.Text(data, last) => WSFrame.Text(data, last)
+      case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
+    }
 
   private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
@@ -98,20 +113,16 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       _ <- emberClient
         .use { client =>
           client
-            .run(wsRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"))
+            .run(wsRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"))
             .use { res =>
-              res.attributes.lookup(socketKey) match {
-                case Some(socket: Socket[IO]) =>
-                  for {
-                    _ <- frameToBytes(WebSocketFrame.Text("hello"), true).traverse_(c => socket.write(c))
-                    _ <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
-                    // received <- socket.reads.take(7).through(decodeFrames(true)).compile.drain
-                  } yield ()
-                case _ => IO.println("no socket")
-              }
+              val socket = res.attributes.lookup(socketKey).get
+              for {
+                _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
+                  .traverse_(c => socket.write(c))
+                received <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
+              } yield ()
             }
         }
     } yield ()
   }
-  
 }
