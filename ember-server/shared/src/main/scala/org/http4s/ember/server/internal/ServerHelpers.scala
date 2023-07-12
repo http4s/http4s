@@ -44,6 +44,7 @@ import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
 import org.http4s.websocket.WebSocketContext
 import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.SelfAwareLogger
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
@@ -66,6 +67,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -91,6 +93,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -116,6 +119,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -146,6 +150,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -161,12 +166,17 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
+  /** @param connectionErrorHandler called when an error occurs while attempting to read a connection. For example on JVM
+    *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
+    *                               default this just logs the error.
+    */
   def serverInternal[F[_]: Async](
       server: Stream[F, Socket[F]],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       shutdown: Shutdown[F],
       // Defaults
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
       errorHandler: Throwable => F[Response[F]],
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
       maxConnections: Int,
@@ -277,8 +287,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 }
             }
 
+        def fullConnectionErrorHandler(t: Throwable): F[Unit] =
+          connectionErrorHandler.applyOrElse(
+            t,
+            (t: Throwable) => logger.error(t)("Request handler failed with exception"),
+          )
         handler.handleErrorWith { t =>
-          Stream.eval(logger.error(t)("Request handler failed with exception")).drain
+          Stream.eval(fullConnectionErrorHandler(t)).drain
         }
       }
 
@@ -298,12 +313,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   //     case Some(value) => Stream.chunk(value)
   //   }
 
-  private[internal] def upgradeSocket[F[_]: Monad](
+  private[internal] def upgradeSocket[F[_]](
       socketInit: Socket[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       logger: Logger[F],
       enableHttp2: Boolean,
-  ): Resource[F, (Socket[F], Option[String])] =
+  )(implicit F: MonadError[F, Throwable]): Resource[F, (Socket[F], Option[String])] =
     tlsInfoOpt.fold((socketInit, Option.empty[String]).pure[Resource[F, *]]) {
       case (context, params) =>
         val newParams = if (enableHttp2) {
@@ -312,15 +327,29 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           H2TLS.transform(params)
         } else params
 
-        context
-          .serverBuilder(socketInit)
-          .withParameters(newParams)
-          .withLogging(s => logger.trace(s))
-          .build
-          .evalMap(tlsSocket =>
-            tlsSocket.write(fs2.Chunk.empty) >>
-              tlsSocket.applicationProtocol.map(protocol => (tlsSocket: Socket[F], protocol.some))
-          )
+        Resource
+          .eval {
+            logger match {
+              case l: SelfAwareLogger[F] =>
+                l.isTraceEnabled.ifF(TLSLogger.Enabled(s => logger.trace(s)), TLSLogger.Disabled)
+              case _ => TLSLogger.Enabled(s => logger.trace(s)).pure[F]
+            }
+          }
+          .flatMap { tlsLogger =>
+            context
+              .serverBuilder(socketInit)
+              .withParameters(newParams)
+              .withLogger(tlsLogger)
+              .build
+              .evalMap(tlsSocket =>
+                tlsSocket.write(fs2.Chunk.empty) >>
+                  tlsSocket.applicationProtocol
+                    .map(protocol => (tlsSocket: Socket[F], protocol.some))
+                    .recover { case _: NoSuchElementException =>
+                      (tlsSocket, Option.empty)
+                    }
+              )
+          }
     }
 
   private[internal] def runApp[F[_]](
