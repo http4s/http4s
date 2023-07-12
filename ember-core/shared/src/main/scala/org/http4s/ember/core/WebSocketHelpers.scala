@@ -1,18 +1,35 @@
+/*
+ * Copyright 2019 http4s.org
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.http4s.ember.core
 
 import cats.ApplicativeThrow
 import cats.MonadThrow
 import cats.syntax.all._
+import fs2.Chunk
+import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import org.http4s.websocket._
-import fs2.Chunk
-import fs2.Stream
-import fs2.Pipe
-import fs2.Pull
+import scodec.bits.ByteVector
+
 import java.nio.ByteBuffer
 import scala.collection.mutable.ArrayBuffer
-import scodec.bits.ByteVector
 
 private[ember] object WebSocketHelpers {
 
@@ -38,7 +55,7 @@ private[ember] object WebSocketHelpers {
       case Some(bytes) =>
         Stream.chunk(bytes) ++ readStream(read)
       case None => Stream.empty
-  }
+    }
 
   def decodeFrames[F[_]](
       isClient: Boolean
