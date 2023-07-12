@@ -48,7 +48,7 @@ We're going to make it look like this, instead.
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
 
-...
+// ...
 
 val withErrorLogging = ErrorHandling.Recover.total(
   ErrorAction.log(
