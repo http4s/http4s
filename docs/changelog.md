@@ -3,6 +3,56 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M40 (2023-07-13)
+
+## What's Changed
+
+### http4s-core
+
+* Fix misleading `EntityBody` mentions in some scaladocs by @danicheg in https://github.com/http4s/http4s/pull/6955
+* Tweak performance of `QueryOps#withQueryParam`  by @danicheg in https://github.com/http4s/http4s/pull/6864
+* Deprecate Entity Apply by @diesalbla in https://github.com/http4s/http4s/pull/6305
+* Expunge all unsafe logging by @armanbilge, @iRevive in https://github.com/http4s/http4s/pull/6645, https://github.com/http4s/http4s/pull/7122
+* Migrate `Uri.Scheme` and `TransferCoding` to `CIString` by @froth in https://github.com/http4s/http4s/pull/7164
+
+### http4s-server
+
+* More comprehensive support of `Entity` model in `Jsonp` Middleware by @danicheg in https://github.com/http4s/http4s/pull/6937
+* Take account of `Entity` model in `BracketRequestResponse` Middleware by @danicheg in https://github.com/http4s/http4s/pull/6957
+* Use `Clock` from `CE` instead of one from `java.time` in `CSRF` Middleware by @danicheg in https://github.com/http4s/http4s/pull/7166
+
+### http4s-client
+
+* Rectify `Client#fromHttpApp` by @danicheg in https://github.com/http4s/http4s/pull/7148
+
+### Documentation
+
+* Fix `Entity` docs by @danicheg in https://github.com/http4s/http4s/pull/7067
+* Update adopters.md by @dantb in https://github.com/http4s/http4s/pull/7107
+
+### Behind the scenes
+
+* Ignore sbt-jmh updates on main by @armanbilge in https://github.com/http4s/http4s/pull/6952
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/6970
+* Merge `series/0.23` into `main` by @danicheg in https://github.com/http4s/http4s/pull/7025
+* Clean up internal package by @danicheg in https://github.com/http4s/http4s/pull/7030
+* Ignore crossproject updates on main by @armanbilge in https://github.com/http4s/http4s/pull/7048
+* Ignore sbt-revolver updates on main by @armanbilge in https://github.com/http4s/http4s/pull/7052
+* Fix semantic merge conflicts following #6305 by @armanbilge in https://github.com/http4s/http4s/pull/7063
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/7115
+* Use `MonadThrow` instead of `Sync` in `H2Client.RequestKey#getAddress` by @danicheg in https://github.com/http4s/http4s/pull/7167
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/7172
+* Clear the internal package of unused/deprecated things by @froth in https://github.com/http4s/http4s/pull/7158
+* Ignore `scalac-compat-annotation` updates on main by @danicheg in https://github.com/http4s/http4s/pull/7179
+* Cleanup of `org.http4s.internal` by @froth in https://github.com/http4s/http4s/pull/7175
+* Merge `v0.23.22` into `main` by @danicheg in https://github.com/http4s/http4s/pull/7211
+
+## New Contributors
+
+* @froth made their first contribution in https://github.com/http4s/http4s/pull/7164
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M39...v1.0.0-M40
+
 # v0.23.22 (2023-06-28)
 
 This release includes assorted fixes for Ember.
