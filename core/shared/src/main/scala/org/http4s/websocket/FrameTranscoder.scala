@@ -91,7 +91,7 @@ class FrameTranscoder(val isClient: Boolean) {
     } else if (in.length <= 0xffff) size += 2
     else size += 8
 
-    val buff = ByteBuffer.allocate(if (isClient) size + in.length else size)
+    val buff = ByteBuffer.allocate(size + in.length)
 
     val opcode = in.opcode
 
@@ -133,15 +133,16 @@ class FrameTranscoder(val isClient: Boolean) {
 
       val data = in.data
 
-      for (i <- 0 until in.length.toInt)
+      for (i <- 0 until in.length)
         buff.put(
           (data(i.toLong) ^ maskBits(i & 0x3)).toByte
         ) // i & 0x3 is the same as i % 4 but faster
       buff.flip
       Array[ByteBuffer](buff)
     } else {
+      in.data.copyToBuffer(buff)
       buff.flip
-      Array[ByteBuffer](buff, in.data.toByteBuffer)
+      Array[ByteBuffer](buff)
     }
   }
 

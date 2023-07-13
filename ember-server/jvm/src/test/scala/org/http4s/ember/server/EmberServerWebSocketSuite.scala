@@ -40,10 +40,13 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import scala.concurrent.duration._
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
-  def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
+  def service[F[_]](
+      serviceFrame: Ref[F, String]
+  )(wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
     val dsl = new Http4sDsl[F] {}
     import dsl._
 
@@ -52,10 +55,14 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root =>
           Ok("Hello!")
         case GET -> Root / "ws-echo" =>
-          val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
-            case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
-            case _ => Stream(WebSocketFrame.Text("unknown"))
-          }
+          val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.evalMap {
+            case WebSocketFrame.Text(text, _) =>
+              Async[F].pure(Option(WebSocketFrame.Text(text)))
+            case WebSocketFrame.Close(_) =>
+              serviceFrame.set("close").as(Option.empty[WebSocketFrame.Text])
+            case _ => Async[F].pure(Option.empty[WebSocketFrame.Text])
+          }.unNone
+
           wsBuilder.build(sendReceive)
         case GET -> Root / "ws-close" =>
           val send = Stream(WebSocketFrame.Text("foo"))
@@ -76,12 +83,17 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .orNotFound
   }
 
-  val serverResource: Resource[IO, Server] =
-    EmberServerBuilder
-      .default[IO]
-      .withPort(port"0")
-      .withHttpWebSocketApp(service[IO])
-      .build
+  def serverResource: Resource[IO, (Ref[IO, String], Server)] =
+    Resource
+      .eval(Ref.of[IO, String](""))
+      .flatMap(ref =>
+        EmberServerBuilder
+          .default[IO]
+          .withPort(port"0")
+          .withHttpWebSocketApp(service[IO](ref)(_))
+          .build
+          .tupleLeft(ref)
+      )
 
   private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
 
@@ -145,7 +157,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       }
     } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
 
-  fixture.test("open and close connection to server") { case (server, dispatcher) =>
+  fixture.test("open and close connection to server") { case ((_, server), dispatcher) =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
@@ -156,7 +168,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield ()
   }
 
-  fixture.test("send and receive a message") { case (server, dispatcher) =>
+  fixture.test("send and receive a message") { case ((_, server), dispatcher) =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
@@ -169,7 +181,20 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield assertEquals(msg, "foo")
   }
 
-  fixture.test("respond to pings") { case (server, dispatcher) =>
+  fixture.test("provide CLOSE frame for user handler") { case ((ref, server), dispatcher) =>
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- client.close
+      _ <- IO.sleep(100.millis) // wait update the Close
+      msg <- ref.get
+    } yield assertEquals(msg, "close")
+  }
+
+  fixture.test("respond to pings") { case ((_, server), dispatcher) =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
@@ -183,7 +208,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
-    case (server, dispatcher) =>
+    case ((_, server), dispatcher) =>
       for {
         client <- createClient(
           URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
@@ -196,7 +221,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       } yield assertEquals(code, CloseFrame.NORMAL)
   }
 
-  fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
+  fixture.test("respects withFilterPingPongs(false)") { case ((_, server), dispatcher) =>
     for {
       client <- createClient(
         URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
@@ -208,7 +233,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     } yield ()
   }
 
-  fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
+  fixture.test("send and receive multiple messages") { case ((_, server), dispatcher) =>
     val n = 10
     val messages = List.tabulate(n)(i => s"${i + 1}")
     for {
@@ -221,6 +246,30 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       messagesReceived <- client.messages.take.replicateA(n)
       _ <- client.close
     } yield assertEquals(messagesReceived, messages)
+  }
+
+  fixture.test("do not corrupt frames if handle them concurrently") {
+    case ((_, server), dispatcher) =>
+      val n = 100
+      val p = 100
+      val messages = List.tabulate(n)(i => s"${i + 1}")
+      val pings = List.tabulate(p)(i => s"ping-$i")
+
+      for {
+        client <- createClient(
+          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+          dispatcher,
+        )
+        _ <- client.connect
+        _ <- messages.parTraverse_(client.send).start
+        _ <- pings.parTraverse_(client.ping).start
+        messagesReceived <- client.messages.take.replicateA(n)
+        pongsReceived <- client.pongs.take.replicateA(p)
+        _ <- client.close
+      } yield {
+        assertEquals(messagesReceived.sorted, messages.sorted)
+        assertEquals(pongsReceived.sorted, pings.sorted)
+      }
   }
 
 }
