@@ -43,6 +43,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val httpApp: WebSocketBuilder[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
+    private val connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConnections: Int,
@@ -67,6 +68,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       httpApp: WebSocketBuilder[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]] = self.connectionErrorHandler,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConnections: Int = self.maxConnections,
@@ -88,6 +90,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       httpApp = httpApp,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
+      connectionErrorHandler = connectionErrorHandler,
       errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
       maxConnections = maxConnections,
@@ -128,6 +131,17 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
+
+  /** Called when an error occurs while attempting to read a connection.
+    *
+    * For example on JVM `javax.net.ssl.SSLException` may be thrown if the client doesn't speak SSL.
+    *
+    * If the [[scala.PartialFunction]] does not match the error is just logged.
+    */
+  def withConnectionErrorHandler(
+      errorHandler: PartialFunction[Throwable, F[Unit]]
+  ): EmberServerBuilder[F] =
+    copy(connectionErrorHandler = errorHandler)
 
   @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
   def withOnError(onError: Throwable => Response[F]) =
@@ -210,6 +224,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               tlsInfoOpt,
               ready,
               shutdown,
+              connectionErrorHandler,
               errorHandler,
               onWriteFailure,
               maxConnections,
@@ -236,6 +251,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             tlsInfoOpt,
             ready,
             shutdown,
+            connectionErrorHandler,
             errorHandler,
             onWriteFailure,
             maxConnections,
@@ -269,6 +285,7 @@ object EmberServerBuilder {
       httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
       sgOpt = None,
+      connectionErrorHandler = Defaults.connectionErrorHandler[F],
       errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConnections = Defaults.maxConnections,
@@ -292,6 +309,10 @@ object EmberServerBuilder {
 
     private val serverFailure =
       Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
+    def connectionErrorHandler[F[_]]: PartialFunction[Throwable, F[Unit]] =
+      PartialFunction.empty[Throwable, F[Unit]]
+
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
     def errorHandler[F[_]](implicit F: Applicative[F]): Throwable => F[Response[F]] = {
