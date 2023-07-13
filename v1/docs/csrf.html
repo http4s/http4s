@@ -150,9 +150,9 @@
         <li class="level2"><a href="testing.html">Testing</a></li>
         <li class="level2"><a href="uri.html">URI Handling</a></li>
         <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="server-middleware.html">Server Middleware</a></li>
         <li class="level2"><a href="error-handling.html">Error Handling</a></li>
         <li class="level2"><a href="methods.html">HTTP Methods</a></li>
+        <li class="level2"><a href="server-middleware.html">Server Middleware</a></li>
       </ul>
 
       <ul class="nav-list">
@@ -244,7 +244,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@6f863564
+//    = org.typelevel.vault.Vault@3fd4d472
 // )</span></code></pre>
         <p>That didn&#39;t do all that much. Lets build out our CSRF Middleware by creating a <code>CSRFBuilder</code></p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookieName</span><span> = </span><span class="string-literal">&quot;csrf-token&quot;</span><span>
@@ -266,9 +266,9 @@
 </span><span class="comment">// resp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=A2084E326F688549DEA206FC32DF044F3B1886FA3D58931769C7F3B4DB5A6154-1689229806761-84E622949C7FC2A6235ABB27F07A5AF232FAF8D2; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=63E27109B01414E49C186A37063CD5741FDFCB7729478D28ECBF4135577B7A49-1689252610490-672F00DBF8CB24A2563C036481401E4AE4408171; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@57cf809a
+//    = org.typelevel.vault.Vault@34bf2561
 // )</span></code></pre>
         <p>Notice how the response has the CSRF cookies added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -284,7 +284,7 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookie</span><span> = </span><span class="identifier">resp</span><span>.</span><span class="identifier">cookies</span><span>.</span><span class="identifier">head</span><span>
 </span><span class="comment">// cookie: ResponseCookie = ResponseCookie(
 //   name = &quot;csrf-token&quot;,
-//   content = &quot;A2084E326F688549DEA206FC32DF044F3B1886FA3D58931769C7F3B4DB5A6154-1689229806761-84E622949C7FC2A6235ABB27F07A5AF232FAF8D2&quot;,
+//   content = &quot;63E27109B01414E49C186A37063CD5741FDFCB7729478D28ECBF4135577B7A49-1689252610490-672F00DBF8CB24A2563C036481401E4AE4408171&quot;,
 //   expires = None,
 //   maxAge = None,
 //   domain = Some(value = &quot;localhost&quot;),
@@ -303,18 +303,18 @@
 //    = POST,
 //    = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Origin: http://localhost, X-Csrf-Token: A2084E326F688549DEA206FC32DF044F3B1886FA3D58931769C7F3B4DB5A6154-1689229806761-84E622949C7FC2A6235ABB27F07A5AF232FAF8D2, Cookie: csrf-token=A2084E326F688549DEA206FC32DF044F3B1886FA3D58931769C7F3B4DB5A6154-1689229806761-84E622949C7FC2A6235ABB27F07A5AF232FAF8D2),
+//    = Headers(Origin: http://localhost, X-Csrf-Token: 63E27109B01414E49C186A37063CD5741FDFCB7729478D28ECBF4135577B7A49-1689252610490-672F00DBF8CB24A2563C036481401E4AE4408171, Cookie: csrf-token=63E27109B01414E49C186A37063CD5741FDFCB7729478D28ECBF4135577B7A49-1689252610490-672F00DBF8CB24A2563C036481401E4AE4408171),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@4af79d0e
+//    = org.typelevel.vault.Vault@66ae3367
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">validateResp</span><span> =
   </span><span class="identifier">csrf</span><span>.</span><span class="identifier">validate</span><span>()(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)(</span><span class="identifier">dummyPostRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// validateResp: Response[IO] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=A2084E326F688549DEA206FC32DF044F3B1886FA3D58931769C7F3B4DB5A6154-1689229806795-666E31B5F66D80408D40D4E2A1AEEDB6B682B614; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//    = Headers(Content-Length: 0, Set-Cookie: csrf-token=63E27109B01414E49C186A37063CD5741FDFCB7729478D28ECBF4135577B7A49-1689252610549-D4E8A34D7E842272EC87E2B6E44BCB896E57B370; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@73826172
+//    = org.typelevel.vault.Vault@56cfaeb3
 // )</span></code></pre>
 
         <hr style="margin-top: 30px"/>
