@@ -120,7 +120,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
                 _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
                   .traverse_(c => socket.write(c))
                 received <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
-              } yield ()
+              } yield received
             }
         }
     } yield ()

@@ -387,7 +387,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
         new EmberClient(h2Client, pool)
       }
     }
-  
+
   def buildWebSocket(webSocketKey: Key[Socket[F]]): Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
