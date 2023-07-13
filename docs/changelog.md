@@ -3,6 +3,49 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.22 (2023-06-28)
+
+This release includes assorted fixes for Ember.
+
+## What's Changed
+
+### http4s-core
+
+* Fix `QueryOps#setQueryParams` scaladoc by @danicheg in https://github.com/http4s/http4s/pull/7126
+
+### http4s-ember-core
+
+* Include query params in http2 :path pseudo header by @ybasket in https://github.com/http4s/http4s/pull/7180
+* A bunch of tweaks to `ClientHelpers`' methods by @danicheg in https://github.com/http4s/http4s/pull/7173
+
+### http4s-ember-server
+
+* Properly handle `NoSuchElementException` in `tlsSocket.applicationProtocol` by @arturaz in https://github.com/http4s/http4s/pull/7092
+* Allow providing custom error handler when connection establishing fails. by @arturaz in https://github.com/http4s/http4s/pull/7093
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.21 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7169
+* Disable artifact upload by @armanbilge in https://github.com/http4s/http4s/pull/7168
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7099
+* Update netty-buffer, netty-codec-http to 4.1.94.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7174
+* Update munit to 1.0.0-M8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7145
+* Update scalac-compat-annotation to 0.1.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7177
+* Update sbt-scalajs, scalajs-compiler, ... to 1.13.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7181
+* Update cats-effect, cats-effect-std, ... to 3.5.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7182
+* Update cats-parse to 0.3.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7184
+* Update sbt to 1.9.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7185
+* Update jawn-parser to 1.5.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7186
+* Update scalac-compat-annotation to 0.1.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7187
+* Use `Assertions#assume` in tests by @danicheg in https://github.com/http4s/http4s/pull/7183
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7188
+
+## New Contributors
+
+* @arturaz made their first contribution in https://github.com/http4s/http4s/pull/7092
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.21...v0.23.22
+
 # v0.23.21 (2023-06-16)
 
 This release fixes another regression in Ember HTTP/2.
