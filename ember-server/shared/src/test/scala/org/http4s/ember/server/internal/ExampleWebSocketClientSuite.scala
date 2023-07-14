@@ -108,17 +108,37 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   fixture.test("Ember WebSocket Client") { case (server, _) =>
     for {
       _ <- emberClient
+        // .use { client =>
+        //   client
+        //     .run(wsRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"))
+        //     .use { res =>
+        //       val socket = res.attributes.lookup(WebSocketKey.webSocketConnection[IO]).get
+        //       for {
+        //         _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
+        //           .traverse_(c => socket.write(c))
+        //         received <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
+        //       } yield received
+        //     }
+        // }
         .use { client =>
-          client
-            .run(wsRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"))
-            .use { res =>
-              val socket = res.attributes.lookup(WebSocketKey.webSocketConnection[IO]).get
-              for {
-                _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
-                  .traverse_(c => socket.write(c))
-                received <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
-              } yield received
-            }
+          val wsRequest = WSRequest(
+            Uri.unsafeFromString(
+              s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"
+            ),
+            Headers(
+              upgradeWebSocket,
+              connectionUpgrade,
+              `Sec-WebSocket-Version`(supportedWebSocketVersion),
+              new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(secWebSocketKey))),
+            ),
+            Method.GET,
+          )
+          val wsClient = EmberWSClient[IO](client)
+          for {
+            conn <- wsClient.connect(wsRequest).use(IO(_))
+            _ <- conn.send(toWSFrame(WebSocketFrame.Text("hello")))
+            received <- conn.receive
+          } yield ()
         }
     } yield ()
   }
