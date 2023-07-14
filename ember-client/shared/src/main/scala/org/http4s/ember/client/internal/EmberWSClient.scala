@@ -26,10 +26,10 @@ import org.http4s.client.Client
 import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
+import org.http4s.ember.client.internal.WebSocketHelpers._
 import org.http4s.ember.core.WebSocketHelpers.decodeFrames
 import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.ember.client.internal.WebSocketHelpers._
 
 object EmberWSClient {
   def apply[F[_]](
