@@ -22,11 +22,11 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
-import fs2.io.net.Socket
 import org.http4s._
 import org.http4s.client.websocket.WSFrame
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.client.internal.WebSocketKey
 import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
@@ -38,7 +38,6 @@ import org.http4s.server.websocket._
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket._
 import org.typelevel.ci._
-import org.typelevel.vault._
 import scodec.bits.ByteVector
 
 import java.util.Base64
@@ -72,11 +71,9 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .withHttpWebSocketApp(service[IO])
       .build
 
-  val socketKey: Key[Socket[IO]] = Key.newKey[SyncIO, Socket[IO]].unsafeRunSync()
-
   val emberClient = EmberClientBuilder
     .default[IO]
-    .buildWebSocket(socketKey)
+    .buildWebSocket
 
   val supportedWebSocketVersion = 13L
 
@@ -115,7 +112,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
           client
             .run(wsRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"))
             .use { res =>
-              val socket = res.attributes.lookup(socketKey).get
+              val socket = res.attributes.lookup(WebSocketKey.webSocketConnection[IO]).get
               for {
                 _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
                   .traverse_(c => socket.write(c))

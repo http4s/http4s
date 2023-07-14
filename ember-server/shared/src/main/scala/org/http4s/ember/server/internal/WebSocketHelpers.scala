@@ -43,7 +43,7 @@ import scala.concurrent.duration.Duration
 
 import ember.core.WebSocketHelpers._
 
-private[internal] object EmberWS {
+private[internal] object WebSocketHelpers {
 
   private[this] val supportedWebSocketVersion = 13L
 
