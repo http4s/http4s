@@ -20,7 +20,6 @@ import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2.io.net.Network
-import fs2.io.net.Socket
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
@@ -32,13 +31,13 @@ import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.client.internal.WebSocketKey
 import org.http4s.ember.core.h2.H2Client
 import org.http4s.ember.core.h2.H2Frame
 import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
-import org.typelevel.vault._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
@@ -388,7 +387,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       }
     }
 
-  def buildWebSocket(webSocketKey: Key[Socket[F]]): Resource[F, Client[F]] =
+  // def buildWebSocket(webSocketKey: Key[Socket[F]]): Resource[F, Client[F]] =
+  def buildWebSocket: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <-
@@ -476,7 +476,10 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
             }
           }
           _ <- Resource.eval(managed.canBeReused.set(Reusable.DontReuse))
-        } yield responseResource._1.withAttribute(webSocketKey, managed.value.keySocket.socket)
+        } yield responseResource._1.withAttribute(
+          WebSocketKey.webSocketConnection[F],
+          managed.value.keySocket.socket,
+        )
 
       def unixSocketClient(
           request: Request[F],
