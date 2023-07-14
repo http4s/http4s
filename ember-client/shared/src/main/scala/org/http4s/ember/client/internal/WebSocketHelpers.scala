@@ -22,7 +22,6 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.MonadCancel
 import cats.effect.Resource
-import cats.effect.SyncIO
 import cats.syntax.all._
 import fs2.io.net.Socket
 import org.http4s.Request
@@ -36,7 +35,6 @@ import org.http4s.headers._
 import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketFrame
 import org.typelevel.ci._
-import org.typelevel.vault._
 import scodec.bits.ByteVector
 
 private[internal] object WebSocketHelpers {
@@ -49,20 +47,14 @@ private[internal] object WebSocketHelpers {
   private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
   private[internal] val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
-  // private[this] val clientTranscoder = new FrameTranscoder(true)
-
-  private[internal] def createWebSocketKey[F[_]]: Key[Socket[F]] =
-    Key.newKey[SyncIO, Socket[F]].unsafeRunSync()
-
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]
   ): Resource[F, Option[Socket[F]]] = {
-    val webSocketKey = createWebSocketKey[F]
+    val webSocketKey = WebSocketKey.webSocketConnection[F]
     client
       .run(request)
-      .flatMap { res =>
-        Resource
-          .eval(validateServerHandshake(res, exampleSecWebSocketKey))
+      .evalMap { res =>
+        validateServerHandshake(res, exampleSecWebSocketKey)
           .map(isValid => isValid.toOption *> res.attributes.lookup(webSocketKey))
       }
   }
@@ -103,7 +95,7 @@ private[internal] object WebSocketHelpers {
 
   private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
 
-  private[internal] def clientHandshake[F[_]](
+  def clientHandshake[F[_]](
       value: String
   )(implicit F: MonadThrow[F]): F[ByteVector] = for {
     value <- ByteVector.encodeAscii(value).liftTo[F]
