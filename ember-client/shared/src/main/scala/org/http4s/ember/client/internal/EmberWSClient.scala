@@ -53,16 +53,28 @@ object EmberWSClient {
           .evalTap(clientReceiveQueue.offer(_))
           .compile
           .drain
+          .onError { case ex =>
+            F.delay(ex.printStackTrace())
+          }
           .background
 
         _ <- clientSendQueue.take
-          .flatMap(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
+          .flatMap(f =>
+            frameToBytes(f, true).traverse_(c =>
+              F.delay(println(s"about to write $c")) *> socket.write(c) *> F.delay(
+                println(s"wrote $c")
+              )
+            )
+          )
           .foreverM
           .void
+          .onError { case ex =>
+            F.delay(ex.printStackTrace())
+          }
           .background
       } yield new WSConnection[F] {
         def receive: F[Option[WSFrame]] = clientReceiveQueue.take.map(toWSFrame(_).some)
-        def send(wsf: WSFrame): F[Unit] = toWebSocketFrame(wsf).map(clientSendQueue.offer(_)).void
+        def send(wsf: WSFrame): F[Unit] = toWebSocketFrame(wsf).flatMap(clientSendQueue.offer(_))
         def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
             evidence$1: cats.Foldable[G]
         ): F[Unit] = wsfs.traverse_(send(_))

@@ -23,10 +23,10 @@ import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
 import org.http4s._
-import org.http4s.client.websocket.WSFrame
+import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.client.internal.WebSocketKey
+import org.http4s.ember.client.internal._
 import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
@@ -55,11 +55,11 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-echo" =>
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) =>
-              Stream(WebSocketFrame.Text(text))
+              Stream.exec(F.delay(println(s"got $text"))) ++ Stream(WebSocketFrame.Text(text))
             case _ =>
               Stream(WebSocketFrame.Text("unknown"))
           }
-          wsBuilder.build(sendReceive)
+          F.delay(println("at ws-echo")) *> wsBuilder.build(sendReceive)
       }
       .orNotFound
   }
@@ -134,11 +134,15 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
             Method.GET,
           )
           val wsClient = EmberWSClient[IO](client)
-          for {
-            conn <- wsClient.connect(wsRequest).use(IO(_))
-            _ <- conn.send(toWSFrame(WebSocketFrame.Text("hello")))
-            received <- conn.receive
-          } yield ()
+          wsClient.connect(wsRequest).use { conn =>
+            for {
+              _ <- IO.println(s"got $conn")
+              _ <- conn.send(WSFrame.Text("hello"))
+              _ <- IO.println("sent")
+              received <- conn.receive
+              _ <- IO(assertEquals(received, Some(WSFrame.Text("hello"): WSFrame)))
+            } yield ()
+          }
         }
     } yield ()
   }
