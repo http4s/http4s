@@ -27,7 +27,6 @@ import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.client.internal._
-import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
@@ -55,11 +54,11 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-echo" =>
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) =>
-              Stream.exec(F.delay(println(s"got $text"))) ++ Stream(WebSocketFrame.Text(text))
+              Stream(WebSocketFrame.Text(text))
             case _ =>
               Stream(WebSocketFrame.Text("unknown"))
           }
-          F.delay(println("at ws-echo")) *> wsBuilder.build(sendReceive)
+          wsBuilder.build(sendReceive)
       }
       .orNotFound
   }
@@ -71,7 +70,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .withHttpWebSocketApp(service[IO])
       .build
 
-  val emberClient = EmberClientBuilder
+  val clientResource = EmberClientBuilder
     .default[IO]
     .buildWebSocket
 
@@ -81,16 +80,16 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   val webSocketProtocol = Protocol(ci"websocket", None)
   val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
   val upgradeWebSocket = Upgrade(webSocketProtocol)
-  val secWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
+  val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
-  def wsRequest(url: String): Request[IO] = Request[IO](
+  def buildWSRequest(url: String): WSRequest = WSRequest(
     method = Method.GET,
     uri = Uri.unsafeFromString(url),
     headers = Headers(
       upgradeWebSocket,
       connectionUpgrade,
       `Sec-WebSocket-Version`(supportedWebSocketVersion),
-      new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(secWebSocketKey))),
+      new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(exampleSecWebSocketKey))),
     ),
   )
 
@@ -103,47 +102,51 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
     }
 
-  private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  private def fixture =
+    (ResourceFunFixture(serverResource), ResourceFunFixture(clientResource), dispatcher).mapN(
+      FunFixture.map3(_, _, _)
+    )
 
-  fixture.test("Ember WebSocket Client") { case (server, _) =>
-    for {
-      _ <- emberClient
-        // .use { client =>
-        //   client
-        //     .run(wsRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"))
-        //     .use { res =>
-        //       val socket = res.attributes.lookup(WebSocketKey.webSocketConnection[IO]).get
-        //       for {
-        //         _ <- frameToBytes(WebSocketFrame.Text("hello"), true)
-        //           .traverse_(c => socket.write(c))
-        //         received <- socket.reads.take(7).evalTap(b => IO.println(b.toChar)).compile.drain
-        //       } yield received
-        //     }
-        // }
-        .use { client =>
-          val wsRequest = WSRequest(
-            Uri.unsafeFromString(
-              s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo"
-            ),
-            Headers(
-              upgradeWebSocket,
-              connectionUpgrade,
-              `Sec-WebSocket-Version`(supportedWebSocketVersion),
-              new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(secWebSocketKey))),
-            ),
-            Method.GET,
-          )
-          val wsClient = EmberWSClient[IO](client)
-          wsClient.connect(wsRequest).use { conn =>
-            for {
-              _ <- IO.println(s"got $conn")
-              _ <- conn.send(WSFrame.Text("hello"))
-              _ <- IO.println("sent")
-              received <- conn.receive
-              _ <- IO(assertEquals(received, Some(WSFrame.Text("hello"): WSFrame)))
-            } yield ()
-          }
-        }
-    } yield ()
+  fixture.test("open and close connection to server") { case (server, client, _) =>
+    val wsRequest =
+      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+    val wsClient = EmberWSClient[IO](client)
+
+    wsClient
+      .connect(wsRequest)
+      .use(_ => IO(()))
+  }
+
+  fixture.test("send and receive a message") { case (server, client, _) =>
+    val wsRequest =
+      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+    val wsClient = EmberWSClient[IO](client)
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Text("hello"))
+          received <- conn.receive
+        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
+      )
+  }
+
+  fixture.test("send and receive multiple messages") { case (server, client, _) =>
+    val wsRequest =
+      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+    val wsClient = EmberWSClient[IO](client)
+    val n = 10
+    val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
+    val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.sendMany(messages)
+          received <- conn.receive.replicateA(n)
+        } yield assertEquals(received, expectedMessages)
+      )
   }
 }
