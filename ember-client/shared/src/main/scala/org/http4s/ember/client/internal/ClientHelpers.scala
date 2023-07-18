@@ -29,6 +29,7 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
+import cats.effect.std.Hotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
@@ -245,28 +246,25 @@ private[client] object ClientHelpers {
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
-  private[client] def getValidManaged[F[_]: Sync](
+  private[client] def getValidManaged[F[_]: Async](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
   ): Resource[F, Managed[F, EmberConnection[F]]] =
-    pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
-      Resource
-        .eval(managed.value.isValid)
-        .ifM(
-          managed.pure[Resource[F, *]],
-          // Already Closed,
-          // The Resource Scopes Aren't doing us anything
-          // if we have max removed from pool we will need to revisit
-          if (managed.isReused) {
-            Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
-              getValidManaged(pool, request)
-          } else
-            Resource.eval(
+    Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
+      def go: F[Managed[F, EmberConnection[F]]] =
+        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
+          managed.value.isValid.ifM(
+            managed.pure,
+            if (managed.isReused) // keep swapping connections until we find a valid one
+              managed.canBeReused.set(Reusable.DontReuse) *> go
+            else
               Sync[F].raiseError(
                 new fs2.io.net.SocketException("Fresh connection from pool was not open")
-              )
-            ),
-        )
+              ),
+          )
+        }
+
+      go
     }
 
   private[ember] object RetryLogic {
