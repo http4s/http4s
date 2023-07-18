@@ -109,7 +109,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("open and close connection to server") { case (server, client, _) =>
     val wsRequest =
-      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
@@ -119,7 +119,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("send and receive a message") { case (server, client, _) =>
     val wsRequest =
-      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
@@ -134,7 +134,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("send and receive multiple messages") { case (server, client, _) =>
     val wsRequest =
-      buildWSRequest(s"ws://${server.addressIp4s.host}:${server.addressIp4s.port}/ws-echo")
+      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
     val wsClient = EmberWSClient[IO](client)
     val n = 10
     val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
