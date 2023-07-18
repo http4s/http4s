@@ -82,9 +82,14 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   val upgradeWebSocket = Upgrade(webSocketProtocol)
   val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
-  def buildWSRequest(url: String): WSRequest = WSRequest(
+  def url(address: SocketAddress[Host], path: String = ""): Uri =
+    Uri.unsafeFromString(
+      s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
+    )
+
+  def buildWSRequest(url: Uri): WSRequest = WSRequest(
     method = Method.GET,
-    uri = Uri.unsafeFromString(url),
+    uri = url,
     headers = Headers(
       upgradeWebSocket,
       connectionUpgrade,
@@ -108,8 +113,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
     )
 
   fixture.test("open and close connection to server") { case (server, client, _) =>
-    val wsRequest =
-      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
@@ -118,8 +122,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("send and receive a message") { case (server, client, _) =>
-    val wsRequest =
-      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
@@ -133,8 +136,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("send and receive multiple messages") { case (server, client, _) =>
-    val wsRequest =
-      buildWSRequest(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo")
+    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsClient = EmberWSClient[IO](client)
     val n = 10
     val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
