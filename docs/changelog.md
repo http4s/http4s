@@ -3,6 +3,44 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.23 (2023-07-19)
+
+This release includes assorted fixes and optimizations for Ember.
+
+## What's Changed
+
+### http4s-ember-core
+
+* Some micro-optimisations in `ember-core` by @danicheg in https://github.com/http4s/http4s/pull/7154
+
+### http4s-ember-server
+
+* Disable Ember server TLS logging more aggressively by @armanbilge in https://github.com/http4s/http4s/pull/7204
+* Immediately release invalid connections in `getValidManaged` by @armanbilge in https://github.com/http4s/http4s/pull/7218
+* WebSocketHelpers.scala - Use Chunks by @diesalbla in https://github.com/http4s/http4s/pull/7214
+
+### http4s-ember-client
+
+* Improve error messages for MissingHost and MissingPort by @george-wilson-rea in https://github.com/http4s/http4s/pull/7207
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client to 0.23.22 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7192
+* Update scalafmt-core to 3.7.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7197
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7200
+* Update scalafmt-core to 3.7.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7201
+* Update sbt to 1.9.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7203
+* Update scalafmt-core to 3.7.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7205
+* Update scalafmt-core to 3.7.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7210
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7217
+* Update scalafmt-core to 3.7.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7215
+
+## New Contributors
+
+* @george-wilson-rea made their first contribution in https://github.com/http4s/http4s/pull/7207
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.22...v0.23.23
+
 # v0.23.22 (2023-06-28)
 
 This release includes assorted fixes for Ember.
