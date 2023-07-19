@@ -662,9 +662,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.ember.client.internal.ClientHelpersPlatform"
-      ),
+      ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
     ),
   )
   .jvmSettings(

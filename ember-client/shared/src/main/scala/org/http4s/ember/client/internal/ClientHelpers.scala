@@ -240,8 +240,8 @@ private[client] object ClientHelpers {
         val host = auth.host.value
 
         for {
-          host <- Host.fromString(host).liftTo[F](MissingHost())
-          port <- Port.fromInt(port).liftTo[F](MissingPort())
+          host <- Host.fromString(host).liftTo[F](MissingOrInvalidHost(host))
+          port <- Port.fromInt(port).liftTo[F](MissingOrInvalidPort(port))
         } yield SocketAddress[Host](host, port)
     }
 
@@ -291,9 +291,11 @@ private[client] object ClientHelpers {
       }
   }
 
-  private case class MissingHost() extends RuntimeException("Invalid hostname")
+  private case class MissingOrInvalidHost(host: String)
+      extends RuntimeException(s"Invalid hostname: $host")
 
-  private case class MissingPort() extends RuntimeException("Invalid port")
+  private case class MissingOrInvalidPort(port: Int)
+      extends RuntimeException(s"Invalid port: $port")
 
   private case class MissingTlsContext()
       extends RuntimeException("EmberClient Is Not Configured for Https")
