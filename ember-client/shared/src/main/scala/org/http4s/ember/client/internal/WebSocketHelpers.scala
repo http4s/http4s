@@ -45,7 +45,6 @@ private[internal] object WebSocketHelpers {
   private[internal] val webSocketProtocol = Protocol(ci"websocket", None)
   private[internal] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
   private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
-  private[internal] val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]
@@ -54,8 +53,13 @@ private[internal] object WebSocketHelpers {
     client
       .run(request)
       .evalMap { res =>
-        validateServerHandshake(res, exampleSecWebSocketKey)
-          .map(isValid => isValid.toOption *> res.attributes.lookup(webSocketKey))
+        for {
+          secWebSocketKeyString <- request.headers
+            .get[`Sec-WebSocket-Key`]
+            .liftTo[F](new RuntimeException("Not found Sec-WebSocket-Key string"))
+            .map(_.hashString)
+          isValid <- validateServerHandshake(res, secWebSocketKeyString)
+        } yield isValid.toOption *> res.attributes.lookup(webSocketKey)
       }
   }
 
