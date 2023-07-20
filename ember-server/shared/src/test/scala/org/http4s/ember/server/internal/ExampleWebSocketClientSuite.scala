@@ -22,7 +22,6 @@ import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
-import java.util.Base64
 import org.http4s._
 import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
@@ -39,6 +38,8 @@ import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
+
+import java.util.Base64
 
 class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
