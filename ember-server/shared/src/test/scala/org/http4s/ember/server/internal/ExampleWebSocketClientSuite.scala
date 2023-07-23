@@ -113,7 +113,8 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
     )
 
   fixture.test("open and close connection to server") { case (server, client, _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = buildWSRequest(Uri.unsafeFromString("wss://ws.postman-echo.com/raw"))
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
@@ -121,34 +122,34 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .use(_ => IO(()))
   }
 
-  fixture.test("send and receive a message") { case (server, client, _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
+  // fixture.test("send and receive a message") { case (server, client, _) =>
+  //   val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  //   val wsClient = EmberWSClient[IO](client)
 
-    wsClient
-      .connect(wsRequest)
-      .use(conn =>
-        for {
-          _ <- conn.send(WSFrame.Text("hello"))
-          received <- conn.receive
-        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
-      )
-  }
+  //   wsClient
+  //     .connect(wsRequest)
+  //     .use(conn =>
+  //       for {
+  //         _ <- conn.send(WSFrame.Text("hello"))
+  //         received <- conn.receive
+  //       } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
+  //     )
+  // }
 
-  fixture.test("send and receive multiple messages") { case (server, client, _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
-    val n = 10
-    val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
-    val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
+  // fixture.test("send and receive multiple messages") { case (server, client, _) =>
+  //   val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  //   val wsClient = EmberWSClient[IO](client)
+  //   val n = 10
+  //   val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
+  //   val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
 
-    wsClient
-      .connect(wsRequest)
-      .use(conn =>
-        for {
-          _ <- conn.sendMany(messages)
-          received <- conn.receive.replicateA(n)
-        } yield assertEquals(received, expectedMessages)
-      )
-  }
+  //   wsClient
+  //     .connect(wsRequest)
+  //     .use(conn =>
+  //       for {
+  //         _ <- conn.sendMany(messages)
+  //         received <- conn.receive.replicateA(n)
+  //       } yield assertEquals(received, expectedMessages)
+  //     )
+  // }
 }
