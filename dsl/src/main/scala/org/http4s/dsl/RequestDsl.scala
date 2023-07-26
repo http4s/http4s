@@ -20,6 +20,8 @@ import org.http4s.Method
 import org.http4s.Uri
 import org.http4s.dsl.impl._
 
+import scala.util.Try
+
 trait RequestDsl extends Methods with Auth {
   import Http4sDsl._
 
@@ -36,6 +38,8 @@ trait RequestDsl extends Methods with Auth {
   val -> : impl.->.type
   val /: : impl./:.type
   val +& : impl.+&.type
+
+  def PathVar[A](cast: String => Try[A]): impl.PathVar[A]
 
   val IntVar: impl.IntVar.type
   val LongVar: impl.LongVar.type
