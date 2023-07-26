@@ -166,12 +166,21 @@ object /: {
     }
 }
 
-protected class PathVar[A](cast: String => Try[A]) {
+/** Abstract extractor of a path variable:
+  * {{{
+  *   enum Color:
+  *     case Red, Green, Blue
+  *
+  *   val ColorPath = new PathVar(str => Try(Color.valueOf(str)))
+  *
+  *   Path("/Green") match {
+  *     case Root / ColorPath(color) => ...
+  * }}}
+  */
+class PathVar[A](cast: String => Try[A]) {
   def unapply(str: String): Option[A] =
-    if (!str.isEmpty)
-      cast(str).toOption
-    else
-      None
+    if (str.nonEmpty) cast(str).toOption
+    else None
 }
 
 /** Integer extractor of a path variable:

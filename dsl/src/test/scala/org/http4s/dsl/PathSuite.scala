@@ -26,6 +26,8 @@ import org.http4s.syntax.AllSyntax
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 
+import scala.util.Try
+
 class PathSuite extends Http4sSuite with AllSyntax {
   implicit val arbitraryPath: Gen[Path] =
     arbitrary[List[String]]
@@ -123,6 +125,27 @@ class PathSuite extends Http4sSuite with AllSyntax {
   test("Path should encoded chars") {
     assert(path"/foo%20bar/and%2For/1%2F2" match {
       case Root / "foo bar" / "and/or" / "1/2" => true
+      case _ => false
+    })
+  }
+
+  test("Path should Abstract extractor") {
+    sealed trait Color
+    object Color {
+      case object Red extends Color
+      case object Green extends Color
+      case object Blue extends Color
+
+      def valueOf(str: String): Color = str match {
+        case "Red" => Red
+        case "Green" => Green
+        case "Blue" => Blue
+      }
+    }
+
+    val ColorVar = PathVar(str => Try(Color.valueOf(str)))
+    assert(path"/Green" match {
+      case Root / ColorVar(color) => color == Color.Green
       case _ => false
     })
   }

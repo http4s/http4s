@@ -423,22 +423,14 @@ val usersService = HttpRoutes.of[IO] {
 }
 ```
 
-If you want to extract a variable of type `T`, you can provide a custom extractor
-object which implements `def unapply(str: String): Option[T]`, similar to the way
-in which `IntVar` does it.
+If you want to extract a variable of type `A`, you can provide a custom extractor
+which implements `cast: String => Try[A]`, similar to the way in which `IntVar` does it.
 
 ```scala mdoc:silent
 import java.time.LocalDate
 import scala.util.Try
 
-object LocalDateVar {
-  def unapply(str: String): Option[LocalDate] = {
-    if (!str.isEmpty)
-      Try(LocalDate.parse(str)).toOption
-    else
-      None
-  }
-}
+val LocalDateVar = PathVar(str => Try(LocalDate.parse(str)))
 
 def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
