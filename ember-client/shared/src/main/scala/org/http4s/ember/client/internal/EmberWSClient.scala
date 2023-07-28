@@ -50,7 +50,7 @@ object EmberWSClient {
 
         _ <- socket.reads
           .through(decodeFrames(true))
-          .evalTap(clientReceiveQueue.offer(_))
+          .foreach(clientReceiveQueue.offer(_))
           .compile
           .drain
           .background
