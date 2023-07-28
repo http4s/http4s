@@ -112,18 +112,19 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       FunFixture.map3(_, _, _)
     )
 
-  fixture.test("open and close connection to server") { case (server, client, _) =>
+  fixture.test("open and close connection to server") { case (_, client, _) =>
     // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsRequest = buildWSRequest(Uri.unsafeFromString("wss://ws.postman-echo.com/raw"))
+    val wsRequest = buildWSRequest(Uri.unsafeFromString("https://ws.postman-echo.com/raw"))
     val wsClient = EmberWSClient[IO](client)
 
     wsClient
       .connect(wsRequest)
-      .use(_ => IO(()))
+      .use(_ => IO.unit)
   }
 
-  // fixture.test("send and receive a message") { case (server, client, _) =>
-  //   val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  // fixture.test("send and receive a message") { case (_, client, _) =>
+  //   // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  //   val wsRequest = buildWSRequest(Uri.unsafeFromString("https://ws.postman-echo.com/raw"))
   //   val wsClient = EmberWSClient[IO](client)
 
   //   wsClient
@@ -136,8 +137,9 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   //     )
   // }
 
-  // fixture.test("send and receive multiple messages") { case (server, client, _) =>
-  //   val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  // fixture.test("send and receive multiple messages") { case (_, client, _) =>
+  //   // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  //   val wsRequest = buildWSRequest(Uri.unsafeFromString("https://ws.postman-echo.com/raw"))
   //   val wsClient = EmberWSClient[IO](client)
   //   val n = 10
   //   val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
@@ -152,4 +154,34 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   //       } yield assertEquals(received, expectedMessages)
   //     )
   // }
+
+  // fixture.test("open and close high-level connection to server") { case (_, client, _) =>
+  //   // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+  //   val wsRequest = buildWSRequest(Uri.unsafeFromString("https://ws.postman-echo.com/raw"))
+  //   val wsClient = EmberWSClient[IO](client)
+
+  //   wsClient
+  //     .connectHighLevel(wsRequest)
+  //     .use(_ => IO.unit)
+  // }
+
+  
+  fixture.test("send and receive a binary frame") { case (_, client, _) =>
+    // val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = buildWSRequest(Uri.unsafeFromString("https://ws.postman-echo.com/raw"))
+    val wsClient = EmberWSClient[IO](client)
+
+    wsClient
+      .connectHighLevel(wsRequest)
+      .use(conn =>
+        for {
+          _ <- IO.println(s"Got connection ${conn}")
+          _ <- conn.send(WSFrame.Binary(ByteVector(3, 99, 12)))
+          _ <- IO.println("Sending complete")
+          received <- conn.receive
+          _ <- IO.println(s"Received! ${received}")
+        } yield () //assertEquals(received, Some(WSFrame.Binary(ByteVector(3, 99, 12)): WSDataFrame))
+      )
+  }
+
 }
