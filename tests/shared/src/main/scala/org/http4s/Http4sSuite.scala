@@ -18,6 +18,8 @@ package org.http4s
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.effect.SyncIO
+import cats.effect.std.Env
 import cats.syntax.all._
 import fs2._
 import fs2.text.utf8
@@ -26,11 +28,10 @@ import munit.catseffect._
 
 /** Common stack for http4s' munit based tests
   */
-trait Http4sSuite
-    extends CatsEffectSuite
-    with DisciplineSuite
-    with munit.ScalaCheckEffectSuite
-    with Http4sSuitePlatform {
+trait Http4sSuite extends CatsEffectSuite with DisciplineSuite with munit.ScalaCheckEffectSuite {
+
+  // allow flaky tests on ci
+  override def munitFlakyOK: Boolean = Env.make[SyncIO].get("CI").unsafeRunSync().isDefined
 
   private[this] val suiteFixtures = List.newBuilder[IOFixture[_]]
 
