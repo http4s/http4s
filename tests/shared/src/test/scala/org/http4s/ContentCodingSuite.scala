@@ -21,10 +21,9 @@ import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
 import org.http4s.util.Renderer
-
-import org.scalacheck.rng.Seed
 import org.scalacheck.Prop._
 import org.scalacheck.Test
+import org.scalacheck.rng.Seed
 
 class ContentCodingSuite extends Http4sSuite {
 
@@ -68,7 +67,8 @@ class ContentCodingSuite extends Http4sSuite {
   test("parses should parse with quality") {
     assertEquals(
       ContentCoding.parse("gzip;q=0.8"),
-      Right(ContentCoding.gzip.withQValue(qValue"0.8")))
+      Right(ContentCoding.gzip.withQValue(qValue"0.8")),
+    )
   }
   test("parses should fail on empty") {
     assert(ContentCoding.parse("").isLeft)
@@ -84,10 +84,12 @@ class ContentCodingSuite extends Http4sSuite {
     // Strange content coding but valid
     assertEquals(
       ContentCoding.parse("*fahon"),
-      ParseResult.success(ContentCoding.unsafeFromString("*fahon")))
+      ParseResult.success(ContentCoding.unsafeFromString("*fahon")),
+    )
     assertEquals(
       ContentCoding.parse("*fahon;q=0.1"),
-      ParseResult.success(ContentCoding.unsafeFromString("*fahon").withQValue(qValue"0.1")))
+      ParseResult.success(ContentCoding.unsafeFromString("*fahon").withQValue(qValue"0.1")),
+    )
   }
 
   test("render sould return coding and quality") {
@@ -102,7 +104,7 @@ class ContentCodingSuite extends Http4sSuite {
 }
 
 class ContentCodingSuiteFixedSeed extends Http4sSuite {
-  override protected def scalaCheckTestParameters = Test.Parameters.default
+  override protected def scalaCheckTestParameters: Test.Parameters = Test.Parameters.default
     .withMinSuccessfulTests(1)
     .withInitialSeed(Seed.fromBase64("2kpw5tJ8tADijqPv2GG3pUWPhjzpJUnaypQufFSWHBB=").toOption)
 

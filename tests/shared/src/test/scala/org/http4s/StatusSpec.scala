@@ -16,12 +16,14 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline.OrderTests
-import java.nio.charset.StandardCharsets
 import org.http4s.Status._
+import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Gen
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
+
+import java.nio.charset.StandardCharsets
 import scala.annotation.nowarn
 
 class StatusSpec extends StatusDeprecatedSpec {
@@ -82,28 +84,33 @@ class StatusSpec extends StatusDeprecatedSpec {
   }
 
   test(
-    "Finding a status by code should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code should succeed if the code is in the valid range, but not a standard code"
+  ) {
     assert(fromInt(371).fold(_ => false, s => s.reason == ""))
     assert(fromInt(482).isRight)
   }
 
   test(
-    "Finding a status by code should yield a status with the standard reason for a standard code") {
+    "Finding a status by code should yield a status with the standard reason for a standard code"
+  ) {
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
 
   test(
-    "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code") {
+    "Finding a status by code and reason should succeed if the code is in the valid range, but not a standard code"
+  ) {
     val s1 = getStatus(371, "some reason")
     assertEquals(s1.code, 371)
     assertEquals(s1.reason, "some reason")
   }
 
   test(
-    "Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason") {
+    "Finding a status by code and reason should succeed for a standard code and nonstandard reason, without replacing the default reason"
+  ) {
     assertEquals(
       getStatus(NotFound.code, "My dog ate my homework").reason,
-      "My dog ate my homework")
+      "My dog ate my homework",
+    )
 
     assertEquals(getStatus(NotFound.code).reason, "Not Found")
   }
@@ -114,12 +121,19 @@ class StatusSpec extends StatusDeprecatedSpec {
     }
   }
 
+  def isSanitized(s: Status): Boolean =
+    s.renderString
+      .getBytes(StandardCharsets.ISO_8859_1)
+      .forall(b => b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) >= 0x80))
+
   test("rendering sanitizes statuses") {
-    forAll { (s: Status) =>
-      s.renderString
-        .getBytes(StandardCharsets.ISO_8859_1)
-        .forall(b => b == ' ' || b == '\t' || (b >= 0x21 && b <= 0x7e) || ((b & 0xff) > 0x80))
-    }
+    forAll((s: Status) => isSanitized(s))
+  }
+
+  test("#5736 regression") {
+    val reason = "椗찦铝宏ýುؽ汃붒ᷖ鯣츑䭚䩰ܨ瀏ĵꎉ쎿뎯뾥뛾틨ޡ囨"
+    val s = Status.fromInt(200).toOption.get.withReason(reason): @nowarn("cat=deprecation")
+    assert(isSanitized(s))
   }
 
   private def getStatus(code: Int) =
@@ -139,7 +153,7 @@ class StatusDeprecatedSpec extends Http4sSuite {
     assertEquals(getStatus(NotFound.code, "Not Found").reason, "Not Found")
   }
 
-  protected def getStatus(code: Int, reason: String) =
+  protected def getStatus(code: Int, reason: String): Status =
     fromIntAndReason(code, reason) match {
       case Right(s) => s
       case Left(t) => throw t

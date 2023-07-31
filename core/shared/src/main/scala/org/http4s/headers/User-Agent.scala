@@ -17,8 +17,11 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderable, Renderer, Writer}
 import org.http4s.Header
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `User-Agent` {
@@ -28,11 +31,25 @@ object `User-Agent` {
 
   val name = ci"User-Agent"
 
+  @deprecated("Use parse(Int)(String) instead", "0.23.17")
   def parse(s: String): ParseResult[`User-Agent`] =
-    ParseResult.fromParser(parser, "Invalid User-Agent header")(s)
+    parse(CommonRules.CommentDefaultMaxDepth)(s)
 
+  def parse(maxDepth: Int)(s: String): ParseResult[`User-Agent`] =
+    parsePartiallyApplied(maxDepth)(s)
+
+  private def parsePartiallyApplied(maxDepth: Int): String => ParseResult[`User-Agent`] =
+    ParseResult.fromParser(parser(maxDepth), "Invalid User-Agent header")
+
+  @deprecated("Use parser(Int) instead", "0.23.17")
   private[http4s] val parser =
     ProductIdOrComment.serverAgentParser.map {
+      case (product: ProductId, tokens: List[ProductIdOrComment]) =>
+        `User-Agent`(product, tokens)
+    }
+
+  private[http4s] def parser(maxDepth: Int) =
+    ProductIdOrComment.serverAgentParser(maxDepth).map {
       case (product: ProductId, tokens: List[ProductIdOrComment]) =>
         `User-Agent`(product, tokens)
     }
@@ -52,11 +69,12 @@ object `User-Agent` {
           }
 
         },
-      parse
+      parsePartiallyApplied(CommonRules.CommentDefaultMaxDepth),
     )
 
   implicit def convert(implicit
-      select: Header.Select.Aux[`User-Agent`, cats.Id]): Renderer[`User-Agent`] =
+      select: Header.Select.Aux[`User-Agent`, cats.Id]
+  ): Renderer[`User-Agent`] =
     new Renderer[`User-Agent`] {
       override def render(writer: Writer, t: `User-Agent`): writer.type = writer << select.toRaw(t)
     }
@@ -64,6 +82,6 @@ object `User-Agent` {
 }
 
 /** User-Agent header
-  * [[https://tools.ietf.org/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3 RFC-7231 Section 5.5.3]]
   */
 final case class `User-Agent`(product: ProductId, rest: List[ProductIdOrComment])

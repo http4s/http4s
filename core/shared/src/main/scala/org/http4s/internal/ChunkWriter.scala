@@ -16,23 +16,23 @@
 
 package org.http4s.internal
 
-import java.nio.charset.{Charset, StandardCharsets}
 import fs2.Chunk
 import org.http4s.util.Writer
-import scala.collection.mutable.Buffer
+
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 
 /** [[Writer]] that will result in a `Chunk`
-  * @param toChunk initial `Chunk`
   */
 private[http4s] class ChunkWriter(
     charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
-  private[this] val chunks = Buffer[Chunk[Byte]]()
+  private[this] val builder = Chunk.newBuilder[Byte]
 
-  def toChunk: Chunk[Byte] = Chunk.concat(chunks)
+  def toChunk: Chunk[Byte] = builder.result
 
   override def append(s: String): this.type = {
-    chunks += Chunk.array(s.getBytes(charset))
+    builder += Chunk.array(s.getBytes(charset))
     this
   }
 }

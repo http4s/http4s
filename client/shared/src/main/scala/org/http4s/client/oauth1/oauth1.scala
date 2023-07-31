@@ -17,23 +17,23 @@
 package org.http4s
 package client
 
-import cats.{Monad, MonadThrow, Show}
+import cats.Monad
+import cats.MonadThrow
+import cats.Show
 import cats.data.NonEmptyList
 import cats.effect.SyncIO
-import cats.syntax.all._
 import cats.instances.order._
-import org.http4s.client.oauth1.ProtocolParameter.{
-  Callback,
-  Custom,
-  Nonce,
-  Realm,
-  SignatureMethod,
-  Timestamp,
-  Verifier,
-  Version
-}
+import cats.syntax.all._
+import org.http4s.client.oauth1.ProtocolParameter.Callback
+import org.http4s.client.oauth1.ProtocolParameter.Custom
+import org.http4s.client.oauth1.ProtocolParameter.Nonce
+import org.http4s.client.oauth1.ProtocolParameter.Realm
+import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
+import org.http4s.client.oauth1.ProtocolParameter.Timestamp
+import org.http4s.client.oauth1.ProtocolParameter.Verifier
+import org.http4s.client.oauth1.ProtocolParameter.Version
 import org.http4s.headers.Authorization
-import org.typelevel.ci._
+
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
@@ -52,15 +52,15 @@ package object oauth1 {
     */
   @deprecated(
     "Preserved for binary compatibility - use the other `signRequest` function which passes a signature method",
-    "0.22.3")
+    "0.22.3",
+  )
   def signRequest[F[_]](
       req: Request[F],
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(implicit
-      F: MonadThrow[F],
-      W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+      token: Option[Token],
+  )(implicit F: MonadThrow[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).flatMap { case (req, params) =>
       genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token, HmacSha1)
         .map(auth => req.putHeaders(auth))
@@ -76,7 +76,7 @@ package object oauth1 {
       version: ProtocolParameter.Version = Version(),
       nonceGenerator: F[Nonce],
       callback: Option[Callback] = None,
-      verifier: Option[Verifier] = None
+      verifier: Option[Verifier] = None,
   )(implicit F: MonadThrow[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     for {
       reqParams <- getUserParams(req)
@@ -96,7 +96,7 @@ package object oauth1 {
         verifier,
         params.map { case (k, v) =>
           Custom(k, v)
-        }
+        },
       )
     } yield req.putHeaders(auth)
 
@@ -108,7 +108,7 @@ package object oauth1 {
       version: ProtocolParameter.Version,
       nonceGenerator: F[Nonce],
       callback: Option[Callback],
-      verifier: Option[Verifier]
+      verifier: Option[Verifier],
   ): F[immutable.Seq[ProtocolParameter]] =
     for {
       timestamp <- timestampGenerator
@@ -131,7 +131,8 @@ package object oauth1 {
       nonceGenerator: F[Nonce],
       callback: Option[Callback],
       verifier: Option[Verifier],
-      queryParams: Seq[ProtocolParameter]): F[Authorization] =
+      queryParams: Seq[ProtocolParameter],
+  ): F[Authorization] =
     takeSigHeaders(
       consumer,
       token,
@@ -140,19 +141,21 @@ package object oauth1 {
       version,
       nonceGenerator,
       callback,
-      verifier
+      verifier,
     ).flatMap { headers =>
       val baseStr = mkBaseString(
         method,
         uri,
-        (headers ++ queryParams).sorted.map(Show[ProtocolParameter].show).mkString("&"))
+        (headers ++ queryParams).sorted.iterator.map(Show[ProtocolParameter].show).mkString("&"),
+      )
       val alg = SignatureAlgorithm.unsafeFromMethod(signatureMethod)
       makeSHASig(baseStr, consumer.secret, token.map(_.secret), alg).map { sig =>
         val creds = Credentials.AuthParams(
-          ci"OAuth",
+          AuthScheme.OAuth,
           NonEmptyList(
             "oauth_signature" -> encode(sig),
-            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList)
+            realm.fold(headers.map(_.toTuple))(_.toTuple +: headers.map(_.toTuple)).toList,
+          ),
         )
 
         Authorization(creds)
@@ -169,7 +172,8 @@ package object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token]): Authorization =
+      token: Option[Token],
+  ): Authorization =
     genAuthHeader[SyncIO](method, uri, userParams, consumer, callback, verifier, token, HmacSha1)
       .unsafeRunSync()
 
@@ -181,7 +185,8 @@ package object oauth1 {
       callback: Option[Uri],
       verifier: Option[String],
       token: Option[Token],
-      algorithm: SignatureAlgorithm): F[Authorization] = {
+      algorithm: SignatureAlgorithm,
+  ): F[Authorization] = {
     val params = {
       val params = new ListBuffer[(String, String)]
       params += "oauth_consumer_key" -> encode(consumer.key)
@@ -204,10 +209,14 @@ package object oauth1 {
       uri,
       params ++ userParams.map { case (k, v) =>
         (encode(k), encode(v))
-      })
+      },
+    )
     makeSHASig(baseString, consumer.secret, token.map(_.secret), algorithm).map { sig =>
       val creds =
-        Credentials.AuthParams(ci"OAuth", NonEmptyList("oauth_signature" -> encode(sig), params))
+        Credentials.AuthParams(
+          AuthScheme.OAuth,
+          NonEmptyList("oauth_signature" -> encode(sig), params),
+        )
 
       Authorization(creds)
     }
@@ -219,7 +228,8 @@ package object oauth1 {
   private[oauth1] def makeSHASig(
       baseString: String,
       consumer: Consumer,
-      token: Option[Token]): String =
+      token: Option[Token],
+  ): String =
     makeSHASig(baseString, consumer.secret, token.map(_.secret))
 
   // Warning: Defaults to HMAC-SHA1
@@ -227,14 +237,16 @@ package object oauth1 {
   private[oauth1] def makeSHASig(
       baseString: String,
       consumerSecret: String,
-      tokenSecret: Option[String]): String =
+      tokenSecret: Option[String],
+  ): String =
     makeSHASig[SyncIO](baseString, consumerSecret, tokenSecret, HmacSha1).unsafeRunSync()
 
   private[oauth1] def makeSHASig[F[_]: MonadThrow](
       baseString: String,
       consumerSecret: String,
       tokenSecret: Option[String],
-      algorithm: SignatureAlgorithm): F[String] = {
+      algorithm: SignatureAlgorithm,
+  ): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
     algorithm.generate(baseString, key)
@@ -244,7 +256,8 @@ package object oauth1 {
   private[oauth1] def genBaseString(
       method: Method,
       uri: Uri,
-      params: immutable.Seq[(String, String)]): String = {
+      params: immutable.Seq[(String, String)],
+  ): String = {
     val paramsStr = params.map { case (k, v) => k + "=" + v }.sorted.mkString("&")
     mkBaseString(method, uri, paramsStr)
   }
@@ -254,7 +267,8 @@ package object oauth1 {
       .Seq(
         method.name,
         encode(uri.copy(query = Query.empty, fragment = None).renderString),
-        encode(paramsStr))
+        encode(paramsStr),
+      )
       .mkString("&")
 
   private[oauth1] def encode(str: String): String =
@@ -262,7 +276,8 @@ package object oauth1 {
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(implicit
       F: MonadThrow[F],
-      W: EntityDecoder[F, UrlForm]): F[(Request[F], immutable.Seq[(String, String)])] = {
+      W: EntityDecoder[F, UrlForm],
+  ): F[(Request[F], Vector[(String, String)])] = {
     val qparams = req.uri.query.pairs.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {

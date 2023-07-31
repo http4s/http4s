@@ -18,8 +18,10 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Rfc5234}
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
 import org.typelevel.ci._
 
 object `Content-Language` {
@@ -35,7 +37,7 @@ object `Content-Language` {
         case (main: String, sub: collection.Seq[String]) =>
           LanguageTag(main, QValue.One, sub)
       }
-    Rfc7230.headerRep1(languageTag).map { tags =>
+    CommonRules.headerRep1(languageTag).map { tags =>
       headers.`Content-Language`(tags)
     }
   }
@@ -44,12 +46,12 @@ object `Content-Language` {
     Header.createRendered(
       ci"Content-Language",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Content-Language`] =
     (a, b) => `Content-Language`(a.values.concatNel(b.values))
 }
 
-//RFC - https://tools.ietf.org/html/rfc3282#page-2
+// RFC - https://datatracker.ietf.org/doc/html/rfc3282#page-2
 final case class `Content-Language`(values: NonEmptyList[LanguageTag])

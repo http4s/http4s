@@ -17,15 +17,21 @@
 package org.http4s
 
 import cats.parse.{Parser => P}
-import org.http4s.util.{Renderable, Writer}
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 sealed trait ProductIdOrComment extends Renderable
 object ProductIdOrComment {
-  private[http4s] val serverAgentParser: P[(ProductId, List[ProductIdOrComment])] = {
+  @deprecated("Use serverAgentParser(Int) instead", "0.23.17")
+  private[http4s] val serverAgentParser: P[(ProductId, List[ProductIdOrComment])] =
+    serverAgentParser(CommonRules.CommentDefaultMaxDepth)
+
+  private[http4s] def serverAgentParser(maxDepth: Int): P[(ProductId, List[ProductIdOrComment])] = {
     val rws = P.charIn(' ', '	').rep.void
-    ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser))).rep0
+    ProductId.parser ~ (rws *> (ProductId.parser.orElse(ProductComment.parser(maxDepth)))).rep0
   }
+
 }
 
 final case class ProductId(value: String, version: Option[String] = None)
@@ -41,7 +47,7 @@ final case class ProductId(value: String, version: Option[String] = None)
 }
 
 object ProductId {
-  private[http4s] val parser = (Rfc7230.token ~ (P.string("/") *> Rfc7230.token).?).map {
+  private[http4s] val parser = (CommonRules.token ~ (P.string("/") *> CommonRules.token).?).map {
     case (value: String, version: Option[String]) => ProductId(value, version)
   }
 }
@@ -54,6 +60,10 @@ final case class ProductComment(value: String) extends ProductIdOrComment {
 }
 
 object ProductComment {
-  private[http4s] val parser = Rfc7230.comment.map(ProductComment.apply)
+  private[http4s] def parser(maxDepth: Int): P[ProductComment] =
+    CommonRules.comment(maxDepth).map(ProductComment.apply)
 
+  @deprecated("Use parser(Int) instead", "0.23.17")
+  private[http4s] val parser: P[ProductComment] =
+    parser(CommonRules.CommentDefaultMaxDepth)
 }

@@ -17,11 +17,10 @@
 package org.http4s
 package headers
 
-import org.typelevel.ci._
-
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.eq._
+import org.typelevel.ci._
 
 object `Accept-Encoding` {
   def apply(head: ContentCoding, tail: ContentCoding*): `Accept-Encoding` =
@@ -31,7 +30,7 @@ object `Accept-Encoding` {
     ParseResult.fromParser(parser, "Invalid Accept-Encoding header")(s)
 
   private[http4s] val parser: Parser[`Accept-Encoding`] = {
-    import org.http4s.internal.parsing.Rfc7230.headerRep1
+    import org.http4s.internal.parsing.CommonRules.headerRep1
 
     headerRep1(ContentCoding.parser).map(xs => apply(xs))
   }
@@ -40,7 +39,7 @@ object `Accept-Encoding` {
     Header.createRendered(
       ci"Accept-Encoding",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Encoding`] =

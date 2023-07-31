@@ -30,6 +30,6 @@ trait HttpCodecLaws[A] {
 object HttpCodecLaws {
   def apply[A](implicit httpCodecA: HttpCodec[A]): HttpCodecLaws[A] =
     new HttpCodecLaws[A] {
-      val C = httpCodecA
+      val C: HttpCodec[A] = httpCodecA
     }
 }

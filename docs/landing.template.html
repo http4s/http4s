@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="${?laika.site.metadata.language}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
+    <title>${?laika.site.metadata.title}</title>
+    @:for(laika.site.metadata.authors)
+    <meta name="author" content="${_}"/>
+    @:@
+    @:for(laika.site.metadata.description)
+    <meta name="description" content="${_}"/>
+    @:@
+    @:for(helium.favIcons)
+    <link rel="icon" @:attribute(sizes, _.sizes) @:attribute(type, _.type) href="@:path(_.target)"/>
+    @:@
+    @:for(helium.webFonts)
+    <link rel="stylesheet" href="${_}">
+    @:@
+
+    @:linkJS { paths = ${helium.site.includeJS} }
+
+    <!-- custom start - manually link CSS to work around landing page issue in Laika 0.18.0 + init version menu -->
+    <link rel="stylesheet" type="text/css" href="helium/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="helium/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="helium/landing.page.css" />
+    <link rel="stylesheet" type="text/css" href="styles/landing.page.css" />
+    <script>initVersions("", "", "");</script>
+    <!-- custom end -->
+
+    <script> /* for avoiding page load transitions */ </script>
+</head>
+
+<body>
+
+<div id="header">
+    <div id="header-left">
+        @:for(helium.landingPage.logo) ${_} @:@
+        @:for(helium.landingPage.title) <h1>${_}</h1> @:@
+        @:for(helium.landingPage.subtitle) <h2>${_}</h2> @:@
+
+        <!-- custom start - add version menu and icon link row -->
+        <div id="left-row">
+
+            <div id="version-menu-container" class="drop-down-box">
+                <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
+                    Getting Started
+                </a>
+                <nav id="version-menu">
+                    <ul id="version-list" class="nav-list">
+                    </ul>
+                </nav>
+            </div>
+            <div class="link-box">
+
+                <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                   <g class="svg-shape">
+                     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+                   </g>
+                 </svg></span></a>
+                <a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a>
+                <a class="icon-link" href="https://twitter.com/http4s"><i class="icofont-laika" title="Twitter">&#xed7a;</i></a>
+
+            </div>
+        </div>
+        <!-- custom end -->
+
+    </div>
+    <div id="header-right">
+        @:for(helium.landingPage.latestReleases)
+        <p>${_.title}</p>
+        <p class="large">${_.version}</p>
+        @:@
+        @:for(helium.landingPage.license)
+        <p>License</p>
+        <p class="large">${_}</p>
+        @:@
+        @:if(helium.landingPage.documentationLinks)
+        <div id="docs">
+            <p>Project Info</p>
+            <ul>
+                @:for(helium.landingPage.documentationLinks)
+                <li>${_}</li>
+                @:@
+            </ul>
+        </div>
+        @:@
+        @:for(helium.landingPage.projectLinks)
+        <p class="medium">${_}</p>
+        @:@
+    </div>
+</div>
+${?cursor.currentDocument.fragments.header}
+@:for(helium.landingPage.teaserRows)
+<div class="teasers">
+    @:for(_.teasers)
+    <div class="teaser">
+        <h2>${_.title}</h2>
+        <p>${_.description}</p>
+    </div>
+    @:@
+</div>
+@:@
+${cursor.currentDocument.content}
+
+</body>
+</html>

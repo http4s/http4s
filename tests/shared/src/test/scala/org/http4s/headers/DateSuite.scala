@@ -17,43 +17,51 @@
 package org.http4s
 package headers
 
-import java.time.{ZoneId, ZonedDateTime}
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
+
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class DateSuite extends HeaderLaws {
   checkAll("Date", headerLaws[Date])
 
-  val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
+  private val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
 
   test("render should format GMT date according to RFC 1123") {
     assertEquals(
       Date(HttpDate.unsafeFromZonedDateTime(gmtDate)).value,
-      "Sun, 06 Nov 1994 08:49:37 GMT")
+      "Sun, 06 Nov 1994 08:49:37 GMT",
+    )
   }
   test("render should format UTC date according to RFC 1123") {
     val utcDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("UTC"))
     assertEquals(
       Date(HttpDate.unsafeFromZonedDateTime(utcDate)).value,
-      "Sun, 06 Nov 1994 08:49:37 GMT")
+      "Sun, 06 Nov 1994 08:49:37 GMT",
+    )
   }
 
   test("fromDate should accept format RFC 1123") {
     assertEquals(
       Date.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.date),
-      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)))
+      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)),
+    )
   }
   test("fromDate should accept format RFC 1036") {
     assertEquals(
       Date.parse("Sunday, 06-Nov-94 08:49:37 GMT").map(_.date),
-      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)))
+      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)),
+    )
   }
   test("fromDate should accept format ANSI date") {
     assertEquals(
       Date.parse("Sun Nov  6 08:49:37 1994").map(_.date),
-      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)))
+      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)),
+    )
     assertEquals(
       Date.parse("Sun Nov 16 08:49:37 1994").map(_.date),
-      Right(HttpDate.unsafeFromZonedDateTime(gmtDate.plusDays(10))))
+      Right(HttpDate.unsafeFromZonedDateTime(gmtDate.plusDays(10))),
+    )
   }
 }

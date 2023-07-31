@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.{Order, Show}
+import cats.Order
+import cats.Show
 import org.http4s.Status.ResponseClass
 import org.http4s.internal.CharPredicate
 import org.http4s.util.Renderable
@@ -27,13 +28,13 @@ import org.http4s.util.Renderable
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
-  * @see [[http://tools.ietf.org/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-6 RFC 7231, Section 6, Response Status Codes]]
   * @see [[http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]]
   */
 sealed abstract case class Status private (code: Int)(
     val reason: String,
-    val isEntityAllowed: Boolean)
-    extends Ordered[Status]
+    val isEntityAllowed: Boolean,
+) extends Ordered[Status]
     with Renderable {
 
   val responseClass: ResponseClass =
@@ -49,7 +50,8 @@ sealed abstract case class Status private (code: Int)(
 
   @deprecated(
     "Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6")
+    "0.22.6",
+  )
   def withReason(reason: String): Status = Status(code, reason, isEntityAllowed)
 
   /** A sanitized [[reason]] phrase. Blank if reason is invalid per
@@ -70,14 +72,16 @@ object Status {
 
   private val ReasonPhrasePredicate =
     CharPredicate("\t ") ++ CharPredicate(0x21.toChar to 0x7e.toChar) ++ CharPredicate(
-      0x80.toChar to Char.MaxValue)
+      0x80.toChar to Char.MaxValue
+    )
 
   @deprecated(
     "Use fromInt(Int). This does not validate the code. Furthermore, custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends. For simplicity, we'll now assume that entities are allowed on all custom status codes.",
-    "0.22.6")
+    "0.22.6",
+  )
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
-      override lazy val sanitizedReason =
+      override lazy val sanitizedReason: String =
         if (this.reason.forall(ReasonPhrasePredicate))
           this.reason
         else
@@ -90,7 +94,7 @@ object Status {
 
   private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {
-      override def sanitizedReason = this.reason
+      override def sanitizedReason: String = this.reason
     }
 
   sealed trait ResponseClass {
@@ -123,7 +127,8 @@ object Status {
 
   @deprecated(
     "Use fromInt. Custom status phrases will be removed in 1.0. They are an optional feature, pose a security risk, and already unsupported on some backends.",
-    "0.22.6")
+    "0.22.6",
+  )
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
     withRangeCheck(code) {
       lookup(code, reason) match {
@@ -164,10 +169,10 @@ object Status {
 
   /** Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
     */
-  // scalastyle:off magic.number
   val Continue: Status = register(trust(100, "Continue", isEntityAllowed = false))
   val SwitchingProtocols: Status = register(
-    trust(101, "Switching Protocols", isEntityAllowed = false))
+    trust(101, "Switching Protocols", isEntityAllowed = false)
+  )
   val Processing: Status = register(trust(102, "Processing", isEntityAllowed = false))
   val EarlyHints: Status = register(trust(103, "Early Hints", isEntityAllowed = false))
 
@@ -232,8 +237,8 @@ object Status {
   val LoopDetected: Status = register(trust(508, "Loop Detected"))
   val NotExtended: Status = register(trust(510, "Not Extended"))
   val NetworkAuthenticationRequired: Status = register(
-    trust(511, "Network Authentication Required"))
-  // scalastyle:on magic.number
+    trust(511, "Network Authentication Required")
+  )
 
   implicit val http4sOrderForStatus: Order[Status] = Order.fromOrdering[Status]
   implicit val http4sShowForStatus: Show[Status] = Show.fromToString[Status]

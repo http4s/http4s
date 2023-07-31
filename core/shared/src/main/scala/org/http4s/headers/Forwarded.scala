@@ -17,18 +17,27 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0, Rfc5234, Parser => P}
+import cats.parse.Numbers
+import cats.parse.Parser0
+import cats.parse.Rfc5234
+import cats.parse.{Parser => P}
 import cats.syntax.either._
-import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
-import java.net.{Inet4Address, Inet6Address}
+import cats.syntax.show._
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Ipv6Address
+import org.http4s.Header
+import org.http4s._
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+import org.typelevel.ci._
+
+import java.net.Inet4Address
+import java.net.Inet6Address
 import java.nio.ByteBuffer
 import java.util.Locale
-import org.http4s._
-import org.http4s.util.{Renderable, Writer}
-import org.http4s.internal.parsing.{Rfc3986, Rfc7230}
-import org.http4s.Header
 import scala.util.Try
-import org.typelevel.ci._
 
 object Forwarded extends ForwardedRenderers {
 
@@ -45,15 +54,18 @@ object Forwarded extends ForwardedRenderers {
     sealed trait Name { self: Product => }
 
     object Name {
+      // scalafix:off Http4sGeneralLinters; bincompat until 1.0
       case class Ipv4(address: Ipv4Address) extends Name
       case class Ipv6(address: Ipv6Address) extends Name
+      // scalafix:on
       case object Unknown extends Name
 
       @deprecated("Use Name.Ipv4(Ipv4Address.fromInet4Address(address))", "0.23.5")
       def ofInet4Address(address: Inet4Address): Name =
         Ipv4(Ipv4Address.fromInet4Address(address))
       def ofIpv4Address(a: Byte, b: Byte, c: Byte, d: Byte): Name = Ipv4(
-        Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt))
+        Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
+      )
 
       @deprecated("Use Name.Ipv6(Ipv6Address.fromInet6Address(address))", "0.23.5")
       def ofInet6Address(address: Inet6Address): Name =
@@ -67,7 +79,8 @@ object Forwarded extends ForwardedRenderers {
           e: Short,
           f: Short,
           g: Short,
-          h: Short): Name = {
+          h: Short,
+      ): Name = {
         val bb = ByteBuffer.allocate(16)
         bb.putShort(a)
         bb.putShort(b)
@@ -99,7 +112,7 @@ object Forwarded extends ForwardedRenderers {
       *
       * @param value obfuscated identifier with leading '_' (underscore) symbol.
       *
-      * @see [[https://tools.ietf.org/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
+      * @see [[https://datatracker.ietf.org/doc/html/rfc7239#section-6.3 RFC 7239, Section 6.3, Obfuscated Identifier]]
       */
     sealed abstract case class Obfuscated private (value: String) extends Name with Port
 
@@ -110,7 +123,7 @@ object Forwarded extends ForwardedRenderers {
 
       def fromString(s: String): ParseResult[Obfuscated] =
         parser.parseAll(s).left.map { e =>
-          ParseFailure(s"invalid obfuscated value '$s'", e.toString)
+          ParseFailure(s"invalid obfuscated value '$s'", e.show)
         }
 
       /** Unsafe constructor for internal use only. */
@@ -119,11 +132,11 @@ object Forwarded extends ForwardedRenderers {
 
     def fromString(s: String): ParseResult[Node] =
       parser.parseAll(s).left.map { e =>
-        ParseFailure(s"invalid node '$s'", e.toString)
+        ParseFailure(s"invalid node '$s'", e.show)
       }
 
     val parser: P[Node] = {
-      // https://tools.ietf.org/html/rfc7239#section-4
+      // https://datatracker.ietf.org/doc/html/rfc7239#section-4
 
       def modelNodePortFromString(str: String): Option[Node.Port] =
         Try(Integer.parseUnsignedInt(str)).toOption.flatMap(Node.Port.fromInt(_).toOption)
@@ -147,7 +160,7 @@ object Forwarded extends ForwardedRenderers {
               .between(P.char('['), P.char(']'))
               .map(Node.Name.Ipv6.apply),
             P.string("unknown").as(Node.Name.Unknown),
-            Obfuscated.parser
+            Obfuscated.parser,
           )
         )
 
@@ -178,7 +191,8 @@ object Forwarded extends ForwardedRenderers {
       */
     private[http4s] def fromHostAndMaybePort(
         uriHost: Uri.Host,
-        port: Option[Int]): ParseResult[Host] =
+        port: Option[Int],
+    ): ParseResult[Host] =
       port.fold(ofHost(uriHost).asRight[ParseFailure])(fromHostAndPort(uriHost, _))
 
     /** Creates [[Host]] from [[Uri.host]] and [[Uri.port]] parts of the given [[Uri]].
@@ -190,7 +204,7 @@ object Forwarded extends ForwardedRenderers {
       */
     def fromString(s: String): ParseResult[Host] =
       parser.parseAll(s).left.map { e =>
-        ParseFailure(s"invalid host '$s'", e.toString)
+        ParseFailure(s"invalid host '$s'", e.show)
       }
 
     val parser: Parser0[Host] = {
@@ -251,8 +265,8 @@ object Forwarded extends ForwardedRenderers {
         maybeBy: Option[Node] = None,
         maybeFor: Option[Node] = None,
         maybeHost: Option[Host] = None,
-        maybeProto: Option[Proto] = None)
-        extends Element {
+        maybeProto: Option[Proto] = None,
+    ) extends Element {
 
       def withBy(value: Node): Element = copy(maybeBy = Some(value))
       def withFor(value: Node): Element = copy(maybeFor = Some(value))
@@ -281,9 +295,9 @@ object Forwarded extends ForwardedRenderers {
       Some(Failures.invalidPortNum(portNum))
 
   private object Failures {
-    def invalidPortNum(num: Int) =
+    def invalidPortNum(num: Int): ParseFailure =
       ParseFailure("invalid port number", s"port $num is not in range $PortMin..$PortMax")
-    def missingHost(uri: Uri) =
+    def missingHost(uri: Uri): ParseFailure =
       ParseFailure("missing host", s"no host defined in the URI '$uri'")
   }
 
@@ -291,7 +305,7 @@ object Forwarded extends ForwardedRenderers {
     ParseResult.fromParser(parser, "Invalid Forwarded header")(s)
 
   private val parser: P[Forwarded] = {
-    // https://tools.ietf.org/html/rfc7239#section-4
+    // https://datatracker.ietf.org/doc/html/rfc7239#section-4
 
     // A utility so that we can decode multiple pairs and join them in a single element
     trait Pair {
@@ -307,11 +321,12 @@ object Forwarded extends ForwardedRenderers {
     }
 
     def quoted[A](p: Parser0[A]): P[A] =
-      Rfc7230.token
-        .orElse(Rfc7230.quotedString)
+      CommonRules.token
+        .orElse(CommonRules.quotedString)
         .flatMap(str =>
           p.parseAll(str)
-            .fold(_ => P.fail[A], P.pure)) // this looks not very good
+            .fold(_ => P.fail[A], P.pure)
+        ) // this looks not very good
 
     // forwarded-pair = token "=" value
     // The syntax of a "by" value, after potential quoted-string unescaping
@@ -331,7 +346,7 @@ object Forwarded extends ForwardedRenderers {
 
     val forwardedPair = P.oneOf(
       List(
-        Rfc7230.token
+        CommonRules.token
           .flatMap(tok =>
             tok.toLowerCase(Locale.ROOT) match {
               case "by" =>
@@ -344,7 +359,8 @@ object Forwarded extends ForwardedRenderers {
                 P.char('=') *> quoted(proto).map(p => Pair(Element.fromProto(p), _.withProto(p)))
               case other =>
                 P.failWith(s"expected parameters: 'by', 'for', 'host' or 'proto', but got '$other'")
-            })
+            }
+          )
       )
     )
 
@@ -354,18 +370,18 @@ object Forwarded extends ForwardedRenderers {
         .map(pairs => pairs.tail.foldLeft(pairs.head.create)((z, x) => x.merge(z)))
 
     // Forwarded = 1#forwarded-element
-    Rfc7230
+    CommonRules
       .headerRep1(forwardedElement)
       .map(Forwarded.apply)
   }
 
-  val name = ci"Forwarded"
+  val name: CIString = ci"Forwarded"
 
   implicit val headerInstance: Header[Forwarded, Header.Recurring] =
     Header.createRendered(
       name,
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Forwarded] =

@@ -19,13 +19,17 @@ package multipart
 
 import cats.effect.Sync
 import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Flags
+import fs2.io.file.Path
 import fs2.io.readInputStream
-import fs2.io.file.{Files, Flags, Path}
 import fs2.text.utf8
-import java.io.{File, InputStream}
-import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import org.typelevel.ci._
+
+import java.io.File
+import java.io.InputStream
+import java.net.URL
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
   def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
@@ -41,7 +45,8 @@ object Part {
   def formData[F[_]](name: String, value: String, headers: Header.ToRaw*): Part[F] =
     Part(
       Headers(`Content-Disposition`("form-data", Map(ci"name" -> name))).put(headers: _*),
-      Stream.emit(value).through(utf8.encode))
+      Stream.emit(value).through(utf8.encode),
+    )
 
   @deprecated("Use overload with fs2.io.file.Path", "0.23.5")
   def fileData[F[_]: Files](name: String, file: File, headers: Header.ToRaw*): Part[F] =
@@ -52,7 +57,8 @@ object Part {
       name,
       path.fileName.toString,
       Files[F].readAll(path, ChunkSize, Flags.Read),
-      headers: _*)
+      headers: _*
+    )
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header.ToRaw*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
@@ -61,13 +67,14 @@ object Part {
       name: String,
       filename: String,
       entityBody: EntityBody[F],
-      headers: Header.ToRaw*): Part[F] =
+      headers: Header.ToRaw*
+  ): Part[F] =
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
-        "Content-Transfer-Encoding" -> "binary"
+        "Content-Transfer-Encoding" -> "binary",
       ).put(headers: _*),
-      entityBody
+      entityBody,
     )
 
   // The InputStream is passed by name, and we open it in the by-name
@@ -78,6 +85,7 @@ object Part {
       name: String,
       filename: String,
       in: => InputStream,
-      headers: Header.ToRaw*)(implicit F: Sync[F]): Part[F] =
+      headers: Header.ToRaw*
+  )(implicit F: Sync[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
 }

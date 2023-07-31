@@ -16,22 +16,29 @@
 
 package org.http4s
 
-import cats.{Contravariant, Show}
+import cats.Contravariant
+import cats.Show
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.readInputStream
+import org.http4s.Charset.`UTF-8`
+import org.http4s.headers._
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.MultipartEncoder
+import scodec.bits.ByteVector
+
 import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
-import org.http4s.headers._
-import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
 
 @implicitNotFound(
-  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
+  "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found."
+)
 trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[Entity]] in the effect type `F` */
@@ -51,7 +58,9 @@ trait EntityEncoder[F[_], A] { self =>
       override def headers: Headers = self.headers
     }
 
-  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.`Content-Type`]] of the body encoded by this [[EntityEncoder]],
+    * if defined the headers
+    */
   def contentType: Option[`Content-Type`] = headers.get[`Content-Type`]
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
@@ -91,13 +100,14 @@ object EntityEncoder {
   def simple[F[_], A](hs: Header.ToRaw*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      Entity[F](Stream.chunk(c).covary[F], Some(c.size.toLong))
+      Entity[F](Stream.chunk(c), Some(c.size.toLong))
     }
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
   def showEncoder[F[_], A](implicit
-      charset: Charset = DefaultCharset,
-      show: Show[A]): EntityEncoder[F, A] = {
+      charset: Charset = `UTF-8`,
+      show: Show[A],
+  ): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[F, A](hdr)(a => Chunk.array(show.show(a).getBytes(charset.nioCharset)))
   }
@@ -113,7 +123,8 @@ object EntityEncoder {
     * advance.  This is for use with chunked transfer encoding.
     */
   implicit def streamEncoder[F[_], A](implicit
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+      W: EntityEncoder[F, A]
+  ): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
       override def toEntity(a: Stream[F, A]): Entity[F] =
         Entity(a.flatMap(W.toEntity(_).body))
@@ -131,13 +142,15 @@ object EntityEncoder {
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.array(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](implicit
-      charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
+      charset: Charset = `UTF-8`
+  ): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
@@ -145,6 +158,9 @@ object EntityEncoder {
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.array[Byte])
+
+  implicit def byteVectorEncoder[F[_]]: EntityEncoder[F, ByteVector] =
+    chunkEncoder[F].contramap(Chunk.byteVector)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
     * `Transfer-Encoding: chunked` header is set, as we cannot know
@@ -179,7 +195,8 @@ object EntityEncoder {
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](implicit
       F: Sync[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
+      charset: Charset = `UTF-8`,
+  ): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { (fr: F[R]) =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

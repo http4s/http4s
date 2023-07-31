@@ -17,13 +17,13 @@
 package org.http4s
 package multipart
 
-import java.nio.charset.StandardCharsets
-
 import fs2._
 import org.http4s.internal.ChunkWriter
 
+import java.nio.charset.StandardCharsets
+
 private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
-  //TODO: Refactor encoders to create headers dependent on value.
+  // TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart[F]): Entity[F] =
@@ -37,8 +37,12 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
   val delimiter: Boundary => String =
     boundary => s"${Boundary.CRLF}$dash${boundary.value}"
 
+  // The close-delimiter does not require a trailing CRLF, but adding
+  // one makes it more robust with real implementations.  The wasted
+  // two bytes go into the "epilogue", which the recipient is to
+  // ignore.
   val closeDelimiter: Boundary => String =
-    boundary => s"${delimiter(boundary)}$dash"
+    boundary => s"${delimiter(boundary)}$dash${Boundary.CRLF}"
 
   val start: Boundary => Chunk[Byte] = boundary =>
     new ChunkWriter()
@@ -73,13 +77,13 @@ private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
     if (parts.isEmpty)
-      Stream.empty.covary[F]
+      Stream.empty
     else
       parts.tail
         .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
           acc ++
             renderPart(
-              Chunk.array(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
-              part)
+              Chunk.array(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8))
+            )(part)
         } ++ Stream.chunk(end(boundary))
 }

@@ -28,7 +28,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
   import Forwarded.Element
   import ForwardedHeaderSpec._
 
-  def parse(input: String) = Forwarded.parse(input)
+  private def parse(input: String) = Forwarded.parse(input)
 
   test("FORWARDED should parse single simple elements") {
     val values = List(
@@ -44,7 +44,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
       "host=\"[8:7:6:5:4:3:2:1]\"" -> Element.fromHost(uri"//[8:7:6:5:4:3:2:1]"),
       "proto=http" -> Element.fromProto(scheme"http"),
       "proto=\"https\"" -> Element.fromProto(scheme"https"),
-      "prOtO=gopher" -> Element.fromProto(scheme"gopher")
+      "prOtO=gopher" -> Element.fromProto(scheme"gopher"),
     )
 
     values.foreach { case (headerStr, parsedMod) =>
@@ -75,7 +75,7 @@ class ForwardedHeaderSpec extends Http4sSuite {
         .fromBy(uri"//_abra")
         .withFor(uri"//_kadabra")
         .withHost(uri"//http4s.org")
-        .withProto(scheme"http")
+        .withProto(scheme"http"),
     )
 
     values.foreach { case (headerStr, parsedMod) =>
@@ -91,14 +91,17 @@ class ForwardedHeaderSpec extends Http4sSuite {
         Element.fromBy(uri"//_foo"),
         Element.fromFor(uri"//_bar"),
         Element.fromHost(uri"//foo.bar"),
-        Element.fromProto(scheme"foobar")),
+        Element.fromProto(scheme"foobar"),
+      ),
       "by=_foo;for=_bar , host=foo.bar;proto=foobar" -> NEL(
         Element.fromBy(uri"//_foo").withFor(uri"//_bar"),
-        Element.fromHost(uri"//foo.bar").withProto(scheme"foobar")),
+        Element.fromHost(uri"//foo.bar").withProto(scheme"foobar"),
+      ),
       "by=_foo ,for=_bar;host=foo.bar, proto=foobar" -> NEL(
         Element.fromBy(uri"//_foo"),
         Element.fromFor(uri"//_bar").withHost(uri"//foo.bar"),
-        Element.fromProto(scheme"foobar"))
+        Element.fromProto(scheme"foobar"),
+      ),
     )
 
     values.foreach { case (headerStr, parsedMod) =>
@@ -110,12 +113,11 @@ class ForwardedHeaderSpec extends Http4sSuite {
   }
 
   test("FORWARDED should fail to parseunknown parameter") {
-
-    val values = Seq(
+    val values = List(
       "bye=1.2.3.4",
       "four=_foobar",
       "ghost=foo.bar",
-      "proot=http"
+      "proot=http",
     )
 
     values.foreach { headerStr =>
@@ -124,14 +126,14 @@ class ForwardedHeaderSpec extends Http4sSuite {
         case Left(e) => assertNoDiff(e.sanitized, "Invalid Forwarded header")
       }
     }
-
   }
+
   test("FORWARDED should fail to parseunquoted non-token") {
     val values =
-      Seq(
+      List(
         "by=[1:2:3::4:5:6]",
         "for=_abra:_kadabra",
-        "host=foo.bar:123"
+        "host=foo.bar:123",
       )
 
     values.foreach { headerStr =>
@@ -171,7 +173,7 @@ object ForwardedHeaderSpec {
             Node.Obfuscated(obfuscatedPort)
           }
         }
-      }
+      },
     )
 
   implicit def convertUriToHost(uri: Uri): Host = Host.fromUri(uri).valueOr(throw _)

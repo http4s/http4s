@@ -16,14 +16,16 @@
 
 package org.http4s.ember.client
 
+import cats.Applicative
 import cats.effect._
+import cats.syntax.functor._
 import org.http4s._
 import org.http4s.client._
 import org.typelevel.keypool._
 
 final class EmberClient[F[_]] private[client] (
     private val client: Client[F],
-    private val pool: KeyPool[F, RequestKey, EmberConnection[F]]
+    private val pool: KeyPool[F, RequestKey, EmberConnection[F]],
 )(implicit F: MonadCancelThrow[F])
     extends DefaultClient[F] {
 
@@ -36,4 +38,15 @@ final class EmberClient[F[_]] private[client] (
   def state: F[(Int, Map[RequestKey, Int])] = pool.state
 
   def run(req: Request[F]): Resource[F, Response[F]] = client.run(req)
+
+  override def defaultOnError(req: Request[F])(resp: Response[F])(implicit
+      G: Applicative[F]
+  ): F[Throwable] = F match {
+    case concurrentF: Concurrent[F @unchecked] =>
+      implicit val C = concurrentF
+      resp.body.compile.drain.as(UnexpectedStatus(resp.status, req.method, req.uri))
+
+    case _ =>
+      F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
+  }
 }

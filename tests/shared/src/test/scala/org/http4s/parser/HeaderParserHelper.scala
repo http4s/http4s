@@ -16,8 +16,8 @@
 
 package org.http4s.parser
 
-import org.http4s.ParseResult
 import org.http4s.Header
+import org.http4s.ParseResult
 import org.http4s.syntax.header._
 
 trait HeaderParserHelper[H] {
@@ -38,7 +38,8 @@ trait HeaderParserHelper[H] {
     hparse(value).fold(err => sys.error(s"Couldn't parse: '$value'.\nError: $err"), identity)
 
   private def hparse[T <: Header.Type](value: String)(implicit
-      header: Header[H, T]): ParseResult[H] =
+      header: Header[H, T]
+  ): ParseResult[H] =
     header.parse(value)
 
 }

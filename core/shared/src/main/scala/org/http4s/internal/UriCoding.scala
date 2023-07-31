@@ -16,20 +16,22 @@
 
 package org.http4s.internal
 
+import org.http4s.internal.CharPredicate.AlphaNum
+
 import java.nio.CharBuffer
 import java.nio.charset.{Charset => JCharset}
-import org.http4s.internal.CharPredicate.AlphaNum
 
 /* Exists to work around circular dependencies */
 private[http4s] object UriCoding {
-  val Unreserved = AlphaNum ++ "-_.~"
-  val QueryNoEncode = Unreserved ++ "?/"
+  val Unreserved: CharPredicate = AlphaNum ++ "-_.~"
+  val QueryNoEncode: CharPredicate = Unreserved ++ "?/"
 
   def encode(
       toEncode: String,
       charset: JCharset,
       spaceIsPlus: Boolean,
-      toSkip: Char => Boolean): String = {
+      toSkip: Char => Boolean,
+  ): String = {
     val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).toInt)
     while (in.hasRemaining) {

@@ -17,9 +17,11 @@
 package org.http4s
 package headers
 
-import java.time.{ZoneId, ZonedDateTime}
-import org.http4s.syntax.header._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.header._
+
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import scala.concurrent.duration._
 
 class RetryAfterSuite extends HeaderLaws {
@@ -30,20 +32,19 @@ class RetryAfterSuite extends HeaderLaws {
   test("render should format GMT date according to RFC 1123") {
     assertEquals(
       `Retry-After`(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString,
-      "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT")
+      "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT",
+    )
   }
   test("render should duration in seconds") {
     assertEquals(`Retry-After`.unsafeFromDuration(120.seconds).renderString, "Retry-After: 120")
   }
 
   test("build should build correctly for positives") {
-    assert(`Retry-After`.fromLong(0).map(_.value) match {
-      case Right("0") => true
-      case _ => false
-    })
+    val Right(result) = `Retry-After`.fromLong(0).map(_.value)
+    assertEquals(result, "0")
   }
   test("build should fail for negatives") {
-    assert(`Retry-After`.fromLong(-10).map(_.value).isLeft)
+    val Left(_) = `Retry-After`.fromLong(-10).map(_.value)
   }
   test("build should build unsafe for positives") {
     assertEquals(`Retry-After`.unsafeFromDuration(0.seconds).value, "0")
@@ -57,9 +58,10 @@ class RetryAfterSuite extends HeaderLaws {
   test("parse should accept http date") {
     assertEquals(
       `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry),
-      Right(Left(HttpDate.unsafeFromZonedDateTime(gmtDate))))
+      Right(Left(HttpDate.unsafeFromZonedDateTime(gmtDate))),
+    )
   }
   test("parse should accept duration on seconds") {
-    assertEquals(`Retry-After`.parse("120").map(_.retry), (Right(Right(120L))))
+    assertEquals(`Retry-After`.parse("120").map(_.retry), Right(Right(120L)))
   }
 }

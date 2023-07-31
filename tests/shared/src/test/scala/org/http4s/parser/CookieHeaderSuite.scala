@@ -21,11 +21,11 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 
 class CookieHeaderSuite extends munit.FunSuite {
-  def parse(value: String) = headers.Cookie.parse(value).valueOr(throw _)
+  private def parse(value: String) = headers.Cookie.parse(value).valueOr(throw _)
 
-  val cookiestr = "key1=value1; key2=\"value2\""
-  val cookiestrSemicolon: String = cookiestr + ";"
-  val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
+  private val cookiestr = "key1=value1; key2=\"value2\""
+  private val cookiestrSemicolon: String = cookiestr + ";"
+  private val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
 
   test("Cookie parser should parse a cookie") {
     assertEquals(parse(cookiestr).values.toList, cookies)
@@ -37,7 +37,8 @@ class CookieHeaderSuite extends munit.FunSuite {
     assertEquals(
       parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);").values,
       NonEmptyList.one(
-        RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)"))
+        RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")
+      ),
     )
   }
 }

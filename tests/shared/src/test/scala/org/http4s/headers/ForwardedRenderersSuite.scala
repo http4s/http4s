@@ -17,7 +17,8 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Ipv6Address
 import org.http4s.syntax.all._
 import org.http4s.util.Renderer
 import org.scalacheck.Prop._

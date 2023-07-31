@@ -17,8 +17,9 @@
 package org.http4s
 
 import cats.Applicative
+import cats.data.Chain
 import cats.data.Validated.Valid
-import cats.data.{Chain, ValidatedNel}
+import cats.data.ValidatedNel
 import cats.effect.Concurrent
 import cats.syntax.all._
 
@@ -144,9 +145,11 @@ object FormDataDecoder {
         .toRight(s"$key is missing")
     }(v => qpd.decode(QueryParameterValue(v)))
 
-  def field[A: QueryParamDecoder](key: String) = fieldEither(key).required
+  def field[A: QueryParamDecoder](key: String): FormDataDecoder[A] = fieldEither(key).required
 
-  def fieldOptional[A: QueryParamDecoder](key: String) = fieldEither(key).optional
+  def fieldOptional[A: QueryParamDecoder](key: String): FormDataDecoder[Option[A]] = fieldEither(
+    key
+  ).optional
 
   /** For nested, this decoder assumes that the form parameter name use "." as deliminator for levels.
     * E.g. For a field named "bar" inside a nested class under the field "foo",
@@ -178,7 +181,8 @@ object FormDataDecoder {
         .get(key + "[]")
         .orElse(data.get(key))
         .getOrElse(Chain.empty)
-        .traverse(v => qd.decode(QueryParameterValue(v))))
+        .traverse(v => qd.decode(QueryParameterValue(v)))
+    )
 
   def chainEither[A](
       key: String
@@ -199,13 +203,13 @@ object FormDataDecoder {
   /** For repeated nested values, assuming that the form parameter name use "[]." as a suffix
     * E.g. "foos[].bar"
     */
-  def list[A: FormDataDecoder](key: String) =
+  def list[A: FormDataDecoder](key: String): FormDataDecoder[List[A]] =
     chain(key).map(_.toList)
 
   /** For repeated primitive values, assuming that the form parameter name use "[]" as a suffix
     * E.g. "foos[]"
     */
-  def listOf[A](key: String)(implicit A: QueryParamDecoder[A]) =
+  def listOf[A](key: String)(implicit A: QueryParamDecoder[A]): FormDataDecoder[List[A]] =
     chainOf(key)(A).map(_.toList)
 
   private def nonEmptyFields(data: FormData): FormData =

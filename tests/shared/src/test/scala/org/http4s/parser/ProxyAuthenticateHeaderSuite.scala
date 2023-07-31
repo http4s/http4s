@@ -23,23 +23,23 @@ class ProxyAuthenticateHeaderSuite
     extends munit.FunSuite
     with HeaderParserHelper[`Proxy-Authenticate`] {
 
-  val params = Map("a" -> "b", "c" -> "d")
-  val c = Challenge("Basic", "foo")
+  private val params = Map("a" -> "b", "c" -> "d")
+  private val c = Challenge("Basic", "foo")
 
-  val str = "Basic realm=\"foo\""
+  private val str = "Basic realm=\"foo\""
 
-  val wparams = c.copy(params = params)
+  private val wparams = c.copy(params = params)
 
   test("Proxy-Authenticate Header parser shouldRender challenge correctly") {
     assertEquals(c.renderString, str)
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication") {
-    assertEquals(parseOnly(str), (`Proxy-Authenticate`(c)))
+    assertEquals(parseOnly(str), `Proxy-Authenticate`(c))
   }
 
   test("Proxy-Authenticate Header parser shouldParse a basic authentication with params") {
-    assertEquals(parseOnly(wparams.renderString), (`Proxy-Authenticate`(wparams)))
+    assertEquals(parseOnly(wparams.renderString), `Proxy-Authenticate`(wparams))
   }
 
   test("Proxy-Authenticate Header parser shouldParse multiple concatenated authentications") {
@@ -50,7 +50,8 @@ class ProxyAuthenticateHeaderSuite
   }
 
   test(
-    "Proxy-Authenticate Header parser shouldparse mulmultiple concatenated authentications with params") {
+    "Proxy-Authenticate Header parser shouldparse mulmultiple concatenated authentications with params"
+  ) {
     val twowparams =
       "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::

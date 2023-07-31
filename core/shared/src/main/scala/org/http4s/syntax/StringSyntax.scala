@@ -23,7 +23,8 @@ trait StringSyntax {
   @deprecated(
     "Use org.typelevel.ci.CIString.apply instead, " +
       """or for literals import org.typelevel.ci._ and replace "foo".ci with ci"foo"""",
-    "0.22.0")
+    "0.22.0",
+  )
   implicit def http4sStringSyntax(s: String): StringOps =
     new StringOps(s)
 }
@@ -31,7 +32,8 @@ trait StringSyntax {
 @deprecated(
   "Use org.typelevel.ci.CIString.apply instead, " +
     """or for literals import org.typelevel.ci._ and replace "foo".ci with ci"foo"""",
-  "0.22.0")
+  "0.22.0",
+)
 final class StringOps(val self: String) extends AnyVal {
   def ci: CIString = CIString(self)
 }

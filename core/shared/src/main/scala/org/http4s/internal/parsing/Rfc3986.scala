@@ -17,15 +17,19 @@
 package org.http4s
 package internal.parsing
 
-import cats.parse.Parser.{char, charIn, string}
 import cats.parse.Parser
+import cats.parse.Parser.char
+import cats.parse.Parser.charIn
+import cats.parse.Parser.string
 import cats.syntax.all._
-import com.comcast.ip4s.{Ipv4Address, Ipv6Address}
+import com.comcast.ip4s.Ipv4Address
+import com.comcast.ip4s.Ipv6Address
+
 import java.nio.ByteBuffer
 
 /** Common rules defined in Rfc3986
   *
-  * @see [[https://tools.ietf.org/html/rfc3986]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc3986]]
   */
 private[http4s] object Rfc3986 {
   def alpha: Parser[Char] = Rfc2234.alpha
@@ -80,7 +84,9 @@ private[http4s] object Rfc3986 {
   }
 
   val ipv4Address: Parser[Ipv4Address] =
-    ipv4Bytes.map { case (a, b, c, d) => Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt) }
+    ipv4Bytes.map { case (a, b, c, d) =>
+      Ipv4Address.fromBytes(a.toInt, b.toInt, c.toInt, d.toInt)
+    }.backtrack
 
   val ipv6Address: Parser[Ipv6Address] = {
     import cats.parse.{Parser => P}
@@ -128,7 +134,7 @@ private[http4s] object Rfc3986 {
     }
 
     val fullIpv6WihtOptionalIpv4 = (h16Colon.repExactlyAs[List[Short]](6) ~ ls32)
-      .map { case (ls: List[Short], rs) => toIpv6(ls.toList, rs) }
+      .map { case (ls: List[Short], rs) => toIpv6(ls, rs) }
 
     val shortIpv6WithIpv4 = for {
       lefts <- h16.repSep0(0, 5, colon).with1 <* doubleColon
@@ -138,7 +144,7 @@ private[http4s] object Rfc3986 {
     val shortIpv6 = for {
       lefts <- h16.repSep0(0, 7, colon).with1 <* doubleColon
       rights <-
-        if (6 - lefts.size > 0)(h16.repSep0(0, 6 - lefts.size, colon)) else Parser.pure(Nil)
+        if (6 - lefts.size > 0) h16.repSep0(0, 6 - lefts.size, colon) else Parser.pure(Nil)
     } yield toIpv6(lefts, rights)
 
     fullIpv6WihtOptionalIpv4.backtrack.orElse(shortIpv6WithIpv4.backtrack).orElse(shortIpv6)

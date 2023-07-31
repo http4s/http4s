@@ -17,17 +17,18 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.kernel.laws.discipline.{MonoidTests, OrderTests}
+import cats.kernel.laws.discipline.MonoidTests
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 import org.typelevel.ci._
 
 class HeadersSpec extends Http4sSuite {
-  val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw(ci"raw-header", "Raw value")
+  private val clength = `Content-Length`.unsafeFromLong(10)
+  private val raw = Header.Raw(ci"raw-header", "Raw value")
 
-  val base = Headers(clength, raw)
+  private val base = Headers(clength, raw)
 
   test("Headers should Not find a header that isn't there") {
     assertEquals(base.get[`Content-Type`], None)
@@ -38,6 +39,11 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(base.get(ci"raw-header"), Some(NonEmptyList.of(raw)))
   }
 
+  test("contains") {
+    assert(base.contains[`Content-Length`])
+    assert(!base.contains[`Content-Type`])
+  }
+
   test("Headers should Replaces headers") {
     val newlen = `Content-Length`.zero
     assertEquals(base.put(newlen).get[`Content-Length`], Some(newlen))
@@ -46,13 +52,14 @@ class HeadersSpec extends Http4sSuite {
   test("Headers should also find headers created raw") {
     val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString),
     )
     assertEquals(headers.get[Cookie].map(_.values.length), Some(2))
   }
 
   test(
-    "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)") {
+    "Headers should Remove duplicate headers which are not of type Recurring on concatenation (++)"
+  ) {
     val clength = Header.Raw(ci"Content-Length", "4")
     val hs = Headers(clength) ++ Headers(clength)
     assertEquals(hs.headers.length, 1)
@@ -64,7 +71,7 @@ class HeadersSpec extends Http4sSuite {
     val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2"))
     val hs = Headers(clength) ++ Headers(h1, h2)
     assertEquals(hs.headers.count(_.name == `Set-Cookie`.name), 2)
-    assertEquals(hs.headers.exists(_ == clength.toRaw1), true)
+    assertEquals(hs.headers.contains(clength.toRaw1), true)
   }
 
   // TODO this isn't really "raw headers" anymore
@@ -102,9 +109,31 @@ class HeadersSpec extends Http4sSuite {
   test("Headers as ToRaw") {
     val headers: Headers = Headers(
       Cookie(RequestCookie("foo", "bar")),
-      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString)
+      Header.Raw(ci"Cookie", RequestCookie("baz", "quux").toString),
     )
     assertEquals(Headers.apply(headers), headers)
+  }
+
+  test("Headers#mkString") {
+    val h1 = Headers("Header-One" -> "value one", "Header-Two" -> "value two")
+    val h2 = Headers(
+      "Header-One" -> "value one",
+      "Header-Two" -> "value two",
+      "Header-Three" -> "value three",
+    )
+    val expectedString1 = "Headers(Header-One: value one, Header-Two: value two)"
+    val expectedString2 =
+      "Headers(Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>)"
+    val expectedString3 = "Header-One: value one, Header-Two: value two"
+    val expectedString4 = "Header-One: value one, Header-Two: value two, Header-Three: <REDACTED>"
+
+    assertEquals(
+      h1.mkString("Headers(", ", ", ")", Headers.SensitiveHeaders.contains),
+      expectedString1,
+    )
+    assertEquals(h2.mkString("Headers(", ", ", ")", _.toString == "Header-Three"), expectedString2)
+    assertEquals(h1.mkString(", ", Headers.SensitiveHeaders.contains), expectedString3)
+    assertEquals(h2.mkString(", ", _.toString == "Header-Three"), expectedString4)
   }
 
   checkAll("Monoid[Headers]", MonoidTests[Headers].monoid)

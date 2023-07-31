@@ -26,15 +26,16 @@
 
 package org.http4s
 
+import cats.Order
+import cats.Show
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import cats.{Order, Show}
 import org.http4s.internal.hashLower
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util._
 
 class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
-  override def equals(o: Any) =
+  override def equals(o: Any): Boolean =
     o match {
       case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
       case _ => false
@@ -47,7 +48,7 @@ class TransferCoding private (val coding: String) extends Ordered[TransferCoding
     hash
   }
 
-  override def toString = s"TransferCoding($coding)"
+  override def toString: String = s"TransferCoding($coding)"
 
   override def compare(other: TransferCoding): Int =
     coding.compareToIgnoreCase(other.coding)
@@ -69,7 +70,7 @@ object TransferCoding {
     ParseResult.fromParser(parser, "Invalid transfer coding")(s)
 
   def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
-    ParseResult.fromParser(Rfc7230.headerRep1(parser), "Invalid transfer coding list")(s)
+    ParseResult.fromParser(CommonRules.headerRep1(parser), "Invalid transfer coding list")(s)
 
   private[http4s] val parser: Parser[TransferCoding] = {
     import cats.parse.Parser.{ignoreCase, oneOf}
@@ -79,8 +80,9 @@ object TransferCoding {
         ignoreCase("compress").as(compress),
         ignoreCase("deflate").as(deflate),
         ignoreCase("gzip").as(gzip),
-        ignoreCase("identity").as(identity)
-      ))
+        ignoreCase("identity").as(identity),
+      )
+    )
   }
 
   implicit val http4sOrderForTransferCoding: Order[TransferCoding] =

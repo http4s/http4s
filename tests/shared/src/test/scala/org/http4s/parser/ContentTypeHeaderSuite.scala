@@ -24,15 +24,16 @@ class ContentTypeHeaderSuite extends Http4sSuite {
   def parse(value: String): ParseResult[`Content-Type`] =
     `Content-Type`.parse(value)
 
-  def simple = `Content-Type`(MediaType.text.html)
-  def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
-  def extensions = `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")))
-  def extensionsandset =
+  private def simple = `Content-Type`(MediaType.text.html)
+  private def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
+  private def extensions = `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")))
+  private def extensionsandset =
     `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
-  def multipart =
+  private def multipart =
     `Content-Type`(
       MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
-      Charset.`UTF-8`)
+      Charset.`UTF-8`,
+    )
 
   {
     test("ContentType Header should Generate the correct values") {
@@ -42,7 +43,8 @@ class ContentTypeHeaderSuite extends Http4sSuite {
       assertEquals(extensionsandset.value, """text/html; foo="bar"; charset=UTF-8""")
       assertEquals(
         multipart.value,
-        """multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""")
+        """multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""",
+      )
     }
 
     test("ContentType Header should Parse correctly") {

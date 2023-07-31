@@ -16,10 +16,10 @@
 
 package org.http4s.headers
 
-import org.typelevel.ci._
 import cats.parse.Parser0
 import org.http4s._
 import org.http4s.util.Renderer
+import org.typelevel.ci._
 
 private[headers] abstract class HeaderCompanion[A](_name: String) {
 
@@ -29,7 +29,8 @@ private[headers] abstract class HeaderCompanion[A](_name: String) {
 
   implicit val headerInstance: Header[A, _ <: Header.Type]
 
-  private val invalidHeader = s"Invalid $name header"
+  private val invalidHeader = s"Invalid ${_name} header"
+
   def parse(s: String): ParseResult[A] =
     ParseResult.fromParser(parser, invalidHeader)(s)
 

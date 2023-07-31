@@ -20,19 +20,16 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import io.circe.Json
+import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import org.http4s.multipart.Multipart
-import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.syntax.all._
-import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
-// disabled until twirl supports dotty
-// import org.http4s.twirl._
-import org.http4s._
+import org.http4s.syntax.all._
+
 import scala.concurrent.duration._
 
 class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
@@ -41,7 +38,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
   def routes: HttpRoutes[F] =
     Router[F](
       "" -> rootRoutes,
-      "/auth" -> authRoutes
+      "/auth" -> authRoutes,
     )
 
   def rootRoutes: HttpRoutes[F] =
@@ -83,8 +80,8 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
         // See also org.http4s.server.staticcontent to create a mountable service for static content
         StaticFile.fromResource(path.toString, Some(req)).getOrElseF(NotFound())
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Dealing with the message body ////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Dealing with the message body ////////////////
       case req @ POST -> Root / "echo" =>
         // The body can be used in the response
         Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
@@ -124,8 +121,8 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
         // Ok(html.submissionForm("sum"))
         Ok("Hello World")
 
-      ///////////////////////////////////////////////////////////////
-      ////////////////////// Blaze examples /////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // //////////////////// Blaze examples /////////////////////////
 
       // You can use the same service for GET and HEAD. For HEAD request,
       // only the Content-Length is sent (if static content)
@@ -148,8 +145,8 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
       case GET -> Root / "overflow" =>
         Ok("foo", `Content-Length`.unsafeFromLong(2))
 
-      ///////////////////////////////////////////////////////////////
-      //////////////// Form encoding example ////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////// Form encoding example ////////////////////////
       case GET -> Root / "form-encoded" =>
         // disabled until twirl supports dotty
         // Ok(html.formEncoded())
@@ -162,22 +159,8 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
           Ok(s"Form Encoded Data\n$s")
         }
 
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Server Push //////////////////////////
-      case req @ GET -> Root / "push" =>
-        // http4s intends to be a forward looking library made with http2.0 in mind
-        val data = <html><body><img src="image.jpg"/></body></html>
-        Ok(data)
-          .map(_.withContentType(`Content-Type`(MediaType.text.`html`)))
-          .map(_.push("/image.jpg")(req))
-
-      case req @ GET -> Root / "image.jpg" =>
-        StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", Some(req))
-          .getOrElseF(NotFound())
-
-      ///////////////////////////////////////////////////////////////
-      //////////////////////// Multi Part //////////////////////////
+      // /////////////////////////////////////////////////////////////
+      // ////////////////////// Multi Part //////////////////////////
       case GET -> Root / "form" =>
         // disabled until twirl supports dotty
         // Ok(html.form())

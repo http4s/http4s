@@ -16,9 +16,10 @@
 
 package org.http4s.websocket
 
+import scodec.bits.ByteVector
+
 import java.nio.charset.StandardCharsets.UTF_8
 import scala.util.hashing.MurmurHash3
-import scodec.bits.ByteVector
 
 abstract class WebSocketFrame {
   def opcode: Int
@@ -31,8 +32,8 @@ abstract class WebSocketFrame {
     obj match {
       case wf: WebSocketFrame =>
         this.opcode == wf.opcode &&
-          this.last == wf.last &&
-          this.data == wf.data
+        this.last == wf.last &&
+        this.data == wf.data
       case _ => false
     }
 
@@ -54,7 +55,7 @@ object WebSocketFrame {
 
   sealed abstract class Text extends WebSocketFrame {
     def str: String
-    def opcode = TEXT
+    def opcode: Int = TEXT
 
     override def toString: String = s"Text('$str', last: $last)"
   }
@@ -75,7 +76,7 @@ object WebSocketFrame {
   }
 
   final case class Binary(data: ByteVector, last: Boolean = true) extends WebSocketFrame {
-    def opcode = BINARY
+    def opcode: Int = BINARY
     override def toString: String = s"Binary(Array(${data.length}), last: $last)"
   }
 
@@ -85,26 +86,31 @@ object WebSocketFrame {
   }
 
   final case class Ping(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = PING
+    def opcode: Int = PING
     override def toString: String =
       if (data.length > 0) s"Ping(Array(${data.length}))"
       else s"Ping"
   }
 
   final case class Pong(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = PONG
+    def opcode: Int = PONG
     override def toString: String =
       if (data.length > 0) s"Pong(Array(${data.length}))"
       else s"Pong"
   }
 
   final case class Close(data: ByteVector = ByteVector.empty) extends ControlFrame {
-    def opcode = CLOSE
+    def opcode: Int = CLOSE
 
     def closeCode: Int =
       if (data.length > 0)
         (data(0) << 8 & 0xff00) | (data(1) & 0xff) // 16-bit unsigned
       else 1005 // No code present
+
+    def reason: String =
+      if (data.length > 2)
+        new String(data.drop(2).toArray, UTF_8)
+      else ""
 
     override def toString: String =
       if (data.length > 0) s"Close(Array(${data.length}))"
@@ -112,8 +118,10 @@ object WebSocketFrame {
   }
 
   sealed abstract class InvalidCloseDataException extends RuntimeException
+  // scalafix:off Http4sGeneralLinters.leakingSealedHierarchy; bincompat until 1.0
   class InvalidCloseCodeException(val i: Int) extends InvalidCloseDataException
   class ReasonTooLongException(val s: String) extends InvalidCloseDataException
+  // scalafix:on
 
   private def toUnsignedShort(x: Int) = Array[Byte](((x >> 8) & 0xff).toByte, (x & 0xff).toByte)
 

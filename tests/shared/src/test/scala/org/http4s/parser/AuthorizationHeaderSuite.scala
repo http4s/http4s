@@ -23,19 +23,19 @@ import org.http4s.syntax.header._
 import org.typelevel.ci.CIString
 
 class AuthorizationHeaderSuite extends munit.FunSuite {
-  def hparse(value: String) = Authorization.parse(value)
+  private def hparse(value: String) = Authorization.parse(value)
 
   test("Authorization header should Parse a valid OAuth2 header") {
-    val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/".toSeq).mkString
+    val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/").mkString
     val h = Authorization(Credentials.Token(AuthScheme.Bearer, token + "="))
     assertEquals(hparse(h.value), Right(h))
   }
 
   test("Authorization header should Reject an invalid OAuth2 header") {
-    val invalidTokens = Seq("f!@", "=abc", "abc d")
+    val invalidTokens = List("f!@", "=abc", "abc d")
     invalidTokens.foreach { token =>
       val h = Authorization(Credentials.Token(AuthScheme.Bearer, token))
-      assert(hparse(h.value).isLeft)
+      val Left(_) = hparse(h.value)
     }
   }
 
@@ -57,13 +57,18 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
     val scheme = "foo"
     assertEquals(
       hparse("foo abc = \"123 yeah\tyeah yeah\""),
-      Right(Authorization(
-        Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))))
+      Right(
+        Authorization(
+          Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "123 yeah\tyeah yeah"))
+        )
+      ),
     )
     assertEquals(
-      //quoted-pair
+      // quoted-pair
       hparse("foo abc = \"\\123\""),
       Right(
-        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))))
+        Authorization(Credentials.AuthParams(CIString(scheme), NonEmptyList.of("abc" -> "\\123")))
+      ),
+    )
   }
 }

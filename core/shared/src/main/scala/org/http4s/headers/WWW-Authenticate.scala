@@ -19,8 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7235
 import org.http4s.Header
+import org.http4s.internal.parsing.AuthRules
 import org.typelevel.ci._
 
 object `WWW-Authenticate` {
@@ -29,7 +29,7 @@ object `WWW-Authenticate` {
     apply(NonEmptyList(head, tail.toList))
 
   private[http4s] val parser: Parser[`WWW-Authenticate`] =
-    Rfc7235.challenges.map(`WWW-Authenticate`.apply)
+    AuthRules.challenges.map(`WWW-Authenticate`.apply)
 
   def parse(s: String): ParseResult[`WWW-Authenticate`] =
     ParseResult.fromParser(parser, "Invalid WWW-Authenticate header")(s)
@@ -38,7 +38,7 @@ object `WWW-Authenticate` {
     Header.createRendered(
       ci"WWW-Authenticate",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`WWW-Authenticate`] =

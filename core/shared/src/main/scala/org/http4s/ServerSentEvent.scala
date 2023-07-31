@@ -19,12 +19,12 @@ package org.http4s
 import cats.data.Chain
 import fs2._
 import fs2.text.utf8
-
-import java.util.regex.Pattern
 import org.http4s.ServerSentEvent._
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
@@ -33,7 +33,7 @@ final case class ServerSentEvent(
     eventType: Option[String] = None,
     id: Option[EventId] = None,
     retry: Option[FiniteDuration] = None,
-    comment: Option[String] = None
+    comment: Option[String] = None,
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     data.foreach(writer << "data: " << _ << "\n")
@@ -53,7 +53,7 @@ final case class ServerSentEvent(
 }
 
 object ServerSentEvent {
-  val empty = ServerSentEvent()
+  val empty: ServerSentEvent = ServerSentEvent()
 
   final case class EventId(value: String)
 
@@ -70,7 +70,7 @@ object ServerSentEvent {
       def append(line: String): LineBuffer =
         // val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
         copy(lines = lines :+ line)
-      def reify =
+      def reify: Option[String] =
         if (lines.nonEmpty) {
           Some(lines.iterator.mkString("\n"))
         } else
@@ -83,7 +83,8 @@ object ServerSentEvent {
         id: Option[EventId],
         retry: Option[Long],
         commentBuffer: LineBuffer,
-        stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
+        stream: Stream[F, String],
+    ): Pull[F, ServerSentEvent, Unit] = {
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
         val sse = ServerSentEvent(
@@ -91,14 +92,16 @@ object ServerSentEvent {
           eventType,
           id,
           retry.map(FiniteDuration(_, TimeUnit.MILLISECONDS)),
-          commentBuffer.reify)
+          commentBuffer.reify,
+        )
         Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
       }
 
       def handleLine(
           field: String,
           value: String,
-          stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
+          stream: Stream[F, String],
+      ): Pull[F, ServerSentEvent, Unit] =
         field match {
           case "" =>
             go(dataBuffer, eventType, id, retry, commentBuffer.append(value), stream)
@@ -138,7 +141,8 @@ object ServerSentEvent {
         None,
         None,
         emptyBuffer,
-        stream.through(utf8.decode.andThen(text.lines))).stream
+        stream.through(utf8.decode.andThen(text.lines)),
+      ).stream
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =

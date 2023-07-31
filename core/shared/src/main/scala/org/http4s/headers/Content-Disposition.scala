@@ -17,12 +17,17 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.internal.CharPredicate
-import org.http4s.internal.parsing.{Rfc2616, Rfc3986, Rfc7230}
-import org.http4s.util.{Renderable, Writer}
-import java.nio.charset.StandardCharsets
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
+
+import java.nio.charset.StandardCharsets
 import scala.collection.immutable.TreeMap
 
 object `Content-Disposition` {
@@ -31,6 +36,12 @@ object `Content-Disposition` {
   def parse(s: String): ParseResult[`Content-Disposition`] =
     ParseResult.fromParser(parser, "Invalid Content-Disposition header")(s)
 
+  // Extra safe chars mentioned in rfc8187
+  // https://datatracker.ietf.org/doc/html/rfc8187#section-3.2.1
+  private val attrExtraSafeChars = List(
+    '!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~',
+  )
+
   private[http4s] val parser = {
     sealed trait ValueChar
     case class AsciiChar(c: Char) extends ValueChar
@@ -38,7 +49,7 @@ object `Content-Disposition` {
 
     val attrChar = Rfc3986.alpha
       .orElse(Rfc3986.digit)
-      .orElse(Parser.charIn('!', '#', '$', '&', '+', '-', '.', '^', '_', '`', '|', '~'))
+      .orElse(Parser.charIn(attrExtraSafeChars))
       .map { (a: Char) =>
         AsciiChar(a)
       }
@@ -49,27 +60,27 @@ object `Content-Disposition` {
     val language = Parser.string(Rfc5234.alpha.rep) ~ (Parser.string("-") *> Rfc2616.token).rep0
     val charset = Parser.ignoreCase("UTF-8").as(StandardCharsets.UTF_8)
     val extValue = (Rfc5234.dquote *> Parser.charsWhile0(
-      CharPredicate.All -- '"') <* Rfc5234.dquote) | (charset ~ (Parser.string(
-      "'") *> language.? <* Parser.string("'")) ~ valueChars).map { case ((charset, _), values) =>
-      values
-        .map {
+      CharPredicate.All -- '"'
+    ) <* Rfc5234.dquote) | (charset ~ (Parser.string("'") *> language.? <* Parser.string(
+      "'"
+    )) ~ valueChars)
+      .map { case ((charset, _), values) =>
+        val xs = values.map {
           case EncodedChar(a: Char, b: Char) =>
-            val charByte = (Character.digit(a, 16) << 4) + Character.digit(b, 16)
-            new String(Array(charByte.toByte), charset)
-          case AsciiChar(a) => a.toString
-        }
-        .toList
-        .mkString
-    }
+            ((Character.digit(a, 16) << 4) + Character.digit(b, 16)).toByte
+          case AsciiChar(a) => a.toByte
+        }.toList
+        new String(xs.toArray, charset)
+      }
 
-    val value = Rfc7230.token | Rfc7230.quotedString
+    val value = CommonRules.token | CommonRules.quotedString
 
     val parameter = for {
-      tok <- Rfc7230.token <* Parser.string("=") <* Rfc7230.ows
+      tok <- CommonRules.token <* Parser.string("=") <* CommonRules.ows
       v <- if (tok.endsWith("*")) extValue else value
     } yield (CIString(tok), v)
 
-    (Rfc7230.token ~ (Parser.string(";") *> Rfc7230.ows *> parameter).rep0).map {
+    (CommonRules.token ~ (Parser.string(";") *> CommonRules.ows *> parameter).rep0).map {
       case (token: String, params: List[(CIString, String)]) =>
         `Content-Disposition`(token, params.toMap)
     }
@@ -80,6 +91,9 @@ object `Content-Disposition` {
       ci"Content-Disposition",
       v =>
         new Renderable {
+          // https://datatracker.ietf.org/doc/html/rfc8187#section-3.2.1
+          private val attrChar = CharPredicate.AlphaNum ++ attrExtraSafeChars
+
           // Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/scaladsl/model/headers/headers.scala#L468-L492
           def render(writer: Writer): writer.type = {
             val renderExtFilename =
@@ -99,15 +113,27 @@ object `Content-Disposition` {
                 writer << "; " << k << '=' << '"'
                 writer.eligibleOnly(v, keep = safeChars, placeholder = '?') << '"'
               case (k @ ci"${_}*", v) =>
-                writer << "; " << k << '=' << "UTF-8''" << Uri.encode(v)
+                writer << "; " << k << '=' << "UTF-8''" << Uri.encode(
+                  toEncode = v,
+                  toSkip = attrChar,
+                )
               case (k, v) => writer << "; " << k << "=\"" << v << '"'
             }
             writer
           }
         },
-      parse
+      parse,
     )
 }
 
-// see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String])
+// see https://datatracker.ietf.org/doc/html/rfc2183
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[CIString, String]) {
+
+  /** Returns the `filename*` parameter if present, or else the
+    * `filename` parameter if present, or else none.
+    *
+    * @see [[https://datatracker.ietf.org/doc/html/rfc6266#section-4.3 RFC6266, Section 4.3]]
+    */
+  def filename: Option[String] =
+    parameters.get(ci"filename*").orElse(parameters.get(ci"filename"))
+}

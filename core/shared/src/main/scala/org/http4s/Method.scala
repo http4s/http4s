@@ -16,11 +16,15 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
+
 import scala.util.hashing.MurmurHash3
 
 /** An HTTP method.
@@ -36,7 +40,7 @@ import scala.util.hashing.MurmurHash3
   * intended effect on the server of multiple identical requests with that
   * method is the same as the effect for a single such request.
   *
-  * @see [[http://tools.ietf.org/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
+  * @see [[https://datatracker.ietf.org/doc/html/rfc7231#section-4 RFC 7321, Section 4, Request Methods]]
   * @see [[http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]]
   */
 final class Method private (val name: String, val isSafe: Boolean, val isIdempotent: Boolean)
@@ -52,7 +56,7 @@ final class Method private (val name: String, val isSafe: Boolean, val isIdempot
 
   override def toString(): String = name
 
-  final override def render(writer: Writer): writer.type = writer << name
+  override final def render(writer: Writer): writer.type = writer << name
 }
 
 object Method {
@@ -62,7 +66,7 @@ object Method {
     allByKey.getOrElse(s, ParseResult.fromParser(parser, "Invalid method")(s))
 
   private[http4s] val parser: Parser[Method] =
-    Rfc7230.token.map(apply)
+    CommonRules.token.map(apply)
 
   private def apply(name: String) =
     new Method(name, isSafe = false, isIdempotent = false)
@@ -111,7 +115,7 @@ object Method {
   val UPDATEREDIRECTREF: Method = idempotent("UPDATEREDIRECTREF")
   val `VERSION-CONTROL`: Method = idempotent("VERSION-CONTROL")
 
-  val all = List(
+  val all: List[Method] = List(
     ACL,
     `BASELINE-CONTROL`,
     BIND,
@@ -149,7 +153,7 @@ object Method {
     UNLINK,
     UNLOCK,
     UPDATEREDIRECTREF,
-    `VERSION-CONTROL`
+    `VERSION-CONTROL`,
   )
 
   private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap

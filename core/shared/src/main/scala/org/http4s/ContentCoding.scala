@@ -26,9 +26,10 @@
 
 package org.http4s
 
+import cats.Order
+import cats.Show
 import cats.parse.Parser
 import cats.syntax.all._
-import cats.{Order, Show}
 import org.http4s.util._
 
 import java.{util => ju}
@@ -43,7 +44,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
   def matches(encoding: ContentCoding): Boolean =
     this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding)
 
-  override def equals(o: Any) =
+  override def equals(o: Any): Boolean =
     o match {
       case that: ContentCoding =>
         this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
@@ -57,7 +58,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
     hash
   }
 
-  override def toString = s"ContentCoding(${coding.toLowerCase}, $qValue)"
+  override def toString: String = s"ContentCoding(${coding.toLowerCase}, $qValue)"
 
   override def compare(other: ContentCoding): Int =
     ContentCoding.http4sOrderForContentCoding.compare(this, other)
@@ -87,8 +88,8 @@ object ContentCoding {
   val zstd = new ContentCoding("zstd")
 
   // Legacy encodings defined by RFC2616 3.5.
-  val `x-compress` = compress
-  val `x-gzip` = gzip
+  val `x-compress`: ContentCoding = compress
+  val `x-gzip`: ContentCoding = gzip
 
   val standard: Map[String, ContentCoding] =
     List(`*`, aes128gcm, br, compress, deflate, exi, gzip, identity, `pack200-gzip`, zstd)
@@ -96,7 +97,7 @@ object ContentCoding {
       .toMap
 
   private[http4s] val parser: Parser[ContentCoding] = {
-    import org.http4s.internal.parsing.Rfc7230.token
+    import org.http4s.internal.parsing.CommonRules.token
 
     val contentCoding = token.map(s => ContentCoding.standard.getOrElse(s, new ContentCoding(s)))
 

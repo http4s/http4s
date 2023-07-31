@@ -16,15 +16,19 @@
 
 package org.http4s.websocket
 
+import cats.effect.SyncIO
+import cats.syntax.either._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import cats.effect.SyncIO
-import scodec.bits.ByteVector
+import scodec.bits._
 
-import java.nio.charset.StandardCharsets._
 import java.util.Base64
 import scala.util.Random
 
+@deprecated(
+  "Retained for binary compatibility. Side-effecting. Only used by blaze-server.",
+  "0.23.13",
+)
 private[http4s] object WebSocketHandshake {
 
   /** Creates a new [[ClientHandshaker]] */
@@ -34,7 +38,7 @@ private[http4s] object WebSocketHandshake {
   class ClientHandshaker(host: String) {
 
     /** Randomly generated 16-byte key in Base64 encoded form */
-    val key = {
+    val key: String = {
       val bytes = new Array[Byte](16)
       Random.nextBytes(bytes)
       Base64.getEncoder.encodeToString(bytes)
@@ -46,40 +50,51 @@ private[http4s] object WebSocketHandshake {
 
     /** Check if the server response is a websocket handshake response */
     def checkResponse(headers: Iterable[(String, String)]): Either[String, Unit] =
-      if (!headers.exists { case (k, v) =>
+      if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-        })
+        }
+      )
         Left("Bad Connection header")
-      else if (!headers.exists { case (k, v) =>
+      else if (
+        !headers.exists { case (k, v) =>
           k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-        })
+        }
+      )
         Left("Bad Upgrade header")
       else
         headers
           .find { case (k, _) => k.equalsIgnoreCase("Sec-WebSocket-Accept") }
           .map {
-            case (_, v) if genAcceptKey(key) == v => Right(())
+            case (_, v) if genAcceptKey(key) == v => Either.unit
             case (_, v) => Left(s"Invalid key: $v")
           }
           .getOrElse(Left("Missing Sec-WebSocket-Accept header"))
   }
 
   /** Checks the headers received from the client and if they are valid, generates response headers */
-  def serverHandshake(headers: Iterable[(String, String)])
-      : Either[(Int, String), collection.Seq[(String, String)]] =
+  def serverHandshake(
+      headers: Iterable[(String, String)]
+  ): Either[(Int, String), collection.Seq[(String, String)]] =
     if (!headers.exists { case (k, _) => k.equalsIgnoreCase("Host") })
       Left((-1, "Missing Host Header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Connection") && valueContains("Upgrade", v)
-      })
+      }
+    )
       Left((-1, "Bad Connection header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Upgrade") && v.equalsIgnoreCase("websocket")
-      })
+      }
+    )
       Left((-1, "Bad Upgrade header"))
-    else if (!headers.exists { case (k, v) =>
+    else if (
+      !headers.exists { case (k, v) =>
         k.equalsIgnoreCase("Sec-WebSocket-Version") && valueContains("13", v)
-      })
+      }
+    )
       Left((-1, "Bad Websocket Version header"))
     // we are past most of the 'just need them' headers
     else
@@ -91,7 +106,7 @@ private[http4s] object WebSocketHandshake {
           val respHeaders = collection.Seq(
             ("Upgrade", "websocket"),
             ("Connection", "Upgrade"),
-            ("Sec-WebSocket-Accept", genAcceptKey(v))
+            ("Sec-WebSocket-Accept", genAcceptKey(v)),
           )
 
           Right(respHeaders)
@@ -120,15 +135,16 @@ private[http4s] object WebSocketHandshake {
         s.startsWith("\"") &&
         s.endsWith("\"") &&
         s.substring(1, s.length - 1).equalsIgnoreCase(key)
-      })
+      }
+    )
   }
 
   private val magicString =
-    ByteVector.view("258EAFA5-E914-47DA-95CA-C5AB0DC85B11".getBytes(US_ASCII))
+    asciiBytes"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
   private val clientBaseHeaders = List(
     ("Connection", "Upgrade"),
     ("Upgrade", "websocket"),
-    ("Sec-WebSocket-Version", "13")
+    ("Sec-WebSocket-Version", "13"),
   )
 }

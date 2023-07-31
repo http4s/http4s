@@ -17,8 +17,16 @@
 package org.http4s.ember.client
 
 import cats.effect.Async
+import fs2.io.net.unixsocket.UnixSockets
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
+
+private[client] trait EmberClientBuilderPlatform {
+
+  private[client] def defaultUnixSockets[F[_]: Async]: Option[UnixSockets[F]] =
+    Some(UnixSockets.forAsync)
+
+}
 
 private[client] trait EmberClientBuilderCompanionPlatform {
 

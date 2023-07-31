@@ -17,28 +17,31 @@
 package org.http4s.ember.client
 
 import cats._
-import cats.syntax.all._
 import cats.effect._
-
-import scala.concurrent.duration._
-import org.http4s.ProductId
-import org.http4s.client._
-import org.typelevel.keypool._
-import org.typelevel.log4cats.Logger
+import cats.syntax.all._
+import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.Network
+import fs2.io.net.unixsocket._
+import org.http4s.ProductId
+import org.http4s.Request
+import org.http4s.Response
+import org.http4s.client._
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
+import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.core.h2.H2Client
+import org.http4s.ember.core.h2.H2Frame
+import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
+import org.http4s.headers.`User-Agent`
+import org.typelevel.keypool._
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.Duration
-import org.http4s.headers.{`User-Agent`}
-import org.http4s.ember.client.internal.ClientHelpers
-import org.http4s.client.middleware.RetryPolicy
-import org.http4s.client.middleware.Retry
-import org.http4s.{Request, Response}
-import fs2.io.net.unixsocket._
+import scala.concurrent.duration._
 
-final class EmberClientBuilder[F[_]: Async] private (
+final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
@@ -52,9 +55,14 @@ final class EmberClientBuilder[F[_]: Async] private (
     val additionalSocketOptions: List[SocketOption],
     val userAgent: Option[`User-Agent`],
     val checkEndpointIdentification: Boolean,
+    val serverNameIndication: Boolean,
     val retryPolicy: RetryPolicy[F],
-    private val unixSockets: Option[UnixSockets[F]]
-) { self =>
+    private val unixSockets: Option[UnixSockets[F]],
+    private val enableHttp2: Boolean,
+    private val pushPromiseSupport: Option[
+      (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+    ],
+) extends EmberClientBuilderPlatform { self =>
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
@@ -70,8 +78,13 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       userAgent: Option[`User-Agent`] = self.userAgent,
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
+      serverNameIndication: Boolean = self.serverNameIndication,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
-      unixSockets: Option[UnixSockets[F]] = self.unixSockets
+      unixSockets: Option[UnixSockets[F]] = self.unixSockets,
+      enableHttp2: Boolean = self.enableHttp2,
+      pushPromiseSupport: Option[
+        (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+      ] = self.pushPromiseSupport,
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
@@ -87,69 +100,172 @@ final class EmberClientBuilder[F[_]: Async] private (
       additionalSocketOptions = additionalSocketOptions,
       userAgent = userAgent,
       checkEndpointIdentification = checkEndpointIdentification,
+      serverNameIndication = serverNameIndication,
       retryPolicy = retryPolicy,
-      unixSockets = unixSockets
+      unixSockets = unixSockets,
+      enableHttp2 = enableHttp2,
+      pushPromiseSupport = pushPromiseSupport,
     )
 
-  def withTLSContext(tlsContext: TLSContext[F]) =
+  /** Sets a custom `TLSContext`.
+    * By default a `TLSContext` is created from the system default `SSLContext`.
+    */
+  def withTLSContext(tlsContext: TLSContext[F]): EmberClientBuilder[F] =
     copy(tlsContextOpt = tlsContext.some)
-  def withoutTLSContext = copy(tlsContextOpt = None)
 
-  def withSocketGroup(sg: SocketGroup[F]) = copy(sgOpt = sg.some)
+  /** Unset any `TLSContext` and creates one from the system default `SSLContext`. */
+  def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
-  def withMaxTotal(maxTotal: Int) = copy(maxTotal = maxTotal)
-  def withMaxPerKey(maxPerKey: RequestKey => Int) = copy(maxPerKey = maxPerKey)
-  def withIdleTimeInPool(idleTimeInPool: Duration) = copy(idleTimeInPool = idleTimeInPool)
-  def withIdleConnectionTime(idleConnectionTime: Duration) =
+  /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
+  def withSocketGroup(sg: SocketGroup[F]): EmberClientBuilder[F] = copy(sgOpt = sg.some)
+
+  /** Sets the connection pool's total maximum number of idle connections.
+    * Per `RequestKey` values set with `withMaxPerKey` cannot override this total maximum.
+    */
+  def withMaxTotal(maxTotal: Int): EmberClientBuilder[F] = copy(maxTotal = maxTotal)
+
+  /** Sets the connection pool's maximum number of pooled connections per RequestKey. */
+  def withMaxPerKey(maxPerKey: RequestKey => Int): EmberClientBuilder[F] =
+    copy(maxPerKey = maxPerKey)
+
+  /** Sets the connection pool's maximum time a connection can be idle.
+    * The timeout starts when a connection is returned the the pool, and reset when it is borrowed.
+    */
+  def withIdleTimeInPool(idleTimeInPool: Duration): EmberClientBuilder[F] =
+    copy(idleTimeInPool = idleTimeInPool)
+
+  /** Sets the idle timeout on connections.  The timeout is reset with each read or write. */
+  def withIdleConnectionTime(idleConnectionTime: Duration): EmberClientBuilder[F] =
     copy(idleConnectionTime = idleConnectionTime)
 
-  def withLogger(logger: Logger[F]) = copy(logger = logger)
-  def withChunkSize(chunkSize: Int) = copy(chunkSize = chunkSize)
-  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int) =
+  /** Sets the `Logger`. */
+  def withLogger(logger: Logger[F]): EmberClientBuilder[F] = copy(logger = logger)
+
+  /** Sets the max `chunkSize` in bytes to read from sockets at a time. */
+  def withChunkSize(chunkSize: Int): EmberClientBuilder[F] = copy(chunkSize = chunkSize)
+
+  /** Sets the max size in bytes to read while parsing response headers. */
+  def withMaxResponseHeaderSize(maxResponseHeaderSize: Int): EmberClientBuilder[F] =
     copy(maxResponseHeaderSize = maxResponseHeaderSize)
 
-  def withTimeout(timeout: Duration) = copy(timeout = timeout)
-  def withAdditionalSocketOptions(additionalSocketOptions: List[SocketOption]) =
+  /** Sets the header receive timeout on connections. */
+  def withTimeout(timeout: Duration): EmberClientBuilder[F] = copy(timeout = timeout)
+
+  /** Sets additional socket options to apply to the underlying sockets. */
+  def withAdditionalSocketOptions(
+      additionalSocketOptions: List[SocketOption]
+  ): EmberClientBuilder[F] =
     copy(additionalSocketOptions = additionalSocketOptions)
 
-  def withUserAgent(userAgent: `User-Agent`) =
+  /** Sets the default User-Agent string.
+    * A `User-Agent` header on a request takes priority over this setting.
+    */
+  def withUserAgent(userAgent: `User-Agent`): EmberClientBuilder[F] =
     copy(userAgent = userAgent.some)
-  def withoutUserAgent =
+
+  /** Clears the default User-Agent string, so no User-Agent header is sent.
+    * A `User-Agent` header on a request takes priority over this setting.
+    */
+  def withoutUserAgent: EmberClientBuilder[F] =
     copy(userAgent = None)
 
-  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean) =
+  /** Sets whether or not to force endpoint authentication/verification on the `TLSContext`.
+    * Enabled by default. When enabled the server's identity will be checked against the server's
+    * certificate during SSL/TLS handshaking. This is important to avoid man-in-the-middle attacks
+    * by confirming server identity against their certificate.
+    */
+  def withCheckEndpointAuthentication(checkEndpointIdentification: Boolean): EmberClientBuilder[F] =
     copy(checkEndpointIdentification = checkEndpointIdentification)
 
-  def withoutCheckEndpointAuthentication = copy(checkEndpointIdentification = false)
+  /** Disables endpoint authentication/verification. */
+  def withoutCheckEndpointAuthentication: EmberClientBuilder[F] =
+    copy(checkEndpointIdentification = false)
 
-  def withRetryPolicy(retryPolicy: RetryPolicy[F]) =
+  /** Sets whether or not to enable Server Name Indication on the `TLSContext`.
+    * Enabled by default. When enabled the hostname will be indicated during SSL/TLS handshaking.
+    * This is important to reach a web server that is responsible for multiple hostnames so that it
+    * can use the correct certificate.
+    */
+  def withServerNameIndication(serverNameIndication: Boolean): EmberClientBuilder[F] =
+    copy(serverNameIndication = serverNameIndication)
+
+  /** Disables Server Name Indication */
+  def withoutServerNameIndication: EmberClientBuilder[F] =
+    copy(serverNameIndication = false)
+
+  /** Sets the `RetryPolicy`. */
+  def withRetryPolicy(retryPolicy: RetryPolicy[F]): EmberClientBuilder[F] =
     copy(retryPolicy = retryPolicy)
 
-  def withUnixSockets(unixSockets: UnixSockets[F]) =
+  /** Sets underlying `UnixSockets` to use for requests with a `UnixSocketAddress`.
+    * Useful for secure and efficient inter-process communication.
+    * See also `UnixSocket` client middleware to direct all requests to a `UnixSocketAddress`.
+    */
+  def withUnixSockets(unixSockets: UnixSockets[F]): EmberClientBuilder[F] =
     copy(unixSockets = Some(unixSockets))
+
+  /** Enables HTTP/2 support. Disabled by default. */
+  def withHttp2: EmberClientBuilder[F] = copy(enableHttp2 = true)
+
+  /** Disables HTTP/2 support. Disabled by default. */
+  def withoutHttp2: EmberClientBuilder[F] = copy(enableHttp2 = false)
+
+  /** Push promises are implemented via responding with a PushPromise frame
+    * which is effectively a request headers frame for a request that wasn't
+    * sent by the client.
+    *
+    * The second param is the response once it is available that you can wait
+    * for OR you can cancel the Outcome to send a termination signal to
+    * ask the remote server to stop sending additional data from this data stream.
+    * If you want to handle these the outcome can just be outcome successful. But
+    * you can save significant data by canceling requests you don't want.
+    *
+    * Push promises are very useful to get all the data necessary to render a page in parallel
+    * to the actual data for that page leading to much faster render times, or sending
+    * additional cache enriching information.
+    *
+    * Push promise support is disabled by default.
+    */
+  def withPushPromiseSupport(
+      f: (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
+  ): EmberClientBuilder[F] =
+    copy(pushPromiseSupport = f.some)
+
+  /** Disables Push promise support.
+    * Push promise support is disabled by default.
+    */
+  def withoutPushPromiseSupport: EmberClientBuilder[F] =
+    copy(pushPromiseSupport = None)
 
   def build: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
-      tlsContextOptWithDefault <- Resource.eval(
-        tlsContextOpt.fold(Network[F].tlsContext.system.attempt.map(_.toOption))(_.some.pure[F]))
+      tlsContextOptWithDefault <-
+        tlsContextOpt
+          .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
+            _.some.pure[Resource[F, *]]
+          )
       builder =
         KeyPool.Builder
-          .apply[F, RequestKey, EmberConnection[F]](
-            (requestKey: RequestKey) =>
-              EmberConnection(
-                org.http4s.ember.client.internal.ClientHelpers
-                  .requestKeyToSocketWithKey[F](
-                    requestKey,
-                    tlsContextOptWithDefault,
-                    checkEndpointIdentification,
-                    sg,
-                    additionalSocketOptions
-                  )) <* logger.trace(s"Created Connection - RequestKey: ${requestKey}"),
-            (connection: EmberConnection[F]) =>
-              logger.trace(
-                s"Shutting Down Connection - RequestKey: ${connection.keySocket.requestKey}") >>
-                connection.cleanup
+          .apply[F, RequestKey, EmberConnection[F]]((requestKey: RequestKey) =>
+            EmberConnection(
+              org.http4s.ember.client.internal.ClientHelpers
+                .requestKeyToSocketWithKey[F](
+                  requestKey,
+                  tlsContextOptWithDefault,
+                  checkEndpointIdentification,
+                  serverNameIndication,
+                  sg,
+                  additionalSocketOptions,
+                ),
+              chunkSize,
+            ) <* Resource
+              .eval(logger.trace(s"Created Connection - RequestKey: ${requestKey}"))
+              .onFinalize(
+                logger.trace(
+                  s"Shutting Down Connection - RequestKey: ${requestKey}"
+                )
+              )
           )
           .withDefaultReuseState(Reusable.DontReuse)
           .withIdleTimeAllowedInPool(idleTimeInPool)
@@ -157,6 +273,19 @@ final class EmberClientBuilder[F[_]: Async] private (
           .withMaxTotal(maxTotal)
           .withOnReaperException(_ => Applicative[F].unit)
       pool <- builder.build
+      optH2 <- (if (enableHttp2) tlsContextOptWithDefault else None).traverse { context =>
+        H2Client.impl[F](
+          pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
+          context,
+          unixSockets,
+          logger,
+          if (pushPromiseSupport.isDefined) default
+          else
+            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+          checkEndpointIdentification,
+          serverNameIndication,
+        )
+      }
     } yield {
       def webClient(request: Request[F]): Resource[F, Response[F]] =
         for {
@@ -168,17 +297,19 @@ final class EmberClientBuilder[F[_]: Async] private (
               )
             }
           )
-          responseResource <- Resource.makeCase(
-            ClientHelpers
-              .request[F](
-                request,
-                managed.value,
-                chunkSize,
-                maxResponseHeaderSize,
-                idleConnectionTime,
-                timeout,
-                userAgent
-              )
+          responseResource <- Resource.makeCaseFull((poll: Poll[F]) =>
+            poll(
+              ClientHelpers
+                .request[F](
+                  request,
+                  managed.value,
+                  chunkSize,
+                  maxResponseHeaderSize,
+                  idleConnectionTime,
+                  timeout,
+                  userAgent,
+                )
+            )
           ) { case ((response, drain), exitCase) =>
             exitCase match {
               case Resource.ExitCase.Succeeded =>
@@ -187,7 +318,9 @@ final class EmberClientBuilder[F[_]: Async] private (
                   response,
                   drain,
                   managed.value.nextBytes,
-                  managed.canBeReused)
+                  managed.canBeReused,
+                  managed.value.startNextRead,
+                )
               case _ => Applicative[F].unit
             }
           }
@@ -195,14 +328,33 @@ final class EmberClientBuilder[F[_]: Async] private (
 
       def unixSocketClient(
           request: Request[F],
-          address: UnixSocketAddress): Resource[F, Response[F]] =
+          address: UnixSocketAddress,
+          enableEndpointValidation: Boolean,
+          enableServerNameIndication: Boolean,
+      ): Resource[F, Response[F]] =
         Resource
-          .eval(ApplicativeThrow[F].catchNonFatal(unixSockets.getOrElse(UnixSockets.forAsync[F])))
+          .eval(
+            unixSockets
+              .orElse(defaultUnixSockets)
+              .liftTo(
+                new RuntimeException(
+                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
+                )
+              )
+          )
           .flatMap(unixSockets =>
-            Resource
-              .make(EmberConnection(
-                ClientHelpers.unixSocket(request, unixSockets, address, tlsContextOpt)))(ec =>
-                ec.shutdown))
+            EmberConnection(
+              ClientHelpers.unixSocket(
+                request,
+                unixSockets,
+                address,
+                tlsContextOpt,
+                enableEndpointValidation,
+                enableServerNameIndication,
+              ),
+              chunkSize,
+            )
+          )
           .flatMap(connection =>
             Resource.eval(
               ClientHelpers
@@ -213,24 +365,31 @@ final class EmberClientBuilder[F[_]: Async] private (
                   maxResponseHeaderSize,
                   idleConnectionTime,
                   timeout,
-                  userAgent
+                  userAgent,
                 )
-                .map(_._1)))
+                .map(_._1)
+            )
+          )
       val client = Client[F] { request =>
         request.attributes
           .lookup(Request.Keys.UnixSocketAddress)
-          .fold(webClient(request)) { (address: UnixSocketAddress) =>
-            unixSocketClient(request, address)
-          }
+          .fold(webClient(request))(
+            unixSocketClient(request, _, checkEndpointIdentification, serverNameIndication)
+          )
       }
-      val stackClient = Retry(retryPolicy)(client)
-      new EmberClient[F](stackClient, pool)
+      val stackClient = Retry.create(retryPolicy, logRetries = false)(client)
+      val iClient = new EmberClient[F](stackClient, pool)
+
+      optH2.fold(iClient) { h2 =>
+        val h2Client = Client(h2(iClient.run))
+        new EmberClient(h2Client, pool)
+      }
     }
 }
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
 
-  def default[F[_]: Async] =
+  def default[F[_]: Async: Network] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       sgOpt = None,
@@ -245,26 +404,34 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
       checkEndpointIdentification = true,
+      serverNameIndication = true,
       retryPolicy = Defaults.retryPolicy,
-      unixSockets = None
+      unixSockets = None,
+      enableHttp2 = false,
+      pushPromiseSupport = None,
     )
+
+  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
+    default(async, Network.forAsync(async))
 
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
-    val idleConnectionTime = org.http4s.client.defaults.RequestTimeout
+    val idleConnectionTime: FiniteDuration = org.http4s.client.defaults.RequestTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings
-    val maxPerKey = { (_: RequestKey) =>
+    val maxPerKey: RequestKey => Int = { (_: RequestKey) =>
       100
     }
-    val maxTotal = 100
-    val idleTimeInPool = 30.seconds // 30 Seconds in Nanos
-    val additionalSocketOptions = List.empty[SocketOption]
-    val userAgent = Some(
-      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version))))
+    val maxTotal: Int = 100
+    val idleTimeInPool: FiniteDuration = 30.seconds // 30 Seconds in Nanos
+    val additionalSocketOptions: List[SocketOption] = List.empty[SocketOption]
+    val userAgent: Some[`User-Agent`] = Some(
+      `User-Agent`(ProductId("http4s-ember", Some(org.http4s.BuildInfo.version)))
+    )
 
     def retryPolicy[F[_]]: RetryPolicy[F] = ClientHelpers.RetryLogic.retryUntilFresh
   }

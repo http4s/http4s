@@ -17,26 +17,30 @@
 package org.http4s
 package headers
 
-import java.time.{ZoneId, ZonedDateTime}
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
+
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class ExpiresSuite extends HeaderLaws {
   checkAll("Expires", headerLaws[Expires])
 
-  val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
-  val epochString = "Thu, 01 Jan 1970 00:00:00 GMT"
+  private val gmtDate = ZonedDateTime.of(1994, 11, 6, 8, 49, 37, 0, ZoneId.of("GMT"))
+  private val epochString = "Thu, 01 Jan 1970 00:00:00 GMT"
 
   test("render should format GMT date according to RFC 1123") {
     assertEquals(
       Expires(HttpDate.unsafeFromZonedDateTime(gmtDate)).value,
-      "Sun, 06 Nov 1994 08:49:37 GMT")
+      "Sun, 06 Nov 1994 08:49:37 GMT",
+    )
   }
 
   test("parse should accept format RFC 1123") {
     assertEquals(
       Expires.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.expirationDate),
-      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)))
+      Right(HttpDate.unsafeFromZonedDateTime(gmtDate)),
+    )
   }
   test("parse should accept 0 value (This value is not legal but it used by some servers)") {
     // 0 is an illegal value used to denote an expired header, should be

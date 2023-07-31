@@ -31,11 +31,12 @@ object `Accept-Language` {
   private[http4s] val parser: Parser[`Accept-Language`] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-    import org.http4s.internal.parsing.Rfc7230.headerRep1
+    import org.http4s.internal.parsing.CommonRules.headerRep1
 
     val languageTag =
       ((alpha.rep | charIn('*')).string ~ (ch(
-        '-') *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
+        '-'
+      ) *> (alpha | digit).rep.string).rep0 ~ QValue.parser).map { case ((main, sub), q) =>
         LanguageTag(main, q, sub)
       }
 
@@ -46,7 +47,7 @@ object `Accept-Language` {
     Header.createRendered(
       ci"Accept-Language",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Language`] =
@@ -56,7 +57,7 @@ object `Accept-Language` {
 /** Request header used to indicate which natural language would be preferred for the response
   * to be translated into.
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.5 RFC-7231 Section 5.3.5]]
   */
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) {
   def qValue(languageTag: LanguageTag): QValue =

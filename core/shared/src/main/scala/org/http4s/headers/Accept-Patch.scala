@@ -19,7 +19,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `Accept-Patch` {
@@ -30,18 +30,18 @@ object `Accept-Patch` {
     ParseResult.fromParser(parser, "Invalid Accept-Patch header")(s)
 
   private[http4s] val parser =
-    Rfc7230.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
+    CommonRules.headerRep1(MediaType.parser).map(`Accept-Patch`(_))
 
   implicit val headerInstance: Header[`Accept-Patch`, Header.Recurring] =
     Header.createRendered(
       ci"Accept-Patch",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Accept-Patch`] =
     (a, b) => `Accept-Patch`(a.values.concatNel(b.values))
 }
 
-// see https://tools.ietf.org/html/rfc5789#section-3.1
+// see https://datatracker.ietf.org/doc/html/rfc5789#section-3.1
 final case class `Accept-Patch`(values: NonEmptyList[MediaType])

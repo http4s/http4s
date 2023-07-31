@@ -21,14 +21,17 @@ import cats.effect.IO
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pure
-import org.http4s.headers.{Authorization, Cookie, `Content-Type`, `X-Forwarded-For`}
+import org.http4s.headers.Authorization
+import org.http4s.headers.Cookie
+import org.http4s.headers.`Content-Type`
+import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault._
 
 class MessageSuite extends Http4sSuite {
-  val local = SocketAddress(ipv4"127.0.0.1", port"8080")
-  val remote = SocketAddress(ipv4"192.168.0.1", port"45444")
+  private val local = SocketAddress(ipv4"127.0.0.1", port"8080")
+  private val remote = SocketAddress(ipv4"192.168.0.1", port"45444")
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
@@ -58,7 +61,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "ConnectionInfo should be utilized to determine the from value (first X-Forwarded-For if present)") {
+    "ConnectionInfo should be utilized to determine the from value (first X-Forwarded-For if present)"
+  ) {
     val forwardedValues =
       NonEmptyList.of(Some(ipv4"192.168.1.1"), Some(ipv4"192.168.1.2"))
     val r = Request()
@@ -68,7 +72,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)") {
+    "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)"
+  ) {
     val r = Request()
       .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
     assertEquals(r.from, Option(remote.host))
@@ -81,7 +86,8 @@ class MessageSuite extends Http4sSuite {
         .headers
         .get[Cookie]
         .map(_.value),
-      Some("token=value"))
+      Some("token=value"),
+    )
   }
 
   test("support cookies should contain a Cookie header when multiple explicit cookies are added") {
@@ -92,7 +98,7 @@ class MessageSuite extends Http4sSuite {
         .headers
         .get[Cookie]
         .map(_.value),
-      Some("token1=value1; token2=value2")
+      Some("token1=value1; token2=value2"),
     )
   }
 
@@ -103,7 +109,8 @@ class MessageSuite extends Http4sSuite {
         .headers
         .get[Cookie]
         .map(_.value),
-      Some("token=value"))
+      Some("token=value"),
+    )
   }
 
   test("support cookies should contain Cookie header(s) when name/value pairs are added") {
@@ -114,13 +121,13 @@ class MessageSuite extends Http4sSuite {
         .headers
         .get[Cookie]
         .map(_.value),
-      Some("token1=value1; token2=value2")
+      Some("token1=value1; token2=value2"),
     )
   }
 
-  val path1 = uri"/path1"
-  val path2 = path"/somethingelse"
-  val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
+  private val path1 = uri"/path1"
+  private val path2 = path"/somethingelse"
+  private val attributes = Vault.empty.insert(Request.Keys.PathInfoCaret, 3)
 
   test("Request.with...reset pathInfo if uri is changed") {
     val originalReq = Request(uri = path1, attributes = attributes)
@@ -150,7 +157,8 @@ class MessageSuite extends Http4sSuite {
   val cookieList = List(
     RequestCookie("test1", "value1"),
     RequestCookie("test2", "value2"),
-    RequestCookie("test3", "value3"))
+    RequestCookie("test3", "value3"),
+  )
 
   test("cookies should be empty if there are no Cookie headers present") {
     assertEquals(Request(Method.GET).cookies, List.empty)
@@ -170,10 +178,11 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "cookies should parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies") {
+    "cookies should parse HTTP/1 and HTTP/2 Cookie headers on a single request into corresponding RequestCookies"
+  ) {
     val cookies = Headers(
       "Cookie" -> "test1=value1; test2=value2", // HTTP/1 style
-      "Cookie" -> "test3=value3"
+      "Cookie" -> "test3=value3",
     ) // HTTP/2 style (separate headers for separate cookies)
     val request = Request(Method.GET, headers = cookies)
     assertEquals(request.cookies, cookieList)
@@ -184,7 +193,8 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
+      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Authorization: <REDACTED>))",
+    )
   }
 
   test("toString should redact Cookie Headers") {
@@ -192,11 +202,11 @@ class MessageSuite extends Http4sSuite {
       Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
     assertEquals(
       request.toString,
-      "Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>))")
+      "Request(method=GET, uri=/, httpVersion=HTTP/1.1, headers=Headers(Cookie: <REDACTED>))",
+    )
   }
 
-  // todo compiles on dotty
-  test("covary should disallow unrelated effects".ignore) {
+  test("covary should disallow unrelated effects") {
     assert(
       compileErrors("Request[Option]().covary[IO]").nonEmpty
     )
@@ -208,53 +218,90 @@ class MessageSuite extends Http4sSuite {
     Request[F2]().covary[F1]
   }
 
-  val uri = uri"http://localhost:1234/foo"
-  val request = Request[IO](Method.GET, uri)
+  private val uri = uri"http://localhost:1234/foo"
+  private val request = Request[IO](Method.GET, uri)
 
   test("asCurl should build cURL representation with scheme and authority") {
-    assertEquals(request.asCurl(), "curl -X GET 'http://localhost:1234/foo'")
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo'""".stripMargin
+
+    assertEquals(request.asCurl(), expected)
   }
 
   test("asCurl should build cURL representation with headers") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'k1: v1' \
+        |  --header 'k2: v2'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("k1" -> "v1", "k2" -> "v2")
         .asCurl(),
-      "curl -X GET 'http://localhost:1234/foo' -H 'k1: v1' -H 'k2: v2'")
+      expected,
+    )
   }
 
   test("asCurl should build cURL representation but redact sensitive information on default") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Cookie: <REDACTED>' \
+        |  --header 'Authorization: <REDACTED>'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("Cookie" -> "k3=v3; k4=v4", Authorization(BasicCredentials("user", "pass")))
         .asCurl(),
-      "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: <REDACTED>' -H 'Authorization: <REDACTED>'"
+      expected,
     )
   }
 
   test("asCurl should build cURL representation but display sensitive headers on demand") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Cookie: k3=v3; k4=v4' \
+        |  --header 'k5: v5' \
+        |  --header 'Authorization: Basic dXNlcjpwYXNz'""".stripMargin
+
     assertEquals(
       request
         .withHeaders(
           "Cookie" -> "k3=v3; k4=v4",
           "k5" -> "v5",
-          Authorization(BasicCredentials("user", "pass")))
+          Authorization(BasicCredentials("user", "pass")),
+        )
         .asCurl(_ => false),
-      "curl -X GET 'http://localhost:1234/foo' -H 'Cookie: k3=v3; k4=v4' -H 'k5: v5' -H 'Authorization: Basic dXNlcjpwYXNz'"
+      expected,
     )
   }
 
   test("asCurl should escape quotation marks in header") {
+    val expected =
+      """curl \
+        |  --request GET \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'k6: '\''v6'\''' \
+        |  --header ''\''k7'\'': v7'""".stripMargin
+
     assertEquals(
       request
         .withHeaders("k6" -> "'v6'", "'k7'" -> "v7")
         .asCurl(),
-      s"""curl -X GET 'http://localhost:1234/foo' -H 'k6: '\\''v6'\\''' -H ''\\''k7'\\'': v7'"""
+      expected,
     )
   }
 
   test(
-    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch") {
+    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMismatch"
+  ) {
     val req =
       Request[IO](headers = Headers(`Content-Type`(MediaType.application.`octet-stream`)))
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
@@ -262,7 +309,8 @@ class MessageSuite extends Http4sSuite {
   }
 
   test(
-    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMissing") {
+    "decode should produce a UnsupportedMediaType in the event of a decode failure MediaTypeMissing"
+  ) {
     val req = Request[IO]()
     val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
     resp.map(_.status).assertEquals(Status.UnsupportedMediaType)
@@ -270,7 +318,10 @@ class MessageSuite extends Http4sSuite {
 
   test("toString should redact a `Set-Cookie` header") {
     val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
-    assertEquals(resp.toString, "Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
+    assertEquals(
+      resp.toString,
+      "Response(status=200, httpVersion=HTTP/1.1, headers=Headers(Set-Cookie: <REDACTED>))",
+    )
   }
 
   test("not Found should return a plain text UTF-8 not found response") {
@@ -281,8 +332,7 @@ class MessageSuite extends Http4sSuite {
     assertEquals(resp.body.through(fs2.text.utf8.decode).toList.mkString(""), "Not found")
   }
 
-  // todo compiles on dotty
-  test("covary should disallow unrelated effects".ignore) {
+  test("covary should disallow unrelated effects") {
     assert(
       compileErrors("Response[Option]().covary[IO]").nonEmpty
     )
@@ -305,5 +355,15 @@ class MessageSuite extends Http4sSuite {
       .filter(_.name === Header[`Content-Type`].name)
     // Should preserve only the EntityEncoder's Content-Type
     assertEquals(hdrs, List(Header.Raw(ci"Content-Type", "text/plain; charset=UTF-8")))
+  }
+
+  test("isIdempotent") {
+    assert(Request[IO](method = Method.GET).isIdempotent)
+    assert(Request[IO](method = Method.DELETE).isIdempotent)
+    assert(Request[IO](method = Method.PUT).isIdempotent)
+    assert(!Request[IO](method = Method.POST).isIdempotent)
+    assert(
+      Request[IO](method = Method.POST, headers = Headers("Idempotency-Key" -> "123")).isIdempotent
+    )
   }
 }

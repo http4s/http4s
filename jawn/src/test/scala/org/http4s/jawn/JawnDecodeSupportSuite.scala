@@ -17,11 +17,11 @@
 package org.http4s
 package jawn
 
-import cats.syntax.all._
 import cats.effect.IO
+import cats.syntax.all._
 
 trait JawnDecodeSupportSuite[J] extends Http4sSuite {
-  def testJsonDecoder(decoder: EntityDecoder[IO, J]) = {
+  def testJsonDecoder(decoder: EntityDecoder[IO, J]): Unit = {
     test("return right when the entity is valid") {
       val resp = Response[IO](Status.Ok).withEntity("""{"valid": true}""")
       decoder.decode(resp, strict = false).value.map(_.isRight).assert
@@ -29,22 +29,22 @@ trait JawnDecodeSupportSuite[J] extends Http4sSuite {
 
     testErrors(decoder)(
       emptyBody = { case MalformedMessageBodyFailure("Invalid JSON: empty body", _) => true },
-      parseError = { case MalformedMessageBodyFailure("Invalid JSON", _) => true }
+      parseError = { case MalformedMessageBodyFailure("Invalid JSON", _) => true },
     )
   }
 
   def testJsonDecoderError(decoder: EntityDecoder[IO, J])(
       emptyBody: PartialFunction[DecodeFailure, Boolean],
-      parseError: PartialFunction[DecodeFailure, Boolean]
-  ) =
+      parseError: PartialFunction[DecodeFailure, Boolean],
+  ): Unit =
     test("json decoder with custom errors") {
       testErrors(decoder)(emptyBody = emptyBody, parseError = parseError)
     }
 
-  private def testErrors(decoder: EntityDecoder[IO, J])(
+  def testErrors(decoder: EntityDecoder[IO, J])(
       emptyBody: PartialFunction[DecodeFailure, Boolean],
-      parseError: PartialFunction[DecodeFailure, Boolean]
-  ) = {
+      parseError: PartialFunction[DecodeFailure, Boolean],
+  ): Unit = {
     test("return a ParseFailure when the entity is invalid") {
       val resp = Response[IO](Status.Ok).withEntity("""garbage""")
       decoder

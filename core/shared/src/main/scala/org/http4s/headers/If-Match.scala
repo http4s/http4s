@@ -20,8 +20,7 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import cats.syntax.foldable._
-import org.http4s.internal.parsing.Rfc7230
-
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `If-Match` {
@@ -38,7 +37,7 @@ object `If-Match` {
   private[http4s] val parser = Parser
     .string("*")
     .as(`*`)
-    .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
+    .orElse(CommonRules.headerRep1(EntityTag.parser).map { tags =>
       `If-Match`(Some(tags))
     })
 
@@ -50,7 +49,7 @@ object `If-Match` {
         case Some(nel) => nel.mkString_("", ",", "")
 
       },
-      parse
+      parse,
     )
 
 }
@@ -58,6 +57,6 @@ object `If-Match` {
 /** Request header to make the request conditional on the current contents of the origin server
   * at the given target resource (URI).
   *
-  * [[https://tools.ietf.org/html/rfc7232#section-3.1 RFC-7232 Section 3.1]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7232#section-3.1 RFC-7232 Section 3.1]]
   */
 final case class `If-Match`(tags: Option[NonEmptyList[EntityTag]])

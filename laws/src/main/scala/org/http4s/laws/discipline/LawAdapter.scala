@@ -16,14 +16,14 @@
 
 package org.http4s.laws.discipline
 
-import cats.{Eq, MonadThrow}
+import cats.Eq
+import cats.MonadThrow
 import cats.laws.IsEq
 import cats.syntax.all._
+import munit.CatsEffectAssertions._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Shrink
 import org.scalacheck.effect.PropF
-
-import munit.CatsEffectAssertions._
 
 trait LawAdapter {
 
@@ -31,7 +31,8 @@ trait LawAdapter {
     propLabel -> PropF.boolean(prop)
 
   def isEqPropF[F[_], A: Arbitrary: Shrink, B: Eq](propLabel: String, prop: A => IsEq[F[B]])(
-      implicit F: MonadThrow[F]): (String, PropF[F]) =
+      implicit F: MonadThrow[F]
+  ): (String, PropF[F]) =
     propLabel -> PropF
       .forAllF { (a: A) =>
         val isEq = prop(a)

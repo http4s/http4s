@@ -16,16 +16,22 @@
 
 package org.http4s
 
+import cats.Eval
+import cats.Foldable
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.parse.Parser0
 import cats.syntax.all._
-import cats.{Eval, Foldable, Hash, Order, Show}
-import java.nio.charset.StandardCharsets
 import org.http4s.Query._
-import org.http4s.internal.{CollectionCompat, UriCoding}
+import org.http4s.internal.CollectionCompat
+import org.http4s.internal.UriCoding
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.QueryParser
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
+import java.nio.charset.StandardCharsets
 import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -53,7 +59,10 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   private def this(vec: Vector[KeyValue]) = this(Left(vec))
 
+  @deprecated("Unsafe method. Use get(idx) instead", "0.23.17")
   def apply(idx: Int): KeyValue = pairs(idx)
+
+  def get(idx: Int): Option[KeyValue] = pairs.get(idx.toLong)
 
   def length: Int = pairs.length
 
@@ -111,7 +120,8 @@ final class Query private (value: Either[Vector[KeyValue], String])
           s,
           spaceIsPlus = false,
           charset = StandardCharsets.UTF_8,
-          toSkip = UriCoding.QueryNoEncode)
+          toSkip = UriCoding.QueryNoEncode,
+        )
 
       pairs.foreach {
         case (n, None) =>
@@ -129,7 +139,7 @@ final class Query private (value: Either[Vector[KeyValue], String])
       }
       writer
     },
-    raw => writer.append(raw)
+    raw => writer.append(raw),
   )
 
   /** Map[String, String] representation of the [[Query]]
@@ -163,12 +173,12 @@ final class Query private (value: Either[Vector[KeyValue], String])
 
   override def hashCode: Int = 31 + toVector.##
 
-  /////////////////////// QueryOps methods and types /////////////////////////
+  // ///////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
   override protected val query: Query = this
   override protected def self: Self = this
   override protected def replaceQuery(query: Query): Self = query
-  ////////////////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////////////////
 }
 
 object Query {
@@ -188,7 +198,7 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query =
     new Query(
-      xs.toList.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
+      xs.foldLeft(Vector.empty[KeyValue]) { case (m, (k, s)) =>
         m :+ (k -> Some(s))
       }
     )
@@ -213,7 +223,7 @@ object Query {
   def fromMap(map: collection.Map[String, collection.Seq[String]]): Query =
     new Query(map.foldLeft(Vector.empty[KeyValue]) {
       case (m, (k, Seq())) => m :+ (k -> None)
-      case (m, (k, vs)) => vs.toList.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
+      case (m, (k, vs)) => vs.foldLeft(m) { case (m, v) => m :+ (k -> Some(v)) }
     })
 
   private def parse(query: String): Vector[KeyValue] =
@@ -224,12 +234,12 @@ object Query {
         case Left(_) => Vector.empty
       }
 
-  /* query       = *( pchar / "/" / "?" )
-   *
-   * These are illegal, but common in the wild.  We will be
-   * "conservative in our sending behavior and liberal in our
-   * receiving behavior", and encode them.
-   */
+  /** query       = *( pchar / "/" / "?" )
+    *
+    * These are illegal, but common in the wild.  We will be
+    * "conservative in our sending behavior and liberal in our
+    * receiving behavior", and encode them.
+    */
   private[http4s] lazy val parser: Parser0[Query] = {
     import cats.parse.Parser.charIn
     import Rfc3986.pchar

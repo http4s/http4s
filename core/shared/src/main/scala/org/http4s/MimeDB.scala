@@ -18,8 +18,14 @@
 package org.http4s
 
 private[http4s] trait MimeDB {
-  lazy val allMediaTypes: List[MediaType] =
-    Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
+  private var _allMediaTypes: List[MediaType] = null
+  def allMediaTypes: List[MediaType] = {
+    if (_allMediaTypes eq null)
+      _allMediaTypes =
+        Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
+    else ()
+    _allMediaTypes
+  }
   val Compressible: Boolean = true
   val Uncompressible: Boolean = false
   val Binary: Boolean = true
@@ -83,7 +89,8 @@ private[http4s] trait MimeDB {
         "atomdeleted+xml",
         Compressible,
         NotBinary,
-        List("atomdeleted"))
+        List("atomdeleted"),
+      )
       lazy val `atomicmail`: MediaType =
         new MediaType("application", "atomicmail", Compressible, NotBinary)
       lazy val `atomsvc+xml`: MediaType =
@@ -249,7 +256,8 @@ private[http4s] trait MimeDB {
         "application",
         "emergencycalldata.subscriberinfo+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `emergencycalldata.veds+xml`: MediaType =
         new MediaType("application", "emergencycalldata.veds+xml", Compressible, NotBinary)
       lazy val `emma+xml`: MediaType =
@@ -348,13 +356,15 @@ private[http4s] trait MimeDB {
         "java-archive",
         Uncompressible,
         Binary,
-        List("jar", "war", "ear"))
+        List("jar", "war", "ear"),
+      )
       lazy val `java-serialized-object`: MediaType = new MediaType(
         "application",
         "java-serialized-object",
         Uncompressible,
         NotBinary,
-        List("ser"))
+        List("ser"),
+      )
       lazy val `java-vm`: MediaType =
         new MediaType("application", "java-vm", Uncompressible, NotBinary, List("class"))
       lazy val `javascript`: MediaType =
@@ -428,7 +438,8 @@ private[http4s] trait MimeDB {
         "application",
         "mbms-associated-procedure-description+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `mbms-deregister+xml`: MediaType =
         new MediaType("application", "mbms-deregister+xml", Compressible, NotBinary)
       lazy val `mbms-envelope+xml`: MediaType =
@@ -460,7 +471,8 @@ private[http4s] trait MimeDB {
         "mediaservercontrol+xml",
         Compressible,
         NotBinary,
-        List("mscml"))
+        List("mscml"),
+      )
       lazy val `merge-patch+json`: MediaType =
         new MediaType("application", "merge-patch+json", Compressible, NotBinary)
       lazy val `metalink+xml`: MediaType =
@@ -562,7 +574,9 @@ private[http4s] trait MimeDB {
           "msi",
           "msp",
           "msm",
-          "buffer"))
+          "buffer",
+        ),
+      )
       lazy val `oda`: MediaType =
         new MediaType("application", "oda", Compressible, NotBinary, List("oda"))
       lazy val `odm+xml`: MediaType =
@@ -579,7 +593,8 @@ private[http4s] trait MimeDB {
         "onenote",
         Compressible,
         NotBinary,
-        List("onetoc", "onetoc2", "onetmp", "onepkg"))
+        List("onetoc", "onetoc2", "onetmp", "onepkg"),
+      )
       lazy val `opc-nodeset+xml`: MediaType =
         new MediaType("application", "opc-nodeset+xml", Compressible, NotBinary)
       lazy val `oscore`: MediaType = new MediaType("application", "oscore", Compressible, NotBinary)
@@ -681,7 +696,8 @@ private[http4s] trait MimeDB {
         "relax-ng-compact-syntax",
         Compressible,
         NotBinary,
-        List("rnc"))
+        List("rnc"),
+      )
       lazy val `remote-printing`: MediaType =
         new MediaType("application", "remote-printing", Compressible, NotBinary)
       lazy val `reputon+json`: MediaType =
@@ -693,7 +709,8 @@ private[http4s] trait MimeDB {
         "resource-lists-diff+xml",
         Compressible,
         NotBinary,
-        List("rld"))
+        List("rld"),
+      )
       lazy val `rfc+xml`: MediaType =
         new MediaType("application", "rfc+xml", Compressible, NotBinary)
       lazy val `riscos`: MediaType = new MediaType("application", "riscos", Compressible, NotBinary)
@@ -786,7 +803,8 @@ private[http4s] trait MimeDB {
         "set-payment-initiation",
         Compressible,
         NotBinary,
-        List("setpay"))
+        List("setpay"),
+      )
       lazy val `set-registration`: MediaType =
         new MediaType("application", "set-registration", Compressible, NotBinary)
       lazy val `set-registration-initiation`: MediaType = new MediaType(
@@ -794,7 +812,8 @@ private[http4s] trait MimeDB {
         "set-registration-initiation",
         Compressible,
         NotBinary,
-        List("setreg"))
+        List("setreg"),
+      )
       lazy val `sgml`: MediaType = new MediaType("application", "sgml", Compressible, NotBinary)
       lazy val `sgml-open-catalog`: MediaType =
         new MediaType("application", "sgml-open-catalog", Compressible, NotBinary)
@@ -920,7 +939,8 @@ private[http4s] trait MimeDB {
         "vnd.1000minds.decision-model+xml",
         Compressible,
         NotBinary,
-        List("1km"))
+        List("1km"),
+      )
       lazy val `vnd.3gpp-prose+xml`: MediaType =
         new MediaType("application", "vnd.3gpp-prose+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp-prose-pc3ch+xml`: MediaType =
@@ -929,7 +949,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.3gpp-v2x-local-service-information",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.5gnas`: MediaType =
         new MediaType("application", "vnd.3gpp.5gnas", Compressible, NotBinary)
       lazy val `vnd.3gpp.access-transfer-events+xml`: MediaType =
@@ -950,7 +971,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.3gpp.mcdata-affiliation-command+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcdata-info+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcdata-info+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcdata-payload`: MediaType =
@@ -967,7 +989,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.3gpp.mcptt-affiliation-command+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcptt-floor-request+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcptt-floor-request+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcptt-info+xml`: MediaType =
@@ -990,12 +1013,14 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.3gpp.mcvideo-affiliation-command+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcvideo-affiliation-info+xml`: MediaType = new MediaType(
         "application",
         "vnd.3gpp.mcvideo-affiliation-info+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcvideo-info+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcvideo-info+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcvideo-location-info+xml`: MediaType =
@@ -1004,14 +1029,16 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.3gpp.mcvideo-mbms-usage-info+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcvideo-service-config+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcvideo-service-config+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcvideo-transmission-request+xml`: MediaType = new MediaType(
         "application",
         "vnd.3gpp.mcvideo-transmission-request+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.3gpp.mcvideo-ue-config+xml`: MediaType =
         new MediaType("application", "vnd.3gpp.mcvideo-ue-config+xml", Compressible, NotBinary)
       lazy val `vnd.3gpp.mcvideo-user-profile+xml`: MediaType =
@@ -1065,509 +1092,516 @@ private[http4s] trait MimeDB {
         "vnd.adobe.air-application-installer-package+zip",
         Uncompressible,
         NotBinary,
-        List("air"))
-      lazy val part_0: List[MediaType] = List(
-        `1d-interleaved-parityfec`,
-        `3gpdash-qoe-report+xml`,
-        `3gpp-ims+xml`,
-        `3gpphal+json`,
-        `3gpphalforms+json`,
-        `a2l`,
-        `activemessage`,
-        `activity+json`,
-        `alto-costmap+json`,
-        `alto-costmapfilter+json`,
-        `alto-directory+json`,
-        `alto-endpointcost+json`,
-        `alto-endpointcostparams+json`,
-        `alto-endpointprop+json`,
-        `alto-endpointpropparams+json`,
-        `alto-error+json`,
-        `alto-networkmap+json`,
-        `alto-networkmapfilter+json`,
-        `alto-updatestreamcontrol+json`,
-        `alto-updatestreamparams+json`,
-        `aml`,
-        `andrew-inset`,
-        `applefile`,
-        `applixware`,
-        `atf`,
-        `atfx`,
-        `atom+xml`,
-        `atomcat+xml`,
-        `atomdeleted+xml`,
-        `atomicmail`,
-        `atomsvc+xml`,
-        `atsc-dwd+xml`,
-        `atsc-dynamic-event-message`,
-        `atsc-held+xml`,
-        `atsc-rdt+json`,
-        `atsc-rsat+xml`,
-        `atxml`,
-        `auth-policy+xml`,
-        `bacnet-xdd+zip`,
-        `batch-smtp`,
-        `bdoc`,
-        `beep+xml`,
-        `calendar+json`,
-        `calendar+xml`,
-        `call-completion`,
-        `cals-1840`,
-        `captive+json`,
-        `cbor`,
-        `cbor-seq`,
-        `cccex`,
-        `ccmp+xml`,
-        `ccxml+xml`,
-        `cdfx+xml`,
-        `cdmi-capability`,
-        `cdmi-container`,
-        `cdmi-domain`,
-        `cdmi-object`,
-        `cdmi-queue`,
-        `cdni`,
-        `cea`,
-        `cea-2018+xml`,
-        `cellml+xml`,
-        `cfw`,
-        `clr`,
-        `clue+xml`,
-        `clue_info+xml`,
-        `cms`,
-        `cnrp+xml`,
-        `coap-group+json`,
-        `coap-payload`,
-        `commonground`,
-        `conference-info+xml`,
-        `cose`,
-        `cose-key`,
-        `cose-key-set`,
-        `cpl+xml`,
-        `csrattrs`,
-        `csta+xml`,
-        `cstadata+xml`,
-        `csvm+json`,
-        `cu-seeme`,
-        `cwt`,
-        `cybercash`,
-        `dart`,
-        `dash+xml`,
-        `dashdelta`,
-        `davmount+xml`,
-        `dca-rft`,
-        `dcd`,
-        `dec-dx`,
-        `dialog-info+xml`,
-        `dicom`,
-        `dicom+json`,
-        `dicom+xml`,
-        `dii`,
-        `dit`,
-        `dns`,
-        `dns+json`,
-        `dns-message`,
-        `docbook+xml`,
-        `dots+cbor`,
-        `dskpp+xml`,
-        `dssc+der`,
-        `dssc+xml`,
-        `dvcs`,
-        `ecmascript`,
-        `edi-consent`,
-        `edi-x12`,
-        `edifact`,
-        `efi`,
-        `elm+json`,
-        `elm+xml`,
-        `emergencycalldata.cap+xml`,
-        `emergencycalldata.comment+xml`,
-        `emergencycalldata.control+xml`,
-        `emergencycalldata.deviceinfo+xml`,
-        `emergencycalldata.ecall.msd`,
-        `emergencycalldata.providerinfo+xml`,
-        `emergencycalldata.serviceinfo+xml`,
-        `emergencycalldata.subscriberinfo+xml`,
-        `emergencycalldata.veds+xml`,
-        `emma+xml`,
-        `emotionml+xml`,
-        `encaprtp`,
-        `epp+xml`,
-        `epub+zip`,
-        `eshop`,
-        `exi`,
-        `expect-ct-report+json`,
-        `fastinfoset`,
-        `fastsoap`,
-        `fdt+xml`,
-        `fhir+json`,
-        `fhir+xml`,
-        `fido.trusted-apps+json`,
-        `fits`,
-        `flexfec`,
-        `font-sfnt`,
-        `font-tdpfr`,
-        `font-woff`,
-        `framework-attributes+xml`,
-        `geo+json`,
-        `geo+json-seq`,
-        `geopackage+sqlite3`,
-        `geoxacml+xml`,
-        `gltf-buffer`,
-        `gml+xml`,
-        `gpx+xml`,
-        `gxf`,
-        `gzip`,
-        `h224`,
-        `held+xml`,
-        `hjson`,
-        `http`,
-        `hyperstudio`,
-        `ibe-key-request+xml`,
-        `ibe-pkg-reply+xml`,
-        `ibe-pp-data`,
-        `iges`,
-        `im-iscomposing+xml`,
-        `index`,
-        `index.cmd`,
-        `index.obj`,
-        `index.response`,
-        `index.vnd`,
-        `inkml+xml`,
-        `iotp`,
-        `ipfix`,
-        `ipp`,
-        `isup`,
-        `its+xml`,
-        `java-archive`,
-        `java-serialized-object`,
-        `java-vm`,
-        `javascript`,
-        `jf2feed+json`,
-        `jose`,
-        `jose+json`,
-        `jrd+json`,
-        `jscalendar+json`,
-        `json`,
-        `json-patch+json`,
-        `json-seq`,
-        `json5`,
-        `jsonml+json`,
-        `jwk+json`,
-        `jwk-set+json`,
-        `jwt`,
-        `kpml-request+xml`,
-        `kpml-response+xml`,
-        `ld+json`,
-        `lgr+xml`,
-        `link-format`,
-        `load-control+xml`,
-        `lost+xml`,
-        `lostsync+xml`,
-        `lpf+zip`,
-        `lxf`,
-        `mac-binhex40`,
-        `mac-compactpro`,
-        `macwriteii`,
-        `mads+xml`,
-        `manifest+json`,
-        `marc`,
-        `marcxml+xml`,
-        `mathematica`,
-        `mathml+xml`,
-        `mathml-content+xml`,
-        `mathml-presentation+xml`,
-        `mbms-associated-procedure-description+xml`,
-        `mbms-deregister+xml`,
-        `mbms-envelope+xml`,
-        `mbms-msk+xml`,
-        `mbms-msk-response+xml`,
-        `mbms-protection-description+xml`,
-        `mbms-reception-report+xml`,
-        `mbms-register+xml`,
-        `mbms-register-response+xml`,
-        `mbms-schedule+xml`,
-        `mbms-user-service-description+xml`,
-        `mbox`,
-        `media-policy-dataset+xml`,
-        `media_control+xml`,
-        `mediaservercontrol+xml`,
-        `merge-patch+json`,
-        `metalink+xml`,
-        `metalink4+xml`,
-        `mets+xml`,
-        `mf4`,
-        `mikey`,
-        `mipc`,
-        `mmt-aei+xml`,
-        `mmt-usd+xml`,
-        `mods+xml`,
-        `moss-keys`,
-        `moss-signature`,
-        `mosskey-data`,
-        `mosskey-request`,
-        `mp21`,
-        `mp4`,
-        `mpeg4-generic`,
-        `mpeg4-iod`,
-        `mpeg4-iod-xmt`,
-        `mrb-consumer+xml`,
-        `mrb-publish+xml`,
-        `msc-ivr+xml`,
-        `msc-mixer+xml`,
-        `msword`,
-        `mud+json`,
-        `multipart-core`,
-        `mxf`,
-        `n-quads`,
-        `n-triples`,
-        `nasdata`,
-        `news-checkgroups`,
-        `news-groupinfo`,
-        `news-transmission`,
-        `nlsml+xml`,
-        `node`,
-        `nss`,
-        `oauth-authz-req+jwt`,
-        `ocsp-request`,
-        `ocsp-response`,
-        `octet-stream`,
-        `oda`,
-        `odm+xml`,
-        `odx`,
-        `oebps-package+xml`,
-        `ogg`,
-        `omdoc+xml`,
-        `onenote`,
-        `opc-nodeset+xml`,
-        `oscore`,
-        `oxps`,
-        `p2p-overlay+xml`,
-        `parityfec`,
-        `passport`,
-        `patch-ops-error+xml`,
-        `pdf`,
-        `pdx`,
-        `pem-certificate-chain`,
-        `pgp-encrypted`,
-        `pgp-keys`,
-        `pgp-signature`,
-        `pics-rules`,
-        `pidf+xml`,
-        `pidf-diff+xml`,
-        `pkcs10`,
-        `pkcs12`,
-        `pkcs7-mime`,
-        `pkcs7-signature`,
-        `pkcs8`,
-        `pkcs8-encrypted`,
-        `pkix-attr-cert`,
-        `pkix-cert`,
-        `pkix-crl`,
-        `pkix-pkipath`,
-        `pkixcmp`,
-        `pls+xml`,
-        `poc-settings+xml`,
-        `postscript`,
-        `ppsp-tracker+json`,
-        `problem+json`,
-        `problem+xml`,
-        `provenance+xml`,
-        `prs.alvestrand.titrax-sheet`,
-        `prs.cww`,
-        `prs.cyn`,
-        `prs.hpub+zip`,
-        `prs.nprend`,
-        `prs.plucker`,
-        `prs.rdf-xml-crypt`,
-        `prs.xsf+xml`,
-        `pskc+xml`,
-        `pvd+json`,
-        `qsig`,
-        `raml+yaml`,
-        `raptorfec`,
-        `rdap+json`,
-        `rdf+xml`,
-        `reginfo+xml`,
-        `relax-ng-compact-syntax`,
-        `remote-printing`,
-        `reputon+json`,
-        `resource-lists+xml`,
-        `resource-lists-diff+xml`,
-        `rfc+xml`,
-        `riscos`,
-        `rlmi+xml`,
-        `rls-services+xml`,
-        `route-apd+xml`,
-        `route-s-tsid+xml`,
-        `route-usd+xml`,
-        `rpki-ghostbusters`,
-        `rpki-manifest`,
-        `rpki-publication`,
-        `rpki-roa`,
-        `rpki-updown`,
-        `rsd+xml`,
-        `rss+xml`,
-        `rtf`,
-        `rtploopback`,
-        `rtx`,
-        `samlassertion+xml`,
-        `samlmetadata+xml`,
-        `sarif+json`,
-        `sarif-external-properties+json`,
-        `sbe`,
-        `sbml+xml`,
-        `scaip+xml`,
-        `scim+json`,
-        `scvp-cv-request`,
-        `scvp-cv-response`,
-        `scvp-vp-request`,
-        `scvp-vp-response`,
-        `sdp`,
-        `secevent+jwt`,
-        `senml+cbor`,
-        `senml+json`,
-        `senml+xml`,
-        `senml-etch+cbor`,
-        `senml-etch+json`,
-        `senml-exi`,
-        `sensml+cbor`,
-        `sensml+json`,
-        `sensml+xml`,
-        `sensml-exi`,
-        `sep+xml`,
-        `sep-exi`,
-        `session-info`,
-        `set-payment`,
-        `set-payment-initiation`,
-        `set-registration`,
-        `set-registration-initiation`,
-        `sgml`,
-        `sgml-open-catalog`,
-        `shf+xml`,
-        `sieve`,
-        `simple-filter+xml`,
-        `simple-message-summary`,
-        `simplesymbolcontainer`,
-        `sipc`,
-        `slate`,
-        `smil`,
-        `smil+xml`,
-        `smpte336m`,
-        `soap+fastinfoset`,
-        `soap+xml`,
-        `sparql-query`,
-        `sparql-results+xml`,
-        `spirits-event+xml`,
-        `sql`,
-        `srgs`,
-        `srgs+xml`,
-        `sru+xml`,
-        `ssdl+xml`,
-        `ssml+xml`,
-        `stix+json`,
-        `swid+xml`,
-        `tamp-apex-update`,
-        `tamp-apex-update-confirm`,
-        `tamp-community-update`,
-        `tamp-community-update-confirm`,
-        `tamp-error`,
-        `tamp-sequence-adjust`,
-        `tamp-sequence-adjust-confirm`,
-        `tamp-status-query`,
-        `tamp-status-response`,
-        `tamp-update`,
-        `tamp-update-confirm`,
-        `tar`,
-        `taxii+json`,
-        `td+json`,
-        `tei+xml`,
-        `tetra_isi`,
-        `thraud+xml`,
-        `timestamp-query`,
-        `timestamp-reply`,
-        `timestamped-data`,
-        `tlsrpt+gzip`,
-        `tlsrpt+json`,
-        `tnauthlist`,
-        `toml`,
-        `trickle-ice-sdpfrag`,
-        `trig`,
-        `ttml+xml`,
-        `tve-trigger`,
-        `tzif`,
-        `tzif-leap`,
-        `ubjson`,
-        `ulpfec`,
-        `urc-grpsheet+xml`,
-        `urc-ressheet+xml`,
-        `urc-targetdesc+xml`,
-        `urc-uisocketdesc+xml`,
-        `vcard+json`,
-        `vcard+xml`,
-        `vemmi`,
-        `vividence.scriptfile`,
-        `vnd.1000minds.decision-model+xml`,
-        `vnd.3gpp-prose+xml`,
-        `vnd.3gpp-prose-pc3ch+xml`,
-        `vnd.3gpp-v2x-local-service-information`,
-        `vnd.3gpp.5gnas`,
-        `vnd.3gpp.access-transfer-events+xml`,
-        `vnd.3gpp.bsf+xml`,
-        `vnd.3gpp.gmop+xml`,
-        `vnd.3gpp.gtpc`,
-        `vnd.3gpp.interworking-data`,
-        `vnd.3gpp.lpp`,
-        `vnd.3gpp.mc-signalling-ear`,
-        `vnd.3gpp.mcdata-affiliation-command+xml`,
-        `vnd.3gpp.mcdata-info+xml`,
-        `vnd.3gpp.mcdata-payload`,
-        `vnd.3gpp.mcdata-service-config+xml`,
-        `vnd.3gpp.mcdata-signalling`,
-        `vnd.3gpp.mcdata-ue-config+xml`,
-        `vnd.3gpp.mcdata-user-profile+xml`,
-        `vnd.3gpp.mcptt-affiliation-command+xml`,
-        `vnd.3gpp.mcptt-floor-request+xml`,
-        `vnd.3gpp.mcptt-info+xml`,
-        `vnd.3gpp.mcptt-location-info+xml`,
-        `vnd.3gpp.mcptt-mbms-usage-info+xml`,
-        `vnd.3gpp.mcptt-service-config+xml`,
-        `vnd.3gpp.mcptt-signed+xml`,
-        `vnd.3gpp.mcptt-ue-config+xml`,
-        `vnd.3gpp.mcptt-ue-init-config+xml`,
-        `vnd.3gpp.mcptt-user-profile+xml`,
-        `vnd.3gpp.mcvideo-affiliation-command+xml`,
-        `vnd.3gpp.mcvideo-affiliation-info+xml`,
-        `vnd.3gpp.mcvideo-info+xml`,
-        `vnd.3gpp.mcvideo-location-info+xml`,
-        `vnd.3gpp.mcvideo-mbms-usage-info+xml`,
-        `vnd.3gpp.mcvideo-service-config+xml`,
-        `vnd.3gpp.mcvideo-transmission-request+xml`,
-        `vnd.3gpp.mcvideo-ue-config+xml`,
-        `vnd.3gpp.mcvideo-user-profile+xml`,
-        `vnd.3gpp.mid-call+xml`,
-        `vnd.3gpp.ngap`,
-        `vnd.3gpp.pfcp`,
-        `vnd.3gpp.pic-bw-large`,
-        `vnd.3gpp.pic-bw-small`,
-        `vnd.3gpp.pic-bw-var`,
-        `vnd.3gpp.s1ap`,
-        `vnd.3gpp.sms`,
-        `vnd.3gpp.sms+xml`,
-        `vnd.3gpp.srvcc-ext+xml`,
-        `vnd.3gpp.srvcc-info+xml`,
-        `vnd.3gpp.state-and-event-info+xml`,
-        `vnd.3gpp.ussd+xml`,
-        `vnd.3gpp2.bcmcsinfo+xml`,
-        `vnd.3gpp2.sms`,
-        `vnd.3gpp2.tcap`,
-        `vnd.3lightssoftware.imagescal`,
-        `vnd.3m.post-it-notes`,
-        `vnd.accpac.simply.aso`,
-        `vnd.accpac.simply.imp`,
-        `vnd.acucobol`,
-        `vnd.acucorp`,
-        `vnd.adobe.air-application-installer-package+zip`
+        List("air"),
       )
+      private var _part_0: List[MediaType] = null
+      def part_0: List[MediaType] = {
+        if (_part_0 eq null)
+          _part_0 = List(
+            `1d-interleaved-parityfec`,
+            `3gpdash-qoe-report+xml`,
+            `3gpp-ims+xml`,
+            `3gpphal+json`,
+            `3gpphalforms+json`,
+            `a2l`,
+            `activemessage`,
+            `activity+json`,
+            `alto-costmap+json`,
+            `alto-costmapfilter+json`,
+            `alto-directory+json`,
+            `alto-endpointcost+json`,
+            `alto-endpointcostparams+json`,
+            `alto-endpointprop+json`,
+            `alto-endpointpropparams+json`,
+            `alto-error+json`,
+            `alto-networkmap+json`,
+            `alto-networkmapfilter+json`,
+            `alto-updatestreamcontrol+json`,
+            `alto-updatestreamparams+json`,
+            `aml`,
+            `andrew-inset`,
+            `applefile`,
+            `applixware`,
+            `atf`,
+            `atfx`,
+            `atom+xml`,
+            `atomcat+xml`,
+            `atomdeleted+xml`,
+            `atomicmail`,
+            `atomsvc+xml`,
+            `atsc-dwd+xml`,
+            `atsc-dynamic-event-message`,
+            `atsc-held+xml`,
+            `atsc-rdt+json`,
+            `atsc-rsat+xml`,
+            `atxml`,
+            `auth-policy+xml`,
+            `bacnet-xdd+zip`,
+            `batch-smtp`,
+            `bdoc`,
+            `beep+xml`,
+            `calendar+json`,
+            `calendar+xml`,
+            `call-completion`,
+            `cals-1840`,
+            `captive+json`,
+            `cbor`,
+            `cbor-seq`,
+            `cccex`,
+            `ccmp+xml`,
+            `ccxml+xml`,
+            `cdfx+xml`,
+            `cdmi-capability`,
+            `cdmi-container`,
+            `cdmi-domain`,
+            `cdmi-object`,
+            `cdmi-queue`,
+            `cdni`,
+            `cea`,
+            `cea-2018+xml`,
+            `cellml+xml`,
+            `cfw`,
+            `clr`,
+            `clue+xml`,
+            `clue_info+xml`,
+            `cms`,
+            `cnrp+xml`,
+            `coap-group+json`,
+            `coap-payload`,
+            `commonground`,
+            `conference-info+xml`,
+            `cose`,
+            `cose-key`,
+            `cose-key-set`,
+            `cpl+xml`,
+            `csrattrs`,
+            `csta+xml`,
+            `cstadata+xml`,
+            `csvm+json`,
+            `cu-seeme`,
+            `cwt`,
+            `cybercash`,
+            `dart`,
+            `dash+xml`,
+            `dashdelta`,
+            `davmount+xml`,
+            `dca-rft`,
+            `dcd`,
+            `dec-dx`,
+            `dialog-info+xml`,
+            `dicom`,
+            `dicom+json`,
+            `dicom+xml`,
+            `dii`,
+            `dit`,
+            `dns`,
+            `dns+json`,
+            `dns-message`,
+            `docbook+xml`,
+            `dots+cbor`,
+            `dskpp+xml`,
+            `dssc+der`,
+            `dssc+xml`,
+            `dvcs`,
+            `ecmascript`,
+            `edi-consent`,
+            `edi-x12`,
+            `edifact`,
+            `efi`,
+            `elm+json`,
+            `elm+xml`,
+            `emergencycalldata.cap+xml`,
+            `emergencycalldata.comment+xml`,
+            `emergencycalldata.control+xml`,
+            `emergencycalldata.deviceinfo+xml`,
+            `emergencycalldata.ecall.msd`,
+            `emergencycalldata.providerinfo+xml`,
+            `emergencycalldata.serviceinfo+xml`,
+            `emergencycalldata.subscriberinfo+xml`,
+            `emergencycalldata.veds+xml`,
+            `emma+xml`,
+            `emotionml+xml`,
+            `encaprtp`,
+            `epp+xml`,
+            `epub+zip`,
+            `eshop`,
+            `exi`,
+            `expect-ct-report+json`,
+            `fastinfoset`,
+            `fastsoap`,
+            `fdt+xml`,
+            `fhir+json`,
+            `fhir+xml`,
+            `fido.trusted-apps+json`,
+            `fits`,
+            `flexfec`,
+            `font-sfnt`,
+            `font-tdpfr`,
+            `font-woff`,
+            `framework-attributes+xml`,
+            `geo+json`,
+            `geo+json-seq`,
+            `geopackage+sqlite3`,
+            `geoxacml+xml`,
+            `gltf-buffer`,
+            `gml+xml`,
+            `gpx+xml`,
+            `gxf`,
+            `gzip`,
+            `h224`,
+            `held+xml`,
+            `hjson`,
+            `http`,
+            `hyperstudio`,
+            `ibe-key-request+xml`,
+            `ibe-pkg-reply+xml`,
+            `ibe-pp-data`,
+            `iges`,
+            `im-iscomposing+xml`,
+            `index`,
+            `index.cmd`,
+            `index.obj`,
+            `index.response`,
+            `index.vnd`,
+            `inkml+xml`,
+            `iotp`,
+            `ipfix`,
+            `ipp`,
+            `isup`,
+            `its+xml`,
+            `java-archive`,
+            `java-serialized-object`,
+            `java-vm`,
+            `javascript`,
+            `jf2feed+json`,
+            `jose`,
+            `jose+json`,
+            `jrd+json`,
+            `jscalendar+json`,
+            `json`,
+            `json-patch+json`,
+            `json-seq`,
+            `json5`,
+            `jsonml+json`,
+            `jwk+json`,
+            `jwk-set+json`,
+            `jwt`,
+            `kpml-request+xml`,
+            `kpml-response+xml`,
+            `ld+json`,
+            `lgr+xml`,
+            `link-format`,
+            `load-control+xml`,
+            `lost+xml`,
+            `lostsync+xml`,
+            `lpf+zip`,
+            `lxf`,
+            `mac-binhex40`,
+            `mac-compactpro`,
+            `macwriteii`,
+            `mads+xml`,
+            `manifest+json`,
+            `marc`,
+            `marcxml+xml`,
+            `mathematica`,
+            `mathml+xml`,
+            `mathml-content+xml`,
+            `mathml-presentation+xml`,
+            `mbms-associated-procedure-description+xml`,
+            `mbms-deregister+xml`,
+            `mbms-envelope+xml`,
+            `mbms-msk+xml`,
+            `mbms-msk-response+xml`,
+            `mbms-protection-description+xml`,
+            `mbms-reception-report+xml`,
+            `mbms-register+xml`,
+            `mbms-register-response+xml`,
+            `mbms-schedule+xml`,
+            `mbms-user-service-description+xml`,
+            `mbox`,
+            `media-policy-dataset+xml`,
+            `media_control+xml`,
+            `mediaservercontrol+xml`,
+            `merge-patch+json`,
+            `metalink+xml`,
+            `metalink4+xml`,
+            `mets+xml`,
+            `mf4`,
+            `mikey`,
+            `mipc`,
+            `mmt-aei+xml`,
+            `mmt-usd+xml`,
+            `mods+xml`,
+            `moss-keys`,
+            `moss-signature`,
+            `mosskey-data`,
+            `mosskey-request`,
+            `mp21`,
+            `mp4`,
+            `mpeg4-generic`,
+            `mpeg4-iod`,
+            `mpeg4-iod-xmt`,
+            `mrb-consumer+xml`,
+            `mrb-publish+xml`,
+            `msc-ivr+xml`,
+            `msc-mixer+xml`,
+            `msword`,
+            `mud+json`,
+            `multipart-core`,
+            `mxf`,
+            `n-quads`,
+            `n-triples`,
+            `nasdata`,
+            `news-checkgroups`,
+            `news-groupinfo`,
+            `news-transmission`,
+            `nlsml+xml`,
+            `node`,
+            `nss`,
+            `oauth-authz-req+jwt`,
+            `ocsp-request`,
+            `ocsp-response`,
+            `octet-stream`,
+            `oda`,
+            `odm+xml`,
+            `odx`,
+            `oebps-package+xml`,
+            `ogg`,
+            `omdoc+xml`,
+            `onenote`,
+            `opc-nodeset+xml`,
+            `oscore`,
+            `oxps`,
+            `p2p-overlay+xml`,
+            `parityfec`,
+            `passport`,
+            `patch-ops-error+xml`,
+            `pdf`,
+            `pdx`,
+            `pem-certificate-chain`,
+            `pgp-encrypted`,
+            `pgp-keys`,
+            `pgp-signature`,
+            `pics-rules`,
+            `pidf+xml`,
+            `pidf-diff+xml`,
+            `pkcs10`,
+            `pkcs12`,
+            `pkcs7-mime`,
+            `pkcs7-signature`,
+            `pkcs8`,
+            `pkcs8-encrypted`,
+            `pkix-attr-cert`,
+            `pkix-cert`,
+            `pkix-crl`,
+            `pkix-pkipath`,
+            `pkixcmp`,
+            `pls+xml`,
+            `poc-settings+xml`,
+            `postscript`,
+            `ppsp-tracker+json`,
+            `problem+json`,
+            `problem+xml`,
+            `provenance+xml`,
+            `prs.alvestrand.titrax-sheet`,
+            `prs.cww`,
+            `prs.cyn`,
+            `prs.hpub+zip`,
+            `prs.nprend`,
+            `prs.plucker`,
+            `prs.rdf-xml-crypt`,
+            `prs.xsf+xml`,
+            `pskc+xml`,
+            `pvd+json`,
+            `qsig`,
+            `raml+yaml`,
+            `raptorfec`,
+            `rdap+json`,
+            `rdf+xml`,
+            `reginfo+xml`,
+            `relax-ng-compact-syntax`,
+            `remote-printing`,
+            `reputon+json`,
+            `resource-lists+xml`,
+            `resource-lists-diff+xml`,
+            `rfc+xml`,
+            `riscos`,
+            `rlmi+xml`,
+            `rls-services+xml`,
+            `route-apd+xml`,
+            `route-s-tsid+xml`,
+            `route-usd+xml`,
+            `rpki-ghostbusters`,
+            `rpki-manifest`,
+            `rpki-publication`,
+            `rpki-roa`,
+            `rpki-updown`,
+            `rsd+xml`,
+            `rss+xml`,
+            `rtf`,
+            `rtploopback`,
+            `rtx`,
+            `samlassertion+xml`,
+            `samlmetadata+xml`,
+            `sarif+json`,
+            `sarif-external-properties+json`,
+            `sbe`,
+            `sbml+xml`,
+            `scaip+xml`,
+            `scim+json`,
+            `scvp-cv-request`,
+            `scvp-cv-response`,
+            `scvp-vp-request`,
+            `scvp-vp-response`,
+            `sdp`,
+            `secevent+jwt`,
+            `senml+cbor`,
+            `senml+json`,
+            `senml+xml`,
+            `senml-etch+cbor`,
+            `senml-etch+json`,
+            `senml-exi`,
+            `sensml+cbor`,
+            `sensml+json`,
+            `sensml+xml`,
+            `sensml-exi`,
+            `sep+xml`,
+            `sep-exi`,
+            `session-info`,
+            `set-payment`,
+            `set-payment-initiation`,
+            `set-registration`,
+            `set-registration-initiation`,
+            `sgml`,
+            `sgml-open-catalog`,
+            `shf+xml`,
+            `sieve`,
+            `simple-filter+xml`,
+            `simple-message-summary`,
+            `simplesymbolcontainer`,
+            `sipc`,
+            `slate`,
+            `smil`,
+            `smil+xml`,
+            `smpte336m`,
+            `soap+fastinfoset`,
+            `soap+xml`,
+            `sparql-query`,
+            `sparql-results+xml`,
+            `spirits-event+xml`,
+            `sql`,
+            `srgs`,
+            `srgs+xml`,
+            `sru+xml`,
+            `ssdl+xml`,
+            `ssml+xml`,
+            `stix+json`,
+            `swid+xml`,
+            `tamp-apex-update`,
+            `tamp-apex-update-confirm`,
+            `tamp-community-update`,
+            `tamp-community-update-confirm`,
+            `tamp-error`,
+            `tamp-sequence-adjust`,
+            `tamp-sequence-adjust-confirm`,
+            `tamp-status-query`,
+            `tamp-status-response`,
+            `tamp-update`,
+            `tamp-update-confirm`,
+            `tar`,
+            `taxii+json`,
+            `td+json`,
+            `tei+xml`,
+            `tetra_isi`,
+            `thraud+xml`,
+            `timestamp-query`,
+            `timestamp-reply`,
+            `timestamped-data`,
+            `tlsrpt+gzip`,
+            `tlsrpt+json`,
+            `tnauthlist`,
+            `toml`,
+            `trickle-ice-sdpfrag`,
+            `trig`,
+            `ttml+xml`,
+            `tve-trigger`,
+            `tzif`,
+            `tzif-leap`,
+            `ubjson`,
+            `ulpfec`,
+            `urc-grpsheet+xml`,
+            `urc-ressheet+xml`,
+            `urc-targetdesc+xml`,
+            `urc-uisocketdesc+xml`,
+            `vcard+json`,
+            `vcard+xml`,
+            `vemmi`,
+            `vividence.scriptfile`,
+            `vnd.1000minds.decision-model+xml`,
+            `vnd.3gpp-prose+xml`,
+            `vnd.3gpp-prose-pc3ch+xml`,
+            `vnd.3gpp-v2x-local-service-information`,
+            `vnd.3gpp.5gnas`,
+            `vnd.3gpp.access-transfer-events+xml`,
+            `vnd.3gpp.bsf+xml`,
+            `vnd.3gpp.gmop+xml`,
+            `vnd.3gpp.gtpc`,
+            `vnd.3gpp.interworking-data`,
+            `vnd.3gpp.lpp`,
+            `vnd.3gpp.mc-signalling-ear`,
+            `vnd.3gpp.mcdata-affiliation-command+xml`,
+            `vnd.3gpp.mcdata-info+xml`,
+            `vnd.3gpp.mcdata-payload`,
+            `vnd.3gpp.mcdata-service-config+xml`,
+            `vnd.3gpp.mcdata-signalling`,
+            `vnd.3gpp.mcdata-ue-config+xml`,
+            `vnd.3gpp.mcdata-user-profile+xml`,
+            `vnd.3gpp.mcptt-affiliation-command+xml`,
+            `vnd.3gpp.mcptt-floor-request+xml`,
+            `vnd.3gpp.mcptt-info+xml`,
+            `vnd.3gpp.mcptt-location-info+xml`,
+            `vnd.3gpp.mcptt-mbms-usage-info+xml`,
+            `vnd.3gpp.mcptt-service-config+xml`,
+            `vnd.3gpp.mcptt-signed+xml`,
+            `vnd.3gpp.mcptt-ue-config+xml`,
+            `vnd.3gpp.mcptt-ue-init-config+xml`,
+            `vnd.3gpp.mcptt-user-profile+xml`,
+            `vnd.3gpp.mcvideo-affiliation-command+xml`,
+            `vnd.3gpp.mcvideo-affiliation-info+xml`,
+            `vnd.3gpp.mcvideo-info+xml`,
+            `vnd.3gpp.mcvideo-location-info+xml`,
+            `vnd.3gpp.mcvideo-mbms-usage-info+xml`,
+            `vnd.3gpp.mcvideo-service-config+xml`,
+            `vnd.3gpp.mcvideo-transmission-request+xml`,
+            `vnd.3gpp.mcvideo-ue-config+xml`,
+            `vnd.3gpp.mcvideo-user-profile+xml`,
+            `vnd.3gpp.mid-call+xml`,
+            `vnd.3gpp.ngap`,
+            `vnd.3gpp.pfcp`,
+            `vnd.3gpp.pic-bw-large`,
+            `vnd.3gpp.pic-bw-small`,
+            `vnd.3gpp.pic-bw-var`,
+            `vnd.3gpp.s1ap`,
+            `vnd.3gpp.sms`,
+            `vnd.3gpp.sms+xml`,
+            `vnd.3gpp.srvcc-ext+xml`,
+            `vnd.3gpp.srvcc-info+xml`,
+            `vnd.3gpp.state-and-event-info+xml`,
+            `vnd.3gpp.ussd+xml`,
+            `vnd.3gpp2.bcmcsinfo+xml`,
+            `vnd.3gpp2.sms`,
+            `vnd.3gpp2.tcap`,
+            `vnd.3lightssoftware.imagescal`,
+            `vnd.3m.post-it-notes`,
+            `vnd.accpac.simply.aso`,
+            `vnd.accpac.simply.imp`,
+            `vnd.acucobol`,
+            `vnd.acucorp`,
+            `vnd.adobe.air-application-installer-package+zip`,
+          )
+        else ()
+        _part_0
+      }
     }
     trait application_1 {
       lazy val `vnd.adobe.flash.movie`: MediaType =
@@ -1577,7 +1611,8 @@ private[http4s] trait MimeDB {
         "vnd.adobe.formscentral.fcdt",
         Compressible,
         NotBinary,
-        List("fcdt"))
+        List("fcdt"),
+      )
       lazy val `vnd.adobe.fxp`: MediaType =
         new MediaType("application", "vnd.adobe.fxp", Compressible, NotBinary, List("fxp", "fxpl"))
       lazy val `vnd.adobe.partial-upload`: MediaType =
@@ -1623,13 +1658,15 @@ private[http4s] trait MimeDB {
         "vnd.airzip.filesecure.azf",
         Compressible,
         NotBinary,
-        List("azf"))
+        List("azf"),
+      )
       lazy val `vnd.airzip.filesecure.azs`: MediaType = new MediaType(
         "application",
         "vnd.airzip.filesecure.azs",
         Compressible,
         NotBinary,
-        List("azs"))
+        List("azs"),
+      )
       lazy val `vnd.amadeus+json`: MediaType =
         new MediaType("application", "vnd.amadeus+json", Compressible, NotBinary)
       lazy val `vnd.amazon.ebook`: MediaType =
@@ -1641,7 +1678,8 @@ private[http4s] trait MimeDB {
         "vnd.americandynamics.acc",
         Compressible,
         NotBinary,
-        List("acc"))
+        List("acc"),
+      )
       lazy val `vnd.amiga.ami`: MediaType =
         new MediaType("application", "vnd.amiga.ami", Compressible, NotBinary, List("ami"))
       lazy val `vnd.amundsen.maze+xml`: MediaType =
@@ -1653,7 +1691,8 @@ private[http4s] trait MimeDB {
         "vnd.android.package-archive",
         Uncompressible,
         NotBinary,
-        List("apk"))
+        List("apk"),
+      )
       lazy val `vnd.anki`: MediaType =
         new MediaType("application", "vnd.anki", Compressible, NotBinary)
       lazy val `vnd.anser-web-certificate-issue-initiation`: MediaType = new MediaType(
@@ -1661,19 +1700,22 @@ private[http4s] trait MimeDB {
         "vnd.anser-web-certificate-issue-initiation",
         Compressible,
         NotBinary,
-        List("cii"))
+        List("cii"),
+      )
       lazy val `vnd.anser-web-funds-transfer-initiation`: MediaType = new MediaType(
         "application",
         "vnd.anser-web-funds-transfer-initiation",
         Compressible,
         NotBinary,
-        List("fti"))
+        List("fti"),
+      )
       lazy val `vnd.antix.game-component`: MediaType = new MediaType(
         "application",
         "vnd.antix.game-component",
         Compressible,
         NotBinary,
-        List("atx"))
+        List("atx"),
+      )
       lazy val `vnd.apache.thrift.binary`: MediaType =
         new MediaType("application", "vnd.apache.thrift.binary", Compressible, NotBinary)
       lazy val `vnd.apache.thrift.compact`: MediaType =
@@ -1691,7 +1733,8 @@ private[http4s] trait MimeDB {
         "vnd.apple.installer+xml",
         Compressible,
         NotBinary,
-        List("mpkg"))
+        List("mpkg"),
+      )
       lazy val `vnd.apple.keynote`: MediaType =
         new MediaType("application", "vnd.apple.keynote", Compressible, NotBinary, List("key"))
       lazy val `vnd.apple.mpegurl`: MediaType =
@@ -1715,7 +1758,8 @@ private[http4s] trait MimeDB {
         "vnd.astraea-software.iota",
         Compressible,
         NotBinary,
-        List("iota"))
+        List("iota"),
+      )
       lazy val `vnd.audiograph`: MediaType =
         new MediaType("application", "vnd.audiograph", Compressible, NotBinary, List("aep"))
       lazy val `vnd.autopackage`: MediaType =
@@ -1781,7 +1825,8 @@ private[http4s] trait MimeDB {
         "vnd.chipnuts.karaoke-mmd",
         Compressible,
         NotBinary,
-        List("mmd"))
+        List("mmd"),
+      )
       lazy val `vnd.ciedi`: MediaType =
         new MediaType("application", "vnd.ciedi", Compressible, NotBinary)
       lazy val `vnd.cinderella`: MediaType =
@@ -1793,7 +1838,8 @@ private[http4s] trait MimeDB {
         "vnd.citationstyles.style+xml",
         Compressible,
         NotBinary,
-        List("csl"))
+        List("csl"),
+      )
       lazy val `vnd.claymore`: MediaType =
         new MediaType("application", "vnd.claymore", Compressible, NotBinary, List("cla"))
       lazy val `vnd.cloanto.rp9`: MediaType =
@@ -1803,19 +1849,22 @@ private[http4s] trait MimeDB {
         "vnd.clonk.c4group",
         Compressible,
         NotBinary,
-        List("c4g", "c4d", "c4f", "c4p", "c4u"))
+        List("c4g", "c4d", "c4f", "c4p", "c4u"),
+      )
       lazy val `vnd.cluetrust.cartomobile-config`: MediaType = new MediaType(
         "application",
         "vnd.cluetrust.cartomobile-config",
         Compressible,
         NotBinary,
-        List("c11amc"))
+        List("c11amc"),
+      )
       lazy val `vnd.cluetrust.cartomobile-config-pkg`: MediaType = new MediaType(
         "application",
         "vnd.cluetrust.cartomobile-config-pkg",
         Compressible,
         NotBinary,
-        List("c11amz"))
+        List("c11amz"),
+      )
       lazy val `vnd.coffeescript`: MediaType =
         new MediaType("application", "vnd.coffeescript", Compressible, NotBinary)
       lazy val `vnd.collabio.xodocuments.document`: MediaType =
@@ -1824,27 +1873,32 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.collabio.xodocuments.document-template",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.collabio.xodocuments.presentation`: MediaType = new MediaType(
         "application",
         "vnd.collabio.xodocuments.presentation",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.collabio.xodocuments.presentation-template`: MediaType = new MediaType(
         "application",
         "vnd.collabio.xodocuments.presentation-template",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.collabio.xodocuments.spreadsheet`: MediaType = new MediaType(
         "application",
         "vnd.collabio.xodocuments.spreadsheet",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.collabio.xodocuments.spreadsheet-template`: MediaType = new MediaType(
         "application",
         "vnd.collabio.xodocuments.spreadsheet-template",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.collection+json`: MediaType =
         new MediaType("application", "vnd.collection+json", Compressible, NotBinary)
       lazy val `vnd.collection.doc+json`: MediaType =
@@ -1872,31 +1926,36 @@ private[http4s] trait MimeDB {
         "vnd.crick.clicker.keyboard",
         Compressible,
         NotBinary,
-        List("clkk"))
+        List("clkk"),
+      )
       lazy val `vnd.crick.clicker.palette`: MediaType = new MediaType(
         "application",
         "vnd.crick.clicker.palette",
         Compressible,
         NotBinary,
-        List("clkp"))
+        List("clkp"),
+      )
       lazy val `vnd.crick.clicker.template`: MediaType = new MediaType(
         "application",
         "vnd.crick.clicker.template",
         Compressible,
         NotBinary,
-        List("clkt"))
+        List("clkt"),
+      )
       lazy val `vnd.crick.clicker.wordbank`: MediaType = new MediaType(
         "application",
         "vnd.crick.clicker.wordbank",
         Compressible,
         NotBinary,
-        List("clkw"))
+        List("clkw"),
+      )
       lazy val `vnd.criticaltools.wbs+xml`: MediaType = new MediaType(
         "application",
         "vnd.criticaltools.wbs+xml",
         Compressible,
         NotBinary,
-        List("wbs"))
+        List("wbs"),
+      )
       lazy val `vnd.cryptii.pipe+json`: MediaType =
         new MediaType("application", "vnd.cryptii.pipe+json", Compressible, NotBinary)
       lazy val `vnd.crypto-shade-file`: MediaType =
@@ -1956,19 +2015,22 @@ private[http4s] trait MimeDB {
         "vnd.dece.data",
         Compressible,
         NotBinary,
-        List("uvf", "uvvf", "uvd", "uvvd"))
+        List("uvf", "uvvf", "uvd", "uvvd"),
+      )
       lazy val `vnd.dece.ttml+xml`: MediaType = new MediaType(
         "application",
         "vnd.dece.ttml+xml",
         Compressible,
         NotBinary,
-        List("uvt", "uvvt"))
+        List("uvt", "uvvt"),
+      )
       lazy val `vnd.dece.unspecified`: MediaType = new MediaType(
         "application",
         "vnd.dece.unspecified",
         Compressible,
         NotBinary,
-        List("uvx", "uvvx"))
+        List("uvx", "uvvx"),
+      )
       lazy val `vnd.dece.zip`: MediaType =
         new MediaType("application", "vnd.dece.zip", Compressible, NotBinary, List("uvz", "uvvz"))
       lazy val `vnd.denovo.fcselayout-link`: MediaType = new MediaType(
@@ -1976,7 +2038,8 @@ private[http4s] trait MimeDB {
         "vnd.denovo.fcselayout-link",
         Compressible,
         NotBinary,
-        List("fe_launch"))
+        List("fe_launch"),
+      )
       lazy val `vnd.desmume.movie`: MediaType =
         new MediaType("application", "vnd.desmume.movie", Compressible, NotBinary)
       lazy val `vnd.dir-bi.plate-dl-nosuffix`: MediaType =
@@ -1997,7 +2060,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.doremir.scorecloud-binary-document",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.dpgraph`: MediaType =
         new MediaType("application", "vnd.dpgraph", Compressible, NotBinary, List("dpg"))
       lazy val `vnd.dreamfactory`: MediaType =
@@ -2046,12 +2110,14 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.dvb.notif-ia-registration-request+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.dvb.notif-ia-registration-response+xml`: MediaType = new MediaType(
         "application",
         "vnd.dvb.notif-ia-registration-response+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.dvb.notif-init+xml`: MediaType =
         new MediaType("application", "vnd.dvb.notif-init+xml", Compressible, NotBinary)
       lazy val `vnd.dvb.pfr`: MediaType =
@@ -2113,7 +2179,8 @@ private[http4s] trait MimeDB {
         "vnd.eszigno3+xml",
         Compressible,
         NotBinary,
-        List("es3", "et3"))
+        List("es3", "et3"),
+      )
       lazy val `vnd.etsi.aoc+xml`: MediaType =
         new MediaType("application", "vnd.etsi.aoc+xml", Compressible, NotBinary)
       lazy val `vnd.etsi.asic-e+zip`: MediaType =
@@ -2148,7 +2215,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.etsi.overload-control-policy-dataset+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.etsi.pstn+xml`: MediaType =
         new MediaType("application", "vnd.etsi.pstn+xml", Compressible, NotBinary)
       lazy val `vnd.etsi.sci+xml`: MediaType =
@@ -2190,7 +2258,8 @@ private[http4s] trait MimeDB {
         "vnd.fdsn.seed",
         Compressible,
         NotBinary,
-        List("seed", "dataless"))
+        List("seed", "dataless"),
+      )
       lazy val `vnd.ffsns`: MediaType =
         new MediaType("application", "vnd.ffsns", Compressible, NotBinary)
       lazy val `vnd.ficlab.flb+zip`: MediaType =
@@ -2212,7 +2281,8 @@ private[http4s] trait MimeDB {
         "vnd.framemaker",
         Compressible,
         NotBinary,
-        List("fm", "frame", "maker", "book"))
+        List("fm", "frame", "maker", "book"),
+      )
       lazy val `vnd.frogans.fnc`: MediaType =
         new MediaType("application", "vnd.frogans.fnc", Compressible, NotBinary, List("fnc"))
       lazy val `vnd.frogans.ltf`: MediaType =
@@ -2248,13 +2318,15 @@ private[http4s] trait MimeDB {
         "vnd.fujixerox.docuworks",
         Compressible,
         NotBinary,
-        List("xdw"))
+        List("xdw"),
+      )
       lazy val `vnd.fujixerox.docuworks.binder`: MediaType = new MediaType(
         "application",
         "vnd.fujixerox.docuworks.binder",
         Compressible,
         NotBinary,
-        List("xbd"))
+        List("xbd"),
+      )
       lazy val `vnd.fujixerox.docuworks.container`: MediaType =
         new MediaType("application", "vnd.fujixerox.docuworks.container", Compressible, NotBinary)
       lazy val `vnd.fujixerox.hbpl`: MediaType =
@@ -2286,7 +2358,8 @@ private[http4s] trait MimeDB {
         "vnd.geometry-explorer",
         Compressible,
         NotBinary,
-        List("gex", "gre"))
+        List("gex", "gre"),
+      )
       lazy val `vnd.geonext`: MediaType =
         new MediaType("application", "vnd.geonext", Compressible, NotBinary, List("gxt"))
       lazy val `vnd.geoplan`: MediaType =
@@ -2301,7 +2374,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.globalplatform.card-content-mgt-response",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.gmx`: MediaType =
         new MediaType("application", "vnd.gmx", Compressible, NotBinary, List("gmx"))
       lazy val `vnd.google-apps.document`: MediaType = new MediaType(
@@ -2309,25 +2383,29 @@ private[http4s] trait MimeDB {
         "vnd.google-apps.document",
         Uncompressible,
         NotBinary,
-        List("gdoc"))
+        List("gdoc"),
+      )
       lazy val `vnd.google-apps.presentation`: MediaType = new MediaType(
         "application",
         "vnd.google-apps.presentation",
         Uncompressible,
         NotBinary,
-        List("gslides"))
+        List("gslides"),
+      )
       lazy val `vnd.google-apps.spreadsheet`: MediaType = new MediaType(
         "application",
         "vnd.google-apps.spreadsheet",
         Uncompressible,
         NotBinary,
-        List("gsheet"))
+        List("gsheet"),
+      )
       lazy val `vnd.google-earth.kml+xml`: MediaType = new MediaType(
         "application",
         "vnd.google-earth.kml+xml",
         Compressible,
         NotBinary,
-        List("kml"))
+        List("kml"),
+      )
       lazy val `vnd.google-earth.kmz`: MediaType =
         new MediaType("application", "vnd.google-earth.kmz", Uncompressible, Binary, List("kmz"))
       lazy val `vnd.gov.sk.e-form+xml`: MediaType =
@@ -2349,7 +2427,8 @@ private[http4s] trait MimeDB {
         "vnd.groove-identity-message",
         Compressible,
         NotBinary,
-        List("gim"))
+        List("gim"),
+      )
       lazy val `vnd.groove-injector`: MediaType =
         new MediaType("application", "vnd.groove-injector", Compressible, NotBinary, List("grv"))
       lazy val `vnd.groove-tool-message`: MediaType = new MediaType(
@@ -2357,13 +2436,15 @@ private[http4s] trait MimeDB {
         "vnd.groove-tool-message",
         Compressible,
         NotBinary,
-        List("gtm"))
+        List("gtm"),
+      )
       lazy val `vnd.groove-tool-template`: MediaType = new MediaType(
         "application",
         "vnd.groove-tool-template",
         Compressible,
         NotBinary,
-        List("tpl"))
+        List("tpl"),
+      )
       lazy val `vnd.groove-vcard`: MediaType =
         new MediaType("application", "vnd.groove-vcard", Compressible, NotBinary, List("vcg"))
       lazy val `vnd.hal+json`: MediaType =
@@ -2375,7 +2456,8 @@ private[http4s] trait MimeDB {
         "vnd.handheld-entertainment+xml",
         Compressible,
         NotBinary,
-        List("zmm"))
+        List("zmm"),
+      )
       lazy val `vnd.hbci`: MediaType =
         new MediaType("application", "vnd.hbci", Compressible, NotBinary, List("hbci"))
       lazy val `vnd.hc+json`: MediaType =
@@ -2407,7 +2489,8 @@ private[http4s] trait MimeDB {
         "vnd.hydrostatix.sof-data",
         Compressible,
         NotBinary,
-        List("sfd-hdstx"))
+        List("sfd-hdstx"),
+      )
       lazy val `vnd.hyper+json`: MediaType =
         new MediaType("application", "vnd.hyper+json", Compressible, NotBinary)
       lazy val `vnd.hyper-item+json`: MediaType =
@@ -2427,19 +2510,22 @@ private[http4s] trait MimeDB {
         "vnd.ibm.modcap",
         Compressible,
         NotBinary,
-        List("afp", "listafp", "list3820"))
+        List("afp", "listafp", "list3820"),
+      )
       lazy val `vnd.ibm.rights-management`: MediaType = new MediaType(
         "application",
         "vnd.ibm.rights-management",
         Compressible,
         NotBinary,
-        List("irm"))
+        List("irm"),
+      )
       lazy val `vnd.ibm.secure-container`: MediaType = new MediaType(
         "application",
         "vnd.ibm.secure-container",
         Compressible,
         NotBinary,
-        List("sc"))
+        List("sc"),
+      )
       lazy val `vnd.iccprofile`: MediaType =
         new MediaType("application", "vnd.iccprofile", Compressible, NotBinary, List("icc", "icm"))
       lazy val `vnd.ieee.1905`: MediaType =
@@ -2466,7 +2552,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.ims.lti.v2.toolconsumerprofile+json",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.ims.lti.v2.toolproxy+json`: MediaType =
         new MediaType("application", "vnd.ims.lti.v2.toolproxy+json", Compressible, NotBinary)
       lazy val `vnd.ims.lti.v2.toolproxy.id+json`: MediaType =
@@ -2477,7 +2564,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.ims.lti.v2.toolsettings.simple+json",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.informedcontrol.rms+xml`: MediaType =
         new MediaType("application", "vnd.informedcontrol.rms+xml", Compressible, NotBinary)
       lazy val `vnd.informix-visionary`: MediaType =
@@ -2495,7 +2583,8 @@ private[http4s] trait MimeDB {
         "vnd.intercon.formnet",
         Compressible,
         NotBinary,
-        List("xpw", "xpx"))
+        List("xpw", "xpx"),
+      )
       lazy val `vnd.intergeo`: MediaType =
         new MediaType("application", "vnd.intergeo", Compressible, NotBinary, List("i2g"))
       lazy val `vnd.intertrust.digibox`: MediaType =
@@ -2525,13 +2614,15 @@ private[http4s] trait MimeDB {
         "vnd.ipunplugged.rcprofile",
         Compressible,
         NotBinary,
-        List("rcprofile"))
+        List("rcprofile"),
+      )
       lazy val `vnd.irepository.package+xml`: MediaType = new MediaType(
         "application",
         "vnd.irepository.package+xml",
         Compressible,
         NotBinary,
-        List("irp"))
+        List("irp"),
+      )
       lazy val `vnd.is-xpr`: MediaType =
         new MediaType("application", "vnd.is-xpr", Compressible, NotBinary, List("xpr"))
       lazy val `vnd.isac.fcs`: MediaType =
@@ -2561,7 +2652,8 @@ private[http4s] trait MimeDB {
         "vnd.jcp.javame.midlet-rms",
         Compressible,
         NotBinary,
-        List("rms"))
+        List("rms"),
+      )
       lazy val `vnd.jisp`: MediaType =
         new MediaType("application", "vnd.jisp", Compressible, NotBinary, List("jisp"))
       lazy val `vnd.joost.joda-archive`: MediaType = new MediaType(
@@ -2569,7 +2661,8 @@ private[http4s] trait MimeDB {
         "vnd.joost.joda-archive",
         Compressible,
         NotBinary,
-        List("joda"))
+        List("joda"),
+      )
       lazy val `vnd.jsk.isdn-ngn`: MediaType =
         new MediaType("application", "vnd.jsk.isdn-ngn", Compressible, NotBinary)
       lazy val `vnd.kahootz`: MediaType =
@@ -2589,7 +2682,8 @@ private[http4s] trait MimeDB {
         "vnd.kde.kpresenter",
         Compressible,
         NotBinary,
-        List("kpr", "kpt"))
+        List("kpr", "kpt"),
+      )
       lazy val `vnd.kde.kspread`: MediaType =
         new MediaType("application", "vnd.kde.kspread", Compressible, NotBinary, List("ksp"))
       lazy val `vnd.kde.kword`: MediaType =
@@ -2605,7 +2699,8 @@ private[http4s] trait MimeDB {
         "vnd.koan",
         Compressible,
         NotBinary,
-        List("skp", "skd", "skt", "skm"))
+        List("skp", "skd", "skt", "skm"),
+      )
       lazy val `vnd.kodak-descriptor`: MediaType =
         new MediaType("application", "vnd.kodak-descriptor", Compressible, NotBinary, List("sse"))
       lazy val `vnd.las`: MediaType =
@@ -2625,13 +2720,15 @@ private[http4s] trait MimeDB {
         "vnd.llamagraphics.life-balance.desktop",
         Compressible,
         NotBinary,
-        List("lbd"))
+        List("lbd"),
+      )
       lazy val `vnd.llamagraphics.life-balance.exchange+xml`: MediaType = new MediaType(
         "application",
         "vnd.llamagraphics.life-balance.exchange+xml",
         Compressible,
         NotBinary,
-        List("lbe"))
+        List("lbe"),
+      )
       lazy val `vnd.logipipe.circuit+zip`: MediaType =
         new MediaType("application", "vnd.logipipe.circuit+zip", Uncompressible, NotBinary)
       lazy val `vnd.loom`: MediaType =
@@ -2655,7 +2752,8 @@ private[http4s] trait MimeDB {
         "vnd.macports.portpkg",
         Compressible,
         NotBinary,
-        List("portpkg"))
+        List("portpkg"),
+      )
       lazy val `vnd.mapbox-vector-tile`: MediaType =
         new MediaType("application", "vnd.mapbox-vector-tile", Compressible, NotBinary, List("mvt"))
       lazy val `vnd.marlin.drm.actiontoken+xml`: MediaType =
@@ -2679,7 +2777,8 @@ private[http4s] trait MimeDB {
         "vnd.mediastation.cdkey",
         Compressible,
         NotBinary,
-        List("cdkey"))
+        List("cdkey"),
+      )
       lazy val `vnd.meridian-slingshot`: MediaType =
         new MediaType("application", "vnd.meridian-slingshot", Compressible, NotBinary)
       lazy val `vnd.mfer`: MediaType =
@@ -2698,7 +2797,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.microsoft.windows.thumbnail-cache",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.miele+json`: MediaType =
         new MediaType("application", "vnd.miele+json", Compressible, NotBinary)
       lazy val `vnd.mif`: MediaType =
@@ -2758,31 +2858,36 @@ private[http4s] trait MimeDB {
         "vnd.ms-excel",
         Uncompressible,
         NotBinary,
-        List("xls", "xlm", "xla", "xlc", "xlt", "xlw"))
+        List("xls", "xlm", "xla", "xlc", "xlt", "xlw"),
+      )
       lazy val `vnd.ms-excel.addin.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-excel.addin.macroenabled.12",
         Compressible,
         NotBinary,
-        List("xlam"))
+        List("xlam"),
+      )
       lazy val `vnd.ms-excel.sheet.binary.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-excel.sheet.binary.macroenabled.12",
         Compressible,
         NotBinary,
-        List("xlsb"))
+        List("xlsb"),
+      )
       lazy val `vnd.ms-excel.sheet.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-excel.sheet.macroenabled.12",
         Compressible,
         NotBinary,
-        List("xlsm"))
+        List("xlsm"),
+      )
       lazy val `vnd.ms-excel.template.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-excel.template.macroenabled.12",
         Compressible,
         NotBinary,
-        List("xltm"))
+        List("xltm"),
+      )
       lazy val `vnd.ms-fontobject`: MediaType =
         new MediaType("application", "vnd.ms-fontobject", Compressible, Binary, List("eot"))
       lazy val `vnd.ms-htmlhelp`: MediaType =
@@ -2812,37 +2917,43 @@ private[http4s] trait MimeDB {
         "vnd.ms-powerpoint",
         Uncompressible,
         NotBinary,
-        List("ppt", "pps", "pot"))
+        List("ppt", "pps", "pot"),
+      )
       lazy val `vnd.ms-powerpoint.addin.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-powerpoint.addin.macroenabled.12",
         Compressible,
         NotBinary,
-        List("ppam"))
+        List("ppam"),
+      )
       lazy val `vnd.ms-powerpoint.presentation.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-powerpoint.presentation.macroenabled.12",
         Compressible,
         NotBinary,
-        List("pptm"))
+        List("pptm"),
+      )
       lazy val `vnd.ms-powerpoint.slide.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-powerpoint.slide.macroenabled.12",
         Compressible,
         NotBinary,
-        List("sldm"))
+        List("sldm"),
+      )
       lazy val `vnd.ms-powerpoint.slideshow.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-powerpoint.slideshow.macroenabled.12",
         Compressible,
         NotBinary,
-        List("ppsm"))
+        List("ppsm"),
+      )
       lazy val `vnd.ms-powerpoint.template.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-powerpoint.template.macroenabled.12",
         Compressible,
         NotBinary,
-        List("potm"))
+        List("potm"),
+      )
       lazy val `vnd.ms-printdevicecapabilities+xml`: MediaType =
         new MediaType("application", "vnd.ms-printdevicecapabilities+xml", Compressible, NotBinary)
       lazy val `vnd.ms-printing.printticket+xml`: MediaType =
@@ -2865,508 +2976,514 @@ private[http4s] trait MimeDB {
         new MediaType("application", "vnd.ms-wmdrm.lic-chlg-req", Compressible, NotBinary)
       lazy val `vnd.ms-wmdrm.lic-resp`: MediaType =
         new MediaType("application", "vnd.ms-wmdrm.lic-resp", Compressible, NotBinary)
-      lazy val part_1: List[MediaType] = List(
-        `vnd.adobe.flash.movie`,
-        `vnd.adobe.formscentral.fcdt`,
-        `vnd.adobe.fxp`,
-        `vnd.adobe.partial-upload`,
-        `vnd.adobe.xdp+xml`,
-        `vnd.adobe.xfdf`,
-        `vnd.aether.imp`,
-        `vnd.afpc.afplinedata`,
-        `vnd.afpc.afplinedata-pagedef`,
-        `vnd.afpc.cmoca-cmresource`,
-        `vnd.afpc.foca-charset`,
-        `vnd.afpc.foca-codedfont`,
-        `vnd.afpc.foca-codepage`,
-        `vnd.afpc.modca`,
-        `vnd.afpc.modca-cmtable`,
-        `vnd.afpc.modca-formdef`,
-        `vnd.afpc.modca-mediummap`,
-        `vnd.afpc.modca-objectcontainer`,
-        `vnd.afpc.modca-overlay`,
-        `vnd.afpc.modca-pagesegment`,
-        `vnd.ah-barcode`,
-        `vnd.ahead.space`,
-        `vnd.airzip.filesecure.azf`,
-        `vnd.airzip.filesecure.azs`,
-        `vnd.amadeus+json`,
-        `vnd.amazon.ebook`,
-        `vnd.amazon.mobi8-ebook`,
-        `vnd.americandynamics.acc`,
-        `vnd.amiga.ami`,
-        `vnd.amundsen.maze+xml`,
-        `vnd.android.ota`,
-        `vnd.android.package-archive`,
-        `vnd.anki`,
-        `vnd.anser-web-certificate-issue-initiation`,
-        `vnd.anser-web-funds-transfer-initiation`,
-        `vnd.antix.game-component`,
-        `vnd.apache.thrift.binary`,
-        `vnd.apache.thrift.compact`,
-        `vnd.apache.thrift.json`,
-        `vnd.api+json`,
-        `vnd.aplextor.warrp+json`,
-        `vnd.apothekende.reservation+json`,
-        `vnd.apple.installer+xml`,
-        `vnd.apple.keynote`,
-        `vnd.apple.mpegurl`,
-        `vnd.apple.numbers`,
-        `vnd.apple.pages`,
-        `vnd.apple.pkpass`,
-        `vnd.arastra.swi`,
-        `vnd.aristanetworks.swi`,
-        `vnd.artisan+json`,
-        `vnd.artsquare`,
-        `vnd.astraea-software.iota`,
-        `vnd.audiograph`,
-        `vnd.autopackage`,
-        `vnd.avalon+json`,
-        `vnd.avistar+xml`,
-        `vnd.balsamiq.bmml+xml`,
-        `vnd.balsamiq.bmpr`,
-        `vnd.banana-accounting`,
-        `vnd.bbf.usp.error`,
-        `vnd.bbf.usp.msg`,
-        `vnd.bbf.usp.msg+json`,
-        `vnd.bekitzur-stech+json`,
-        `vnd.bint.med-content`,
-        `vnd.biopax.rdf+xml`,
-        `vnd.blink-idb-value-wrapper`,
-        `vnd.blueice.multipass`,
-        `vnd.bluetooth.ep.oob`,
-        `vnd.bluetooth.le.oob`,
-        `vnd.bmi`,
-        `vnd.bpf`,
-        `vnd.bpf3`,
-        `vnd.businessobjects`,
-        `vnd.byu.uapi+json`,
-        `vnd.cab-jscript`,
-        `vnd.canon-cpdl`,
-        `vnd.canon-lips`,
-        `vnd.capasystems-pg+json`,
-        `vnd.cendio.thinlinc.clientconf`,
-        `vnd.century-systems.tcp_stream`,
-        `vnd.chemdraw+xml`,
-        `vnd.chess-pgn`,
-        `vnd.chipnuts.karaoke-mmd`,
-        `vnd.ciedi`,
-        `vnd.cinderella`,
-        `vnd.cirpack.isdn-ext`,
-        `vnd.citationstyles.style+xml`,
-        `vnd.claymore`,
-        `vnd.cloanto.rp9`,
-        `vnd.clonk.c4group`,
-        `vnd.cluetrust.cartomobile-config`,
-        `vnd.cluetrust.cartomobile-config-pkg`,
-        `vnd.coffeescript`,
-        `vnd.collabio.xodocuments.document`,
-        `vnd.collabio.xodocuments.document-template`,
-        `vnd.collabio.xodocuments.presentation`,
-        `vnd.collabio.xodocuments.presentation-template`,
-        `vnd.collabio.xodocuments.spreadsheet`,
-        `vnd.collabio.xodocuments.spreadsheet-template`,
-        `vnd.collection+json`,
-        `vnd.collection.doc+json`,
-        `vnd.collection.next+json`,
-        `vnd.comicbook+zip`,
-        `vnd.comicbook-rar`,
-        `vnd.commerce-battelle`,
-        `vnd.commonspace`,
-        `vnd.contact.cmsg`,
-        `vnd.coreos.ignition+json`,
-        `vnd.cosmocaller`,
-        `vnd.crick.clicker`,
-        `vnd.crick.clicker.keyboard`,
-        `vnd.crick.clicker.palette`,
-        `vnd.crick.clicker.template`,
-        `vnd.crick.clicker.wordbank`,
-        `vnd.criticaltools.wbs+xml`,
-        `vnd.cryptii.pipe+json`,
-        `vnd.crypto-shade-file`,
-        `vnd.cryptomator.encrypted`,
-        `vnd.cryptomator.vault`,
-        `vnd.ctc-posml`,
-        `vnd.ctct.ws+xml`,
-        `vnd.cups-pdf`,
-        `vnd.cups-postscript`,
-        `vnd.cups-ppd`,
-        `vnd.cups-raster`,
-        `vnd.cups-raw`,
-        `vnd.curl`,
-        `vnd.curl.car`,
-        `vnd.curl.pcurl`,
-        `vnd.cyan.dean.root+xml`,
-        `vnd.cybank`,
-        `vnd.cyclonedx+json`,
-        `vnd.cyclonedx+xml`,
-        `vnd.d2l.coursepackage1p0+zip`,
-        `vnd.d3m-dataset`,
-        `vnd.d3m-problem`,
-        `vnd.dart`,
-        `vnd.data-vision.rdz`,
-        `vnd.datapackage+json`,
-        `vnd.dataresource+json`,
-        `vnd.dbf`,
-        `vnd.debian.binary-package`,
-        `vnd.dece.data`,
-        `vnd.dece.ttml+xml`,
-        `vnd.dece.unspecified`,
-        `vnd.dece.zip`,
-        `vnd.denovo.fcselayout-link`,
-        `vnd.desmume.movie`,
-        `vnd.dir-bi.plate-dl-nosuffix`,
-        `vnd.dm.delegation+xml`,
-        `vnd.dna`,
-        `vnd.document+json`,
-        `vnd.dolby.mlp`,
-        `vnd.dolby.mobile.1`,
-        `vnd.dolby.mobile.2`,
-        `vnd.doremir.scorecloud-binary-document`,
-        `vnd.dpgraph`,
-        `vnd.dreamfactory`,
-        `vnd.drive+json`,
-        `vnd.ds-keypoint`,
-        `vnd.dtg.local`,
-        `vnd.dtg.local.flash`,
-        `vnd.dtg.local.html`,
-        `vnd.dvb.ait`,
-        `vnd.dvb.dvbisl+xml`,
-        `vnd.dvb.dvbj`,
-        `vnd.dvb.esgcontainer`,
-        `vnd.dvb.ipdcdftnotifaccess`,
-        `vnd.dvb.ipdcesgaccess`,
-        `vnd.dvb.ipdcesgaccess2`,
-        `vnd.dvb.ipdcesgpdd`,
-        `vnd.dvb.ipdcroaming`,
-        `vnd.dvb.iptv.alfec-base`,
-        `vnd.dvb.iptv.alfec-enhancement`,
-        `vnd.dvb.notif-aggregate-root+xml`,
-        `vnd.dvb.notif-container+xml`,
-        `vnd.dvb.notif-generic+xml`,
-        `vnd.dvb.notif-ia-msglist+xml`,
-        `vnd.dvb.notif-ia-registration-request+xml`,
-        `vnd.dvb.notif-ia-registration-response+xml`,
-        `vnd.dvb.notif-init+xml`,
-        `vnd.dvb.pfr`,
-        `vnd.dvb.service`,
-        `vnd.dxr`,
-        `vnd.dynageo`,
-        `vnd.dzr`,
-        `vnd.easykaraoke.cdgdownload`,
-        `vnd.ecdis-update`,
-        `vnd.ecip.rlp`,
-        `vnd.ecowin.chart`,
-        `vnd.ecowin.filerequest`,
-        `vnd.ecowin.fileupdate`,
-        `vnd.ecowin.series`,
-        `vnd.ecowin.seriesrequest`,
-        `vnd.ecowin.seriesupdate`,
-        `vnd.efi.img`,
-        `vnd.efi.iso`,
-        `vnd.emclient.accessrequest+xml`,
-        `vnd.enliven`,
-        `vnd.enphase.envoy`,
-        `vnd.eprints.data+xml`,
-        `vnd.epson.esf`,
-        `vnd.epson.msf`,
-        `vnd.epson.quickanime`,
-        `vnd.epson.salt`,
-        `vnd.epson.ssf`,
-        `vnd.ericsson.quickcall`,
-        `vnd.espass-espass+zip`,
-        `vnd.eszigno3+xml`,
-        `vnd.etsi.aoc+xml`,
-        `vnd.etsi.asic-e+zip`,
-        `vnd.etsi.asic-s+zip`,
-        `vnd.etsi.cug+xml`,
-        `vnd.etsi.iptvcommand+xml`,
-        `vnd.etsi.iptvdiscovery+xml`,
-        `vnd.etsi.iptvprofile+xml`,
-        `vnd.etsi.iptvsad-bc+xml`,
-        `vnd.etsi.iptvsad-cod+xml`,
-        `vnd.etsi.iptvsad-npvr+xml`,
-        `vnd.etsi.iptvservice+xml`,
-        `vnd.etsi.iptvsync+xml`,
-        `vnd.etsi.iptvueprofile+xml`,
-        `vnd.etsi.mcid+xml`,
-        `vnd.etsi.mheg5`,
-        `vnd.etsi.overload-control-policy-dataset+xml`,
-        `vnd.etsi.pstn+xml`,
-        `vnd.etsi.sci+xml`,
-        `vnd.etsi.simservs+xml`,
-        `vnd.etsi.timestamp-token`,
-        `vnd.etsi.tsl+xml`,
-        `vnd.etsi.tsl.der`,
-        `vnd.eudora.data`,
-        `vnd.evolv.ecig.profile`,
-        `vnd.evolv.ecig.settings`,
-        `vnd.evolv.ecig.theme`,
-        `vnd.exstream-empower+zip`,
-        `vnd.exstream-package`,
-        `vnd.ezpix-album`,
-        `vnd.ezpix-package`,
-        `vnd.f-secure.mobile`,
-        `vnd.fastcopy-disk-image`,
-        `vnd.fdf`,
-        `vnd.fdsn.mseed`,
-        `vnd.fdsn.seed`,
-        `vnd.ffsns`,
-        `vnd.ficlab.flb+zip`,
-        `vnd.filmit.zfc`,
-        `vnd.fints`,
-        `vnd.firemonkeys.cloudcell`,
-        `vnd.flographit`,
-        `vnd.fluxtime.clip`,
-        `vnd.font-fontforge-sfd`,
-        `vnd.framemaker`,
-        `vnd.frogans.fnc`,
-        `vnd.frogans.ltf`,
-        `vnd.fsc.weblaunch`,
-        `vnd.fujifilm.fb.docuworks`,
-        `vnd.fujifilm.fb.docuworks.binder`,
-        `vnd.fujifilm.fb.docuworks.container`,
-        `vnd.fujifilm.fb.jfi+xml`,
-        `vnd.fujitsu.oasys`,
-        `vnd.fujitsu.oasys2`,
-        `vnd.fujitsu.oasys3`,
-        `vnd.fujitsu.oasysgp`,
-        `vnd.fujitsu.oasysprs`,
-        `vnd.fujixerox.art-ex`,
-        `vnd.fujixerox.art4`,
-        `vnd.fujixerox.ddd`,
-        `vnd.fujixerox.docuworks`,
-        `vnd.fujixerox.docuworks.binder`,
-        `vnd.fujixerox.docuworks.container`,
-        `vnd.fujixerox.hbpl`,
-        `vnd.fut-misnet`,
-        `vnd.futoin+cbor`,
-        `vnd.futoin+json`,
-        `vnd.fuzzysheet`,
-        `vnd.genomatix.tuxedo`,
-        `vnd.gentics.grd+json`,
-        `vnd.geo+json`,
-        `vnd.geocube+xml`,
-        `vnd.geogebra.file`,
-        `vnd.geogebra.slides`,
-        `vnd.geogebra.tool`,
-        `vnd.geometry-explorer`,
-        `vnd.geonext`,
-        `vnd.geoplan`,
-        `vnd.geospace`,
-        `vnd.gerber`,
-        `vnd.globalplatform.card-content-mgt`,
-        `vnd.globalplatform.card-content-mgt-response`,
-        `vnd.gmx`,
-        `vnd.google-apps.document`,
-        `vnd.google-apps.presentation`,
-        `vnd.google-apps.spreadsheet`,
-        `vnd.google-earth.kml+xml`,
-        `vnd.google-earth.kmz`,
-        `vnd.gov.sk.e-form+xml`,
-        `vnd.gov.sk.e-form+zip`,
-        `vnd.gov.sk.xmldatacontainer+xml`,
-        `vnd.grafeq`,
-        `vnd.gridmp`,
-        `vnd.groove-account`,
-        `vnd.groove-help`,
-        `vnd.groove-identity-message`,
-        `vnd.groove-injector`,
-        `vnd.groove-tool-message`,
-        `vnd.groove-tool-template`,
-        `vnd.groove-vcard`,
-        `vnd.hal+json`,
-        `vnd.hal+xml`,
-        `vnd.handheld-entertainment+xml`,
-        `vnd.hbci`,
-        `vnd.hc+json`,
-        `vnd.hcl-bireports`,
-        `vnd.hdt`,
-        `vnd.heroku+json`,
-        `vnd.hhe.lesson-player`,
-        `vnd.hp-hpgl`,
-        `vnd.hp-hpid`,
-        `vnd.hp-hps`,
-        `vnd.hp-jlyt`,
-        `vnd.hp-pcl`,
-        `vnd.hp-pclxl`,
-        `vnd.httphone`,
-        `vnd.hydrostatix.sof-data`,
-        `vnd.hyper+json`,
-        `vnd.hyper-item+json`,
-        `vnd.hyperdrive+json`,
-        `vnd.hzn-3d-crossword`,
-        `vnd.ibm.afplinedata`,
-        `vnd.ibm.electronic-media`,
-        `vnd.ibm.minipay`,
-        `vnd.ibm.modcap`,
-        `vnd.ibm.rights-management`,
-        `vnd.ibm.secure-container`,
-        `vnd.iccprofile`,
-        `vnd.ieee.1905`,
-        `vnd.igloader`,
-        `vnd.imagemeter.folder+zip`,
-        `vnd.imagemeter.image+zip`,
-        `vnd.immervision-ivp`,
-        `vnd.immervision-ivu`,
-        `vnd.ims.imsccv1p1`,
-        `vnd.ims.imsccv1p2`,
-        `vnd.ims.imsccv1p3`,
-        `vnd.ims.lis.v2.result+json`,
-        `vnd.ims.lti.v2.toolconsumerprofile+json`,
-        `vnd.ims.lti.v2.toolproxy+json`,
-        `vnd.ims.lti.v2.toolproxy.id+json`,
-        `vnd.ims.lti.v2.toolsettings+json`,
-        `vnd.ims.lti.v2.toolsettings.simple+json`,
-        `vnd.informedcontrol.rms+xml`,
-        `vnd.informix-visionary`,
-        `vnd.infotech.project`,
-        `vnd.infotech.project+xml`,
-        `vnd.innopath.wamp.notification`,
-        `vnd.insors.igm`,
-        `vnd.intercon.formnet`,
-        `vnd.intergeo`,
-        `vnd.intertrust.digibox`,
-        `vnd.intertrust.nncp`,
-        `vnd.intu.qbo`,
-        `vnd.intu.qfx`,
-        `vnd.iptc.g2.catalogitem+xml`,
-        `vnd.iptc.g2.conceptitem+xml`,
-        `vnd.iptc.g2.knowledgeitem+xml`,
-        `vnd.iptc.g2.newsitem+xml`,
-        `vnd.iptc.g2.newsmessage+xml`,
-        `vnd.iptc.g2.packageitem+xml`,
-        `vnd.iptc.g2.planningitem+xml`,
-        `vnd.ipunplugged.rcprofile`,
-        `vnd.irepository.package+xml`,
-        `vnd.is-xpr`,
-        `vnd.isac.fcs`,
-        `vnd.iso11783-10+zip`,
-        `vnd.jam`,
-        `vnd.japannet-directory-service`,
-        `vnd.japannet-jpnstore-wakeup`,
-        `vnd.japannet-payment-wakeup`,
-        `vnd.japannet-registration`,
-        `vnd.japannet-registration-wakeup`,
-        `vnd.japannet-setstore-wakeup`,
-        `vnd.japannet-verification`,
-        `vnd.japannet-verification-wakeup`,
-        `vnd.jcp.javame.midlet-rms`,
-        `vnd.jisp`,
-        `vnd.joost.joda-archive`,
-        `vnd.jsk.isdn-ngn`,
-        `vnd.kahootz`,
-        `vnd.kde.karbon`,
-        `vnd.kde.kchart`,
-        `vnd.kde.kformula`,
-        `vnd.kde.kivio`,
-        `vnd.kde.kontour`,
-        `vnd.kde.kpresenter`,
-        `vnd.kde.kspread`,
-        `vnd.kde.kword`,
-        `vnd.kenameaapp`,
-        `vnd.kidspiration`,
-        `vnd.kinar`,
-        `vnd.koan`,
-        `vnd.kodak-descriptor`,
-        `vnd.las`,
-        `vnd.las.las+json`,
-        `vnd.las.las+xml`,
-        `vnd.laszip`,
-        `vnd.leap+json`,
-        `vnd.liberty-request+xml`,
-        `vnd.llamagraphics.life-balance.desktop`,
-        `vnd.llamagraphics.life-balance.exchange+xml`,
-        `vnd.logipipe.circuit+zip`,
-        `vnd.loom`,
-        `vnd.lotus-1-2-3`,
-        `vnd.lotus-approach`,
-        `vnd.lotus-freelance`,
-        `vnd.lotus-notes`,
-        `vnd.lotus-organizer`,
-        `vnd.lotus-screencam`,
-        `vnd.lotus-wordpro`,
-        `vnd.macports.portpkg`,
-        `vnd.mapbox-vector-tile`,
-        `vnd.marlin.drm.actiontoken+xml`,
-        `vnd.marlin.drm.conftoken+xml`,
-        `vnd.marlin.drm.license+xml`,
-        `vnd.marlin.drm.mdcf`,
-        `vnd.mason+json`,
-        `vnd.maxmind.maxmind-db`,
-        `vnd.mcd`,
-        `vnd.medcalcdata`,
-        `vnd.mediastation.cdkey`,
-        `vnd.meridian-slingshot`,
-        `vnd.mfer`,
-        `vnd.mfmp`,
-        `vnd.micro+json`,
-        `vnd.micrografx.flo`,
-        `vnd.micrografx.igx`,
-        `vnd.microsoft.portable-executable`,
-        `vnd.microsoft.windows.thumbnail-cache`,
-        `vnd.miele+json`,
-        `vnd.mif`,
-        `vnd.minisoft-hp3000-save`,
-        `vnd.mitsubishi.misty-guard.trustweb`,
-        `vnd.mobius.daf`,
-        `vnd.mobius.dis`,
-        `vnd.mobius.mbk`,
-        `vnd.mobius.mqy`,
-        `vnd.mobius.msl`,
-        `vnd.mobius.plc`,
-        `vnd.mobius.txf`,
-        `vnd.mophun.application`,
-        `vnd.mophun.certificate`,
-        `vnd.motorola.flexsuite`,
-        `vnd.motorola.flexsuite.adsi`,
-        `vnd.motorola.flexsuite.fis`,
-        `vnd.motorola.flexsuite.gotap`,
-        `vnd.motorola.flexsuite.kmr`,
-        `vnd.motorola.flexsuite.ttc`,
-        `vnd.motorola.flexsuite.wem`,
-        `vnd.motorola.iprm`,
-        `vnd.mozilla.xul+xml`,
-        `vnd.ms-3mfdocument`,
-        `vnd.ms-artgalry`,
-        `vnd.ms-asf`,
-        `vnd.ms-cab-compressed`,
-        `vnd.ms-color.iccprofile`,
-        `vnd.ms-excel`,
-        `vnd.ms-excel.addin.macroenabled.12`,
-        `vnd.ms-excel.sheet.binary.macroenabled.12`,
-        `vnd.ms-excel.sheet.macroenabled.12`,
-        `vnd.ms-excel.template.macroenabled.12`,
-        `vnd.ms-fontobject`,
-        `vnd.ms-htmlhelp`,
-        `vnd.ms-ims`,
-        `vnd.ms-lrm`,
-        `vnd.ms-office.activex+xml`,
-        `vnd.ms-officetheme`,
-        `vnd.ms-opentype`,
-        `vnd.ms-outlook`,
-        `vnd.ms-package.obfuscated-opentype`,
-        `vnd.ms-pki.seccat`,
-        `vnd.ms-pki.stl`,
-        `vnd.ms-playready.initiator+xml`,
-        `vnd.ms-powerpoint`,
-        `vnd.ms-powerpoint.addin.macroenabled.12`,
-        `vnd.ms-powerpoint.presentation.macroenabled.12`,
-        `vnd.ms-powerpoint.slide.macroenabled.12`,
-        `vnd.ms-powerpoint.slideshow.macroenabled.12`,
-        `vnd.ms-powerpoint.template.macroenabled.12`,
-        `vnd.ms-printdevicecapabilities+xml`,
-        `vnd.ms-printing.printticket+xml`,
-        `vnd.ms-printschematicket+xml`,
-        `vnd.ms-project`,
-        `vnd.ms-tnef`,
-        `vnd.ms-windows.devicepairing`,
-        `vnd.ms-windows.nwprinting.oob`,
-        `vnd.ms-windows.printerpairing`,
-        `vnd.ms-windows.wsd.oob`,
-        `vnd.ms-wmdrm.lic-chlg-req`,
-        `vnd.ms-wmdrm.lic-resp`
-      )
+      private var _part_1: List[MediaType] = null
+      def part_1: List[MediaType] = {
+        if (_part_1 eq null)
+          _part_1 = List(
+            `vnd.adobe.flash.movie`,
+            `vnd.adobe.formscentral.fcdt`,
+            `vnd.adobe.fxp`,
+            `vnd.adobe.partial-upload`,
+            `vnd.adobe.xdp+xml`,
+            `vnd.adobe.xfdf`,
+            `vnd.aether.imp`,
+            `vnd.afpc.afplinedata`,
+            `vnd.afpc.afplinedata-pagedef`,
+            `vnd.afpc.cmoca-cmresource`,
+            `vnd.afpc.foca-charset`,
+            `vnd.afpc.foca-codedfont`,
+            `vnd.afpc.foca-codepage`,
+            `vnd.afpc.modca`,
+            `vnd.afpc.modca-cmtable`,
+            `vnd.afpc.modca-formdef`,
+            `vnd.afpc.modca-mediummap`,
+            `vnd.afpc.modca-objectcontainer`,
+            `vnd.afpc.modca-overlay`,
+            `vnd.afpc.modca-pagesegment`,
+            `vnd.ah-barcode`,
+            `vnd.ahead.space`,
+            `vnd.airzip.filesecure.azf`,
+            `vnd.airzip.filesecure.azs`,
+            `vnd.amadeus+json`,
+            `vnd.amazon.ebook`,
+            `vnd.amazon.mobi8-ebook`,
+            `vnd.americandynamics.acc`,
+            `vnd.amiga.ami`,
+            `vnd.amundsen.maze+xml`,
+            `vnd.android.ota`,
+            `vnd.android.package-archive`,
+            `vnd.anki`,
+            `vnd.anser-web-certificate-issue-initiation`,
+            `vnd.anser-web-funds-transfer-initiation`,
+            `vnd.antix.game-component`,
+            `vnd.apache.thrift.binary`,
+            `vnd.apache.thrift.compact`,
+            `vnd.apache.thrift.json`,
+            `vnd.api+json`,
+            `vnd.aplextor.warrp+json`,
+            `vnd.apothekende.reservation+json`,
+            `vnd.apple.installer+xml`,
+            `vnd.apple.keynote`,
+            `vnd.apple.mpegurl`,
+            `vnd.apple.numbers`,
+            `vnd.apple.pages`,
+            `vnd.apple.pkpass`,
+            `vnd.arastra.swi`,
+            `vnd.aristanetworks.swi`,
+            `vnd.artisan+json`,
+            `vnd.artsquare`,
+            `vnd.astraea-software.iota`,
+            `vnd.audiograph`,
+            `vnd.autopackage`,
+            `vnd.avalon+json`,
+            `vnd.avistar+xml`,
+            `vnd.balsamiq.bmml+xml`,
+            `vnd.balsamiq.bmpr`,
+            `vnd.banana-accounting`,
+            `vnd.bbf.usp.error`,
+            `vnd.bbf.usp.msg`,
+            `vnd.bbf.usp.msg+json`,
+            `vnd.bekitzur-stech+json`,
+            `vnd.bint.med-content`,
+            `vnd.biopax.rdf+xml`,
+            `vnd.blink-idb-value-wrapper`,
+            `vnd.blueice.multipass`,
+            `vnd.bluetooth.ep.oob`,
+            `vnd.bluetooth.le.oob`,
+            `vnd.bmi`,
+            `vnd.bpf`,
+            `vnd.bpf3`,
+            `vnd.businessobjects`,
+            `vnd.byu.uapi+json`,
+            `vnd.cab-jscript`,
+            `vnd.canon-cpdl`,
+            `vnd.canon-lips`,
+            `vnd.capasystems-pg+json`,
+            `vnd.cendio.thinlinc.clientconf`,
+            `vnd.century-systems.tcp_stream`,
+            `vnd.chemdraw+xml`,
+            `vnd.chess-pgn`,
+            `vnd.chipnuts.karaoke-mmd`,
+            `vnd.ciedi`,
+            `vnd.cinderella`,
+            `vnd.cirpack.isdn-ext`,
+            `vnd.citationstyles.style+xml`,
+            `vnd.claymore`,
+            `vnd.cloanto.rp9`,
+            `vnd.clonk.c4group`,
+            `vnd.cluetrust.cartomobile-config`,
+            `vnd.cluetrust.cartomobile-config-pkg`,
+            `vnd.coffeescript`,
+            `vnd.collabio.xodocuments.document`,
+            `vnd.collabio.xodocuments.document-template`,
+            `vnd.collabio.xodocuments.presentation`,
+            `vnd.collabio.xodocuments.presentation-template`,
+            `vnd.collabio.xodocuments.spreadsheet`,
+            `vnd.collabio.xodocuments.spreadsheet-template`,
+            `vnd.collection+json`,
+            `vnd.collection.doc+json`,
+            `vnd.collection.next+json`,
+            `vnd.comicbook+zip`,
+            `vnd.comicbook-rar`,
+            `vnd.commerce-battelle`,
+            `vnd.commonspace`,
+            `vnd.contact.cmsg`,
+            `vnd.coreos.ignition+json`,
+            `vnd.cosmocaller`,
+            `vnd.crick.clicker`,
+            `vnd.crick.clicker.keyboard`,
+            `vnd.crick.clicker.palette`,
+            `vnd.crick.clicker.template`,
+            `vnd.crick.clicker.wordbank`,
+            `vnd.criticaltools.wbs+xml`,
+            `vnd.cryptii.pipe+json`,
+            `vnd.crypto-shade-file`,
+            `vnd.cryptomator.encrypted`,
+            `vnd.cryptomator.vault`,
+            `vnd.ctc-posml`,
+            `vnd.ctct.ws+xml`,
+            `vnd.cups-pdf`,
+            `vnd.cups-postscript`,
+            `vnd.cups-ppd`,
+            `vnd.cups-raster`,
+            `vnd.cups-raw`,
+            `vnd.curl`,
+            `vnd.curl.car`,
+            `vnd.curl.pcurl`,
+            `vnd.cyan.dean.root+xml`,
+            `vnd.cybank`,
+            `vnd.cyclonedx+json`,
+            `vnd.cyclonedx+xml`,
+            `vnd.d2l.coursepackage1p0+zip`,
+            `vnd.d3m-dataset`,
+            `vnd.d3m-problem`,
+            `vnd.dart`,
+            `vnd.data-vision.rdz`,
+            `vnd.datapackage+json`,
+            `vnd.dataresource+json`,
+            `vnd.dbf`,
+            `vnd.debian.binary-package`,
+            `vnd.dece.data`,
+            `vnd.dece.ttml+xml`,
+            `vnd.dece.unspecified`,
+            `vnd.dece.zip`,
+            `vnd.denovo.fcselayout-link`,
+            `vnd.desmume.movie`,
+            `vnd.dir-bi.plate-dl-nosuffix`,
+            `vnd.dm.delegation+xml`,
+            `vnd.dna`,
+            `vnd.document+json`,
+            `vnd.dolby.mlp`,
+            `vnd.dolby.mobile.1`,
+            `vnd.dolby.mobile.2`,
+            `vnd.doremir.scorecloud-binary-document`,
+            `vnd.dpgraph`,
+            `vnd.dreamfactory`,
+            `vnd.drive+json`,
+            `vnd.ds-keypoint`,
+            `vnd.dtg.local`,
+            `vnd.dtg.local.flash`,
+            `vnd.dtg.local.html`,
+            `vnd.dvb.ait`,
+            `vnd.dvb.dvbisl+xml`,
+            `vnd.dvb.dvbj`,
+            `vnd.dvb.esgcontainer`,
+            `vnd.dvb.ipdcdftnotifaccess`,
+            `vnd.dvb.ipdcesgaccess`,
+            `vnd.dvb.ipdcesgaccess2`,
+            `vnd.dvb.ipdcesgpdd`,
+            `vnd.dvb.ipdcroaming`,
+            `vnd.dvb.iptv.alfec-base`,
+            `vnd.dvb.iptv.alfec-enhancement`,
+            `vnd.dvb.notif-aggregate-root+xml`,
+            `vnd.dvb.notif-container+xml`,
+            `vnd.dvb.notif-generic+xml`,
+            `vnd.dvb.notif-ia-msglist+xml`,
+            `vnd.dvb.notif-ia-registration-request+xml`,
+            `vnd.dvb.notif-ia-registration-response+xml`,
+            `vnd.dvb.notif-init+xml`,
+            `vnd.dvb.pfr`,
+            `vnd.dvb.service`,
+            `vnd.dxr`,
+            `vnd.dynageo`,
+            `vnd.dzr`,
+            `vnd.easykaraoke.cdgdownload`,
+            `vnd.ecdis-update`,
+            `vnd.ecip.rlp`,
+            `vnd.ecowin.chart`,
+            `vnd.ecowin.filerequest`,
+            `vnd.ecowin.fileupdate`,
+            `vnd.ecowin.series`,
+            `vnd.ecowin.seriesrequest`,
+            `vnd.ecowin.seriesupdate`,
+            `vnd.efi.img`,
+            `vnd.efi.iso`,
+            `vnd.emclient.accessrequest+xml`,
+            `vnd.enliven`,
+            `vnd.enphase.envoy`,
+            `vnd.eprints.data+xml`,
+            `vnd.epson.esf`,
+            `vnd.epson.msf`,
+            `vnd.epson.quickanime`,
+            `vnd.epson.salt`,
+            `vnd.epson.ssf`,
+            `vnd.ericsson.quickcall`,
+            `vnd.espass-espass+zip`,
+            `vnd.eszigno3+xml`,
+            `vnd.etsi.aoc+xml`,
+            `vnd.etsi.asic-e+zip`,
+            `vnd.etsi.asic-s+zip`,
+            `vnd.etsi.cug+xml`,
+            `vnd.etsi.iptvcommand+xml`,
+            `vnd.etsi.iptvdiscovery+xml`,
+            `vnd.etsi.iptvprofile+xml`,
+            `vnd.etsi.iptvsad-bc+xml`,
+            `vnd.etsi.iptvsad-cod+xml`,
+            `vnd.etsi.iptvsad-npvr+xml`,
+            `vnd.etsi.iptvservice+xml`,
+            `vnd.etsi.iptvsync+xml`,
+            `vnd.etsi.iptvueprofile+xml`,
+            `vnd.etsi.mcid+xml`,
+            `vnd.etsi.mheg5`,
+            `vnd.etsi.overload-control-policy-dataset+xml`,
+            `vnd.etsi.pstn+xml`,
+            `vnd.etsi.sci+xml`,
+            `vnd.etsi.simservs+xml`,
+            `vnd.etsi.timestamp-token`,
+            `vnd.etsi.tsl+xml`,
+            `vnd.etsi.tsl.der`,
+            `vnd.eudora.data`,
+            `vnd.evolv.ecig.profile`,
+            `vnd.evolv.ecig.settings`,
+            `vnd.evolv.ecig.theme`,
+            `vnd.exstream-empower+zip`,
+            `vnd.exstream-package`,
+            `vnd.ezpix-album`,
+            `vnd.ezpix-package`,
+            `vnd.f-secure.mobile`,
+            `vnd.fastcopy-disk-image`,
+            `vnd.fdf`,
+            `vnd.fdsn.mseed`,
+            `vnd.fdsn.seed`,
+            `vnd.ffsns`,
+            `vnd.ficlab.flb+zip`,
+            `vnd.filmit.zfc`,
+            `vnd.fints`,
+            `vnd.firemonkeys.cloudcell`,
+            `vnd.flographit`,
+            `vnd.fluxtime.clip`,
+            `vnd.font-fontforge-sfd`,
+            `vnd.framemaker`,
+            `vnd.frogans.fnc`,
+            `vnd.frogans.ltf`,
+            `vnd.fsc.weblaunch`,
+            `vnd.fujifilm.fb.docuworks`,
+            `vnd.fujifilm.fb.docuworks.binder`,
+            `vnd.fujifilm.fb.docuworks.container`,
+            `vnd.fujifilm.fb.jfi+xml`,
+            `vnd.fujitsu.oasys`,
+            `vnd.fujitsu.oasys2`,
+            `vnd.fujitsu.oasys3`,
+            `vnd.fujitsu.oasysgp`,
+            `vnd.fujitsu.oasysprs`,
+            `vnd.fujixerox.art-ex`,
+            `vnd.fujixerox.art4`,
+            `vnd.fujixerox.ddd`,
+            `vnd.fujixerox.docuworks`,
+            `vnd.fujixerox.docuworks.binder`,
+            `vnd.fujixerox.docuworks.container`,
+            `vnd.fujixerox.hbpl`,
+            `vnd.fut-misnet`,
+            `vnd.futoin+cbor`,
+            `vnd.futoin+json`,
+            `vnd.fuzzysheet`,
+            `vnd.genomatix.tuxedo`,
+            `vnd.gentics.grd+json`,
+            `vnd.geo+json`,
+            `vnd.geocube+xml`,
+            `vnd.geogebra.file`,
+            `vnd.geogebra.slides`,
+            `vnd.geogebra.tool`,
+            `vnd.geometry-explorer`,
+            `vnd.geonext`,
+            `vnd.geoplan`,
+            `vnd.geospace`,
+            `vnd.gerber`,
+            `vnd.globalplatform.card-content-mgt`,
+            `vnd.globalplatform.card-content-mgt-response`,
+            `vnd.gmx`,
+            `vnd.google-apps.document`,
+            `vnd.google-apps.presentation`,
+            `vnd.google-apps.spreadsheet`,
+            `vnd.google-earth.kml+xml`,
+            `vnd.google-earth.kmz`,
+            `vnd.gov.sk.e-form+xml`,
+            `vnd.gov.sk.e-form+zip`,
+            `vnd.gov.sk.xmldatacontainer+xml`,
+            `vnd.grafeq`,
+            `vnd.gridmp`,
+            `vnd.groove-account`,
+            `vnd.groove-help`,
+            `vnd.groove-identity-message`,
+            `vnd.groove-injector`,
+            `vnd.groove-tool-message`,
+            `vnd.groove-tool-template`,
+            `vnd.groove-vcard`,
+            `vnd.hal+json`,
+            `vnd.hal+xml`,
+            `vnd.handheld-entertainment+xml`,
+            `vnd.hbci`,
+            `vnd.hc+json`,
+            `vnd.hcl-bireports`,
+            `vnd.hdt`,
+            `vnd.heroku+json`,
+            `vnd.hhe.lesson-player`,
+            `vnd.hp-hpgl`,
+            `vnd.hp-hpid`,
+            `vnd.hp-hps`,
+            `vnd.hp-jlyt`,
+            `vnd.hp-pcl`,
+            `vnd.hp-pclxl`,
+            `vnd.httphone`,
+            `vnd.hydrostatix.sof-data`,
+            `vnd.hyper+json`,
+            `vnd.hyper-item+json`,
+            `vnd.hyperdrive+json`,
+            `vnd.hzn-3d-crossword`,
+            `vnd.ibm.afplinedata`,
+            `vnd.ibm.electronic-media`,
+            `vnd.ibm.minipay`,
+            `vnd.ibm.modcap`,
+            `vnd.ibm.rights-management`,
+            `vnd.ibm.secure-container`,
+            `vnd.iccprofile`,
+            `vnd.ieee.1905`,
+            `vnd.igloader`,
+            `vnd.imagemeter.folder+zip`,
+            `vnd.imagemeter.image+zip`,
+            `vnd.immervision-ivp`,
+            `vnd.immervision-ivu`,
+            `vnd.ims.imsccv1p1`,
+            `vnd.ims.imsccv1p2`,
+            `vnd.ims.imsccv1p3`,
+            `vnd.ims.lis.v2.result+json`,
+            `vnd.ims.lti.v2.toolconsumerprofile+json`,
+            `vnd.ims.lti.v2.toolproxy+json`,
+            `vnd.ims.lti.v2.toolproxy.id+json`,
+            `vnd.ims.lti.v2.toolsettings+json`,
+            `vnd.ims.lti.v2.toolsettings.simple+json`,
+            `vnd.informedcontrol.rms+xml`,
+            `vnd.informix-visionary`,
+            `vnd.infotech.project`,
+            `vnd.infotech.project+xml`,
+            `vnd.innopath.wamp.notification`,
+            `vnd.insors.igm`,
+            `vnd.intercon.formnet`,
+            `vnd.intergeo`,
+            `vnd.intertrust.digibox`,
+            `vnd.intertrust.nncp`,
+            `vnd.intu.qbo`,
+            `vnd.intu.qfx`,
+            `vnd.iptc.g2.catalogitem+xml`,
+            `vnd.iptc.g2.conceptitem+xml`,
+            `vnd.iptc.g2.knowledgeitem+xml`,
+            `vnd.iptc.g2.newsitem+xml`,
+            `vnd.iptc.g2.newsmessage+xml`,
+            `vnd.iptc.g2.packageitem+xml`,
+            `vnd.iptc.g2.planningitem+xml`,
+            `vnd.ipunplugged.rcprofile`,
+            `vnd.irepository.package+xml`,
+            `vnd.is-xpr`,
+            `vnd.isac.fcs`,
+            `vnd.iso11783-10+zip`,
+            `vnd.jam`,
+            `vnd.japannet-directory-service`,
+            `vnd.japannet-jpnstore-wakeup`,
+            `vnd.japannet-payment-wakeup`,
+            `vnd.japannet-registration`,
+            `vnd.japannet-registration-wakeup`,
+            `vnd.japannet-setstore-wakeup`,
+            `vnd.japannet-verification`,
+            `vnd.japannet-verification-wakeup`,
+            `vnd.jcp.javame.midlet-rms`,
+            `vnd.jisp`,
+            `vnd.joost.joda-archive`,
+            `vnd.jsk.isdn-ngn`,
+            `vnd.kahootz`,
+            `vnd.kde.karbon`,
+            `vnd.kde.kchart`,
+            `vnd.kde.kformula`,
+            `vnd.kde.kivio`,
+            `vnd.kde.kontour`,
+            `vnd.kde.kpresenter`,
+            `vnd.kde.kspread`,
+            `vnd.kde.kword`,
+            `vnd.kenameaapp`,
+            `vnd.kidspiration`,
+            `vnd.kinar`,
+            `vnd.koan`,
+            `vnd.kodak-descriptor`,
+            `vnd.las`,
+            `vnd.las.las+json`,
+            `vnd.las.las+xml`,
+            `vnd.laszip`,
+            `vnd.leap+json`,
+            `vnd.liberty-request+xml`,
+            `vnd.llamagraphics.life-balance.desktop`,
+            `vnd.llamagraphics.life-balance.exchange+xml`,
+            `vnd.logipipe.circuit+zip`,
+            `vnd.loom`,
+            `vnd.lotus-1-2-3`,
+            `vnd.lotus-approach`,
+            `vnd.lotus-freelance`,
+            `vnd.lotus-notes`,
+            `vnd.lotus-organizer`,
+            `vnd.lotus-screencam`,
+            `vnd.lotus-wordpro`,
+            `vnd.macports.portpkg`,
+            `vnd.mapbox-vector-tile`,
+            `vnd.marlin.drm.actiontoken+xml`,
+            `vnd.marlin.drm.conftoken+xml`,
+            `vnd.marlin.drm.license+xml`,
+            `vnd.marlin.drm.mdcf`,
+            `vnd.mason+json`,
+            `vnd.maxmind.maxmind-db`,
+            `vnd.mcd`,
+            `vnd.medcalcdata`,
+            `vnd.mediastation.cdkey`,
+            `vnd.meridian-slingshot`,
+            `vnd.mfer`,
+            `vnd.mfmp`,
+            `vnd.micro+json`,
+            `vnd.micrografx.flo`,
+            `vnd.micrografx.igx`,
+            `vnd.microsoft.portable-executable`,
+            `vnd.microsoft.windows.thumbnail-cache`,
+            `vnd.miele+json`,
+            `vnd.mif`,
+            `vnd.minisoft-hp3000-save`,
+            `vnd.mitsubishi.misty-guard.trustweb`,
+            `vnd.mobius.daf`,
+            `vnd.mobius.dis`,
+            `vnd.mobius.mbk`,
+            `vnd.mobius.mqy`,
+            `vnd.mobius.msl`,
+            `vnd.mobius.plc`,
+            `vnd.mobius.txf`,
+            `vnd.mophun.application`,
+            `vnd.mophun.certificate`,
+            `vnd.motorola.flexsuite`,
+            `vnd.motorola.flexsuite.adsi`,
+            `vnd.motorola.flexsuite.fis`,
+            `vnd.motorola.flexsuite.gotap`,
+            `vnd.motorola.flexsuite.kmr`,
+            `vnd.motorola.flexsuite.ttc`,
+            `vnd.motorola.flexsuite.wem`,
+            `vnd.motorola.iprm`,
+            `vnd.mozilla.xul+xml`,
+            `vnd.ms-3mfdocument`,
+            `vnd.ms-artgalry`,
+            `vnd.ms-asf`,
+            `vnd.ms-cab-compressed`,
+            `vnd.ms-color.iccprofile`,
+            `vnd.ms-excel`,
+            `vnd.ms-excel.addin.macroenabled.12`,
+            `vnd.ms-excel.sheet.binary.macroenabled.12`,
+            `vnd.ms-excel.sheet.macroenabled.12`,
+            `vnd.ms-excel.template.macroenabled.12`,
+            `vnd.ms-fontobject`,
+            `vnd.ms-htmlhelp`,
+            `vnd.ms-ims`,
+            `vnd.ms-lrm`,
+            `vnd.ms-office.activex+xml`,
+            `vnd.ms-officetheme`,
+            `vnd.ms-opentype`,
+            `vnd.ms-outlook`,
+            `vnd.ms-package.obfuscated-opentype`,
+            `vnd.ms-pki.seccat`,
+            `vnd.ms-pki.stl`,
+            `vnd.ms-playready.initiator+xml`,
+            `vnd.ms-powerpoint`,
+            `vnd.ms-powerpoint.addin.macroenabled.12`,
+            `vnd.ms-powerpoint.presentation.macroenabled.12`,
+            `vnd.ms-powerpoint.slide.macroenabled.12`,
+            `vnd.ms-powerpoint.slideshow.macroenabled.12`,
+            `vnd.ms-powerpoint.template.macroenabled.12`,
+            `vnd.ms-printdevicecapabilities+xml`,
+            `vnd.ms-printing.printticket+xml`,
+            `vnd.ms-printschematicket+xml`,
+            `vnd.ms-project`,
+            `vnd.ms-tnef`,
+            `vnd.ms-windows.devicepairing`,
+            `vnd.ms-windows.nwprinting.oob`,
+            `vnd.ms-windows.printerpairing`,
+            `vnd.ms-windows.wsd.oob`,
+            `vnd.ms-wmdrm.lic-chlg-req`,
+            `vnd.ms-wmdrm.lic-resp`,
+          )
+        else ()
+        _part_1
+      }
     }
     trait application_2 {
       lazy val `vnd.ms-wmdrm.meter-chlg-req`: MediaType =
@@ -3378,19 +3495,22 @@ private[http4s] trait MimeDB {
         "vnd.ms-word.document.macroenabled.12",
         Compressible,
         NotBinary,
-        List("docm"))
+        List("docm"),
+      )
       lazy val `vnd.ms-word.template.macroenabled.12`: MediaType = new MediaType(
         "application",
         "vnd.ms-word.template.macroenabled.12",
         Compressible,
         NotBinary,
-        List("dotm"))
+        List("dotm"),
+      )
       lazy val `vnd.ms-works`: MediaType = new MediaType(
         "application",
         "vnd.ms-works",
         Compressible,
         NotBinary,
-        List("wps", "wks", "wcm", "wdb"))
+        List("wps", "wks", "wcm", "wdb"),
+      )
       lazy val `vnd.ms-wpl`: MediaType =
         new MediaType("application", "vnd.ms-wpl", Compressible, NotBinary, List("wpl"))
       lazy val `vnd.ms-xpsdocument`: MediaType =
@@ -3464,13 +3584,15 @@ private[http4s] trait MimeDB {
         "vnd.nokia.n-gage.data",
         Compressible,
         NotBinary,
-        List("ngdat"))
+        List("ngdat"),
+      )
       lazy val `vnd.nokia.n-gage.symbian.install`: MediaType = new MediaType(
         "application",
         "vnd.nokia.n-gage.symbian.install",
         Compressible,
         NotBinary,
-        List("n-gage"))
+        List("n-gage"),
+      )
       lazy val `vnd.nokia.ncd`: MediaType =
         new MediaType("application", "vnd.nokia.ncd", Compressible, NotBinary)
       lazy val `vnd.nokia.pcd+wbxml`: MediaType =
@@ -3482,13 +3604,15 @@ private[http4s] trait MimeDB {
         "vnd.nokia.radio-preset",
         Compressible,
         NotBinary,
-        List("rpst"))
+        List("rpst"),
+      )
       lazy val `vnd.nokia.radio-presets`: MediaType = new MediaType(
         "application",
         "vnd.nokia.radio-presets",
         Compressible,
         NotBinary,
-        List("rpss"))
+        List("rpss"),
+      )
       lazy val `vnd.novadigm.edm`: MediaType =
         new MediaType("application", "vnd.novadigm.edm", Compressible, NotBinary, List("edm"))
       lazy val `vnd.novadigm.edx`: MediaType =
@@ -3510,103 +3634,120 @@ private[http4s] trait MimeDB {
         "vnd.oasis.opendocument.chart",
         Compressible,
         Binary,
-        List("odc"))
+        List("odc"),
+      )
       lazy val `vnd.oasis.opendocument.chart-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.chart-template",
         Compressible,
         NotBinary,
-        List("otc"))
+        List("otc"),
+      )
       lazy val `vnd.oasis.opendocument.database`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.database",
         Compressible,
         Binary,
-        List("odb"))
+        List("odb"),
+      )
       lazy val `vnd.oasis.opendocument.formula`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.formula",
         Compressible,
         Binary,
-        List("odf"))
+        List("odf"),
+      )
       lazy val `vnd.oasis.opendocument.formula-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.formula-template",
         Compressible,
         NotBinary,
-        List("odft"))
+        List("odft"),
+      )
       lazy val `vnd.oasis.opendocument.graphics`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.graphics",
         Uncompressible,
         Binary,
-        List("odg"))
+        List("odg"),
+      )
       lazy val `vnd.oasis.opendocument.graphics-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.graphics-template",
         Compressible,
         NotBinary,
-        List("otg"))
+        List("otg"),
+      )
       lazy val `vnd.oasis.opendocument.image`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.image",
         Compressible,
         Binary,
-        List("odi"))
+        List("odi"),
+      )
       lazy val `vnd.oasis.opendocument.image-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.image-template",
         Compressible,
         NotBinary,
-        List("oti"))
+        List("oti"),
+      )
       lazy val `vnd.oasis.opendocument.presentation`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.presentation",
         Uncompressible,
         Binary,
-        List("odp"))
+        List("odp"),
+      )
       lazy val `vnd.oasis.opendocument.presentation-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.presentation-template",
         Compressible,
         NotBinary,
-        List("otp"))
+        List("otp"),
+      )
       lazy val `vnd.oasis.opendocument.spreadsheet`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.spreadsheet",
         Uncompressible,
         Binary,
-        List("ods"))
+        List("ods"),
+      )
       lazy val `vnd.oasis.opendocument.spreadsheet-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.spreadsheet-template",
         Compressible,
         NotBinary,
-        List("ots"))
+        List("ots"),
+      )
       lazy val `vnd.oasis.opendocument.text`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.text",
         Uncompressible,
         Binary,
-        List("odt"))
+        List("odt"),
+      )
       lazy val `vnd.oasis.opendocument.text-master`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.text-master",
         Compressible,
         Binary,
-        List("odm"))
+        List("odm"),
+      )
       lazy val `vnd.oasis.opendocument.text-template`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.text-template",
         Compressible,
         NotBinary,
-        List("ott"))
+        List("ott"),
+      )
       lazy val `vnd.oasis.opendocument.text-web`: MediaType = new MediaType(
         "application",
         "vnd.oasis.opendocument.text-web",
         Compressible,
         Binary,
-        List("oth"))
+        List("oth"),
+      )
       lazy val `vnd.obn`: MediaType =
         new MediaType("application", "vnd.obn", Compressible, NotBinary)
       lazy val `vnd.ocf+cbor`: MediaType =
@@ -3649,7 +3790,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.oma.bcast.associated-procedure-parameter+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oma.bcast.drm-trigger+xml`: MediaType =
         new MediaType("application", "vnd.oma.bcast.drm-trigger+xml", Compressible, NotBinary)
       lazy val `vnd.oma.bcast.imd+xml`: MediaType =
@@ -3670,7 +3812,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.oma.bcast.simple-symbol-container",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oma.bcast.smartcard-trigger+xml`: MediaType =
         new MediaType("application", "vnd.oma.bcast.smartcard-trigger+xml", Compressible, NotBinary)
       lazy val `vnd.oma.bcast.sprov+xml`: MediaType =
@@ -3709,7 +3852,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.oma.poc.detailed-progress-report+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oma.poc.final-report+xml`: MediaType =
         new MediaType("application", "vnd.oma.poc.final-report+xml", Compressible, NotBinary)
       lazy val `vnd.oma.poc.groups+xml`: MediaType =
@@ -3718,12 +3862,14 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.oma.poc.invocation-descriptor+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oma.poc.optimized-progress-report+xml`: MediaType = new MediaType(
         "application",
         "vnd.oma.poc.optimized-progress-report+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oma.push`: MediaType =
         new MediaType("application", "vnd.oma.push", Compressible, NotBinary)
       lazy val `vnd.oma.scidm.messages+xml`: MediaType =
@@ -3761,455 +3907,531 @@ private[http4s] trait MimeDB {
         "vnd.openofficeorg.extension",
         Compressible,
         NotBinary,
-        List("oxt"))
+        List("oxt"),
+      )
       lazy val `vnd.openstreetmap.data+xml`: MediaType = new MediaType(
         "application",
         "vnd.openstreetmap.data+xml",
         Compressible,
         NotBinary,
-        List("osm"))
+        List("osm"),
+      )
       lazy val `vnd.openxmlformats-officedocument.custom-properties+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.custom-properties+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.customxmlproperties+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.customxmlproperties+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.drawing+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.drawing+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.drawingml.chart+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.drawingml.chart+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.drawingml.chartshapes+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.drawingml.chartshapes+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.drawingml.diagramdata+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.drawingml.diagramdata+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.extended-properties+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.extended-properties+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.commentauthors+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.commentauthors+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.comments+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.comments+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.notesmaster+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.notesmaster+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.notesslide+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.notesslide+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.presentation`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.presentation",
           Uncompressible,
           Binary,
-          List("pptx"))
+          List("pptx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.presentation.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.presentation.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.presprops+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.presprops+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slide`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.presentationml.slide",
         Compressible,
         Binary,
-        List("sldx"))
+        List("sldx"),
+      )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slide+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slide+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slidelayout+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slidelayout+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slidemaster+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slidemaster+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slideshow`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slideshow",
           Compressible,
           Binary,
-          List("ppsx"))
+          List("ppsx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.tablestyles+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.tablestyles+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.tags+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.tags+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.template`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.template",
           Compressible,
           Binary,
-          List("potx"))
+          List("potx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.template.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.template.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.presentationml.viewprops+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.presentationml.viewprops+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.comments+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.comments+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.connections+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.connections+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml`
           : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.sheet`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         Uncompressible,
         Binary,
-        List("xlsx"))
+        List("xlsx"),
+      )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.styles+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.styles+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.table+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.table+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.template`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.template",
           Compressible,
           Binary,
-          List("xltx"))
+          List("xltx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml`
           : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.theme+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.theme+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.themeoverride+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.themeoverride+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.vmldrawing`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.vmldrawing",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.comments+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.comments+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.document`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.document",
           Uncompressible,
           Binary,
-          List("docx"))
+          List("docx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml`
           : MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.footer+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.footer+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.settings+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.settings+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.styles+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.styles+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.template`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.template",
           Compressible,
           Binary,
-          List("dotx"))
+          List("dotx"),
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-package.core-properties+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-package.core-properties+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.openxmlformats-package.digital-signature-xmlsignature+xml`: MediaType =
         new MediaType(
           "application",
           "vnd.openxmlformats-package.digital-signature-xmlsignature+xml",
           Compressible,
-          NotBinary)
+          NotBinary,
+        )
       lazy val `vnd.openxmlformats-package.relationships+xml`: MediaType = new MediaType(
         "application",
         "vnd.openxmlformats-package.relationships+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.oracle.resource+json`: MediaType =
         new MediaType("application", "vnd.oracle.resource+json", Compressible, NotBinary)
       lazy val `vnd.orange.indata`: MediaType =
@@ -4221,7 +4443,8 @@ private[http4s] trait MimeDB {
         "vnd.osgeo.mapguide.package",
         Compressible,
         NotBinary,
-        List("mgp"))
+        List("mgp"),
+      )
       lazy val `vnd.osgi.bundle`: MediaType =
         new MediaType("application", "vnd.osgi.bundle", Compressible, NotBinary)
       lazy val `vnd.osgi.dp`: MediaType =
@@ -4239,7 +4462,8 @@ private[http4s] trait MimeDB {
         "vnd.palm",
         Compressible,
         NotBinary,
-        List("pdb", "pqa", "oprc"))
+        List("pdb", "pqa", "oprc"),
+      )
       lazy val `vnd.panoply`: MediaType =
         new MediaType("application", "vnd.panoply", Compressible, NotBinary)
       lazy val `vnd.paos.xml`: MediaType =
@@ -4291,7 +4515,8 @@ private[http4s] trait MimeDB {
         "vnd.publishare-delta-tree",
         Compressible,
         NotBinary,
-        List("qps"))
+        List("qps"),
+      )
       lazy val `vnd.pvi.ptid1`: MediaType =
         new MediaType("application", "vnd.pvi.ptid1", Compressible, NotBinary, List("ptid"))
       lazy val `vnd.pwg-multiplexed`: MediaType =
@@ -4307,7 +4532,8 @@ private[http4s] trait MimeDB {
         "vnd.quark.quarkxpress",
         Compressible,
         NotBinary,
-        List("qxd", "qxt", "qwd", "qwt", "qxl", "qxb"))
+        List("qxd", "qxt", "qwd", "qwt", "qxl", "qxb"),
+      )
       lazy val `vnd.quobject-quoxdocument`: MediaType =
         new MediaType("application", "vnd.quobject-quoxdocument", Compressible, NotBinary)
       lazy val `vnd.radisys.moml+xml`: MediaType =
@@ -4334,12 +4560,14 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.radisys.msml-dialog-fax-detect+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.radisys.msml-dialog-fax-sendrecv+xml`: MediaType = new MediaType(
         "application",
         "vnd.radisys.msml-dialog-fax-sendrecv+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.radisys.msml-dialog-group+xml`: MediaType =
         new MediaType("application", "vnd.radisys.msml-dialog-group+xml", Compressible, NotBinary)
       lazy val `vnd.radisys.msml-dialog-speech+xml`: MediaType =
@@ -4348,7 +4576,8 @@ private[http4s] trait MimeDB {
         "application",
         "vnd.radisys.msml-dialog-transform+xml",
         Compressible,
-        NotBinary)
+        NotBinary,
+      )
       lazy val `vnd.rainstor.data`: MediaType =
         new MediaType("application", "vnd.rainstor.data", Compressible, NotBinary)
       lazy val `vnd.rapid`: MediaType =
@@ -4364,7 +4593,8 @@ private[http4s] trait MimeDB {
         "vnd.recordare.musicxml+xml",
         Compressible,
         NotBinary,
-        List("musicxml"))
+        List("musicxml"),
+      )
       lazy val `vnd.renlearn.rlprint`: MediaType =
         new MediaType("application", "vnd.renlearn.rlprint", Compressible, NotBinary)
       lazy val `vnd.restful+json`: MediaType =
@@ -4374,7 +4604,8 @@ private[http4s] trait MimeDB {
         "vnd.rig.cryptonote",
         Compressible,
         NotBinary,
-        List("cryptonote"))
+        List("cryptonote"),
+      )
       lazy val `vnd.rim.cod`: MediaType =
         new MediaType("application", "vnd.rim.cod", Compressible, NotBinary, List("cod"))
       lazy val `vnd.rn-realmedia`: MediaType =
@@ -4386,7 +4617,8 @@ private[http4s] trait MimeDB {
         "vnd.route66.link66+xml",
         Compressible,
         NotBinary,
-        List("link66"))
+        List("link66"),
+      )
       lazy val `vnd.rs-274x`: MediaType =
         new MediaType("application", "vnd.rs-274x", Compressible, NotBinary)
       lazy val `vnd.ruckus.download`: MediaType =
@@ -4398,7 +4630,8 @@ private[http4s] trait MimeDB {
         "vnd.sailingtracker.track",
         Compressible,
         NotBinary,
-        List("st"))
+        List("st"),
+      )
       lazy val `vnd.sar`: MediaType =
         new MediaType("application", "vnd.sar", Compressible, NotBinary)
       lazy val `vnd.sbm.cid`: MediaType =
@@ -4446,25 +4679,29 @@ private[http4s] trait MimeDB {
         "vnd.shana.informed.formdata",
         Compressible,
         NotBinary,
-        List("ifm"))
+        List("ifm"),
+      )
       lazy val `vnd.shana.informed.formtemplate`: MediaType = new MediaType(
         "application",
         "vnd.shana.informed.formtemplate",
         Compressible,
         NotBinary,
-        List("itp"))
+        List("itp"),
+      )
       lazy val `vnd.shana.informed.interchange`: MediaType = new MediaType(
         "application",
         "vnd.shana.informed.interchange",
         Compressible,
         NotBinary,
-        List("iif"))
+        List("iif"),
+      )
       lazy val `vnd.shana.informed.package`: MediaType = new MediaType(
         "application",
         "vnd.shana.informed.package",
         Compressible,
         NotBinary,
-        List("ipk"))
+        List("ipk"),
+      )
       lazy val `vnd.shootproof+json`: MediaType =
         new MediaType("application", "vnd.shootproof+json", Compressible, NotBinary)
       lazy val `vnd.shopkick+json`: MediaType =
@@ -4480,7 +4717,8 @@ private[http4s] trait MimeDB {
         "vnd.simtech-mindmapper",
         Compressible,
         NotBinary,
-        List("twd", "twds"))
+        List("twd", "twds"),
+      )
       lazy val `vnd.siren+json`: MediaType =
         new MediaType("application", "vnd.siren+json", Compressible, NotBinary)
       lazy val `vnd.smaf`: MediaType =
@@ -4496,7 +4734,8 @@ private[http4s] trait MimeDB {
         "vnd.software602.filler.form+xml",
         Compressible,
         NotBinary,
-        List("fo"))
+        List("fo"),
+      )
       lazy val `vnd.software602.filler.form-xml-zip`: MediaType =
         new MediaType("application", "vnd.software602.filler.form-xml-zip", Compressible, NotBinary)
       lazy val `vnd.solent.sdkm+xml`: MediaType = new MediaType(
@@ -4504,7 +4743,8 @@ private[http4s] trait MimeDB {
         "vnd.solent.sdkm+xml",
         Compressible,
         NotBinary,
-        List("sdkm", "sdkd"))
+        List("sdkm", "sdkd"),
+      )
       lazy val `vnd.spotfire.dxp`: MediaType =
         new MediaType("application", "vnd.spotfire.dxp", Compressible, NotBinary, List("dxp"))
       lazy val `vnd.spotfire.sfs`: MediaType =
@@ -4526,7 +4766,8 @@ private[http4s] trait MimeDB {
         "vnd.stardivision.impress",
         Compressible,
         NotBinary,
-        List("sdd"))
+        List("sdd"),
+      )
       lazy val `vnd.stardivision.math`: MediaType =
         new MediaType("application", "vnd.stardivision.math", Compressible, NotBinary, List("smf"))
       lazy val `vnd.stardivision.writer`: MediaType = new MediaType(
@@ -4534,19 +4775,22 @@ private[http4s] trait MimeDB {
         "vnd.stardivision.writer",
         Compressible,
         NotBinary,
-        List("sdw", "vor"))
+        List("sdw", "vor"),
+      )
       lazy val `vnd.stardivision.writer-global`: MediaType = new MediaType(
         "application",
         "vnd.stardivision.writer-global",
         Compressible,
         NotBinary,
-        List("sgl"))
+        List("sgl"),
+      )
       lazy val `vnd.stepmania.package`: MediaType = new MediaType(
         "application",
         "vnd.stepmania.package",
         Compressible,
         NotBinary,
-        List("smzip"))
+        List("smzip"),
+      )
       lazy val `vnd.stepmania.stepchart`: MediaType =
         new MediaType("application", "vnd.stepmania.stepchart", Compressible, NotBinary, List("sm"))
       lazy val `vnd.street-stream`: MediaType =
@@ -4560,7 +4804,8 @@ private[http4s] trait MimeDB {
         "vnd.sun.xml.calc.template",
         Compressible,
         NotBinary,
-        List("stc"))
+        List("stc"),
+      )
       lazy val `vnd.sun.xml.draw`: MediaType =
         new MediaType("application", "vnd.sun.xml.draw", Compressible, NotBinary, List("sxd"))
       lazy val `vnd.sun.xml.draw.template`: MediaType = new MediaType(
@@ -4568,7 +4813,8 @@ private[http4s] trait MimeDB {
         "vnd.sun.xml.draw.template",
         Compressible,
         NotBinary,
-        List("std"))
+        List("std"),
+      )
       lazy val `vnd.sun.xml.impress`: MediaType =
         new MediaType("application", "vnd.sun.xml.impress", Compressible, NotBinary, List("sxi"))
       lazy val `vnd.sun.xml.impress.template`: MediaType = new MediaType(
@@ -4576,7 +4822,8 @@ private[http4s] trait MimeDB {
         "vnd.sun.xml.impress.template",
         Compressible,
         NotBinary,
-        List("sti"))
+        List("sti"),
+      )
       lazy val `vnd.sun.xml.math`: MediaType =
         new MediaType("application", "vnd.sun.xml.math", Compressible, NotBinary, List("sxm"))
       lazy val `vnd.sun.xml.writer`: MediaType =
@@ -4586,19 +4833,22 @@ private[http4s] trait MimeDB {
         "vnd.sun.xml.writer.global",
         Compressible,
         NotBinary,
-        List("sxg"))
+        List("sxg"),
+      )
       lazy val `vnd.sun.xml.writer.template`: MediaType = new MediaType(
         "application",
         "vnd.sun.xml.writer.template",
         Compressible,
         NotBinary,
-        List("stw"))
+        List("stw"),
+      )
       lazy val `vnd.sus-calendar`: MediaType = new MediaType(
         "application",
         "vnd.sus-calendar",
         Compressible,
         NotBinary,
-        List("sus", "susp"))
+        List("sus", "susp"),
+      )
       lazy val `vnd.svd`: MediaType =
         new MediaType("application", "vnd.svd", Compressible, NotBinary, List("svd"))
       lazy val `vnd.swiftview-ics`: MediaType =
@@ -4610,7 +4860,8 @@ private[http4s] trait MimeDB {
         "vnd.symbian.install",
         Compressible,
         NotBinary,
-        List("sis", "sisx"))
+        List("sis", "sisx"),
+      )
       lazy val `vnd.syncml+xml`: MediaType =
         new MediaType("application", "vnd.syncml+xml", Compressible, NotBinary, List("xsm"))
       lazy val `vnd.syncml.dm+wbxml`: MediaType =
@@ -4636,13 +4887,15 @@ private[http4s] trait MimeDB {
         "vnd.tao.intent-module-archive",
         Compressible,
         NotBinary,
-        List("tao"))
+        List("tao"),
+      )
       lazy val `vnd.tcpdump.pcap`: MediaType = new MediaType(
         "application",
         "vnd.tcpdump.pcap",
         Compressible,
         NotBinary,
-        List("pcap", "cap", "dmp"))
+        List("pcap", "cap", "dmp"),
+      )
       lazy val `vnd.think-cell.ppttc+json`: MediaType =
         new MediaType("application", "vnd.think-cell.ppttc+json", Compressible, NotBinary)
       lazy val `vnd.tmd.mediaflex.api+xml`: MediaType =
@@ -4724,7 +4977,8 @@ private[http4s] trait MimeDB {
         "vnd.visio",
         Compressible,
         NotBinary,
-        List("vsd", "vst", "vss", "vsw"))
+        List("vsd", "vst", "vss", "vsw"),
+      )
       lazy val `vnd.visionary`: MediaType =
         new MediaType("application", "vnd.visionary", Compressible, NotBinary, List("vis"))
       lazy val `vnd.vividence.scriptfile`: MediaType =
@@ -4806,13 +5060,15 @@ private[http4s] trait MimeDB {
         "vnd.yamaha.openscoreformat",
         Compressible,
         NotBinary,
-        List("osf"))
+        List("osf"),
+      )
       lazy val `vnd.yamaha.openscoreformat.osfpvg+xml`: MediaType = new MediaType(
         "application",
         "vnd.yamaha.openscoreformat.osfpvg+xml",
         Compressible,
         NotBinary,
-        List("osfpvg"))
+        List("osfpvg"),
+      )
       lazy val `vnd.yamaha.remote-setup`: MediaType =
         new MediaType("application", "vnd.yamaha.remote-setup", Compressible, NotBinary)
       lazy val `vnd.yamaha.smaf-audio`: MediaType =
@@ -4830,7 +5086,8 @@ private[http4s] trait MimeDB {
         "vnd.yellowriver-custom-menu",
         Compressible,
         NotBinary,
-        List("cmp"))
+        List("cmp"),
+      )
       lazy val `vnd.youtube.yt`: MediaType =
         new MediaType("application", "vnd.youtube.yt", Compressible, NotBinary)
       lazy val `vnd.zul`: MediaType =
@@ -4880,7 +5137,8 @@ private[http4s] trait MimeDB {
         "x-authorware-bin",
         Compressible,
         NotBinary,
-        List("aab", "x32", "u32", "vox"))
+        List("aab", "x32", "u32", "vox"),
+      )
       lazy val `x-authorware-map`: MediaType =
         new MediaType("application", "x-authorware-map", Compressible, NotBinary, List("aam"))
       lazy val `x-authorware-seg`: MediaType =
@@ -4902,7 +5160,8 @@ private[http4s] trait MimeDB {
         "x-cbr",
         Compressible,
         NotBinary,
-        List("cbr", "cba", "cbt", "cbz", "cb7"))
+        List("cbr", "cba", "cbt", "cbz", "cb7"),
+      )
       lazy val `x-cdlink`: MediaType =
         new MediaType("application", "x-cdlink", Compressible, NotBinary, List("vcd"))
       lazy val `x-cfs-compressed`: MediaType =
@@ -4924,508 +5183,514 @@ private[http4s] trait MimeDB {
       lazy val `x-csh`: MediaType =
         new MediaType("application", "x-csh", Compressible, NotBinary, List("csh"))
       lazy val `x-deb`: MediaType = new MediaType("application", "x-deb", Uncompressible, NotBinary)
-      lazy val part_2: List[MediaType] = List(
-        `vnd.ms-wmdrm.meter-chlg-req`,
-        `vnd.ms-wmdrm.meter-resp`,
-        `vnd.ms-word.document.macroenabled.12`,
-        `vnd.ms-word.template.macroenabled.12`,
-        `vnd.ms-works`,
-        `vnd.ms-wpl`,
-        `vnd.ms-xpsdocument`,
-        `vnd.msa-disk-image`,
-        `vnd.mseq`,
-        `vnd.msign`,
-        `vnd.multiad.creator`,
-        `vnd.multiad.creator.cif`,
-        `vnd.music-niff`,
-        `vnd.musician`,
-        `vnd.muvee.style`,
-        `vnd.mynfc`,
-        `vnd.ncd.control`,
-        `vnd.ncd.reference`,
-        `vnd.nearst.inv+json`,
-        `vnd.nebumind.line`,
-        `vnd.nervana`,
-        `vnd.netfpx`,
-        `vnd.neurolanguage.nlu`,
-        `vnd.nimn`,
-        `vnd.nintendo.nitro.rom`,
-        `vnd.nintendo.snes.rom`,
-        `vnd.nitf`,
-        `vnd.noblenet-directory`,
-        `vnd.noblenet-sealer`,
-        `vnd.noblenet-web`,
-        `vnd.nokia.catalogs`,
-        `vnd.nokia.conml+wbxml`,
-        `vnd.nokia.conml+xml`,
-        `vnd.nokia.iptv.config+xml`,
-        `vnd.nokia.isds-radio-presets`,
-        `vnd.nokia.landmark+wbxml`,
-        `vnd.nokia.landmark+xml`,
-        `vnd.nokia.landmarkcollection+xml`,
-        `vnd.nokia.n-gage.ac+xml`,
-        `vnd.nokia.n-gage.data`,
-        `vnd.nokia.n-gage.symbian.install`,
-        `vnd.nokia.ncd`,
-        `vnd.nokia.pcd+wbxml`,
-        `vnd.nokia.pcd+xml`,
-        `vnd.nokia.radio-preset`,
-        `vnd.nokia.radio-presets`,
-        `vnd.novadigm.edm`,
-        `vnd.novadigm.edx`,
-        `vnd.novadigm.ext`,
-        `vnd.ntt-local.content-share`,
-        `vnd.ntt-local.file-transfer`,
-        `vnd.ntt-local.ogw_remote-access`,
-        `vnd.ntt-local.sip-ta_remote`,
-        `vnd.ntt-local.sip-ta_tcp_stream`,
-        `vnd.oasis.opendocument.chart`,
-        `vnd.oasis.opendocument.chart-template`,
-        `vnd.oasis.opendocument.database`,
-        `vnd.oasis.opendocument.formula`,
-        `vnd.oasis.opendocument.formula-template`,
-        `vnd.oasis.opendocument.graphics`,
-        `vnd.oasis.opendocument.graphics-template`,
-        `vnd.oasis.opendocument.image`,
-        `vnd.oasis.opendocument.image-template`,
-        `vnd.oasis.opendocument.presentation`,
-        `vnd.oasis.opendocument.presentation-template`,
-        `vnd.oasis.opendocument.spreadsheet`,
-        `vnd.oasis.opendocument.spreadsheet-template`,
-        `vnd.oasis.opendocument.text`,
-        `vnd.oasis.opendocument.text-master`,
-        `vnd.oasis.opendocument.text-template`,
-        `vnd.oasis.opendocument.text-web`,
-        `vnd.obn`,
-        `vnd.ocf+cbor`,
-        `vnd.oci.image.manifest.v1+json`,
-        `vnd.oftn.l10n+json`,
-        `vnd.oipf.contentaccessdownload+xml`,
-        `vnd.oipf.contentaccessstreaming+xml`,
-        `vnd.oipf.cspg-hexbinary`,
-        `vnd.oipf.dae.svg+xml`,
-        `vnd.oipf.dae.xhtml+xml`,
-        `vnd.oipf.mippvcontrolmessage+xml`,
-        `vnd.oipf.pae.gem`,
-        `vnd.oipf.spdiscovery+xml`,
-        `vnd.oipf.spdlist+xml`,
-        `vnd.oipf.ueprofile+xml`,
-        `vnd.oipf.userprofile+xml`,
-        `vnd.olpc-sugar`,
-        `vnd.oma-scws-config`,
-        `vnd.oma-scws-http-request`,
-        `vnd.oma-scws-http-response`,
-        `vnd.oma.bcast.associated-procedure-parameter+xml`,
-        `vnd.oma.bcast.drm-trigger+xml`,
-        `vnd.oma.bcast.imd+xml`,
-        `vnd.oma.bcast.ltkm`,
-        `vnd.oma.bcast.notification+xml`,
-        `vnd.oma.bcast.provisioningtrigger`,
-        `vnd.oma.bcast.sgboot`,
-        `vnd.oma.bcast.sgdd+xml`,
-        `vnd.oma.bcast.sgdu`,
-        `vnd.oma.bcast.simple-symbol-container`,
-        `vnd.oma.bcast.smartcard-trigger+xml`,
-        `vnd.oma.bcast.sprov+xml`,
-        `vnd.oma.bcast.stkm`,
-        `vnd.oma.cab-address-book+xml`,
-        `vnd.oma.cab-feature-handler+xml`,
-        `vnd.oma.cab-pcc+xml`,
-        `vnd.oma.cab-subs-invite+xml`,
-        `vnd.oma.cab-user-prefs+xml`,
-        `vnd.oma.dcd`,
-        `vnd.oma.dcdc`,
-        `vnd.oma.dd2+xml`,
-        `vnd.oma.drm.risd+xml`,
-        `vnd.oma.group-usage-list+xml`,
-        `vnd.oma.lwm2m+cbor`,
-        `vnd.oma.lwm2m+json`,
-        `vnd.oma.lwm2m+tlv`,
-        `vnd.oma.pal+xml`,
-        `vnd.oma.poc.detailed-progress-report+xml`,
-        `vnd.oma.poc.final-report+xml`,
-        `vnd.oma.poc.groups+xml`,
-        `vnd.oma.poc.invocation-descriptor+xml`,
-        `vnd.oma.poc.optimized-progress-report+xml`,
-        `vnd.oma.push`,
-        `vnd.oma.scidm.messages+xml`,
-        `vnd.oma.xcap-directory+xml`,
-        `vnd.omads-email+xml`,
-        `vnd.omads-file+xml`,
-        `vnd.omads-folder+xml`,
-        `vnd.omaloc-supl-init`,
-        `vnd.onepager`,
-        `vnd.onepagertamp`,
-        `vnd.onepagertamx`,
-        `vnd.onepagertat`,
-        `vnd.onepagertatp`,
-        `vnd.onepagertatx`,
-        `vnd.openblox.game+xml`,
-        `vnd.openblox.game-binary`,
-        `vnd.openeye.oeb`,
-        `vnd.openofficeorg.extension`,
-        `vnd.openstreetmap.data+xml`,
-        `vnd.openxmlformats-officedocument.custom-properties+xml`,
-        `vnd.openxmlformats-officedocument.customxmlproperties+xml`,
-        `vnd.openxmlformats-officedocument.drawing+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.chart+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.chartshapes+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.diagramdata+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml`,
-        `vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml`,
-        `vnd.openxmlformats-officedocument.extended-properties+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.commentauthors+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.comments+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.notesmaster+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.notesslide+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.presentation`,
-        `vnd.openxmlformats-officedocument.presentationml.presentation.main+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.presprops+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.slide`,
-        `vnd.openxmlformats-officedocument.presentationml.slide+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.slidelayout+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.slidemaster+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.slideshow`,
-        `vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.tablestyles+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.tags+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.template`,
-        `vnd.openxmlformats-officedocument.presentationml.template.main+xml`,
-        `vnd.openxmlformats-officedocument.presentationml.viewprops+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.comments+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.connections+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.sheet`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.styles+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.table+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.template`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml`,
-        `vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml`,
-        `vnd.openxmlformats-officedocument.theme+xml`,
-        `vnd.openxmlformats-officedocument.themeoverride+xml`,
-        `vnd.openxmlformats-officedocument.vmldrawing`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.comments+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.document`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.footer+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.settings+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.styles+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.template`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml`,
-        `vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml`,
-        `vnd.openxmlformats-package.core-properties+xml`,
-        `vnd.openxmlformats-package.digital-signature-xmlsignature+xml`,
-        `vnd.openxmlformats-package.relationships+xml`,
-        `vnd.oracle.resource+json`,
-        `vnd.orange.indata`,
-        `vnd.osa.netdeploy`,
-        `vnd.osgeo.mapguide.package`,
-        `vnd.osgi.bundle`,
-        `vnd.osgi.dp`,
-        `vnd.osgi.subsystem`,
-        `vnd.otps.ct-kip+xml`,
-        `vnd.oxli.countgraph`,
-        `vnd.pagerduty+json`,
-        `vnd.palm`,
-        `vnd.panoply`,
-        `vnd.paos.xml`,
-        `vnd.patentdive`,
-        `vnd.patientecommsdoc`,
-        `vnd.pawaafile`,
-        `vnd.pcos`,
-        `vnd.pg.format`,
-        `vnd.pg.osasli`,
-        `vnd.piaccess.application-licence`,
-        `vnd.picsel`,
-        `vnd.pmi.widget`,
-        `vnd.poc.group-advertisement+xml`,
-        `vnd.pocketlearn`,
-        `vnd.powerbuilder6`,
-        `vnd.powerbuilder6-s`,
-        `vnd.powerbuilder7`,
-        `vnd.powerbuilder7-s`,
-        `vnd.powerbuilder75`,
-        `vnd.powerbuilder75-s`,
-        `vnd.preminet`,
-        `vnd.previewsystems.box`,
-        `vnd.proteus.magazine`,
-        `vnd.psfs`,
-        `vnd.publishare-delta-tree`,
-        `vnd.pvi.ptid1`,
-        `vnd.pwg-multiplexed`,
-        `vnd.pwg-xhtml-print+xml`,
-        `vnd.qualcomm.brew-app-res`,
-        `vnd.quarantainenet`,
-        `vnd.quark.quarkxpress`,
-        `vnd.quobject-quoxdocument`,
-        `vnd.radisys.moml+xml`,
-        `vnd.radisys.msml+xml`,
-        `vnd.radisys.msml-audit+xml`,
-        `vnd.radisys.msml-audit-conf+xml`,
-        `vnd.radisys.msml-audit-conn+xml`,
-        `vnd.radisys.msml-audit-dialog+xml`,
-        `vnd.radisys.msml-audit-stream+xml`,
-        `vnd.radisys.msml-conf+xml`,
-        `vnd.radisys.msml-dialog+xml`,
-        `vnd.radisys.msml-dialog-base+xml`,
-        `vnd.radisys.msml-dialog-fax-detect+xml`,
-        `vnd.radisys.msml-dialog-fax-sendrecv+xml`,
-        `vnd.radisys.msml-dialog-group+xml`,
-        `vnd.radisys.msml-dialog-speech+xml`,
-        `vnd.radisys.msml-dialog-transform+xml`,
-        `vnd.rainstor.data`,
-        `vnd.rapid`,
-        `vnd.rar`,
-        `vnd.realvnc.bed`,
-        `vnd.recordare.musicxml`,
-        `vnd.recordare.musicxml+xml`,
-        `vnd.renlearn.rlprint`,
-        `vnd.restful+json`,
-        `vnd.rig.cryptonote`,
-        `vnd.rim.cod`,
-        `vnd.rn-realmedia`,
-        `vnd.rn-realmedia-vbr`,
-        `vnd.route66.link66+xml`,
-        `vnd.rs-274x`,
-        `vnd.ruckus.download`,
-        `vnd.s3sms`,
-        `vnd.sailingtracker.track`,
-        `vnd.sar`,
-        `vnd.sbm.cid`,
-        `vnd.sbm.mid2`,
-        `vnd.scribus`,
-        `vnd.sealed.3df`,
-        `vnd.sealed.csf`,
-        `vnd.sealed.doc`,
-        `vnd.sealed.eml`,
-        `vnd.sealed.mht`,
-        `vnd.sealed.net`,
-        `vnd.sealed.ppt`,
-        `vnd.sealed.tiff`,
-        `vnd.sealed.xls`,
-        `vnd.sealedmedia.softseal.html`,
-        `vnd.sealedmedia.softseal.pdf`,
-        `vnd.seemail`,
-        `vnd.seis+json`,
-        `vnd.sema`,
-        `vnd.semd`,
-        `vnd.semf`,
-        `vnd.shade-save-file`,
-        `vnd.shana.informed.formdata`,
-        `vnd.shana.informed.formtemplate`,
-        `vnd.shana.informed.interchange`,
-        `vnd.shana.informed.package`,
-        `vnd.shootproof+json`,
-        `vnd.shopkick+json`,
-        `vnd.shp`,
-        `vnd.shx`,
-        `vnd.sigrok.session`,
-        `vnd.simtech-mindmapper`,
-        `vnd.siren+json`,
-        `vnd.smaf`,
-        `vnd.smart.notebook`,
-        `vnd.smart.teacher`,
-        `vnd.snesdev-page-table`,
-        `vnd.software602.filler.form+xml`,
-        `vnd.software602.filler.form-xml-zip`,
-        `vnd.solent.sdkm+xml`,
-        `vnd.spotfire.dxp`,
-        `vnd.spotfire.sfs`,
-        `vnd.sqlite3`,
-        `vnd.sss-cod`,
-        `vnd.sss-dtf`,
-        `vnd.sss-ntf`,
-        `vnd.stardivision.calc`,
-        `vnd.stardivision.draw`,
-        `vnd.stardivision.impress`,
-        `vnd.stardivision.math`,
-        `vnd.stardivision.writer`,
-        `vnd.stardivision.writer-global`,
-        `vnd.stepmania.package`,
-        `vnd.stepmania.stepchart`,
-        `vnd.street-stream`,
-        `vnd.sun.wadl+xml`,
-        `vnd.sun.xml.calc`,
-        `vnd.sun.xml.calc.template`,
-        `vnd.sun.xml.draw`,
-        `vnd.sun.xml.draw.template`,
-        `vnd.sun.xml.impress`,
-        `vnd.sun.xml.impress.template`,
-        `vnd.sun.xml.math`,
-        `vnd.sun.xml.writer`,
-        `vnd.sun.xml.writer.global`,
-        `vnd.sun.xml.writer.template`,
-        `vnd.sus-calendar`,
-        `vnd.svd`,
-        `vnd.swiftview-ics`,
-        `vnd.sycle+xml`,
-        `vnd.symbian.install`,
-        `vnd.syncml+xml`,
-        `vnd.syncml.dm+wbxml`,
-        `vnd.syncml.dm+xml`,
-        `vnd.syncml.dm.notification`,
-        `vnd.syncml.dmddf+wbxml`,
-        `vnd.syncml.dmddf+xml`,
-        `vnd.syncml.dmtnds+wbxml`,
-        `vnd.syncml.dmtnds+xml`,
-        `vnd.syncml.ds.notification`,
-        `vnd.tableschema+json`,
-        `vnd.tao.intent-module-archive`,
-        `vnd.tcpdump.pcap`,
-        `vnd.think-cell.ppttc+json`,
-        `vnd.tmd.mediaflex.api+xml`,
-        `vnd.tml`,
-        `vnd.tmobile-livetv`,
-        `vnd.tri.onesource`,
-        `vnd.trid.tpt`,
-        `vnd.triscape.mxs`,
-        `vnd.trueapp`,
-        `vnd.truedoc`,
-        `vnd.ubisoft.webplayer`,
-        `vnd.ufdl`,
-        `vnd.uiq.theme`,
-        `vnd.umajin`,
-        `vnd.unity`,
-        `vnd.uoml+xml`,
-        `vnd.uplanet.alert`,
-        `vnd.uplanet.alert-wbxml`,
-        `vnd.uplanet.bearer-choice`,
-        `vnd.uplanet.bearer-choice-wbxml`,
-        `vnd.uplanet.cacheop`,
-        `vnd.uplanet.cacheop-wbxml`,
-        `vnd.uplanet.channel`,
-        `vnd.uplanet.channel-wbxml`,
-        `vnd.uplanet.list`,
-        `vnd.uplanet.list-wbxml`,
-        `vnd.uplanet.listcmd`,
-        `vnd.uplanet.listcmd-wbxml`,
-        `vnd.uplanet.signal`,
-        `vnd.uri-map`,
-        `vnd.valve.source.material`,
-        `vnd.vcx`,
-        `vnd.vd-study`,
-        `vnd.vectorworks`,
-        `vnd.vel+json`,
-        `vnd.verimatrix.vcas`,
-        `vnd.veryant.thin`,
-        `vnd.ves.encrypted`,
-        `vnd.vidsoft.vidconference`,
-        `vnd.visio`,
-        `vnd.visionary`,
-        `vnd.vividence.scriptfile`,
-        `vnd.vsf`,
-        `vnd.wap.sic`,
-        `vnd.wap.slc`,
-        `vnd.wap.wbxml`,
-        `vnd.wap.wmlc`,
-        `vnd.wap.wmlscriptc`,
-        `vnd.webturbo`,
-        `vnd.wfa.dpp`,
-        `vnd.wfa.p2p`,
-        `vnd.wfa.wsc`,
-        `vnd.windows.devicepairing`,
-        `vnd.wmc`,
-        `vnd.wmf.bootstrap`,
-        `vnd.wolfram.mathematica`,
-        `vnd.wolfram.mathematica.package`,
-        `vnd.wolfram.player`,
-        `vnd.wordperfect`,
-        `vnd.wqd`,
-        `vnd.wrq-hp3000-labelled`,
-        `vnd.wt.stf`,
-        `vnd.wv.csp+wbxml`,
-        `vnd.wv.csp+xml`,
-        `vnd.wv.ssp+xml`,
-        `vnd.xacml+json`,
-        `vnd.xara`,
-        `vnd.xfdl`,
-        `vnd.xfdl.webform`,
-        `vnd.xmi+xml`,
-        `vnd.xmpie.cpkg`,
-        `vnd.xmpie.dpkg`,
-        `vnd.xmpie.plan`,
-        `vnd.xmpie.ppkg`,
-        `vnd.xmpie.xlim`,
-        `vnd.yamaha.hv-dic`,
-        `vnd.yamaha.hv-script`,
-        `vnd.yamaha.hv-voice`,
-        `vnd.yamaha.openscoreformat`,
-        `vnd.yamaha.openscoreformat.osfpvg+xml`,
-        `vnd.yamaha.remote-setup`,
-        `vnd.yamaha.smaf-audio`,
-        `vnd.yamaha.smaf-phrase`,
-        `vnd.yamaha.through-ngn`,
-        `vnd.yamaha.tunnel-udpencap`,
-        `vnd.yaoweme`,
-        `vnd.yellowriver-custom-menu`,
-        `vnd.youtube.yt`,
-        `vnd.zul`,
-        `vnd.zzazz.deck+xml`,
-        `voicexml+xml`,
-        `voucher-cms+json`,
-        `vq-rtcpxr`,
-        `wasm`,
-        `watcherinfo+xml`,
-        `webpush-options+json`,
-        `whoispp-query`,
-        `whoispp-response`,
-        `widget`,
-        `winhlp`,
-        `wita`,
-        `wordperfect5.1`,
-        `wsdl+xml`,
-        `wspolicy+xml`,
-        `x-7z-compressed`,
-        `x-abiword`,
-        `x-ace-compressed`,
-        `x-amf`,
-        `x-apple-diskimage`,
-        `x-arj`,
-        `x-authorware-bin`,
-        `x-authorware-map`,
-        `x-authorware-seg`,
-        `x-bcpio`,
-        `x-bdoc`,
-        `x-bittorrent`,
-        `x-blorb`,
-        `x-bzip`,
-        `x-bzip2`,
-        `x-cbr`,
-        `x-cdlink`,
-        `x-cfs-compressed`,
-        `x-chat`,
-        `x-chess-pgn`,
-        `x-chrome-extension`,
-        `x-cocoa`,
-        `x-compress`,
-        `x-conference`,
-        `x-cpio`,
-        `x-csh`,
-        `x-deb`
-      )
+      private var _part_2: List[MediaType] = null
+      def part_2: List[MediaType] = {
+        if (_part_2 eq null)
+          _part_2 = List(
+            `vnd.ms-wmdrm.meter-chlg-req`,
+            `vnd.ms-wmdrm.meter-resp`,
+            `vnd.ms-word.document.macroenabled.12`,
+            `vnd.ms-word.template.macroenabled.12`,
+            `vnd.ms-works`,
+            `vnd.ms-wpl`,
+            `vnd.ms-xpsdocument`,
+            `vnd.msa-disk-image`,
+            `vnd.mseq`,
+            `vnd.msign`,
+            `vnd.multiad.creator`,
+            `vnd.multiad.creator.cif`,
+            `vnd.music-niff`,
+            `vnd.musician`,
+            `vnd.muvee.style`,
+            `vnd.mynfc`,
+            `vnd.ncd.control`,
+            `vnd.ncd.reference`,
+            `vnd.nearst.inv+json`,
+            `vnd.nebumind.line`,
+            `vnd.nervana`,
+            `vnd.netfpx`,
+            `vnd.neurolanguage.nlu`,
+            `vnd.nimn`,
+            `vnd.nintendo.nitro.rom`,
+            `vnd.nintendo.snes.rom`,
+            `vnd.nitf`,
+            `vnd.noblenet-directory`,
+            `vnd.noblenet-sealer`,
+            `vnd.noblenet-web`,
+            `vnd.nokia.catalogs`,
+            `vnd.nokia.conml+wbxml`,
+            `vnd.nokia.conml+xml`,
+            `vnd.nokia.iptv.config+xml`,
+            `vnd.nokia.isds-radio-presets`,
+            `vnd.nokia.landmark+wbxml`,
+            `vnd.nokia.landmark+xml`,
+            `vnd.nokia.landmarkcollection+xml`,
+            `vnd.nokia.n-gage.ac+xml`,
+            `vnd.nokia.n-gage.data`,
+            `vnd.nokia.n-gage.symbian.install`,
+            `vnd.nokia.ncd`,
+            `vnd.nokia.pcd+wbxml`,
+            `vnd.nokia.pcd+xml`,
+            `vnd.nokia.radio-preset`,
+            `vnd.nokia.radio-presets`,
+            `vnd.novadigm.edm`,
+            `vnd.novadigm.edx`,
+            `vnd.novadigm.ext`,
+            `vnd.ntt-local.content-share`,
+            `vnd.ntt-local.file-transfer`,
+            `vnd.ntt-local.ogw_remote-access`,
+            `vnd.ntt-local.sip-ta_remote`,
+            `vnd.ntt-local.sip-ta_tcp_stream`,
+            `vnd.oasis.opendocument.chart`,
+            `vnd.oasis.opendocument.chart-template`,
+            `vnd.oasis.opendocument.database`,
+            `vnd.oasis.opendocument.formula`,
+            `vnd.oasis.opendocument.formula-template`,
+            `vnd.oasis.opendocument.graphics`,
+            `vnd.oasis.opendocument.graphics-template`,
+            `vnd.oasis.opendocument.image`,
+            `vnd.oasis.opendocument.image-template`,
+            `vnd.oasis.opendocument.presentation`,
+            `vnd.oasis.opendocument.presentation-template`,
+            `vnd.oasis.opendocument.spreadsheet`,
+            `vnd.oasis.opendocument.spreadsheet-template`,
+            `vnd.oasis.opendocument.text`,
+            `vnd.oasis.opendocument.text-master`,
+            `vnd.oasis.opendocument.text-template`,
+            `vnd.oasis.opendocument.text-web`,
+            `vnd.obn`,
+            `vnd.ocf+cbor`,
+            `vnd.oci.image.manifest.v1+json`,
+            `vnd.oftn.l10n+json`,
+            `vnd.oipf.contentaccessdownload+xml`,
+            `vnd.oipf.contentaccessstreaming+xml`,
+            `vnd.oipf.cspg-hexbinary`,
+            `vnd.oipf.dae.svg+xml`,
+            `vnd.oipf.dae.xhtml+xml`,
+            `vnd.oipf.mippvcontrolmessage+xml`,
+            `vnd.oipf.pae.gem`,
+            `vnd.oipf.spdiscovery+xml`,
+            `vnd.oipf.spdlist+xml`,
+            `vnd.oipf.ueprofile+xml`,
+            `vnd.oipf.userprofile+xml`,
+            `vnd.olpc-sugar`,
+            `vnd.oma-scws-config`,
+            `vnd.oma-scws-http-request`,
+            `vnd.oma-scws-http-response`,
+            `vnd.oma.bcast.associated-procedure-parameter+xml`,
+            `vnd.oma.bcast.drm-trigger+xml`,
+            `vnd.oma.bcast.imd+xml`,
+            `vnd.oma.bcast.ltkm`,
+            `vnd.oma.bcast.notification+xml`,
+            `vnd.oma.bcast.provisioningtrigger`,
+            `vnd.oma.bcast.sgboot`,
+            `vnd.oma.bcast.sgdd+xml`,
+            `vnd.oma.bcast.sgdu`,
+            `vnd.oma.bcast.simple-symbol-container`,
+            `vnd.oma.bcast.smartcard-trigger+xml`,
+            `vnd.oma.bcast.sprov+xml`,
+            `vnd.oma.bcast.stkm`,
+            `vnd.oma.cab-address-book+xml`,
+            `vnd.oma.cab-feature-handler+xml`,
+            `vnd.oma.cab-pcc+xml`,
+            `vnd.oma.cab-subs-invite+xml`,
+            `vnd.oma.cab-user-prefs+xml`,
+            `vnd.oma.dcd`,
+            `vnd.oma.dcdc`,
+            `vnd.oma.dd2+xml`,
+            `vnd.oma.drm.risd+xml`,
+            `vnd.oma.group-usage-list+xml`,
+            `vnd.oma.lwm2m+cbor`,
+            `vnd.oma.lwm2m+json`,
+            `vnd.oma.lwm2m+tlv`,
+            `vnd.oma.pal+xml`,
+            `vnd.oma.poc.detailed-progress-report+xml`,
+            `vnd.oma.poc.final-report+xml`,
+            `vnd.oma.poc.groups+xml`,
+            `vnd.oma.poc.invocation-descriptor+xml`,
+            `vnd.oma.poc.optimized-progress-report+xml`,
+            `vnd.oma.push`,
+            `vnd.oma.scidm.messages+xml`,
+            `vnd.oma.xcap-directory+xml`,
+            `vnd.omads-email+xml`,
+            `vnd.omads-file+xml`,
+            `vnd.omads-folder+xml`,
+            `vnd.omaloc-supl-init`,
+            `vnd.onepager`,
+            `vnd.onepagertamp`,
+            `vnd.onepagertamx`,
+            `vnd.onepagertat`,
+            `vnd.onepagertatp`,
+            `vnd.onepagertatx`,
+            `vnd.openblox.game+xml`,
+            `vnd.openblox.game-binary`,
+            `vnd.openeye.oeb`,
+            `vnd.openofficeorg.extension`,
+            `vnd.openstreetmap.data+xml`,
+            `vnd.openxmlformats-officedocument.custom-properties+xml`,
+            `vnd.openxmlformats-officedocument.customxmlproperties+xml`,
+            `vnd.openxmlformats-officedocument.drawing+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.chart+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.chartshapes+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.diagramdata+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml`,
+            `vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml`,
+            `vnd.openxmlformats-officedocument.extended-properties+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.commentauthors+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.comments+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.notesmaster+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.notesslide+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.presentation`,
+            `vnd.openxmlformats-officedocument.presentationml.presentation.main+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.presprops+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.slide`,
+            `vnd.openxmlformats-officedocument.presentationml.slide+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.slidelayout+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.slidemaster+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.slideshow`,
+            `vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.tablestyles+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.tags+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.template`,
+            `vnd.openxmlformats-officedocument.presentationml.template.main+xml`,
+            `vnd.openxmlformats-officedocument.presentationml.viewprops+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.comments+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.connections+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.sheet`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.styles+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.table+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.template`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml`,
+            `vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml`,
+            `vnd.openxmlformats-officedocument.theme+xml`,
+            `vnd.openxmlformats-officedocument.themeoverride+xml`,
+            `vnd.openxmlformats-officedocument.vmldrawing`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.comments+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.document`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.footer+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.settings+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.styles+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.template`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml`,
+            `vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml`,
+            `vnd.openxmlformats-package.core-properties+xml`,
+            `vnd.openxmlformats-package.digital-signature-xmlsignature+xml`,
+            `vnd.openxmlformats-package.relationships+xml`,
+            `vnd.oracle.resource+json`,
+            `vnd.orange.indata`,
+            `vnd.osa.netdeploy`,
+            `vnd.osgeo.mapguide.package`,
+            `vnd.osgi.bundle`,
+            `vnd.osgi.dp`,
+            `vnd.osgi.subsystem`,
+            `vnd.otps.ct-kip+xml`,
+            `vnd.oxli.countgraph`,
+            `vnd.pagerduty+json`,
+            `vnd.palm`,
+            `vnd.panoply`,
+            `vnd.paos.xml`,
+            `vnd.patentdive`,
+            `vnd.patientecommsdoc`,
+            `vnd.pawaafile`,
+            `vnd.pcos`,
+            `vnd.pg.format`,
+            `vnd.pg.osasli`,
+            `vnd.piaccess.application-licence`,
+            `vnd.picsel`,
+            `vnd.pmi.widget`,
+            `vnd.poc.group-advertisement+xml`,
+            `vnd.pocketlearn`,
+            `vnd.powerbuilder6`,
+            `vnd.powerbuilder6-s`,
+            `vnd.powerbuilder7`,
+            `vnd.powerbuilder7-s`,
+            `vnd.powerbuilder75`,
+            `vnd.powerbuilder75-s`,
+            `vnd.preminet`,
+            `vnd.previewsystems.box`,
+            `vnd.proteus.magazine`,
+            `vnd.psfs`,
+            `vnd.publishare-delta-tree`,
+            `vnd.pvi.ptid1`,
+            `vnd.pwg-multiplexed`,
+            `vnd.pwg-xhtml-print+xml`,
+            `vnd.qualcomm.brew-app-res`,
+            `vnd.quarantainenet`,
+            `vnd.quark.quarkxpress`,
+            `vnd.quobject-quoxdocument`,
+            `vnd.radisys.moml+xml`,
+            `vnd.radisys.msml+xml`,
+            `vnd.radisys.msml-audit+xml`,
+            `vnd.radisys.msml-audit-conf+xml`,
+            `vnd.radisys.msml-audit-conn+xml`,
+            `vnd.radisys.msml-audit-dialog+xml`,
+            `vnd.radisys.msml-audit-stream+xml`,
+            `vnd.radisys.msml-conf+xml`,
+            `vnd.radisys.msml-dialog+xml`,
+            `vnd.radisys.msml-dialog-base+xml`,
+            `vnd.radisys.msml-dialog-fax-detect+xml`,
+            `vnd.radisys.msml-dialog-fax-sendrecv+xml`,
+            `vnd.radisys.msml-dialog-group+xml`,
+            `vnd.radisys.msml-dialog-speech+xml`,
+            `vnd.radisys.msml-dialog-transform+xml`,
+            `vnd.rainstor.data`,
+            `vnd.rapid`,
+            `vnd.rar`,
+            `vnd.realvnc.bed`,
+            `vnd.recordare.musicxml`,
+            `vnd.recordare.musicxml+xml`,
+            `vnd.renlearn.rlprint`,
+            `vnd.restful+json`,
+            `vnd.rig.cryptonote`,
+            `vnd.rim.cod`,
+            `vnd.rn-realmedia`,
+            `vnd.rn-realmedia-vbr`,
+            `vnd.route66.link66+xml`,
+            `vnd.rs-274x`,
+            `vnd.ruckus.download`,
+            `vnd.s3sms`,
+            `vnd.sailingtracker.track`,
+            `vnd.sar`,
+            `vnd.sbm.cid`,
+            `vnd.sbm.mid2`,
+            `vnd.scribus`,
+            `vnd.sealed.3df`,
+            `vnd.sealed.csf`,
+            `vnd.sealed.doc`,
+            `vnd.sealed.eml`,
+            `vnd.sealed.mht`,
+            `vnd.sealed.net`,
+            `vnd.sealed.ppt`,
+            `vnd.sealed.tiff`,
+            `vnd.sealed.xls`,
+            `vnd.sealedmedia.softseal.html`,
+            `vnd.sealedmedia.softseal.pdf`,
+            `vnd.seemail`,
+            `vnd.seis+json`,
+            `vnd.sema`,
+            `vnd.semd`,
+            `vnd.semf`,
+            `vnd.shade-save-file`,
+            `vnd.shana.informed.formdata`,
+            `vnd.shana.informed.formtemplate`,
+            `vnd.shana.informed.interchange`,
+            `vnd.shana.informed.package`,
+            `vnd.shootproof+json`,
+            `vnd.shopkick+json`,
+            `vnd.shp`,
+            `vnd.shx`,
+            `vnd.sigrok.session`,
+            `vnd.simtech-mindmapper`,
+            `vnd.siren+json`,
+            `vnd.smaf`,
+            `vnd.smart.notebook`,
+            `vnd.smart.teacher`,
+            `vnd.snesdev-page-table`,
+            `vnd.software602.filler.form+xml`,
+            `vnd.software602.filler.form-xml-zip`,
+            `vnd.solent.sdkm+xml`,
+            `vnd.spotfire.dxp`,
+            `vnd.spotfire.sfs`,
+            `vnd.sqlite3`,
+            `vnd.sss-cod`,
+            `vnd.sss-dtf`,
+            `vnd.sss-ntf`,
+            `vnd.stardivision.calc`,
+            `vnd.stardivision.draw`,
+            `vnd.stardivision.impress`,
+            `vnd.stardivision.math`,
+            `vnd.stardivision.writer`,
+            `vnd.stardivision.writer-global`,
+            `vnd.stepmania.package`,
+            `vnd.stepmania.stepchart`,
+            `vnd.street-stream`,
+            `vnd.sun.wadl+xml`,
+            `vnd.sun.xml.calc`,
+            `vnd.sun.xml.calc.template`,
+            `vnd.sun.xml.draw`,
+            `vnd.sun.xml.draw.template`,
+            `vnd.sun.xml.impress`,
+            `vnd.sun.xml.impress.template`,
+            `vnd.sun.xml.math`,
+            `vnd.sun.xml.writer`,
+            `vnd.sun.xml.writer.global`,
+            `vnd.sun.xml.writer.template`,
+            `vnd.sus-calendar`,
+            `vnd.svd`,
+            `vnd.swiftview-ics`,
+            `vnd.sycle+xml`,
+            `vnd.symbian.install`,
+            `vnd.syncml+xml`,
+            `vnd.syncml.dm+wbxml`,
+            `vnd.syncml.dm+xml`,
+            `vnd.syncml.dm.notification`,
+            `vnd.syncml.dmddf+wbxml`,
+            `vnd.syncml.dmddf+xml`,
+            `vnd.syncml.dmtnds+wbxml`,
+            `vnd.syncml.dmtnds+xml`,
+            `vnd.syncml.ds.notification`,
+            `vnd.tableschema+json`,
+            `vnd.tao.intent-module-archive`,
+            `vnd.tcpdump.pcap`,
+            `vnd.think-cell.ppttc+json`,
+            `vnd.tmd.mediaflex.api+xml`,
+            `vnd.tml`,
+            `vnd.tmobile-livetv`,
+            `vnd.tri.onesource`,
+            `vnd.trid.tpt`,
+            `vnd.triscape.mxs`,
+            `vnd.trueapp`,
+            `vnd.truedoc`,
+            `vnd.ubisoft.webplayer`,
+            `vnd.ufdl`,
+            `vnd.uiq.theme`,
+            `vnd.umajin`,
+            `vnd.unity`,
+            `vnd.uoml+xml`,
+            `vnd.uplanet.alert`,
+            `vnd.uplanet.alert-wbxml`,
+            `vnd.uplanet.bearer-choice`,
+            `vnd.uplanet.bearer-choice-wbxml`,
+            `vnd.uplanet.cacheop`,
+            `vnd.uplanet.cacheop-wbxml`,
+            `vnd.uplanet.channel`,
+            `vnd.uplanet.channel-wbxml`,
+            `vnd.uplanet.list`,
+            `vnd.uplanet.list-wbxml`,
+            `vnd.uplanet.listcmd`,
+            `vnd.uplanet.listcmd-wbxml`,
+            `vnd.uplanet.signal`,
+            `vnd.uri-map`,
+            `vnd.valve.source.material`,
+            `vnd.vcx`,
+            `vnd.vd-study`,
+            `vnd.vectorworks`,
+            `vnd.vel+json`,
+            `vnd.verimatrix.vcas`,
+            `vnd.veryant.thin`,
+            `vnd.ves.encrypted`,
+            `vnd.vidsoft.vidconference`,
+            `vnd.visio`,
+            `vnd.visionary`,
+            `vnd.vividence.scriptfile`,
+            `vnd.vsf`,
+            `vnd.wap.sic`,
+            `vnd.wap.slc`,
+            `vnd.wap.wbxml`,
+            `vnd.wap.wmlc`,
+            `vnd.wap.wmlscriptc`,
+            `vnd.webturbo`,
+            `vnd.wfa.dpp`,
+            `vnd.wfa.p2p`,
+            `vnd.wfa.wsc`,
+            `vnd.windows.devicepairing`,
+            `vnd.wmc`,
+            `vnd.wmf.bootstrap`,
+            `vnd.wolfram.mathematica`,
+            `vnd.wolfram.mathematica.package`,
+            `vnd.wolfram.player`,
+            `vnd.wordperfect`,
+            `vnd.wqd`,
+            `vnd.wrq-hp3000-labelled`,
+            `vnd.wt.stf`,
+            `vnd.wv.csp+wbxml`,
+            `vnd.wv.csp+xml`,
+            `vnd.wv.ssp+xml`,
+            `vnd.xacml+json`,
+            `vnd.xara`,
+            `vnd.xfdl`,
+            `vnd.xfdl.webform`,
+            `vnd.xmi+xml`,
+            `vnd.xmpie.cpkg`,
+            `vnd.xmpie.dpkg`,
+            `vnd.xmpie.plan`,
+            `vnd.xmpie.ppkg`,
+            `vnd.xmpie.xlim`,
+            `vnd.yamaha.hv-dic`,
+            `vnd.yamaha.hv-script`,
+            `vnd.yamaha.hv-voice`,
+            `vnd.yamaha.openscoreformat`,
+            `vnd.yamaha.openscoreformat.osfpvg+xml`,
+            `vnd.yamaha.remote-setup`,
+            `vnd.yamaha.smaf-audio`,
+            `vnd.yamaha.smaf-phrase`,
+            `vnd.yamaha.through-ngn`,
+            `vnd.yamaha.tunnel-udpencap`,
+            `vnd.yaoweme`,
+            `vnd.yellowriver-custom-menu`,
+            `vnd.youtube.yt`,
+            `vnd.zul`,
+            `vnd.zzazz.deck+xml`,
+            `voicexml+xml`,
+            `voucher-cms+json`,
+            `vq-rtcpxr`,
+            `wasm`,
+            `watcherinfo+xml`,
+            `webpush-options+json`,
+            `whoispp-query`,
+            `whoispp-response`,
+            `widget`,
+            `winhlp`,
+            `wita`,
+            `wordperfect5.1`,
+            `wsdl+xml`,
+            `wspolicy+xml`,
+            `x-7z-compressed`,
+            `x-abiword`,
+            `x-ace-compressed`,
+            `x-amf`,
+            `x-apple-diskimage`,
+            `x-arj`,
+            `x-authorware-bin`,
+            `x-authorware-map`,
+            `x-authorware-seg`,
+            `x-bcpio`,
+            `x-bdoc`,
+            `x-bittorrent`,
+            `x-blorb`,
+            `x-bzip`,
+            `x-bzip2`,
+            `x-cbr`,
+            `x-cdlink`,
+            `x-cfs-compressed`,
+            `x-chat`,
+            `x-chess-pgn`,
+            `x-chrome-extension`,
+            `x-cocoa`,
+            `x-compress`,
+            `x-conference`,
+            `x-cpio`,
+            `x-csh`,
+            `x-deb`,
+          )
+        else ()
+        _part_2
+      }
     }
     trait application_3 {
       lazy val `x-debian-package`: MediaType =
@@ -5437,7 +5702,8 @@ private[http4s] trait MimeDB {
         "x-director",
         Compressible,
         NotBinary,
-        List("dir", "dcr", "dxr", "cst", "cct", "cxt", "w3d", "fgd", "swa"))
+        List("dir", "dcr", "dxr", "cst", "cct", "cxt", "w3d", "fgd", "swa"),
+      )
       lazy val `x-doom`: MediaType =
         new MediaType("application", "x-doom", Compressible, NotBinary, List("wad"))
       lazy val `x-dtbncx+xml`: MediaType =
@@ -5477,7 +5743,8 @@ private[http4s] trait MimeDB {
         "x-font-type1",
         Compressible,
         NotBinary,
-        List("pfa", "pfb", "pfm", "afm"))
+        List("pfa", "pfb", "pfm", "afm"),
+      )
       lazy val `x-font-vfont`: MediaType =
         new MediaType("application", "x-font-vfont", Compressible, NotBinary)
       lazy val `x-freearc`: MediaType =
@@ -5504,7 +5771,8 @@ private[http4s] trait MimeDB {
         "x-install-instructions",
         Compressible,
         NotBinary,
-        List("install"))
+        List("install"),
+      )
       lazy val `x-iso9660-image`: MediaType =
         new MediaType("application", "x-iso9660-image", Compressible, NotBinary, List("iso"))
       lazy val `x-java-archive-diff`: MediaType = new MediaType(
@@ -5512,7 +5780,8 @@ private[http4s] trait MimeDB {
         "x-java-archive-diff",
         Compressible,
         NotBinary,
-        List("jardiff"))
+        List("jardiff"),
+      )
       lazy val `x-java-jnlp-file`: MediaType =
         new MediaType("application", "x-java-jnlp-file", Uncompressible, NotBinary, List("jnlp"))
       lazy val `x-javascript`: MediaType =
@@ -5528,7 +5797,8 @@ private[http4s] trait MimeDB {
         "x-lzh-compressed",
         Compressible,
         NotBinary,
-        List("lzh", "lha"))
+        List("lzh", "lha"),
+      )
       lazy val `x-makeself`: MediaType =
         new MediaType("application", "x-makeself", Compressible, NotBinary, List("run"))
       lazy val `x-mie`: MediaType =
@@ -5538,7 +5808,8 @@ private[http4s] trait MimeDB {
         "x-mobipocket-ebook",
         Compressible,
         NotBinary,
-        List("prc", "mobi"))
+        List("prc", "mobi"),
+      )
       lazy val `x-mpegurl`: MediaType =
         new MediaType("application", "x-mpegurl", Uncompressible, NotBinary)
       lazy val `x-ms-application`: MediaType = new MediaType(
@@ -5546,7 +5817,8 @@ private[http4s] trait MimeDB {
         "x-ms-application",
         Compressible,
         NotBinary,
-        List("application"))
+        List("application"),
+      )
       lazy val `x-ms-shortcut`: MediaType =
         new MediaType("application", "x-ms-shortcut", Compressible, NotBinary, List("lnk"))
       lazy val `x-ms-wmd`: MediaType =
@@ -5570,19 +5842,22 @@ private[http4s] trait MimeDB {
         "x-msdownload",
         Compressible,
         NotBinary,
-        List("exe", "dll", "com", "bat", "msi"))
+        List("exe", "dll", "com", "bat", "msi"),
+      )
       lazy val `x-msmediaview`: MediaType = new MediaType(
         "application",
         "x-msmediaview",
         Compressible,
         NotBinary,
-        List("mvb", "m13", "m14"))
+        List("mvb", "m13", "m14"),
+      )
       lazy val `x-msmetafile`: MediaType = new MediaType(
         "application",
         "x-msmetafile",
         Compressible,
         NotBinary,
-        List("wmf", "wmz", "emf", "emz"))
+        List("wmf", "wmz", "emf", "emz"),
+      )
       lazy val `x-msmoney`: MediaType =
         new MediaType("application", "x-msmoney", Compressible, NotBinary, List("mny"))
       lazy val `x-mspublisher`: MediaType =
@@ -5610,7 +5885,8 @@ private[http4s] trait MimeDB {
         "x-pkcs7-certificates",
         Compressible,
         NotBinary,
-        List("p7b", "spc"))
+        List("p7b", "spc"),
+      )
       lazy val `x-pkcs7-certreqresp`: MediaType =
         new MediaType("application", "x-pkcs7-certreqresp", Compressible, NotBinary, List("p7r"))
       lazy val `x-pki-message`: MediaType =
@@ -5624,7 +5900,8 @@ private[http4s] trait MimeDB {
         "x-research-info-systems",
         Compressible,
         NotBinary,
-        List("ris"))
+        List("ris"),
+      )
       lazy val `x-sea`: MediaType =
         new MediaType("application", "x-sea", Compressible, NotBinary, List("sea"))
       lazy val `x-sh`: MediaType =
@@ -5678,7 +5955,8 @@ private[http4s] trait MimeDB {
         "x-virtualbox-vbox-extpack",
         Uncompressible,
         NotBinary,
-        List("vbox-extpack"))
+        List("vbox-extpack"),
+      )
       lazy val `x-virtualbox-vdi`: MediaType =
         new MediaType("application", "x-virtualbox-vdi", Compressible, NotBinary, List("vdi"))
       lazy val `x-virtualbox-vhd`: MediaType =
@@ -5692,7 +5970,8 @@ private[http4s] trait MimeDB {
         "x-web-app-manifest+json",
         Compressible,
         NotBinary,
-        List("webapp"))
+        List("webapp"),
+      )
       lazy val `x-www-form-urlencoded`: MediaType =
         new MediaType("application", "x-www-form-urlencoded", Compressible, NotBinary)
       lazy val `x-x509-ca-cert`: MediaType = new MediaType(
@@ -5700,7 +5979,8 @@ private[http4s] trait MimeDB {
         "x-x509-ca-cert",
         Compressible,
         Binary,
-        List("der", "crt", "pem"))
+        List("der", "crt", "pem"),
+      )
       lazy val `x-x509-ca-ra-cert`: MediaType =
         new MediaType("application", "x-x509-ca-ra-cert", Compressible, NotBinary)
       lazy val `x-x509-next-ca-cert`: MediaType =
@@ -5718,7 +5998,8 @@ private[http4s] trait MimeDB {
         "x-zmachine",
         Compressible,
         NotBinary,
-        List("z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8"))
+        List("z1", "z2", "z3", "z4", "z5", "z6", "z7", "z8"),
+      )
       lazy val `x400-bp`: MediaType =
         new MediaType("application", "x400-bp", Compressible, NotBinary)
       lazy val `xacml+xml`: MediaType =
@@ -5754,7 +6035,8 @@ private[http4s] trait MimeDB {
         "xml",
         Compressible,
         NotBinary,
-        List("xml", "xsl", "xsd", "rng"))
+        List("xml", "xsl", "xsd", "rng"),
+      )
       lazy val `xml-dtd`: MediaType =
         new MediaType("application", "xml-dtd", Compressible, NotBinary, List("dtd"))
       lazy val `xml-external-parsed-entity`: MediaType =
@@ -5776,7 +6058,8 @@ private[http4s] trait MimeDB {
         "xv+xml",
         Compressible,
         NotBinary,
-        List("mxml", "xhvml", "xvml", "xvm"))
+        List("mxml", "xhvml", "xvml", "xvm"),
+      )
       lazy val `yang`: MediaType =
         new MediaType("application", "yang", Compressible, NotBinary, List("yang"))
       lazy val `yang-data+json`: MediaType =
@@ -5793,156 +6076,162 @@ private[http4s] trait MimeDB {
         new MediaType("application", "zip", Uncompressible, Binary, List("zip"))
       lazy val `zlib`: MediaType = new MediaType("application", "zlib", Compressible, NotBinary)
       lazy val `zstd`: MediaType = new MediaType("application", "zstd", Compressible, NotBinary)
-      lazy val part_3: List[MediaType] = List(
-        `x-debian-package`,
-        `x-dgc-compressed`,
-        `x-director`,
-        `x-doom`,
-        `x-dtbncx+xml`,
-        `x-dtbook+xml`,
-        `x-dtbresource+xml`,
-        `x-dvi`,
-        `x-envoy`,
-        `x-eva`,
-        `x-font-bdf`,
-        `x-font-dos`,
-        `x-font-framemaker`,
-        `x-font-ghostscript`,
-        `x-font-libgrx`,
-        `x-font-linux-psf`,
-        `x-font-pcf`,
-        `x-font-snf`,
-        `x-font-speedo`,
-        `x-font-sunos-news`,
-        `x-font-type1`,
-        `x-font-vfont`,
-        `x-freearc`,
-        `x-futuresplash`,
-        `x-gca-compressed`,
-        `x-glulx`,
-        `x-gnumeric`,
-        `x-gramps-xml`,
-        `x-gtar`,
-        `x-gzip`,
-        `x-hdf`,
-        `x-httpd-php`,
-        `x-install-instructions`,
-        `x-iso9660-image`,
-        `x-java-archive-diff`,
-        `x-java-jnlp-file`,
-        `x-javascript`,
-        `x-keepass2`,
-        `x-latex`,
-        `x-lua-bytecode`,
-        `x-lzh-compressed`,
-        `x-makeself`,
-        `x-mie`,
-        `x-mobipocket-ebook`,
-        `x-mpegurl`,
-        `x-ms-application`,
-        `x-ms-shortcut`,
-        `x-ms-wmd`,
-        `x-ms-wmz`,
-        `x-ms-xbap`,
-        `x-msaccess`,
-        `x-msbinder`,
-        `x-mscardfile`,
-        `x-msclip`,
-        `x-msdos-program`,
-        `x-msdownload`,
-        `x-msmediaview`,
-        `x-msmetafile`,
-        `x-msmoney`,
-        `x-mspublisher`,
-        `x-msschedule`,
-        `x-msterminal`,
-        `x-mswrite`,
-        `x-netcdf`,
-        `x-ns-proxy-autoconfig`,
-        `x-nzb`,
-        `x-perl`,
-        `x-pilot`,
-        `x-pkcs12`,
-        `x-pkcs7-certificates`,
-        `x-pkcs7-certreqresp`,
-        `x-pki-message`,
-        `x-rar-compressed`,
-        `x-redhat-package-manager`,
-        `x-research-info-systems`,
-        `x-sea`,
-        `x-sh`,
-        `x-shar`,
-        `x-shockwave-flash`,
-        `x-silverlight-app`,
-        `x-sql`,
-        `x-stuffit`,
-        `x-stuffitx`,
-        `x-subrip`,
-        `x-sv4cpio`,
-        `x-sv4crc`,
-        `x-t3vm-image`,
-        `x-tads`,
-        `x-tar`,
-        `x-tcl`,
-        `x-tex`,
-        `x-tex-tfm`,
-        `x-texinfo`,
-        `x-tgif`,
-        `x-ustar`,
-        `x-virtualbox-hdd`,
-        `x-virtualbox-ova`,
-        `x-virtualbox-ovf`,
-        `x-virtualbox-vbox`,
-        `x-virtualbox-vbox-extpack`,
-        `x-virtualbox-vdi`,
-        `x-virtualbox-vhd`,
-        `x-virtualbox-vmdk`,
-        `x-wais-source`,
-        `x-web-app-manifest+json`,
-        `x-www-form-urlencoded`,
-        `x-x509-ca-cert`,
-        `x-x509-ca-ra-cert`,
-        `x-x509-next-ca-cert`,
-        `x-xfig`,
-        `x-xliff+xml`,
-        `x-xpinstall`,
-        `x-xz`,
-        `x-zmachine`,
-        `x400-bp`,
-        `xacml+xml`,
-        `xaml+xml`,
-        `xcap-att+xml`,
-        `xcap-caps+xml`,
-        `xcap-diff+xml`,
-        `xcap-el+xml`,
-        `xcap-error+xml`,
-        `xcap-ns+xml`,
-        `xcon-conference-info+xml`,
-        `xcon-conference-info-diff+xml`,
-        `xenc+xml`,
-        `xhtml+xml`,
-        `xhtml-voice+xml`,
-        `xliff+xml`,
-        `xml`,
-        `xml-dtd`,
-        `xml-external-parsed-entity`,
-        `xml-patch+xml`,
-        `xmpp+xml`,
-        `xop+xml`,
-        `xproc+xml`,
-        `xslt+xml`,
-        `xspf+xml`,
-        `xv+xml`,
-        `yang`,
-        `yang-data+json`,
-        `yang-data+xml`,
-        `yang-patch+json`,
-        `yang-patch+xml`,
-        `yin+xml`,
-        `zip`,
-        `zlib`,
-        `zstd`
-      )
+      private var _part_3: List[MediaType] = null
+      def part_3: List[MediaType] = {
+        if (_part_3 eq null)
+          _part_3 = List(
+            `x-debian-package`,
+            `x-dgc-compressed`,
+            `x-director`,
+            `x-doom`,
+            `x-dtbncx+xml`,
+            `x-dtbook+xml`,
+            `x-dtbresource+xml`,
+            `x-dvi`,
+            `x-envoy`,
+            `x-eva`,
+            `x-font-bdf`,
+            `x-font-dos`,
+            `x-font-framemaker`,
+            `x-font-ghostscript`,
+            `x-font-libgrx`,
+            `x-font-linux-psf`,
+            `x-font-pcf`,
+            `x-font-snf`,
+            `x-font-speedo`,
+            `x-font-sunos-news`,
+            `x-font-type1`,
+            `x-font-vfont`,
+            `x-freearc`,
+            `x-futuresplash`,
+            `x-gca-compressed`,
+            `x-glulx`,
+            `x-gnumeric`,
+            `x-gramps-xml`,
+            `x-gtar`,
+            `x-gzip`,
+            `x-hdf`,
+            `x-httpd-php`,
+            `x-install-instructions`,
+            `x-iso9660-image`,
+            `x-java-archive-diff`,
+            `x-java-jnlp-file`,
+            `x-javascript`,
+            `x-keepass2`,
+            `x-latex`,
+            `x-lua-bytecode`,
+            `x-lzh-compressed`,
+            `x-makeself`,
+            `x-mie`,
+            `x-mobipocket-ebook`,
+            `x-mpegurl`,
+            `x-ms-application`,
+            `x-ms-shortcut`,
+            `x-ms-wmd`,
+            `x-ms-wmz`,
+            `x-ms-xbap`,
+            `x-msaccess`,
+            `x-msbinder`,
+            `x-mscardfile`,
+            `x-msclip`,
+            `x-msdos-program`,
+            `x-msdownload`,
+            `x-msmediaview`,
+            `x-msmetafile`,
+            `x-msmoney`,
+            `x-mspublisher`,
+            `x-msschedule`,
+            `x-msterminal`,
+            `x-mswrite`,
+            `x-netcdf`,
+            `x-ns-proxy-autoconfig`,
+            `x-nzb`,
+            `x-perl`,
+            `x-pilot`,
+            `x-pkcs12`,
+            `x-pkcs7-certificates`,
+            `x-pkcs7-certreqresp`,
+            `x-pki-message`,
+            `x-rar-compressed`,
+            `x-redhat-package-manager`,
+            `x-research-info-systems`,
+            `x-sea`,
+            `x-sh`,
+            `x-shar`,
+            `x-shockwave-flash`,
+            `x-silverlight-app`,
+            `x-sql`,
+            `x-stuffit`,
+            `x-stuffitx`,
+            `x-subrip`,
+            `x-sv4cpio`,
+            `x-sv4crc`,
+            `x-t3vm-image`,
+            `x-tads`,
+            `x-tar`,
+            `x-tcl`,
+            `x-tex`,
+            `x-tex-tfm`,
+            `x-texinfo`,
+            `x-tgif`,
+            `x-ustar`,
+            `x-virtualbox-hdd`,
+            `x-virtualbox-ova`,
+            `x-virtualbox-ovf`,
+            `x-virtualbox-vbox`,
+            `x-virtualbox-vbox-extpack`,
+            `x-virtualbox-vdi`,
+            `x-virtualbox-vhd`,
+            `x-virtualbox-vmdk`,
+            `x-wais-source`,
+            `x-web-app-manifest+json`,
+            `x-www-form-urlencoded`,
+            `x-x509-ca-cert`,
+            `x-x509-ca-ra-cert`,
+            `x-x509-next-ca-cert`,
+            `x-xfig`,
+            `x-xliff+xml`,
+            `x-xpinstall`,
+            `x-xz`,
+            `x-zmachine`,
+            `x400-bp`,
+            `xacml+xml`,
+            `xaml+xml`,
+            `xcap-att+xml`,
+            `xcap-caps+xml`,
+            `xcap-diff+xml`,
+            `xcap-el+xml`,
+            `xcap-error+xml`,
+            `xcap-ns+xml`,
+            `xcon-conference-info+xml`,
+            `xcon-conference-info-diff+xml`,
+            `xenc+xml`,
+            `xhtml+xml`,
+            `xhtml-voice+xml`,
+            `xliff+xml`,
+            `xml`,
+            `xml-dtd`,
+            `xml-external-parsed-entity`,
+            `xml-patch+xml`,
+            `xmpp+xml`,
+            `xop+xml`,
+            `xproc+xml`,
+            `xslt+xml`,
+            `xspf+xml`,
+            `xv+xml`,
+            `yang`,
+            `yang-data+json`,
+            `yang-data+xml`,
+            `yang-patch+json`,
+            `yang-patch+xml`,
+            `yin+xml`,
+            `zip`,
+            `zlib`,
+            `zstd`,
+          )
+        else ()
+        _part_3
+      }
     }
   }
   object application
@@ -5950,7 +6239,12 @@ private[http4s] trait MimeDB {
       with application_parts.application_1
       with application_parts.application_2
       with application_parts.application_3 {
-    lazy val all: List[MediaType] = Nil ++ part_0 ++ part_1 ++ part_2 ++ part_3
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null) _all = Nil ++ part_0 ++ part_1 ++ part_2 ++ part_3
+      else ()
+      _all
+    }
   }
   object audio {
     lazy val `1d-interleaved-parityfec`: MediaType =
@@ -6052,7 +6346,8 @@ private[http4s] trait MimeDB {
       "mpeg",
       Uncompressible,
       Binary,
-      List("mpga", "mp2", "mp2a", "mp3", "m2a", "m3a"))
+      List("mpga", "mp2", "mp2a", "mp3", "m2a", "m3a"),
+    )
     lazy val `mpeg4-generic`: MediaType =
       new MediaType("audio", "mpeg4-generic", Compressible, Binary)
     lazy val `musepack`: MediaType = new MediaType("audio", "musepack", Compressible, Binary)
@@ -6208,192 +6503,198 @@ private[http4s] trait MimeDB {
     lazy val `x-tta`: MediaType = new MediaType("audio", "x-tta", Compressible, Binary)
     lazy val `x-wav`: MediaType = new MediaType("audio", "x-wav", Compressible, Binary, List("wav"))
     lazy val `xm`: MediaType = new MediaType("audio", "xm", Compressible, Binary, List("xm"))
-    lazy val all: List[MediaType] = List(
-      `1d-interleaved-parityfec`,
-      `32kadpcm`,
-      `3gpp`,
-      `3gpp2`,
-      `aac`,
-      `ac3`,
-      `adpcm`,
-      `amr`,
-      `amr-wb`,
-      `amr-wb+`,
-      `aptx`,
-      `asc`,
-      `atrac-advanced-lossless`,
-      `atrac-x`,
-      `atrac3`,
-      `basic`,
-      `bv16`,
-      `bv32`,
-      `clearmode`,
-      `cn`,
-      `dat12`,
-      `dls`,
-      `dsr-es201108`,
-      `dsr-es202050`,
-      `dsr-es202211`,
-      `dsr-es202212`,
-      `dv`,
-      `dvi4`,
-      `eac3`,
-      `encaprtp`,
-      `evrc`,
-      `evrc-qcp`,
-      `evrc0`,
-      `evrc1`,
-      `evrcb`,
-      `evrcb0`,
-      `evrcb1`,
-      `evrcnw`,
-      `evrcnw0`,
-      `evrcnw1`,
-      `evrcwb`,
-      `evrcwb0`,
-      `evrcwb1`,
-      `evs`,
-      `flexfec`,
-      `fwdred`,
-      `g711-0`,
-      `g719`,
-      `g722`,
-      `g7221`,
-      `g723`,
-      `g726-16`,
-      `g726-24`,
-      `g726-32`,
-      `g726-40`,
-      `g728`,
-      `g729`,
-      `g7291`,
-      `g729d`,
-      `g729e`,
-      `gsm`,
-      `gsm-efr`,
-      `gsm-hr-08`,
-      `ilbc`,
-      `ip-mr_v2.5`,
-      `isac`,
-      `l16`,
-      `l20`,
-      `l24`,
-      `l8`,
-      `lpc`,
-      `melp`,
-      `melp1200`,
-      `melp2400`,
-      `melp600`,
-      `mhas`,
-      `midi`,
-      `mobile-xmf`,
-      `mp3`,
-      `mp4`,
-      `mp4a-latm`,
-      `mpa`,
-      `mpa-robust`,
-      `mpeg`,
-      `mpeg4-generic`,
-      `musepack`,
-      `ogg`,
-      `opus`,
-      `parityfec`,
-      `pcma`,
-      `pcma-wb`,
-      `pcmu`,
-      `pcmu-wb`,
-      `prs.sid`,
-      `qcelp`,
-      `raptorfec`,
-      `red`,
-      `rtp-enc-aescm128`,
-      `rtp-midi`,
-      `rtploopback`,
-      `rtx`,
-      `s3m`,
-      `scip`,
-      `silk`,
-      `smv`,
-      `smv-qcp`,
-      `smv0`,
-      `sofa`,
-      `sp-midi`,
-      `speex`,
-      `t140c`,
-      `t38`,
-      `telephone-event`,
-      `tetra_acelp`,
-      `tetra_acelp_bb`,
-      `tone`,
-      `tsvcis`,
-      `uemclip`,
-      `ulpfec`,
-      `usac`,
-      `vdvi`,
-      `vmr-wb`,
-      `vnd.3gpp.iufp`,
-      `vnd.4sb`,
-      `vnd.audiokoz`,
-      `vnd.celp`,
-      `vnd.cisco.nse`,
-      `vnd.cmles.radio-events`,
-      `vnd.cns.anp1`,
-      `vnd.cns.inf1`,
-      `vnd.dece.audio`,
-      `vnd.digital-winds`,
-      `vnd.dlna.adts`,
-      `vnd.dolby.heaac.1`,
-      `vnd.dolby.heaac.2`,
-      `vnd.dolby.mlp`,
-      `vnd.dolby.mps`,
-      `vnd.dolby.pl2`,
-      `vnd.dolby.pl2x`,
-      `vnd.dolby.pl2z`,
-      `vnd.dolby.pulse.1`,
-      `vnd.dra`,
-      `vnd.dts`,
-      `vnd.dts.hd`,
-      `vnd.dts.uhd`,
-      `vnd.dvb.file`,
-      `vnd.everad.plj`,
-      `vnd.hns.audio`,
-      `vnd.lucent.voice`,
-      `vnd.ms-playready.media.pya`,
-      `vnd.nokia.mobile-xmf`,
-      `vnd.nortel.vbk`,
-      `vnd.nuera.ecelp4800`,
-      `vnd.nuera.ecelp7470`,
-      `vnd.nuera.ecelp9600`,
-      `vnd.octel.sbc`,
-      `vnd.presonus.multitrack`,
-      `vnd.qcelp`,
-      `vnd.rhetorex.32kadpcm`,
-      `vnd.rip`,
-      `vnd.rn-realaudio`,
-      `vnd.sealedmedia.softseal.mpeg`,
-      `vnd.vmx.cvsd`,
-      `vnd.wave`,
-      `vorbis`,
-      `vorbis-config`,
-      `wav`,
-      `wave`,
-      `webm`,
-      `x-aac`,
-      `x-aiff`,
-      `x-caf`,
-      `x-flac`,
-      `x-m4a`,
-      `x-matroska`,
-      `x-mpegurl`,
-      `x-ms-wax`,
-      `x-ms-wma`,
-      `x-pn-realaudio`,
-      `x-pn-realaudio-plugin`,
-      `x-realaudio`,
-      `x-tta`,
-      `x-wav`,
-      `xm`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `1d-interleaved-parityfec`,
+          `32kadpcm`,
+          `3gpp`,
+          `3gpp2`,
+          `aac`,
+          `ac3`,
+          `adpcm`,
+          `amr`,
+          `amr-wb`,
+          `amr-wb+`,
+          `aptx`,
+          `asc`,
+          `atrac-advanced-lossless`,
+          `atrac-x`,
+          `atrac3`,
+          `basic`,
+          `bv16`,
+          `bv32`,
+          `clearmode`,
+          `cn`,
+          `dat12`,
+          `dls`,
+          `dsr-es201108`,
+          `dsr-es202050`,
+          `dsr-es202211`,
+          `dsr-es202212`,
+          `dv`,
+          `dvi4`,
+          `eac3`,
+          `encaprtp`,
+          `evrc`,
+          `evrc-qcp`,
+          `evrc0`,
+          `evrc1`,
+          `evrcb`,
+          `evrcb0`,
+          `evrcb1`,
+          `evrcnw`,
+          `evrcnw0`,
+          `evrcnw1`,
+          `evrcwb`,
+          `evrcwb0`,
+          `evrcwb1`,
+          `evs`,
+          `flexfec`,
+          `fwdred`,
+          `g711-0`,
+          `g719`,
+          `g722`,
+          `g7221`,
+          `g723`,
+          `g726-16`,
+          `g726-24`,
+          `g726-32`,
+          `g726-40`,
+          `g728`,
+          `g729`,
+          `g7291`,
+          `g729d`,
+          `g729e`,
+          `gsm`,
+          `gsm-efr`,
+          `gsm-hr-08`,
+          `ilbc`,
+          `ip-mr_v2.5`,
+          `isac`,
+          `l16`,
+          `l20`,
+          `l24`,
+          `l8`,
+          `lpc`,
+          `melp`,
+          `melp1200`,
+          `melp2400`,
+          `melp600`,
+          `mhas`,
+          `midi`,
+          `mobile-xmf`,
+          `mp3`,
+          `mp4`,
+          `mp4a-latm`,
+          `mpa`,
+          `mpa-robust`,
+          `mpeg`,
+          `mpeg4-generic`,
+          `musepack`,
+          `ogg`,
+          `opus`,
+          `parityfec`,
+          `pcma`,
+          `pcma-wb`,
+          `pcmu`,
+          `pcmu-wb`,
+          `prs.sid`,
+          `qcelp`,
+          `raptorfec`,
+          `red`,
+          `rtp-enc-aescm128`,
+          `rtp-midi`,
+          `rtploopback`,
+          `rtx`,
+          `s3m`,
+          `scip`,
+          `silk`,
+          `smv`,
+          `smv-qcp`,
+          `smv0`,
+          `sofa`,
+          `sp-midi`,
+          `speex`,
+          `t140c`,
+          `t38`,
+          `telephone-event`,
+          `tetra_acelp`,
+          `tetra_acelp_bb`,
+          `tone`,
+          `tsvcis`,
+          `uemclip`,
+          `ulpfec`,
+          `usac`,
+          `vdvi`,
+          `vmr-wb`,
+          `vnd.3gpp.iufp`,
+          `vnd.4sb`,
+          `vnd.audiokoz`,
+          `vnd.celp`,
+          `vnd.cisco.nse`,
+          `vnd.cmles.radio-events`,
+          `vnd.cns.anp1`,
+          `vnd.cns.inf1`,
+          `vnd.dece.audio`,
+          `vnd.digital-winds`,
+          `vnd.dlna.adts`,
+          `vnd.dolby.heaac.1`,
+          `vnd.dolby.heaac.2`,
+          `vnd.dolby.mlp`,
+          `vnd.dolby.mps`,
+          `vnd.dolby.pl2`,
+          `vnd.dolby.pl2x`,
+          `vnd.dolby.pl2z`,
+          `vnd.dolby.pulse.1`,
+          `vnd.dra`,
+          `vnd.dts`,
+          `vnd.dts.hd`,
+          `vnd.dts.uhd`,
+          `vnd.dvb.file`,
+          `vnd.everad.plj`,
+          `vnd.hns.audio`,
+          `vnd.lucent.voice`,
+          `vnd.ms-playready.media.pya`,
+          `vnd.nokia.mobile-xmf`,
+          `vnd.nortel.vbk`,
+          `vnd.nuera.ecelp4800`,
+          `vnd.nuera.ecelp7470`,
+          `vnd.nuera.ecelp9600`,
+          `vnd.octel.sbc`,
+          `vnd.presonus.multitrack`,
+          `vnd.qcelp`,
+          `vnd.rhetorex.32kadpcm`,
+          `vnd.rip`,
+          `vnd.rn-realaudio`,
+          `vnd.sealedmedia.softseal.mpeg`,
+          `vnd.vmx.cvsd`,
+          `vnd.wave`,
+          `vorbis`,
+          `vorbis-config`,
+          `wav`,
+          `wave`,
+          `webm`,
+          `x-aac`,
+          `x-aiff`,
+          `x-caf`,
+          `x-flac`,
+          `x-m4a`,
+          `x-matroska`,
+          `x-mpegurl`,
+          `x-ms-wax`,
+          `x-ms-wma`,
+          `x-pn-realaudio`,
+          `x-pn-realaudio-plugin`,
+          `x-realaudio`,
+          `x-tta`,
+          `x-wav`,
+          `xm`,
+        )
+      else ()
+      _all
+    }
   }
   object chemical {
     lazy val `x-cdx`: MediaType =
@@ -6409,8 +6710,12 @@ private[http4s] trait MimeDB {
     lazy val `x-pdb`: MediaType = new MediaType("chemical", "x-pdb", Compressible, NotBinary)
     lazy val `x-xyz`: MediaType =
       new MediaType("chemical", "x-xyz", Compressible, NotBinary, List("xyz"))
-    lazy val all: List[MediaType] =
-      List(`x-cdx`, `x-cif`, `x-cmdf`, `x-cml`, `x-csml`, `x-pdb`, `x-xyz`)
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null) _all = List(`x-cdx`, `x-cif`, `x-cmdf`, `x-cml`, `x-csml`, `x-pdb`, `x-xyz`)
+      else ()
+      _all
+    }
   }
   object font {
     lazy val `collection`: MediaType =
@@ -6422,7 +6727,12 @@ private[http4s] trait MimeDB {
       new MediaType("font", "woff", Compressible, NotBinary, List("woff"))
     lazy val `woff2`: MediaType =
       new MediaType("font", "woff2", Compressible, NotBinary, List("woff2"))
-    lazy val all: List[MediaType] = List(`collection`, `otf`, `sfnt`, `ttf`, `woff`, `woff2`)
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null) _all = List(`collection`, `otf`, `sfnt`, `ttf`, `woff`, `woff2`)
+      else ()
+      _all
+    }
   }
   object image {
     lazy val `aces`: MediaType = new MediaType("image", "aces", Compressible, Binary, List("exr"))
@@ -6496,7 +6806,8 @@ private[http4s] trait MimeDB {
       "vnd.dece.graphic",
       Compressible,
       Binary,
-      List("uvi", "uvvi", "uvg", "uvvg"))
+      List("uvi", "uvvi", "uvg", "uvvg"),
+    )
     lazy val `vnd.djvu`: MediaType =
       new MediaType("image", "vnd.djvu", Compressible, Binary, List("djvu", "djv"))
     lazy val `vnd.dvb.subtitle`: MediaType =
@@ -6562,7 +6873,8 @@ private[http4s] trait MimeDB {
       "x-freehand",
       Compressible,
       Binary,
-      List("fh", "fhc", "fh4", "fh5", "fh7"))
+      List("fh", "fhc", "fh4", "fh5", "fh7"),
+    )
     lazy val `x-icon`: MediaType =
       new MediaType("image", "x-icon", Compressible, Binary, List("ico"))
     lazy val `x-jng`: MediaType = new MediaType("image", "x-jng", Compressible, Binary, List("jng"))
@@ -6590,108 +6902,114 @@ private[http4s] trait MimeDB {
       new MediaType("image", "x-xpixmap", Compressible, Binary, List("xpm"))
     lazy val `x-xwindowdump`: MediaType =
       new MediaType("image", "x-xwindowdump", Compressible, Binary, List("xwd"))
-    lazy val all: List[MediaType] = List(
-      `aces`,
-      `apng`,
-      `avci`,
-      `avcs`,
-      `avif`,
-      `bmp`,
-      `cgm`,
-      `dicom-rle`,
-      `emf`,
-      `fits`,
-      `g3fax`,
-      `gif`,
-      `heic`,
-      `heic-sequence`,
-      `heif`,
-      `heif-sequence`,
-      `hej2k`,
-      `hsj2`,
-      `ief`,
-      `jls`,
-      `jp2`,
-      `jpeg`,
-      `jph`,
-      `jphc`,
-      `jpm`,
-      `jpx`,
-      `jxr`,
-      `jxra`,
-      `jxrs`,
-      `jxs`,
-      `jxsc`,
-      `jxsi`,
-      `jxss`,
-      `ktx`,
-      `ktx2`,
-      `naplps`,
-      `pjpeg`,
-      `png`,
-      `prs.btif`,
-      `prs.pti`,
-      `pwg-raster`,
-      `sgi`,
-      `svg+xml`,
-      `t38`,
-      `tiff`,
-      `tiff-fx`,
-      `vnd.adobe.photoshop`,
-      `vnd.airzip.accelerator.azv`,
-      `vnd.cns.inf2`,
-      `vnd.dece.graphic`,
-      `vnd.djvu`,
-      `vnd.dvb.subtitle`,
-      `vnd.dwg`,
-      `vnd.dxf`,
-      `vnd.fastbidsheet`,
-      `vnd.fpx`,
-      `vnd.fst`,
-      `vnd.fujixerox.edmics-mmr`,
-      `vnd.fujixerox.edmics-rlc`,
-      `vnd.globalgraphics.pgb`,
-      `vnd.microsoft.icon`,
-      `vnd.mix`,
-      `vnd.mozilla.apng`,
-      `vnd.ms-dds`,
-      `vnd.ms-modi`,
-      `vnd.ms-photo`,
-      `vnd.net-fpx`,
-      `vnd.pco.b16`,
-      `vnd.radiance`,
-      `vnd.sealed.png`,
-      `vnd.sealedmedia.softseal.gif`,
-      `vnd.sealedmedia.softseal.jpg`,
-      `vnd.svf`,
-      `vnd.tencent.tap`,
-      `vnd.valve.source.texture`,
-      `vnd.wap.wbmp`,
-      `vnd.xiff`,
-      `vnd.zbrush.pcx`,
-      `webp`,
-      `wmf`,
-      `x-3ds`,
-      `x-cmu-raster`,
-      `x-cmx`,
-      `x-freehand`,
-      `x-icon`,
-      `x-jng`,
-      `x-mrsid-image`,
-      `x-ms-bmp`,
-      `x-pcx`,
-      `x-pict`,
-      `x-portable-anymap`,
-      `x-portable-bitmap`,
-      `x-portable-graymap`,
-      `x-portable-pixmap`,
-      `x-rgb`,
-      `x-tga`,
-      `x-xbitmap`,
-      `x-xcf`,
-      `x-xpixmap`,
-      `x-xwindowdump`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `aces`,
+          `apng`,
+          `avci`,
+          `avcs`,
+          `avif`,
+          `bmp`,
+          `cgm`,
+          `dicom-rle`,
+          `emf`,
+          `fits`,
+          `g3fax`,
+          `gif`,
+          `heic`,
+          `heic-sequence`,
+          `heif`,
+          `heif-sequence`,
+          `hej2k`,
+          `hsj2`,
+          `ief`,
+          `jls`,
+          `jp2`,
+          `jpeg`,
+          `jph`,
+          `jphc`,
+          `jpm`,
+          `jpx`,
+          `jxr`,
+          `jxra`,
+          `jxrs`,
+          `jxs`,
+          `jxsc`,
+          `jxsi`,
+          `jxss`,
+          `ktx`,
+          `ktx2`,
+          `naplps`,
+          `pjpeg`,
+          `png`,
+          `prs.btif`,
+          `prs.pti`,
+          `pwg-raster`,
+          `sgi`,
+          `svg+xml`,
+          `t38`,
+          `tiff`,
+          `tiff-fx`,
+          `vnd.adobe.photoshop`,
+          `vnd.airzip.accelerator.azv`,
+          `vnd.cns.inf2`,
+          `vnd.dece.graphic`,
+          `vnd.djvu`,
+          `vnd.dvb.subtitle`,
+          `vnd.dwg`,
+          `vnd.dxf`,
+          `vnd.fastbidsheet`,
+          `vnd.fpx`,
+          `vnd.fst`,
+          `vnd.fujixerox.edmics-mmr`,
+          `vnd.fujixerox.edmics-rlc`,
+          `vnd.globalgraphics.pgb`,
+          `vnd.microsoft.icon`,
+          `vnd.mix`,
+          `vnd.mozilla.apng`,
+          `vnd.ms-dds`,
+          `vnd.ms-modi`,
+          `vnd.ms-photo`,
+          `vnd.net-fpx`,
+          `vnd.pco.b16`,
+          `vnd.radiance`,
+          `vnd.sealed.png`,
+          `vnd.sealedmedia.softseal.gif`,
+          `vnd.sealedmedia.softseal.jpg`,
+          `vnd.svf`,
+          `vnd.tencent.tap`,
+          `vnd.valve.source.texture`,
+          `vnd.wap.wbmp`,
+          `vnd.xiff`,
+          `vnd.zbrush.pcx`,
+          `webp`,
+          `wmf`,
+          `x-3ds`,
+          `x-cmu-raster`,
+          `x-cmx`,
+          `x-freehand`,
+          `x-icon`,
+          `x-jng`,
+          `x-mrsid-image`,
+          `x-ms-bmp`,
+          `x-pcx`,
+          `x-pict`,
+          `x-portable-anymap`,
+          `x-portable-bitmap`,
+          `x-portable-graymap`,
+          `x-portable-pixmap`,
+          `x-rgb`,
+          `x-tga`,
+          `x-xbitmap`,
+          `x-xcf`,
+          `x-xpixmap`,
+          `x-xwindowdump`,
+        )
+      else ()
+      _all
+    }
   }
   object message {
     lazy val `cpim`: MediaType = new MediaType("message", "cpim", Compressible, NotBinary)
@@ -6702,7 +7020,8 @@ private[http4s] trait MimeDB {
       "disposition-notification",
       Compressible,
       NotBinary,
-      List("disposition-notification"))
+      List("disposition-notification"),
+    )
     lazy val `external-body`: MediaType =
       new MediaType("message", "external-body", Compressible, NotBinary)
     lazy val `feedback-report`: MediaType =
@@ -6716,7 +7035,8 @@ private[http4s] trait MimeDB {
       "global-disposition-notification",
       Compressible,
       NotBinary,
-      List("u8mdn"))
+      List("u8mdn"),
+    )
     lazy val `global-headers`: MediaType =
       new MediaType("message", "global-headers", Compressible, NotBinary, List("u8hdr"))
     lazy val `http`: MediaType = new MediaType("message", "http", Uncompressible, NotBinary)
@@ -6734,28 +7054,34 @@ private[http4s] trait MimeDB {
       new MediaType("message", "vnd.si.simp", Compressible, NotBinary)
     lazy val `vnd.wfa.wsc`: MediaType =
       new MediaType("message", "vnd.wfa.wsc", Compressible, NotBinary, List("wsc"))
-    lazy val all: List[MediaType] = List(
-      `cpim`,
-      `delivery-status`,
-      `disposition-notification`,
-      `external-body`,
-      `feedback-report`,
-      `global`,
-      `global-delivery-status`,
-      `global-disposition-notification`,
-      `global-headers`,
-      `http`,
-      `imdn+xml`,
-      `news`,
-      `partial`,
-      `rfc822`,
-      `s-http`,
-      `sip`,
-      `sipfrag`,
-      `tracking-status`,
-      `vnd.si.simp`,
-      `vnd.wfa.wsc`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `cpim`,
+          `delivery-status`,
+          `disposition-notification`,
+          `external-body`,
+          `feedback-report`,
+          `global`,
+          `global-delivery-status`,
+          `global-disposition-notification`,
+          `global-headers`,
+          `http`,
+          `imdn+xml`,
+          `news`,
+          `partial`,
+          `rfc822`,
+          `s-http`,
+          `sip`,
+          `sipfrag`,
+          `tracking-status`,
+          `vnd.si.simp`,
+          `vnd.wfa.wsc`,
+        )
+      else ()
+      _all
+    }
   }
   object model {
     lazy val `3mf`: MediaType = new MediaType("model", "3mf", Compressible, NotBinary, List("3mf"))
@@ -6817,41 +7143,47 @@ private[http4s] trait MimeDB {
       new MediaType("model", "x3d+xml", Compressible, NotBinary, List("x3d", "x3dz"))
     lazy val `x3d-vrml`: MediaType =
       new MediaType("model", "x3d-vrml", Compressible, NotBinary, List("x3dv"))
-    lazy val all: List[MediaType] = List(
-      `3mf`,
-      `e57`,
-      `gltf+json`,
-      `gltf-binary`,
-      `iges`,
-      `mesh`,
-      `mtl`,
-      `obj`,
-      `stl`,
-      `vnd.collada+xml`,
-      `vnd.dwf`,
-      `vnd.flatland.3dml`,
-      `vnd.gdl`,
-      `vnd.gs-gdl`,
-      `vnd.gs.gdl`,
-      `vnd.gtw`,
-      `vnd.moml+xml`,
-      `vnd.mts`,
-      `vnd.opengex`,
-      `vnd.parasolid.transmit.binary`,
-      `vnd.parasolid.transmit.text`,
-      `vnd.pytha.pyox`,
-      `vnd.rosette.annotated-data-model`,
-      `vnd.sap.vds`,
-      `vnd.usdz+zip`,
-      `vnd.valve.source.compiled-map`,
-      `vnd.vtu`,
-      `vrml`,
-      `x3d+binary`,
-      `x3d+fastinfoset`,
-      `x3d+vrml`,
-      `x3d+xml`,
-      `x3d-vrml`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `3mf`,
+          `e57`,
+          `gltf+json`,
+          `gltf-binary`,
+          `iges`,
+          `mesh`,
+          `mtl`,
+          `obj`,
+          `stl`,
+          `vnd.collada+xml`,
+          `vnd.dwf`,
+          `vnd.flatland.3dml`,
+          `vnd.gdl`,
+          `vnd.gs-gdl`,
+          `vnd.gs.gdl`,
+          `vnd.gtw`,
+          `vnd.moml+xml`,
+          `vnd.mts`,
+          `vnd.opengex`,
+          `vnd.parasolid.transmit.binary`,
+          `vnd.parasolid.transmit.text`,
+          `vnd.pytha.pyox`,
+          `vnd.rosette.annotated-data-model`,
+          `vnd.sap.vds`,
+          `vnd.usdz+zip`,
+          `vnd.valve.source.compiled-map`,
+          `vnd.vtu`,
+          `vrml`,
+          `x3d+binary`,
+          `x3d+fastinfoset`,
+          `x3d+vrml`,
+          `x3d+xml`,
+          `x3d-vrml`,
+        )
+      else ()
+      _all
+    }
   }
   object multipart {
     lazy val `alternative`: MediaType =
@@ -6880,24 +7212,30 @@ private[http4s] trait MimeDB {
       new MediaType("multipart", "voice-message", Compressible, NotBinary)
     lazy val `x-mixed-replace`: MediaType =
       new MediaType("multipart", "x-mixed-replace", Compressible, NotBinary)
-    lazy val all: List[MediaType] = List(
-      `alternative`,
-      `appledouble`,
-      `byteranges`,
-      `digest`,
-      `encrypted`,
-      `form-data`,
-      `header-set`,
-      `mixed`,
-      `multilingual`,
-      `parallel`,
-      `related`,
-      `report`,
-      `signed`,
-      `vnd.bint.med-plus`,
-      `voice-message`,
-      `x-mixed-replace`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `alternative`,
+          `appledouble`,
+          `byteranges`,
+          `digest`,
+          `encrypted`,
+          `form-data`,
+          `header-set`,
+          `mixed`,
+          `multilingual`,
+          `parallel`,
+          `related`,
+          `report`,
+          `signed`,
+          `vnd.bint.med-plus`,
+          `voice-message`,
+          `x-mixed-replace`,
+        )
+      else ()
+      _all
+    }
   }
   object text {
     lazy val `1d-interleaved-parityfec`: MediaType =
@@ -6952,7 +7290,8 @@ private[http4s] trait MimeDB {
       "plain",
       Compressible,
       NotBinary,
-      List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
+      List("txt", "text", "conf", "def", "list", "log", "in", "ini"),
+    )
     lazy val `provenance-notation`: MediaType =
       new MediaType("text", "provenance-notation", Compressible, NotBinary)
     lazy val `prs.fallenstein.rst`: MediaType =
@@ -6993,7 +7332,8 @@ private[http4s] trait MimeDB {
       "troff",
       Compressible,
       NotBinary,
-      List("t", "tr", "roff", "man", "me", "ms"))
+      List("t", "tr", "roff", "man", "me", "ms"),
+    )
     lazy val `turtle`: MediaType =
       new MediaType("text", "turtle", Compressible, NotBinary, List("ttl"))
     lazy val `ulpfec`: MediaType = new MediaType("text", "ulpfec", Compressible, NotBinary)
@@ -7073,7 +7413,8 @@ private[http4s] trait MimeDB {
       "x-c",
       Compressible,
       NotBinary,
-      List("c", "cc", "cxx", "cpp", "h", "hh", "dic"))
+      List("c", "cc", "cxx", "cpp", "h", "hh", "dic"),
+    )
     lazy val `x-component`: MediaType =
       new MediaType("text", "x-component", Compressible, NotBinary, List("htc"))
     lazy val `x-fortran`: MediaType =
@@ -7120,133 +7461,139 @@ private[http4s] trait MimeDB {
       new MediaType("text", "xml-external-parsed-entity", Compressible, NotBinary)
     lazy val `yaml`: MediaType =
       new MediaType("text", "yaml", Compressible, NotBinary, List("yaml", "yml"))
-    lazy val all: List[MediaType] = List(
-      `1d-interleaved-parityfec`,
-      `cache-manifest`,
-      `calendar`,
-      `calender`,
-      `cmd`,
-      `coffeescript`,
-      `cql`,
-      `cql-expression`,
-      `cql-identifier`,
-      `css`,
-      `csv`,
-      `csv-schema`,
-      `directory`,
-      `dns`,
-      `ecmascript`,
-      `encaprtp`,
-      `enriched`,
-      `fhirpath`,
-      `flexfec`,
-      `fwdred`,
-      `gff3`,
-      `grammar-ref-list`,
-      `html`,
-      `jade`,
-      `javascript`,
-      `jcr-cnd`,
-      `jsx`,
-      `less`,
-      `markdown`,
-      `mathml`,
-      `mdx`,
-      `mizar`,
-      `n3`,
-      `parameters`,
-      `parityfec`,
-      `plain`,
-      `provenance-notation`,
-      `prs.fallenstein.rst`,
-      `prs.lines.tag`,
-      `prs.prop.logic`,
-      `raptorfec`,
-      `red`,
-      `rfc822-headers`,
-      `richtext`,
-      `rtf`,
-      `rtp-enc-aescm128`,
-      `rtploopback`,
-      `rtx`,
-      `sgml`,
-      `shaclc`,
-      `shex`,
-      `slim`,
-      `spdx`,
-      `strings`,
-      `stylus`,
-      `t140`,
-      `tab-separated-values`,
-      `troff`,
-      `turtle`,
-      `ulpfec`,
-      `uri-list`,
-      `vcard`,
-      `vnd.a`,
-      `vnd.abc`,
-      `vnd.ascii-art`,
-      `vnd.curl`,
-      `vnd.curl.dcurl`,
-      `vnd.curl.mcurl`,
-      `vnd.curl.scurl`,
-      `vnd.debian.copyright`,
-      `vnd.dmclientscript`,
-      `vnd.dvb.subtitle`,
-      `vnd.esmertec.theme-descriptor`,
-      `vnd.ficlab.flt`,
-      `vnd.fly`,
-      `vnd.fmi.flexstor`,
-      `vnd.gml`,
-      `vnd.graphviz`,
-      `vnd.hans`,
-      `vnd.hgl`,
-      `vnd.in3d.3dml`,
-      `vnd.in3d.spot`,
-      `vnd.iptc.newsml`,
-      `vnd.iptc.nitf`,
-      `vnd.latex-z`,
-      `vnd.motorola.reflex`,
-      `vnd.ms-mediapackage`,
-      `vnd.net2phone.commcenter.command`,
-      `vnd.radisys.msml-basic-layout`,
-      `vnd.senx.warpscript`,
-      `vnd.si.uricatalogue`,
-      `vnd.sosi`,
-      `vnd.sun.j2me.app-descriptor`,
-      `vnd.trolltech.linguist`,
-      `vnd.wap.si`,
-      `vnd.wap.sl`,
-      `vnd.wap.wml`,
-      `vnd.wap.wmlscript`,
-      `vtt`,
-      `x-asm`,
-      `x-c`,
-      `x-component`,
-      `x-fortran`,
-      `x-gwt-rpc`,
-      `x-handlebars-template`,
-      `x-java-source`,
-      `x-jquery-tmpl`,
-      `x-lua`,
-      `x-markdown`,
-      `x-nfo`,
-      `x-opml`,
-      `x-org`,
-      `x-pascal`,
-      `x-processing`,
-      `x-sass`,
-      `x-scss`,
-      `x-setext`,
-      `x-sfv`,
-      `x-suse-ymp`,
-      `x-uuencode`,
-      `x-vcalendar`,
-      `x-vcard`,
-      `xml`,
-      `xml-external-parsed-entity`,
-      `yaml`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `1d-interleaved-parityfec`,
+          `cache-manifest`,
+          `calendar`,
+          `calender`,
+          `cmd`,
+          `coffeescript`,
+          `cql`,
+          `cql-expression`,
+          `cql-identifier`,
+          `css`,
+          `csv`,
+          `csv-schema`,
+          `directory`,
+          `dns`,
+          `ecmascript`,
+          `encaprtp`,
+          `enriched`,
+          `fhirpath`,
+          `flexfec`,
+          `fwdred`,
+          `gff3`,
+          `grammar-ref-list`,
+          `html`,
+          `jade`,
+          `javascript`,
+          `jcr-cnd`,
+          `jsx`,
+          `less`,
+          `markdown`,
+          `mathml`,
+          `mdx`,
+          `mizar`,
+          `n3`,
+          `parameters`,
+          `parityfec`,
+          `plain`,
+          `provenance-notation`,
+          `prs.fallenstein.rst`,
+          `prs.lines.tag`,
+          `prs.prop.logic`,
+          `raptorfec`,
+          `red`,
+          `rfc822-headers`,
+          `richtext`,
+          `rtf`,
+          `rtp-enc-aescm128`,
+          `rtploopback`,
+          `rtx`,
+          `sgml`,
+          `shaclc`,
+          `shex`,
+          `slim`,
+          `spdx`,
+          `strings`,
+          `stylus`,
+          `t140`,
+          `tab-separated-values`,
+          `troff`,
+          `turtle`,
+          `ulpfec`,
+          `uri-list`,
+          `vcard`,
+          `vnd.a`,
+          `vnd.abc`,
+          `vnd.ascii-art`,
+          `vnd.curl`,
+          `vnd.curl.dcurl`,
+          `vnd.curl.mcurl`,
+          `vnd.curl.scurl`,
+          `vnd.debian.copyright`,
+          `vnd.dmclientscript`,
+          `vnd.dvb.subtitle`,
+          `vnd.esmertec.theme-descriptor`,
+          `vnd.ficlab.flt`,
+          `vnd.fly`,
+          `vnd.fmi.flexstor`,
+          `vnd.gml`,
+          `vnd.graphviz`,
+          `vnd.hans`,
+          `vnd.hgl`,
+          `vnd.in3d.3dml`,
+          `vnd.in3d.spot`,
+          `vnd.iptc.newsml`,
+          `vnd.iptc.nitf`,
+          `vnd.latex-z`,
+          `vnd.motorola.reflex`,
+          `vnd.ms-mediapackage`,
+          `vnd.net2phone.commcenter.command`,
+          `vnd.radisys.msml-basic-layout`,
+          `vnd.senx.warpscript`,
+          `vnd.si.uricatalogue`,
+          `vnd.sosi`,
+          `vnd.sun.j2me.app-descriptor`,
+          `vnd.trolltech.linguist`,
+          `vnd.wap.si`,
+          `vnd.wap.sl`,
+          `vnd.wap.wml`,
+          `vnd.wap.wmlscript`,
+          `vtt`,
+          `x-asm`,
+          `x-c`,
+          `x-component`,
+          `x-fortran`,
+          `x-gwt-rpc`,
+          `x-handlebars-template`,
+          `x-java-source`,
+          `x-jquery-tmpl`,
+          `x-lua`,
+          `x-markdown`,
+          `x-nfo`,
+          `x-opml`,
+          `x-org`,
+          `x-pascal`,
+          `x-processing`,
+          `x-sass`,
+          `x-scss`,
+          `x-setext`,
+          `x-sfv`,
+          `x-suse-ymp`,
+          `x-uuencode`,
+          `x-vcalendar`,
+          `x-vcard`,
+          `xml`,
+          `xml-external-parsed-entity`,
+          `yaml`,
+        )
+      else ()
+      _all
+    }
   }
   object video {
     lazy val `1d-interleaved-parityfec`: MediaType =
@@ -7290,7 +7637,8 @@ private[http4s] trait MimeDB {
       "mpeg",
       Uncompressible,
       Binary,
-      List("mpeg", "mpg", "mpe", "m1v", "m2v"))
+      List("mpeg", "mpg", "mpe", "m1v", "m2v"),
+    )
     lazy val `mpeg4-generic`: MediaType =
       new MediaType("video", "mpeg4-generic", Compressible, Binary)
     lazy val `mpv`: MediaType = new MediaType("video", "mpv", Compressible, Binary)
@@ -7411,120 +7759,136 @@ private[http4s] trait MimeDB {
     lazy val `x-sgi-movie`: MediaType =
       new MediaType("video", "x-sgi-movie", Compressible, Binary, List("movie"))
     lazy val `x-smv`: MediaType = new MediaType("video", "x-smv", Compressible, Binary, List("smv"))
-    lazy val all: List[MediaType] = List(
-      `1d-interleaved-parityfec`,
-      `3gpp`,
-      `3gpp-tt`,
-      `3gpp2`,
-      `av1`,
-      `bmpeg`,
-      `bt656`,
-      `celb`,
-      `dv`,
-      `encaprtp`,
-      `ffv1`,
-      `flexfec`,
-      `h261`,
-      `h263`,
-      `h263-1998`,
-      `h263-2000`,
-      `h264`,
-      `h264-rcdo`,
-      `h264-svc`,
-      `h265`,
-      `iso.segment`,
-      `jpeg`,
-      `jpeg2000`,
-      `jpm`,
-      `mj2`,
-      `mp1s`,
-      `mp2p`,
-      `mp2t`,
-      `mp4`,
-      `mp4v-es`,
-      `mpeg`,
-      `mpeg4-generic`,
-      `mpv`,
-      `nv`,
-      `ogg`,
-      `parityfec`,
-      `pointer`,
-      `quicktime`,
-      `raptorfec`,
-      `raw`,
-      `rtp-enc-aescm128`,
-      `rtploopback`,
-      `rtx`,
-      `scip`,
-      `smpte291`,
-      `smpte292m`,
-      `ulpfec`,
-      `vc1`,
-      `vc2`,
-      `vnd.cctv`,
-      `vnd.dece.hd`,
-      `vnd.dece.mobile`,
-      `vnd.dece.mp4`,
-      `vnd.dece.pd`,
-      `vnd.dece.sd`,
-      `vnd.dece.video`,
-      `vnd.directv.mpeg`,
-      `vnd.directv.mpeg-tts`,
-      `vnd.dlna.mpeg-tts`,
-      `vnd.dvb.file`,
-      `vnd.fvt`,
-      `vnd.hns.video`,
-      `vnd.iptvforum.1dparityfec-1010`,
-      `vnd.iptvforum.1dparityfec-2005`,
-      `vnd.iptvforum.2dparityfec-1010`,
-      `vnd.iptvforum.2dparityfec-2005`,
-      `vnd.iptvforum.ttsavc`,
-      `vnd.iptvforum.ttsmpeg2`,
-      `vnd.motorola.video`,
-      `vnd.motorola.videop`,
-      `vnd.mpegurl`,
-      `vnd.ms-playready.media.pyv`,
-      `vnd.nokia.interleaved-multimedia`,
-      `vnd.nokia.mp4vr`,
-      `vnd.nokia.videovoip`,
-      `vnd.objectvideo`,
-      `vnd.radgamettools.bink`,
-      `vnd.radgamettools.smacker`,
-      `vnd.sealed.mpeg1`,
-      `vnd.sealed.mpeg4`,
-      `vnd.sealed.swf`,
-      `vnd.sealedmedia.softseal.mov`,
-      `vnd.uvvu.mp4`,
-      `vnd.vivo`,
-      `vnd.youtube.yt`,
-      `vp8`,
-      `webm`,
-      `x-f4v`,
-      `x-fli`,
-      `x-flv`,
-      `x-m4v`,
-      `x-matroska`,
-      `x-mng`,
-      `x-ms-asf`,
-      `x-ms-vob`,
-      `x-ms-wm`,
-      `x-ms-wmv`,
-      `x-ms-wmx`,
-      `x-ms-wvx`,
-      `x-msvideo`,
-      `x-sgi-movie`,
-      `x-smv`
-    )
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null)
+        _all = List(
+          `1d-interleaved-parityfec`,
+          `3gpp`,
+          `3gpp-tt`,
+          `3gpp2`,
+          `av1`,
+          `bmpeg`,
+          `bt656`,
+          `celb`,
+          `dv`,
+          `encaprtp`,
+          `ffv1`,
+          `flexfec`,
+          `h261`,
+          `h263`,
+          `h263-1998`,
+          `h263-2000`,
+          `h264`,
+          `h264-rcdo`,
+          `h264-svc`,
+          `h265`,
+          `iso.segment`,
+          `jpeg`,
+          `jpeg2000`,
+          `jpm`,
+          `mj2`,
+          `mp1s`,
+          `mp2p`,
+          `mp2t`,
+          `mp4`,
+          `mp4v-es`,
+          `mpeg`,
+          `mpeg4-generic`,
+          `mpv`,
+          `nv`,
+          `ogg`,
+          `parityfec`,
+          `pointer`,
+          `quicktime`,
+          `raptorfec`,
+          `raw`,
+          `rtp-enc-aescm128`,
+          `rtploopback`,
+          `rtx`,
+          `scip`,
+          `smpte291`,
+          `smpte292m`,
+          `ulpfec`,
+          `vc1`,
+          `vc2`,
+          `vnd.cctv`,
+          `vnd.dece.hd`,
+          `vnd.dece.mobile`,
+          `vnd.dece.mp4`,
+          `vnd.dece.pd`,
+          `vnd.dece.sd`,
+          `vnd.dece.video`,
+          `vnd.directv.mpeg`,
+          `vnd.directv.mpeg-tts`,
+          `vnd.dlna.mpeg-tts`,
+          `vnd.dvb.file`,
+          `vnd.fvt`,
+          `vnd.hns.video`,
+          `vnd.iptvforum.1dparityfec-1010`,
+          `vnd.iptvforum.1dparityfec-2005`,
+          `vnd.iptvforum.2dparityfec-1010`,
+          `vnd.iptvforum.2dparityfec-2005`,
+          `vnd.iptvforum.ttsavc`,
+          `vnd.iptvforum.ttsmpeg2`,
+          `vnd.motorola.video`,
+          `vnd.motorola.videop`,
+          `vnd.mpegurl`,
+          `vnd.ms-playready.media.pyv`,
+          `vnd.nokia.interleaved-multimedia`,
+          `vnd.nokia.mp4vr`,
+          `vnd.nokia.videovoip`,
+          `vnd.objectvideo`,
+          `vnd.radgamettools.bink`,
+          `vnd.radgamettools.smacker`,
+          `vnd.sealed.mpeg1`,
+          `vnd.sealed.mpeg4`,
+          `vnd.sealed.swf`,
+          `vnd.sealedmedia.softseal.mov`,
+          `vnd.uvvu.mp4`,
+          `vnd.vivo`,
+          `vnd.youtube.yt`,
+          `vp8`,
+          `webm`,
+          `x-f4v`,
+          `x-fli`,
+          `x-flv`,
+          `x-m4v`,
+          `x-matroska`,
+          `x-mng`,
+          `x-ms-asf`,
+          `x-ms-vob`,
+          `x-ms-wm`,
+          `x-ms-wmv`,
+          `x-ms-wmx`,
+          `x-ms-wvx`,
+          `x-msvideo`,
+          `x-sgi-movie`,
+          `x-smv`,
+        )
+      else ()
+      _all
+    }
   }
   object x_conference {
     lazy val `x-cooltalk`: MediaType =
       new MediaType("x-conference", "x-cooltalk", Compressible, NotBinary, List("ice"))
-    lazy val all: List[MediaType] = List(`x-cooltalk`)
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null) _all = List(`x-cooltalk`)
+      else ()
+      _all
+    }
   }
   object x_shader {
     lazy val `x-fragment`: MediaType =
       new MediaType("x-shader", "x-fragment", Compressible, NotBinary)
     lazy val `x-vertex`: MediaType = new MediaType("x-shader", "x-vertex", Compressible, NotBinary)
-    lazy val all: List[MediaType] = List(`x-fragment`, `x-vertex`)
+    private var _all: List[MediaType] = null
+    def all: List[MediaType] = {
+      if (_all eq null) _all = List(`x-fragment`, `x-vertex`)
+      else ()
+      _all
+    }
   }
 }

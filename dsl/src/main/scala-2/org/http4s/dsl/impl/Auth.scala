@@ -16,7 +16,8 @@
 
 package org.http4s.dsl.impl
 
-import org.http4s.{AuthedRequest, Request}
+import org.http4s.AuthedRequest
+import org.http4s.Request
 
 trait Auth {
   object as {

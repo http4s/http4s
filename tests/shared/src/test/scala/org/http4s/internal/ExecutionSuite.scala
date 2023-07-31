@@ -21,6 +21,7 @@ import org.http4s.testing.ErrorReporting._
 
 import scala.concurrent.ExecutionContext
 
+@deprecated("Supports an unused feature.  Will be removed in 1.0", "0.23.11")
 abstract class ExecutionSuite extends Http4sSuite {
   def ec: ExecutionContext
   def ecName: String
@@ -96,6 +97,7 @@ abstract class ExecutionSuite extends Http4sSuite {
 
 }
 
+@deprecated("Unused.  Will be removed in 1.0", "0.23.11")
 class TrampolineSuite extends ExecutionSuite {
   def ec = Trampoline
   def ecName = "trampoline"

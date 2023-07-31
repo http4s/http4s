@@ -19,7 +19,8 @@ package org.http4s
 import cats.kernel.laws.discipline.EqTests
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 class CharsetRangeSuite extends Http4sSuite {
   test("* should match all charsets") {
@@ -28,7 +29,7 @@ class CharsetRangeSuite extends Http4sSuite {
     }
   }
 
-  test("atomic charset ranges should match their own charsest") {
+  test("atomic charset ranges should match their own charsets") {
     forAll(arbitrary[CharsetRange.Atom]) { range =>
       range.matches(range.charset)
     }

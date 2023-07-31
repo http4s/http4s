@@ -19,10 +19,37 @@ package multipart
 
 import org.http4s.headers._
 
-final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
+/** Create a new multipart from a vector of parts and a boundary.
+  *
+  * To create Multipart values from a generated boundary, see the [[Multiparts]] algebra.
+  */
+final case class Multipart[F[_]](
+    parts: Vector[Part[F]],
+    boundary: Boundary,
+) {
+  @deprecated(
+    "Creating a boundary is an effect.  Use Multiparts.multipart to generate an F[Multipart[F]], or call the two-parameter constructor with your own boundary.",
+    "0.23.12",
+  )
+  def this(parts: Vector[Part[F]]) =
+    this(parts, Boundary.unsafeCreate())
+
   def headers: Headers =
     Headers(
       `Transfer-Encoding`(TransferCoding.chunked),
-      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value)))
+      `Content-Type`(MediaType.multipartType("form-data", Some(boundary.value))),
     )
+}
+
+object Multipart {
+  @deprecated("Retaining for binary-compatibility", "0.23.12")
+  def `<init>$default$2`: String = apply$default$2
+  @deprecated("Retaining for binary-compatibility", "0.23.12")
+  def apply$default$2: String = Boundary.unsafeCreate().value
+
+  @deprecated(
+    "Creating a boundary is an effect.  Use Multiparts.multipart to generate an F[Multipart[F]], or call the two-parameter apply with your own boundary.",
+    "0.23.12",
+  )
+  def apply[F[_]](parts: Vector[Part[F]]) = new Multipart(parts)
 }

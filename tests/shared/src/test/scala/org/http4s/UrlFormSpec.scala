@@ -19,11 +19,12 @@ package org.http4s
 import cats.Monoid
 import cats.data._
 import cats.effect.IO
-import cats.syntax.all.{catsSyntaxEq => _, _}
 import cats.kernel.laws.discipline.MonoidTests
+import cats.syntax.all.{catsSyntaxEq => _, _}
 import org.http4s.internal.CollectionCompat
 import org.http4s.laws.discipline.arbitrary._
 import org.scalacheck.Prop
+import org.scalacheck.Test
 import org.scalacheck.effect.PropF
 
 class UrlFormSpec extends Http4sSuite {
@@ -37,7 +38,7 @@ class UrlFormSpec extends Http4sSuite {
 //    Gen.oneOf(Charset.`UTF-8`, Charset.`UTF-16`, Charset.`UTF-16LE`)
 //  )
 
-  override def scalaCheckTestParameters =
+  override def scalaCheckTestParameters: Test.Parameters =
     super.scalaCheckTestParameters.withMaxSize(20)
 
   {
@@ -49,7 +50,8 @@ class UrlFormSpec extends Http4sSuite {
           .success(
             Request[IO]()
               .withEntity(urlForm)(UrlForm.entityEncoder(charset))
-              .pure[IO])
+              .pure[IO]
+          )
           .flatMap { req =>
             UrlForm.entityDecoder[IO].decode(req, strict = false)
           }
@@ -88,13 +90,15 @@ class UrlFormSpec extends Http4sSuite {
       assertEquals(
         UrlForm(Map("key" -> Chain("a", "b", "c")))
           .getOrElse("key", Chain("d")),
-        Chain("a", "b", "c"))
+        Chain("a", "b", "c"),
+      )
     }
 
     test("UrlForm should getOrElse returns default if no matching key") {
       assertEquals(
         UrlForm(Map("key" -> Chain("a", "b", "c"))).getOrElse("notFound", Chain("d")),
-        Chain("d"))
+        Chain("d"),
+      )
     }
 
     test("UrlForm should getFirstOrElse returns first element matching key") {
@@ -106,20 +110,23 @@ class UrlFormSpec extends Http4sSuite {
     }
 
     test(
-      "UrlForm should withFormField encodes T properly if QueryParamEncoder[T] can be resolved") {
+      "UrlForm should withFormField encodes T properly if QueryParamEncoder[T] can be resolved"
+    ) {
       assertEquals(UrlForm.empty.updateFormField("foo", 1).get("foo"), Chain("1"))
       assertEquals(UrlForm.empty.updateFormField("bar", Some(true)).get("bar"), Chain("true"))
       assertEquals(UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar"), Chain())
       assertEquals(
         UrlForm.empty.updateFormFields("dummy", Chain("a", "b", "c")).get("dummy"),
-        Chain("a", "b", "c"))
+        Chain("a", "b", "c"),
+      )
     }
 
     test(
-      "UrlForm should withFormField is effectively equal to factory constructor that takes a Map") {
+      "UrlForm should withFormField is effectively equal to factory constructor that takes a Map"
+    ) {
       assertEquals(
         UrlForm.empty.+?("foo", 1).+?("bar", Some(true)).++?("dummy", Chain("a", "b", "c")),
-        UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c")))
+        UrlForm(Map("foo" -> Chain("1"), "bar" -> Chain("true"), "dummy" -> Chain("a", "b", "c"))),
       )
 
       assertEquals(
@@ -128,36 +135,40 @@ class UrlFormSpec extends Http4sSuite {
           .+?(
             "bar",
             Option
-              .empty[Boolean])
+              .empty[Boolean],
+          )
           .++?("dummy", Chain("a", "b", "c")),
-        UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c")))
+        UrlForm(Map("foo" -> Chain("1"), "dummy" -> Chain("a", "b", "c"))),
       )
+    }
+
+    test("UrlForm.single") {
+      assertEquals(UrlForm.single("foo", "bar").get("foo"), Chain.one("bar"))
+      assertEquals(UrlForm.single("foo", "bar").get("baz"), Chain.empty[String])
+      assertEquals(UrlForm.single("", "bar"), UrlForm(Map("" -> Chain("bar"))))
     }
 
     test("UrlForm should construct consistently from kv-pairs or and Map[String, Chain[String]]") {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
-        val flattened = for {
-          (k, vs) <- map.toSeq
-          v <- vs.toList
-        } yield k -> v
+        val flattened =
+          map.toList.flatMap(x => x._2.toList.fproductLeft(_ => x._1))
         UrlForm(flattened: _*) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
+        )
       }
     }
 
     test(
-      "UrlForm should construct consistently from Chain of kv-pairs and Map[String, Chain[String]]") {
+      "UrlForm should construct consistently from Chain of kv-pairs and Map[String, Chain[String]]"
+    ) {
       Prop.forAll { (map: Map[String, NonEmptyList[String]]) =>
         // non-empty because the kv-constructor can't represent valueless fields
-        val flattened = for {
-          kv <- Chain.fromSeq(map.toSeq)
-          k = kv._1
-          vs = kv._2
-          v <- Chain.fromSeq(vs.toList)
-        } yield k -> v
+        val flattened =
+          Chain.fromSeq(map.toList.flatMap(x => x._2.toList.fproductLeft(_ => x._1)))
         UrlForm.fromChain(flattened) == UrlForm(
-          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList)))
+          CollectionCompat.mapValues(map)(nel => Chain.fromSeq(nel.toList))
+        )
       }
     }
   }

@@ -17,20 +17,21 @@
 package org.http4s.websocket
 
 import cats.syntax.all._
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.UTF_8
+import org.http4s.Http4sSuite
 import org.http4s.websocket.WebSocketFrame._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
-import org.http4s.Http4sSuite
 import scodec.bits.ByteVector
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.UTF_8
+
 class WebSocketSuite extends Http4sSuite {
-  def helloTxtMasked =
+  private def helloTxtMasked =
     Array(0x81, 0x85, 0x37, 0xfa, 0x21, 0x3d, 0x7f, 0x9f, 0x4d, 0x51, 0x58).map(_.toByte)
 
-  def helloTxt = Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f).map(_.toByte)
+  private def helloTxt = Array(0x81, 0x05, 0x48, 0x65, 0x6c, 0x6c, 0x6f).map(_.toByte)
 
   def decode(msg: Array[Byte], isClient: Boolean): WebSocketFrame =
     new FrameTranscoder(isClient).bufferToFrame(ByteBuffer.wrap(msg))
@@ -50,54 +51,54 @@ class WebSocketSuite extends Http4sSuite {
     val f3 = Text(ByteVector(0x2.toByte, 0x3.toByte), true)
     val f4 = Binary(ByteVector(0x2.toByte, 0x4.toByte), true)
 
-    assert(f1 == f1)
-    assert(f1 == f11)
-    assert(f1 != f2)
-    assert(f1 != f3)
-    assert(f1 != f4)
+    assertEquals(f1, f1)
+    assertEquals(f1, f11)
+    assertNotEquals(f1, f2)
+    assertNotEquals[Any, Any](f1, f3)
+    assertNotEquals(f1, f4)
   }
 
   test("WebSocket decoder should decode a hello world message") {
     val result = decode(helloTxtMasked, false)
-    assert(result.last == true)
-    assert(new String(result.data.toArray, UTF_8) == "Hello")
+    assert(result.last)
+    assertEquals(new String(result.data.toArray, UTF_8), "Hello")
 
     val result2 = decode(helloTxt, true)
-    assert(result2.last == true)
-    assert(new String(result2.data.toArray, UTF_8) == "Hello")
+    assert(result2.last)
+    assertEquals(new String(result2.data.toArray, UTF_8), "Hello")
   }
 
   test("WebSocket decoder should encode a hello world message") {
     val frame = Text(ByteVector.view("Hello".getBytes(UTF_8)), false)
     val msg = decode(encode(frame, true), false)
-    assert(msg == frame)
-    assert(msg.last == false)
-    assert(new String(msg.data.toArray, UTF_8) == "Hello")
+    assertEquals(msg, frame)
+    assert(!msg.last)
+    assertEquals(new String(msg.data.toArray, UTF_8), "Hello")
   }
 
   test("WebSocket decoder should encode a continuation message") {
     val frame = Continuation(ByteVector.view("Hello".getBytes(UTF_8)), true)
     val msg = decode(encode(frame, true), false)
-    assert(msg == frame)
-    assert(msg.last == true)
-    assert(new String(msg.data.toArray, UTF_8) == "Hello")
+    assertEquals(msg, frame)
+    assert(msg.last)
+    assertEquals(new String(msg.data.toArray, UTF_8), "Hello")
   }
 
   test("WebSocket decoder should encode a close message") {
     val reasonGen = for {
-      length <- choose(0, 30) //UTF-8 chars are at most 4 bytes, byte limit is 123
+      length <- choose(0, 30) // UTF-8 chars are at most 4 bytes, byte limit is 123
       chars <- listOfN(length, arbitrary[Char])
     } yield chars.mkString
 
     forAll(choose(1000, 4999), reasonGen) { (validCloseCode: Int, validReason: String) =>
       val frame = Close(validCloseCode, validReason).valueOr(throw _)
       val msg = decode(encode(frame, true), false)
-      assert(msg == frame)
-      assert(msg.last == true)
+      assertEquals(msg, frame)
+      assert(msg.last)
       val closeCode = msg.data.slice(0, 2)
-      assert(((closeCode(0) << 8 & 0xff00) | (closeCode(1) & 0xff)) == validCloseCode)
+      assertEquals((closeCode(0) << 8 & 0xff00) | (closeCode(1) & 0xff), validCloseCode)
       val reason = msg.data.slice(2, msg.data.length)
-      assert(new String(reason.toArray, UTF_8) == validReason)
+      assertEquals(new String(reason.toArray, UTF_8), validReason)
     }
   }
 
@@ -108,7 +109,8 @@ class WebSocketSuite extends Http4sSuite {
   }
 
   test(
-    "WebSocket decoder should refuse to encode a close message with a reason that is too large") {
+    "WebSocket decoder should refuse to encode a close message with a reason that is too large"
+  ) {
     val validCloseCode = 1000
 
     forAll { (reason: String) =>
@@ -123,8 +125,8 @@ class WebSocketSuite extends Http4sSuite {
     val msg = decode(encode(frame, true), false)
     val msg2 = decode(encode(frame, false), true)
 
-    assert(msg == frame)
-    assert(msg == msg2)
+    assertEquals(msg, frame)
+    assertEquals(msg, msg2)
   }
 
   test("WebSocket decoder should encode and decode a message len > 0xffff") {
@@ -134,8 +136,8 @@ class WebSocketSuite extends Http4sSuite {
     val msg = decode(encode(frame, true), false)
     val msg2 = decode(encode(frame, false), true)
 
-    assert(msg == frame)
-    assert(msg == msg2)
+    assertEquals(msg, frame)
+    assertEquals(msg, msg2)
   }
 
 }

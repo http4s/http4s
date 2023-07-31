@@ -16,12 +16,15 @@
 
 package org.http4s
 
-import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
+import org.http4s.Uri.{Fragment => _, Path => _, apply => _, unapply => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /** Simple representation of a URI Template that can be rendered as RFC6570
   * conform string.
@@ -39,7 +42,8 @@ final case class UriTemplate(
     authority: Option[Authority] = None,
     path: Path = Nil,
     query: UriTemplate.Query = Nil,
-    fragment: Fragment = Nil) {
+    fragment: Fragment = Nil,
+) {
 
   /** Replaces any expansion type that matches the given `name`. If no matching
     * `expansion` could be found the same instance will be returned.
@@ -88,7 +92,7 @@ final case class UriTemplate(
   def expandQuery[T: QueryParamEncoder](name: String, values: T*): UriTemplate =
     expandQuery(name, values.toList)
 
-  override lazy val toString =
+  override lazy val toString: String =
     renderUriTemplate(this)
 
   /** If no expansion is available an `Uri` will be created otherwise the
@@ -97,7 +101,8 @@ final case class UriTemplate(
   def toUriIfPossible: Try[Uri] =
     if (containsExpansions(this))
       Failure(
-        new IllegalStateException(s"all expansions must be resolved to be convertable: $this"))
+        new IllegalStateException(s"all expansions must be resolved to be convertable: $this")
+      )
     else Success(toUri(this))
 }
 
@@ -106,7 +111,7 @@ object UriTemplate {
   type Query = List[QueryDef]
   type Fragment = List[FragmentDef]
 
-  protected val unreserved =
+  protected val unreserved: Set[Char] =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') :+ '-' :+ '.' :+ '_' :+ '~').toSet
 
   //  protected val genDelims = ':' :: '/' :: '?' :: '#' :: '[' :: ']' :: '@' :: Nil
@@ -122,7 +127,7 @@ object UriTemplate {
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
-    def appendValues() =
+    def appendValues(): Unit =
       values.foreach { v =>
         acc.append(PathElm(v.value))
       }
@@ -277,7 +282,7 @@ object UriTemplate {
   protected def renderFragment(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
     val expansions = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(n) => expansions.append(n)
       case MultiFragmentExp(ns) => expansions.append(ns.mkString(","))
@@ -294,7 +299,7 @@ object UriTemplate {
 
   protected def renderFragmentIdentifier(f: Fragment): String = {
     val elements = new mutable.ArrayBuffer[String]()
-    f.map {
+    f.foreach {
       case FragmentElm(v) => elements.append(v)
       case SimpleFragmentExp(_) =>
         throw new IllegalStateException("SimpleFragmentExp cannot be converted to a Uri")
@@ -310,7 +315,7 @@ object UriTemplate {
       case (elements, ParamElm(n, Nil)) => elements :+ (n -> None)
       case (elements, ParamElm(n, List(v))) => elements :+ (n -> Some(v))
       case (elements, ParamElm(n, vs)) =>
-        vs.toList.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
+        vs.foldLeft(elements) { case (elements, v) => elements :+ (n -> Some(v)) }
       case u =>
         throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
@@ -405,14 +410,16 @@ object UriTemplate {
           s,
           a,
           Uri.Path.unsafeFromString(renderPath(p)),
-          fragment = Some(renderFragmentIdentifier(f)))
+          fragment = Some(renderFragmentIdentifier(f)),
+        )
       case UriTemplate(s, a, p, q, f) =>
         Uri(
           s,
           a,
           Uri.Path.unsafeFromString(renderPath(p)),
           buildQuery(q),
-          Some(renderFragmentIdentifier(f)))
+          Some(renderFragmentIdentifier(f)),
+        )
     }
 
   sealed trait PathDef
@@ -459,11 +466,11 @@ object UriTemplate {
     * The default expression type is simple string expansion (Level 1), wherein a
     * single named variable is replaced by its value as a string after
     * pct-encoding any characters not in the set of unreserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-1.5">Section 1.5</a>).
     *
     * Level 2 templates add the plus ("+") operator, for expansion of values that
     * are allowed to include reserved URI characters
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-1.5">Section 1.5</a>),
     * and the crosshatch ("#") operator for expansion of fragment identifiers.
     *
     * Level 3 templates allow multiple variables per expression, each
@@ -481,7 +488,7 @@ object UriTemplate {
   final case class FragmentElm(value: String) extends FragmentDef
 
   /** Fragment expansion, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class SimpleFragmentExp(name: String) extends FragmentDef {
     require(name.nonEmpty, "at least one character must be set")
@@ -489,10 +496,10 @@ object UriTemplate {
   }
 
   /** Level 1 allows string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     *
     * Level 3 allows string expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
     */
   final case class VarExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -503,10 +510,10 @@ object UriTemplate {
   }
 
   /** Level 2 allows reserved string expansion
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     *
     * Level 3 allows reserved expansion with multiple variables
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
     */
   final case class ReservedExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -517,7 +524,7 @@ object UriTemplate {
   }
 
   /** Fragment expansion with multiple variables, crosshatch-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
     */
   final case class MultiFragmentExp(names: List[String]) extends FragmentDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -528,7 +535,7 @@ object UriTemplate {
   }
 
   /** Path segments, slash-prefixed
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
     */
   final case class PathExp(names: List[String]) extends PathDef {
     require(names.nonEmpty, "at least one name must be set")
@@ -539,20 +546,21 @@ object UriTemplate {
   }
 
   /** Form-style query, ampersand-separated
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
     */
   final case class ParamExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")
     require(
       names.forall(isUnreservedOrEncoded),
-      "all names must consist of unreserved characters or be encoded")
+      "all names must consist of unreserved characters or be encoded",
+    )
   }
   object ParamExp {
     def apply(names: String*): ParamExp = new ParamExp(names.toList)
   }
 
   /** Form-style query continuation
-    * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+    * (<a href="https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
     */
   final case class ParamContExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")

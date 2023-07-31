@@ -17,13 +17,13 @@
 package org.http4s
 package headers
 
-import org.http4s.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.all._
 import org.scalacheck.Prop._
 
 class AcceptLanguageSuite extends HeaderLaws {
-  val english = LanguageTag("en")
-  val spanish = LanguageTag("es")
+  private val english = LanguageTag("en")
+  private val spanish = LanguageTag("es")
 
   checkAll("AcceptLanguage", headerLaws[`Accept-Language`])
 
@@ -44,15 +44,18 @@ class AcceptLanguageSuite extends HeaderLaws {
       LanguageTag.*,
       LanguageTag("de", qValue"0.3", List("DE", "1996")),
       LanguageTag("de", qValue"0.1"),
-      LanguageTag("de", qValue"0.2", List("DE")))
+      LanguageTag("de", qValue"0.2", List("DE")),
+    )
     assertEquals(acceptLanguage.qValue(LanguageTag("de")), qValue"0.1")
     assertEquals(acceptLanguage.qValue(LanguageTag("de", subTags = List("DE"))), qValue"0.2")
     assertEquals(
       acceptLanguage.qValue(LanguageTag("de", subTags = List("DE", "1996"))),
-      qValue"0.3")
+      qValue"0.3",
+    )
     assertEquals(
       acceptLanguage.qValue(LanguageTag("de", subTags = List("DE", "2017"))),
-      qValue"0.2")
+      qValue"0.2",
+    )
   }
 
   test("matches splatted if primary tag not present") {

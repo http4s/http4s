@@ -32,7 +32,7 @@ class AcceptEncodingSuite extends HeaderLaws {
 
   test("is not satisfied by a content coding if the q value is 0") {
     forAll { (h: `Accept-Encoding`, cc: ContentCoding) =>
-      !(`Accept-Encoding`(h.values.map(_.withQValue(QValue.Zero))).satisfiedBy(cc))
+      !`Accept-Encoding`(h.values.map(_.withQValue(QValue.Zero))).satisfiedBy(cc)
     }
   }
 
@@ -57,7 +57,8 @@ class AcceptEncodingSuite extends HeaderLaws {
   test("rejects content coding matching splat with q=0") {
     val acceptEncoding = `Accept-Encoding`(
       ContentCoding.*.withQValue(QValue.Zero),
-      ContentCoding.compress.withQValue(qValue"0.5"))
+      ContentCoding.compress.withQValue(qValue"0.5"),
+    )
     assertEquals(acceptEncoding.qValue(ContentCoding.gzip), QValue.Zero)
   }
 

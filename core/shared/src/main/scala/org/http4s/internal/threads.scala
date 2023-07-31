@@ -25,9 +25,9 @@ import scala.concurrent.duration._
 private[http4s] object threads {
   final case class ThreadPriority(toInt: Int)
   case object ThreadPriority {
-    val Min = ThreadPriority(Thread.MIN_PRIORITY)
-    val Norm = ThreadPriority(Thread.NORM_PRIORITY)
-    val Max = ThreadPriority(Thread.MAX_PRIORITY)
+    val Min: ThreadPriority = ThreadPriority(Thread.MIN_PRIORITY)
+    val Norm: ThreadPriority = ThreadPriority(Thread.NORM_PRIORITY)
+    val Max: ThreadPriority = ThreadPriority(Thread.MAX_PRIORITY)
   }
 
   def threadFactory(
@@ -37,7 +37,7 @@ private[http4s] object threads {
       daemon: Boolean = false,
       priority: ThreadPriority = ThreadPriority.Norm,
       uncaughtExceptionHandler: PartialFunction[(Thread, Throwable), Unit] = PartialFunction.empty,
-      backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory
+      backingThreadFactory: ThreadFactory = Executors.defaultThreadFactory,
   ): ThreadFactory =
     new ThreadFactory {
       val count = new AtomicLong(0)
@@ -64,7 +64,8 @@ private[http4s] object threads {
       name: String,
       min: Int = 4,
       cpuFactor: Double = 3.0,
-      timeout: Boolean = false): ThreadPoolExecutor = {
+      timeout: Boolean = false,
+  ): ThreadPoolExecutor = {
     val cpus = Runtime.getRuntime.availableProcessors
     val exec = new ThreadPoolExecutor(
       math.max(min, cpus),
@@ -72,7 +73,7 @@ private[http4s] object threads {
       10L,
       TimeUnit.SECONDS,
       new LinkedBlockingQueue[Runnable],
-      threadFactory(i => s"$name-$i", daemon = true)
+      threadFactory(i => s"$name-$i", daemon = true),
     )
     exec.allowCoreThreadTimeOut(timeout)
     exec
@@ -82,7 +83,8 @@ private[http4s] object threads {
       name: String,
       min: Int = 4,
       cpuFactor: Double = 3.0,
-      timeout: Boolean = false): ExecutionContext =
+      timeout: Boolean = false,
+  ): ExecutionContext =
     ExecutionContext.fromExecutorService(newDaemonPool(name, min, cpuFactor, timeout))
 
   def newBlockingPool(name: String): ExecutorService = {
@@ -96,7 +98,7 @@ private[http4s] object threads {
       KeepAliveTime.toSeconds,
       TimeUnit.SECONDS,
       new SynchronousQueue[Runnable](false),
-      threadFactory(i => s"$name-$i", daemon = true)
+      threadFactory(i => s"$name-$i", daemon = true),
     )
   }
 }

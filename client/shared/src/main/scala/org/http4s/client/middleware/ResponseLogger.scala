@@ -18,32 +18,35 @@ package org.http4s
 package client
 package middleware
 
-import cats.effect._
+import cats.effect.Async
 import cats.effect.Ref
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2._
 import org.http4s.internal.{Logger => InternalLogger}
 import org.typelevel.ci.CIString
-import org.log4s.getLogger
 
-/** Simple middleware for logging responses as they are processed
+/** Client middlewares that logs the HTTP responses it receives as soon as they are received locally.
+  *
+  * The "logging" is represented as an effectful action `String => F[Unit]`
   */
 object ResponseLogger {
-  private[this] val logger = getLogger
+  private[this] val logger = Platform.loggerFactory.getLogger
 
-  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = Sync[F].delay(logger.info(s))
+  private def defaultLogAction[F[_]: Sync](s: String): F[Unit] = logger.info(s).to[F]
 
   def apply[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody) { response =>
       Logger.logMessage[F, Response[F]](response)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
@@ -51,55 +54,51 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     impl(client, logBody = true) { response =>
-      InternalLogger.logMessageWithBodyText[F, Response[F]](response)(
+      InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
         logBody,
-        redactHeadersWhen
+        redactHeadersWhen,
       )(logAction.getOrElse(defaultLogAction[F]))
     }
 
   def customized[F[_]: Async](
       client: Client[F],
       logBody: Boolean = true,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(responseToText: Response[F] => F[String]): Client[F] =
     impl(client, logBody) { response =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       responseToText(response).flatMap(log)
     }
 
-  private def impl[F[_]](client: Client[F], logBody: Boolean)(logMessage: Response[F] => F[Unit])(
-      implicit F: Async[F]): Client[F] =
-    Client { req =>
-      client.run(req).flatMap { response =>
-        if (!logBody)
-          Resource.eval(logMessage(response) *> F.delay(response))
-        else
-          Resource.suspend {
-            Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
-              Resource.make(
-                F.pure(
-                  response.copy(body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                    .observe(_.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))))
-                )) { _ =>
-                val newBody = Stream
-                  .eval(vec.get)
-                  .flatMap(v => Stream.emits(v).covary[F])
-                  .flatMap(c => Stream.chunk(c).covary[F])
-                logMessage(response.withBodyStream(newBody)).attempt
-                  .flatMap {
-                    case Left(t) => F.delay(logger.error(t)("Error logging response body"))
-                    case Right(()) => F.unit
-                  }
-              }
+  private def impl[F[_]](client: Client[F], logBody: Boolean)(
+      logMessage: Response[F] => F[Unit]
+  )(implicit F: Async[F]): Client[F] = {
+    def logResponse(response: Response[F]): Resource[F, Response[F]] =
+      if (!logBody)
+        Resource.eval(logMessage(response) *> F.delay(response))
+      else
+        Resource.suspend {
+          Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+            val dumpChunksToVec: Pipe[F, Byte, Nothing] =
+              _.chunks.flatMap(s => Stream.exec(vec.update(_ :+ s)))
+
+            Resource.make(
+              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended before Finalization
+              F.pure(response.pipeBodyThrough(_.observe(dumpChunksToVec)))
+            ) { _ =>
+              val newBody = Stream.eval(vec.get).flatMap(Stream.emits).unchunks
+              logMessage(response.withBodyStream(newBody))
+                .handleErrorWith(t => logger.error(t)("Error logging response body").to[F])
             }
           }
-      }
-    }
+        }
+
+    Client(req => client.run(req).flatMap(logResponse))
+  }
 
   def defaultResponseColor[F[_]](response: Response[F]): String =
     response.status.responseClass match {
@@ -113,16 +112,16 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       color: Response[F] => String = defaultResponseColor _,
-      logAction: Option[String => F[Unit]] = None
+      logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] =
     customized(client, logBody, logAction) { response =>
       val prelude = s"${response.httpVersion} ${response.status}"
 
       val headers: String =
-        InternalLogger.defaultLogHeaders[F, Response[F]](response)(logHeaders, redactHeadersWhen)
+        InternalLogger.defaultLogHeaders(response)(logHeaders, redactHeadersWhen)
 
       val bodyText: F[String] =
-        InternalLogger.defaultLogBody[F, Response[F]](response)(logBody) match {
+        InternalLogger.defaultLogBody(response)(logBody) match {
           case Some(textF) => textF.map(text => s"""body="$text"""")
           case None => Sync[F].pure("")
         }

@@ -16,7 +16,9 @@
 
 package org.http4s
 
-import cats.{Hash, Order, Show}
+import cats.Hash
+import cats.Order
+import cats.Show
 import cats.kernel.BoundedEnumerable
 import cats.parse.Parser0
 import org.http4s.util.Writer
@@ -32,7 +34,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
   def isAcceptable: Boolean = thousandths > 0
 
-  override def toString = s"QValue(${0.001 * thousandths})"
+  override def toString: String = s"QValue(${0.001 * thousandths})"
 
   override def compare(that: QValue): Int = thousandths - that.thousandths
 
@@ -103,7 +105,7 @@ object QValue extends QValuePlatform {
   private[http4s] val parser: Parser0[QValue] = {
     import cats.parse.Parser.{char => ch, _}
     import cats.parse.Rfc5234._
-    import org.http4s.internal.parsing.Rfc7230.ows
+    import org.http4s.internal.parsing.CommonRules.ows
 
     val qValue = string(ch('0') *> (ch('.') *> digit.rep).rep0)
       .mapFilter(
@@ -125,7 +127,8 @@ object QValue extends QValuePlatform {
   /** Exists to support compile-time verified literals. Do not call directly. */
   @deprecated(
     """QValue literal is deprecated.  Import `org.http4s.implicits._` and use the qValue"" string context""",
-    "0.22.2")
+    "0.22.2",
+  )
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
   implicit val catsInstancesForHttp4sQValue: Order[QValue]

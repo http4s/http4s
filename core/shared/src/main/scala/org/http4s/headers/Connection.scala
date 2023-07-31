@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
 import org.typelevel.ci._
 
 // values should be case insensitive
@@ -31,15 +32,18 @@ object Connection {
   def parse(s: String): ParseResult[Connection] =
     ParseResult.fromParser(parser, "Invalid Connection header")(s)
 
-  private[http4s] val parser = Rfc7230.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
-    Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
-  }
+  val close: Connection = Connection(ci"close")
+
+  private[http4s] val parser =
+    CommonRules.headerRep1(Rfc2616.token).map { (xs: NonEmptyList[String]) =>
+      Connection(CIString(xs.head), xs.tail.map(CIString(_)): _*)
+    }
 
   implicit val headerInstance: Header[Connection, Header.Recurring] =
     Header.createRendered(
       ci"Connection",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Connection] =

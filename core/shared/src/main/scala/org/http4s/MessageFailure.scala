@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import cats.{Eq, MonadError}
-import cats.syntax.all._
+import cats.Eq
+import cats.MonadError
 import cats.instances.either._
 import cats.parse.Parser0
-import scala.util.control.{NoStackTrace, NonFatal}
+import cats.syntax.all._
+
+import scala.util.control.NoStackTrace
+import scala.util.control.NonFatal
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 trait MessageFailure extends RuntimeException {
@@ -29,11 +32,11 @@ trait MessageFailure extends RuntimeException {
   def message: String
 
   /* Overridden for sensible logging of the failure */
-  final override def getMessage: String = message
+  override final def getMessage: String = message
 
   def cause: Option[Throwable]
 
-  final override def getCause: Throwable = cause.orNull
+  override final def getCause: Throwable = cause.orNull
 
   /** Provides a default rendering of this failure as a [[Response]]. */
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F]
@@ -79,8 +82,9 @@ object ParseResult {
     }
 
   private[http4s] def fromParser[A](parser: Parser0[A], errorMessage: => String)(
-      s: String): ParseResult[A] =
-    try parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.toString))
+      s: String
+  ): ParseResult[A] =
+    try parser.parseAll(s).leftMap(e => ParseFailure(errorMessage, e.show))
     catch { case p: ParseFailure => p.asLeft[A] }
 
   implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =
@@ -128,7 +132,7 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 
   protected def sanitizedResponsePrefix: String
   protected def expectedMsg: String =
-    s"Expected one of the following media ranges: ${expected.map(_.show).mkString(", ")}"
+    s"Expected one of the following media ranges: ${expected.iterator.map(_.show).mkString(", ")}"
   protected def responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =

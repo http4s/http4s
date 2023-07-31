@@ -16,13 +16,14 @@
 
 package org.http4s.ember.bench
 
-import java.util.concurrent.TimeUnit
-
-import org.http4s._
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.openjdk.jmh.annotations._
+import fs2.Chunk
+import org.http4s._
 import org.http4s.ember.core.Parser
+import org.openjdk.jmh.annotations._
+
+import java.util.concurrent.TimeUnit
 
 // sbt "bench/Jmh/run -i 5 -wi 5 -f 1 -t 1 org.http4s.ember.bench.EmberParserBench"
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -56,12 +57,13 @@ object EmberParserBench {
 
   @State(Scope.Benchmark)
   class BenchState {
-    val maxHeaderSize = 256 * 1024
+    val maxHeaderSize: Int = 256 * 1024
     var req: Request[IO] = _
     var resp: Response[IO] = _
     var reqBytes: Array[Byte] = _
     var respBytes: Array[Byte] = _
-    val read = IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
+    val read: IO[Option[Chunk[Byte]]] =
+      IO.raiseError[Option[fs2.Chunk[Byte]]](new Throwable("Should Not Read in Bench"))
 
     @Setup(Level.Trial)
     def setup(): Unit = {

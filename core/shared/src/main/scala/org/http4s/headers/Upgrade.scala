@@ -19,7 +19,8 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.{Rfc2616, Rfc7230}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.internal.parsing.Rfc2616
 import org.typelevel.ci._
 
 object Upgrade extends HeaderCompanion[Upgrade]("Upgrade") {
@@ -32,7 +33,7 @@ object Upgrade extends HeaderCompanion[Upgrade]("Upgrade") {
     val protocol = (Rfc2616.token ~ (char('/') *> Rfc2616.token).?).map { case (name, version) =>
       Protocol(CIString(name), version.map(CIString(_)))
     }
-    Rfc7230.headerRep1(protocol).map { (xs: NonEmptyList[Protocol]) =>
+    CommonRules.headerRep1(protocol).map { (xs: NonEmptyList[Protocol]) =>
       Upgrade(xs.head, xs.tail: _*)
     }
   }

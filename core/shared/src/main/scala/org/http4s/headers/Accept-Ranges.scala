@@ -16,9 +16,10 @@
 
 package org.http4s
 package headers
-import cats.parse.{Parser, Parser0 => P0}
-import org.http4s.internal.parsing.Rfc7230
+import cats.parse.Parser
+import cats.parse.{Parser0 => P0}
 import cats.syntax.all._
+import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderer
 import org.typelevel.ci._
 
@@ -30,12 +31,12 @@ object `Accept-Ranges` {
   def parse(s: String): ParseResult[`Accept-Ranges`] =
     ParseResult.fromParser(parser, "Invalid Accept-Ranges header")(s)
 
-  /* https://tools.ietf.org/html/rfc7233#appendix-C */
+  /* https://datatracker.ietf.org/doc/html/rfc7233#appendix-C */
   val parser: P0[`Accept-Ranges`] = {
 
     val none = Parser.string("none").as(Nil)
 
-    val rangeUnit = Rfc7230.token.map(org.http4s.RangeUnit.apply)
+    val rangeUnit = CommonRules.token.map(org.http4s.RangeUnit.apply)
 
     /*
      Accept-Ranges     = acceptable-ranges
@@ -46,7 +47,7 @@ object `Accept-Ranges` {
       Parser.oneOf0(
         List(
           none,
-          Rfc7230.headerRep1(rangeUnit).map(_.toList)
+          CommonRules.headerRep1(rangeUnit).map(_.toList),
         )
       )
 
@@ -60,8 +61,8 @@ object `Accept-Ranges` {
         case None => "none"
         case Some(nel) => Renderer.renderString(nel)
       },
-      parse
+      parse,
     )
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: List[RangeUnit])
+final case class `Accept-Ranges`(rangeUnits: List[RangeUnit])

@@ -53,9 +53,9 @@ sealed abstract class RequestPrelude extends Product with Serializable {
   final def mapUri(f: Uri => Uri): RequestPrelude =
     withUri(f(uri))
 
-  final override def toString: String =
+  override final def toString: String =
     s"RequestPrelude(headers = ${headers
-      .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
+        .redactSensitive()}, httpVersion = ${httpVersion}, method = ${method}, uri = ${uri})"
 }
 
 object RequestPrelude {
@@ -63,7 +63,7 @@ object RequestPrelude {
       override final val headers: Headers,
       override final val httpVersion: HttpVersion,
       override final val method: Method,
-      override final val uri: Uri
+      override final val uri: Uri,
   ) extends RequestPrelude {
     override final def withHeaders(value: Headers): RequestPrelude =
       this.copy(headers = value)
@@ -82,13 +82,13 @@ object RequestPrelude {
       headers: Headers,
       httpVersion: HttpVersion,
       method: Method,
-      uri: Uri
+      uri: Uri,
   ): RequestPrelude =
     RequestPreludeImpl(
       headers,
       httpVersion,
       method,
-      uri
+      uri,
     )
 
   def fromRequest[F[_]](value: Request[F]): RequestPrelude =
@@ -96,7 +96,7 @@ object RequestPrelude {
       value.headers,
       value.httpVersion,
       value.method,
-      value.uri
+      value.uri,
     )
 
   implicit val catsHashAndOrderForRequestPrelude: Hash[RequestPrelude] with Order[RequestPrelude] =
@@ -108,7 +108,7 @@ object RequestPrelude {
           x.headers.compare(y.headers),
           Eval.later(x.httpVersion.compare(y.httpVersion)),
           Eval.later(x.method.compare(y.method)),
-          Eval.later(x.uri.compare(y.uri))
+          Eval.later(x.uri.compare(y.uri)),
         )
     }
 

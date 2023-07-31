@@ -17,8 +17,8 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.OrderTests
-import org.http4s.laws.discipline.arbitrary._
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.laws.discipline.arbitrary._
 
 class MediaRangeSuite extends Http4sSuite {
   checkAll("Order[MediaRange]", OrderTests[MediaRange].order)

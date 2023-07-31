@@ -25,14 +25,14 @@ import org.openjdk.jmh.annotations._
 @BenchmarkMode(Array(Mode.Throughput))
 class SchemeBench {
   @Benchmark
-  def parseHttp =
+  def parseHttp: org.http4s.ParseResult[Uri.Scheme] =
     Uri.Scheme.fromString("http")
 
   @Benchmark
-  def parseHttps =
+  def parseHttps: org.http4s.ParseResult[Uri.Scheme] =
     Uri.Scheme.fromString("https")
 
   @Benchmark
-  def parseMailto =
+  def parseMailto: org.http4s.ParseResult[Uri.Scheme] =
     Uri.Scheme.fromString("mailto")
 }

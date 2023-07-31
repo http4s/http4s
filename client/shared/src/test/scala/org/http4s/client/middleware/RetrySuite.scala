@@ -18,21 +18,24 @@ package org.http4s
 package client
 package middleware
 
+import cats.effect.IO
+import cats.effect.Resource
 import cats.effect.kernel.Ref
 import cats.effect.std.Semaphore
-import cats.effect.{IO, Resource}
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.dsl.io._
 import org.http4s.headers.`Idempotency-Key`
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
-import org.scalacheck.effect.PropF
 import org.scalacheck.Gen
+import org.scalacheck.effect.PropF
+
 import scala.concurrent.duration._
 
 class RetrySuite extends Http4sSuite {
-  val app = HttpRoutes
+  private val app = HttpRoutes
     .of[IO] {
       case req @ _ -> Root / "status-from-body" =>
         req.as[String].flatMap {
@@ -44,13 +47,14 @@ class RetrySuite extends Http4sSuite {
     }
     .orNotFound
 
-  val defaultClient: Client[IO] = Client.fromHttpApp(app)
+  private val defaultClient: Client[IO] = Client.fromHttpApp(app)
 
   def countRetries(
       client: Client[IO],
       method: Method,
       status: Status,
-      body: EntityBody[IO]): IO[Int] = {
+      body: EntityBody[IO],
+  ): IO[Int] = {
     val max = 2
     var attemptsCounter = 1
     val policy = RetryPolicy[IO] { (attempts: Int) =>
@@ -71,25 +75,34 @@ class RetrySuite extends Http4sSuite {
       .map(_ => attemptsCounter)
   }
 
-  test("default retriable should ggretry GET based on status code") {
-    List(
-      (Ok, 1),
-      (Found, 1),
-      (BadRequest, 1),
-      (NotFound, 1),
-      (RequestTimeout, 2),
-      (InternalServerError, 2),
-      (NotImplemented, 1),
-      (BadGateway, 2),
-      (ServiceUnavailable, 2),
-      (GatewayTimeout, 2),
-      (HttpVersionNotSupported, 1)
-    ).traverse { case (s, r) => countRetries(defaultClient, GET, s, EmptyBody).assertEquals(r) }
+  test("default retriable should retry GET based on status code") {
+    val statusesAndAttempts = List(
+      Ok -> 1,
+      Found -> 1,
+      BadRequest -> 1,
+      NotFound -> 1,
+      RequestTimeout -> 2,
+      InternalServerError -> 2,
+      NotImplemented -> 1,
+      BadGateway -> 2,
+      ServiceUnavailable -> 2,
+      GatewayTimeout -> 2,
+      HttpVersionNotSupported -> 1,
+    )
+
+    TestControl
+      .executeEmbed(
+        statusesAndAttempts
+          .parTraverse { case (s, _) => countRetries(defaultClient, GET, s, EmptyBody) }
+      )
+      .assertEquals(
+        statusesAndAttempts.map(_._2)
+      )
   }
 
   test("default retriable should not retry non-idempotent methods") {
     PropF.forAllF { (s: Status) =>
-      countRetries(defaultClient, POST, s, EmptyBody).assertEquals(1)
+      TestControl.executeEmbed(countRetries(defaultClient, POST, s, EmptyBody)).assertEquals(1)
     }
   }
 
@@ -112,7 +125,8 @@ class RetrySuite extends Http4sSuite {
   }
 
   test(
-    "is error or status should return false when a response does not match the supported status") {
+    "is error or status should return false when a response does not match the supported status"
+  ) {
     val statusGen = Gen.oneOf(Status.registered)
     PropF.forAllF[IO, Status, IO[Unit]](statusGen) { status =>
       IO.pure(
@@ -121,8 +135,9 @@ class RetrySuite extends Http4sSuite {
     }
   }
 
-  def resubmit(method: Method, headers: Headers = Headers.empty)(
-      retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
+  private def resubmit(method: Method, headers: Headers = Headers.empty)(
+      retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean
+  ) =
     Ref[IO]
       .of(false)
       .flatMap { ref =>
@@ -137,51 +152,65 @@ class RetrySuite extends Http4sSuite {
           (attempts: Int) =>
             if (attempts >= 2) None
             else Some(Duration.Zero),
-          retriable)
+          retriable,
+        )
         val retryClient = Retry[IO](policy)(defaultClient)
         retryClient.status(req)
       }
 
-  test("default retriable should defaultRetriable does not resubmit bodies on idempotent methods") {
+  test("ddefaultRetriable does not resubmit bodies on idempotent methods") {
     resubmit(POST)(RetryPolicy.defaultRetriable).assertEquals(Status.InternalServerError)
   }
-  test("default retriable should defaultRetriable resubmits bodies on idempotent header") {
+  test("defaultRetriable resubmits bodies on idempotent header") {
     resubmit(POST, Headers(`Idempotency-Key`("key")))(RetryPolicy.defaultRetriable)
       .assertEquals(Status.Ok)
   }
-  test("default retriable should defaultRetriable resubmits bodies on idempotent methods") {
+  test("defaultRetriable resubmits bodies on idempotent methods") {
     resubmit(PUT)(RetryPolicy.defaultRetriable).assertEquals(Status.Ok)
   }
-  test("default retriable should recklesslyRetriable resubmits bodies on non-idempotent methods") {
+  test("recklesslyRetriable resubmits bodies on non-idempotent methods") {
     resubmit(POST)((_, result) => RetryPolicy.recklesslyRetriable(result)).assertEquals(Status.Ok)
   }
 
   test("default retriable should retry exceptions") {
     val failClient = Client[IO](_ => Resource.eval(IO.raiseError(new Exception("boom"))))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(2)
+    TestControl
+      .executeEmbed(countRetries(failClient, GET, InternalServerError, EmptyBody))
+      .assertEquals(2)
   }
 
   test("default retriable should not retry a TimeoutException") {
     val failClient = Client[IO](_ => Resource.eval(IO.raiseError(WaitQueueTimeoutException)))
-    countRetries(failClient, GET, InternalServerError, EmptyBody).assertEquals(1)
+    TestControl
+      .executeEmbed(countRetries(failClient, GET, InternalServerError, EmptyBody))
+      .assertEquals(1)
   }
 
   test("does not use more than one connection") {
     // https://github.com/http4s/http4s/issues/5180
-    Semaphore[IO](1)
-      .flatMap { semaphore =>
-        val client = Retry[IO](
-          RetryPolicy(
-            (att =>
-              if (att < 100) Some(Duration.Zero)
-              else None),
-            RetryPolicy.defaultRetriable[IO]))(Client[IO](_ =>
-          Resource.make(semaphore.tryAcquire.flatMap {
-            case true => Response[IO](Status.ServiceUnavailable).pure[IO]
-            case false => IO.raiseError(new IllegalStateException("Allocated a second connection"))
-          })(_ => semaphore.release)))
-        client.status(Request[IO]())
-      }
+    TestControl
+      .executeEmbed(
+        Semaphore[IO](1)
+          .flatMap { semaphore =>
+            val client = Retry[IO](
+              RetryPolicy(
+                att =>
+                  if (att < 100) Some(Duration.Zero)
+                  else None,
+                RetryPolicy.defaultRetriable[IO],
+              )
+            )(
+              Client[IO](_ =>
+                Resource.make(semaphore.tryAcquire.flatMap {
+                  case true => Response[IO](Status.ServiceUnavailable).pure[IO]
+                  case false =>
+                    IO.raiseError(new IllegalStateException("Allocated a second connection"))
+                })(_ => semaphore.release)
+              )
+            )
+            client.status(Request[IO]())
+          }
+      )
       .assertEquals(Status.ServiceUnavailable)
   }
 }

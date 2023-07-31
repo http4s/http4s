@@ -29,7 +29,8 @@ class CookieSuite extends Http4sSuite {
   test("parse two pairs") {
     assertEquals(
       Cookie.parse("""k1=v1; k2="v2""""),
-      Right(Cookie(RequestCookie("k1", "v1"), RequestCookie("k2", """"v2""""))))
+      Right(Cookie(RequestCookie("k1", "v1"), RequestCookie("k2", """"v2""""))),
+    )
   }
 
   test("be more tolerant than the spec") {
@@ -37,7 +38,21 @@ class CookieSuite extends Http4sSuite {
       Cookie.parse("initialTrafficSource=utmcsr=(direct)|utmcmd=(none)|utmccn=(not set);"),
       Right(
         Cookie(
-          RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")))
+          RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")
+        )
+      ),
+    )
+  }
+
+  test("tolerant google sign in cookie") {
+    assertEquals(
+      Cookie.parse("""g_state={"lo": 1}; k=v"""),
+      Right(
+        Cookie(
+          RequestCookie("g_state", """{"lo": 1}"""),
+          RequestCookie("k", "v"),
+        )
+      ),
     )
   }
 }

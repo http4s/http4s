@@ -23,10 +23,10 @@ import org.http4s.syntax.all._
 
 class ContentLanguageSpec extends Http4sSuite with HeaderParserHelper[`Content-Language`] {
 
-  val en = `Content-Language`(LanguageTag("en"))
-  val en_IN = `Content-Language`(LanguageTag("en", "IN"))
-  val en_IN_en_US = `Content-Language`(LanguageTag("en", "IN"), LanguageTag("en", "US"))
-  val multi_lang =
+  private val en = `Content-Language`(LanguageTag("en"))
+  private val en_IN = `Content-Language`(LanguageTag("en", "IN"))
+  private val en_IN_en_US = `Content-Language`(LanguageTag("en", "IN"), LanguageTag("en", "US"))
+  private val multi_lang =
     `Content-Language`(LanguageTag("en"), LanguageTag("fr"), LanguageTag("da"), LanguageTag("id"))
 
   test("Content-Language should Give correct value") {

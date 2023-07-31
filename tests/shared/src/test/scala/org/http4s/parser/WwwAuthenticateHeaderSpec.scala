@@ -21,12 +21,12 @@ import org.http4s.headers.`WWW-Authenticate`
 
 class WwwAuthenticateHeaderSpec extends Http4sSuite with HeaderParserHelper[`WWW-Authenticate`] {
 
-  val params = Map("a" -> "b", "c" -> "d")
-  val c = Challenge("Basic", "foo")
+  private val params = Map("a" -> "b", "c" -> "d")
+  private val c = Challenge("Basic", "foo")
 
-  val str = "Basic realm=\"foo\""
+  private val str = "Basic realm=\"foo\""
 
-  val wparams = c.copy(params = params)
+  private val wparams = c.copy(params = params)
 
   test("WWW-Authenticate Header parser should Render challenge correctly") {
     assertEquals(c.renderString, str)
@@ -48,7 +48,8 @@ class WwwAuthenticateHeaderSpec extends Http4sSuite with HeaderParserHelper[`WWW
   }
 
   test(
-    "WWW-Authenticate Header parser should parse multiple concatenated authentications with params") {
+    "WWW-Authenticate Header parser should parse multiple concatenated authentications with params"
+  ) {
     val twowparams =
       "Newauth realm=\"apps\", type=1, title=\"Login to apps\", Basic realm=\"simple\""
     val twp = Challenge("Newauth", "apps", Map("type" -> "1", "title" -> "Login to apps")) ::

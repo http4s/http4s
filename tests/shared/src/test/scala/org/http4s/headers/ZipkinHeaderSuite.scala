@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.syntax.all._
-// import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.header._
 
 class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
@@ -56,8 +55,8 @@ class ZipkinHeaderSuite extends Http4sSuite with HeaderLaws {
     val sampledAndDebugFlag = "5"
     val result = `X-B3-Flags`.parse(sampledAndDebugFlag)
     assert(result.isRight)
-    assert(result.valueOr(throw _).flags.exists(_ == Flag.Sampled))
-    assert(result.valueOr(throw _).flags.exists(_ == Flag.Debug))
+    assert(result.valueOr(throw _).flags.contains(Flag.Sampled))
+    assert(result.valueOr(throw _).flags.contains(Flag.Debug))
   }
 
   test("flags renders when no flags") {

@@ -17,6 +17,7 @@
 package org.http4s
 package client
 
+@deprecated("Is a Blaze detail.  Will be removed from public API.", "0.23.8")
 trait Connection[F[_]] {
 
   /** Determine if the connection is closed and resources have been freed */

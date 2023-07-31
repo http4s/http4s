@@ -17,8 +17,8 @@
 package org.http4s
 package headers
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.syntax.either._
+import org.http4s.laws.discipline.arbitrary._
 
 class DNTSuite extends HeaderLaws {
   checkAll("DNT", headerLaws[DNT])

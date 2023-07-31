@@ -16,12 +16,14 @@
 
 package org.http4s.headers
 
-import java.nio.charset.StandardCharsets
 import cats.Eval
 import cats.syntax.flatMap._
 import org.http4s.Uri
-import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderer, Writer}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
+
+import java.nio.charset.StandardCharsets
 
 /** Renderers for the [[Forwarded]] header models.
   */
@@ -79,7 +81,7 @@ private[http4s] trait ForwardedRenderers {
           writer << name << '='
 
           val rendered = Renderer.renderString(value)
-          if (Rfc7230.token.parseAll(rendered).isRight)
+          if (CommonRules.token.parseAll(rendered).isRight)
             writer << rendered
           else
             writer <<# rendered // quote non-token values

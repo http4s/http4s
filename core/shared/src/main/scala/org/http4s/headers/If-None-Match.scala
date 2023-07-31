@@ -18,9 +18,9 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.syntax.foldable._
 import cats.parse._
-import org.http4s.internal.parsing.Rfc7230
+import cats.syntax.foldable._
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 /** {{{
@@ -31,7 +31,7 @@ import org.typelevel.ci._
   *  match any of those listed in the field-value.
   * }}}
   *
-  * From [[https://tools.ietf.org/html/rfc7232#section-3.2 RFC-7232]]
+  * From [[https://datatracker.ietf.org/doc/html/rfc7232#section-3.2 RFC-7232]]
   */
 object `If-None-Match` {
 
@@ -47,7 +47,7 @@ object `If-None-Match` {
   private[http4s] val parser = Parser
     .string("*")
     .as(`*`)
-    .orElse(Rfc7230.headerRep1(EntityTag.parser).map { tags =>
+    .orElse(CommonRules.headerRep1(EntityTag.parser).map { tags =>
       `If-None-Match`(Some(tags))
     })
 
@@ -58,7 +58,7 @@ object `If-None-Match` {
         case None => "*"
         case Some(tags) => tags.mkString_("", ",", "")
       },
-      parse
+      parse,
     )
 }
 

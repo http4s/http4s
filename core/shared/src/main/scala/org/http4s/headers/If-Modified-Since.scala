@@ -32,7 +32,7 @@ object `If-Modified-Since` {
     Header.createRendered(
       ci"If-Modified-Since",
       _.date,
-      parse
+      parse,
     )
 
 }
@@ -43,6 +43,6 @@ object `If-Modified-Since` {
   *   being more recent than the date provided in the field-value.
   * }}
   *
-  * [[https://tools.ietf.org/html/rfc7232#section-3.3 RFC-7232]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7232#section-3.3 RFC-7232]]
   */
 final case class `If-Modified-Since`(date: HttpDate)

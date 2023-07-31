@@ -19,8 +19,9 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.internal.parsing.Rfc7230.headerRep1
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.parsing.CommonRules.headerRep1
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object Accept {
@@ -35,7 +36,7 @@ object Accept {
       (QValue.parser ~ MediaRange.mediaTypeExtensionParser.rep0).map { case (qValue, ext) =>
         (
           qValue,
-          ext
+          ext,
         )
       }
 
@@ -50,14 +51,14 @@ object Accept {
         mr.withExtensions(extensions.toMap).withQValue(qValue)
     }
 
-    headerRep1(fullRange).map(xs => Accept(xs.head, xs.tail: _*))
+    headerRep1(fullRange).map(Accept(_))
   }
 
   implicit val headerInstance: Header[Accept, Header.Recurring] =
     Header.createRendered(
       ci"Accept",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Accept] =

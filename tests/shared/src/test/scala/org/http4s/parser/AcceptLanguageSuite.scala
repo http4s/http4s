@@ -22,14 +22,13 @@ import org.http4s.syntax.all._
 
 class AcceptLanguageSuite extends Http4sSuite with HeaderParserHelper[`Accept-Language`] {
 
-  val en = `Accept-Language`(LanguageTag("en"))
-  val fr = `Accept-Language`(LanguageTag("fr"))
-  val enq5 = `Accept-Language`(LanguageTag("en").withQValue(qValue"0.5"))
-  val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
-  val en_mult = `Accept-Language`(LanguageTag("en", "a", "b"))
+  private val en = `Accept-Language`(LanguageTag("en"))
+  private val enq5 = `Accept-Language`(LanguageTag("en").withQValue(qValue"0.5"))
+  private val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
+  private val en_mult = `Accept-Language`(LanguageTag("en", "a", "b"))
 
-  val all = `Accept-Language`(LanguageTag.`*`)
-  val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
+  private val all = `Accept-Language`(LanguageTag.`*`)
+  private val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
 
   test("Accept-Language should Give correct value") {
     assertEquals(en.value, "en")

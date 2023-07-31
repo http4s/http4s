@@ -20,8 +20,8 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.internal.parsing.Rfc7230
 import org.http4s.Header
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object `Transfer-Encoding` {
@@ -35,20 +35,34 @@ object `Transfer-Encoding` {
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)
 
   private[http4s] val parser: Parser[`Transfer-Encoding`] =
-    Rfc7230.headerRep1(TransferCoding.parser).map(apply)
+    CommonRules.headerRep1(TransferCoding.parser).map(apply)
 
   implicit val headerInstance: Header[`Transfer-Encoding`, Header.Recurring] =
     Header.createRendered(
       name,
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[`Transfer-Encoding`] =
     (a, b) => `Transfer-Encoding`(a.values.concatNel(b.values))
-
 }
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) {
   def hasChunked: Boolean = values.exists(_ === TransferCoding.chunked)
+
+  /** Keep transfer codings matching the predicate.  If no values remain,
+    * return none
+    *
+    * {{{
+    * scala> import org.http4s._
+    * scala> val te = `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip)
+    * scala> te.filter(_ != TransferCoding.chunked)
+    * res0: Option[`Transfer-Encoding`] = Some(Transfer-Encoding(NonEmptyList(TransferCoding(gzip))))
+    * scala> te.filter(_ => false)
+    * res0: Option[`Transfer-Encoding`] = None
+    * }}}
+    */
+  def filter(f: TransferCoding => Boolean): Option[`Transfer-Encoding`] =
+    NonEmptyList.fromList(values.filter(f)).map(`Transfer-Encoding`(_))
 }

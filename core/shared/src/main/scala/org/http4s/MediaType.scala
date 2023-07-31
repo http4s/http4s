@@ -26,17 +26,21 @@
 
 package org.http4s
 
+import cats.Eq
+import cats.Order
+import cats.Show
 import cats.implicits.{catsSyntaxEither => _, _}
 import cats.parse.Parser
-import cats.{Eq, Order, Show}
 import org.http4s.headers.MediaRangeAndQValue
-import org.http4s.util.{StringWriter, Writer}
+import org.http4s.util.StringWriter
+import org.http4s.util.Writer
 
 import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
     val mainType: String,
-    val extensions: Map[String, String] = Map.empty) {
+    val extensions: Map[String, String] = Map.empty,
+) {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
@@ -63,8 +67,8 @@ sealed class MediaRange private[http4s] (
       case _: MediaType => false
       case x: MediaRange =>
         (this eq x) ||
-          mainType === x.mainType &&
-          extensions === x.extensions
+        mainType === x.mainType &&
+        extensions === x.extensions
       case _ =>
         false
     }
@@ -96,7 +100,8 @@ object MediaRange {
       `message/*`,
       `multipart/*`,
       `text/*`,
-      `video/*`).map(x => (x.mainType, x)).toMap
+      `video/*`,
+    ).map(x => (x.mainType, x)).toMap
 
   /** Parse a MediaRange
     */
@@ -105,7 +110,7 @@ object MediaRange {
 
   private[http4s] val mediaTypeExtensionParser: Parser[(String, String)] = {
     import Parser.char
-    import org.http4s.internal.parsing.Rfc7230.{ows, quotedString, token}
+    import org.http4s.internal.parsing.CommonRules.{ows, quotedString, token}
 
     val escapedString = "\\\\"
     val unescapedString = "\\"
@@ -140,7 +145,7 @@ object MediaRange {
 
   private[http4s] def mediaRangeParser[A](builder: (String, String) => A): Parser[A] = {
     import Parser.string
-    import org.http4s.internal.parsing.Rfc7230.token
+    import org.http4s.internal.parsing.CommonRules.token
 
     val anyStr1 = string("*")
 
@@ -161,9 +166,7 @@ object MediaRange {
     if (subType === "*")
       MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
     else
-      MediaType.all.getOrElse(
-        (mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType.toLowerCase, subType.toLowerCase))
+      MediaType.getMediaType(mainType, subType)
 
   implicit val http4sShowForMediaRange: Show[MediaRange] =
     Show.show(s => s"${s.mainType}/*${MediaRange.extensionsToString(s)}")
@@ -177,6 +180,10 @@ object MediaRange {
       def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
       Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
     }
+
+  implicit val http4sOrderingForMediaRange: Ordering[MediaRange] =
+    http4sOrderForMediaRange.toOrdering
+
   implicit val http4sHttpCodecForMediaRange: HttpCodec[MediaRange] =
     new HttpCodec[MediaRange] {
       override def parse(s: String): ParseResult[MediaRange] =
@@ -199,8 +206,8 @@ sealed class MediaType(
     val compressible: Boolean = false,
     val binary: Boolean = false,
     val fileExtensions: List[String] = Nil,
-    extensions: Map[String, String] = Map.empty)
-    extends MediaRange(mainType, extensions) {
+    extensions: Map[String, String] = Map.empty,
+) extends MediaRange(mainType, extensions) {
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
 
@@ -210,8 +217,8 @@ sealed class MediaType(
     mediaType match {
       case mediaType: MediaType =>
         (this eq mediaType) ||
-          mainType === mediaType.mainType &&
-          subType === mediaType.subType
+        mainType === mediaType.mainType &&
+        subType === mediaType.subType
 
       case _ => false
     }
@@ -220,9 +227,9 @@ sealed class MediaType(
     obj match {
       case x: MediaType =>
         (this eq x) ||
-          mainType === x.mainType &&
-          subType === x.subType &&
-          extensions === x.extensions
+        mainType === x.mainType &&
+        subType === x.subType &&
+        extensions === x.extensions
       case _ => false
     }
 
@@ -235,7 +242,10 @@ sealed class MediaType(
           subType.##,
           MurmurHash3.mix(
             compressible.##,
-            MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)))))
+            MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)),
+          ),
+        ),
+      )
     hash
   }
 
@@ -253,14 +263,27 @@ object MediaType extends MimeDB {
 
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
+  // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
+  lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
-  lazy val all: Map[(String, String), MediaType] =
-    (`text/event-stream` :: allMediaTypes)
-      .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
-      .toMap
+  // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
+  // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
+  // JS application where artifact size matters (i.e. browser applications).
+  private[this] var _all: Map[(String, String), MediaType] = null
+  def all: Map[(String, String), MediaType] = {
+    if (_all eq null)
+      _all = (`text/event-stream` :: `application/graphql` :: allMediaTypes)
+        .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
+        .toMap
+    _all
+  }
 
-  val extensionMap: Map[String, MediaType] =
-    allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
+  private[this] var _extensionMap: Map[String, MediaType] = null
+  def extensionMap: Map[String, MediaType] = {
+    if (_extensionMap eq null)
+      _extensionMap = allMediaTypes.flatMap(m => m.fileExtensions.map(_ -> m)).toMap
+    _extensionMap
+  }
 
   val parser: Parser[MediaType] = {
     val mediaType = MediaRange.mediaRangeParser(getMediaType)
@@ -281,16 +304,28 @@ object MediaType extends MimeDB {
 
   /** Parse a MediaType
     *
-    * For totality, call [[#parse]]. For compile-time
-    * verification of literals, call [[#mediaType]].
+    * For totality, call [[parse]]. For compile-time
+    * verification of literals, call [[org.http4s.syntax.LiteralsOps.mediaType]].
     */
   def unsafeParse(s: String): MediaType =
     parse(s).fold(throw _, identity)
 
-  private[http4s] def getMediaType(mainType: String, subType: String): MediaType =
-    MediaType.all.getOrElse(
-      (mainType.toLowerCase, subType.toLowerCase),
-      new MediaType(mainType.toLowerCase, subType.toLowerCase))
+  private[http4s] def getMediaType(_mainType: String, _subType: String): MediaType = {
+    val mainType = _mainType.toLowerCase
+    val subType = _subType.toLowerCase
+    if (Platform.isJvm || Platform.isNative)
+      MediaType.all.getOrElse(
+        (mainType, subType),
+        new MediaType(mainType, subType),
+      )
+    else // don't link the MimeDB!!!!
+      new MediaType(
+        mainType,
+        subType,
+        compressible = isCompressible(mainType, subType),
+        binary = isBinary(mainType, subType),
+      )
+  }
 
   implicit val http4sEqForMediaType: Eq[MediaType] =
     Eq.fromUniversalEquals
@@ -307,4 +342,85 @@ object MediaType extends MimeDB {
         writer
       }
     }
+
+  // this is duplicated from project/MimeLoader.scala
+  // but only includes trues since false is fallback
+  private[this] def isBinary(mainType: String, subType: String): Boolean =
+    mainType match {
+      case "audio" => true
+      case "image" => true
+      case "video" => true
+      case "application" =>
+        subType match {
+          case "base64" => true
+          case "excel" => true
+          case "font-woff" => true
+          case "gnutar" => true
+          case "gzip" => true
+          case "hal+json" => true
+          case "java-archive" => true
+          case "json" => true
+          case "lha" => true
+          case "lzx" => true
+          case "mspowerpoint" => true
+          case "msword" => true
+          case "octet-stream" => true
+          case "pdf" => true
+          case "problem+json" => true
+          case "postscript" => true
+          case "vnd.api+json" => true
+          case "vnd.google-earth.kmz" => true
+          case "vnd.ms-fontobject" => true
+          case "vnd.oasis.opendocument.chart" => true
+          case "vnd.oasis.opendocument.database" => true
+          case "vnd.oasis.opendocument.formula" => true
+          case "vnd.oasis.opendocument.graphics" => true
+          case "vnd.oasis.opendocument.image" => true
+          case "vnd.oasis.opendocument.presentation" => true
+          case "vnd.oasis.opendocument.spreadsheet" => true
+          case "vnd.oasis.opendocument.text" => true
+          case "vnd.oasis.opendocument.text-master" => true
+          case "vnd.oasis.opendocument.text-web" => true
+          case "vnd.openxmlformats-officedocument.presentationml.presentation" => true
+          case "vnd.openxmlformats-officedocument.presentationml.slide" => true
+          case "vnd.openxmlformats-officedocument.presentationml.slideshow" => true
+          case "vnd.openxmlformats-officedocument.presentationml.template" => true
+          case "vnd.openxmlformats-officedocument.spreadsheetml.sheet" => true
+          case "vnd.openxmlformats-officedocument.spreadsheetml.template" => true
+          case "vnd.openxmlformats-officedocument.wordprocessingml.document" => true
+          case "vnd.openxmlformats-officedocument.wordprocessingml.template" => true
+          case "x-7z-compressed" => true
+          case "x-ace-compressed" => true
+          case "x-apple-diskimage" => true
+          case "x-arc-compressed" => true
+          case "x-bzip" => true
+          case "x-bzip2" => true
+          case "x-chrome-extension" => true
+          case "x-compress" => true
+          case "x-debian-package" => true
+          case "x-dvi" => true
+          case "x-font-truetype" => true
+          case "x-font-opentype" => true
+          case "x-gtar" => true
+          case "x-gzip" => true
+          case "x-latex" => true
+          case "x-rar-compressed" => true
+          case "x-redhat-package-manager" => true
+          case "x-shockwave-flash" => true
+          case "x-tar" => true
+          case "x-tex" => true
+          case "x-texinfo" => true
+          case "x-x509-ca-cert" => true
+          case "x-xpinstall" => true
+          case "zip" => true
+          case _ => false
+        }
+      case _ => false
+    }
+
+  // lazy, incomplete predictor, used only on JS
+  private[this] def isCompressible(mainType: String, subType: String): Boolean = {
+    val _ = subType
+    mainType == "text"
+  }
 }

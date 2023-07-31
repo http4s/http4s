@@ -16,14 +16,14 @@
 
 package org.http4s.client.middleware
 
-import cats.syntax.all._
 import cats.effect._
-import org.http4s._
-import org.http4s.implicits._
-import org.http4s.client._
+import cats.syntax.all._
 import org.http4s.ResponseCookie
+import org.http4s._
+import org.http4s.client._
 import org.http4s.dsl.io._
 import org.http4s.headers.Cookie
+import org.http4s.implicits._
 
 class CookieJarSuite extends Http4sSuite {
   val epoch: HttpDate = HttpDate.Epoch
@@ -37,8 +37,9 @@ class CookieJarSuite extends Http4sSuite {
               name = "foo",
               content = "bar",
               domain = Some("google.com"),
-              expires = HttpDate.MaxValue.some
-            ))
+              expires = HttpDate.MaxValue.some,
+            )
+          )
           resp.pure[IO]
         case req @ GET -> Root / "test-cookie" =>
           req.headers
@@ -65,7 +66,7 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com")
+      domain = Some("google.com"),
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -75,7 +76,7 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = None
+      domain = None,
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -85,7 +86,7 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("google.com")
+      domain = Some("google.com"),
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -95,7 +96,7 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("bad.google.com")
+      domain = Some("bad.google.com"),
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -105,7 +106,7 @@ class CookieJarSuite extends Http4sSuite {
     val cookie = ResponseCookie(
       "foo",
       "bar",
-      domain = Some("bad.google.com")
+      domain = Some("bad.google.com"),
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -116,7 +117,7 @@ class CookieJarSuite extends Http4sSuite {
       "foo",
       "bar",
       domain = Some("google.com"),
-      secure = true
+      secure = true,
     )
     assert(!CookieJar.cookieAppliesToRequest(req, cookie))
   }
@@ -127,7 +128,7 @@ class CookieJarSuite extends Http4sSuite {
       "foo",
       "bar",
       domain = Some("google.com"),
-      secure = true
+      secure = true,
     )
     assert(CookieJar.cookieAppliesToRequest(req, cookie))
   }

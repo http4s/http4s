@@ -30,7 +30,8 @@ trait UriPlatform {
 object UriPlatform {
   @deprecated(
     """URI literal is deprecated.  Import `org.http4s.implicits._` and use the uri"" string context""",
-    "0.22.2")
+    "0.22.2",
+  )
   def deprecatedLiteralImpl(s: String): Uri =
     Uri.unsafeFromString(s)
 
@@ -44,12 +45,12 @@ object UriPlatform {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              _ => q"_root_.org.http4s.UriPlatform.deprecatedLiteralImpl($s)"
+              _ => q"_root_.org.http4s.UriPlatform.deprecatedLiteralImpl($s)",
             )
         case _ =>
           c.abort(
             c.enclosingPosition,
-            s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri."
+            s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri.",
           )
       }
   }

@@ -25,12 +25,12 @@ import org.typelevel.ci._
   *   itself (or its user) to a proxy that requires authentication.
   * }}}
   *
-  *  From [[https://tools.ietf.org/html/rfc7235#section-4.4 RFC-7235]]
+  *  From [[https://datatracker.ietf.org/doc/html/rfc7235#section-4.4 RFC-7235]]
   */
 object `Proxy-Authorization` {
-  //https://tools.ietf.org/html/rfc7235#section-4.2
+  // https://datatracker.ietf.org/doc/html/rfc7235#section-4.2
   private[http4s] val parser: Parser[`Proxy-Authorization`] = {
-    import org.http4s.internal.parsing.Rfc7235.credentials
+    import org.http4s.internal.parsing.AuthRules.credentials
     credentials.map(`Proxy-Authorization`(_))
   }
   def apply(basic: BasicCredentials): Authorization =
@@ -43,7 +43,7 @@ object `Proxy-Authorization` {
     Header.createRendered(
       ci"Proxy-Authorization",
       _.credentials,
-      parse
+      parse,
     )
 
 }

@@ -20,54 +20,67 @@ import cats.Monad
 import cats.effect.Concurrent
 import cats.syntax.all._
 import fs2.Stream
-import org.http4s.{Charset, Headers, MediaType, Message, Request, Response}
+import org.http4s.Charset
+import org.http4s.Headers
+import org.http4s.MediaType
+import org.http4s.Message
+import org.http4s.Request
+import org.http4s.Response
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 object Logger {
 
-  def defaultLogHeaders[F[_], A <: Message[F]](message: A)(
+  def defaultLogHeaders[F[_]](message: Message[F])(
       logHeaders: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  ): String =
     if (logHeaders)
-      message.headers.redactSensitive(redactHeadersWhen).headers.mkString("Headers(", ", ", ")")
+      message.headers.mkString("Headers(", ", ", ")", redactHeadersWhen)
     else ""
 
-  def defaultLogBody[F[_]: Concurrent, A <: Message[F]](message: A)(
-      logBody: Boolean): Option[F[String]] =
+  def defaultLogBody[F[_]: Concurrent](
+      message: Message[F]
+  )(logBody: Boolean): Option[F[String]] =
     if (logBody) {
       val isBinary = message.contentType.exists(_.mediaType.binary)
       val isJson = message.contentType.exists(mT =>
-        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json"))
-      val bodyStream = if (!isBinary || isJson) {
-        message.bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
-      } else {
-        message.body.map(b => java.lang.Integer.toHexString(b & 0xff))
-      }
-      Some(bodyStream.compile.string)
+        mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
+      )
+      val string =
+        if (!isBinary || isJson)
+          message
+            .bodyText(implicitly, message.charset.getOrElse(Charset.`UTF-8`))
+            .compile
+            .string
+        else
+          message.body.compile.to(ByteVector).map(_.toHex)
+
+      Some(string)
     } else None
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
-    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody[F, A](message)(logBody)
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Concurrent[F]): F[Unit] = {
+    val logBodyText = (_: Stream[F, Byte]) => defaultLogBody(message)(logBody)
 
-    logMessageWithBodyText[F, A](message)(logHeaders, logBodyText, redactHeadersWhen)(log)
+    logMessageWithBodyText(message)(logHeaders, logBodyText, redactHeadersWhen)(log)
   }
 
-  def logMessageWithBodyText[F[_], A <: Message[F]](message: A)(
+  def logMessageWithBodyText[F[_]](message: Message[F])(
       logHeaders: Boolean,
       logBodyText: Stream[F, Byte] => Option[F[String]],
-      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
+      redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
+  )(log: String => F[Unit])(implicit F: Monad[F]): F[Unit] = {
     def prelude =
       message match {
         case req: Request[_] => s"${req.httpVersion} ${req.method} ${req.uri}"
         case resp: Response[_] => s"${resp.httpVersion} ${resp.status}"
       }
 
-    val headers: String = defaultLogHeaders[F, A](message)(logHeaders, redactHeadersWhen)
+    val headers: String = defaultLogHeaders(message)(logHeaders, redactHeadersWhen)
 
     val bodyText: F[String] =
       logBodyText(message.body) match {

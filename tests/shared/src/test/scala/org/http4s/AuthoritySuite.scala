@@ -16,8 +16,8 @@
 
 package org.http4s
 
-import org.http4s.laws.discipline.arbitrary._
 import cats.kernel.laws.discipline._
+import org.http4s.laws.discipline.arbitrary._
 
 final class AuthoritySuite extends Http4sSuite {
   checkAll("Order[Uri.Authority]", OrderTests[Uri.Authority].order)

@@ -17,17 +17,26 @@
 package org.http4s
 package client
 
-import cats.effect.{Async, Resource, Sync}
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.syntax.all._
 import fs2.Stream
-import fs2.io.{readInputStream, writeOutputStream}
-import java.io.IOException
-import java.net.{HttpURLConnection, Proxy, URL}
-import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import fs2.io.readInputStream
+import fs2.io.writeOutputStream
 import org.http4s.internal.BackendBuilder
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.typelevel.ci.CIString
-import scala.concurrent.duration.{Duration, FiniteDuration}
+
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.Proxy
+import java.net.URL
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLSocketFactory
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -46,22 +55,22 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     val readTimeout: Duration,
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
-    val sslSocketFactory: Option[SSLSocketFactory]
-)(implicit protected val F: Async[F])
+    val sslSocketFactory: Option[SSLSocketFactory],
+)(implicit protected val F: Sync[F])
     extends BackendBuilder[F, Client[F]] {
   private def copy(
       connectTimeout: Duration = connectTimeout,
       readTimeout: Duration = readTimeout,
       proxy: Option[Proxy] = proxy,
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
   ): JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
       hostnameVerifier = hostnameVerifier,
-      sslSocketFactory = sslSocketFactory
+      sslSocketFactory = sslSocketFactory,
     ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder[F] =
@@ -78,7 +87,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withProxyOption(None)
 
   def withHostnameVerifierOption(
-      hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder[F] =
+      hostnameVerifier: Option[HostnameVerifier]
+  ): JavaNetClientBuilder[F] =
     copy(hostnameVerifier = hostnameVerifier)
   def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder[F] =
     withHostnameVerifierOption(Some(hostnameVerifier))
@@ -86,7 +96,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     withHostnameVerifierOption(None)
 
   def withSslSocketFactoryOption(
-      sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder[F] =
+      sslSocketFactory: Option[SSLSocketFactory]
+  ): JavaNetClientBuilder[F] =
     copy(sslSocketFactory = sslSocketFactory)
   def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder[F] =
     withSslSocketFactoryOption(Some(sslSocketFactory))
@@ -126,7 +137,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
     }
 
   def resource: Resource[F, Client[F]] =
-    Resource.make(F.delay(create))(_ => F.unit)
+    Resource.eval(F.delay(create))
 
   private def fetchResponse(req: Request[F], conn: HttpURLConnection) =
     for {
@@ -139,7 +150,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
             .filter(_._1 != null)
             .flatMap { case (k, vs) => vs.asScala.map(Header.Raw(CIString(k), _)) }
             .toList
-        ))
+        )
+      )
     } yield Response(status = status, headers = headers, body = readBody(conn))
 
   private def timeoutMillis(d: Duration): Int =
@@ -156,6 +168,8 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
     }
 
+  // scalafix:off Http4sFs2Linters.noFs2SyncCompiler
+  // good enough for `SyncIO`, and FS2 will upgrade compiler at runtime if `IO`
   private def writeBody(req: Request[F], conn: HttpURLConnection): F[Unit] =
     if (req.isChunked)
       F.delay(conn.setDoOutput(true)) *>
@@ -176,6 +190,7 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
+  // scalafix:on
 
   private def readBody(conn: HttpURLConnection): Stream[F, Byte] = {
     def inputStream =
@@ -202,12 +217,15 @@ sealed abstract class JavaNetClientBuilder[F[_]] private (
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
-  def apply[F[_]: Async]: JavaNetClientBuilder[F] =
+  def apply[F[_]: Sync]: JavaNetClientBuilder[F] =
     new JavaNetClientBuilder[F](
       connectTimeout = defaults.ConnectTimeout,
       readTimeout = defaults.RequestTimeout,
       proxy = None,
       hostnameVerifier = None,
-      sslSocketFactory = None
+      sslSocketFactory = None,
     ) {}
+
+  @deprecated("Use overload with Sync constraint", "0.23.19")
+  def apply[F[_], SourceBreakingDummy](F: Async[F]): JavaNetClientBuilder[F] = apply(F: Sync[F])
 }

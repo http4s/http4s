@@ -18,8 +18,9 @@ package org.http4s.multipart
 
 import cats.Eq
 import fs2.Chunk
+
 import java.nio.charset.StandardCharsets
-import org.http4s.internal.CollectionCompat
+import java.util.Base64
 import scala.util.Random
 
 final case class Boundary(value: String) extends AnyVal {
@@ -28,27 +29,23 @@ final case class Boundary(value: String) extends AnyVal {
 }
 
 object Boundary {
-  private val BoundaryLength = 40
   val CRLF = "\r\n"
 
-  private val DIGIT = ('0' to '9').toList
-  private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
-  // ' ' and '?' are also allowed by spec, but mean we need to quote
-  // the boundary in the media type, which causes some implementations
-  // pain.
-  private val OTHER = """'()+_,-./:=""".toSeq
-  private val CHARS = (DIGIT ++ ALPHA ++ OTHER).toList
-  private val nchars = CHARS.length
-  private val rand = new Random()
+  private val defaultRandom = new Random()
 
-  private def nextChar = CHARS(rand.nextInt(nchars - 1))
-  private def stream: CollectionCompat.LazyList[Char] =
-    CollectionCompat.LazyList.continually(nextChar)
-  //Don't use filterNot it works for 2.11.4 and nothing else, it will hang.
-  private def endChar: Char = stream.filter(_ != ' ').headOption.getOrElse('X')
-  private def value(l: Int): String = stream.take(l).mkString
+  @deprecated("Impure. Use Multiparts.boundary", "0.23.12")
+  def create: Boundary = unsafeCreate()
 
-  def create: Boundary = Boundary(value(BoundaryLength) + endChar)
+  private[multipart] def unsafeCreate(): Boundary = {
+    val bytes = new Array[Byte](30)
+    defaultRandom.nextBytes(bytes)
+    unsafeFromBytes(bytes)
+  }
+
+  private[this] val encoder = Base64.getUrlEncoder.withoutPadding
+
+  private[multipart] def unsafeFromBytes(bytes: Array[Byte]): Boundary =
+    Boundary(encoder.encodeToString(bytes))
 
   implicit val boundaryEq: Eq[Boundary] = Eq.by(_.value)
 }

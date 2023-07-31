@@ -16,7 +16,8 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.{HashTests, OrderTests}
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import com.comcast.ip4s._
 import org.http4s.Uri.Ipv4Address
 import org.http4s.laws.discipline.HttpCodecTests
@@ -30,24 +31,24 @@ class Ipv4AddressSuite extends Http4sSuite {
   checkAll("HttpCodec[Ipv4Address]", HttpCodecTests[Ipv4Address].httpCodec)
 
   test("render should render all 4 octets") {
-    assert(renderString(Ipv4Address(ipv4"192.168.0.1")) == "192.168.0.1")
+    assertEquals(renderString(Ipv4Address(ipv4"192.168.0.1")), "192.168.0.1")
   }
 
   test("fromByteArray should round trip with toByteArray") {
     forAll { (ipv4: Ipv4Address) =>
-      assert(Ipv4Address.fromByteArray(ipv4.toByteArray) == Right(ipv4))
+      assertEquals(Ipv4Address.fromByteArray(ipv4.toByteArray), Right(ipv4))
     }
   }
 
   test("compare should be consistent with unsigned int") {
     forAll { (xs: List[Ipv4Address]) =>
-      assert(xs.sorted.map(_.address) == xs.map(_.address).sorted)
+      assertEquals(xs.sorted.map(_.address), xs.map(_.address).sorted)
     }
   }
 
   test("compare should be consistent with Ordered") {
     forAll { (a: Ipv4Address, b: Ipv4Address) =>
-      assert(math.signum(a.compareTo(b)) == math.signum(a.compare(b)))
+      assertEquals(math.signum(a.compareTo(b)), math.signum(a.compare(b)))
     }
   }
 }

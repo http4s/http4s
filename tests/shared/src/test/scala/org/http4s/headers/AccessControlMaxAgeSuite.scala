@@ -16,8 +16,11 @@
 
 package org.http4s.headers
 
+import org.http4s.Http4sSuite
+import org.http4s.ParseFailure
+import org.http4s.ParseResult
 import org.http4s.implicits.http4sSelectSyntaxOne
-import org.http4s.{Http4sSuite, ParseFailure, ParseResult}
+
 import scala.concurrent.duration.DurationInt
 
 class AccessControlMaxAgeSuite extends Http4sSuite {
@@ -25,14 +28,14 @@ class AccessControlMaxAgeSuite extends Http4sSuite {
   test("render should create and header with age in seconds") {
     assertEquals(
       `Access-Control-Max-Age`.fromLong(120).map(_.renderString),
-      ParseResult.success("Access-Control-Max-Age: 120")
+      ParseResult.success("Access-Control-Max-Age: 120"),
     )
   }
 
   test("render should create and header with caching disable (-1)") {
     assertEquals(
       `Access-Control-Max-Age`.fromLong(-1).map(_.renderString),
-      ParseResult.success("Access-Control-Max-Age: -1")
+      ParseResult.success("Access-Control-Max-Age: -1"),
     )
   }
 
@@ -54,19 +57,20 @@ class AccessControlMaxAgeSuite extends Http4sSuite {
   test("build should build unsafe for positives") {
     assertEquals(
       `Access-Control-Max-Age`.unsafeFromDuration(10.seconds),
-      `Access-Control-Max-Age`.Cache(10)
+      `Access-Control-Max-Age`.Cache(10),
     )
     assertEquals(
       `Access-Control-Max-Age`.unsafeFromLong(10),
-      `Access-Control-Max-Age`.Cache(10)
+      `Access-Control-Max-Age`.Cache(10),
     )
 
     assertEquals(
       `Access-Control-Max-Age`.unsafeFromDuration(-1.seconds),
-      `Access-Control-Max-Age`.NoCaching)
+      `Access-Control-Max-Age`.NoCaching,
+    )
     assertEquals(
       `Access-Control-Max-Age`.unsafeFromLong(-1),
-      `Access-Control-Max-Age`.NoCaching
+      `Access-Control-Max-Age`.NoCaching,
     )
   }
 

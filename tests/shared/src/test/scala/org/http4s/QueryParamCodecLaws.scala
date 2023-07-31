@@ -26,7 +26,7 @@ import org.typelevel.discipline.Laws
   * must satisfy the following properties
   */
 object QueryParamCodecLaws extends Laws {
-  val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
+  private val parseFailure = ParseFailure("For Test", "Let's assume we didn't like this value")
 
   def apply[T: Arbitrary: Eq: QueryParamDecoder: QueryParamEncoder] =
     new SimpleRuleSet(
@@ -50,5 +50,6 @@ object QueryParamCodecLaws extends Laws {
       "decode . emapValidatedNel(InvalidNel) . encode == failedNel" -> forAll { (value: T) =>
         (QueryParamDecoder[T].emapValidatedNel(_ => parseFailure.invalidNel[T]).decode _)
           .compose(QueryParamEncoder[T].encode)(value) === parseFailure.invalidNel
-      })
+      },
+    )
 }

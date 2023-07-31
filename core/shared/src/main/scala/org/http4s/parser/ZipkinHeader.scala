@@ -20,7 +20,7 @@ package parser
 import java.nio.ByteBuffer
 
 private[http4s] object ZipkinHeader {
-  def idStringToLong(idString: String) = {
+  def idStringToLong(idString: String): Long = {
     val bytes =
       idString
         .grouped(2)

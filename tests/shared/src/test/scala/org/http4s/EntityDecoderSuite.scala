@@ -16,17 +16,18 @@
 
 package org.http4s
 
+import cats.data.Chain
 import cats.effect._
 import cats.syntax.all._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.io.file.Files
-import java.nio.charset.StandardCharsets
-import cats.data.Chain
+import fs2.io.file.Path
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
+
+import java.nio.charset.StandardCharsets
 import java.util.Arrays
-import fs2.io.file.Path
 
 class EntityDecoderSuite extends Http4sSuite {
   val `application/excel`: MediaType =
@@ -43,7 +44,8 @@ class EntityDecoderSuite extends Http4sSuite {
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.array(body.getBytes(StandardCharsets.UTF_8)))
 
-  val req = Response[IO](Ok).withEntity("foo").pure[IO]
+  private val req = Response[IO](Ok).withEntity("foo").pure[IO]
+
   test("flatMapR with success") {
     DecodeResult
       .success(req)
@@ -106,7 +108,8 @@ class EntityDecoderSuite extends Http4sSuite {
           .text[IO]
           .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .handleErrorWith(_ =>
-            DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer")))
+            DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer"))
+          )
           .decode(r, strict = false)
       }
       .value
@@ -162,7 +165,7 @@ class EntityDecoderSuite extends Http4sSuite {
           .flatMapR(_ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("bummer")))
           .biflatMap(
             _ => DecodeResult.failureT[IO, String](MalformedMessageBodyFailure("double bummer")),
-            s => DecodeResult.successT[IO, String](s)
+            s => DecodeResult.successT[IO, String](s),
           )
           .decode(r, strict = false)
       }
@@ -283,14 +286,16 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test(
-    "composing EntityDecoders with <+> A message with a MediaType that is not supported by any of the decoders will be attempted by the last decoder") {
+    "composing EntityDecoders with <+> A message with a MediaType that is not supported by any of the decoders will be attempted by the last decoder"
+  ) {
     val reqMediaType = MediaType.application.`atom+xml`
     val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
     (decoder1 <+> decoder2).decode(req, strict = false).value.assertEquals(Right(2))
   }
 
   test(
-    "composing EntityDecoders with <+> A catch all decoder will always attempt to decode a message") {
+    "composing EntityDecoders with <+> A catch all decoder will always attempt to decode a message"
+  ) {
     val reqSomeOtherMediaType =
       Request[IO](headers = Headers(`Content-Type`(`text/x-h`)))
     val reqNoMediaType = Request[IO]()
@@ -312,7 +317,8 @@ class EntityDecoderSuite extends Http4sSuite {
   }
 
   test(
-    "composing EntityDecoders with <+>if decode is called with strict, will produce a MediaTypeMissing or MediaTypeMismatch with ALL supported media types of the composite decoder") {
+    "composing EntityDecoders with <+>if decode is called with strict, will produce a MediaTypeMissing or MediaTypeMismatch with ALL supported media types of the composite decoder"
+  ) {
     val reqMediaType = `text/x-h`
     val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
     val reqSomeOtherMediaType =
@@ -327,7 +333,7 @@ class EntityDecoderSuite extends Http4sSuite {
         .assertEquals(Left(MediaTypeMissing(expectedMediaRanges)))
   }
 
-  val request = Request[IO]().withEntity("whatever")
+  private val request = Request[IO]().withEntity("whatever")
 
   test("apply should invoke the function with the right on a success") {
     val happyDecoder: EntityDecoder[IO, String] =
@@ -344,7 +350,8 @@ class EntityDecoderSuite extends Http4sSuite {
 
   test("apply should wrap the ParseFailure in a ParseException on failure") {
     val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
-      DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
+      DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!")))
+    )
     request
       .decodeWith(grumpyDecoder, strict = false) { _ =>
         IO.pure(Response())
@@ -368,8 +375,9 @@ class EntityDecoderSuite extends Http4sSuite {
       Map(
         "Formula" -> Chain("a <+ b == 13%!"),
         "Age" -> Chain("23"),
-        "Name" -> Chain("Jonathan Doe")
-      ))
+        "Name" -> Chain("Jonathan Doe"),
+      )
+    )
     val resp: IO[Response[IO]] = Request[IO]()
       .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
       .pure[IO]
@@ -395,7 +403,7 @@ class EntityDecoderSuite extends Http4sSuite {
   def readTextFile(in: Path): IO[String] =
     Files[IO].readAll(in).through(fs2.text.utf8.decode).compile.foldMonoid
 
-  def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
+  private def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
     route(req.withBodyStream(chunk(Chunk.array(binData))))
 
   test("A File EntityDecoder should write a text file from a byte string") {
@@ -476,7 +484,8 @@ class EntityDecoderSuite extends Http4sSuite {
   sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[IO, ErrorJson] =
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.application.json))(json =>
-      Chunk.array(json.value.getBytes()))
+      Chunk.array(json.value.getBytes())
+    )
 
 // TODO: These won't work without an Eq for (Message[IO], Boolean) => DecodeResult[IO, A]
 //  {

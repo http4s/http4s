@@ -18,12 +18,15 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Numbers, Parser0 => P0, Parser => P}
-import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Numbers
+import cats.parse.{Parser => P}
+import cats.parse.{Parser0 => P0}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
-// See https://tools.ietf.org/html/rfc7233
+// See https://datatracker.ietf.org/doc/html/rfc7233
 
 object Range {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
@@ -54,7 +57,7 @@ object Range {
   }
 
   val parser: P0[Range] = {
-    // https://tools.ietf.org/html/rfc7233#section-3.1
+    // https://datatracker.ietf.org/doc/html/rfc7233#section-3.1
 
     def toLong(s: String): Option[Long] =
       try Some(s.toLong)
@@ -74,11 +77,11 @@ object Range {
     val suffixByteRangeSpec = negativeLong.map(SubRange(_))
 
     // byte-range-set  = 1#( byte-range-spec / suffix-byte-range-spec )
-    val byteRangeSet = Rfc7230.headerRep1(byteRangeSpec.orElse(suffixByteRangeSpec))
+    val byteRangeSet = CommonRules.headerRep1(byteRangeSpec.orElse(suffixByteRangeSpec))
 
     // byte-ranges-specifier = bytes-unit "=" byte-range-set
     val byteRangesSpecifier =
-      ((Rfc7230.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
+      ((CommonRules.token.map(RangeUnit(_)) <* P.char('=')) ~ byteRangeSet)
         .map { case (unit, ranges) => Range(unit, ranges) }
 
     // Range = byte-ranges-specifier / other-ranges-specifier
@@ -100,7 +103,7 @@ object Range {
             writer
           }
         },
-      parse
+      parse,
     )
 
 }

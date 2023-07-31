@@ -18,7 +18,8 @@ package org.http4s
 package laws
 package discipline
 
-import cats.{Eq, MonadThrow}
+import cats.Eq
+import cats.MonadThrow
 import cats.effect._
 import cats.laws.discipline._
 import org.scalacheck.Arbitrary
@@ -33,7 +34,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
   def entityEncoder(implicit
       arbitraryA: Arbitrary[A],
       shrinkA: Shrink[A],
-      eqFBoolean: Eq[F[Boolean]]
+      eqFBoolean: Eq[F[Boolean]],
   ): RuleSet =
     new DefaultRuleSet(
       name = "EntityEncoder",
@@ -42,22 +43,22 @@ trait EntityEncoderTests[F[_], A] extends Laws {
         laws.accurateContentLengthIfDefined(a)
       },
       "noContentLengthInStaticHeaders" -> laws.noContentLengthInStaticHeaders,
-      "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders
+      "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders,
     )
 
   def entityEncoderF(implicit
       arbitraryA: Arbitrary[A],
-      shrinkA: Shrink[A]
+      shrinkA: Shrink[A],
   ): List[(String, PropF[F])] = {
     implicit val F: MonadThrow[F] = laws.F
     List(
       LawAdapter.isEqPropF("accurateContentLength", laws.accurateContentLengthIfDefined _),
-      LawAdapter.booleanPropF(
-        "noContentLengthInStaticHeaders",
-        laws.noContentLengthInStaticHeaders),
+      LawAdapter
+        .booleanPropF("noContentLengthInStaticHeaders", laws.noContentLengthInStaticHeaders),
       LawAdapter.booleanPropF(
         "noTransferEncodingInStaticHeaders",
-        laws.noTransferEncodingInStaticHeaders)
+        laws.noTransferEncodingInStaticHeaders,
+      ),
     )
   }
 }
@@ -65,7 +66,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
 object EntityEncoderTests {
   def apply[F[_], A](implicit
       F0: Concurrent[F],
-      entityEncoderFA: EntityEncoder[F, A]
+      entityEncoderFA: EntityEncoder[F, A],
   ): EntityEncoderTests[F, A] =
     new EntityEncoderTests[F, A] {
       val laws: EntityEncoderLaws[F, A] = EntityEncoderLaws.apply[F, A]

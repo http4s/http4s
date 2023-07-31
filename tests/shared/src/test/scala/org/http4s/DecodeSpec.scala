@@ -18,18 +18,18 @@ package org.http4s
 
 import cats.syntax.all._
 import fs2._
-import fs2.text.{decodeWithCharset, utf8}
+import fs2.text.decodeWithCharset
+import fs2.text.utf8
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 import java.nio.ByteBuffer
-import java.nio.charset.{
-  CodingErrorAction,
-  MalformedInputException,
-  StandardCharsets,
-  UnmappableCharacterException,
-  Charset => JCharset
-}
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.MalformedInputException
+import java.nio.charset.StandardCharsets
+import java.nio.charset.UnmappableCharacterException
+import java.nio.charset.{Charset => JCharset}
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
@@ -93,38 +93,35 @@ class DecodeSpec extends Http4sSuite {
     decoded == Right("")
   }
 
-  if (Platform.isJvm)
-    test("decode should handle unmappable character") {
-      // https://stackoverflow.com/a/22902806
-      val source = Stream(0x80.toByte, 0x81.toByte)
-      val decoded =
-        source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
-      assert(decoded match {
-        case Left(_: UnmappableCharacterException) => true
-        case _ => false
-      })
-    }
+  test("decode should handle unmappable character") {
+    assume(Platform.isJvm, "IBM1098 charset is unavailable on JS/Native")
 
-  if (Platform.isJvm)
-    test("decode should handle overflows") {
-      // Found by scalachek
-      val source = Stream(-36.toByte)
-      val decoded =
-        source.through(decodeWithCharset[Fallible](JCharset.forName("x-ISCII91"))).compile.string
-      assertEquals(decoded, Right("ी"))
-    }
+    // https://stackoverflow.com/a/22902806
+    val source = Stream(0x80.toByte, 0x81.toByte)
+    val decoded =
+      source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
+    val Left(_: UnmappableCharacterException) = decoded
+  }
 
-  if (Platform.isJvm)
-    test("decode should not crash in IllegalStateException") {
-      // Found by scalachek
-      val source = Stream(-1.toByte)
-      val decoded =
-        source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
-      assert(decoded match {
-        case Left(_: MalformedInputException) => true
-        case _ => false
-      })
-    }
+  test("decode should handle overflows") {
+    assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
+
+    // Found by scalachek
+    val source = Stream(-36.toByte)
+    val decoded =
+      source.through(decodeWithCharset[Fallible](JCharset.forName("x-ISCII91"))).compile.string
+    assertEquals(decoded, Right("ी"))
+  }
+
+  test("decode should not crash in IllegalStateException") {
+    assume(Platform.isJvm, "x-ISCII91 charset is unavailable on JS/Native")
+
+    // Found by scalachek
+    val source = Stream(-1.toByte)
+    val decoded =
+      source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
+    val Left(_: MalformedInputException) = decoded
+  }
 
   test("decode stream result should be consistent with nio's decode on full stream") {
     forAll { (bs: Array[Byte], cs: Charset) =>

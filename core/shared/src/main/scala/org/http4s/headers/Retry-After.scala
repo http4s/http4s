@@ -17,10 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Rfc5234}
+import cats.parse.Parser
+import cats.parse.Rfc5234
 import org.http4s.util.Renderable._
-import scala.concurrent.duration.FiniteDuration
 import org.typelevel.ci._
+
+import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` {
   private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
@@ -32,7 +34,8 @@ object `Retry-After` {
     else
       ParseResult.fail(
         "Invalid retry value",
-        s"Retry param $retry must be more or equal than 0 seconds")
+        s"Retry param $retry must be more or equal than 0 seconds",
+      )
 
   def unsafeFromLong(retry: Long): `Retry-After` =
     fromLong(retry).fold(throw _, identity)
@@ -59,7 +62,7 @@ object `Retry-After` {
     Header.createRendered(
       ci"Retry-After",
       _.retry,
-      parse
+      parse,
     )
 
 }
@@ -67,7 +70,7 @@ object `Retry-After` {
 /** Response header, used by the server to indicate to the user-agent how long it has to wait before
   * it can try again with a follow-up request.
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.3 RFC-7231 Section 7.1.3]]
   *
   * @param retry Indicates the retry time, either as a date of expiration or as a number of seconds from the current time
   * until that expiration.

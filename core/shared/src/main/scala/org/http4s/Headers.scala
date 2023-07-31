@@ -16,11 +16,18 @@
 
 package org.http4s
 
-import cats.{Monoid, Order, Show}
-import cats.data.{Ior, NonEmptyList}
+import cats.Monoid
+import cats.Order
+import cats.Show
+import cats.data.Ior
+import cats.data.NonEmptyList
 import cats.syntax.all._
+import org.http4s.implicits.http4sSelectSyntaxOne
 import org.typelevel.ci._
+
 import scala.collection.mutable
+
+import headers._
 
 /** A collection of HTTP Headers */
 final class Headers(val headers: List[Header.Raw]) extends AnyVal {
@@ -28,32 +35,32 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def transform(f: List[Header.Raw] => List[Header.Raw]): Headers =
     Headers(f(headers))
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+  /** Attempt to get a (potentially repeating) header from this collection of headers.
     *
-    * @param key [[HeaderKey.Extractable]] that can identify the required header
-    * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+    * @return a scala.Option possibly containing the resulting (potentially repeating) header.
     */
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers).flatMap(_.toOption)
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+  /** Attempt to get a (potentially repeating) header and/or any parse errors from this collection of headers.
     *
-    * @param key [[HeaderKey.Extractable]] that can identify the required header
-    * @return a scala.Option possibly containing the resulting header of type key.HeaderT and/or any parse errors.
-    * @see [[Header]] object and get([[org.typelevel.ci.CIString]])
+    * @return a scala.Option possibly containing the resulting (potentially repeating) header
+    *         and/or any parse errors.
     */
   def getWithWarnings[A](implicit
-      ev: Header.Select[A]): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
+      ev: Header.Select[A]
+  ): Option[Ior[NonEmptyList[ParseFailure], ev.F[A]]] =
     ev.from(headers)
 
-  /** TODO revise scaladoc
-    * Attempt to get a [[org.http4s.Header]] from this collection of headers
+  /** Returns true if there is at least one header by the specified name. */
+  def contains[A](implicit ev: Header[A, _]): Boolean =
+    headers.exists(_.name == ev.name)
+
+  /** Attempt to get headers by key from this collection of headers.
     *
-    * @param key name of the header to find
-    * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
+    * @param key name of the headers to find.
+    * @return a scala.Option possibly containing the resulting collection
+    *         [[cats.data.NonEmptyList]] of [[org.http4s.Header.Raw]].
     */
   def get(key: CIString): Option[NonEmptyList[Header.Raw]] = headers.filter(_.name == key).toNel
 
@@ -80,13 +87,63 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
     * `Transfer-Encoding` headers.
     *
-    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    *  https://datatracker.ietf.org/doc/html/rfc7231#section-3.3
     */
   def removePayloadHeaders: Headers =
     transform(_.filterNot(h => Headers.PayloadHeaderKeys(h.name)))
 
+  /** Puts a `Content-Length` header, replacing any existing.  Removes
+    * any existing `chunked` value from the `Transfer-Encoding`
+    * header.  It is critical that the supplied content length
+    * accurately describe the length of the body stream.
+    *
+    * {{{
+    * scala> import org.http4s.headers._
+    * scala> val chunked = Headers(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunked.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res0: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
+    *
+    * scala> val chunkedGzipped = Headers(
+    *      |   `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res1: Headers = Headers(Content-Length: 1024, Transfer-Encoding: gzip, Content-Type: text/plain)
+    *
+    * scala> val const = Headers(
+    *      |   `Content-Length`(2048),
+    *      |   `Content-Type`(MediaType.text.plain))
+    * scala> const.withContentLength(`Content-Length`.unsafeFromLong(1024))
+    * res1: Headers = Headers(Content-Length: 1024, Content-Type: text/plain)
+    * }}}
+    */
+  def withContentLength(contentLength: `Content-Length`): Headers =
+    transform { hs =>
+      val b = List.newBuilder[Header.Raw]
+      b += contentLength.toRaw1
+      hs.foreach { h =>
+        h.name match {
+          case `Transfer-Encoding`.name =>
+            `Transfer-Encoding`
+              .parse(h.value)
+              .redeem(
+                _ => b += h,
+                _.filter(_ != TransferCoding.chunked)
+                  .foreach(b += _.toRaw1),
+              )
+          case `Content-Length`.name =>
+            ()
+          case _ =>
+            b += h
+        }
+      }
+      b.result()
+    }
+
   def redactSensitive(
-      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+      redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+  ): Headers =
     transform {
       _.map {
         case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
@@ -96,11 +153,60 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
 
   def foreach(f: Header.Raw => Unit): Unit = headers.foreach(f)
 
+  /** Creates a string representation for a list of headers
+    * and redacts sensitive headers' values.
+    *
+    *  @param start       the starting string
+    *  @param separator   the separator string
+    *  @param end         the ending string
+    *  @param redactWhen  the function for filtering out header values of sensitive headers
+    *  @return            a string representation of the list of headers.
+    *                      The resulting string begins with the string `start`
+    *                      and ends with the string `end`. Inside, the string
+    *                      representations of all headers are separated
+    *                      by the string `separator`. Sensitive headers' values
+    *                      are redacted with the `redactWhen` function.
+    */
+  def mkString(
+      start: String,
+      separator: String,
+      end: String,
+      redactWhen: CIString => Boolean,
+  ): String =
+    headers.iterator
+      .map {
+        case h if redactWhen(h.name) => Header.Raw.toString(h.name, "<REDACTED>")
+        case h => Header.Raw.toString(h.name, h.value)
+      }
+      .mkString(start, separator, end)
+
+  /** Creates a string representation for a list of headers
+    * and redacts sensitive headers' values.
+    *
+    *  @param separator   the separator string
+    *  @param redactWhen  the function for filtering out header values of sensitive headers
+    *  @return            a string representation of the list of headers.
+    *                      The resulting string is constructed from the string representations
+    *                      of all headers separated by the string `separator`. Sensitive headers'
+    *                      values are redacted with the `redactWhen` function.
+    */
+  def mkString(
+      separator: String,
+      redactWhen: CIString => Boolean,
+  ): String =
+    headers.iterator
+      .map {
+        case h if redactWhen(h.name) => Header.Raw.toString(h.name, "<REDACTED>")
+        case h => Header.Raw.toString(h.name, h.value)
+      }
+      .mkString(separator)
+
   override def toString: String =
     this.show
 }
+
 object Headers {
-  val empty = Headers(List.empty[Header.Raw])
+  val empty: Headers = Headers(List.empty[Header.Raw])
 
   /** Creates a new Headers collection.
     * The [[Header.ToRaw]] machinery allows the creation of Headers with
@@ -129,15 +235,15 @@ object Headers {
   }
 
   private val PayloadHeaderKeys = Set(
-    ci"Content-Length",
-    ci"Content-Range",
-    ci"Trailer",
-    ci"Transfer-Encoding"
+    `Content-Length`.name,
+    `Content-Range`.name,
+    Trailer.name,
+    `Transfer-Encoding`.name,
   )
 
-  val SensitiveHeaders = Set(
-    ci"Authorization",
-    ci"Cookie",
-    ci"Set-Cookie"
+  val SensitiveHeaders: Set[CIString] = Set(
+    Authorization.name,
+    Cookie.name,
+    `Set-Cookie`.name,
   )
 }

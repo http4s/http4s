@@ -17,7 +17,7 @@
 package org.http4s
 package headers
 
-import org.http4s.internal.parsing.Rfc7230
+import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 
 object Allow {
@@ -26,8 +26,8 @@ object Allow {
   def parse(s: String): ParseResult[Allow] =
     ParseResult.fromParser(parser, "Invalid Allow header")(s)
 
-  private[http4s] val parser = Rfc7230
-    .headerRep1(Rfc7230.token.mapFilter(s => Method.fromString(s).toOption))
+  private[http4s] val parser = CommonRules
+    .headerRep1(CommonRules.token.mapFilter(s => Method.fromString(s).toOption))
     .map(_.toList)
     .?
     .map(_.getOrElse(Nil))
@@ -37,14 +37,14 @@ object Allow {
     Header.createRendered(
       ci"Allow",
       _.methods,
-      parse
+      parse,
     )
 }
 
 /** A Response header that lists the methods that are supported by the target resource.
-  * Must be attached to responses with status  [[https://tools.ietf.org/html/rfc7231#section-6.5.5 405 Not Allowed]],
+  * Must be attached to responses with status  [[https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.5 405 Not Allowed]],
   * though in practice not all servers honor this.
   *
-  * [[https://tools.ietf.org/html/rfc7231#section-7.4.1 RFC-7231 Section 7.4.1 Allow]]
+  * [[https://datatracker.ietf.org/doc/html/rfc7231#section-7.4.1 RFC-7231 Section 7.4.1 Allow]]
   */
 final case class Allow(methods: Set[Method])

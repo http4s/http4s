@@ -17,20 +17,25 @@
 package org.http4s
 package websocket
 
-import cats.{~>}
 import cats.Functor
 import cats.syntax.all._
+import cats.~>
+import org.typelevel.ci.CIStringSyntax
 
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],
     headers: Headers,
-    failureResponse: F[Response[F]]) {
+    failureResponse: F[Response[F]],
+) {
 
   def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
     WebSocketContext[G](
       webSocket.imapK(fk)(gk),
       headers,
-      fk(failureResponse).map(_.mapK(fk))
+      fk(failureResponse).map(_.mapK(fk)),
     )
+
+  def subprotocol: Option[String] =
+    headers.get(ci"Sec-WebSocket-Protocol").map(_.head.value)
 
 }

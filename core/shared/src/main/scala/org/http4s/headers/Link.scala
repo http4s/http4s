@@ -17,13 +17,17 @@
 package org.http4s.headers
 
 import cats.data.NonEmptyList
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
+import cats.parse.Parser0
+import org.http4s.Header
 import org.http4s._
-import org.http4s.internal.parsing.Rfc7230.{headerRep1, ows, quotedString, token}
+import org.http4s.internal.parsing.CommonRules.headerRep1
+import org.http4s.internal.parsing.CommonRules.ows
+import org.http4s.internal.parsing.CommonRules.quotedString
+import org.http4s.internal.parsing.CommonRules.token
+import org.typelevel.ci._
 
 import java.nio.charset.StandardCharsets
-import org.http4s.Header
-import org.typelevel.ci._
 
 object Link {
 
@@ -42,7 +46,7 @@ object Link {
     final case class Title(value: String) extends LinkParam
     final case class Type(value: MediaRange) extends LinkParam
 
-    // https://tools.ietf.org/html/rfc3986#section-4.1
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-4.1
     val linkValue: Parser0[LinkValue] =
       Uri.Parser.uriReference(StandardCharsets.UTF_8).map { uri =>
         headers.LinkValue(uri)
@@ -64,7 +68,8 @@ object Link {
 
       val typeParser = {
         val mediaRange = string("type=") *> MediaRange.parser.orElse(
-          string("\"") *> MediaRange.parser <* string("\""))
+          string("\"") *> MediaRange.parser <* string("\"")
+        )
         mediaRange.map(tpe => Type(tpe))
       }
 
@@ -92,7 +97,7 @@ object Link {
     Header.createRendered(
       ci"Link",
       _.values,
-      parse
+      parse,
     )
 
   implicit val headerSemigroupInstance: cats.Semigroup[Link] =

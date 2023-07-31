@@ -26,11 +26,12 @@
 
 package org.http4s
 
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
 final case class Challenge(scheme: String, realm: String, params: Map[String, String] = Map.empty)
     extends Renderable {
-  lazy val value = renderString
+  lazy val value: String = renderString
 
   override def render(writer: Writer): writer.type = {
     writer.append(scheme).append(' ')

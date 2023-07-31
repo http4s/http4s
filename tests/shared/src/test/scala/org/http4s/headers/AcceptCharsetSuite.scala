@@ -17,9 +17,9 @@
 package org.http4s
 package headers
 
-import org.scalacheck.Prop._
-import org.http4s.syntax.all._
 import org.http4s.laws.discipline.arbitrary._
+import org.http4s.syntax.all._
+import org.scalacheck.Prop._
 
 class AcceptCharsetSuite extends HeaderLaws {
   checkAll("Accept-Charset", headerLaws[`Accept-Charset`])
@@ -32,7 +32,7 @@ class AcceptCharsetSuite extends HeaderLaws {
 
   test("AcceptCharset is not satisfied by a charset if the q value is 0") {
     forAll { (h: `Accept-Charset`, cs: Charset) =>
-      !(h.map(_.withQValue(QValue.Zero)).satisfiedBy(cs))
+      !h.map(_.withQValue(QValue.Zero)).satisfiedBy(cs)
     }
   }
 
@@ -57,7 +57,8 @@ class AcceptCharsetSuite extends HeaderLaws {
   test("AcceptCharset rejects charset matching splat with q=0") {
     val acceptCharset = `Accept-Charset`(
       CharsetRange.*.withQValue(QValue.Zero),
-      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"))
+      CharsetRange.Atom(Charset.`ISO-8859-1`, qValue"0.5"),
+    )
     assertEquals(acceptCharset.qValue(Charset.`UTF-8`), QValue.Zero)
   }
 

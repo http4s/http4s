@@ -32,7 +32,7 @@ object `If-Unmodified-Since` {
     Header.createRendered(
       ci"If-Unmodified-Since",
       _.date,
-      parse
+      parse,
     )
 
 }

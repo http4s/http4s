@@ -17,17 +17,17 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
-
-import java.time.{Instant, ZoneId}
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import org.http4s.Header
+import org.http4s.internal.CharPredicate
 import org.typelevel.ci.CIString
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
-import org.http4s.internal.CharPredicate
 
 /** A type class that describes how to efficiently render a type
   * @tparam T the type which will be rendered
@@ -35,9 +35,9 @@ import org.http4s.internal.CharPredicate
 trait Renderer[T] {
 
   /** Renders the object to the writer
-    * @param writer [[Writer]] to render to
+    * @param writer [[org.http4s.util.Writer]] to render to
     * @param t object to render
-    * @return the same [[Writer]] provided
+    * @return the same [[org.http4s.util.Writer]] provided
     */
   def render(writer: Writer, t: T): writer.type
 }
@@ -47,7 +47,7 @@ object Renderer {
 
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 
-  implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
+  implicit lazy val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
     private val dateFormat =
       DateTimeFormatter
         .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -77,7 +77,8 @@ object Renderer {
 
   implicit def eitherRenderer[A, B](implicit
       ra: Renderer[A],
-      rb: Renderer[B]): Renderer[Either[A, B]] =
+      rb: Renderer[B],
+  ): Renderer[Either[A, B]] =
     new Renderer[Either[A, B]] {
       override def render(writer: Writer, e: Either[A, B]): writer.type =
         e match {
@@ -139,7 +140,7 @@ object Renderable {
 }
 
 object Writer {
-  val HeaderValueDQuote = BitSet("\\\"".map(_.toInt): _*)
+  val HeaderValueDQuote: BitSet = BitSet("\\\"".map(_.toInt): _*)
 }
 
 /** Efficiently accumulate [[Renderable]] representations */
@@ -157,7 +158,8 @@ trait Writer { self =>
   def quote(
       s: String,
       escapedChars: BitSet = Writer.HeaderValueDQuote,
-      escapeChar: Char = '\\'): this.type = {
+      escapeChar: Char = '\\',
+  ): this.type = {
     this << '"'
 
     @tailrec
@@ -172,7 +174,7 @@ trait Writer { self =>
     go(0)
     this << '"'
   }
-  //Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
+  // Adapted from https://github.com/akka/akka-http/blob/b071bd67547714bd8bed2ccd8170fbbc6c2dbd77/akka-http-core/src/main/scala/akka/http/impl/util/Rendering.scala#L219-L229
   def eligibleOnly(s: String, keep: CharPredicate, placeholder: Char): this.type = {
     @tailrec def rec(ix: Int = 0): this.type =
       if (ix < s.length) {
@@ -188,7 +190,8 @@ trait Writer { self =>
       s: collection.Seq[String],
       sep: String = "",
       start: String = "",
-      end: String = ""): this.type = {
+      end: String = "",
+  ): this.type = {
     append(start)
     if (s.nonEmpty) {
       append(s.head)
@@ -201,11 +204,16 @@ trait Writer { self =>
       s: List[T],
       sep: String = ", ",
       start: String = "",
-      end: String = ""): this.type =
-    NonEmptyList.fromList(s) match {
-      case Some(s) => addNel(s, sep, start, end)
-      case None =>
+      end: String = "",
+  ): this.type =
+    s match {
+      case Nil =>
         append(start)
+        append(end)
+      case x :: list =>
+        append(start)
+        append(x)
+        list.foreach(s => append(sep).append(s))
         append(end)
     }
 
@@ -213,7 +221,8 @@ trait Writer { self =>
       s: NonEmptyList[T],
       sep: String = ", ",
       start: String = "",
-      end: String = ""): this.type = {
+      end: String = "",
+  ): this.type = {
     append(start)
     append(s.head)
     s.tail.foreach(s => append(sep).append(s))
@@ -224,7 +233,8 @@ trait Writer { self =>
       s: collection.Set[T],
       sep: String = ", ",
       start: String = "",
-      end: String = ""): this.type = {
+      end: String = "",
+  ): this.type = {
     append(start)
     if (s.nonEmpty) {
       append(s.head)

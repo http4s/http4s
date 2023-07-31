@@ -17,45 +17,51 @@
 package org.http4s
 package headers
 
-import cats.parse.{Parser, Parser0}
-import org.http4s.internal.parsing.Rfc7230.ows
-import org.http4s.parser.AdditionalRules
-import org.http4s.util.{Renderable, Writer}
+import cats.parse.Parser
+import cats.parse.Parser0
 import org.http4s.Header
+import org.http4s.internal.parsing.CommonRules.ows
+import org.http4s.parser.AdditionalRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 import scala.concurrent.duration.FiniteDuration
 
-/** Defined by http://tools.ietf.org/html/rfc6797
+/** Defined by https://datatracker.ietf.org/doc/html/rfc6797
   */
 object `Strict-Transport-Security` {
   private[headers] class StrictTransportSecurityImpl(
       maxAge: Long,
       includeSubDomains: Boolean,
-      preload: Boolean)
-      extends `Strict-Transport-Security`(maxAge, includeSubDomains, preload)
+      preload: Boolean,
+  ) extends `Strict-Transport-Security`(maxAge, includeSubDomains, preload)
 
   def fromLong(
       maxAge: Long,
       includeSubDomains: Boolean = true,
-      preload: Boolean = false): ParseResult[`Strict-Transport-Security`] =
+      preload: Boolean = false,
+  ): ParseResult[`Strict-Transport-Security`] =
     if (maxAge >= 0)
       ParseResult.success(new StrictTransportSecurityImpl(maxAge, includeSubDomains, preload))
     else
       ParseResult.fail(
         "Invalid maxAge value",
-        s"Strict-Transport-Security param $maxAge must be more or equal to 0 seconds")
+        s"Strict-Transport-Security param $maxAge must be more or equal to 0 seconds",
+      )
 
   def unsafeFromDuration(
       maxAge: FiniteDuration,
       includeSubDomains: Boolean = true,
-      preload: Boolean = false): `Strict-Transport-Security` =
+      preload: Boolean = false,
+  ): `Strict-Transport-Security` =
     fromLong(maxAge.toSeconds, includeSubDomains, preload).fold(throw _, identity)
 
   def unsafeFromLong(
       maxAge: Long,
       includeSubDomains: Boolean = true,
-      preload: Boolean = false): `Strict-Transport-Security` =
+      preload: Boolean = false,
+  ): `Strict-Transport-Security` =
     fromLong(maxAge, includeSubDomains, preload).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Strict-Transport-Security`] =
@@ -98,7 +104,7 @@ object `Strict-Transport-Security` {
           }
 
         },
-      parse
+      parse,
     )
 
 }
@@ -106,16 +112,19 @@ object `Strict-Transport-Security` {
 sealed abstract case class `Strict-Transport-Security`(
     maxAge: Long,
     includeSubDomains: Boolean = true,
-    preload: Boolean = false) {
+    preload: Boolean = false,
+) {
   def withIncludeSubDomains(includeSubDomains: Boolean): `Strict-Transport-Security` =
     new `Strict-Transport-Security`.StrictTransportSecurityImpl(
       this.maxAge,
       includeSubDomains,
-      this.preload)
+      this.preload,
+    )
 
   def withPreload(preload: Boolean): `Strict-Transport-Security` =
     new `Strict-Transport-Security`.StrictTransportSecurityImpl(
       this.maxAge,
       this.includeSubDomains,
-      preload)
+      preload,
+    )
 }

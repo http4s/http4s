@@ -17,10 +17,12 @@
 package org.http4s
 package headers
 
-import cats.parse.{Numbers, Parser => P}
+import cats.parse.Numbers
+import cats.parse.{Parser => P}
 import org.http4s.headers.Range.SubRange
-import org.http4s.internal.parsing.Rfc7230
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `Content-Range` {
@@ -54,7 +56,7 @@ object `Content-Range` {
     // byte-content-range = bytes-unit SP ( byte-range-resp / unsatisfied-range )
     // `unsatisfied-range` is not represented
     val byteContentRange =
-      ((Rfc7230.token.map(RangeUnit(_)) <* P.char(' ')) ~ byteRangeResp)
+      ((CommonRules.token.map(RangeUnit(_)) <* P.char(' ')) ~ byteRangeResp)
         .map { case (unit, (range, length)) => `Content-Range`(unit, range, length) }
 
     // Content-Range = byte-content-range / other-content-range
@@ -62,9 +64,11 @@ object `Content-Range` {
     byteContentRange
   }
 
+  val name: CIString = ci"Content-Range"
+
   implicit val headerInstance: Header[`Content-Range`, Header.Single] =
     Header.createRendered(
-      ci"Content-Range",
+      name,
       h =>
         new Renderable {
           def render(writer: Writer): writer.type = {
@@ -75,9 +79,8 @@ object `Content-Range` {
             }
           }
         },
-      parse
+      parse,
     )
-
 }
 
 final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long])

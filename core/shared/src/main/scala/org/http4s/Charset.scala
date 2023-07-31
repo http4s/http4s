@@ -27,17 +27,23 @@
 package org.http4s
 
 import cats._
-import java.nio.charset.{StandardCharsets, Charset => NioCharset}
-import java.util.{HashMap, Locale}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.util._
 
+import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset => NioCharset}
+import java.util.HashMap
+import java.util.Locale
+
+// scalafix:off Http4sGeneralLinters; bincompat until 1.0
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
 
   def render(writer: Writer): writer.type = writer << nioCharset.name
 }
+
+private[http4s] trait CharsetCompanionPlatform // bincompat shim
 
 object Charset extends CharsetCompanionPlatform {
 
@@ -51,17 +57,20 @@ object Charset extends CharsetCompanionPlatform {
         x.nioCharset.compareTo(y.nioCharset)
     }
 
-  val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
-  val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
-  val `UTF-8` = Charset(StandardCharsets.UTF_8)
-  val `UTF-16` = Charset(StandardCharsets.UTF_16)
-  val `UTF-16BE` = Charset(StandardCharsets.UTF_16BE)
-  val `UTF-16LE` = Charset(StandardCharsets.UTF_16LE)
+  val `US-ASCII`: Charset = Charset(StandardCharsets.US_ASCII)
+  val `ISO-8859-1`: Charset = Charset(StandardCharsets.ISO_8859_1)
+  val `UTF-8`: Charset = Charset(StandardCharsets.UTF_8)
+  val `UTF-16`: Charset = Charset(StandardCharsets.UTF_16)
+  val `UTF-16BE`: Charset = Charset(StandardCharsets.UTF_16BE)
+  val `UTF-16LE`: Charset = Charset(StandardCharsets.UTF_16LE)
+
+  private[http4s] def availableCharsets =
+    NioCharset.availableCharsets.values.asScala.toSeq
 
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups
   // that will succeed.
-  private val cache: HashMap[String, NioCharset] = {
+  private[this] val cache: HashMap[String, NioCharset] = {
     val map = new HashMap[String, NioCharset]
     for {
       cs <- availableCharsets

@@ -16,13 +16,14 @@
 
 package org.http4s
 
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import cats.syntax.all._
-import cats.kernel.laws.discipline.{HashTests, OrderTests}
 import org.http4s.Uri.UserInfo
-import org.http4s.util.UrlCodingUtils._
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
 import org.http4s.util.Renderer.renderString
+import org.http4s.util.UrlCodingUtils._
 import org.scalacheck.Prop._
 
 class UserInfoSpec extends Http4sSuite {
@@ -96,13 +97,13 @@ class UserInfoSpec extends Http4sSuite {
   test("compare should be consistent with (username, password)") {
     forAll { (xs: List[UserInfo]) =>
       def tupled(u: UserInfo) = (u.username, u.password)
-      (xs.sorted.map(tupled) == xs.map(tupled).sorted)
+      xs.sorted.map(tupled) == xs.map(tupled).sorted
     }
   }
 
   test("compare should be consistent with Ordered") {
     forAll { (a: UserInfo, b: UserInfo) =>
-      (math.signum(a.compareTo(b)) == math.signum(a.compare(b)))
+      math.signum(a.compareTo(b)) == math.signum(a.compare(b))
     }
   }
 

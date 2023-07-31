@@ -31,7 +31,8 @@ import scala.io.Codec
 private[http4s] class QueryParser(
     codec: Codec,
     colonSeparators: Boolean,
-    qChars: BitSet = QueryParser.ExtendedQChars) {
+    qChars: BitSet = QueryParser.ExtendedQChars,
+) {
   import QueryParser._
 
   /** Decodes the input into key value pairs.
@@ -55,7 +56,8 @@ private[http4s] class QueryParser(
   private def decodeBuffer(
       input: CharBuffer,
       acc: (String, Option[String]) => Builder[Query.KeyValue, Vector[Query.KeyValue]],
-      flush: Boolean): Option[String] = {
+      flush: Boolean,
+  ): Option[String] = {
     val valAcc = new StringBuilder(InitialBufferCapactiy)
 
     var error: String = null
@@ -133,7 +135,8 @@ private[http4s] object QueryParser {
 
   def parseQueryStringVector(
       queryString: String,
-      codec: Codec = Codec.UTF8): ParseResult[Vector[Query.KeyValue]] =
+      codec: Codec = Codec.UTF8,
+  ): ParseResult[Vector[Query.KeyValue]] =
     if (queryString.isEmpty) Right(Vector.empty)
     else new QueryParser(codec, true).decodeVector(CharBuffer.wrap(queryString), true)
 
@@ -144,13 +147,13 @@ private[http4s] object QueryParser {
   /** Defines the characters that are allowed unquoted within a query string as
     * defined in RFC 3986
     */
-  val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
+  val QChars: BitSet = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
 
   /** PHP also includes square brackets ([ and ]) with query strings. This goes
     * against the spec but due to PHP's widespread adoption it is necessary to
     * support this extension.
     */
-  val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
+  val ExtendedQChars: BitSet = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved = "-._~".toSet ++ AlphaNum
   private def SubDelims = "!$&'()*+,;=".toSet

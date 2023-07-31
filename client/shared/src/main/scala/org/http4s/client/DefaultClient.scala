@@ -19,11 +19,14 @@ package client
 
 import cats.Applicative
 import cats.data.Kleisli
-import cats.effect.{MonadCancelThrow, Resource}
+import cats.data.NonEmptyList
+import cats.effect.MonadCancelThrow
+import cats.effect.Resource
 import cats.syntax.all._
 import fs2.Stream
 import org.http4s.Status.Successful
-import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.headers.Accept
+import org.http4s.headers.MediaRangeAndQValue
 
 private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[F])
     extends Client[F] {
@@ -66,13 +69,13 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `run`, `fetchAs`,
-    * [[toKleisli]] and [[streaming]] signatures guarantee disposal of the
+    * [[toKleisli]] and [[stream]] signatures guarantee disposal of the
     * HTTP connection.
     */
   def toHttpApp: HttpApp[F] =
     Kleisli { req =>
       F.map(run(req).allocated) { case (resp, release) =>
-        resp.withBodyStream(resp.body.onFinalizeWeak(release))
+        resp.pipeBodyThrough(_.onFinalizeWeak(release))
       }
     }
 
@@ -85,11 +88,12 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(stream).flatMap(f)
 
-  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A] = {
+  def expectOr[A](
+      req: Request[F]
+  )(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
+      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
     } else req
 
     run(r).use {
@@ -108,14 +112,16 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     expectOr(req)(defaultOnError(req))
 
   def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A] =
+      d: EntityDecoder[F, A]
+  ): F[A] =
     req.flatMap(expectOr(_)(onError))
 
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(req => expectOr(req)(defaultOnError(req)))
 
   def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A] =
+      d: EntityDecoder[F, A]
+  ): F[A] =
     expectOr(Request[F](Method.GET, uri))(onError)
 
   /** Submits a GET request to the specified URI and decodes the response on
@@ -126,7 +132,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     expectOr(uri)(defaultOnError(Request[F](uri = uri)))
 
   def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[A] =
+      d: EntityDecoder[F, A]
+  ): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
 
   /** Submits a GET request to the URI specified by the String and decodes the
@@ -136,8 +143,9 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     expectOr(s)(defaultOnError(Request[F](uri = Uri.unsafeFromString(s))))
 
-  def expectOptionOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(implicit
-      d: EntityDecoder[F, A]): F[Option[A]] = {
+  def expectOptionOr[A](
+      req: Request[F]
+  )(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
@@ -164,8 +172,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
+      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
+      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
     } else req
 
     run(r).use { resp =>
@@ -226,7 +234,8 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def get[A](s: String)(f: Response[F] => F[A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
-  private def defaultOnError(req: Request[F])(resp: Response[F])(implicit
-      F: Applicative[F]): F[Throwable] =
+  def defaultOnError(req: Request[F])(resp: Response[F])(implicit
+      F: Applicative[F]
+  ): F[Throwable] =
     F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
 }

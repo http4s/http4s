@@ -16,11 +16,14 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline.{BoundedEnumerableTests, HashTests, OrderTests}
-import org.http4s.laws.discipline.arbitrary._
+import cats.kernel.laws.discipline.BoundedEnumerableTests
+import cats.kernel.laws.discipline.HashTests
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.laws.discipline.HttpCodecTests
+import org.http4s.laws.discipline.arbitrary._
 import org.http4s.syntax.all._
-import org.scalacheck.Prop.{forAll, propBoolean}
+import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.propBoolean
 
 class QValueSuite extends Http4sSuite {
   import QValue._
@@ -37,22 +40,21 @@ class QValueSuite extends Http4sSuite {
   }
 
   test("fromDouble should be consistent with fromThousandths") {
-    assert((0 to 1000).forall { i =>
-      (fromDouble(i / 1000.0) == fromThousandths(i))
-    })
+    (0 to 1000).foreach { i =>
+      assertEquals(fromDouble(i / 1000.0), fromThousandths(i))
+    }
   }
 
   test("fromString should be consistent with fromThousandths") {
-    assert((0 to 1000).forall { i =>
-      (fromString((i / 1000.0).toString) == fromThousandths(i))
-    })
+    (0 to 1000).foreach { i =>
+      assertEquals(fromString((i / 1000.0).toString), fromThousandths(i))
+    }
   }
 
   test("literal syntax should be consistent with successful fromDouble") {
-    assert(Right(qValue"1.0") == fromDouble(1.0))
-    assert(Right(qValue"0.5") == fromDouble(0.5))
-    assert(Right(qValue"0.0") == fromDouble(0.0))
-
+    assertEquals(fromDouble(1.0), Right(qValue"1.0"))
+    assertEquals(fromDouble(0.5), Right(qValue"0.5"))
+    assertEquals(fromDouble(0.0), Right(qValue"0.0"))
   }
 
   test("literal syntax should reject invalid values") {

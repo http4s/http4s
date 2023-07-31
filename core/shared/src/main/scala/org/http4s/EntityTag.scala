@@ -17,16 +17,23 @@
 package org.http4s
 
 import cats.Show
-import cats.parse.{Parser, Rfc5234}
-import org.http4s.EntityTag.{Strong, Weakness}
-import org.http4s.internal.parsing.Rfc7230
+import cats.parse.Parser
+import cats.parse.Rfc5234
+import org.http4s.EntityTag.Strong
+import org.http4s.EntityTag.Weakness
+import org.http4s.internal.parsing.CommonRules
+import org.http4s.util.Renderable
+import org.http4s.util.Writer
 
-final case class EntityTag(tag: String, weakness: Weakness = Strong) {
+final case class EntityTag(tag: String, weakness: Weakness = Strong) extends Renderable {
   override def toString(): String =
     weakness match {
       case EntityTag.Weak => "W/\"" + tag + '"'
       case EntityTag.Strong => "\"" + tag + '"'
     }
+
+  override def render(writer: Writer): writer.type =
+    writer << toString()
 }
 
 object EntityTag {
@@ -40,12 +47,12 @@ object EntityTag {
   /*
    * entity-tag = [ weak ] opaque-tag
    *
-   * @see [[https://tools.ietf.org/html/rfc7232#section-2.3]]
+   * @see [[https://datatracker.ietf.org/doc/html/rfc7232#section-2.3]]
    */
   private[http4s] val parser: Parser[EntityTag] = {
     import Parser.{charIn, string}
-    import Rfc5234.{dquote}
-    import Rfc7230.{obsText}
+    import Rfc5234.dquote
+    import CommonRules.obsText
 
     // weak       = %x57.2F ; "W/", case-sensitive
     val weak = string("W/").as(EntityTag.Weak)
