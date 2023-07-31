@@ -177,5 +177,4 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         } yield assertEquals(received, Some(binaryFrame))
       )
   }
-
 }
