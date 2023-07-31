@@ -192,11 +192,14 @@ private[h2] class H2Connection[F[_]](
     firstGoAway.getOrElse(F.unit) >> go(chunk)
   }
 
-  def writeLoop: Stream[F, Nothing] =
-    Stream
-      .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
-      .foreach(writeChunk)
-      .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
+  def writeLoop: F[Unit] = {
+    // the first `take` semantically blocks until items are available,
+    // then we take up to 16 more (if available) and go through them.
+    // NOTE: too many elements would hide real size of pending items
+    val cycle = outgoing.take.flatMap(writeChunk) >>
+      outgoing.tryTakeN(Some(16)).flatMap(_.traverse_(writeChunk))
+    cycle.foreverM.handleErrorWith(ex => logger.debug(ex)("writeLoop terminated"))
+  }
 
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared

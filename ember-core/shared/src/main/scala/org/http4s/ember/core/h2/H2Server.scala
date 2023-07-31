@@ -310,7 +310,7 @@ private[ember] object H2Server {
 
     for {
       h2 <- Resource.eval(initH2Connection)
-      _ <- h2.writeLoop.compile.drain.background
+      _ <- h2.writeLoop.background
       _ <- Resource.eval(h2.outgoing.offer(Chunk.singleton(settingsFrame)))
       _ <- h2.readLoop.background
       // h2c Initial Request Communication on h2c Upgrade

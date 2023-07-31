@@ -272,7 +272,7 @@ private[ember] class H2Client[F[_]](
     for {
       h2 <- Resource.eval(createH2Connection)
       _ <- h2.readLoop.background
-      _ <- h2.writeLoop.compile.drain.background
+      _ <- h2.writeLoop.background
       _ <- clearClosed(h2).background
       _ <- pullCreatedStreams(h2).background
       _ <- Resource.eval(processSettings(h2))
