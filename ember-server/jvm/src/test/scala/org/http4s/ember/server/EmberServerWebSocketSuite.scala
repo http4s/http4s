@@ -41,6 +41,8 @@ import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+import scodec.bits.ByteVector
+
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
@@ -54,6 +56,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-echo" =>
           val sendReceive: Pipe[F, WebSocketFrame, WebSocketFrame] = _.flatMap {
             case WebSocketFrame.Text(text, _) => Stream(WebSocketFrame.Text(text))
+            case WebSocketFrame.Binary(binary, _) => Stream(WebSocketFrame.Binary(binary))
             case _ => Stream(WebSocketFrame.Text("unknown"))
           }
           wsBuilder.build(sendReceive)
@@ -89,6 +92,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
+      binaryMessages: Queue[IO, ByteVector],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
       closeCode: Deferred[IO, Int],
@@ -99,6 +103,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     def close: IO[Unit] =
       IO(client.close()) >> waitClose.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
     def send(msg: String): IO[Unit] = IO(client.send(msg))
+    def sendBinary(msg: ByteVector): IO[Unit] = IO(client.send(msg.toArray))
     def ping(data: String): IO[Unit] = IO {
       val frame = new PingFrame()
       frame.setPayload(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)))
@@ -111,6 +116,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       waitOpen <- Deferred[IO, Option[Throwable]]
       waitClose <- Deferred[IO, Option[Throwable]]
       queue <- Queue.unbounded[IO, String]
+      binaryQueue <- Queue.unbounded[IO, ByteVector]
       pongQueue <- Queue.unbounded[IO, String]
       remoteClosed <- Deferred[IO, Unit]
       closeCode <- Deferred[IO, Int]
@@ -129,6 +135,10 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         }
         override def onMessage(msg: String): Unit =
           dispatcher.unsafeRunSync(queue.offer(msg))
+
+        override def onMessage(bytes: ByteBuffer): Unit =
+          dispatcher.unsafeRunSync(binaryQueue.offer(ByteVector.view(bytes)))
+
         override def onError(ex: Exception): Unit = {
           val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt.void
           dispatcher.unsafeRunSync(fa)
@@ -143,7 +153,16 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
+    } yield Client(
+      waitOpen,
+      waitClose,
+      queue,
+      binaryQueue,
+      pongQueue,
+      remoteClosed,
+      closeCode,
+      client,
+    )
 
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
@@ -221,6 +240,19 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       messagesReceived <- client.messages.take.replicateA(n)
       _ <- client.close
     } yield assertEquals(messagesReceived, messages)
+  }
+
+  fixture.test("send and receive a binary message") { case (server, dispatcher) =>
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
+        dispatcher,
+      )
+      _ <- client.connect
+      _ <- client.sendBinary(ByteVector(100, 100, 100))
+      binaryMessagesReceived <- client.binaryMessages.take
+      _ <- client.close
+    } yield assertEquals(binaryMessagesReceived, ByteVector(100, 100, 100))
   }
 
 }
