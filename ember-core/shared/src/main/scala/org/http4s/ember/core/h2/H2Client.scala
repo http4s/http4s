@@ -227,12 +227,12 @@ private[ember] class H2Client[F[_]](
       )
 
     def clearClosed(h2: H2Connection[F]): F[Unit] =
-      Stream
-        .fromQueueUnterminated(h2.closedStreams)
-        .repeat
-        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
-        .compile
-        .drain
+      (for {
+        h <- h2.closedStreams.take // block if empty
+        t <- h2.closedStreams.tryTakeN(None)
+        odds = (h :: t).filter(_ % 2 != 0)
+        _ <- F.whenA(odds.nonEmpty)(h2.mapRef.update(_ -- odds))
+      } yield ()).foreverM
 
     def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
       def processStream(i: Int): F[Unit] =
