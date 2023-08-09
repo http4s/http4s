@@ -61,6 +61,9 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
               Stream(WebSocketFrame.Text("unknown"))
           }
           wsBuilder.build(sendReceive)
+        case GET -> Root / "ws-close" =>
+          val send = Stream(WebSocketFrame.Text("foo"))
+          wsBuilder.build(send, _.void)
       }
       .orNotFound
   }
@@ -175,6 +178,21 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
           _ <- conn.send(binaryFrame)
           received <- conn.receive
         } yield assertEquals(received, Some(binaryFrame))
+      )
+  }
+
+  fixture.test("receive a close frame in low-level connection") { case (server, client, _) =>
+    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-close"))
+    val wsClient = EmberWSClient[IO](client)
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Text("hello"))
+          _ <- conn.receive
+          receivedCloseFrame <- conn.receive
+        } yield assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
       )
   }
 }
