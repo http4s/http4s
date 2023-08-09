@@ -45,12 +45,22 @@ object EmberWSClient {
         socketOption <- getSocket(emberClient, httpWSRequest)
         socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
 
+        closeFrameDeffered <- F.deferred[WebSocketFrame.Close].toResource
+
         clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
         clientSendQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
 
         _ <- socket.reads
           .through(decodeFrames(true))
-          .foreach(clientReceiveQueue.offer(_))
+          .foreach {
+            case f @ WebSocketFrame.Close(_) =>
+              closeFrameDeffered.complete(f)
+              clientReceiveQueue.offer(f)
+            case f =>
+              closeFrameDeffered.tryGet
+                .map(_.isDefined)
+                .flatMap(b => if (b) F.unit else clientReceiveQueue.offer(f))
+          }
           .compile
           .drain
           .background
