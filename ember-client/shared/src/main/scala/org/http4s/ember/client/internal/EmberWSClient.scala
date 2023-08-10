@@ -57,9 +57,9 @@ object EmberWSClient {
               closeFrameDeffered.complete(f) >>
                 clientReceiveQueue.offer(f)
             case f =>
-              closeFrameDeffered.tryGet
-                .map(_.isDefined)
-                .flatMap(b => if (b) F.unit else clientReceiveQueue.offer(f))
+              closeFrameDeffered.tryGet.flatMap { x =>
+                if (x.isDefined) F.unit else clientReceiveQueue.offer(f))
+              }
           }
           .compile
           .drain
