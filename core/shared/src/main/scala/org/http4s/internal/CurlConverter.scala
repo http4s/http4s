@@ -16,6 +16,10 @@
 
 package org.http4s.internal
 
+import cats.MonadThrow
+import cats.syntax.all._
+import fs2.text
+import org.http4s.Charset
 import org.http4s.Headers
 import org.http4s.Method
 import org.http4s.Request
@@ -23,17 +27,13 @@ import org.http4s.Uri
 import org.typelevel.ci.CIString
 
 private[http4s] object CurlConverter {
-
-  // escapes characters that are used in the curl-command, such as '
-  private def escapeQuotationMarks(s: String) = s.replaceAll("'", """'\\''""")
-
   private def newline: String = " \\\n  "
 
   private def prepareMethodName(method: Method): String =
     s"$newline--request ${method.name}"
 
   private def prepareUri(uri: Uri): String =
-    s"$newline--url '${escapeQuotationMarks(uri.renderString)}'"
+    s"$newline--url ${PosixQuoting.quote(uri.renderString)}"
 
   private def prepareHeaders(headers: Headers, redactHeadersWhen: CIString => Boolean): String = {
     val preparedHeaders = headers
@@ -41,7 +41,7 @@ private[http4s] object CurlConverter {
       .headers
       .iterator
       .map { header =>
-        s"""--header '${escapeQuotationMarks(s"${header.name}: ${header.value}")}'"""
+        s"""--header ${PosixQuoting.quote(s"${header.name}: ${header.value}")}"""
       }
       .mkString(newline)
 
@@ -60,4 +60,22 @@ private[http4s] object CurlConverter {
 
     s"curl$params"
   }
+
+  def requestToCurlWithBody[F[_]: MonadThrow](
+      request: Request[F],
+      redactHeadersWhen: CIString => Boolean,
+  )(implicit compiler: fs2.Compiler[F, F], defaultCharset: Charset): F[(String, Request[F])] =
+    for {
+      cachedBodyStream <- request.body.compile[F, F, Byte].toVector.map(fs2.Stream.emits(_))
+      bodyString <- {
+        val cs = request.charset.getOrElse(defaultCharset).nioCharset
+        cachedBodyStream.through(text.decodeWithCharset(cs)).compile[F, F, String].string
+      }
+    } yield {
+      val bodyArg =
+        if (bodyString.isEmpty) "" else s"$newline--data ${PosixQuoting.quote(bodyString)}"
+      val curl = s"${request.asCurl(redactHeadersWhen)}$bodyArg"
+      val refreshedRequest = request.withBodyStream(cachedBodyStream)
+      (curl, refreshedRequest)
+    }
 }
