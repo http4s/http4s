@@ -420,11 +420,11 @@ class MessageSuite extends Http4sSuite {
 
     val multipart = Multipart[IO](
       Vector(
-        Part.formData("foo", "simple", `Content-Type`(MediaType.text.`plain`)),
-        Part.formData("bar", "one"),
-        Part.formData("bar", "two"),
-        Part.formData("baz", ""),
-        Part.formData("qux", "complex & quoted = fun!"),
+        Part.formData[IO]("foo", "simple", `Content-Type`(MediaType.text.`plain`)),
+        Part.formData[IO]("bar", "one"),
+        Part.formData[IO]("bar", "two"),
+        Part.formData[IO]("baz", ""),
+        Part.formData[IO]("qux", "complex & quoted = fun!"),
       ),
       Boundary("1234567890"),
     )
