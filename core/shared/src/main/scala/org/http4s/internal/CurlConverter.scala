@@ -16,7 +16,7 @@
 
 package org.http4s.internal
 
-import cats.MonadThrow
+import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import fs2.text
 import org.http4s.Charset
@@ -61,10 +61,10 @@ private[http4s] object CurlConverter {
     s"curl$params"
   }
 
-  def requestToCurlWithBody[F[_]: MonadThrow](
+  def requestToCurlWithBody[F[_]: Concurrent](
       request: Request[F],
       redactHeadersWhen: CIString => Boolean,
-  )(implicit compiler: fs2.Compiler[F, F], defaultCharset: Charset): F[(String, Request[F])] =
+  )(implicit defaultCharset: Charset): F[(String, Request[F])] =
     for {
       cachedBodyStream <- request.body.compile[F, F, Byte].toVector.map(fs2.Stream.emits(_))
       bodyString <- {

@@ -18,7 +18,6 @@ package org.http4s
 
 import cats.Applicative
 import cats.Monad
-import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Concurrent
@@ -409,8 +408,7 @@ final class Request[F[_]] private (
     */
   def asCurlWithBody(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
       implicit
-      monadThrow: MonadThrow[F],
-      compiler: fs2.Compiler[F, F],
+      concurrent: Concurrent[F],
       defaultCharset: Charset = Charset.`UTF-8`,
   ): F[(String, Request[F])] =
     CurlConverter.requestToCurlWithBody(this, redactHeadersWhen)
