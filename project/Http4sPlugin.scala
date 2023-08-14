@@ -102,7 +102,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
     val caseInsensitive = "1.4.0"
-    val cats = "2.9.0"
+    val cats = "2.10.0"
     val catsEffect = "3.5.1"
     val catsParse = "0.3.10"
     val circe = "0.14.5"
