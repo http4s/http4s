@@ -54,8 +54,7 @@ object EmberWSClient {
           .through(decodeFrames(true))
           .foreach {
             case f @ WebSocketFrame.Close(_) =>
-              closeFrameDeffered.complete(f) >>
-                clientReceiveQueue.offer(f)
+              closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
             case f =>
               closeFrameDeffered.tryGet.flatMap { x =>
                 if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
