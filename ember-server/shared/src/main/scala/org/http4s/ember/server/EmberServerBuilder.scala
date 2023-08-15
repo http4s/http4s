@@ -212,6 +212,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(WebSocketBuilder[F])
+      logger = loggerFactory.getLogger
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -232,7 +233,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               maxHeaderSize,
               requestHeaderReceiveTimeout,
               idleTimeout,
-              loggerFactory.getLogger,
+              logger,
               wsBuilder.webSocketKey,
               enableHttp2,
               requestLineParseErrorHandler,
@@ -259,7 +260,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            loggerFactory.getLogger,
+            logger,
             wsBuilder.webSocketKey,
             enableHttp2,
             requestLineParseErrorHandler,
@@ -270,9 +271,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       }
       _ <- Resource.onFinalize(shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(
-        loggerFactory.getLogger.info(s"Ember-Server service bound to address: ${bindAddress}")
-      )
+      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
     } yield new Server {
       def address: SocketAddress[IpAddress] = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
