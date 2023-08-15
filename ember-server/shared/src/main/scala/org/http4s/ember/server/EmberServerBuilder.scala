@@ -16,7 +16,6 @@
 
 package org.http4s.ember.server
 
-import _root_.org.typelevel.log4cats.Logger
 import cats._
 import cats.effect._
 import cats.effect.syntax.all._
@@ -34,6 +33,7 @@ import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.noop.NoOpFactory
 
 import scala.concurrent.duration._
 
@@ -53,7 +53,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
-    private val logger: Logger[F],
+    private val loggerFactory: LoggerFactory[F],
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
@@ -78,7 +78,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
-      logger: Logger[F] = self.logger,
+      loggerFactory: LoggerFactory[F] = self.loggerFactory,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
@@ -100,7 +100,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       idleTimeout = idleTimeout,
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
-      logger = logger,
+      loggerFactory = loggerFactory,
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
@@ -168,7 +168,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestHeaderReceiveTimeout: Duration
   ): EmberServerBuilder[F] =
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
-  def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(logger = l)
+  def withLoggerFactory(l: LoggerFactory[F]): EmberServerBuilder[F] = copy(loggerFactory = l)
 
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
@@ -232,7 +232,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               maxHeaderSize,
               requestHeaderReceiveTimeout,
               idleTimeout,
-              logger,
+              loggerFactory.getLogger,
               wsBuilder.webSocketKey,
               enableHttp2,
               requestLineParseErrorHandler,
@@ -259,7 +259,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             maxHeaderSize,
             requestHeaderReceiveTimeout,
             idleTimeout,
-            logger,
+            loggerFactory.getLogger,
             wsBuilder.webSocketKey,
             enableHttp2,
             requestLineParseErrorHandler,
@@ -270,7 +270,9 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       }
       _ <- Resource.onFinalize(shutdown.await)
       bindAddress <- Resource.eval(ready.get.rethrow)
-      _ <- Resource.eval(logger.info(s"Ember-Server service bound to address: ${bindAddress}"))
+      _ <- Resource.eval(
+        loggerFactory.getLogger.info(s"Ember-Server service bound to address: ${bindAddress}")
+      )
     } yield new Server {
       def address: SocketAddress[IpAddress] = bindAddress
       def isSecure: Boolean = tlsInfoOpt.isDefined
@@ -278,7 +280,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 }
 
 object EmberServerBuilder {
-  def default[F[_]: Async: Network: LoggerFactory]: EmberServerBuilder[F] =
+  def default[F[_]: Async: Network]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -295,7 +297,7 @@ object EmberServerBuilder {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
-      logger = LoggerFactory[F].getLogger,
+      loggerFactory = Defaults.loggerFactory[F],
       unixSocketConfig = None,
       enableHttp2 = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
@@ -337,6 +339,9 @@ object EmberServerBuilder {
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
     }
+
+    def loggerFactory[F[_]: Applicative]: LoggerFactory[F] = NoOpFactory[F]
+
     val maxConnections: Int = server.defaults.MaxConnections
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
