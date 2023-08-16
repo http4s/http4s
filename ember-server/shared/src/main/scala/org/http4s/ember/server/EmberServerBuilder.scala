@@ -32,6 +32,7 @@ import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder
+import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.noop.NoOpFactory
 
@@ -53,6 +54,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val idleTimeout: Duration,
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
+    private val maybeLogger: Option[Logger[F]],
     private val loggerFactory: LoggerFactory[F],
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
@@ -78,6 +80,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       idleTimeout: Duration = self.idleTimeout,
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
+      maybeLogger: Option[Logger[F]] = self.maybeLogger,
       loggerFactory: LoggerFactory[F] = self.loggerFactory,
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
@@ -100,6 +103,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       idleTimeout = idleTimeout,
       shutdownTimeout = shutdownTimeout,
       additionalSocketOptions = additionalSocketOptions,
+      maybeLogger = maybeLogger,
       loggerFactory = loggerFactory,
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
@@ -168,6 +172,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestHeaderReceiveTimeout: Duration
   ): EmberServerBuilder[F] =
     copy(requestHeaderReceiveTimeout = requestHeaderReceiveTimeout)
+
+  def withLogger(l: Logger[F]): EmberServerBuilder[F] = copy(maybeLogger = l.some)
   def withLoggerFactory(l: LoggerFactory[F]): EmberServerBuilder[F] = copy(loggerFactory = l)
 
   def withHttp2: EmberServerBuilder[F] = copy(enableHttp2 = true)
@@ -212,7 +218,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(WebSocketBuilder[F])
-      logger = loggerFactory.getLogger
+      logger = maybeLogger.getOrElse(loggerFactory.getLogger)
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
           ServerHelpers
@@ -296,6 +302,7 @@ object EmberServerBuilder {
       idleTimeout = Defaults.idleTimeout,
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
+      maybeLogger = None,
       loggerFactory = Defaults.loggerFactory[F],
       unixSocketConfig = None,
       enableHttp2 = false,
