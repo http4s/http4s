@@ -29,15 +29,11 @@ import org.http4s._
 import org.http4s.dsl._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
-import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object EmberServerH2Example extends IOApp {
 
   object ServerTest {
-
-    implicit private def loggerFactory[F[_]: Sync]: LoggerFactory[F] =
-      Slf4jFactory.create[F]
 
     val resp = Response[fs2.Pure](Status.Ok).withEntity("Hello World!")
     def simpleApp[F[_]: Concurrent: Console] = {
@@ -88,6 +84,7 @@ object EmberServerH2Example extends IOApp {
         .withHttp2
         .withHost(ipv4"0.0.0.0")
         .withPort(port"8081")
+        .withLoggerFactory(Slf4jFactory.create[F])
         .withHttpApp(simpleApp)
         .withErrorHandler { case error =>
           Console[F]
