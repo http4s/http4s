@@ -285,4 +285,14 @@ class UriParserSuite extends Http4sSuite {
       """uri"not valid""""
     }.nonEmpty)
   }
+
+  test("Uri.renderString should behave correctly") {
+    val uri = Uri.fromString("https://foo.com/?with:colon=abc").toOption.get
+    val copy = uri.copy(query = Query.empty).setQueryParams(uri.multiParams)
+
+    assertEquals(
+      uri.renderString,
+      copy.renderString,
+    )
+  }
 }

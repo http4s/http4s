@@ -24,7 +24,7 @@ import java.nio.charset.{Charset => JCharset}
 /* Exists to work around circular dependencies */
 private[http4s] object UriCoding {
   val Unreserved: CharPredicate = AlphaNum ++ "-_.~"
-  val QueryNoEncode: CharPredicate = Unreserved ++ "?/"
+  val QueryNoEncode: CharPredicate = Unreserved ++ "!$&'()*+,;=:/?@"
 
   def encode(
       toEncode: String,
