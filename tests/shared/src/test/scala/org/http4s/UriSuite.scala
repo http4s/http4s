@@ -209,11 +209,11 @@ class UriSuite extends Http4sSuite {
     // Issue #75
     assertEquals(
       getQueryParams("http://localhost:8080/blah?x=a+bc&y=ijk"),
-      Map("x" -> "a bc", "y" -> "ijk"),
+      Map("x" -> "a%20bc", "y" -> "ijk"),
     )
     assertEquals(
       getQueryParams("http://localhost:8080/blah?x=a%20bc&y=ijk"),
-      Map("x" -> "a bc", "y" -> "ijk"),
+      Map("x" -> "a%20bc", "y" -> "ijk"),
     )
   }
 
@@ -1069,6 +1069,11 @@ class UriSuite extends Http4sSuite {
     val u = Uri(path = Uri.Path.Root, fragment = Some("nonsense"))
     val updated = u.withoutFragment
     assertEquals(updated.renderString, "/")
+  }
+
+  test("Uri.renderString should Encode special chars in the query") {
+    val u = Uri(path = Uri.Path.Root).withQueryParam("foo", " !$&'()*+,;=:/?@~")
+    assertEquals(u.renderString, "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~")
   }
 
   test("Uri.renderString should Encode special chars in the fragment") {
