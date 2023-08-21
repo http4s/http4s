@@ -821,7 +821,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     description := "Examples of http4s server and clients on ember",
     startYear := Some(2020),
     fork := true,
-    scalacOptions -= "-Xfatal-warnings",
+    tlFatalWarnings := false,
     coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
@@ -856,14 +856,14 @@ lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .settings(headerSources / excludeFilter := AllPassFilter, tlFatalWarnings := false)
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalOutput = project
   .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .settings(headerSources / excludeFilter := AllPassFilter, tlFatalWarnings := false)
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalTests = project
