@@ -88,7 +88,6 @@ lazy val modules: List[CompositeProject] = List(
 )
 
 lazy val root = tlCrossRootProject
-  .disablePlugins(ScalafixPlugin)
   .settings(
     // Root project
     name := "http4s",
