@@ -82,12 +82,17 @@ private[http4s] class QueryParser(
     }
 
     def endPair(): Unit = {
-      if (!flush) input.mark()
+      if (!flush) {input.mark()
+      ()
+      }
       appendValue()
       state = KEY
     }
 
-    if (!flush) input.mark()
+    if (!flush) {
+      input.mark()
+      ()
+    }
 
     // begin iterating through the chars
     while (error == null && input.hasRemaining) {

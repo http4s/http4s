@@ -20,7 +20,6 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse._
 import com.comcast.ip4s.IpAddress
-import org.http4s.Header
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.util.Renderable

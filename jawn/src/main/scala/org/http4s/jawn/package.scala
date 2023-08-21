@@ -15,5 +15,9 @@
  */
 
 package org.http4s
+package jawn
 
-package object jawn extends JawnInstances
+import org.typelevel.scalaccompat.annotation._
+
+@nowarn213("msg=package object inheritance is deprecated")
+object `package` extends JawnInstances

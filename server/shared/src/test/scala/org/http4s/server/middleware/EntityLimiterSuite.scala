@@ -49,7 +49,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -68,7 +68,7 @@ class EntityLimiterSuite extends Http4sSuite {
       st.apply(Request[IO](POST, uri"/echo", body = b))
         .map(_ => -1L)
         .value
-        .handleError { case EntityTooLarge(i) => Some(i) }
+        .recover { case EntityTooLarge(i) => Some(i) }
         .assertEquals(Some(3L))
   }
 
@@ -78,7 +78,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -89,7 +89,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .httpApp(app, 3L)
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
-      .handleError { case EntityTooLarge(i) => i }
+      .recover { case EntityTooLarge(i) => i }
       .assertEquals(3L)
   }
 }

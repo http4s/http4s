@@ -23,6 +23,7 @@ import cats.syntax.all._
 import org.http4s.internal.BackendBuilder
 import org.http4s.nodejs.ClientRequest
 import org.http4s.nodejs.IncomingMessage
+import org.typelevel.scalaccompat.annotation._
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
@@ -87,6 +88,7 @@ private[client] object NodeJSClientBuilder {
 
   @js.native
   @js.annotation.JSImport("http", "request")
+  @nowarn212("cat=unused")
   private def httpRequest(
       options: RequestOptions,
       cb: js.Function1[IncomingMessage, Unit],
@@ -94,6 +96,7 @@ private[client] object NodeJSClientBuilder {
 
   @js.native
   @js.annotation.JSImport("https", "request")
+  @nowarn212("cat=unused")
   private def httpsRequest(
       options: RequestOptions,
       cb: js.Function1[IncomingMessage, Unit],

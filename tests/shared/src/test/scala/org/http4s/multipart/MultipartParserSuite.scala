@@ -19,8 +19,7 @@ package multipart
 
 import cats.effect._
 import cats.effect.std._
-import cats.implicits._
-import cats.instances.string._
+import cats.syntax.all._
 import fs2._
 import fs2.io.file.NoSuchFileException
 import org.http4s._

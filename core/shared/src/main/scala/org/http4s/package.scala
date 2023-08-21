@@ -20,6 +20,7 @@ import cats.data._
 import com.comcast.ip4s
 import fs2.Stream
 import org.typelevel.ci.CIString
+import org.typelevel.scalaccompat.annotation._
 
 package object http4s {
 
@@ -86,6 +87,7 @@ package object http4s {
   // Nobody will actually be able to run these methods b/c they will fail to link
 
   implicit private[http4s] class Fs2IoPathCompanionOps(p: fs2.io.file.Path.type) {
+    @nowarn212("cat=unused")
     def fromNioPath(path: java.nio.file.Path): fs2.io.file.Path =
       throw new UnsupportedOperationException
   }
@@ -95,6 +97,7 @@ package object http4s {
   }
 
   implicit private[http4s] class Ip4sIpv4AddressCompanionOps(ip: ip4s.Ipv4Address.type) {
+    @nowarn212("cat=unused")
     def fromInet4Address(a: java.net.Inet4Address): ip4s.Ipv4Address =
       throw new UnsupportedOperationException
   }
@@ -104,6 +107,7 @@ package object http4s {
   }
 
   implicit private[http4s] class Ip4sIpv6AddressCompanionOps(ip: ip4s.Ipv6Address.type) {
+    @nowarn212("cat=unused")
     def fromInet6Address(a: java.net.Inet6Address): ip4s.Ipv6Address =
       throw new UnsupportedOperationException
   }

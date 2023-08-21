@@ -40,11 +40,11 @@ class RetryAfterSuite extends HeaderLaws {
   }
 
   test("build should build correctly for positives") {
-    val Right(result) = `Retry-After`.fromLong(0).map(_.value)
+    val Right(result) = `Retry-After`.fromLong(0).map(_.value): @unchecked
     assertEquals(result, "0")
   }
   test("build should fail for negatives") {
-    val Left(_) = `Retry-After`.fromLong(-10).map(_.value)
+    val Left(_) = `Retry-After`.fromLong(-10).map(_.value): @unchecked
   }
   test("build should build unsafe for positives") {
     assertEquals(`Retry-After`.unsafeFromDuration(0.seconds).value, "0")

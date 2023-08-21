@@ -19,7 +19,6 @@ package headers
 
 import cats.parse.Parser
 import cats.parse.Parser0
-import org.http4s.Header
 import org.http4s.internal.parsing.CommonRules.ows
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.Renderable

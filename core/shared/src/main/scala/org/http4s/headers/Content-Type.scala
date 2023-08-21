@@ -23,6 +23,9 @@ import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `Content-Type` {
+  def apply(mediaType: MediaType, charset: Option[Charset]): `Content-Type` =
+    new `Content-Type`(mediaType, charset)
+
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
     apply(mediaType, Some(charset))
   def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
@@ -76,7 +79,7 @@ object `Content-Type` {
   *
   * [[https://datatracker.ietf.org/doc/html/rfc7231#section-3.1.1.5 RFC-7231]]
   */
-final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset]) { // scalafix:ok; private for API ergonomics, not correctness
+final case class `Content-Type` private[headers] (mediaType: MediaType, charset: Option[Charset]) { // scalafix:ok; private for API ergonomics, not correctness
   def withMediaType(mediaType: MediaType): `Content-Type` =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
   def withCharset(charset: Charset): `Content-Type` =

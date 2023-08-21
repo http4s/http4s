@@ -15,6 +15,7 @@
  */
 
 package org.http4s
+package internal
 
 import cats._
 import cats.data._
@@ -27,6 +28,7 @@ import fs2.Pipe
 import fs2.Pull
 import fs2.RaiseThrowable
 import fs2.Stream
+import org.typelevel.scalaccompat.annotation._
 
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -38,7 +40,8 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
-package object internal extends InternalPlatform {
+@nowarn213("msg=package object inheritance is deprecated")
+private[http4s] object `package` extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   @deprecated("Will be removed in 1.0.", "0.23.19")
@@ -101,24 +104,26 @@ package object internal extends InternalPlatform {
 
     val len = data.length
     if ((len & 0x01) != 0) None
-    val out = new Array[Byte](len >> 1)
-    var f: Int = -1
-    // two characters form the hex value.
-    try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xff).toByte
+    else {
+      val out = new Array[Byte](len >> 1)
+      var f: Int = -1
+      // two characters form the hex value.
+      try {
+        var i = 0
+        var j = 0
+        while (j < len) {
+          f = toDigit(data(j)) << 4
+          j += 1
+          f = f | toDigit(data(j))
+          j += 1
+          out(i) = (f & 0xff).toByte
 
-        i += 1
+          i += 1
+        }
+        Some(out)
+      } catch {
+        case HexDecodeException => None
       }
-      Some(out)
-    } catch {
-      case HexDecodeException => None
     }
   }
 
@@ -203,10 +208,10 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, true)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow =>
                 def flushLoop: Pull[F, String, Unit] =
-                  decoder.flush(charBuffer) match {
+                  (decoder.flush(charBuffer): @unchecked) match {
                     case result if result.isUnderflow =>
                       out
                     case result if result.isOverflow =>
@@ -226,7 +231,7 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, false)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow || result.isOverflow =>
                 out.as(Some(stream))
               case _ if result.isMalformed =>

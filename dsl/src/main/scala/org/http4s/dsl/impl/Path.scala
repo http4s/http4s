@@ -51,7 +51,7 @@ object ~ {
     *     case Root / "example" ~ "json" => ...
     */
   def unapply(path: Path): Option[(Path, String)] =
-    path match {
+    (path: @unchecked) match {
       case Root => None
       case parent / last =>
         unapply(last).map { case (base, ext) =>

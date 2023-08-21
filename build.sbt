@@ -12,26 +12,23 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
-ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
-
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowJobSetup ~= {
-  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+ThisBuild / githubWorkflowJobSetup ~= { steps =>
+  Seq(
+    WorkflowStep.Use(
+      UseRef.Public("cachix", "install-nix-action", "v20"),
+      name = Some("Install Nix"),
+    ),
+    WorkflowStep.Use(
+      UseRef.Public("cachix", "cachix-action", "v12"),
+      name = Some("Install Cachix"),
+      params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+    ),
+  ) ++ steps
 }
-ThisBuild / githubWorkflowJobSetup ++= Seq(
-  WorkflowStep.Use(
-    UseRef.Public("cachix", "install-nix-action", "v20"),
-    name = Some("Install Nix"),
-  ),
-  WorkflowStep.Use(
-    UseRef.Public("cachix", "cachix-action", "v12"),
-    name = Some("Install Cachix"),
-    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
-  ),
-)
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 

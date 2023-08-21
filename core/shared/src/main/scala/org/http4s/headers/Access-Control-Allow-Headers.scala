@@ -18,7 +18,6 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.Header
 import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 

@@ -50,6 +50,7 @@ object Http4sPlugin extends AutoPlugin {
     doctestTestFramework := DoctestTestFramework.Munit,
     libraryDependencies += scalacCompatAnnotation,
     unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
+    semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
   )
 
   def extractApiVersion(version: String) = {

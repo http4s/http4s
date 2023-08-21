@@ -20,11 +20,16 @@ import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.duration.FiniteDuration
 
-package object client extends ClientTypes {
+package object client {
   object defaults {
     val ConnectTimeout: FiniteDuration = 10.seconds
     val RequestTimeout: FiniteDuration = 45.seconds
   }
+
+  @deprecated("Is a Blaze detail.  Will be removed from public API.", "0.23.8")
+  type ConnectionBuilder[F[_], A <: Connection[F]] = RequestKey => F[A]
+
+  type Middleware[F[_]] = Client[F] => Client[F]
 }
 
 trait ClientTypes {
