@@ -1,8 +1,8 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.git.JGit
+import com.github.sbt.git.SbtGit.git
+import com.github.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
