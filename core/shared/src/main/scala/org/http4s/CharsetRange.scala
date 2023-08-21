@@ -44,8 +44,10 @@ object CharsetRange {
 
   object `*` extends `*`(QValue.One)
 
-  final case class Atom private[http4s] (charset: Charset, qValue: QValue = QValue.One)
-      extends CharsetRange {
+  final case class Atom private[http4s] ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+      charset: Charset,
+      qValue: QValue = QValue.One,
+  ) extends CharsetRange {
     override def withQValue(q: QValue): CharsetRange.Atom = copy(qValue = q)
 
     def render(writer: Writer): writer.type = writer << charset << qValue
