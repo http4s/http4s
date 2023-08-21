@@ -82,8 +82,9 @@ private[http4s] class QueryParser(
     }
 
     def endPair(): Unit = {
-      if (!flush) {input.mark()
-      ()
+      if (!flush) {
+        input.mark()
+        ()
       }
       appendValue()
       state = KEY
