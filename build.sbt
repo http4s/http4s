@@ -842,9 +842,14 @@ lazy val examplesDocker = http4sProject("examples-docker")
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
+lazy val scalafixInternalSettings = Seq(
+  unusedCompileDependenciesFilter -= moduleFilter("org.typelevel", "scalac-compat-annotation")
+)
+
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
   .disablePlugins(ScalafixPlugin)
+  .settings(scalafixInternalSettings)
   .settings(
     name := "http4s-scalafix-internal",
     mimaPreviousArtifacts := Set.empty,
@@ -858,6 +863,7 @@ lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
+  .settings(scalafixInternalSettings)
   .settings(
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
@@ -869,7 +875,11 @@ lazy val scalafixInternalOutput = project
   .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, tlFatalWarnings := false)
+  .settings(scalafixInternalSettings)
+  .settings(
+    headerSources / excludeFilter := AllPassFilter,
+    tlFatalWarnings := false,
+  )
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalTests = project
@@ -894,7 +904,7 @@ lazy val scalafixInternalTests = project
     scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
     scalacOptions += "-Yrangepos",
   )
-  .settings(headerSources / excludeFilter := AllPassFilter)
+  .settings(scalafixInternalSettings)
   .disablePlugins(ScalafixPlugin)
   .dependsOn(scalafixInternalRules)
 
