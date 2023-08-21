@@ -887,6 +887,7 @@ lazy val scalafixInternalTests = project
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
+    startYear := Some(2021),
     libraryDependencies := {
       if (tlIsScala3.value)
         libraryDependencies.value.filterNot(_.name == "scalafix-testkit")
