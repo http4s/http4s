@@ -51,6 +51,10 @@ object CharsetRange {
     def render(writer: Writer): writer.type = writer << charset << qValue
   }
 
+  object Atom extends scala.runtime.AbstractFunction2[Charset, QValue, Atom] {
+    def apply(charset: Charset, qValue: QValue = QValue.One): Atom = new Atom(charset, qValue)
+  }
+
   implicit def fromCharset(cs: Charset): CharsetRange.Atom = cs.toRange
 
   implicit val http4sEqForCharsetRange: Eq[CharsetRange] = Eq.fromUniversalEquals
