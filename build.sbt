@@ -856,7 +856,11 @@ lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, tlFatalWarnings := false)
+  .settings(
+    headerSources / excludeFilter := AllPassFilter,
+    tlFatalWarnings := false,
+    semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
+  )
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalOutput = project
