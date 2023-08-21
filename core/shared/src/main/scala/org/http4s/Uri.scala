@@ -64,7 +64,7 @@ import scala.util.hashing.MurmurHash3
   * @param query      optional Query. url-encoded.
   * @param fragment   optional Uri Fragment. url-encoded.
   */
-final case class Uri(
+final case class Uri private (
     scheme: Option[Uri.Scheme] = None,
     authority: Option[Uri.Authority] = None,
     path: Uri.Path = Uri.Path.empty,
@@ -210,7 +210,9 @@ object Uri extends UriPlatform {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
-    ParseResult.fromParser(Parser.uriReferenceUtf8, "Invalid URI")(s)
+    ParseResult
+      .fromParser(Parser.uriReferenceUtf8, "Invalid URI")(s)
+      .map(uri => uri.copy(query = uri.query.encode))
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
