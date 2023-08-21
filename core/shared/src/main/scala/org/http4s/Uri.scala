@@ -64,7 +64,7 @@ import scala.util.hashing.MurmurHash3
   * @param query      optional Query. url-encoded.
   * @param fragment   optional Uri Fragment. url-encoded.
   */
-final case class Uri private (
+final case class Uri(
     scheme: Option[Uri.Scheme] = None,
     authority: Option[Uri.Authority] = None,
     path: Uri.Path = Uri.Path.empty,
