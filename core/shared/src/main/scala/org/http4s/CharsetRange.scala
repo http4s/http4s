@@ -44,7 +44,7 @@ object CharsetRange {
 
   object `*` extends `*`(QValue.One)
 
-  final case class Atom protected[http4s] (charset: Charset, qValue: QValue = QValue.One)
+  final case class Atom private[http4s] (charset: Charset, qValue: QValue = QValue.One)
       extends CharsetRange {
     override def withQValue(q: QValue): CharsetRange.Atom = copy(qValue = q)
 

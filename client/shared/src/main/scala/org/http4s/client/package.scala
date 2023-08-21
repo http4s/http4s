@@ -16,20 +16,20 @@
 
 package org.http4s
 
+import org.typelevel.scalaccompat.annotation._
+
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.duration.FiniteDuration
 
-package object client {
-  object defaults {
-    val ConnectTimeout: FiniteDuration = 10.seconds
-    val RequestTimeout: FiniteDuration = 45.seconds
+package client {
+  @nowarn213("msg=package object inheritance is deprecated")
+  object `package` extends ClientTypes {
+    object defaults {
+      val ConnectTimeout: FiniteDuration = 10.seconds
+      val RequestTimeout: FiniteDuration = 45.seconds
+    }
   }
-
-  @deprecated("Is a Blaze detail.  Will be removed from public API.", "0.23.8")
-  type ConnectionBuilder[F[_], A <: Connection[F]] = RequestKey => F[A]
-
-  type Middleware[F[_]] = Client[F] => Client[F]
 }
 
 trait ClientTypes {

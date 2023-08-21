@@ -21,10 +21,10 @@
 
 | http4s                                   | Status                                  | Scala 2.11    | Scala 2.12    | Scala 2.13    | Scala 3       | Scala.js 1.x  | cats | fs2 | JDK |
 | ---------------------------------------- | --------------------------------------- | ------------- | ------------- | ------------- | ------------- | ------------- | --- | --- | ---- |
-| [@VERSION_1_0@](/v1.0/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
-| [@VERSION_0_23@](/v0.23/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
-| [@VERSION_0_22@](/v0.22/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | @:icon(error) | 2.x | 2.x | 1.8+ |
-| [@VERSION_0_21@](/v0.21/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | 2.x | 2.x | 1.8+ |
+| [@VERSION_1_0@](ext:/v1.0/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
+| [@VERSION_0_23@](ext:/v0.23/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
+| [@VERSION_0_22@](ext:/v0.22/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | @:icon(error) | 2.x | 2.x | 1.8+ |
+| [@VERSION_0_21@](ext:/v0.21/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | 2.x | 2.x | 1.8+ |
 | @VERSION_0_20@            | @:style(version-label, eol)EOL@:@       | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | @:icon(error) | 1.x | 1.x | 1.8+ |
 | @VERSION_0_18@            | @:style(version-label, eol)EOL@:@       | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | @:icon(error) | 1.x | 0.10.x | 1.8+ |
 | @VERSION_0_17@            | @:style(version-label, eol)EOL@:@       | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | @:icon(error) | 0.9.x | 0.9.x | 1.8+ |
