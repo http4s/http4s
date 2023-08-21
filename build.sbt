@@ -295,6 +295,7 @@ lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    Test / scalacOptions -= "-Xsource:3", // bugged
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.server.middleware.CSRF.this"
@@ -372,6 +373,7 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    Test / scalacOptions -= "-Xsource:3", // bugged
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
         .exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
