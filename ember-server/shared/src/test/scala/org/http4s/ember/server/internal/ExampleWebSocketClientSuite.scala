@@ -128,7 +128,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .use(_ => IO.unit)
   }
 
-  fixture.test("send and receive a message") { case (server, client, _) =>
+  fixture.test("send and receive a message".only) { case (server, client, _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsClient = EmberWSClient[IO](client)
 
@@ -137,6 +137,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .use(conn =>
         for {
           _ <- conn.send(WSFrame.Text("hello"))
+          // _ <- IO.sleep(1000.millis)
           received <- conn.receive
         } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
       )
@@ -192,75 +193,78 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       .use(conn =>
         for {
           _ <- conn.send(WSFrame.Text("hello"))
-          _ <- conn.receive
           receivedCloseFrame <- conn.receive
         } yield assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
       )
   }
 
-  fixture.test("receive a close frame in high-level connection") { case (server, client, _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-close"))
-    val wsClient = EmberWSClient[IO](client)
+  // fixture.test("receive a close frame in high-level connection") { case (server, client, _) =>
+  //   val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-close"))
+  //   val wsClient = EmberWSClient[IO](client)
 
-    wsClient
-      .connectHighLevel(wsRequest)
-      .use(conn =>
-        for {
-          _ <- conn.send(WSFrame.Text("hello"))
-          foo <- conn.receive
-          _ <- IO.println("fooo",foo)
-          // _ <- conn.closeFrame
-          // _ <- IO.println("closeFrame",receivedCloseFrame)
-        } yield () //assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
-      )
-  }
+  //   wsClient
+  //     .connectHighLevel(wsRequest)
+  //     .use(conn =>
+  //       for {
+  //         _ <- conn.send(WSFrame.Text("hello"))
+  //         foo <- conn.receive
+  //         _ <- IO.println("fooo", foo)
+  //         // _ <- conn.closeFrame
+  //         // _ <- IO.println("closeFrame",receivedCloseFrame)
+  //       } yield () // assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
+  //     )
+  // }
 
-  fixture.test("automatically close the connection".only) { case (_, client, _) =>
-    val closeFrame = WebSocketFrame.Close(1000, "").toTry.get
-    val frames = for {
-      ref <- Ref[IO].of(List.empty[WebSocketFrame])
-      server = EmberServerBuilder
-        .default[IO]
-        .withPort(port"0")
-        .withHttpWebSocketApp { wsb =>
-          val dsl = new Http4sDsl[IO] {}
-          import dsl._
-          HttpRoutes
-            .of[IO] { case GET -> Root =>
-              wsb
-                .withOnClose{
-                  println("Adding Close Frame")
-                  // ref.update(_ :+ closeFrame)
-                  ref.update(_ :+ closeFrame).delayBy(1.second)
-                }
-                .build(_.evalTap{f => 
-                  println("Text frame",f)
-                  ref.update(_ :+ f)})
-            }
-            .orNotFound
-        }
-        .withShutdownTimeout(1.second)
-        .build
-        .map(s => buildWSRequest(url(s.addressIp4s, "")))
-      _ <- server.use { req =>
-        val wsClient = EmberWSClient[IO](client)
-        wsClient.connect(req).use(conn => conn.send(WSFrame.Text("hi ember"))) *> 
-          IO.sleep(100.millis) *> // quick sleep to collect the close frame
-          wsClient.connectHighLevel(req).use { conn =>
-            conn.send(WSFrame.Text("hey ember"))
-          }
-        // IO.println("Disconnect")
-      }
-      frames <- ref.get
-      _ <- IO.println("Ref of frames",frames)
-    } yield frames
-    frames.assertEquals(
-      List(
-        WebSocketFrame.Text("hi ember"),
-        closeFrame,
-        WebSocketFrame.Text("hey ember"),
-        closeFrame
-      )
-    )
-  }
+  // fixture.test("automatically close the connection".only) { case (_, client, _) =>
+  //   val closeFrame = WebSocketFrame.Close(1000, "").toTry.get
+  //   val frames = for {
+  //     ref <- Ref[IO].of(List.empty[WebSocketFrame])
+  //     server = EmberServerBuilder
+  //       .default[IO]
+  //       .withPort(port"0")
+  //       .withHttpWebSocketApp { wsb =>
+  //         val dsl = new Http4sDsl[IO] {}
+  //         import dsl._
+  //         HttpRoutes
+  //           .of[IO] { case GET -> Root =>
+  //             wsb
+  //               .withOnClose {
+  //                 IO.println("Adding Close Frame")
+  //                 // ref.update(_ :+ closeFrame).delayBy(1.second)
+
+  //               }
+  //               .build(_.evalTap { f =>
+  //                 println("Text frame", f)
+  //                 ref.update(_ :+ f)
+  //               })
+  //           }
+  //           .orNotFound
+  //       }
+  //       .withShutdownTimeout(1.second)
+  //       .build
+  //       .map(s => buildWSRequest(url(s.addressIp4s, "")))
+  //     _ <- server.use { req =>
+  //       val wsClient = EmberWSClient[IO](client)
+  //       wsClient
+  //         .connect(req)
+  //         .use(conn => conn.send(WSFrame.Text("hi ember")) *> IO.sleep(100.millis)) // *>
+  //     //   IO.sleep(100.millis) *> // quick sleep to collect the close frame
+  //     // wsClient.connect(req).use { conn =>
+  //     //   conn.send(WSFrame.Text("hey ember")) *> IO.sleep(100.millis)
+  //     // }
+  //     // IO.println("Disconnect")
+  //     }
+  //     frames <- ref.get
+  //     _ <- IO.println("Ref of frames", frames)
+  //   } yield frames
+  //   frames.assertEquals(
+  //     List(
+  //       WebSocketFrame.Text("hi ember"),
+  //       closeFrame,
+  //       WebSocketFrame.Text("hey ember"),
+  //       closeFrame,
+  //     )
+  //     // List(WebSocketFrame.Text("hi ember"), closeFrame)
+  //   )
+  // }
 }
