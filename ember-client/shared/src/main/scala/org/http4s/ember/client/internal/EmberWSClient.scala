@@ -16,11 +16,13 @@
 
 package org.http4s.ember.client.internal
 
+import cats.MonadThrow
 import cats.effect.Async
 import cats.effect.implicits._
+import cats.effect.kernel.Resource
 import cats.effect.std.Queue
-import cats.MonadThrow
 import cats.syntax.all._
+import fs2.concurrent.Channel
 import org.http4s.Request
 import org.http4s._
 import org.http4s.client.Client
@@ -31,9 +33,6 @@ import org.http4s.ember.client.internal.WebSocketHelpers._
 import org.http4s.ember.core.WebSocketHelpers.decodeFrames
 import org.http4s.ember.core.WebSocketHelpers.frameToBytes
 import org.http4s.websocket.WebSocketFrame
-
-import fs2.concurrent.Channel
-import cats.effect.kernel.Resource
 
 object EmberWSClient {
   def apply[F[_]](
