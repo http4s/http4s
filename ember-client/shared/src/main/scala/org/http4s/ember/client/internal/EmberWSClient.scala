@@ -19,6 +19,7 @@ package org.http4s.ember.client.internal
 import cats.effect.Async
 import cats.effect.implicits._
 import cats.effect.std.Queue
+import cats.MonadThrow
 import cats.syntax.all._
 import org.http4s.Request
 import org.http4s._
@@ -51,29 +52,21 @@ object EmberWSClient {
         closeFrameDeffered <- F.deferred[WebSocketFrame.Close].toResource
 
         clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
-        // clientSendQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
-
         clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
 
         _ <- socket.reads
           .through(decodeFrames(true))
           .foreach {
             case f @ WebSocketFrame.Close(_) =>
-              println(s"close frame: ${f}").pure[F] *> closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
+              closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
             case f =>
-              println(s"normal frame: ${f}").pure[F] *> closeFrameDeffered.tryGet.flatMap { x =>
-                if (x.isDefined) println("dont receive").pure[F] *> F.unit else println("inserting into clientReceiveQueue").pure[F] *> clientReceiveQueue.offer(f)
+              closeFrameDeffered.tryGet.flatMap { x =>
+                if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
               }
           }
           .compile
           .drain
           .background
-
-        // _ <- clientSendQueue.take
-        //   .flatMap(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
-        //   .foreverM
-        //   .void
-        //   .background
 
         sendingFinished <- clientSendChannel.stream
           .foreach(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
@@ -81,15 +74,27 @@ object EmberWSClient {
           .drain
           .background
 
-        _ <- Resource.onFinalize(sendingFinished.void)
+        _ <- Resource.onFinalize {
+          MonadThrow[F]
+            .fromEither(WebSocketFrame.Close(1000, "Automatically close the connection"))
+            .flatMap(clientSendChannel.send(_))
+            .void *> clientSendChannel.close.void *> sendingFinished.void
+        }
       } yield new WSConnection[F] {
-        def receive: F[Option[WSFrame]] = clientReceiveQueue.size.map(println(_)) *> clientReceiveQueue.take.map{f => 
-          println(s"Received ${f}")
-          toWSFrame(f).some
+        def receive: F[Option[WSFrame]] = clientReceiveQueue.take.map {
+          case f @ WebSocketFrame.Close(_) =>
+            clientSendChannel.close.void
+            toWSFrame(f).some
+          case f =>
+            toWSFrame(f).some
         }
-        def send(wsf: WSFrame): F[Unit] = {
-          println("Sendingg").pure[F] *> toWebSocketFrame(wsf).flatMap(clientSendChannel.send(_).void) // *> println("Sendingg complete").pure[F]
-        }
+        def send(wsf: WSFrame): F[Unit] =
+          toWebSocketFrame(wsf).flatMap {
+            case WebSocketFrame.Close(_) =>
+              clientSendChannel.close.void
+            case f =>
+              clientSendChannel.send(f).void
+          }
         def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
             evidence$1: cats.Foldable[G]
         ): F[Unit] = wsfs.traverse_(send(_))
