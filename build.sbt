@@ -46,7 +46,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
           UseRef.Public(
             "codecov",
             "codecov-action",
-            "v2",
+            "v3",
           ),
           cond = Some("github.event_name != 'pull_request'"),
         ),

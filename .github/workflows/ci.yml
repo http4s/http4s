@@ -384,7 +384,7 @@ jobs:
       - run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' coverage rootJVM/test coverageAggregate'
 
       - if: github.event_name != 'pull_request'
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
 
   site:
     name: Generate Site
