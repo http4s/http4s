@@ -92,7 +92,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      body.close *> closedStreams.offer(id),
+      closedStreams.offer(id),
       goAway,
       logger,
     )
@@ -128,7 +128,7 @@ private[h2] class H2Connection[F[_]](
       refState,
       hpack,
       outgoing,
-      body.close *> closedStreams.offer(id),
+      closedStreams.offer(id),
       goAway,
       logger,
     )

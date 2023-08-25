@@ -21,6 +21,7 @@ import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Clock
 import cats.effect.kernel.Temporal
+import cats.effect.syntax.clock._
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
@@ -66,6 +67,7 @@ private[ember] object Util extends UtilPlatform {
   )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads
+
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =
       if (remains <= 0.millis)
         streamCurrentTimeMillis(C)
@@ -76,15 +78,13 @@ private[ember] object Util extends UtilPlatform {
           )
       else
         for {
-          start <- streamCurrentTimeMillis(C)
-          read <- Stream.eval(socket.read(chunkSize)) //  Each Read Yields
-          end <- streamCurrentTimeMillis(C)
-          out <- read.fold[Stream[F, Byte]](
-            Stream.empty
-          )(
-            Stream.chunk(_) ++ go(remains - (end - start).millis)
-          )
+          (processingTime, read) <- Stream.eval(socket.read(chunkSize).timed) //  Each Read Yields
+          out <- read match {
+            case None => Stream.empty
+            case Some(chunk) => Stream.chunk(chunk) ++ go(remains - processingTime)
+          }
         } yield out
+
     def go(remains: FiniteDuration): Stream[F, Byte] =
       Stream
         .eval(shallTimeout)
@@ -92,6 +92,7 @@ private[ember] object Util extends UtilPlatform {
           whenMayTimeout(remains),
           whenWontTimeout,
         )
+
     go(timeout)
   }
 
