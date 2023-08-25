@@ -33,9 +33,9 @@ import scala.collection.mutable.ArrayBuffer
 
 private[ember] object WebSocketHelpers {
 
-  def frameToBytes(frame: WebSocketFrame, isClient: Boolean): List[Chunk[Byte]] = {
+  def frameToBytes(frame: WebSocketFrame, isClient: Boolean): Chunk[Chunk[Byte]] = {
     val transcoder = new FrameTranscoder(isClient)
-    transcoder.frameToBuffer(frame).toList.map { buffer =>
+    Chunk.array(transcoder.frameToBuffer(frame)).map { buffer =>
       // TODO followup: improve the buffering here
       val bytes = new Array[Byte](buffer.remaining())
       buffer.get(bytes)

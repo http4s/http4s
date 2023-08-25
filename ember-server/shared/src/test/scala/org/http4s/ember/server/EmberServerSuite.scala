@@ -25,6 +25,7 @@ import fs2.io.net.ConnectException
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 import org.http4s.server.Server
 
@@ -152,6 +153,44 @@ class EmberServerSuite extends Http4sSuite {
         IO.sleep(1.second) *> // so server shutdown propagates
           serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
       }
+  }
+
+  test("#7146 - HTTP/2 request with body") {
+    val server = EmberServerBuilder
+      .default[IO]
+      .withPort(port"0")
+      .withHttp2
+      .withHttpApp(service)
+      .build
+
+    val client = EmberClientBuilder
+      .default[IO]
+      .withHttp2
+      .build
+
+    (server, client).tupled.use { case (server, client) =>
+      val req = Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo"))
+        .withEntity("hello")
+        .withAttribute(Http2PriorKnowledge, ())
+      client.expect[String](req).assertEquals("hello")
+    }
+  }
+
+  test("#7216 - client can replace a terminated connection with max total of 1") {
+    EmberClientBuilder.default[IO].withMaxTotal(1).build.use { client =>
+      def runReq(server: Server) = {
+        val req =
+          Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
+        client.expect[String](req).assertEquals("Hello!")
+      }
+
+      serverResource(_.withShutdownTimeout(0.nanos))
+        .use(server => runReq(server).as(server.addressIp4s.port))
+        .flatMap { port =>
+          IO.sleep(1.second) *> // so server shutdown propagates
+            serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+        }
+    }
   }
 
 }

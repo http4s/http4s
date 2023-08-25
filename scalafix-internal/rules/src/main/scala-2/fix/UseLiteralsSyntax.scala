@@ -23,12 +23,12 @@ import scala.meta._
 class UseLiteralsSyntax extends SemanticRule("Http4sUseLiteralsSyntax") {
   override def fix(implicit doc: SemanticDocument): Patch =
     doc.tree.collect {
-      case t @ Term.Apply(
+      case t @ Term.Apply.Initial(
             Uri_unsafeFromString_M(_),
             List(lit @ Lit.String(_))
           ) =>
         Patch.replaceTree(t, s"uri$lit") + importLiteralsIfNeeded
-      case t @ Term.Apply(
+      case t @ Term.Apply.Initial(
             Path_unsafeFromString_M(_),
             List(lit @ Lit.String(_))
           ) =>

@@ -12,6 +12,8 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
+ThisBuild / tlCiReleaseBranches += "ember-wsclient"
+
 ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
 
 ThisBuild / scalafixAll / skip := tlIsScala3.value
@@ -55,6 +57,8 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
       ),
   )
 )
+
+ThisBuild / githubWorkflowArtifactUpload := false
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -660,9 +664,7 @@ lazy val emberClient = libraryCrossProject("ember-client")
     mimaBinaryIssueFilters := Seq(
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
-      ProblemFilters.exclude[MissingClassProblem](
-        "org.http4s.ember.client.internal.ClientHelpersPlatform"
-      ),
+      ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
     ),
   )
   .jvmSettings(

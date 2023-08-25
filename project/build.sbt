@@ -7,8 +7,8 @@ scalacOptions := Seq(
 libraryDependencies ++= List(
   "com.eed3si9n" %% "treehugger" % "0.4.4",
   "io.circe" %% "circe-generic" % "0.14.5",
-  "org.http4s" %% "http4s-ember-client" % "0.23.19",
-  "org.http4s" %% "http4s-circe" % "0.23.19",
+  "org.http4s" %% "http4s-ember-client" % "0.23.23",
+  "org.http4s" %% "http4s-circe" % "0.23.23",
 )
 
 // native packager and scoverage are conflicting...

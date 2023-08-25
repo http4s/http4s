@@ -402,9 +402,9 @@ private[ember] object H2Client {
       RequestKey(uri.scheme.getOrElse(Scheme.http), authOrAddr)
     }
 
-    def getAddress[F[_]: Sync](
+    def getAddress[F[_]](
         requestKey: RequestKey
-    ): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
+    )(implicit F: MonadThrow[F]): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
       requestKey match {
         case RequestKey(s, Right(auth)) =>
           val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
@@ -413,7 +413,7 @@ private[ember] object H2Client {
             host <- Host.fromString(host).liftTo[F](MissingHost())
             port <- Port.fromInt(port).liftTo[F](MissingPort())
           } yield Right(SocketAddress[Host](host, port))
-        case RequestKey(_, Left(unixAddress)) => Sync[F].pure(Left(unixAddress))
+        case RequestKey(_, Left(unixAddress)) => F.pure(Left(unixAddress))
       }
   }
 

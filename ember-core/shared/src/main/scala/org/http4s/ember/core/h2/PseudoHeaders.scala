@@ -38,10 +38,14 @@ private[h2] object PseudoHeaders {
 
   import org.http4s.Request
   def requestToHeaders[F[_]](req: Request[F]): NonEmptyList[(String, String, Boolean)] = {
+    // RFC 7540 §8.1.2.3 specifies :path includes path and query
     val path = {
-      val s = req.uri.path.renderString
-      if (s.isEmpty) "/"
-      else s
+      val p = req.uri.path.renderString
+      val q = req.queryString
+      val query = if (q.isEmpty) q else s"?$q"
+      if (p.isEmpty) {
+        if (req.method === Method.OPTIONS && req.uri.query.isEmpty) "*" else s"/$query"
+      } else s"$p$query"
     }
     val l = NonEmptyList.of(
       (METHOD, req.method.toString, false),
@@ -106,16 +110,7 @@ private[h2] object PseudoHeaders {
   def extractAuthority(headers: List[(String, String)]): Option[Uri.Authority] =
     headers.collectFirstSome {
       case (PseudoHeaders.AUTHORITY, value) =>
-        val index = value.indexOf(":")
-        if (index > 0 && index < value.length) {
-          Option(
-            Uri.Authority(
-              userInfo = None,
-              host = Uri.RegName(value.take(index)),
-              port = value.drop(index + 1).toInt.some,
-            )
-          )
-        } else Option.empty
+        Uri.fromString(value).toOption.flatMap(_.authority)
       case (_, _) => None
     }
 
