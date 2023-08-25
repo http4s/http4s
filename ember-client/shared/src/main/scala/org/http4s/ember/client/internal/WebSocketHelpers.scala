@@ -16,20 +16,28 @@
 
 package org.http4s.ember.client.internal
 
+import cats.Applicative
 import cats.MonadThrow
 import cats.data.NonEmptyList
+import cats.effect.Concurrent
+import cats.effect.MonadCancel
+import cats.effect.Resource
 import cats.syntax.all._
+import fs2.io.net.Socket
+import org.http4s.Request
 import org.http4s.Status
 import org.http4s._
+import org.http4s.client.Client
+import org.http4s.client.websocket.WSFrame
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
-import org.http4s.headers.Connection
 import org.http4s.headers._
 import org.http4s.websocket.Rfc6455
+import org.http4s.websocket.WebSocketFrame
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
-private[client] object WebSocketHelpers {
+private[internal] object WebSocketHelpers {
 
   private[internal] val supportedWebSocketVersion = 13L
 
@@ -37,6 +45,42 @@ private[client] object WebSocketHelpers {
   private[internal] val webSocketProtocol = Protocol(ci"websocket", None)
   private[internal] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
   private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
+
+  def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
+      F: MonadCancel[F, Throwable]
+  ): Resource[F, Option[Socket[F]]] = {
+    val webSocketKey = WebSocketKey.webSocketConnection[F]
+    client
+      .run(request)
+      .evalMap { res =>
+        for {
+          secWebSocketKeyString <- request.headers
+            .get[`Sec-WebSocket-Key`]
+            .liftTo[F](new RuntimeException("Not found Sec-WebSocket-Key string"))
+            .map(_.hashString)
+          isValid <- validateServerHandshake(res, secWebSocketKeyString)
+        } yield isValid.toOption *> res.attributes.lookup(webSocketKey)
+      }
+  }
+
+  def toWebSocketFrame[F[_]: Concurrent](wsFrame: WSFrame): F[WebSocketFrame] =
+    wsFrame match {
+      case WSFrame.Close(code, reason) =>
+        MonadThrow[F].fromEither(WebSocketFrame.Close(code, reason))
+      case WSFrame.Ping(data) => Applicative[F].pure(WebSocketFrame.Ping(data))
+      case WSFrame.Pong(data) => Applicative[F].pure(WebSocketFrame.Pong(data))
+      case WSFrame.Text(data, last) => Applicative[F].pure(WebSocketFrame.Text(data, last))
+      case WSFrame.Binary(data, last) => Applicative[F].pure(WebSocketFrame.Binary(data, last))
+    }
+
+  def toWSFrame(wsf: WebSocketFrame): WSFrame =
+    wsf match {
+      case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
+      case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
+      case WebSocketFrame.Pong(data) => WSFrame.Pong(data)
+      case WebSocketFrame.Text(data, last) => WSFrame.Text(data, last)
+      case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
+    }
 
   /** Validate the opening handshake response from the server
     * https://datatracker.ietf.org/doc/html/rfc6455#page-6
@@ -55,7 +99,7 @@ private[client] object WebSocketHelpers {
 
   private[this] val magic = ByteVector.view(Rfc6455.handshakeMagicBytes)
 
-  private[internal] def clientHandshake[F[_]](
+  def clientHandshake[F[_]](
       value: String
   )(implicit F: MonadThrow[F]): F[ByteVector] = for {
     value <- ByteVector.encodeAscii(value).liftTo[F]
