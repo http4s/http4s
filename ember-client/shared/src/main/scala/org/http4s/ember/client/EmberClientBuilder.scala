@@ -31,6 +31,7 @@ import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
 import org.http4s.ember.client.internal.ClientHelpers
+import org.http4s.ember.client.internal.EmberWSClient
 import org.http4s.ember.client.internal.WebSocketKey
 import org.http4s.ember.core.h2.H2Client
 import org.http4s.ember.core.h2.H2Frame
@@ -387,7 +388,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       }
     }
 
-  def buildWebSocket: Resource[F, Client[F]] =
+  private def buildWebSocketHelper: Resource[F, Client[F]] =
     for {
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <-
@@ -539,6 +540,11 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
         new EmberClient(h2Client, pool)
       }
     }
+
+  def buildWebSocket: Resource[F, (Client[F], WSClient[F])] =
+    for {
+      httpClient <- buildWebSocketHelper
+    } yield (httpClient, EmberWSClient[F](client))
 }
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
