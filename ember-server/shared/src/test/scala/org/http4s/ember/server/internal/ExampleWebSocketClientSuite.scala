@@ -26,7 +26,6 @@ import org.http4s._
 import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.client.internal._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
@@ -117,18 +116,16 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       FunFixture.map3(_, _, _)
     )
 
-  fixture.test("open and close connection to server") { case (server, client, _) =>
+  fixture.test("open and close connection to server") { case (server, (_, wsClient), _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
 
     wsClient
       .connect(wsRequest)
       .use(_ => IO.unit)
   }
 
-  fixture.test("send and receive a message") { case (server, client, _) =>
+  fixture.test("send and receive a message") { case (server, (_, wsClient), _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
 
     wsClient
       .connect(wsRequest)
@@ -140,9 +137,8 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       )
   }
 
-  fixture.test("send and receive multiple messages") { case (server, client, _) =>
+  fixture.test("send and receive multiple messages") { case (server, (_, wsClient), _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
     val n = 10
     val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
     val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
@@ -158,9 +154,8 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("automatically close the connection when the client sends a close frame") {
-    case (server, client, _) =>
+    case (server, (_, wsClient), _) =>
       val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-      val wsClient = EmberWSClient[IO](client)
 
       wsClient
         .connect(wsRequest)
@@ -173,18 +168,17 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         )
   }
 
-  fixture.test("open and close high-level connection to server") { case (server, client, _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
+  fixture.test("open and close high-level connection to server") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
 
-    wsClient
-      .connectHighLevel(wsRequest)
-      .use(_ => IO.unit)
+      wsClient
+        .connectHighLevel(wsRequest)
+        .use(_ => IO.unit)
   }
 
-  fixture.test("send and receive a binary frame") { case (server, client, _) =>
+  fixture.test("send and receive a binary frame") { case (server, (_, wsClient), _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
-    val wsClient = EmberWSClient[IO](client)
     val binaryFrame = WSFrame.Binary(ByteVector(100, 100, 100), true)
 
     wsClient
@@ -197,9 +191,8 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       )
   }
 
-  fixture.test("receive a close frame in low-level connection") { case (server, client, _) =>
+  fixture.test("receive a close frame in low-level connection") { case (server, (_, wsClient), _) =>
     val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-close"))
-    val wsClient = EmberWSClient[IO](client)
 
     wsClient
       .connect(wsRequest)
