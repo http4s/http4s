@@ -30,6 +30,7 @@ import org.http4s.Response
 import org.http4s.client._
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
+import org.http4s.client.websocket.WSClient
 import org.http4s.ember.client.internal.ClientHelpers
 import org.http4s.ember.client.internal.EmberWSClient
 import org.http4s.ember.client.internal.WebSocketKey
@@ -544,7 +545,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def buildWebSocket: Resource[F, (Client[F], WSClient[F])] =
     for {
       httpClient <- buildWebSocketHelper
-    } yield (httpClient, EmberWSClient[F](client))
+    } yield (httpClient, EmberWSClient[F](httpClient))
 }
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
