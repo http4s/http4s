@@ -21,6 +21,7 @@ import cats.effect.Async
 import cats.effect.implicits._
 import cats.effect.kernel.Resource
 import cats.effect.std.Queue
+import cats.effect.std.SecureRandom
 import cats.syntax.all._
 import fs2.concurrent.Channel
 import org.http4s.Request
@@ -30,21 +31,35 @@ import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
 import org.http4s.ember.client.internal.WebSocketHelpers._
-import org.http4s.ember.core.WebSocketHelpers.decodeFrames
-import org.http4s.ember.core.WebSocketHelpers.frameToBytes
+import org.http4s.ember.core.WebSocketHelpers._
+import org.http4s.headers.`Sec-WebSocket-Key`
 import org.http4s.websocket.WebSocketFrame
+import scodec.bits.ByteVector
 
-object EmberWSClient {
+import java.util.Base64
+
+private[client] object EmberWSClient {
   def apply[F[_]](
       emberClient: Client[F]
   )(implicit F: Async[F]): WSClient[F] =
     WSClient[F](respondToPings = false) { wsRequest =>
-      val httpWSRequest = Request[F]()
-        .withUri(wsRequest.uri)
-        .withHeaders(wsRequest.headers)
-        .withMethod(Method.GET)
-
       for {
+        randomByteArray <- Resource.eval(
+          SecureRandom.javaSecuritySecureRandom[F].flatMap(_.nextBytes(16))
+        )
+
+        httpWSRequest = Request[F]()
+          .withUri(wsRequest.uri)
+          .withHeaders(
+            Headers(
+              upgradeWebSocket,
+              connectionUpgrade,
+              supportedWebSocketVersionHeader,
+              new `Sec-WebSocket-Key`(ByteVector(Base64.getEncoder().encode(randomByteArray))),
+            )
+          )
+          .withMethod(Method.GET)
+
         socketOption <- getSocket(emberClient, httpWSRequest)
         socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
 
@@ -85,6 +100,7 @@ object EmberWSClient {
             clientSendChannel.close.void
             toWSFrame(f).some
           case f =>
+            println("frameee", f)
             toWSFrame(f).some
         }
         def send(wsf: WSFrame): F[Unit] =

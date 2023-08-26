@@ -29,16 +29,12 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
-import org.http4s.headers.`Sec-WebSocket-Key`
-import org.http4s.headers.`Sec-WebSocket-Version`
 import org.http4s.server.Server
 import org.http4s.server.websocket._
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
-
-import java.util.Base64
 
 class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -91,17 +87,6 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
       s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
     )
 
-  def buildWSRequest(url: Uri): WSRequest = WSRequest(
-    method = Method.GET,
-    uri = url,
-    headers = Headers(
-      upgradeWebSocket,
-      connectionUpgrade,
-      `Sec-WebSocket-Version`(supportedWebSocketVersion),
-      new `Sec-WebSocket-Key`(ByteVector(Base64.getDecoder().decode(exampleSecWebSocketKey))),
-    ),
-  )
-
   def toWSFrame(wsf: WebSocketFrame): WSFrame =
     wsf match {
       case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
@@ -117,7 +102,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
     )
 
   fixture.test("open and close connection to server") { case (server, (_, wsClient), _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
 
     wsClient
       .connect(wsRequest)
@@ -125,7 +110,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("send and receive a message") { case (server, (_, wsClient), _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
 
     wsClient
       .connect(wsRequest)
@@ -138,7 +123,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("send and receive multiple messages") { case (server, (_, wsClient), _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val n = 10
     val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
     val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
@@ -155,7 +140,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("automatically close the connection when the client sends a close frame") {
     case (server, (_, wsClient), _) =>
-      val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
 
       wsClient
         .connect(wsRequest)
@@ -170,7 +155,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   fixture.test("open and close high-level connection to server") {
     case (server, (_, wsClient), _) =>
-      val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
 
       wsClient
         .connectHighLevel(wsRequest)
@@ -178,7 +163,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("send and receive a binary frame") { case (server, (_, wsClient), _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val binaryFrame = WSFrame.Binary(ByteVector(100, 100, 100), true)
 
     wsClient
@@ -192,7 +177,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
   }
 
   fixture.test("receive a close frame in low-level connection") { case (server, (_, wsClient), _) =>
-    val wsRequest = buildWSRequest(url(server.addressIp4s, "/ws-close"))
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-close"))
 
     wsClient
       .connect(wsRequest)
