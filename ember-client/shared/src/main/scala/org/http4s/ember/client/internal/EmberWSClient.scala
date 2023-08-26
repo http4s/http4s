@@ -100,7 +100,6 @@ private[client] object EmberWSClient {
             clientSendChannel.close.void
             toWSFrame(f).some
           case f =>
-            println("frameee", f)
             toWSFrame(f).some
         }
         def send(wsf: WSFrame): F[Unit] =
