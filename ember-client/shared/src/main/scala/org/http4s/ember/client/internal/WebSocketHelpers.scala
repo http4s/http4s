@@ -39,12 +39,15 @@ import scodec.bits.ByteVector
 
 private[internal] object WebSocketHelpers {
 
-  private[internal] val supportedWebSocketVersion = 13L
+  val supportedWebSocketVersion = 13L
 
-  private[internal] val upgradeCi = ci"upgrade"
-  private[internal] val webSocketProtocol = Protocol(ci"websocket", None)
-  private[internal] val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
-  private[internal] val upgradeWebSocket = Upgrade(webSocketProtocol)
+  val supportedWebSocketVersionHeader: `Sec-WebSocket-Version` = `Sec-WebSocket-Version`(
+    supportedWebSocketVersion
+  )
+  val upgradeCi: CIString = ci"upgrade"
+  val webSocketProtocol: Protocol = Protocol(ci"websocket", None)
+  val connectionUpgrade: Connection = Connection(NonEmptyList.of(upgradeCi))
+  val upgradeWebSocket: Upgrade = Upgrade(webSocketProtocol)
 
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]
@@ -56,7 +59,7 @@ private[internal] object WebSocketHelpers {
         for {
           secWebSocketKeyString <- request.headers
             .get[`Sec-WebSocket-Key`]
-            .liftTo[F](new RuntimeException("Not found Sec-WebSocket-Key string"))
+            .liftTo[F](new RuntimeException("Sec-WebSocket-Key header not found"))
             .map(_.hashString)
           isValid <- validateServerHandshake(res, secWebSocketKeyString)
         } yield isValid.toOption *> res.attributes.lookup(webSocketKey)

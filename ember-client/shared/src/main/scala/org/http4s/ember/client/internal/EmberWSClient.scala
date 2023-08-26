@@ -90,7 +90,7 @@ private[client] object EmberWSClient {
 
         _ <- Resource.onFinalize {
           MonadThrow[F]
-            .fromEither(WebSocketFrame.Close(1000, "Automatically close the connection"))
+            .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
             .flatMap(clientSendChannel.send(_))
             .void *> clientSendChannel.close.void *> sendingFinished.void
         }
