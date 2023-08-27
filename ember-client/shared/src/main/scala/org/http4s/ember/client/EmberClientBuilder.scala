@@ -401,7 +401,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def buildWebSocket: Resource[F, (Client[F], WSClient[F])] =
     for {
       httpClient <- buildHelper(ws = true)
-    } yield (httpClient, EmberWSClient[F](httpClient))
+      wsClient <- Resource.eval(EmberWSClient[F](httpClient))
+    } yield (httpClient, wsClient)
 }
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
