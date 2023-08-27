@@ -20,7 +20,7 @@ import cats.effect.SyncIO
 import fs2.io.net.Socket
 import org.typelevel.vault._
 
-object WebSocketKey {
+private[client] object WebSocketKey {
 
   private[this] val wsConnectionInternal: Key[Any] = Key.newKey[SyncIO, Any].unsafeRunSync()
   def webSocketConnection[F[_]]: Key[Socket[F]] =

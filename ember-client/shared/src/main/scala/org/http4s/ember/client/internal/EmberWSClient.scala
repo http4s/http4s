@@ -21,6 +21,7 @@ import cats.effect.Async
 import cats.effect.implicits._
 import cats.effect.kernel.Resource
 import cats.effect.std.Queue
+import cats.effect.std.SecureRandom
 import cats.syntax.all._
 import fs2.concurrent.Channel
 import org.http4s.Request
@@ -30,74 +31,88 @@ import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
 import org.http4s.ember.client.internal.WebSocketHelpers._
-import org.http4s.ember.core.WebSocketHelpers.decodeFrames
-import org.http4s.ember.core.WebSocketHelpers.frameToBytes
+import org.http4s.ember.core.WebSocketHelpers._
+import org.http4s.headers.`Sec-WebSocket-Key`
 import org.http4s.websocket.WebSocketFrame
+import scodec.bits.ByteVector
 
-object EmberWSClient {
+import java.util.Base64
+
+private[client] object EmberWSClient {
   def apply[F[_]](
       emberClient: Client[F]
-  )(implicit F: Async[F]): WSClient[F] =
-    WSClient[F](respondToPings = false) { wsRequest =>
-      val httpWSRequest = Request[F]()
-        .withUri(wsRequest.uri)
-        .withHeaders(wsRequest.headers)
-        .withMethod(Method.GET)
+  )(implicit F: Async[F]): F[WSClient[F]] =
+    SecureRandom.javaSecuritySecureRandom[F].map { random =>
+      WSClient[F](respondToPings = false) { wsRequest =>
+        for {
+          randomByteArray <- Resource.eval(random.nextBytes(16))
 
-      for {
-        socketOption <- getSocket(emberClient, httpWSRequest)
-        socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
+          httpWSRequest = Request[F]()
+            .withUri(wsRequest.uri)
+            .withHeaders(
+              Headers(
+                upgradeWebSocket,
+                connectionUpgrade,
+                supportedWebSocketVersionHeader,
+                new `Sec-WebSocket-Key`(ByteVector(Base64.getEncoder().encode(randomByteArray))),
+              )
+            )
+            .withMethod(Method.GET)
 
-        closeFrameDeffered <- F.deferred[WebSocketFrame.Close].toResource
+          socketOption <- getSocket(emberClient, httpWSRequest)
+          socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
 
-        clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
-        clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
+          closeFrameDeffered <- F.deferred[WebSocketFrame.Close].toResource
 
-        _ <- socket.reads
-          .through(decodeFrames(true))
-          .foreach {
+          clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
+          clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
+
+          _ <- socket.reads
+            .through(decodeFrames(true))
+            .foreach {
+              case f @ WebSocketFrame.Close(_) =>
+                closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
+              case f =>
+                closeFrameDeffered.tryGet.flatMap { x =>
+                  if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
+                }
+            }
+            .compile
+            .drain
+            .background
+
+          sendingFinished <- clientSendChannel.stream
+            .foreach(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
+            .compile
+            .drain
+            .background
+
+          _ <- Resource.onFinalize {
+            MonadThrow[F]
+              .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
+              .flatMap(clientSendChannel.send(_))
+              .void *> clientSendChannel.close.void *> sendingFinished.void
+          }
+        } yield new WSConnection[F] {
+          def receive: F[Option[WSFrame]] = clientReceiveQueue.take.map {
             case f @ WebSocketFrame.Close(_) =>
-              closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
-            case f =>
-              closeFrameDeffered.tryGet.flatMap { x =>
-                if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
-              }
-          }
-          .compile
-          .drain
-          .background
-
-        sendingFinished <- clientSendChannel.stream
-          .foreach(f => frameToBytes(f, true).traverse_(c => socket.write(c)))
-          .compile
-          .drain
-          .background
-
-        _ <- Resource.onFinalize {
-          MonadThrow[F]
-            .fromEither(WebSocketFrame.Close(1000, "Automatically close the connection"))
-            .flatMap(clientSendChannel.send(_))
-            .void *> clientSendChannel.close.void *> sendingFinished.void
-        }
-      } yield new WSConnection[F] {
-        def receive: F[Option[WSFrame]] = clientReceiveQueue.take.map {
-          case f @ WebSocketFrame.Close(_) =>
-            clientSendChannel.close.void
-            toWSFrame(f).some
-          case f =>
-            toWSFrame(f).some
-        }
-        def send(wsf: WSFrame): F[Unit] =
-          toWebSocketFrame(wsf).flatMap {
-            case WebSocketFrame.Close(_) =>
               clientSendChannel.close.void
+              toWSFrame(f).some
             case f =>
-              clientSendChannel.send(f).void
+              toWSFrame(f).some
           }
-        def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
-            evidence$1: cats.Foldable[G]
-        ): F[Unit] = wsfs.traverse_(send(_))
-        def subprotocol: Option[String] = ???
+          def send(wsf: WSFrame): F[Unit] =
+            toWebSocketFrame(wsf).flatMap {
+              case WebSocketFrame.Close(_) =>
+                clientSendChannel.close.void
+              case f =>
+                clientSendChannel.send(f).void
+            }
+          def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
+              evidence$1: cats.Foldable[G]
+          ): F[Unit] = wsfs.traverse_(send(_))
+          def subprotocol: Option[String] = ???
+        }
       }
     }
 }
