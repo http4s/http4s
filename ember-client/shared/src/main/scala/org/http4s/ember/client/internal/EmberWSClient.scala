@@ -47,8 +47,15 @@ private[client] object EmberWSClient {
         for {
           randomByteArray <- Resource.eval(random.nextBytes(16))
 
+          uriString = wsRequest.uri.renderString
+          newUriString = uriString match {
+            case x if x.startsWith("wss") => uriString.replaceFirst("wss", "https")
+            case x if x.startsWith("ws") => uriString.replaceFirst("ws", "https")
+            case _ => uriString
+          }
+
           httpWSRequest = Request[F]()
-            .withUri(wsRequest.uri)
+            .withUri(Uri.unsafeFromString(newUriString))
             .withHeaders(
               Headers(
                 upgradeWebSocket,
