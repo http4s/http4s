@@ -84,7 +84,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
 
   def url(address: SocketAddress[Host], path: String = ""): Uri =
     Uri.unsafeFromString(
-      s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
+      s"ws://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
     )
 
   def toWSFrame(wsf: WebSocketFrame): WSFrame =
