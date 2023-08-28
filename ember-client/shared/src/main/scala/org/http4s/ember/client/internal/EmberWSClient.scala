@@ -45,17 +45,20 @@ private[client] object EmberWSClient {
     SecureRandom.javaSecuritySecureRandom[F].map { random =>
       WSClient[F](respondToPings = false) { wsRequest =>
         for {
-          randomByteArray <- Resource.eval(random.nextBytes(16))
+          uriScheme <- wsRequest.uri.scheme
+            .liftTo[F](new RuntimeException("Not found Scheme in WSRequest"))
+            .toResource
 
-          uriString = wsRequest.uri.renderString
-          newUriString = uriString match {
-            case x if x.startsWith("wss") => uriString.replaceFirst("wss", "https")
-            case x if x.startsWith("ws") => uriString.replaceFirst("ws", "https")
-            case _ => uriString
+          newUriScheme = uriScheme.value match {
+            case "wss" => Uri.Scheme.https
+            case "ws" => Uri.Scheme.http
+            case _ => uriScheme
           }
 
+          randomByteArray <- Resource.eval(random.nextBytes(16))
+
           httpWSRequest = Request[F]()
-            .withUri(Uri.unsafeFromString(newUriString))
+            .withUri(wsRequest.uri.copy(newUriScheme.some))
             .withHeaders(
               Headers(
                 upgradeWebSocket,
