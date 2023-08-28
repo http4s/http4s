@@ -46,19 +46,20 @@ private[client] object EmberWSClient {
       WSClient[F](respondToPings = false) { wsRequest =>
         for {
           uriScheme <- wsRequest.uri.scheme
-            .liftTo[F](new RuntimeException("Not found Scheme in WSRequest"))
+            .liftTo[F](new RuntimeException("URI scheme missing"))
+            .map(scheme =>
+              scheme.value match {
+                case "wss" => Uri.Scheme.https
+                case "ws" => Uri.Scheme.http
+                case _ => scheme
+              }
+            )
             .toResource
-
-          newUriScheme = uriScheme.value match {
-            case "wss" => Uri.Scheme.https
-            case "ws" => Uri.Scheme.http
-            case _ => uriScheme
-          }
 
           randomByteArray <- Resource.eval(random.nextBytes(16))
 
           httpWSRequest = Request[F]()
-            .withUri(wsRequest.uri.copy(newUriScheme.some))
+            .withUri(wsRequest.uri.copy(uriScheme.some))
             .withHeaders(
               Headers(
                 upgradeWebSocket,
