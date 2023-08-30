@@ -31,7 +31,7 @@ class StreamingParserSuite extends Http4sSuite {
     def taking[F[_]: Concurrent, A](segments: List[List[A]]): F[F[Option[Chunk[A]]]] =
       for {
         q <- Queue.unbounded[F, Option[Chunk[A]]]
-        _ <- segments.traverse(bytes => q.offer(Some(Chunk.seq(bytes))))
+        _ <- segments.traverse(bytes => q.offer(Some(Chunk.from(bytes))))
         _ <- q.offer(None)
       } yield q.take
 
