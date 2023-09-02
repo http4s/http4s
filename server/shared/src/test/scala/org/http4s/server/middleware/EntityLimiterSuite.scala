@@ -112,4 +112,20 @@ class EntityLimiterSuite extends Http4sSuite {
       .recover { case EntityTooLarge(i) => i }
       .assertEquals(5L)
   }
+
+  test("Acually limit the bytes prior to raising error") {
+    IO.ref(0L).flatMap { counter => // count how many bytes are observed by the app
+      def middleware(r: Request[IO]) =
+        r.pipeBodyThrough(_.evalTap(_ => counter.getAndUpdate(_ + 1)))
+      val app: HttpApp[IO] =
+        routes.local(middleware).orNotFound
+
+      EntityLimiter
+        .httpApp(app, 5L)
+        .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.eval(IO[Byte](0))))
+        .as(-1L)
+        .recover { case EntityTooLarge(i) => i }
+        .assertEquals(5L) *> counter.get.assertEquals(5L)
+    }
+  }
 }
