@@ -92,4 +92,24 @@ class EntityLimiterSuite extends Http4sSuite {
       .handleError { case EntityTooLarge(i) => i }
       .assertEquals(3L)
   }
+
+  test("Accept an appropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.empty[IO]))
+      .void
+  }
+
+  test("Reject an innapropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.eval(IO[Byte](0))))
+      .as(-1L)
+      .recover { case EntityTooLarge(i) => i }
+      .assertEquals(5L)
+  }
 }
