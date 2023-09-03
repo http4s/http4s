@@ -138,9 +138,8 @@ private[http4s] object MultipartDecoder {
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
                 Right(Multipart(parts, Boundary(boundary)))
               )
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+              .recover { case e: DecodeFailure =>
+                Left(e)
               }
           }
         case None =>

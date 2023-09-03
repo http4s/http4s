@@ -245,6 +245,21 @@ I am a big moose
         Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
       request.as[String].map(s => assert(s.endsWith("--arf--\r\n"), s))
     }
+
+    test(s"$name should not wrap errors unrelated to multipart decoding") {
+      object CustomError extends Throwable
+
+      val badBody = Stream.raiseError[IO](CustomError)
+      val multipart = Multipart[IO](Vector.empty, Boundary("boundary"))
+      val request =
+        Request(method = Method.POST, uri = url, body = badBody, headers = multipart.headers)
+
+      mkDecoder.use { decoder =>
+        val decoded = decoder.decode(request, true)
+        val result = decoded.value
+        assertIO(result.attempt, Left(CustomError))
+      }.assert
+    }
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
