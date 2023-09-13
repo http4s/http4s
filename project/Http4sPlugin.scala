@@ -116,7 +116,7 @@ object Http4sPlugin extends AutoPlugin {
     val javaWebSocket = "1.5.4"
     val jawn = "1.5.1"
     val jawnFs2 = "2.4.0"
-    val jnrUnixSocket = "0.38.20"
+    val jnrUnixSocket = "0.38.21"
     val keypool = "0.4.8"
     val literally = "1.1.0"
     val logback = "1.2.6"
