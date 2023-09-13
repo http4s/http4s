@@ -155,7 +155,7 @@ private[client] object ClientHelpers {
     def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
-        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+        .through(_.chunks.foreach(c => socket.write(c).timeout(idleTimeout)))
         .compile
         .drain
 
@@ -169,12 +169,11 @@ private[client] object ClientHelpers {
         ).flatMapN { (head, firstRead) =>
           Parser.Response.parser(maxResponseHeaderSize)(
             firstRead.foldLeft(head)(Util.concatBytes(_, _)),
-            timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
+            connection.keySocket.socket.read(chunkSize).timeout(idleTimeout),
           )
         }
 
-        timeoutToMaybe(
-          parse,
+        parse.timeoutTo(
           timeout,
           Defer[F].defer(
             ApplicativeThrow[F].raiseError(

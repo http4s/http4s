@@ -19,6 +19,7 @@ package org.http4s.ember.server.internal
 import cats._
 import cats.effect._
 import cats.effect.kernel.Resource
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Stream
@@ -362,8 +363,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
-    val parseWithHeaderTimeout = timeoutToMaybe(
-      parse,
+    val parseWithHeaderTimeout = 
+      parse.timeoutTo(
       requestHeaderReceiveTimeout,
       D.defer(
         F.raiseError[(Request[F], F[Option[Array[Byte]]])](
@@ -391,7 +392,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   ): F[Unit] =
     Encoder
       .respToBytes[F](resp)
-      .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+      .through(_.chunks.foreach(c => socket.write(c).timeout(idleTimeout)))
       .compile
       .drain
       .onError { case err =>
@@ -426,7 +427,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   ): Stream[F, Nothing] = {
     type State = (Array[Byte], Boolean)
     val finalApp = if (enableHttp2) H2Server.h2cUpgradeMiddleware(httpApp) else httpApp
-    val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
+    val read: Read[F] = socket.read(receiveBufferSize).timeout(idleTimeout)
       .adaptError {
         // TODO MERGE: Replace with TimeoutException on series/0.23+.
         case _: TimeoutException => EmberException.ReadTimeout(idleTimeout)

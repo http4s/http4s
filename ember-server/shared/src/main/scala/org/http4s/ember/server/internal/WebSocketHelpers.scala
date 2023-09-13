@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Temporal
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -33,7 +34,6 @@ import org.http4s._
 import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import org.http4s.ember.core.Read
-import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers.Connection
 import org.http4s.headers._
 import org.http4s.syntax.all._
@@ -115,9 +115,9 @@ private[internal] object WebSocketHelpers {
       receiveBufferSize: Int,
       idleTimeout: Duration,
   )(implicit F: Temporal[F]): F[Unit] = {
-    val read: Read[F] = timeoutMaybe(socket.read(receiveBufferSize), idleTimeout)
+    val read: Read[F] = socket.read(receiveBufferSize).timeout(idleTimeout)
     def writeFrame(frame: WebSocketFrame): F[Unit] =
-      frameToBytes(frame).traverse_(c => timeoutMaybe(socket.write(c), idleTimeout))
+      frameToBytes(frame).traverse_(c => socket.write(c).timeout(idleTimeout))
 
     val incoming = Stream.chunk(Chunk.array(buffer)) ++ readStream(read)
 

@@ -20,7 +20,6 @@ package ember.core
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Clock
-import cats.effect.kernel.Temporal
 import cats.effect.syntax.clock._
 import cats.syntax.all._
 import fs2._
@@ -95,23 +94,6 @@ private[ember] object Util extends UtilPlatform {
 
     go(timeout)
   }
-
-  def durationToFinite(duration: Duration): Option[FiniteDuration] = duration match {
-    case f: FiniteDuration => Some(f)
-    case _ => None
-  }
-
-  def timeoutMaybe[F[_], A](fa: F[A], d: Duration)(implicit F: Temporal[F]): F[A] =
-    d match {
-      case fd: FiniteDuration => F.timeout(fa, fd)
-      case _ => fa
-    }
-
-  def timeoutToMaybe[F[_], A](fa: F[A], d: Duration, ft: F[A])(implicit F: Temporal[F]): F[A] =
-    d match {
-      case fd: FiniteDuration => F.timeoutTo(fa, fd, ft)
-      case _ => fa
-    }
 
   def connectionFor(httpVersion: HttpVersion, headers: Headers): Connection =
     if (isKeepAlive(httpVersion, headers)) keepAlive
