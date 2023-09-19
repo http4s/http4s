@@ -102,6 +102,7 @@ object BasicCredentials {
   private def decode(bytes: Array[Byte], charset: JavaCharset): String =
     new String(bytes, charset)
 
+  @deprecated("Use fromString instead", "0.23.24")
   def apply(token: String): BasicCredentials = {
     val bytes = Base64.getDecoder.decode(token)
     val (userPass, charset) = decode(bytes, utf8CharsetDecoder)
@@ -112,11 +113,22 @@ object BasicCredentials {
     }
   }
 
+  def fromString(token: String): Option[BasicCredentials] =
+    Try(Base64.getDecoder.decode(token)).toOption.map { bytes =>
+      val (userPass, charset) = decode(bytes, utf8CharsetDecoder)
+        .fold(_ => (decode(bytes, fallbackCharset), fallbackCharset), up => (up, utf8Charset))
+      userPass.indexOf(':') match {
+        case -1 => apply(userPass, "", charset)
+        case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1), charset)
+      }
+    }
+
   def unapply(creds: Credentials): Option[(String, String)] =
     creds match {
       case Credentials.Token(AuthScheme.Basic, token) =>
-        val basicCredentials = BasicCredentials(token)
-        Some((basicCredentials.username, basicCredentials.password))
+        fromString(token).map { basicCredentials =>
+          (basicCredentials.username, basicCredentials.password)
+        }
       case _ =>
         None
     }
