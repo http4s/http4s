@@ -103,15 +103,8 @@ object BasicCredentials {
     new String(bytes, charset)
 
   @deprecated("Use fromString instead", "0.23.24")
-  def apply(token: String): BasicCredentials = {
-    val bytes = Base64.getDecoder.decode(token)
-    val (userPass, charset) = decode(bytes, utf8CharsetDecoder)
-      .fold(_ => (decode(bytes, fallbackCharset), fallbackCharset), up => (up, utf8Charset))
-    userPass.indexOf(':') match {
-      case -1 => apply(userPass, "", charset)
-      case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1), charset)
-    }
-  }
+  def apply(token: String): BasicCredentials =
+    fromString(token).get
 
   def fromString(token: String): Option[BasicCredentials] =
     Try(Base64.getDecoder.decode(token)).toOption.map { bytes =>
