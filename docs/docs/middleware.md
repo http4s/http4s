@@ -166,7 +166,6 @@ See [Server Middleware].
 [HSTS]: hsts.md
 [Server Middleware]: server-middleware.md
 [Service Timeout]: @API_URL@/org/http4s/server/middleware/Timeout$
-[Jsonp]: @API_URL@/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: @API_URL@/org/http4s/server/middleware/VirtualHost$
 [Metrics]: @API_URL@/org/http4s/server/middleware/Metrics$
 [`X-Request-ID` header]: @API_URL@/org/http4s/server/middleware/RequestId$
