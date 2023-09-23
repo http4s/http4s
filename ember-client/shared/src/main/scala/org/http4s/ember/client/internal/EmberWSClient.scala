@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import cats.MonadThrow
 import cats.effect.Async
 import cats.effect.implicits._
 import cats.effect.kernel.Resource
@@ -95,25 +94,20 @@ private[client] object EmberWSClient {
             .drain
             .background
 
-          closeFrame <- Resource.eval(
-            MonadThrow[F]
-              .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
-          )
-
           _ <- Resource.onFinalize {
-            clientSendChannel.closeWithElement(closeFrame).void *> sendingFinished.void
+            closeChannelWithCloseFrame(clientSendChannel) *> sendingFinished.void
           }
         } yield new WSConnection[F] {
           def receive: F[Option[WSFrame]] = clientReceiveQueue.take.flatMap {
             case f @ WebSocketFrame.Close(_) =>
-              clientSendChannel.closeWithElement(closeFrame).as(toWSFrame(f).some)
+              closeChannelWithCloseFrame(clientSendChannel).as(toWSFrame(f).some)
             case f =>
               toWSFrame(f).some.pure[F]
           }
           def send(wsf: WSFrame): F[Unit] =
             toWebSocketFrame(wsf).flatMap {
               case WebSocketFrame.Close(_) =>
-                clientSendChannel.closeWithElement(closeFrame).void
+                closeChannelWithCloseFrame(clientSendChannel)
               case f =>
                 clientSendChannel.send(f).void
             }
