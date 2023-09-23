@@ -625,6 +625,7 @@ chunkAggregatorClient
 Jsonp is a javascript technique to load json data without using [XMLHttpRequest],
 which bypasses the same-origin security policy implemented in browsers.
 Jsonp usage is discouraged and can often be replaced with correct CORS configuration.
+This middleware has been deprecated as of 0.23.24.
 
 ```scala mdoc:compile-only
 import org.http4s.server.middleware.Jsonp
