@@ -16,31 +16,25 @@
 
 package org.http4s.ember.server
 
+import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.std.Dispatcher
-import cats.effect.std.Queue
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.Pipe
 import fs2.Stream
 import org.http4s._
+import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.headers.Connection
+import org.http4s.headers.Upgrade
 import org.http4s.implicits._
 import org.http4s.server.Server
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket._
 import org.http4s.testing.DispatcherIOFixture
-import org.http4s.websocket.WebSocketFrame
-import org.java_websocket.WebSocket
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.framing.CloseFrame
-import org.java_websocket.framing.Framedata
-import org.java_websocket.framing.PingFrame
-import org.java_websocket.handshake.ServerHandshake
+import org.http4s.websocket._
+import org.typelevel.ci._
 import scodec.bits.ByteVector
-
-import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -85,173 +79,128 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .withHttpWebSocketApp(service[IO])
       .build
 
-  private def fixture = (ResourceFunFixture(serverResource), dispatcher).mapN(FunFixture.map2(_, _))
+  val clientResource = EmberClientBuilder
+    .default[IO]
+    .buildWebSocket
 
-  sealed case class Client(
-      waitOpen: Deferred[IO, Option[Throwable]],
-      waitClose: Deferred[IO, Option[Throwable]],
-      messages: Queue[IO, String],
-      binaryMessages: Queue[IO, ByteVector],
-      pongs: Queue[IO, String],
-      remoteClosed: Deferred[IO, Unit],
-      closeCode: Deferred[IO, Int],
-      client: WebSocketClient,
-  ) {
-    def connect: IO[Unit] =
-      IO(client.connect()) >> waitOpen.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
-    def close: IO[Unit] =
-      IO(client.close()) >> waitClose.get.flatMap(ex => IO.fromEither(ex.toLeft(())))
-    def send(msg: String): IO[Unit] = IO(client.send(msg))
-    def sendBinary(msg: ByteVector): IO[Unit] = IO(client.send(msg.toArray))
-    def ping(data: String): IO[Unit] = IO {
-      val frame = new PingFrame()
-      frame.setPayload(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)))
-      client.sendFrame(frame)
-    }
-  }
+  val supportedWebSocketVersion = 13L
 
-  def createClient(target: URI, dispatcher: Dispatcher[IO]): IO[Client] =
-    for {
-      waitOpen <- Deferred[IO, Option[Throwable]]
-      waitClose <- Deferred[IO, Option[Throwable]]
-      queue <- Queue.unbounded[IO, String]
-      binaryQueue <- Queue.unbounded[IO, ByteVector]
-      pongQueue <- Queue.unbounded[IO, String]
-      remoteClosed <- Deferred[IO, Unit]
-      closeCode <- Deferred[IO, Int]
-      client = new WebSocketClient(target) {
-        override def onOpen(handshakedata: ServerHandshake): Unit = {
-          val fa = waitOpen.complete(None)
-          dispatcher.unsafeRunSync(fa)
-          ()
-        }
-        override def onClose(code: Int, reason: String, remote: Boolean): Unit = {
-          val fa = waitOpen
-            .complete(Some(new Throwable(s"closed: code: $code, reason: $reason")))
-            .attempt >> closeCode.complete(code) >> waitClose.complete(None)
-          dispatcher.unsafeRunSync(fa)
-          ()
-        }
-        override def onMessage(msg: String): Unit =
-          dispatcher.unsafeRunSync(queue.offer(msg))
+  val upgradeCi = ci"upgrade"
+  val webSocketProtocol = Protocol(ci"websocket", None)
+  val connectionUpgrade = Connection(NonEmptyList.of(upgradeCi))
+  val upgradeWebSocket = Upgrade(webSocketProtocol)
+  val exampleSecWebSocketKey = "dGhlIHNhbXBsZSBub25jZQ=="
 
-        override def onMessage(bytes: ByteBuffer): Unit =
-          dispatcher.unsafeRunSync(binaryQueue.offer(ByteVector.view(bytes)))
-
-        override def onError(ex: Exception): Unit = {
-          val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt.void
-          dispatcher.unsafeRunSync(fa)
-        }
-        override def onWebsocketPong(conn: WebSocket, f: Framedata): Unit = {
-          val fa = pongQueue
-            .offer(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
-          dispatcher.unsafeRunSync(fa)
-        }
-        override def onClosing(code: Int, reason: String, remote: Boolean): Unit = {
-          dispatcher.unsafeRunSync(remoteClosed.complete(()))
-          ()
-        }
-      }
-    } yield Client(
-      waitOpen,
-      waitClose,
-      queue,
-      binaryQueue,
-      pongQueue,
-      remoteClosed,
-      closeCode,
-      client,
+  def url(address: SocketAddress[Host], path: String = ""): Uri =
+    Uri.unsafeFromString(
+      s"ws://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
     )
 
-  fixture.test("open and close connection to server") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.close
-    } yield ()
+  def toWSFrame(wsf: WebSocketFrame): WSFrame =
+    wsf match {
+      case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
+      case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
+      case WebSocketFrame.Pong(data) => WSFrame.Pong(data)
+      case WebSocketFrame.Text(data, last) => WSFrame.Text(data, last)
+      case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
+    }
+
+  private def fixture =
+    (ResourceFunFixture(serverResource), ResourceFunFixture(clientResource), dispatcher).mapN(
+      FunFixture.map3(_, _, _)
+    )
+
+  fixture.test("open and close connection to server") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+
+    wsClient
+      .connect(wsRequest)
+      .use(_ => IO.unit)
   }
 
-  fixture.test("send and receive a message") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
+  fixture.test("send and receive a message") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Text("hello"))
+          received <- conn.receive
+        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
       )
-      _ <- client.connect
-      _ <- client.send("foo")
-      msg <- client.messages.take
-      _ <- client.close
-    } yield assertEquals(msg, "foo")
   }
 
-  fixture.test("respond to pings") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
+  fixture.test("send and receive multiple messages") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+    val n = 10
+    val messages = List.tabulate(n)(i => WSFrame.Text(s"${i + 1}"))
+    val expectedMessages = List.tabulate(n)(i => Some(WSFrame.Text(s"${i + 1}")))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.sendMany(messages)
+          received <- conn.receive.replicateA(n)
+        } yield assertEquals(received, expectedMessages)
       )
-      _ <- client.connect
-      _ <- client.ping("hello")
-      data <- client.pongs.take
-      _ <- client.close
-    } yield assertEquals(data, "hello")
+  }
+
+  fixture.test("send and receive a binary message") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+    val binaryFrame = WSFrame.Binary(ByteVector(100, 100, 100), true)
+
+    wsClient
+      .connectHighLevel(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(binaryFrame)
+          received <- conn.receive
+        } yield assertEquals(received, Some(binaryFrame))
+      )
+  }
+
+  fixture.test("respond to pings") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+    val ping = WSFrame.Ping(ByteVector(100, 100, 100))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(ping)
+          received <- conn.receive
+          _ <- IO.println("pong", received)
+        } yield assertEquals(received, Some(WSFrame.Pong(ByteVector(100, 100, 100))))
+      )
   }
 
   fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
-    case (server, dispatcher) =>
-      for {
-        client <- createClient(
-          URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-close"),
-          dispatcher,
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-close"))
+
+      wsClient
+        .connect(wsRequest)
+        .use(conn =>
+          for {
+            _ <- conn.send(WSFrame.Text("hello"))
+            _ <- conn.receive
+            receivedCloseFrame <- conn.receive
+          } yield assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
         )
-        _ <- client.connect
-        _ <- client.messages.take
-        _ <- client.remoteClosed.get
-        code <- client.closeCode.get
-      } yield assertEquals(code, CloseFrame.NORMAL)
   }
 
-  fixture.test("respects withFilterPingPongs(false)") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-filter-false"),
-        dispatcher,
+  fixture.test("respects withFilterPingPongs(false)") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-filter-false"))
+    val ping = WSFrame.Ping(ByteVector("pingu".getBytes()))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(ping)
+        } yield ()
       )
-      _ <- client.connect
-      _ <- client.ping("pingu")
-      _ <- client.remoteClosed.get
-    } yield ()
   }
-
-  fixture.test("send and receive multiple messages") { case (server, dispatcher) =>
-    val n = 10
-    val messages = List.tabulate(n)(i => s"${i + 1}")
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- messages.traverse_(client.send)
-      messagesReceived <- client.messages.take.replicateA(n)
-      _ <- client.close
-    } yield assertEquals(messagesReceived, messages)
-  }
-
-  fixture.test("send and receive a binary message") { case (server, dispatcher) =>
-    for {
-      client <- createClient(
-        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-echo"),
-        dispatcher,
-      )
-      _ <- client.connect
-      _ <- client.sendBinary(ByteVector(100, 100, 100))
-      binaryMessagesReceived <- client.binaryMessages.take
-      _ <- client.close
-    } yield assertEquals(binaryMessagesReceived, ByteVector(100, 100, 100))
-  }
-
 }
