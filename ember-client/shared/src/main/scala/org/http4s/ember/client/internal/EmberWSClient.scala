@@ -95,24 +95,25 @@ private[client] object EmberWSClient {
             .drain
             .background
 
-          _ <- Resource.onFinalize {
+          closeFrame <- Resource.eval(
             MonadThrow[F]
               .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
-              .flatMap(clientSendChannel.send(_))
-              .void *> clientSendChannel.close.void *> sendingFinished.void
+          )
+
+          _ <- Resource.onFinalize {
+            clientSendChannel.closeWithElement(closeFrame).void *> sendingFinished.void
           }
         } yield new WSConnection[F] {
-          def receive: F[Option[WSFrame]] = clientReceiveQueue.take.map {
+          def receive: F[Option[WSFrame]] = clientReceiveQueue.take.flatMap {
             case f @ WebSocketFrame.Close(_) =>
-              clientSendChannel.close.void
-              toWSFrame(f).some
+              clientSendChannel.closeWithElement(closeFrame).as(toWSFrame(f).some)
             case f =>
-              toWSFrame(f).some
+              toWSFrame(f).some.pure[F]
           }
           def send(wsf: WSFrame): F[Unit] =
             toWebSocketFrame(wsf).flatMap {
               case WebSocketFrame.Close(_) =>
-                clientSendChannel.close.void
+                clientSendChannel.closeWithElement(closeFrame).void
               case f =>
                 clientSendChannel.send(f).void
             }
