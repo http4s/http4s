@@ -162,7 +162,7 @@ class ExampleWebSocketClientSuite extends Http4sSuite with DispatcherIOFixture {
         .use(_ => IO.unit)
   }
 
-  fixture.test("send and receive a binary frame") { case (server, (_, wsClient), _) =>
+  fixture.test("send and receive a binary message") { case (server, (_, wsClient), _) =>
     val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val binaryFrame = WSFrame.Binary(ByteVector(100, 100, 100), true)
 
