@@ -171,7 +171,6 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         for {
           _ <- conn.send(ping)
           received <- conn.receive
-          _ <- IO.println("pong", received)
         } yield assertEquals(received, Some(WSFrame.Pong(ByteVector(100, 100, 100))))
       )
   }
