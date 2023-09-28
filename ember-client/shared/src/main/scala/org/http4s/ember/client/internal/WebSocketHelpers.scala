@@ -61,17 +61,6 @@ private[internal] object WebSocketHelpers {
 
       _ <- EitherT(clientSendChannel.closeWithElement(closeFrame))
         .getOrRaise(new RuntimeException("Connection already closed"))
-
-      // _ <- clientSendChannel
-      //   .closeWithElement(closeFrame)
-      //   .flatMap(_ match {
-      //     case Left(_) => F.raiseError(new RuntimeException("Connection already closed")).void
-      //     case _ => F.unit
-      //   })
-      // .map {
-      //   case Left(_) => new RuntimeException("Channel already closed")
-      //   case _ => ()
-      // }
     } yield ()
 
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
