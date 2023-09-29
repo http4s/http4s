@@ -54,7 +54,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           }
           wsBuilder.build(sendReceive)
         case GET -> Root / "ws-close" =>
-          val send = Stream(WebSocketFrame.Text("foo"))
+          val send = Stream.eval(F.pure(WebSocketFrame.Text("foo")))
           wsBuilder.build(send, _.void)
         case GET -> Root / "ws-filter-false" =>
           F.deferred[Unit].flatMap { deferred =>
