@@ -15,9 +15,5 @@
  */
 
 package org.http4s
-package circe
 
-import org.typelevel.scalaccompat.annotation._
-
-@nowarn213("msg=package object inheritance is deprecated")
-object `package` extends CirceInstances
+package object circe extends CirceInstances
