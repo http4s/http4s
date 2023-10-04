@@ -15,7 +15,6 @@
  */
 
 package org.http4s
-package internal
 
 import cats._
 import cats.data._
@@ -28,7 +27,6 @@ import fs2.Pipe
 import fs2.Pull
 import fs2.RaiseThrowable
 import fs2.Stream
-import org.typelevel.scalaccompat.annotation._
 
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -40,8 +38,7 @@ import java.util.concurrent.CompletionException
 import java.util.concurrent.CompletionStage
 import scala.util.control.NoStackTrace
 
-@nowarn213("msg=package object inheritance is deprecated")
-private[http4s] object `package` extends InternalPlatform {
+package object internal extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
   @deprecated("Will be removed in 1.0.", "0.23.19")

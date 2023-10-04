@@ -16,19 +16,14 @@
 
 package org.http4s
 
-import org.typelevel.scalaccompat.annotation._
-
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.duration.FiniteDuration
 
-package client {
-  @nowarn213("msg=package object inheritance is deprecated")
-  object `package` extends ClientTypes {
-    object defaults {
-      val ConnectTimeout: FiniteDuration = 10.seconds
-      val RequestTimeout: FiniteDuration = 45.seconds
-    }
+package object client extends ClientTypes {
+  object defaults {
+    val ConnectTimeout: FiniteDuration = 10.seconds
+    val RequestTimeout: FiniteDuration = 45.seconds
   }
 }
 
