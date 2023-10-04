@@ -20,7 +20,6 @@ package headers
 import cats.Applicative
 import cats.parse.Parser0
 import cats.parse.Rfc5234
-import org.http4s.Header
 import org.http4s.parser.ZipkinHeader
 import org.http4s.util.Renderable
 import org.http4s.util.Writer

@@ -21,7 +21,7 @@
 
 | http4s                                   | Status                                  | Scala 2.11    | Scala 2.12    | Scala 2.13    | Scala 3       | Scala.js 1.x  | cats | fs2 | JDK |
 | ---------------------------------------- | --------------------------------------- | ------------- | ------------- | ------------- | ------------- | ------------- | --- | --- | ---- |
-| [@VERSION_1_0@](/v1.0/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
+| [@VERSION_1_0@](/v1/)   | @:style(version-label, dev)Milestone@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
 | [@VERSION_0_23@](/v0.23/) | @:style(version-label, stable)Stable@:@ | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | 1.7           | 2.x | 3.x | 1.8+ |
 | [@VERSION_0_22@](/v0.22/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | 3.0           | @:icon(error) | 2.x | 2.x | 1.8+ |
 | [@VERSION_0_21@](/v0.21/) | @:style(version-label, eol)EOL@:@       | @:icon(error) | @:icon(check) | @:icon(check) | @:icon(error) | @:icon(error) | 2.x | 2.x | 1.8+ |

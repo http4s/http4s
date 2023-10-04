@@ -6,32 +6,30 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
+ThisBuild / tlBspCrossProjectPlatforms := Set(JVMPlatform)
 ThisBuild / tlBaseVersion := "0.23"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
-ThisBuild / semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value)
-
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 
-ThisBuild / githubWorkflowJobSetup ~= {
-  _.filterNot(_.name.exists(_.matches("(Download|Setup) Java .+")))
+ThisBuild / githubWorkflowJobSetup ~= { steps =>
+  Seq(
+    WorkflowStep.Use(
+      UseRef.Public("cachix", "install-nix-action", "v20"),
+      name = Some("Install Nix"),
+    ),
+    WorkflowStep.Use(
+      UseRef.Public("cachix", "cachix-action", "v12"),
+      name = Some("Install Cachix"),
+      params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
+    ),
+  ) ++ steps
 }
-ThisBuild / githubWorkflowJobSetup ++= Seq(
-  WorkflowStep.Use(
-    UseRef.Public("cachix", "install-nix-action", "v20"),
-    name = Some("Install Nix"),
-  ),
-  WorkflowStep.Use(
-    UseRef.Public("cachix", "cachix-action", "v12"),
-    name = Some("Install Cachix"),
-    params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
-  ),
-)
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
@@ -48,7 +46,7 @@ ThisBuild / githubWorkflowAddedJobs ++= Seq(
           UseRef.Public(
             "codecov",
             "codecov-action",
-            "v2",
+            "v3",
           ),
           cond = Some("github.event_name != 'pull_request'"),
         ),
@@ -91,7 +89,6 @@ lazy val modules: List[CompositeProject] = List(
 )
 
 lazy val root = tlCrossRootProject
-  .disablePlugins(ScalafixPlugin)
   .settings(
     // Root project
     name := "http4s",
@@ -298,6 +295,7 @@ lazy val server = libraryCrossProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    Test / scalacOptions -= "-Xsource:3", // bugged
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.server.middleware.CSRF.this"
@@ -375,6 +373,7 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
+    Test / scalacOptions -= "-Xsource:3", // bugged
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters
         .exclude[Problem]("org.http4s.client.oauth1.package.genAuthHeader"), // private[oauth1]
@@ -793,7 +792,7 @@ lazy val docs = http4sProject("site")
       cryptobits,
     ),
     description := "Documentation for http4s",
-    tlFatalWarningsInCi := false,
+    tlFatalWarnings := false,
     fork := false,
   )
   .dependsOn(
@@ -824,7 +823,7 @@ lazy val examplesEmber = exampleProject("examples-ember")
     description := "Examples of http4s server and clients on ember",
     startYear := Some(2020),
     fork := true,
-    scalacOptions -= "-Xfatal-warnings",
+    tlFatalWarnings := false,
     coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
@@ -843,9 +842,14 @@ lazy val examplesDocker = http4sProject("examples-docker")
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
+lazy val scalafixInternalSettings = Seq(
+  unusedCompileDependenciesFilter -= moduleFilter("org.typelevel", "scalac-compat-annotation")
+)
+
 lazy val scalafixInternalRules = project
   .in(file("scalafix-internal/rules"))
   .disablePlugins(ScalafixPlugin)
+  .settings(scalafixInternalSettings)
   .settings(
     name := "http4s-scalafix-internal",
     mimaPreviousArtifacts := Set.empty,
@@ -859,14 +863,23 @@ lazy val scalafixInternalInput = project
   .in(file("scalafix-internal/input"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .settings(scalafixInternalSettings)
+  .settings(
+    headerSources / excludeFilter := AllPassFilter,
+    tlFatalWarnings := false,
+    semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
+  )
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalOutput = project
   .in(file("scalafix-internal/output"))
   .enablePlugins(NoPublishPlugin)
   .disablePlugins(ScalafixPlugin)
-  .settings(headerSources / excludeFilter := AllPassFilter, scalacOptions -= "-Xfatal-warnings")
+  .settings(scalafixInternalSettings)
+  .settings(
+    headerSources / excludeFilter := AllPassFilter,
+    tlFatalWarnings := false,
+  )
   .dependsOn(core.jvm)
 
 lazy val scalafixInternalTests = project
@@ -874,6 +887,7 @@ lazy val scalafixInternalTests = project
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(ScalafixTestkitPlugin)
   .settings(
+    startYear := Some(2021),
     libraryDependencies := {
       if (tlIsScala3.value)
         libraryDependencies.value.filterNot(_.name == "scalafix-testkit")
@@ -891,7 +905,7 @@ lazy val scalafixInternalTests = project
     scalafixTestkitInputScalacOptions := (scalafixInternalInput / Compile / scalacOptions).value,
     scalacOptions += "-Yrangepos",
   )
-  .settings(headerSources / excludeFilter := AllPassFilter)
+  .settings(scalafixInternalSettings)
   .disablePlugins(ScalafixPlugin)
   .dependsOn(scalafixInternalRules)
 

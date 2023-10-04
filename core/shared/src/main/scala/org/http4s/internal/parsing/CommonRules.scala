@@ -81,7 +81,7 @@ private[parsing] trait CommonRules {
       between(
         char('('),
         if (n <= 0) Parser.failWith("exceeded maximum comment depth")
-        else cText.orElse(quotedPair).orElse(go(n - 1)).rep0.string,
+        else cText.orElse(quotedPair).orElse[Any](go(n - 1)).rep0.string,
         char(')'),
       )
     go(maxDepth)

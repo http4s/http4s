@@ -127,7 +127,7 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
           case `Transfer-Encoding`.name =>
             `Transfer-Encoding`
               .parse(h.value)
-              .redeem(
+              .redeem[Unit](
                 _ => b += h,
                 _.filter(_ != TransferCoding.chunked)
                   .foreach(b += _.toRaw1),

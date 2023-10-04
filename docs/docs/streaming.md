@@ -81,10 +81,11 @@ import fs2.io.stdout
 import fs2.text.{lines, utf8}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
+import org.typelevel.jawn.Facade
 
 class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
-  implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
+  implicit val f: Facade[Json] = new io.circe.jawn.CirceSupportParser(None, false).facade
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.

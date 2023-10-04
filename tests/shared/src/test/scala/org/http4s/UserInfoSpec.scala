@@ -18,7 +18,6 @@ package org.http4s
 
 import cats.kernel.laws.discipline.HashTests
 import cats.kernel.laws.discipline.OrderTests
-import cats.syntax.all._
 import org.http4s.Uri.UserInfo
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._

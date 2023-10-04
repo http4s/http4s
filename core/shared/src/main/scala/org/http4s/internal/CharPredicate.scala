@@ -237,6 +237,10 @@ object CharPredicate {
     override def toString(): String = "CharPredicate.MaskBased(" + new String(toArray) + ')'
   }
 
+  object MaskBased extends scala.runtime.AbstractFunction2[Long, Long, MaskBased] {
+    def apply(lowMask: Long, highMask: Long): MaskBased = new MaskBased(lowMask, highMask)
+  }
+
   final class RangeBased private[CharPredicate] (private val range: NumericRange[Char])
       extends CharPredicate {
     def apply(c: Char): Boolean = range contains c
@@ -350,6 +354,10 @@ object CharPredicate {
       }
 
     override def toString(): String = "CharPredicate.General@" + System.identityHashCode(this)
+  }
+
+  object General extends scala.runtime.AbstractFunction1[(Char => Boolean), General] {
+    def apply(predicate: Char => Boolean): General = new General(predicate)
   }
 
   // scalafix:on

@@ -19,7 +19,6 @@ package headers
 
 import cats.parse.Parser
 import cats.parse.Rfc5234
-import org.http4s.Header
 import org.typelevel.ci._
 
 object `X-B3-Sampled` {

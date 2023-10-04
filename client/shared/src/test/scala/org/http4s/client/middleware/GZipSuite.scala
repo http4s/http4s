@@ -31,6 +31,7 @@ class GZipSuite extends Http4sSuite {
       Ok("Dummy response")
     case HEAD -> Root / "gziptest" =>
       Ok()
+    case _ => NotFound()
   })
   private val gzipClient = GZip()(Client.fromHttpApp(service))
 

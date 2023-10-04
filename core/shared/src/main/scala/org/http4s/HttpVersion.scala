@@ -72,6 +72,8 @@ final case class HttpVersion private[HttpVersion] (major: Int, minor: Int)
 
 object HttpVersion {
 
+  def apply(major: Int, minor: Int): HttpVersion = new HttpVersion(major, minor)
+
   /** HTTP/0.9 was first formalized in the HTTP/1.0 spec. `HTTP/0.9`
     * does not literally appear in the HTTP/0.9 protocol.
     *
