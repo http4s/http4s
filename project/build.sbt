@@ -10,8 +10,3 @@ libraryDependencies ++= List(
   "org.http4s" %% "http4s-ember-client" % "0.23.23",
   "org.http4s" %% "http4s-circe" % "0.23.23",
 )
-
-// native packager and scoverage are conflicting...
-libraryDependencySchemes ++= Seq(
-  "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
-)
