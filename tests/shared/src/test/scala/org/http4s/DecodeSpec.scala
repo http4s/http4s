@@ -100,7 +100,7 @@ class DecodeSpec extends Http4sSuite {
     val source = Stream(0x80.toByte, 0x81.toByte)
     val decoded =
       source.through(decodeWithCharset[Fallible](JCharset.forName("IBM1098"))).compile.string
-    val Left(_: UnmappableCharacterException) = decoded
+    val Left(_: UnmappableCharacterException) = decoded: @unchecked
   }
 
   test("decode should handle overflows") {
@@ -120,7 +120,7 @@ class DecodeSpec extends Http4sSuite {
     val source = Stream(-1.toByte)
     val decoded =
       source.through(decodeWithCharset[Fallible](JCharset.forName("x-IBM943"))).compile.string
-    val Left(_: MalformedInputException) = decoded
+    val Left(_: MalformedInputException) = decoded: @unchecked
   }
 
   test("decode stream result should be consistent with nio's decode on full stream") {

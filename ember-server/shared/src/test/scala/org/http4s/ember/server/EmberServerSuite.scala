@@ -176,4 +176,21 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
+  test("#7216 - client can replace a terminated connection with max total of 1") {
+    EmberClientBuilder.default[IO].withMaxTotal(1).build.use { client =>
+      def runReq(server: Server) = {
+        val req =
+          Request[IO](Method.POST, uri = url(server.address, "/echo")).withEntity("Hello!")
+        client.expect[String](req).assertEquals("Hello!")
+      }
+
+      serverResource(_.withShutdownTimeout(0.nanos))
+        .use(server => runReq(server).as(server.address.port))
+        .flatMap { port =>
+          IO.sleep(1.second) *> // so server shutdown propagates
+            serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+        }
+    }
+  }
+
 }

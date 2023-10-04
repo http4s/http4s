@@ -16,13 +16,8 @@
 
 package org.http4s
 
-import cats.effect.SyncIO
-import org.typelevel.log4cats
-
 private[http4s] object Platform {
   final val isJvm = false
   final val isJs = false
   final val isNative = true
-
-  lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] = log4cats.noop.NoOpFactory[SyncIO]
 }

@@ -44,11 +44,17 @@ object CharsetRange {
 
   object `*` extends `*`(QValue.One)
 
-  final case class Atom protected[http4s] (charset: Charset, qValue: QValue = QValue.One)
-      extends CharsetRange {
+  final case class Atom private (
+      charset: Charset,
+      qValue: QValue = QValue.One,
+  ) extends CharsetRange {
     override def withQValue(q: QValue): CharsetRange.Atom = copy(qValue = q)
 
     def render(writer: Writer): writer.type = writer << charset << qValue
+  }
+
+  object Atom {
+    def apply(charset: Charset, qValue: QValue = QValue.One): Atom = new Atom(charset, qValue)
   }
 
   implicit def fromCharset(cs: Charset): CharsetRange.Atom = cs.toRange

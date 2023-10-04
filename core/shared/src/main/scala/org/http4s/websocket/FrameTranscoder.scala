@@ -115,9 +115,13 @@ class FrameTranscoder(val isClient: Boolean) {
     buff.put(b2.byteValue)
 
     // Put the length if we have an extended length packet
-    if (in.length > 125 && in.length <= 0xffff)
+    if (in.length > 125 && in.length <= 0xffff) {
       buff.put((in.length >>> 8 & 0xff).toByte).put((in.length & 0xff).toByte)
-    else if (in.length > 0xffff) buff.putLong(in.length.toLong)
+      ()
+    } else if (in.length > 0xffff) {
+      buff.putLong(in.length.toLong)
+      ()
+    }
 
     // If we are a client, we need to mask the data, else just wrap it in a buffer and done
     if (isClient && in.length > 0) { // need to mask outgoing bytes

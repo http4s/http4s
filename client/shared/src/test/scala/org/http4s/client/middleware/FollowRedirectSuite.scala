@@ -66,11 +66,6 @@ class FollowRedirectSuite extends Http4sSuite with Http4sClientDsl[IO] {
   private val defaultClient = Client.fromHttpApp(app)
   private val client = FollowRedirect(3)(defaultClient)
 
-  private case class RedirectResponse(
-      method: String,
-      body: String,
-  )
-
   test("FollowRedirect should strip payload headers when switching to GET") {
     // We could test others, and other scenarios, but this was a pain.
     val req = Request[IO](PUT, uri"http://localhost/303").withEntity("foo")

@@ -23,6 +23,9 @@ import org.http4s.util.Writer
 import org.typelevel.ci._
 
 object `Content-Type` {
+  def apply(mediaType: MediaType, charset: Option[Charset]): `Content-Type` =
+    new `Content-Type`(mediaType, charset)
+
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
     apply(mediaType, Some(charset))
   def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)

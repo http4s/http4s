@@ -17,7 +17,6 @@
 package org.http4s
 package headers
 
-import org.http4s.Header
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Renderer

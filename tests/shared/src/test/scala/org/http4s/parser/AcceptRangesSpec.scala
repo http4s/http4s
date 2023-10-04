@@ -17,7 +17,6 @@
 package org.http4s
 package parser
 
-import org.http4s.RangeUnit
 import org.http4s.headers.`Accept-Ranges`
 import org.http4s.syntax.header._
 

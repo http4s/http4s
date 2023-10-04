@@ -43,6 +43,10 @@ object `Access-Control-Max-Age` {
     def unsafeDuration: FiniteDuration = age.seconds
   }
 
+  object Cache {
+    def apply(age: Long): Cache = new Cache(age)
+  }
+
   def fromLong(age: Long): ParseResult[`Access-Control-Max-Age`] =
     if (age >= 0)
       ParseResult.success(Cache.apply(age))
@@ -67,11 +71,12 @@ object `Access-Control-Max-Age` {
   private[http4s] val parser = AdditionalRules.Long.map(unsafeFromLong)
 
   implicit val headerInstance: Header[`Access-Control-Max-Age`, Header.Single] =
-    Header.createRendered(
+    Header.createRendered[`Access-Control-Max-Age`, Header.Single, Long](
       name,
       {
         case Cache(age) => age
         case NoCaching => -1
+        case _ => throw new AssertionError
       },
       parse,
     )

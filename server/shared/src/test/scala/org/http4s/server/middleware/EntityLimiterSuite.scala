@@ -26,18 +26,17 @@ import org.http4s.Method._
 import org.http4s.Status._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.syntax.all._
-import scodec.bits.ByteVector
-
-import java.nio.charset.StandardCharsets
+import scodec.bits._
 
 class EntityLimiterSuite extends Http4sSuite {
   private val routes = HttpRoutes.of[IO] {
     case r if r.pathInfo == path"/echo" => r.decode(Response(Ok).withEntity(_: String).pure[IO])
   }
 
-  private val helloBytes = "hello".getBytes(StandardCharsets.UTF_8)
-  private val defaultEntity = Entity.stream(chunk(Chunk.array(helloBytes)))
-  private val strictEntity = Entity.strict(ByteVector.view(helloBytes))
+  private val helloBytes = utf8Bytes"hello"
+  private val helloStream = chunk(Chunk.byteVector(helloBytes))
+  private val defaultEntity = Entity.stream(helloStream)
+  private val strictEntity = Entity.strict(helloBytes)
 
   test("Allow reasonable default entity") {
     EntityLimiter(routes, 100)
@@ -68,7 +67,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", entity = defaultEntity))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -77,7 +76,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", entity = strictEntity))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -96,7 +95,7 @@ class EntityLimiterSuite extends Http4sSuite {
       st.apply(Request[IO](POST, uri"/echo", entity = defaultEntity))
         .map(_ => -1L)
         .value
-        .handleError { case EntityTooLarge(i) => Some(i) }
+        .recover { case EntityTooLarge(i) => Some(i) }
         .assertEquals(Some(3L))
   }
 
@@ -106,7 +105,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", entity = defaultEntity))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -117,7 +116,46 @@ class EntityLimiterSuite extends Http4sSuite {
       .httpApp(app, 3L)
       .apply(Request[IO](POST, uri"/echo", entity = defaultEntity))
       .map(_ => -1L)
-      .handleError { case EntityTooLarge(i) => i }
+      .recover { case EntityTooLarge(i) => i }
       .assertEquals(3L)
+  }
+
+  test("Accept an appropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", entity = Entity.stream(helloStream ++ Stream.empty[IO])))
+      .void
+  }
+
+  test("Reject an innapropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+    val entity = Entity.stream(helloStream ++ Stream.eval(IO[Byte](0)))
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", entity = entity))
+      .as(-1L)
+      .recover { case EntityTooLarge(i) => i }
+      .assertEquals(5L)
+  }
+
+  test("Acually limit the bytes prior to raising error") {
+    IO.ref(0L).flatMap { counter => // count how many bytes are observed by the app
+      def middleware(r: Request[IO]) =
+        r.pipeBodyThrough(_.evalTap(_ => counter.getAndUpdate(_ + 1)))
+      val app: HttpApp[IO] =
+        routes.local(middleware).orNotFound
+
+      val entity = Entity.stream(helloStream ++ Stream.eval(IO[Byte](0)))
+
+      EntityLimiter
+        .httpApp(app, 5L)
+        .apply(Request[IO](POST, uri"/echo", entity = entity))
+        .as(-1L)
+        .recover { case EntityTooLarge(i) => i }
+        .assertEquals(5L) *> counter.get.assertEquals(5L)
+    }
   }
 }

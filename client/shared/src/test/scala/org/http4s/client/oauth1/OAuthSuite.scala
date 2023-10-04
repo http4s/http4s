@@ -29,7 +29,7 @@ class OAuthSuite extends Http4sSuite {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // https://datatracker.ietf.org/doc/html/rfc5849
 
-  private val Right(uri) = Uri.fromString("http://photos.example.net/photos")
+  private val Right(uri) = Uri.fromString("http://photos.example.net/photos"): @unchecked
   private val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
   private val token = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
 
@@ -89,8 +89,9 @@ class OAuthSuite extends Http4sSuite {
     implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
       UrlForm.entityEncoder(Charset.`US-ASCII`)
 
-    val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
-    val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
+    val Right(uri) =
+      Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b"): @unchecked
+    val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q"): @unchecked
 
     val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
 
@@ -151,7 +152,7 @@ class OAuthSuite extends Http4sSuite {
 
     def fixedTS: IO[Timestamp] = IO(Timestamp("1628332200"))
     def fixedNonce: IO[Nonce] = IO(Nonce("123456789"))
-    val Right(uri) = Uri.fromString("http://www.peepandthebigwideworld.com/")
+    val Right(uri) = Uri.fromString("http://www.peepandthebigwideworld.com/"): @unchecked
 
     oauth1
       .signRequest(

@@ -83,12 +83,13 @@ import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import io.circe.Json
 import org.typelevel.jawn.fs2._
+import org.typelevel.jawn.Facade
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 class TWStream[F[_]: Async] {
   // jawn-fs2 needs to know what JSON AST you want
-  implicit val f = new io.circe.jawn.CirceSupportParser(None, false).facade
+  implicit val f: Facade[Json] = new io.circe.jawn.CirceSupportParser(None, false).facade
 
   implicit val loggerFactory: LoggerFactory[F] = Slf4jFactory.create[F]
 

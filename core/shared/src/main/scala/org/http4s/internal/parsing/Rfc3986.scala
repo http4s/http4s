@@ -93,7 +93,9 @@ private[http4s] object Rfc3986 {
     import cats.parse.Parser.{char, string}
 
     def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): Ipv6Address =
-      lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights match {
+      ((lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(
+        0.toShort
+      ) ++ rights): @unchecked) match {
         case collection.Seq(a, b, c, d, e, f, g, h) =>
           val bb = ByteBuffer.allocate(16)
           bb.putShort(a)

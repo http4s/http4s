@@ -275,7 +275,7 @@ sealed class CORSPolicy(
                 Header.Raw(ci"Vary", oldVary.map(_.value).toList.mkString(", ") + ", " + vary.value)
             }
           )
-        case None =>
+        case _ =>
           resp
       }
 

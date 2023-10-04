@@ -156,8 +156,7 @@ object CharPredicate {
   private def unmaskable(c: Char) = c >= 128
 
   // efficient handling of 7bit-ASCII chars
-  final case class MaskBased private[CharPredicate] (lowMask: Long, highMask: Long)
-      extends CharPredicate {
+  final case class MaskBased private (lowMask: Long, highMask: Long) extends CharPredicate {
 
     def apply(c: Char): Boolean = {
       val mask = if (c < 64) lowMask else highMask
@@ -233,6 +232,10 @@ object CharPredicate {
     }
 
     override def toString(): String = "CharPredicate.MaskBased(" + new String(toArray) + ')'
+  }
+
+  object MaskBased {
+    def apply(lowMask: Long, highMask: Long): MaskBased = new MaskBased(lowMask, highMask)
   }
 
   final class RangeBased private[CharPredicate] (private val range: NumericRange[Char])

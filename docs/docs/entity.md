@@ -80,7 +80,7 @@ val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { (m: Media[IO]) =>
     m.as[String].map(s => Video(s).asRight[DecodeFailure])
   }
 }
-implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
+implicit val bothDec: EntityDecoder[IO, Resp] = audioDec.widen[Resp] orElse videoDec.widen[Resp]
 ```
 
 ```scala mdoc

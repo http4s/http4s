@@ -22,9 +22,12 @@ import org.typelevel.ci._
 
 object `Sec-WebSocket-Version` {
 
+  @deprecated("Use fromLong", "0.23.24")
+  def apply(version: Long): `Sec-WebSocket-Version` = new `Sec-WebSocket-Version`(version)
+
   def fromLong(version: Long): ParseResult[`Sec-WebSocket-Version`] =
     if (version >= 0)
-      ParseResult.success(apply(version))
+      ParseResult.success(new `Sec-WebSocket-Version`(version))
     else
       ParseResult.fail(
         "Invalid version value",
@@ -48,6 +51,6 @@ object `Sec-WebSocket-Version` {
 
 }
 
-final case class `Sec-WebSocket-Version` private (
+final case class `Sec-WebSocket-Version` private[headers] (
     version: Long
 )
