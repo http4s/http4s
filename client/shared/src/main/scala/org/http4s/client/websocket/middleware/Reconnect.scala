@@ -61,7 +61,7 @@ object Reconnect {
       reconnect(client.connectHighLevel(request)).map { conn =>
         new WSConnectionHighLevel[F] {
           def closeFrame = neverCloseFrame
-          def receive = conn.use(_.receive)
+          def receive = conn.use(_.receive).untilDefinedM.map(_.some)
           def send(wsf: WSDataFrame) = conn.use(_.send(wsf))
           def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]) = conn.use(_.sendMany(wsfs))
           def subprotocol = None
