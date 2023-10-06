@@ -25,6 +25,7 @@ import fs2.io.file.Path
 import fs2.io.readInputStream
 import fs2.text.utf8
 import org.http4s.headers.`Content-Disposition`
+import org.http4s.headers.`Content-Transfer-Encoding`
 import org.typelevel.ci._
 
 import java.io.File
@@ -68,14 +69,17 @@ object Part {
       filename: String,
       entityBody: EntityBody[F],
       headers: Header.ToRaw*
-  ): Part[F] =
+  ): Part[F] = {
+    val binaryContentTransferEncoding: `Content-Transfer-Encoding` =
+      `Content-Transfer-Encoding`.Binary
     Part(
       Headers(
         `Content-Disposition`("form-data", Map(ci"name" -> name, ci"filename" -> filename)),
-        "Content-Transfer-Encoding" -> "binary",
+        binaryContentTransferEncoding,
       ).put(headers: _*),
       entityBody,
     )
+  }
 
   // The InputStream is passed by name, and we open it in the by-name
   // argument in callers, so we can avoid lifting into an effect.  Exposing
