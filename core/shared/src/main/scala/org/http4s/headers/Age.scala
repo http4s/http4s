@@ -24,9 +24,13 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 object Age {
+
+  @deprecated("Use fromLong", "0.23.24")
+  def apply(age: Long): Age = new Age(age)
+
   def fromLong(age: Long): ParseResult[Age] =
     if (age >= 0)
-      ParseResult.success(apply(age))
+      ParseResult.success(new Age(age))
     else
       ParseResult.fail("Invalid age value", s"Age param $age must be more or equal to 0 seconds")
 
@@ -55,7 +59,7 @@ object Age {
   *
   * @param age age of the response
   */
-final case class Age private (age: Long) { // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+final case class Age private[http4s] (age: Long) { // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
   def duration: Option[FiniteDuration] = Try(age.seconds).toOption
 
   def unsafeDuration: FiniteDuration = age.seconds

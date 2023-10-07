@@ -315,7 +315,7 @@ private[discipline] trait ArbitraryInstances {
     }
 
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
-    Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
+    Cogen[String].contramap(cc => augmentString(cc.coding).map(_.toUpper.toLower))
 
   // MediaRange expects the quoted pair without quotes
   val http4sGenUnquotedPair: Gen[String] = genQDText
@@ -815,8 +815,9 @@ private[discipline] trait ArbitraryInstances {
 
   implicit val http4sTestingAbitraryForPath: Arbitrary[Uri.Path] = Arbitrary {
     val genSegmentNzNc =
-      nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))).map(_.mkString)
-    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
+      nonEmptyListOf[Any](oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@")))
+        .map(_.mkString)
+    val genPChar = oneOf[Any](genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
     val genSegment = listOf(genPChar).map(_.mkString)
     val genPathEmpty = const("")
@@ -835,7 +836,7 @@ private[discipline] trait ArbitraryInstances {
 
   /** https://datatracker.ietf.org/doc/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
-    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
+    val genPChar = oneOf[Any](genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
 
     val genFragment: Gen[Uri.Fragment] =
@@ -994,7 +995,7 @@ private[discipline] trait ArbitraryInstances {
   // These instances are private because they're half-baked and I don't want to encourage external use yet.
   implicit private[http4s] val http4sTestingCogenForDecodeFailure: Cogen[DecodeFailure] =
     Cogen { (seed: Seed, df: DecodeFailure) =>
-      df match {
+      (df: @unchecked) match {
         case MalformedMessageBodyFailure(d, t) =>
           Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
         case InvalidMessageBodyFailure(d, t) =>
@@ -1072,7 +1073,9 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForRegName: Arbitrary[Uri.RegName] =
     Arbitrary(
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+      listOf(oneOf[Any](genUnreserved, genPctEncoded, genSubDelims)).map(rn =>
+        Uri.RegName(rn.mkString)
+      )
     )
 
   implicit val http4sTestingCogenForRegName: Cogen[Uri.RegName] =
@@ -1172,6 +1175,19 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
         `Cross-Origin-Resource-Policy`.SameSite,
         `Cross-Origin-Resource-Policy`.SameOrigin,
         `Cross-Origin-Resource-Policy`.CrossOrigin,
+      )
+    )
+
+  implicit val arbitraryContentTransferEncoding: Arbitrary[`Content-Transfer-Encoding`] =
+    Arbitrary[`Content-Transfer-Encoding`](
+      Gen.oneOf(
+        `Content-Transfer-Encoding`.`7bit`,
+        `Content-Transfer-Encoding`.`8bit`,
+        `Content-Transfer-Encoding`.Binary,
+        `Content-Transfer-Encoding`.QuotedPrintable,
+        `Content-Transfer-Encoding`.Base64,
+        `Content-Transfer-Encoding`.IetfToken,
+        `Content-Transfer-Encoding`.XToken,
       )
     )
 

@@ -1,8 +1,8 @@
 package org.http4s.sbt
 
 import com.github.tkawachi.doctest.DoctestPlugin.autoImport._
-import com.typesafe.sbt.SbtGit.git
-import com.typesafe.sbt.git.JGit
+import com.github.sbt.git.SbtGit.git
+import com.github.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import de.heikoseeberger.sbtheader.{License, LicenseStyle}
 import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport._
@@ -26,7 +26,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.11"
+  val scala_213 = "2.13.12"
   val scala_212 = "2.12.18"
   val scala_3 = "3.3.1"
 
@@ -48,8 +48,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     headerSources / excludeFilter := HiddenFileFilter,
     doctestTestFramework := DoctestTestFramework.Munit,
-    libraryDependencies += scalacCompatAnnotation,
-    unusedCompileDependenciesFilter ~= { _ & (_ == scalacCompatAnnotation) },
+    semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
   )
 
   def extractApiVersion(version: String) = {
@@ -103,7 +102,7 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.3"
     val caseInsensitive = "1.4.0"
     val cats = "2.10.0"
-    val catsEffect = "3.5.1"
+    val catsEffect = "3.5.2"
     val catsParse = "0.3.10"
     val circe = "0.14.6"
     val crypto = "0.2.4"
@@ -125,9 +124,8 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.0.0-M10"
     val munitCatsEffect = "2.0.0-M3"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.98.Final"
+    val netty = "4.1.99.Final"
     val quasiquotes = "2.1.0"
-    val scalacCompat = "0.1.2"
     val scalacheck = "1.17.0"
     val scalacheckEffect = "2.0.0-M2"
     val scalaJavaLocales = "1.5.1"
@@ -186,8 +184,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
-  lazy val scalacCompatAnnotation =
-    "org.typelevel" %% "scalac-compat-annotation" % V.scalacCompat % CompileTime
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =
     Def.setting("org.typelevel" %%% "scalacheck-effect" % V.scalacheckEffect)

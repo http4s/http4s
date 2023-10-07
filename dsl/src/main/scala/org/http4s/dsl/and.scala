@@ -19,11 +19,10 @@ package org.http4s.dsl
 /** A conjunction extractor.  Generally used as an infix operator.
   *
   * {{{
-  * scala> import org.http4s.dsl.&
   * scala> object Even { def unapply(i: Int) = (i % 2) == 0 }
   * scala> object Positive { def unapply(i: Int) = i > 0 }
   * scala> def describe(i: Int) = i match {
-  *      |   case Even() & Positive() => "even and positive"
+  *      |   case org.http4s.dsl.&(Even(), Positive()) => "even and positive"
   *      |   case Even() => "even but not positive"
   *      |   case Positive() => "positive but not even"
   *      |   case _ => "neither even nor positive"

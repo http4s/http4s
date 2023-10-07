@@ -35,7 +35,7 @@ class AuthorizationHeaderSuite extends munit.FunSuite {
     val invalidTokens = List("f!@", "=abc", "abc d")
     invalidTokens.foreach { token =>
       val h = Authorization(Credentials.Token(AuthScheme.Bearer, token))
-      val Left(_) = hparse(h.value)
+      val Left(_) = hparse(h.value): @unchecked
     }
   }
 

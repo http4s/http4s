@@ -156,7 +156,7 @@ object WSTestClient {
 
   implicit private[http4s] class WebSocketFrameOps(val wsf: WebSocketFrame) {
     def toWSFrame: WSFrame =
-      wsf match {
+      (wsf: @unchecked) match {
         case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
         case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
         case WebSocketFrame.Pong(data) => WSFrame.Pong(data)

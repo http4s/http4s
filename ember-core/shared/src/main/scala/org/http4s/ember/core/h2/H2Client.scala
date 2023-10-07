@@ -367,7 +367,7 @@ private[ember] object H2Client {
         case Some(Http2) =>
           h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication)
         case Some(Http1) => http1Client(req)
-        case None =>
+        case _ =>
           (
             h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication) <*
               Resource.eval(socketMap.update(s => s + (key -> Http2)))

@@ -125,7 +125,7 @@ object ServerSentEvent {
         case Some(("", stream)) =>
           dispatch(stream)
         case Some((s, stream)) =>
-          FieldSeparator.split(s, 2) match {
+          (FieldSeparator.split(s, 2): @unchecked) match {
             case Array(field, value) =>
               handleLine(field, value, stream)
             case Array(line) =>

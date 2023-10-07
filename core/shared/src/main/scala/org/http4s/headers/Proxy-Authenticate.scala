@@ -35,7 +35,6 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.Header
 import org.http4s.internal.parsing.AuthRules
 import org.typelevel.ci._
 

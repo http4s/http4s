@@ -101,24 +101,26 @@ package object internal extends InternalPlatform {
 
     val len = data.length
     if ((len & 0x01) != 0) None
-    val out = new Array[Byte](len >> 1)
-    var f: Int = -1
-    // two characters form the hex value.
-    try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xff).toByte
+    else {
+      val out = new Array[Byte](len >> 1)
+      var f: Int = -1
+      // two characters form the hex value.
+      try {
+        var i = 0
+        var j = 0
+        while (j < len) {
+          f = toDigit(data(j)) << 4
+          j += 1
+          f = f | toDigit(data(j))
+          j += 1
+          out(i) = (f & 0xff).toByte
 
-        i += 1
+          i += 1
+        }
+        Some(out)
+      } catch {
+        case HexDecodeException => None
       }
-      Some(out)
-    } catch {
-      case HexDecodeException => None
     }
   }
 
@@ -203,10 +205,10 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, true)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow =>
                 def flushLoop: Pull[F, String, Unit] =
-                  decoder.flush(charBuffer) match {
+                  (decoder.flush(charBuffer): @unchecked) match {
                     case result if result.isUnderflow =>
                       out
                     case result if result.isOverflow =>
@@ -226,7 +228,7 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, false)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow || result.isOverflow =>
                 out.as(Some(stream))
               case _ if result.isMalformed =>

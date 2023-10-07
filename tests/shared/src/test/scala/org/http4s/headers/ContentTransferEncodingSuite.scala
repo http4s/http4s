@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package fix
+package org.http4s
+package headers
 
-import org.scalatest.funsuite.AnyFunSuiteLike
-import scalafix.testkit.AbstractSemanticRuleSuite
+import cats.syntax.either._
+import org.http4s.laws.discipline.arbitrary._
 
-class RuleSuite extends AbstractSemanticRuleSuite with AnyFunSuiteLike {
-  runAllTests()
+class ContentTransferEncodingSuite extends HeaderLaws {
+  checkAll("Content-Transfer-Encoding", headerLaws[`Content-Transfer-Encoding`])
+
+  test("parsing case insensitive") {
+    assertEquals(
+      `Content-Transfer-Encoding`.parser.parseAll("7BIT"),
+      `Content-Transfer-Encoding`.`7bit`.asRight,
+    )
+  }
 }
