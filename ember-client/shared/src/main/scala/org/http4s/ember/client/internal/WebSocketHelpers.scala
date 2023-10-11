@@ -43,7 +43,7 @@ private[internal] object WebSocketHelpers {
 
   val supportedWebSocketVersion = 13L
 
-  val supportedWebSocketVersionHeader: `Sec-WebSocket-Version` = `Sec-WebSocket-Version`(
+  val supportedWebSocketVersionHeader: `Sec-WebSocket-Version` = `Sec-WebSocket-Version`.unsafeFromLong(
     supportedWebSocketVersion
   )
   val upgradeCi: CIString = ci"upgrade"
