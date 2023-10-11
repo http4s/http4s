@@ -43,9 +43,10 @@ private[internal] object WebSocketHelpers {
 
   val supportedWebSocketVersion = 13L
 
-  val supportedWebSocketVersionHeader: `Sec-WebSocket-Version` = `Sec-WebSocket-Version`.unsafeFromLong(
-    supportedWebSocketVersion
-  )
+  val supportedWebSocketVersionHeader: `Sec-WebSocket-Version` =
+    `Sec-WebSocket-Version`.unsafeFromLong(
+      supportedWebSocketVersion
+    )
   val upgradeCi: CIString = ci"upgrade"
   val webSocketProtocol: Protocol = Protocol(ci"websocket", None)
   val connectionUpgrade: Connection = Connection(NonEmptyList.of(upgradeCi))
