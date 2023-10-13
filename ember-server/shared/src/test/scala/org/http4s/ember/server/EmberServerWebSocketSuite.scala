@@ -97,7 +97,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     )
 
   def toWSFrame(wsf: WebSocketFrame): WSFrame =
-    wsf match {
+    (wsf: @unchecked) match {
       case c: WebSocketFrame.Close => WSFrame.Close(c.closeCode, c.reason)
       case WebSocketFrame.Ping(data) => WSFrame.Ping(data)
       case WebSocketFrame.Pong(data) => WSFrame.Pong(data)
