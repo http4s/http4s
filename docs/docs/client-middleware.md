@@ -9,23 +9,45 @@ First we prepare a server that we can make requests to:
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._
+import io.circe._
+import io.circe.syntax._
+import io.circe.jawn._
 import org.http4s.headers._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.client.Client
 import cats.effect.unsafe.IORuntime
 import scala.concurrent.duration._
-import cats.effect.std.Console
+import cats.effect.std.{Console, Random}
 
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+val allRhinoFacts = List(
+  "Rhinoceros horns are made from keratin, just like human fingernails.",
+  "The rhino is the second largest land animal, after the elephant.",
+  "The gestation period for a rhinoceros baby is almost 15 months.",
+)
 
 val service = HttpRoutes.of[IO] {
-  case r @ GET -> Root / "count" =>
-    val count = r.cookies.find(_.name == "count")
-      .flatMap(_.content.toIntOption).getOrElse(0) + 1
-    Ok(s"count: $count").map(_.addCookie("count", count.toString))
   case GET -> Root / "redirect" => MovedPermanently(Location(uri"/ok"))
   case GET -> Root / "ok" => Ok("👍")
+  case r@GET -> Root / "rhinoFacts" =>
+    // show a rhino fact, try to not repeat a fact the user already has seen
+    val knownFacts: List[Int] = r.cookies.find(_.name == "rhinoFacts")
+      .flatMap(cookie => decode[List[Int]](cookie.content).toOption)
+      .toList
+      .flatten
+
+    val factIndex =
+      Random.scalaUtilRandom[IO]
+        .flatMap(rng => rng.shuffleList(List.range(0, allRhinoFacts.size).filterNot(knownFacts.contains_)))
+        .map(_.headOption)
+
+    factIndex
+      .flatMap { index =>
+        val cookie = index.map(_ :: knownFacts).getOrElse(knownFacts).asJson.noSpaces
+        val response = index.flatMap(allRhinoFacts.get(_)).getOrElse("You know all the facts!")
+        Ok(response).map(_.addCookie("rhinoFacts", cookie))
+      }
 }
 
 val client = Client.fromHttpApp(service.orNotFound)
@@ -50,23 +72,21 @@ implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
 ## CookieJar
 Enhances a client to store and supply cookies. An in-memory implementation is provided,
 but it's also possible to supply your own method of persistence, see [CookieJar].
-In this example the service will always increment a `count` cookie and set it in response.
+In this example the service will use the `rhinoFacts` cookie to track the facts it has shown to the client.
 
 ```scala mdoc:silent
 import org.http4s.client.middleware.CookieJar
 
-// the domain is necessary because cookies are specific to a domain
-val countRequest = Request[IO](Method.GET, uri"http://example.com/count")
+// the domain is necessary because cookies are tied to a domain
+val factRequest = Request[IO](Method.GET, uri"http://example.com/rhinoFacts")
 ```
 ```scala mdoc
-// consecutive requests without persisting cookies always get the same value back
-client.expect[String](countRequest).unsafeRunSync()
-client.expect[String](countRequest).unsafeRunSync()
-// if the client supports cookies then the value will increase
+// the server will repeat facts 
+client.expect[String](factRequest).flatMap(Console[IO].println).replicateA(4).void.unsafeRunSync()
+
+// the server won't repeat facts because the client indicates what it already knows
 CookieJar.impl(client).flatMap { cl =>
-    cl.expect[String](countRequest) >>
-    cl.expect[String](countRequest) >>
-    cl.expect[String](countRequest)
+  cl.expect[String](factRequest).flatMap(Console[IO].println).replicateA(4).void
 }.unsafeRunSync()
 ```
 
