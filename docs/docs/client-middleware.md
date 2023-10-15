@@ -54,17 +54,23 @@ val client = Client.fromHttpApp(service.orNotFound)
 ```
 ```scala mdoc:invisible
 // we define our own Console[IO] to sidestep some mdoc issues: https://github.com/scalameta/mdoc/issues/517
+
 import cats.Show
+
 implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
   val mdocConsoleOut = scala.Console.out
+
   def println[A](a: A)(implicit s: Show[A] = Show.fromToString[A]): IO[Unit] = {
     val str = s.show(a)
     IO.blocking(mdocConsoleOut.println(str))
   }
 
   def print[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+
   def error[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+
   def errorln[A](a: A)(implicit S: Show[A] = Show.fromToString[A]): IO[Unit] = IO.unit
+
   def readLineWithCharset(charset: java.nio.charset.Charset): IO[String] = IO.pure("")
 }
 ```
@@ -91,10 +97,11 @@ CookieJar.impl(client).flatMap { cl =>
 ```
 
 ## DestinationAttribute
+
 This very simple middleware simply writes a value to the request attributes, which can be
 read at any point during the processing of the request, by other middleware down the line.
 
-In this example we create our own middleware that appends an header to the response. We use
+In this example we create our own middleware that appends a header to the response. We use
 `DestinationAttribute` to provide the value.
 
 ```scala mdoc:silent
@@ -103,29 +110,34 @@ import org.http4s.client.middleware.DestinationAttribute.Destination
 
 def myMiddleware(cl: Client[IO]): Client[IO] = Client { req =>
   val destination = req.attributes.lookup(Destination).getOrElse("")
-  cl.run(req).map(_.putHeaders("X-Destination" -> destination ))
+  cl.run(req).map(_.putHeaders("X-Destination" -> destination))
 }
 
 val mwClient = DestinationAttribute(myMiddleware(client), "example")
 ```
+
 ```scala mdoc
 mwClient.run(Request[IO](Method.GET, uri"/ok")).use(_.headers.pure[IO]).unsafeRunSync()
 ```
 
 ## FollowRedirects
+
 Allows a client to interpret redirect responses and follow them. See [FollowRedirect]
 for configuration.
 
 ```scala mdoc:silent
 import org.http4s.client.middleware.FollowRedirect
+
 val redirectRequest = Request[IO](Method.GET, uri"/redirect")
 ```
+
 ```scala mdoc
 client.status(redirectRequest).unsafeRunSync()
 FollowRedirect(maxRedirects = 3)(client).status(redirectRequest).unsafeRunSync()
 ```
 
 ## GZip
+
 Adds support for gzip compression. The client will indicate it can read gzip responses
 and if the server responds with gzip, the client will decode the response transparently.
 
@@ -162,6 +174,7 @@ clientWithGzip
 ```
 
 ## Logger, ResponseLogger, RequestLogger
+
 Log requests and responses. `ResponseLogger` logs the responses, `RequestLogger`
 logs the request, `Logger` logs both.
 
@@ -171,16 +184,17 @@ import org.http4s.client.middleware.Logger
 val loggerClient = Logger[IO](
   logHeaders = false,
   logBody = true,
-  redactHeadersWhen = _ => false,
   logAction = Some((msg: String) => Console[IO].println(msg))
 )(client)
 
 ```
+
 ```scala mdoc
 loggerClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
 ```
 
 ## Retry
+
 Allows a client to handle server errors by retrying requests. See [Retry] and
 [RetryPolicy] for ways of configuring the retry policy.
 
@@ -201,6 +215,7 @@ val flakyService =
 val policy = RetryPolicy[IO](backoff = _ => Some(1.milli))
 
 ```
+
 ```scala mdoc
 // without the middleware the call will fail
 flakyService.flatMap { service =>
@@ -217,10 +232,12 @@ flakyService.flatMap { service =>
 ```
 
 ## UnixSocket
+
 [Unix domain sockets] are an operating system feature which allows communication between processes
 while not needing to use the network.
 
 This middleware allows a client to make requests to a domain socket.
+
 ```scala mdoc:silent
 import fs2.io.file._
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -245,6 +262,7 @@ def client(socket: UnixSocketAddress) = EmberClientBuilder
   .build
   .map(UnixSocket[IO](socket)) // apply the middleware
 ```
+
 ```scala mdoc
 localSocket.flatMap(socket => server(socket) *> client(socket))
   .use(cl => cl.status(Request[IO](uri = uri"/ok")))
@@ -252,7 +270,11 @@ localSocket.flatMap(socket => server(socket) *> client(socket))
 ```
 
 [CookieJar]: @API_URL@org/http4s/client/middleware/CookieJar$.html
+
 [FollowRedirect]: @API_URL@org/http4s/client/middleware/FollowRedirect$.html
+
 [Retry]: @API_URL@org/http4s/client/middleware/Retry$.html
+
 [RetryPolicy]: @API_URL@org/http4s/client/middleware/RetryPolicy$.html
-[Domain Sockets]: https://en.wikipedia.org/wiki/Unix_domain_socket
+
+[Unix domain sockets]: https://en.wikipedia.org/wiki/Unix_domain_socket
