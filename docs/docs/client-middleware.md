@@ -202,11 +202,18 @@ val policy = RetryPolicy[IO](backoff = _ => Some(1.milli))
 
 ```
 ```scala mdoc
+// without the middleware the call will fail
 flakyService.flatMap { service =>
-    val client = Client.fromHttpApp(service.orNotFound)
-    val retryClient = Retry(policy)(client)
-    retryClient.expect[String](Request[IO](uri = uri"/"))
-} .unsafeRunSync()
+  val client = Client.fromHttpApp(service.orNotFound)
+  client.expect[String](Request[IO](uri = uri"/")).attempt
+}.unsafeRunSync()
+
+// with the middleware the call will succeed eventually
+flakyService.flatMap { service =>
+  val client = Client.fromHttpApp(service.orNotFound)
+  val retryClient = Retry(policy)(client)
+  retryClient.expect[String](Request[IO](uri = uri"/"))
+}.unsafeRunSync()
 ```
 
 ## UnixSocket
