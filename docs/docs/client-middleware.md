@@ -134,9 +134,7 @@ import org.http4s.client.middleware.GZip
 import org.http4s.server.middleware.{GZip => ServerGZip}
 
 val gzipService = ServerGZip(
-  HttpRoutes.of[IO] {
-    case GET -> Root / "long" => Ok("0123456789" * 10) // the body has 100 bytes
-  }
+  HttpRoutes.of[IO] { case GET -> Root / "long" => Ok("0123456789" * 5) }
 ).orNotFound
 val clientWithoutGzip = Client.fromHttpApp(gzipService)
 val clientWithGzip = GZip()(clientWithoutGzip)
@@ -144,13 +142,23 @@ val longRequest = Request[IO](Method.GET, uri"/long")
 ```
 
 ```scala mdoc
-// if we request gzip compression the body is smaller
-// than the 100 bytes our route is sending
+// without gzip in our client, we get the full body (shown in hex) 
+clientWithoutGzip
+  .run(longRequest)
+  .use(_.body.through(fs2.text.hex.encode).compile.foldMonoid)
+  .unsafeRunSync()
+
+// if we specify that the client understands gzip we get a smaller response 
 clientWithoutGzip
   .run(longRequest.putHeaders("Accept-Encoding" -> "gzip"))
-  .use(_.body.compile.count).unsafeRunSync()
-// when the client supports gzip we get the uncompressed body
-clientWithGzip.run(longRequest).use(_.body.compile.count).unsafeRunSync()
+  .use(_.body.through(fs2.text.hex.encode).compile.foldMonoid)
+  .unsafeRunSync()
+
+// with the middleware the response is decompressed transparently 
+clientWithGzip
+  .run(longRequest)
+  .use(_.body.through(fs2.text.hex.encode).compile.foldMonoid)
+  .unsafeRunSync()
 ```
 
 ## Logger, ResponseLogger, RequestLogger
