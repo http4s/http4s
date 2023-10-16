@@ -37,6 +37,7 @@ val service = HttpRoutes.of[IO] {
       .toList
       .flatten
 
+    // choose the index of a fact
     val factIndex =
       Random.scalaUtilRandom[IO]
         .flatMap(rng => rng.shuffleList(List.range(0, allRhinoFacts.size).filterNot(knownFacts.contains_)))
@@ -78,7 +79,7 @@ implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
 ## CookieJar
 Enhances a client to store and supply cookies. An in-memory implementation is provided,
 but it's also possible to supply your own method of persistence, see [CookieJar].
-In this example the service will use the `rhinoFacts` cookie to track the facts it has shown to the client.
+In this example the service will use the `rhinoFacts` cookie to track the facts that have been shown to the client.
 
 ```scala mdoc:silent
 import org.http4s.client.middleware.CookieJar
@@ -87,8 +88,12 @@ import org.http4s.client.middleware.CookieJar
 val factRequest = Request[IO](Method.GET, uri"http://example.com/rhinoFacts")
 ```
 ```scala mdoc
-// the server will repeat facts 
-client.expect[String](factRequest).flatMap(Console[IO].println).replicateA(4).void.unsafeRunSync()
+// without cookies the server will repeat facts
+client.expect[String](factRequest)
+  .flatMap(Console[IO].println)
+  .replicateA(4)
+  .void
+  .unsafeRunSync()
 
 // the server won't repeat facts because the client indicates what it already knows
 CookieJar.impl(client).flatMap { cl =>
@@ -98,7 +103,7 @@ CookieJar.impl(client).flatMap { cl =>
 
 ## DestinationAttribute
 
-This very simple middleware simply writes a value to the request attributes, which can be
+This very simple middleware writes a value to the request attributes, which can be
 read at any point during the processing of the request, by other middleware down the line.
 
 In this example we create our own middleware that appends a header to the response. We use
@@ -136,6 +141,26 @@ client.status(redirectRequest).unsafeRunSync()
 FollowRedirect(maxRedirects = 3)(client).status(redirectRequest).unsafeRunSync()
 ```
 
+## Logger, ResponseLogger, RequestLogger
+
+Log requests and responses. `ResponseLogger` logs the responses, `RequestLogger`
+logs the request, `Logger` logs both.
+
+```scala mdoc:silent
+import org.http4s.client.middleware.Logger
+
+val loggerClient = Logger[IO](
+  logHeaders = false,
+  logBody = true,
+  logAction = Some((msg: String) => Console[IO].println(msg))
+)(client)
+
+```
+
+```scala mdoc
+loggerClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
+```
+
 ## GZip
 
 Adds support for gzip compression. The client will indicate it can read gzip responses
@@ -171,26 +196,6 @@ clientWithGzip
   .run(longRequest)
   .use(_.body.through(fs2.text.hex.encode).compile.foldMonoid)
   .unsafeRunSync()
-```
-
-## Logger, ResponseLogger, RequestLogger
-
-Log requests and responses. `ResponseLogger` logs the responses, `RequestLogger`
-logs the request, `Logger` logs both.
-
-```scala mdoc:silent
-import org.http4s.client.middleware.Logger
-
-val loggerClient = Logger[IO](
-  logHeaders = false,
-  logBody = true,
-  logAction = Some((msg: String) => Console[IO].println(msg))
-)(client)
-
-```
-
-```scala mdoc
-loggerClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
 ```
 
 ## Retry
