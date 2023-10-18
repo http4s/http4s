@@ -76,11 +76,9 @@ class DecodeSpec extends Http4sSuite {
     }
   }
 
-  test(
-    "decode should be consistent with String constructor over aggregated output (fixed arguments)"
-  ) {
+  test("decode should be consistent with String constructor with BOM?") {
     val cs = Charset(StandardCharsets.UTF_8)
-    val s = ""
+    val s = "\uFEFF" // new String(Array[Byte](-17, -69, -65), StandardCharsets.UTF_8) // EF BB BF
     val chunkSize = 1
     val source: Stream[Pure, Byte] = Stream
       .emits {
