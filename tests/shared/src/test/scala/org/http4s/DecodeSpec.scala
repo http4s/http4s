@@ -93,7 +93,8 @@ class DecodeSpec extends Http4sSuite {
     assertEquals(decoded, Right(expected))
   }
 
-  private def trimBOM(str: String): String = if (str.nonEmpty && str.head == '\ufeff') str.tail else str
+  private def trimBOM(str: String): String =
+    if (str.nonEmpty && str.head == '\ufeff') str.tail else str
 
   test("decode should decode an empty chunk") {
     forAll { (cs: Charset) =>
