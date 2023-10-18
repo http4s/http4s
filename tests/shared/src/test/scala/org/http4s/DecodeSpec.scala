@@ -91,11 +91,8 @@ class DecodeSpec extends Http4sSuite {
       }
       .flatMap(Stream.chunk[Pure, Byte])
     val expected = new String(source.toVector.toArray, cs.nioCharset)
-    !expected.contains("\ufffd") ==> {
-      // \ufffd means we generated a String unrepresentable by the charset
-      val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
-      assertEquals(decoded, Right(expected))
-    }
+    val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
+    assertEquals(decoded, Right(expected))
   }
 
   test("decode should decode an empty chunk") {
