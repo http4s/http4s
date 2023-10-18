@@ -66,7 +66,7 @@ class DecodeSpec extends Http4sSuite {
               .toSeq
           }
           .flatMap(Stream.chunk[Pure, Byte])
-        val expected = new String(source.toVector.toArray, cs.nioCharset)
+        val expected = trimBOM(new String(source.toVector.toArray, cs.nioCharset))
         !expected.contains("\ufffd") ==> {
           // \ufffd means we generated a String unrepresentable by the charset
           val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
@@ -76,9 +76,9 @@ class DecodeSpec extends Http4sSuite {
     }
   }
 
-  test("decode should be consistent with String constructor with BOM?") {
+  test("decode should be consistent with String constructor with BOM") {
     val cs = Charset(StandardCharsets.UTF_8)
-    val s = "\uFEFF" // new String(Array[Byte](-17, -69, -65), StandardCharsets.UTF_8) // EF BB BF
+    val s = "\uFEFF" // EF BB BF
     val chunkSize = 1
     val source: Stream[Pure, Byte] = Stream
       .emits {
@@ -88,10 +88,12 @@ class DecodeSpec extends Http4sSuite {
           .toSeq
       }
       .flatMap(Stream.chunk[Pure, Byte])
-    val expected = new String(source.toVector.toArray, cs.nioCharset)
+    val expected = trimBOM(new String(source.toVector.toArray, cs.nioCharset))
     val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
     assertEquals(decoded, Right(expected))
   }
+
+  private def trimBOM(str: String): String = if (str.nonEmpty && str.head == '\ufeff') str.tail else str
 
   test("decode should decode an empty chunk") {
     forAll { (cs: Charset) =>
