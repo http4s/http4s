@@ -33,6 +33,7 @@ import java.nio.charset.{Charset => JCharset}
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
+  override def scalaCheckInitialSeed = "UuhLRvSjo_SAS13rYR-NHxeNurZ-dZNzGgpxCYA_i6G="
   test("decode should be consistent with utf8.decode") {
     forAll { (s: String, chunkSize: Int) =>
       (chunkSize > 0) ==> {
@@ -72,6 +73,28 @@ class DecodeSpec extends Http4sSuite {
           decoded == Right(expected)
         }
       }
+    }
+  }
+
+  test(
+    "decode should be consistent with String constructor over aggregated output (fixed arguments)"
+  ) {
+    val cs = Charset(StandardCharsets.UTF_8)
+    val s = ""
+    val chunkSize = 1
+    val source: Stream[Pure, Byte] = Stream
+      .emits {
+        s.getBytes(cs.nioCharset)
+          .grouped(chunkSize)
+          .map(Chunk.array[Byte])
+          .toSeq
+      }
+      .flatMap(Stream.chunk[Pure, Byte])
+    val expected = new String(source.toVector.toArray, cs.nioCharset)
+    !expected.contains("\ufffd") ==> {
+      // \ufffd means we generated a String unrepresentable by the charset
+      val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
+      assertEquals(decoded, Right(expected))
     }
   }
 
