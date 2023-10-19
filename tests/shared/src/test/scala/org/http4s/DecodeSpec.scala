@@ -78,7 +78,7 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should be consistent with String constructor with BOM") {
-    forAll(Gen.alphaNumStr, Gen.size) { (ans: String, chunkSize: Int) =>
+    forAll(Gen.alphaNumStr, Gen.choose(1, 1024)) { (ans: String, chunkSize: Int) =>
       val s = "\uFEFF" + ans
       val source: Stream[Pure, Byte] = Stream
         .emits {
