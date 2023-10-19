@@ -5,13 +5,13 @@ import Keys._
 import cats.effect._
 import laika.ast._
 import laika.ast.Path.Root
+import laika.config.{Version, Versions}
 import laika.helium.Helium
 import laika.helium.config.{IconLink, LinkGroup, ReleaseInfo, Teaser, TextLink, VersionMenu}
 import laika.io.model.InputTree
 import laika.theme.ThemeProvider
 import laika.theme.ThemeBuilder
 import laika.theme.Theme
-import laika.rewrite.{Version, Versions}
 import mdoc.MdocPlugin.autoImport._
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport._
 import org.typelevel.sbt.site.GenericSiteSettings
@@ -35,6 +35,8 @@ object Http4sSitePlugin extends AutoPlugin {
     tlSiteHelium := {
       val base = tlSiteHelium.value
         .extendWith(redirects.theme)
+        .site
+        .internalCSS(Root / "styles")
         .site
         .versions(versions.config(isCi.value))
         .site
@@ -107,21 +109,20 @@ object Http4sSitePlugin extends AutoPlugin {
   }
 
   object versions {
-    def config(isCi: Boolean): Versions = Versions(
-      currentVersion = current,
-      olderVersions = all.dropWhile(_ != current).drop(1),
-      newerVersions = all.takeWhile(_ != current),
-      // helpful to render unversioned pages when previewing locally
-      renderUnversioned = current == v1_0 || !isCi,
-    )
+    def config(isCi: Boolean): Versions = Versions
+      .forCurrentVersion(current)
+      .withOlderVersions(all.dropWhile(_ != current).drop(1) *)
+      .withNewerVersions(all.takeWhile(_ != current) *)
+      .withRenderUnversioned(current == v1_0 || !isCi)
+    // helpful to render unversioned pages when previewing locally
 
     private def version(version: String, label: String): Version =
-      Version(version, "v" + version, "/docs/quickstart.html", Some(label))
+      Version(version, "v" + version).withFallbackLink("/docs/quickstart.html").withLabel(label)
 
     val v1_0: Version = version("1", "Dev")
     val v0_23: Version = version("0.23", "Stable")
     val v0_22: Version = version("0.22", "EOL")
-    val v0_21: Version = Version("0.21", "v0.21", "/index.html", Some("EOL"))
+    val v0_21: Version = Version("0.21", "v0.21").withFallbackLink("/index.html").withLabel("EOL")
 
     val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21)
 
