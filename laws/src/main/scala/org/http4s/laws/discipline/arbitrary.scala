@@ -1189,6 +1189,19 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       )
     )
 
+  implicit val arbitraryContentTransferEncoding: Arbitrary[`Content-Transfer-Encoding`] =
+    Arbitrary[`Content-Transfer-Encoding`](
+      Gen.oneOf(
+        `Content-Transfer-Encoding`.`7bit`,
+        `Content-Transfer-Encoding`.`8bit`,
+        `Content-Transfer-Encoding`.Binary,
+        `Content-Transfer-Encoding`.QuotedPrintable,
+        `Content-Transfer-Encoding`.Base64,
+        `Content-Transfer-Encoding`.IetfToken,
+        `Content-Transfer-Encoding`.XToken,
+      )
+    )
+
   val genObsText: Gen[String] = Gen.stringOf(Gen.choose(0x80.toChar, 0xff.toChar))
   val genVcharExceptDquote: Gen[Char] = genVchar.filter(_ != 0x22.toChar)
 
