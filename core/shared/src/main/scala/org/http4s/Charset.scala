@@ -35,7 +35,7 @@ import java.util.HashMap
 import java.util.Locale
 import scala.jdk.CollectionConverters._
 
-final case class Charset private[http4s] (nioCharset: NioCharset) extends Renderable {
+final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
 
@@ -43,6 +43,8 @@ final case class Charset private[http4s] (nioCharset: NioCharset) extends Render
 }
 
 object Charset {
+
+  def apply(nioCharset: NioCharset): Charset = new Charset(nioCharset)
 
   implicit val catsInstancesForHttp4sCharset: Hash[Charset] with Order[Charset] =
     new Hash[Charset] with Order[Charset] {

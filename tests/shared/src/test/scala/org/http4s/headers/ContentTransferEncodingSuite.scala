@@ -15,9 +15,18 @@
  */
 
 package org.http4s
+package headers
 
-private[http4s] object Platform {
-  final val isJvm = false
-  final val isJs = false
-  final val isNative = true
+import cats.syntax.either._
+import org.http4s.laws.discipline.arbitrary._
+
+class ContentTransferEncodingSuite extends HeaderLaws {
+  checkAll("Content-Transfer-Encoding", headerLaws[`Content-Transfer-Encoding`])
+
+  test("parsing case insensitive") {
+    assertEquals(
+      `Content-Transfer-Encoding`.parser.parseAll("7BIT"),
+      `Content-Transfer-Encoding`.`7bit`.asRight,
+    )
+  }
 }

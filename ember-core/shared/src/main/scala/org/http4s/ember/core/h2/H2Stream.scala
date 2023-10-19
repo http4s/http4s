@@ -441,12 +441,12 @@ private[h2] object H2Stream {
 
     private[H2Stream] def cancelWith(msg: String)(implicit F: Monad[F]): F[Unit] = {
       // Unsure of this, but also unsure about exposing custom throwable
-      val t = new CancellationException(msg)
-      writeBlock.complete(Left(t)) >>
-        request.complete(Left(t)) >>
-        response.complete(Left(t)) >>
-        readBuffer.send(Left(t)) >>
-        trailers.complete(Left(t)).void
+      val ex: Either[Throwable, Nothing] = Left(new CancellationException(msg))
+      writeBlock.complete(ex) *>
+        request.complete(ex) *>
+        response.complete(ex) *>
+        readBuffer.send(ex) *>
+        trailers.complete(ex).void
     }
 
     def isClosed: Boolean = state == StreamState.HalfClosedRemote || state == StreamState.Closed

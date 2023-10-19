@@ -15,12 +15,12 @@ on:
     tags: [v*]
 
 env:
-  PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-  SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-  SONATYPE_CREDENTIAL_HOST: ${{ secrets.SONATYPE_CREDENTIAL_HOST }}
-  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-  PGP_SECRET: ${{ secrets.PGP_SECRET }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+concurrency:
+  group: ${{ github.workflow }} @ ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -29,13 +29,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [3.3.0, 2.13.11]
+        scala: [3, 2.13]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM, rootNative]
         exclude:
-          - scala: 3.3.0
+          - scala: 3
             java: temurin@11
-          - scala: 3.3.0
+          - scala: 3
             java: temurin@17
           - project: rootJS
             java: temurin@11
@@ -46,24 +46,8 @@ jobs:
           - project: rootNative
             java: temurin@17
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Cache sbt
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
       - name: Install Nix
         uses: cachix/install-nix-action@v20
 
@@ -72,6 +56,50 @@ jobs:
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@8)
+        id: setup-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@11' && steps.setup-java-temurin-11.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
 
       - name: Check that workflows are up to date
         run: 'nix develop .#${{ matrix.java }} -c sbt githubWorkflowCheck'
@@ -100,7 +128,7 @@ jobs:
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' doc'
 
       - name: Check scalafix lints
-        if: matrix.java == 'temurin@8' && !startsWith(matrix.scala, '3.')
+        if: matrix.java == 'temurin@8' && !startsWith(matrix.scala, '3')
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' ''scalafixAll --check'''
 
       - name: Check unused compile dependencies
@@ -109,11 +137,11 @@ jobs:
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
+        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target ember-server/native/target server/jvm/target ember-client/native/target dsl/.native/target client/native/target server/native/target unidocs/target core/native/target laws/.jvm/target client/js/target ember-core/native/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target scalafix-internal/rules/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target ember-client/js/target project/target
 
       - name: Compress target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target examples/ember/target ember-server/native/target server/jvm/target examples/target scalafix-internal/input/target scalafix-internal/tests/target ember-client/native/target dsl/.native/target target examples/docker/target client/native/target server/native/target unidocs/target .js/target core/native/target site/target laws/.jvm/target client/js/target ember-core/native/target scalafix-internal/output/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target .jvm/target scalafix-internal/rules/target .native/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target js-artifact-size-test/target ember-client/js/target bench/target project/target
+        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target ember-server/native/target server/jvm/target ember-client/native/target dsl/.native/target client/native/target server/native/target unidocs/target core/native/target laws/.jvm/target client/js/target ember-core/native/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target scalafix-internal/rules/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target ember-client/js/target project/target
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
@@ -132,23 +160,6 @@ jobs:
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Cache sbt
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
       - name: Install Nix
         uses: cachix/install-nix-action@v20
 
@@ -158,89 +169,220 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Download target directories (3.3.0, rootJS)
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@8)
+        id: setup-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@11' && steps.setup-java-temurin-11.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Download target directories (3, rootJS)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootJS
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootJS
 
-      - name: Inflate target directories (3.3.0, rootJS)
+      - name: Inflate target directories (3, rootJS)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.3.0, rootJVM)
+      - name: Download target directories (3, rootJVM)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootJVM
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootJVM
 
-      - name: Inflate target directories (3.3.0, rootJVM)
+      - name: Inflate target directories (3, rootJVM)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.3.0, rootNative)
+      - name: Download target directories (3, rootNative)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3.3.0-rootNative
+          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootNative
 
-      - name: Inflate target directories (3.3.0, rootNative)
+      - name: Inflate target directories (3, rootNative)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (2.13.11, rootJS)
+      - name: Download target directories (2.13, rootJS)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootJS
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootJS
 
-      - name: Inflate target directories (2.13.11, rootJS)
+      - name: Inflate target directories (2.13, rootJS)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (2.13.11, rootJVM)
+      - name: Download target directories (2.13, rootJVM)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootJVM
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootJVM
 
-      - name: Inflate target directories (2.13.11, rootJVM)
+      - name: Inflate target directories (2.13, rootJVM)
         run: |
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (2.13.11, rootNative)
+      - name: Download target directories (2.13, rootNative)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13.11-rootNative
+          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootNative
 
-      - name: Inflate target directories (2.13.11, rootNative)
+      - name: Inflate target directories (2.13, rootNative)
         run: |
           tar xf targets.tar
           rm targets.tar
 
       - name: Import signing key
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE == ''
-        run: echo $PGP_SECRET | base64 -di | gpg --import
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: echo $PGP_SECRET | base64 -d -i - | gpg --import
 
       - name: Import signing key and strip passphrase
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE != ''
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
         run: |
-          echo "$PGP_SECRET" | base64 -di > /tmp/signing-key.gpg
+          echo "$PGP_SECRET" | base64 -d -i - > /tmp/signing-key.gpg
           echo "$PGP_PASSPHRASE" | gpg --pinentry-mode loopback --passphrase-fd 0 --import /tmp/signing-key.gpg
           (echo "$PGP_PASSPHRASE"; echo; echo) | gpg --command-fd 0 --pinentry-mode loopback --change-passphrase $(gpg --list-secret-keys --with-colons 2> /dev/null | grep '^sec:' | cut --delimiter ':' --fields 5 | tail -n 1)
 
       - name: Publish
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_CREDENTIAL_HOST: ${{ secrets.SONATYPE_CREDENTIAL_HOST }}
         run: 'nix develop .#${{ matrix.java }} -c sbt tlCiRelease'
+
+  dependency-submission:
+    name: Submit Dependencies
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        java: [temurin@8]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Nix
+        uses: cachix/install-nix-action@v20
+
+      - name: Install Cachix
+        uses: cachix/cachix-action@v12
+        with:
+          name: http4s
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@8)
+        id: setup-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@11' && steps.setup-java-temurin-11.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Submit Dependencies
+        uses: scalacenter/sbt-dependency-submission@v2
+        with:
+          modules-ignore: http4s-examples-ember_3 http4s-examples-ember_2.13 http4s-examples_3 http4s-examples_2.13 scalafixinternalinput_3 scalafixinternalinput_2.13 scalafixinternaltests_3 scalafixinternaltests_2.13 http4s-examples-docker_3 http4s-examples-docker_2.13 http4s_3 http4s_2.13 http4s-site_3 http4s-site_2.13 http4s-tests_3 http4s-tests_2.13 scalafixinternaloutput_3 scalafixinternaloutput_2.13 http4s-tests_sjs1_3 http4s-tests_sjs1_2.13 http4s_3 http4s_2.13 http4s_3 http4s_2.13 sbt-http4s-org-scalafix-internal_3 sbt-http4s-org-scalafix-internal_2.13 http4s-js-artifact-size-test_sjs1_3 http4s-js-artifact-size-test_sjs1_2.13 http4s-tests_native0.4_3 http4s-tests_native0.4_2.13 http4s-bench_3 http4s-bench_2.13
+          configs-ignore: test scala-tool scala-doc-tool test-internal
 
   validate-steward:
     name: Validate Steward Config
     strategy:
       matrix:
         os: [ubuntu-latest]
+        java: [temurin@11]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
 
       - uses: coursier/setup-action@v1
         with:
@@ -253,27 +395,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.11]
+        scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Cache sbt
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
       - name: Install Nix
         uses: cachix/install-nix-action@v20
 
@@ -283,10 +408,54 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@8)
+        id: setup-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@11' && steps.setup-java-temurin-11.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
       - run: 'nix develop .#${{ matrix.java }} -c sbt ''++ ${{ matrix.scala }}'' coverage rootJVM/test coverageAggregate'
 
       - if: github.event_name != 'pull_request'
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
 
   site:
     name: Generate Site
@@ -296,23 +465,6 @@ jobs:
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Cache sbt
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.sbt
-            ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
-            ~/AppData/Local/Coursier/Cache/v1
-            ~/Library/Caches/Coursier/v1
-          key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
       - name: Install Nix
         uses: cachix/install-nix-action@v20
 
@@ -322,12 +474,56 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java (temurin@8)
+        id: setup-java-temurin-8
+        if: matrix.java == 'temurin@8'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@8' && steps.setup-java-temurin-8.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@11)
+        id: setup-java-temurin-11
+        if: matrix.java == 'temurin@11'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@11' && steps.setup-java-temurin-11.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: 'nix develop .#${{ matrix.java }} -c sbt +update'
+
       - name: Generate site
         run: 'nix develop .#${{ matrix.java }} -c sbt site/tlSite'
 
       - name: Publish site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3.9.0
+        uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site/target/docs/site

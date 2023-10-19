@@ -41,7 +41,10 @@ object Host extends HeaderCompanion[Host]("Host") {
       new Renderable {
         def render(writer: Writer): writer.type = {
           writer.append(h.host)
-          if (h.port.isDefined) writer << ':' << h.port.get
+          if (h.port.isDefined) {
+            writer << ':' << h.port.get
+            ()
+          }
           writer
         }
       }

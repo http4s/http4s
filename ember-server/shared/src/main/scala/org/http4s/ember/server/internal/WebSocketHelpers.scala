@@ -184,8 +184,8 @@ private[internal] object WebSocketHelpers {
       case x => F.pure(Some(x))
     }
 
-  private def frameToBytes(frame: WebSocketFrame): List[Chunk[Byte]] =
-    nonClientTranscoder.frameToBuffer(frame).toList.map { buffer =>
+  private def frameToBytes(frame: WebSocketFrame): Chunk[Chunk[Byte]] =
+    Chunk.array(nonClientTranscoder.frameToBuffer(frame)).map { buffer =>
       // TODO followup: improve the buffering here
       val bytes = new Array[Byte](buffer.remaining())
       buffer.get(bytes)

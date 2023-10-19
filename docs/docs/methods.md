@@ -21,8 +21,8 @@ def addTweet(tweet: Tweet): IO[TweetWithId] = ???
 def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
 def deleteTweet(id: Int): IO[Unit] = ???
 
-implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
-implicit val tweetDecoder = jsonOf[IO, Tweet]
+implicit val tweetWithIdEncoder: EntityEncoder[IO, TweetWithId] = jsonEncoderOf[TweetWithId]
+implicit val tweetDecoder: EntityDecoder[IO, Tweet] = jsonOf[IO, Tweet]
 
 val tweetService = HttpRoutes.of[IO] {
   case GET -> Root / "tweets" / IntVar(tweetId) =>
