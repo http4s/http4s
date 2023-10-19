@@ -21,6 +21,7 @@ import fs2._
 import fs2.text.decodeWithCharset
 import fs2.text.utf8
 import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Prop.propBoolean
 
@@ -33,6 +34,7 @@ import java.nio.charset.{Charset => JCharset}
 import scala.util.Try
 
 class DecodeSpec extends Http4sSuite {
+  override def scalaCheckInitialSeed = "UuhLRvSjo_SAS13rYR-NHxeNurZ-dZNzGgpxCYA_i6G="
   test("decode should be consistent with utf8.decode") {
     forAll { (s: String, chunkSize: Int) =>
       (chunkSize > 0) ==> {
@@ -65,7 +67,7 @@ class DecodeSpec extends Http4sSuite {
               .toSeq
           }
           .flatMap(Stream.chunk[Pure, Byte])
-        val expected = new String(source.toVector.toArray, cs.nioCharset)
+        val expected = trimBOM(new String(source.toVector.toArray, cs.nioCharset))
         !expected.contains("\ufffd") ==> {
           // \ufffd means we generated a String unrepresentable by the charset
           val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
@@ -74,6 +76,29 @@ class DecodeSpec extends Http4sSuite {
       }
     }
   }
+
+  test("decode should be consistent with String constructor with BOM") {
+    forAll(Gen.alphaNumStr, Gen.size) { (ans: String, chunkSize: Int) =>
+      (chunkSize > 0) ==> {
+        val s = "\uFEFF" + ans
+        val source: Stream[Pure, Byte] = Stream
+          .emits {
+            s.getBytes(StandardCharsets.UTF_8)
+              .grouped(chunkSize)
+              .map(Chunk.array[Byte])
+              .toSeq
+          }
+          .flatMap(Stream.chunk[Pure, Byte])
+        val expected = trimBOM(new String(source.toVector.toArray, StandardCharsets.UTF_8))
+        val decoded =
+          source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
+        assertEquals(decoded, Right(expected))
+      }
+    }
+  }
+
+  private def trimBOM(str: String): String =
+    if (str.nonEmpty && str.head == '\ufeff') str.tail else str
 
   test("decode should decode an empty chunk") {
     forAll { (cs: Charset) =>
