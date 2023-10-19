@@ -49,9 +49,9 @@ object Http4sSitePlugin extends AutoPlugin {
           base,
           latest((0, 23)).toString,
           latest((1, 0)).toString,
-          GenericSiteSettings.githubLink.value.toList ++ Seq(
-            Http4sOrgSitePlugin.chatLink
-          ),
+          GenericSiteSettings.apiLink.value.toList ++
+            GenericSiteSettings.githubLink.value.toList ++
+            Seq(Http4sOrgSitePlugin.chatLink),
         )
       else base
     },
