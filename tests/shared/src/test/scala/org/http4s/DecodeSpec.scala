@@ -21,6 +21,7 @@ import fs2._
 import fs2.text.decodeWithCharset
 import fs2.text.utf8
 import org.http4s.laws.discipline.arbitrary._
+import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Prop.propBoolean
 
@@ -77,20 +78,21 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should be consistent with String constructor with BOM") {
-    val cs = Charset(StandardCharsets.UTF_8)
-    val s = "\uFEFF" // EF BB BF
-    val chunkSize = 1
-    val source: Stream[Pure, Byte] = Stream
-      .emits {
-        s.getBytes(cs.nioCharset)
-          .grouped(chunkSize)
-          .map(Chunk.array[Byte])
-          .toSeq
-      }
-      .flatMap(Stream.chunk[Pure, Byte])
-    val expected = trimBOM(new String(source.toVector.toArray, cs.nioCharset))
-    val decoded = source.through(decodeWithCharset[Fallible](cs.nioCharset)).compile.string
-    assertEquals(decoded, Right(expected))
+    forAll(Gen.alphaNumStr, Gen.size) { (ans: String, chunkSize: Int) =>
+      val s = "\uFEFF" + ans
+      val source: Stream[Pure, Byte] = Stream
+        .emits {
+          s.getBytes(StandardCharsets.UTF_8)
+            .grouped(chunkSize)
+            .map(Chunk.array[Byte])
+            .toSeq
+        }
+        .flatMap(Stream.chunk[Pure, Byte])
+      val expected = trimBOM(new String(source.toVector.toArray, StandardCharsets.UTF_8))
+      val decoded =
+        source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
+      assertEquals(decoded, Right(expected))
+    }
   }
 
   private def trimBOM(str: String): String =
