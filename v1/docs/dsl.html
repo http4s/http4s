@@ -1,232 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
+  
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
-    <title>The http4s DSL</title>
-    
-      <meta name="author" content="Ross A. Baker"/>
-    
-      <meta name="author" content="Bjørn Madsen"/>
-    
-      <meta name="author" content="André Rouel"/>
-    
-      <meta name="author" content="Brad Fritz"/>
-    
-      <meta name="author" content="Bryce L. Anderson"/>
-    
-      <meta name="author" content="Ivan Porto Carrero"/>
-    
-      <meta name="author" content="Carlos Encarnacion"/>
-    
-      <meta name="author" content="Christopher Davenport"/>
-    
-      <meta name="author" content="Carlos Quiroz"/>
-    
-      <meta name="author" content="Heikki Vesalainen"/>
-    
-      <meta name="author" content="Paulo Siqueira"/>
-    
-      <meta name="author" content="Jean-Rémi Desjardins"/>
-    
-      <meta name="author" content="Jose Cardona"/>
-    
-      <meta name="author" content="Julien Truffaut"/>
-    
-      <meta name="author" content="Rodolfo Hansen"/>
-    
-      <meta name="author" content="Simon Hafner"/>
-    
-      <meta name="author" content="Arya Irani"/>
-    
-      <meta name="author" content="Ross A. Baker"/>
-    
-      <meta name="author" content="Sheng Chen"/>
-    
-      <meta name="author" content="Fabio Labella"/>
-    
-    
-      <meta name="description" content="Documentation for http4s"/>
-    
-    
-      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
-    
-      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
-    
-    
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
-    
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
-    
-    <link rel="stylesheet" type="text/css" href="../../helium/icofont.min.css" />
-    <link rel="stylesheet" type="text/css" href="../../helium/laika-helium.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Typelevel Laika + Helium Theme" />
+  <title>The http4s DSL</title>
+  
+  <meta name="author" content="http4s contributors"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Bjørn Madsen"/>
+  
+  <meta name="author" content="André Rouel"/>
+  
+  <meta name="author" content="Brad Fritz"/>
+  
+  <meta name="author" content="Bryce L. Anderson"/>
+  
+  <meta name="author" content="Ivan Porto Carrero"/>
+  
+  <meta name="author" content="Carlos Encarnacion"/>
+  
+  <meta name="author" content="Christopher Davenport"/>
+  
+  <meta name="author" content="Carlos Quiroz"/>
+  
+  <meta name="author" content="Heikki Vesalainen"/>
+  
+  <meta name="author" content="Paulo Siqueira"/>
+  
+  <meta name="author" content="Jean-Rémi Desjardins"/>
+  
+  <meta name="author" content="Jose Cardona"/>
+  
+  <meta name="author" content="Julien Truffaut"/>
+  
+  <meta name="author" content="Rodolfo Hansen"/>
+  
+  <meta name="author" content="Simon Hafner"/>
+  
+  <meta name="author" content="Arya Irani"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Sheng Chen"/>
+  
+  <meta name="author" content="Fabio Labella"/>
+  
+  
+  <meta name="description" content="Documentation for http4s"/>
+  
+  
+  
+  <link rel="icon"  type="image/svg+xml" href="../../images/http4s-favicon.svg"/>
+  
+  <link rel="icon" sizes="32x32" type="image/png" href="../../images/http4s-favicon.png"/>
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:500">
+  
+  <link rel="stylesheet" type="text/css" href="../../helium/site/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/site/laika-helium.css" />
     <link rel="stylesheet" type="text/css" href="../../styles/styles.css" />
-    <link rel="stylesheet" type="text/css" href="../../site/styles.css" />
-    <script src="../../helium/laika-helium.js"></script>
-    <script src="../../helium/laika-versions.js"></script>
-    <script>initVersions("../../", "/docs/dsl.html", "v1");</script>
-    
-    <script> /* for avoiding page load transitions */ </script>
-  </head>
+  <script src="../../helium/site/laika-helium.js"></script>
+    <script src="../../helium/site/laika-versions.js"></script>
+  <script>initVersions("../../", "/docs/dsl.html", "v1", null);</script>
+  
+  <script> /* for avoiding page load transitions */ </script>
+</head>
 
   <body>
 
-    <header id="top-bar">
+    <header id="top-bar" class="light-default dark-default">
 
-      <div class="row">
-        <a id="nav-icon">
-          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
-        </a>
-        
-        <div id="version-menu-container">
-          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
-            
-            Version 1
-            
-          </a>
-          <nav id="version-menu">
-            <ul id="version-list" class="nav-list">
-            </ul>
-          </nav>
-        </div>
-        
-      </div>
+  <div class="row">
+    <a id="nav-icon">
+      <i class="icofont-laika navigationMenu" title="Navigation">&#xefa2;</i>
+    </a>
+    
+    <div class="menu-container version-menu">
+      <a class="text-link menu-toggle" href="#">Version 1</a>
+      <nav class="menu-content">
+        <ul class="nav-list">
+          <li class="level1 nav-leaf"><a href="../../versions.html">Help me choose...</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
 
-      <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+  <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
 
-      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <div class="row links">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
   </g>
-</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
   </g>
-</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a></span>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>  
 
-    </header>
-
+</header>
+    
     <nav id="sidebar">
 
-      <div class="row">
-        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <div class="row">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
   </g>
-</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
   </g>
-</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a>
-      </div>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>
 
-      <ul class="nav-list">
-        <li class="level1"><a href="../../versions.html">Versions</a></li>
-        <li class="level1"><a href="../../changelog.html">Changelog</a></li>
-        <li class="level1"><a href="../../getting-help.html">Getting Help</a></li>
-        <li class="level1"><a href="../../contributing.html">Contributing</a></li>
-        <li class="level1"><a href="../../adopters.html">Adopters</a></li>
-        <li class="level1"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
-        <li class="level1"><a href="../../further-reading.html">Further Reading</a></li>
-        <li class="level1 nav-header">User Guide</li>
-        <li class="level2"><a href="quickstart.html">Quick Start</a></li>
-        <li class="level2"><a href="integrations.html">Integrations</a></li>
-        <li class="level2"><a href="upgrading.html">Upgrading</a></li>
-        <li class="level2"><a href="service.html">Service</a></li>
-        <li class="level2 active"><a href="#">The http4s DSL</a></li>
-        <li class="level2"><a href="middleware.html">Middleware</a></li>
-        <li class="level2"><a href="auth.html">Authentication</a></li>
-        <li class="level2"><a href="cors.html">CORS</a></li>
-        <li class="level2"><a href="csrf.html">CSRF</a></li>
-        <li class="level2"><a href="gzip.html">GZip Compression</a></li>
-        <li class="level2"><a href="hsts.html">HSTS</a></li>
-        <li class="level2"><a href="static.html">Static Files</a></li>
-        <li class="level2"><a href="client.html">HTTP Client</a></li>
-        <li class="level2"><a href="entity.html">Entity Handling</a></li>
-        <li class="level2"><a href="streaming.html">Streaming</a></li>
-        <li class="level2"><a href="json.html">JSON Handling</a></li>
-        <li class="level2"><a href="testing.html">Testing</a></li>
-        <li class="level2"><a href="uri.html">URI Handling</a></li>
-        <li class="level2"><a href="deployment.html">Deployment</a></li>
-        <li class="level2"><a href="error-handling.html">Error Handling</a></li>
-        <li class="level2"><a href="server-middleware.html">Server Middleware</a></li>
-        <li class="level2"><a href="methods.html">HTTP Methods</a></li>
-      </ul>
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="../../versions.html">Versions</a></li>
+    <li class="level1 nav-leaf"><a href="../../changelog.html">Changelog</a></li>
+    <li class="level1 nav-leaf"><a href="../../getting-help.html">Getting Help</a></li>
+    <li class="level1 nav-leaf"><a href="../../contributing.html">Contributing</a></li>
+    <li class="level1 nav-leaf"><a href="../../adopters.html">Adopters</a></li>
+    <li class="level1 nav-leaf"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+    <li class="level1 nav-leaf"><a href="../../further-reading.html">Further Reading</a></li>
+    <li class="level1 nav-header">User Guide</li>
+    <li class="level2 nav-leaf"><a href="quickstart.html">Quick Start</a></li>
+    <li class="level2 nav-leaf"><a href="integrations.html">Integrations</a></li>
+    <li class="level2 nav-leaf"><a href="upgrading.html">Upgrading</a></li>
+    <li class="level2 nav-leaf"><a href="service.html">Service</a></li>
+    <li class="level2 active nav-leaf"><a href="#">The http4s DSL</a></li>
+    <li class="level2 nav-leaf"><a href="middleware.html">Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="auth.html">Authentication</a></li>
+    <li class="level2 nav-leaf"><a href="cors.html">CORS</a></li>
+    <li class="level2 nav-leaf"><a href="csrf.html">CSRF</a></li>
+    <li class="level2 nav-leaf"><a href="gzip.html">GZip Compression</a></li>
+    <li class="level2 nav-leaf"><a href="hsts.html">HSTS</a></li>
+    <li class="level2 nav-leaf"><a href="static.html">Static Files</a></li>
+    <li class="level2 nav-leaf"><a href="client.html">HTTP Client</a></li>
+    <li class="level2 nav-leaf"><a href="entity.html">Entity Handling</a></li>
+    <li class="level2 nav-leaf"><a href="streaming.html">Streaming</a></li>
+    <li class="level2 nav-leaf"><a href="json.html">JSON Handling</a></li>
+    <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
+    <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
+    <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
+    <li class="level2 nav-leaf"><a href="server-middleware.html">Server Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
+    <li class="level1 nav-header">Related Projects</li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
+    <li class="level2 nav-leaf"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/rho/">rho</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/typelevel/feral/">feral</a></li>
+  </ul>
 
-      <ul class="nav-list">
-        <li class="level1 nav-header">Related Projects</li>
-        
-          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
-        
-          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
-        
-          <li class="level2"><a href="https://github.com/typelevel/feral/">feral</a></li>
-        
-      </ul>
-
-    </nav>
+</nav>
 
     <div id="container">
 
-      <nav id="page-nav">
-        <p class="header"><a href="#">The http4s DSL</a></p>
+      
+<nav id="page-nav">
+  <p class="header"><a href="#">The http4s DSL</a></p>
 
-        <ul class="nav-list">
-          <li class="level1"><a href="#add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</a></li>
-          <li class="level1"><a href="#the-simplest-service">The Simplest Service</a></li>
-          <li class="level1"><a href="#testing-the-service">Testing the Service</a></li>
-          <li class="level1"><a href="#generating-responses">Generating Responses</a></li>
-          <li class="level2"><a href="#status-codes">Status Codes</a></li>
-          <li class="level2"><a href="#headers">Headers</a></li>
-          <li class="level2"><a href="#cookies">Cookies</a></li>
-          <li class="level2"><a href="#responding-with-a-body">Responding with a Body</a></li>
-          <li class="level1"><a href="#matching-and-extracting-requests">Matching and Extracting Requests</a></li>
-          <li class="level2"><a href="#the-object">The <code>-&gt;</code> object</a></li>
-          <li class="level2"><a href="#path-info">Path Info</a></li>
-          <li class="level2"><a href="#matching-paths">Matching Paths</a></li>
-          <li class="level2"><a href="#handling-path-parameters">Handling Path Parameters</a></li>
-          <li class="level2"><a href="#handling-matrix-path-parameters">Handling Matrix Path Parameters</a></li>
-          <li class="level2"><a href="#handling-query-parameters">Handling Query Parameters</a></li>
-        </ul>
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#add-the-http4s-dsl-to-your-build">Add the http4s-dsl to your build</a></li>
+    <li class="level1 nav-leaf"><a href="#the-simplest-service">The Simplest Service</a></li>
+    <li class="level1 nav-leaf"><a href="#testing-the-service">Testing the Service</a></li>
+    <li class="level1 nav-node"><a href="#generating-responses">Generating Responses</a></li>
+    <li class="level2 nav-leaf"><a href="#status-codes">Status Codes</a></li>
+    <li class="level2 nav-leaf"><a href="#headers">Headers</a></li>
+    <li class="level2 nav-leaf"><a href="#cookies">Cookies</a></li>
+    <li class="level2 nav-leaf"><a href="#responding-with-a-body">Responding with a Body</a></li>
+    <li class="level1 nav-node"><a href="#matching-and-extracting-requests">Matching and Extracting Requests</a></li>
+    <li class="level2 nav-leaf"><a href="#the-object">The <code>-&gt;</code> object</a></li>
+    <li class="level2 nav-leaf"><a href="#path-info">Path Info</a></li>
+    <li class="level2 nav-leaf"><a href="#matching-paths">Matching Paths</a></li>
+    <li class="level2 nav-leaf"><a href="#handling-path-parameters">Handling Path Parameters</a></li>
+    <li class="level2 nav-leaf"><a href="#handling-matrix-path-parameters">Handling Matrix Path Parameters</a></li>
+    <li class="level2 nav-leaf"><a href="#handling-query-parameters">Handling Query Parameters</a></li>
+  </ul>
 
-        <p class="footer"></p>
-      </nav>
+  <p class="footer"></p>
+</nav>
+
 
       <main class="content">
 
@@ -237,7 +228,7 @@
         servlet container.  While this foundation is composable, it is not
         highly productive.  Most service authors will seek a higher level DSL.</p>
         
-        <h2 id="add-the-http4s-dsl-to-your-build" class="section">Add the http4s-dsl to your build<a class="anchor-link right" href="#add-the-http4s-dsl-to-your-build"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="add-the-http4s-dsl-to-your-build" class="section"><a class="anchor-link left" href="#add-the-http4s-dsl-to-your-build"><i class="icofont-laika link">&#xef71;</i></a>Add the http4s-dsl to your build</h2>
         <p>One option is the http4s-dsl.  It is officially supported by the
         http4s team, but kept separate from core in order to encourage
         multiple approaches for different needs.</p>
@@ -249,7 +240,7 @@
         <p>All we need is a REPL to follow along at home:</p>
         <pre><code>$ sbt console</code></pre>
         
-        <h2 id="the-simplest-service" class="section">The Simplest Service<a class="anchor-link right" href="#the-simplest-service"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="the-simplest-service" class="section"><a class="anchor-link left" href="#the-simplest-service"><i class="icofont-laika link">&#xef71;</i></a>The Simplest Service</h2>
         <p>We&#39;ll need the following imports to get started:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
@@ -271,7 +262,7 @@
     </span><span class="type-name">IO</span><span>(</span><span class="type-name">Response</span><span>(</span><span class="type-name">Status</span><span>.</span><span class="type-name">Ok</span><span>))
 }</span></code></pre>
         
-        <h2 id="testing-the-service" class="section">Testing the Service<a class="anchor-link right" href="#testing-the-service"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="testing-the-service" class="section"><a class="anchor-link left" href="#testing-the-service"><i class="icofont-laika link">&#xef71;</i></a>Testing the Service</h2>
         <p>One beautiful thing about the <code>HttpRoutes[F]</code> model is that we don&#39;t
         need a server to test our route.  We can construct our own request
         and experiment directly in the REPL.</p>
@@ -288,21 +279,21 @@
         run it.</p>
         <p>But here in the REPL, it&#39;s up to us to run it:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="identifier">serviceIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// response: Response[IO[A]] = (
+</span><span class="comment">// response: Response[[A]IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@51a1b079
+//    = org.typelevel.vault.Vault@52eeeb0b
 // )</span></code></pre>
         <p>Cool.</p>
         
-        <h2 id="generating-responses" class="section">Generating Responses<a class="anchor-link right" href="#generating-responses"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="generating-responses" class="section"><a class="anchor-link left" href="#generating-responses"><i class="icofont-laika link">&#xef71;</i></a>Generating Responses</h2>
         <p>We&#39;ll circle back to more sophisticated pattern matching of requests,
         but it will be a tedious affair until we learn a more succinct way of
         generating <code>F[Response]</code>s.</p>
         
-        <h3 id="status-codes" class="section">Status Codes<a class="anchor-link right" href="#status-codes"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="status-codes" class="section"><a class="anchor-link left" href="#status-codes"><i class="icofont-laika link">&#xef71;</i></a>Status Codes</h3>
         <p>http4s-dsl provides a shortcut to create an <code>F[Response]</code> by
         applying a status code:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">okIo</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Response</span><span>[</span><span class="type-name">IO</span><span>]] = </span><span class="type-name">Ok</span><span>()</span></code></pre>
@@ -311,12 +302,12 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res0: Response[IO[A]] = (
+</span><span class="comment">// res0: Response[[A]IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@23ebcefd
+//    = org.typelevel.vault.Vault@6262f9f6
 // )</span></code></pre>
         <p>This syntax works for other status codes as well.  In our example, we
         don&#39;t return a body, so a <code>204 No Content</code> would be a more appropriate
@@ -324,46 +315,46 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">NoContent</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res1: Response[IO[A]] = (
+</span><span class="comment">// res1: Response[[A]IO[A]] = (
 //    = Status(code = 204),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@1c4463e3
+//    = org.typelevel.vault.Vault@2473a8ed
 // )</span></code></pre>
         <p>Some other examples are:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Conflict</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res2: Response[IO[A]] = (
+</span><span class="comment">// res2: Response[[A]IO[A]] = (
 //    = Status(code = 409),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@514c47b
+//    = org.typelevel.vault.Vault@20452fdd
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Created</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res3: Response[IO[A]] = (
+</span><span class="comment">// res3: Response[[A]IO[A]] = (
 //    = Status(code = 201),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@596a8ed8
+//    = org.typelevel.vault.Vault@5d63e6d
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Forbidden</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res4: Response[IO[A]] = (
+</span><span class="comment">// res4: Response[[A]IO[A]] = (
 //    = Status(code = 403),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@248b2f2e
+//    = org.typelevel.vault.Vault@708eca68
 // )</span></code></pre>
         
-        <h3 id="headers" class="section">Headers<a class="anchor-link right" href="#headers"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="headers" class="section"><a class="anchor-link left" href="#headers"><i class="icofont-laika link">&#xef71;</i></a>Headers</h3>
         <p>http4s adds a minimum set of headers depending on the response, e.g:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res5: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)</span></code></pre>
@@ -381,7 +372,7 @@
   .</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res7: Headers = Headers(Content-Type: text/plain; charset=UTF-8, X-Auth-Token: value, Content-Length: 12)</span></code></pre>
         
-        <h3 id="cookies" class="section">Cookies<a class="anchor-link right" href="#cookies"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="cookies" class="section"><a class="anchor-link left" href="#cookies"><i class="icofont-laika link">&#xef71;</i></a>Cookies</h3>
         <p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
         and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">addCookie</span><span>(</span><span class="type-name">ResponseCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>, </span><span class="string-literal">&quot;bar&quot;</span><span>)))
@@ -396,15 +387,15 @@
       </span><span class="identifier">expires</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="identifier">now</span><span>), </span><span class="identifier">httpOnly</span><span> = </span><span class="boolean-literal">true</span><span>, </span><span class="identifier">secure</span><span> = </span><span class="boolean-literal">true</span><span>))
 }</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">cookieResp</span><span>.</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 21 Sep 2023 17:46:16 GMT; Secure; HttpOnly)</span></code></pre>
+</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 19 Oct 2023 21:59:42 GMT; Secure; HttpOnly)</span></code></pre>
         <p>To request a cookie to be removed on the client, you need to set the cookie value
         to empty. http4s can do that with <code>removeCookie</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">removeCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
 </span><span class="comment">// res10: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT)</span></code></pre>
         
-        <h3 id="responding-with-a-body" class="section">Responding with a Body<a class="anchor-link right" href="#responding-with-a-body"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="responding-with-a-body" class="section"><a class="anchor-link left" href="#responding-with-a-body"><i class="icofont-laika link">&#xef71;</i></a>Responding with a Body</h3>
         
-        <h4 id="simple-bodies" class="section">Simple Bodies<a class="anchor-link right" href="#simple-bodies"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="simple-bodies" class="section"><a class="anchor-link left" href="#simple-bodies"><i class="icofont-laika link">&#xef71;</i></a>Simple Bodies</h4>
         <p>Most status codes take an argument as a body.  In http4s, <code>Request[F]</code>
         and <code>Response[F]</code> bodies are represented as an
         <code>org.http4s.Entity[F]</code>. For more details, see the <a href="entity.html">entity</a> page. 
@@ -423,13 +414,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@1b6f1b27,
+//         at = scodec.bits.ByteVector$AtArray@49033054,
 //         offset = 0L,
 //         size = 17L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@387b332d
+//    = org.typelevel.vault.Vault@40b1d56e
 // )
 </span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">nio</span><span>.</span><span class="identifier">charset</span><span>.</span><span class="type-name">StandardCharsets</span><span>.</span><span class="type-name">UTF_8</span><span>
@@ -441,13 +432,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@35ea66b4,
+//         at = scodec.bits.ByteVector$AtArray@74a0ae43,
 //         offset = 0L,
 //         size = 6L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@48e5dd78
+//    = org.typelevel.vault.Vault@727bf735
 // )</span></code></pre>
         <p>Per the HTTP specification, some status codes don&#39;t support a body.
         http4s prevents such nonsense at compile time:</p>
@@ -456,7 +447,7 @@
 // NoContent(&quot;does not compile&quot;)
 //           ^^^^^^^^^^^^^^^^^^</span></code></pre>
         
-        <h4 id="asynchronous-responses" class="section">Asynchronous Responses<a class="anchor-link right" href="#asynchronous-responses"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="asynchronous-responses" class="section"><a class="anchor-link left" href="#asynchronous-responses"><i class="icofont-laika link">&#xef71;</i></a>Asynchronous Responses</h4>
         <p>While http4s prefers <code>F[_]: Async</code>, you may be working with libraries that
         use standard library <code>Future</code>s.  Some relevant imports:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="type-name">Future</span><span>
@@ -481,13 +472,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@651403cb,
+//         at = scodec.bits.ByteVector$AtArray@7bb48df8,
 //         offset = 0L,
 //         size = 26L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@2e7cd8fe
+//    = org.typelevel.vault.Vault@25b173f
 // )</span></code></pre>
         <p>As good functional programmers who like to delay our side effects, we
         of course prefer to operate in <code>F</code>s:</p>
@@ -504,20 +495,20 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@18ee0ab6,
+//         at = scodec.bits.ByteVector$AtArray@1d18d1db,
 //         offset = 0L,
 //         size = 21L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@1952b9e9
+//    = org.typelevel.vault.Vault@9672fd7
 // )</span></code></pre>
         <p>Note that in both cases, a <code>Content-Length</code> header is calculated.
         http4s waits for the <code>Future</code> or <code>F</code> to complete before wrapping it
         in its HTTP envelope, and thus has what it needs to calculate a
         <code>Content-Length</code>.</p>
         
-        <h4 id="streaming-bodies" class="section">Streaming Bodies<a class="anchor-link right" href="#streaming-bodies"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="streaming-bodies" class="section"><a class="anchor-link left" href="#streaming-bodies"><i class="icofont-laika link">&#xef71;</i></a>Streaming Bodies</h4>
         <p>Streaming bodies are supported by returning a <code>fs2.Stream</code>.
         Like <code>IO</code>, the stream may be of any type that has an
         <code>EntityEncoder</code>.</p>
@@ -536,11 +527,11 @@
   .</span><span class="identifier">compile</span><span>
   .</span><span class="identifier">drain</span><span>
 </span><span class="comment">// dripOutIO: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$$Lambda$21967/1130367808@5c1deb53,
+//   body = cats.effect.IO$$$Lambda$18478/468213385@56e3a84e,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span class="identifier">dripOutIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// 104734576 nanoseconds201212859 nanoseconds301188582 nanoseconds401357807 nanoseconds501347730 nanoseconds601358553 nanoseconds701457877 nanoseconds801533300 nanoseconds901366721 nanoseconds1001553946 nanoseconds</span></code></pre>
+</span><span class="comment">// 103423557 nanoseconds201569029 nanoseconds301445825 nanoseconds401286495 nanoseconds500987462 nanoseconds601146636 nanoseconds700959905 nanoseconds801623387 nanoseconds901527157 nanoseconds1001516428 nanoseconds</span></code></pre>
         <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
         <code>Stream</code> as they are emitted.  Note that a stream&#39;s length can&#39;t
         generally be anticipated before it runs, so this triggers chunked
@@ -552,17 +543,17 @@
 //      = HttpVersion(major = 1, minor = 1),
 //      = Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
 //      = Streamed(body = Stream(..), length = None),
-//      = org.typelevel.vault.Vault@14ee7306
+//      = org.typelevel.vault.Vault@cdbbf42
 //   )
 // )</span></code></pre>
         
-        <h2 id="matching-and-extracting-requests" class="section">Matching and Extracting Requests<a class="anchor-link right" href="#matching-and-extracting-requests"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="matching-and-extracting-requests" class="section"><a class="anchor-link left" href="#matching-and-extracting-requests"><i class="icofont-laika link">&#xef71;</i></a>Matching and Extracting Requests</h2>
         <p>A <code>Request</code> is a regular <code>case class</code> - you can destructure it to extract its
         values. By extension, you can also <code>match/case</code> it with different possible
         destructurings. To build these different extractors, you can make use of the
         DSL.</p>
         
-        <h3 id="the-object" class="section">The <code>-&gt;</code> object<a class="anchor-link right" href="#the-object"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="the-object" class="section"><a class="anchor-link left" href="#the-object"><i class="icofont-laika link">&#xef71;</i></a>The <code>-&gt;</code> object</h3>
         <p>More often, you extract the <code>Request</code> into a HTTP <code>Method</code> and path
         info via the <code>-&gt;</code> object.  On the left side is the method, and on the
         right side, the path info.  The following matches a request to <code>GET
@@ -572,7 +563,7 @@
 }</span></code></pre>
         <p>Methods such as <code>GET</code> are typically found in <code>org.http4s.Method</code>, but are imported automatically as part of the DSL.</p>
         
-        <h3 id="path-info" class="section">Path Info<a class="anchor-link right" href="#path-info"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="path-info" class="section"><a class="anchor-link left" href="#path-info"><i class="icofont-laika link">&#xef71;</i></a>Path Info</h3>
         <p>Path matching is done on the request&#39;s <code>pathInfo</code>.  Path info is the
         request&#39;s URI&#39;s path after the following:</p>
         <ul>
@@ -584,7 +575,7 @@
         multiple services to be composed without rewriting all the path
         matchers.</p>
         
-        <h3 id="matching-paths" class="section">Matching Paths<a class="anchor-link right" href="#matching-paths"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="matching-paths" class="section"><a class="anchor-link left" href="#matching-paths"><i class="icofont-laika link">&#xef71;</i></a>Matching Paths</h3>
         <p>A request to the root of the service is matched with the <code>Root</code>
         extractor.  <code>Root</code> consumes the leading slash of the path info.  The
         following matches requests to <code>GET /</code>:</p>
@@ -618,7 +609,7 @@
   </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="identifier">file</span><span> ~ </span><span class="string-literal">&quot;json&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for </span><span class="substitution">$file</span><span class="string-literal">&quot;}&quot;&quot;&quot;</span><span>)
 }</span></code></pre>
         
-        <h3 id="handling-path-parameters" class="section">Handling Path Parameters<a class="anchor-link right" href="#handling-path-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="handling-path-parameters" class="section"><a class="anchor-link left" href="#handling-path-parameters"><i class="icofont-laika link">&#xef71;</i></a>Handling Path Parameters</h3>
         <p>Path params can be extracted and converted to a specific type but are
         <code>String</code>s by default. There are numeric extractors provided in the form
         of <code>IntVar</code> and <code>LongVar</code>, as well as <code>UUIDVar</code> extractor for <code>java.util.UUID</code>.</p>
@@ -653,23 +644,23 @@
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/weather/temperature/2016-11-05&quot;</span><span>)</span></code></pre>
         <pre><code class="nohighlight"><span class="identifier">dailyWeatherService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res24: Response[IO[A]] = (
+</span><span class="comment">// res24: Response[[A]IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44),
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@7c3d7097,
+//         at = scodec.bits.ByteVector$AtArray@5716210b,
 //         offset = 0L,
 //         size = 44L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@702c1308
+//    = org.typelevel.vault.Vault@67bfa5a9
 // )</span></code></pre>
         
-        <h3 id="handling-matrix-path-parameters" class="section">Handling Matrix Path Parameters<a class="anchor-link right" href="#handling-matrix-path-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="handling-matrix-path-parameters" class="section"><a class="anchor-link left" href="#handling-matrix-path-parameters"><i class="icofont-laika link">&#xef71;</i></a>Handling Matrix Path Parameters</h3>
         <p><a href="https://www.w3.org/DesignIssues/MatrixURIs.html">Matrix path parameters</a> can be extracted using <code>MatrixVar</code>.</p>
         <p>In following example, we extract the <code>first</code> and <code>last</code> matrix path parameters.
         By default, matrix path parameters are extracted as <code>String</code>s.</p>
@@ -686,20 +677,20 @@
     </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, 
     </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe/greeting&quot;</span><span>
   )).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res25: Response[IO[A]] = (
+</span><span class="comment">// res25: Response[[A]IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16),
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@43d8392d,
+//         at = scodec.bits.ByteVector$AtArray@2cd5c0c8,
 //         offset = 0L,
 //         size = 16L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@24c90413
+//    = org.typelevel.vault.Vault@7d254bbf
 // )</span></code></pre>
         <p>Like standard path parameters, matrix path parameters can be extracted as numeric types using <code>IntVar</code> or <code>LongVar</code>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">FullNameAndIDExtractor</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">MatrixVar</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="type-name">List</span><span>(</span><span class="string-literal">&quot;first&quot;</span><span>, </span><span class="string-literal">&quot;last&quot;</span><span>, </span><span class="string-literal">&quot;id&quot;</span><span>))
@@ -713,23 +704,23 @@
     </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, 
     </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe;id=123/greeting&quot;</span><span>
   )).</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// res26: Response[IO[A]] = (
+</span><span class="comment">// res26: Response[[A]IO[A]] = (
 //    = Status(code = 200),
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 37),
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@33e771d5,
+//         at = scodec.bits.ByteVector$AtArray@1bdd3369,
 //         offset = 0L,
 //         size = 37L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@23c380f2
+//    = org.typelevel.vault.Vault@1554f56
 // )</span></code></pre>
         
-        <h3 id="handling-query-parameters" class="section">Handling Query Parameters<a class="anchor-link right" href="#handling-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="handling-query-parameters" class="section"><a class="anchor-link left" href="#handling-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Handling Query Parameters</h3>
         <p>A query parameter needs to have a <code>QueryParamDecoderMatcher</code> provided to
         extract it. In order for the <code>QueryParamDecoderMatcher</code> to work there needs to
         be an implicit <code>QueryParamDecoder[T]</code> in scope. <code>QueryParamDecoder</code>s for simple
@@ -743,7 +734,7 @@
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
   </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@5d9fdc7a
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@2edd6c8e
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
@@ -755,7 +746,7 @@
       .</span><span class="identifier">map</span><span>(</span><span class="string-literal">s&quot;Average temperature for </span><span class="substitution">$country</span><span class="string-literal"> in </span><span class="substitution">$year</span><span class="string-literal"> was: &quot;</span><span> + </span><span class="identifier">_</span><span>))
 }
 </span><span class="comment">// averageTemperatureService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21445/1351999549@3d0015a7
+//   run = org.http4s.HttpRoutes$$$Lambda$17927/540511528@2446ef0a
 // )</span></code></pre>
         <p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
         outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
@@ -767,12 +758,12 @@
 
 </span><span class="keyword">object</span><span> </span><span class="type-name">IsoInstantParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">Instant</span><span>](</span><span class="string-literal">&quot;timestamp&quot;</span><span>)</span></code></pre>
         
-        <h4 id="optional-query-parameters" class="section">Optional Query Parameters<a class="anchor-link right" href="#optional-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="optional-query-parameters" class="section"><a class="anchor-link left" href="#optional-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Optional Query Parameters</h4>
         <p>To accept an optional query parameter a <code>OptionalQueryParamDecoderMatcher</code> can be used.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">time</span><span>.</span><span class="type-name">Year</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
   </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@58b665c6
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@7d866a55
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">OptionalYearQueryParamMatcher</span><span> 
   </span><span class="keyword">extends</span><span> </span><span class="type-name">OptionalQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
@@ -790,20 +781,20 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21445/1351999549@5cf8eca9
+//   run = org.http4s.HttpRoutes$$$Lambda$17927/540511528@296cd7cc
 // )</span></code></pre>
         
-        <h4 id="missing-required-query-parameters" class="section">Missing Required Query Parameters<a class="anchor-link right" href="#missing-required-query-parameters"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="missing-required-query-parameters" class="section"><a class="anchor-link left" href="#missing-required-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Missing Required Query Parameters</h4>
         <p>A request with a missing required query parameter will fall through to the following <code>case</code> statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.</p>
         
-        <h4 id="invalid-query-parameter-handling" class="section">Invalid Query Parameter Handling<a class="anchor-link right" href="#invalid-query-parameter-handling"><i class="icofont-laika">&#xef71;</i></a></h4>
-        <p>To validate query parsing you can use <code>ValidatingQueryParamDecoderMatcher</code> which returns a <code>ParseFailure</code> if the parameter cannot be decoded. Be careful not to return the raw invalid value in a <code>BadRequest</code> because it could be used for <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS">Cross Site Scripting</a>) attacks.</p>
+        <h4 id="invalid-query-parameter-handling" class="section"><a class="anchor-link left" href="#invalid-query-parameter-handling"><i class="icofont-laika link">&#xef71;</i></a>Invalid Query Parameter Handling</h4>
+        <p>To validate query parsing you can use <code>ValidatingQueryParamDecoderMatcher</code> which returns a <code>ParseFailure</code> if the parameter cannot be decoded. Be careful not to return the raw invalid value in a <code>BadRequest</code> because it could be used for <a href="https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)">Cross Site Scripting</a> attacks.</p>
         <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
   </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>]
     .</span><span class="identifier">emap</span><span>(</span><span class="identifier">i</span><span> =&gt; </span><span class="type-name">Try</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>(</span><span class="identifier">i</span><span>))
     .</span><span class="identifier">toEither</span><span>
     .</span><span class="identifier">leftMap</span><span>(</span><span class="identifier">t</span><span> =&gt; </span><span class="type-name">ParseFailure</span><span>(</span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>, </span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>)))
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@7f278740
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@6c907773
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">ValidatingQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
@@ -815,10 +806,10 @@
     )
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21445/1351999549@42b7082e
+//   run = org.http4s.HttpRoutes$$$Lambda$17927/540511528@7f3dfb54
 // )</span></code></pre>
         
-        <h4 id="optional-invalid-query-parameter-handling" class="section">Optional Invalid Query Parameter Handling<a class="anchor-link right" href="#optional-invalid-query-parameter-handling"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="optional-invalid-query-parameter-handling" class="section"><a class="anchor-link left" href="#optional-invalid-query-parameter-handling"><i class="icofont-laika link">&#xef71;</i></a>Optional Invalid Query Parameter Handling</h4>
         <p>Consider <code>OptionalValidatingQueryParamDecoderMatcher[A]</code> given the power that
           <code>Option[cats.data.ValidatedNel[org.http4s.ParseFailure, A]]</code> provides.</p>
         <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">LongParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">OptionalValidatingQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Long</span><span>](</span><span class="string-literal">&quot;long&quot;</span><span>)
@@ -838,17 +829,20 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$21445/1351999549@2944cdeb
+//   run = org.http4s.HttpRoutes$$$Lambda$17927/540511528@3127f224
 // )</span></code></pre>
 
-        <hr style="margin-top: 30px"/>
-        <footer style="font-size: 90%; text-align: center">
-          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
-        </footer>
+        
+<hr class="footer-rule"/>
+<footer>
+  http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+</footer>
+
 
       </main>
 
     </div>
 
   </body>
+
 </html>

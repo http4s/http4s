@@ -1,10 +1,9 @@
 {
   "versions": [
-    { "displayValue": "1", "pathSegment": "v1", "fallbackLink": "/docs/quickstart.html", "label": "Dev" },
-    { "displayValue": "0.23", "pathSegment": "v0.23", "fallbackLink": "/docs/quickstart.html", "label": "Stable" },
-    { "displayValue": "0.22", "pathSegment": "v0.22", "fallbackLink": "/docs/quickstart.html", "label": "EOL" },
-    { "displayValue": "0.21", "pathSegment": "v0.21", "fallbackLink": "/index.html", "label": "EOL" },
-    { "displayValue": "Help me choose...", "pathSegment": "", "fallbackLink": "/versions.html" }
+    { "displayValue": "1", "pathSegment": "v1", "fallbackLink": "/docs/quickstart.html", "label": "Dev", "canonical": false },
+    { "displayValue": "0.23", "pathSegment": "v0.23", "fallbackLink": "/docs/quickstart.html", "label": "Stable", "canonical": false },
+    { "displayValue": "0.22", "pathSegment": "v0.22", "fallbackLink": "/docs/quickstart.html", "label": "EOL", "canonical": false },
+    { "displayValue": "0.21", "pathSegment": "v0.21", "fallbackLink": "/index.html", "label": "EOL", "canonical": false }
   ],
   "linkTargets": [
     { "path": "/docs/auth.html", "versions": ["v0.22","v0.23","v1"] },

@@ -1,230 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
+  
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="Laika 0.18.1 + Helium Theme" />
-    <title>Contributing</title>
-    
-      <meta name="author" content="Ross A. Baker"/>
-    
-      <meta name="author" content="Bjørn Madsen"/>
-    
-      <meta name="author" content="André Rouel"/>
-    
-      <meta name="author" content="Brad Fritz"/>
-    
-      <meta name="author" content="Bryce L. Anderson"/>
-    
-      <meta name="author" content="Ivan Porto Carrero"/>
-    
-      <meta name="author" content="Carlos Encarnacion"/>
-    
-      <meta name="author" content="Christopher Davenport"/>
-    
-      <meta name="author" content="Carlos Quiroz"/>
-    
-      <meta name="author" content="Heikki Vesalainen"/>
-    
-      <meta name="author" content="Paulo Siqueira"/>
-    
-      <meta name="author" content="Jean-Rémi Desjardins"/>
-    
-      <meta name="author" content="Jose Cardona"/>
-    
-      <meta name="author" content="Julien Truffaut"/>
-    
-      <meta name="author" content="Rodolfo Hansen"/>
-    
-      <meta name="author" content="Simon Hafner"/>
-    
-      <meta name="author" content="Arya Irani"/>
-    
-      <meta name="author" content="Ross A. Baker"/>
-    
-      <meta name="author" content="Sheng Chen"/>
-    
-      <meta name="author" content="Fabio Labella"/>
-    
-    
-      <meta name="description" content="Documentation for http4s"/>
-    
-    
-      <link rel="icon"  type="image/svg+xml" href="/images/http4s-favicon.svg"/>
-    
-      <link rel="icon" sizes="32x32" type="image/png" href="/images/http4s-favicon.png"/>
-    
-    
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
-    
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.207/distr/fira_code.css">
-    
-    <link rel="stylesheet" type="text/css" href="helium/icofont.min.css" />
-    <link rel="stylesheet" type="text/css" href="helium/laika-helium.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Typelevel Laika + Helium Theme" />
+  <title>Contributing</title>
+  
+  <meta name="author" content="http4s contributors"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Bjørn Madsen"/>
+  
+  <meta name="author" content="André Rouel"/>
+  
+  <meta name="author" content="Brad Fritz"/>
+  
+  <meta name="author" content="Bryce L. Anderson"/>
+  
+  <meta name="author" content="Ivan Porto Carrero"/>
+  
+  <meta name="author" content="Carlos Encarnacion"/>
+  
+  <meta name="author" content="Christopher Davenport"/>
+  
+  <meta name="author" content="Carlos Quiroz"/>
+  
+  <meta name="author" content="Heikki Vesalainen"/>
+  
+  <meta name="author" content="Paulo Siqueira"/>
+  
+  <meta name="author" content="Jean-Rémi Desjardins"/>
+  
+  <meta name="author" content="Jose Cardona"/>
+  
+  <meta name="author" content="Julien Truffaut"/>
+  
+  <meta name="author" content="Rodolfo Hansen"/>
+  
+  <meta name="author" content="Simon Hafner"/>
+  
+  <meta name="author" content="Arya Irani"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Sheng Chen"/>
+  
+  <meta name="author" content="Fabio Labella"/>
+  
+  
+  <meta name="description" content="Documentation for http4s"/>
+  
+  
+  
+  <link rel="icon"  type="image/svg+xml" href="images/http4s-favicon.svg"/>
+  
+  <link rel="icon" sizes="32x32" type="image/png" href="images/http4s-favicon.png"/>
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:500">
+  
+  <link rel="stylesheet" type="text/css" href="helium/site/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="helium/site/laika-helium.css" />
     <link rel="stylesheet" type="text/css" href="styles/styles.css" />
-    <link rel="stylesheet" type="text/css" href="site/styles.css" />
-    <script src="helium/laika-helium.js"></script>
-    <script src="helium/laika-versions.js"></script>
-    <script>initVersions("", "", "");</script>
-    
-    <script> /* for avoiding page load transitions */ </script>
-  </head>
+  <script src="helium/site/laika-helium.js"></script>
+    <script src="helium/site/laika-versions.js"></script>
+  <script>initVersions("", "", "", null);</script>
+  
+  <script> /* for avoiding page load transitions */ </script>
+</head>
 
   <body>
 
-    <header id="top-bar">
+    <header id="top-bar" class="light-default dark-default">
 
-      <div class="row">
-        <a id="nav-icon">
-          <i class="icofont-laika" title="Navigation">&#xefa2;</i>
-        </a>
-        
-        <div id="version-menu-container">
-          <a id="version-menu-toggle" class="text-link drop-down-toggle" href="#">
-            
-            Documentation
-            
-          </a>
-          <nav id="version-menu">
-            <ul id="version-list" class="nav-list">
-            </ul>
-          </nav>
-        </div>
-        
-      </div>
+  <div class="row">
+    <a id="nav-icon">
+      <i class="icofont-laika navigationMenu" title="Navigation">&#xefa2;</i>
+    </a>
+    
+    <div class="menu-container version-menu">
+      <a class="text-link menu-toggle" href="#">Documentation</a>
+      <nav class="menu-content">
+        <ul class="nav-list">
+          <li class="level1 nav-leaf"><a href="versions.html">Help me choose...</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
 
-      <a class="image-link" href="https://http4s.org"><img src="images/http4s-logo-text-dark.svg"></a>
+  <a class="image-link" href="https://http4s.org"><img src="images/http4s-logo-text-dark.svg"></a>
 
-      <span class="row links"><a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <div class="row links">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
   </g>
-</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
   </g>
-</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a></span>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>  
 
-    </header>
-
+</header>
+    
     <nav id="sidebar">
 
-      <div class="row">
-        <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <div class="row">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
   </g>
-</svg></span></a><a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
   <g class="svg-shape">
     <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
   </g>
-</svg></span></a><a class="icon-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika" title="Chat">&#xeed5;</i></a>
-      </div>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>
 
-      <ul class="nav-list">
-        <li class="level1"><a href="versions.html">Versions</a></li>
-        <li class="level1"><a href="changelog.html">Changelog</a></li>
-        <li class="level1"><a href="getting-help.html">Getting Help</a></li>
-        <li class="level1 active"><a href="#">Contributing</a></li>
-        <li class="level1"><a href="adopters.html">Adopters</a></li>
-        <li class="level1"><a href="code-of-conduct.html">Code of Conduct</a></li>
-        <li class="level1"><a href="further-reading.html">Further Reading</a></li>
-        <li class="level1 nav-header">User Guide</li>
-        <li class="level2"><a href="v1/docs/quickstart.html">Quick Start</a></li>
-        <li class="level2"><a href="v1/docs/integrations.html">Integrations</a></li>
-        <li class="level2"><a href="v1/docs/upgrading.html">Upgrading</a></li>
-        <li class="level2"><a href="v1/docs/service.html">Service</a></li>
-        <li class="level2"><a href="v1/docs/dsl.html">The http4s DSL</a></li>
-        <li class="level2"><a href="v1/docs/middleware.html">Middleware</a></li>
-        <li class="level2"><a href="v1/docs/auth.html">Authentication</a></li>
-        <li class="level2"><a href="v1/docs/cors.html">CORS</a></li>
-        <li class="level2"><a href="v1/docs/csrf.html">CSRF</a></li>
-        <li class="level2"><a href="v1/docs/gzip.html">GZip Compression</a></li>
-        <li class="level2"><a href="v1/docs/hsts.html">HSTS</a></li>
-        <li class="level2"><a href="v1/docs/static.html">Static Files</a></li>
-        <li class="level2"><a href="v1/docs/client.html">HTTP Client</a></li>
-        <li class="level2"><a href="v1/docs/entity.html">Entity Handling</a></li>
-        <li class="level2"><a href="v1/docs/streaming.html">Streaming</a></li>
-        <li class="level2"><a href="v1/docs/json.html">JSON Handling</a></li>
-        <li class="level2"><a href="v1/docs/testing.html">Testing</a></li>
-        <li class="level2"><a href="v1/docs/uri.html">URI Handling</a></li>
-        <li class="level2"><a href="v1/docs/deployment.html">Deployment</a></li>
-        <li class="level2"><a href="v1/docs/error-handling.html">Error Handling</a></li>
-        <li class="level2"><a href="v1/docs/server-middleware.html">Server Middleware</a></li>
-        <li class="level2"><a href="v1/docs/methods.html">HTTP Methods</a></li>
-      </ul>
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="versions.html">Versions</a></li>
+    <li class="level1 nav-leaf"><a href="changelog.html">Changelog</a></li>
+    <li class="level1 nav-leaf"><a href="getting-help.html">Getting Help</a></li>
+    <li class="level1 active nav-leaf"><a href="#">Contributing</a></li>
+    <li class="level1 nav-leaf"><a href="adopters.html">Adopters</a></li>
+    <li class="level1 nav-leaf"><a href="code-of-conduct.html">Code of Conduct</a></li>
+    <li class="level1 nav-leaf"><a href="further-reading.html">Further Reading</a></li>
+    <li class="level1 nav-header">User Guide</li>
+    <li class="level2 nav-leaf"><a href="v1/docs/quickstart.html">Quick Start</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/integrations.html">Integrations</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/upgrading.html">Upgrading</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/service.html">Service</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/dsl.html">The http4s DSL</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/middleware.html">Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/auth.html">Authentication</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/cors.html">CORS</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/csrf.html">CSRF</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/gzip.html">GZip Compression</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/hsts.html">HSTS</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/static.html">Static Files</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/client.html">HTTP Client</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/entity.html">Entity Handling</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/streaming.html">Streaming</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/json.html">JSON Handling</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/testing.html">Testing</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/uri.html">URI Handling</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/methods.html">HTTP Methods</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/server-middleware.html">Server Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="v1/docs/error-handling.html">Error Handling</a></li>
+    <li class="level1 nav-header">Related Projects</li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
+    <li class="level2 nav-leaf"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/rho/">rho</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/typelevel/feral/">feral</a></li>
+  </ul>
 
-      <ul class="nav-list">
-        <li class="level1 nav-header">Related Projects</li>
-        
-          <li class="level2"><a href="https://github.com/http4s/blaze">blaze</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
-        
-          <li class="level2"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/rho/">rho</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
-        
-          <li class="level2"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
-        
-          <li class="level2"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
-        
-          <li class="level2"><a href="https://github.com/typelevel/feral/">feral</a></li>
-        
-      </ul>
-
-    </nav>
+</nav>
 
     <div id="container">
 
-      <nav id="page-nav">
-        <p class="header"><a href="#">Contributing</a></p>
+      
+<nav id="page-nav">
+  <p class="header"><a href="#">Contributing</a></p>
 
-        <ul class="nav-list">
-          <li class="level1"><a href="#find-something-that-belongs-in-http4s">Find something that belongs in http4s</a></li>
-          <li class="level1"><a href="#let-us-know-you-are-working-on-it">Let us know you are working on it</a></li>
-          <li class="level1"><a href="#build-the-project">Build the Project</a></li>
-          <li class="level1"><a href="#coding-standard">Coding Standard</a></li>
-          <li class="level2"><a href="#formatting">Formatting</a></li>
-          <li class="level2"><a href="#types">Types</a></li>
-          <li class="level2"><a href="#case-classes">Case classes</a></li>
-          <li class="level1"><a href="#attributions">Attributions</a></li>
-          <li class="level2"><a href="#grant-of-license">Grant of License</a></li>
-          <li class="level1"><a href="#tests">Tests</a></li>
-          <li class="level1"><a href="#documentation">Documentation</a></li>
-          <li class="level2"><a href="#running-the-site-locally">Running the Site Locally</a></li>
-          <li class="level1"><a href="#submit-a-pull-request">Submit a Pull Request</a></li>
-        </ul>
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#find-something-that-belongs-in-http4s">Find something that belongs in http4s</a></li>
+    <li class="level1 nav-leaf"><a href="#let-us-know-you-are-working-on-it">Let us know you are working on it</a></li>
+    <li class="level1 nav-leaf"><a href="#build-the-project">Build the Project</a></li>
+    <li class="level1 nav-node"><a href="#coding-standard">Coding Standard</a></li>
+    <li class="level2 nav-leaf"><a href="#formatting">Formatting</a></li>
+    <li class="level2 nav-leaf"><a href="#types">Types</a></li>
+    <li class="level2 nav-leaf"><a href="#case-classes">Case classes</a></li>
+    <li class="level1 nav-node"><a href="#attributions">Attributions</a></li>
+    <li class="level2 nav-leaf"><a href="#grant-of-license">Grant of License</a></li>
+    <li class="level1 nav-leaf"><a href="#tests">Tests</a></li>
+    <li class="level1 nav-node"><a href="#documentation">Documentation</a></li>
+    <li class="level2 nav-leaf"><a href="#running-the-site-locally">Running the Site Locally</a></li>
+    <li class="level1 nav-leaf"><a href="#submit-a-pull-request">Submit a Pull Request</a></li>
+  </ul>
 
-        <p class="footer"></p>
-      </nav>
+  <p class="footer"></p>
+</nav>
+
 
       <main class="content">
 
@@ -232,7 +223,7 @@
         <p>This guide is for people who would like to be involved in building
         http4s.</p>
         
-        <h2 id="find-something-that-belongs-in-http4s" class="section">Find something that belongs in http4s<a class="anchor-link right" href="#find-something-that-belongs-in-http4s"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="find-something-that-belongs-in-http4s" class="section"><a class="anchor-link left" href="#find-something-that-belongs-in-http4s"><i class="icofont-laika link">&#xef71;</i></a>Find something that belongs in http4s</h2>
         <p>Looking for a way that you can help out? Check out our <a href="https://github.com/http4s/http4s/issues">issue
         tracker</a>.  Choose a ticket that looks interesting to you.  Before you
         start working on it, make sure that it&#39;s not already assigned to
@@ -247,16 +238,16 @@
           <li>Get feedback in the <a href="https://discord.gg/XF3CXcMzqD">Typelevel Discord</a>.</li>
         </ul>
         
-        <h2 id="let-us-know-you-are-working-on-it" class="section">Let us know you are working on it<a class="anchor-link right" href="#let-us-know-you-are-working-on-it"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="let-us-know-you-are-working-on-it" class="section"><a class="anchor-link left" href="#let-us-know-you-are-working-on-it"><i class="icofont-laika link">&#xef71;</i></a>Let us know you are working on it</h2>
         <p>If there is already a GitHub issue for the task you are working on,
         leave a comment to let people know that you are working on it. If
         there isn&#39;t already an issue and it is a non-trivial task, it&#39;s a good
         idea to create one (and note that you&#39;re working on it). This prevents
         contributors from duplicating effort.</p>
         
-        <h2 id="build-the-project" class="section">Build the Project<a class="anchor-link right" href="#build-the-project"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="build-the-project" class="section"><a class="anchor-link left" href="#build-the-project"><i class="icofont-laika link">&#xef71;</i></a>Build the Project</h2>
         <p>First you&#39;ll need to checkout a local copy of the code base:</p>
-        <pre class="keep-together pdf epub"><code class="sh">git clone git@github.com:http4s/http4s.git</code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>git clone git@github.com:http4s/http4s.git</span></code></pre>
         <p>To build http4s, you should have <a href="https://www.scala-sbt.org/1.x/docs/Setup.html">SBT</a> and <a href="https://gohugo.io/getting-started/installing/">Hugo</a> installed.
         To test http4s you will also need <a href="https://nodejs.org">Node.js</a> v16 and <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
         Run <code>sbt</code>, then use one of the following commands:</p>
@@ -265,15 +256,15 @@
           <li><code>test</code>: compiles all code and runs the unit tests</li>
         </ul>
         
-        <h2 id="coding-standard" class="section">Coding Standard<a class="anchor-link right" href="#coding-standard"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="coding-standard" class="section"><a class="anchor-link left" href="#coding-standard"><i class="icofont-laika link">&#xef71;</i></a>Coding Standard</h2>
         
-        <h3 id="formatting" class="section">Formatting<a class="anchor-link right" href="#formatting"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="formatting" class="section"><a class="anchor-link left" href="#formatting"><i class="icofont-laika link">&#xef71;</i></a>Formatting</h3>
         <p>The Github Actions CI workflow verifies that code is formatted correctly
         according to the <a href="http://scalameta.org/scalafmt/">Scalafmt</a> config and will fail if a diff is found.</p>
         <p>You can run <code>scalafmtCheckAll</code> to test the formatting before opening a PR.  If
         your PR fails due to formatting, run <code>scalafmtAll</code>.</p>
         
-        <h4 id="intellij-idea-specific-settings" class="section">IntelliJ IDEA specific settings<a class="anchor-link right" href="#intellij-idea-specific-settings"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="intellij-idea-specific-settings" class="section"><a class="anchor-link left" href="#intellij-idea-specific-settings"><i class="icofont-laika link">&#xef71;</i></a>IntelliJ IDEA specific settings</h4>
         <p>To setup IntelliJ IDEA to conform with the formatting used in this project,
         the following settings should be changed from the default.</p>
         <p>Under <code>Settings &gt; Editor &gt; Code Style &gt; Scala</code>:</p>
@@ -286,9 +277,9 @@
           imports that IntelliJ does by default.</li>
         </ul>
         
-        <h3 id="types" class="section">Types<a class="anchor-link right" href="#types"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="types" class="section"><a class="anchor-link left" href="#types"><i class="icofont-laika link">&#xef71;</i></a>Types</h3>
         
-        <h4 id="effects" class="section">Effects<a class="anchor-link right" href="#effects"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="effects" class="section"><a class="anchor-link left" href="#effects"><i class="icofont-laika link">&#xef71;</i></a>Effects</h4>
         <p>Prefer a parameterized effect type and cats-effect type classes over
         specializing on a task.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Good
@@ -299,19 +290,19 @@
         <p>For examples and tutorials, use <code>cats.effect.IO</code> wherever a concrete effect is
         needed.</p>
         
-        <h4 id="collections" class="section">Collections<a class="anchor-link right" href="#collections"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="collections" class="section"><a class="anchor-link left" href="#collections"><i class="icofont-laika link">&#xef71;</i></a>Collections</h4>
         <p>Prefer standard library types such as <code>Option</code> and <code>List</code> to invariant
         replacements from libraries such as Scalaz or Dogs.</p>
         <p>When a list must not be empty, use <code>cats.data.NonEmptyList</code>.</p>
         
-        <h4 id="cistring" class="section"><code>CIString</code><a class="anchor-link right" href="#cistring"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="cistring" class="section"><a class="anchor-link left" href="#cistring"><i class="icofont-laika link">&#xef71;</i></a><code>CIString</code></h4>
         <p>Many parts of the HTTP spec require case-insensitive semantics. Use
         <code>org.typelevel.ci.CIString</code> to represent these. This is important to
         get correct matching semantics when using case class extractors.</p>
         
-        <h3 id="case-classes" class="section">Case classes<a class="anchor-link right" href="#case-classes"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="case-classes" class="section"><a class="anchor-link left" href="#case-classes"><i class="icofont-laika link">&#xef71;</i></a>Case classes</h3>
         
-        <h4 id="apply" class="section"><code>apply</code><a class="anchor-link right" href="#apply"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="apply" class="section"><a class="anchor-link left" href="#apply"><i class="icofont-laika link">&#xef71;</i></a><code>apply</code></h4>
         <p>The <code>apply</code> method of a case class companion should be total. If this is
         impossible for the product type, create a <code>sealed abstract class</code> and define
         alternate constructors in the companion object. Make the implementation of the
@@ -319,7 +310,7 @@
         <p>Consider a macro for the <code>apply</code> method if it is partial, but literal arguments
         can be validated at compile time.</p>
         
-        <h4 id="safe-constructors" class="section">Safe Constructors<a class="anchor-link right" href="#safe-constructors"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="safe-constructors" class="section"><a class="anchor-link left" href="#safe-constructors"><i class="icofont-laika link">&#xef71;</i></a>Safe Constructors</h4>
         <p>Constructors that take an alternate type <code>A</code> should be named <code>fromA</code>. This
         includes constructors that return a value as a <code>ParseResult</code>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Foo</span><span>(</span><span class="identifier">seconds</span><span>: </span><span class="type-name">Long</span><span>)
@@ -336,7 +327,7 @@
 }</span></code></pre>
         <p>Prefer <code>fromString</code> to <code>parse</code>.</p>
         
-        <h4 id="unsafe-constructors" class="section">Unsafe Constructors<a class="anchor-link right" href="#unsafe-constructors"><i class="icofont-laika">&#xef71;</i></a></h4>
+        <h4 id="unsafe-constructors" class="section"><a class="anchor-link left" href="#unsafe-constructors"><i class="icofont-laika link">&#xef71;</i></a>Unsafe Constructors</h4>
         <p>All constructors that are partial on their input should be prefixed with <code>unsafe</code>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// Good
 </span><span class="keyword">def</span><span> </span><span class="declaration-name">fromLong</span><span>(</span><span class="identifier">l</span><span>: </span><span class="type-name">Long</span><span>): </span><span class="type-name">ParseResult</span><span>[</span><span class="type-name">Foo</span><span>] =
@@ -352,18 +343,18 @@
         <p>Constructors prefixed with <code>from</code> may return either a <code>ParseResult[A]</code> or, if
         total, <code>A</code>.</p>
         
-        <h2 id="attributions" class="section">Attributions<a class="anchor-link right" href="#attributions"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="attributions" class="section"><a class="anchor-link left" href="#attributions"><i class="icofont-laika link">&#xef71;</i></a>Attributions</h2>
         <p>If your contribution has been derived from or inspired by other work,
         please state this in its scaladoc comment and provide proper
         attribution.  When possible, include the original authors&#39; names and a
         link to the original work.</p>
         
-        <h3 id="grant-of-license" class="section">Grant of License<a class="anchor-link right" href="#grant-of-license"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="grant-of-license" class="section"><a class="anchor-link left" href="#grant-of-license"><i class="icofont-laika link">&#xef71;</i></a>Grant of License</h3>
         <p>http4s is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a>. Opening a pull
         request signifies your consent to license your contributions under the
         Apache License 2.0.</p>
         
-        <h2 id="tests" class="section">Tests<a class="anchor-link right" href="#tests"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="tests" class="section"><a class="anchor-link left" href="#tests"><i class="icofont-laika link">&#xef71;</i></a>Tests</h2>
         <ul>
           <li>Tests for http4s-core go into the <code>tests</code> module.</li>
           <li>Tests should extend <code>Http4sSuite</code>.  <code>Http4sSuite</code> extends <a href="https://scalameta.org/munit/">MUnit</a>
@@ -382,7 +373,7 @@
           docs on <a href="https://typelevel.org/cats-effect/docs/core/test-runtime">TestControl from cats.effect.testkit</a></li>
         </ul>
         
-        <h2 id="documentation" class="section">Documentation<a class="anchor-link right" href="#documentation"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="documentation" class="section"><a class="anchor-link left" href="#documentation"><i class="icofont-laika link">&#xef71;</i></a>Documentation</h2>
         <p>The common area of http4s.org (i.e., directories not beginning with
         <code>/v#.#</code>) is generated from the <code>docs/</code> directory and is published only
         from the <code>main</code> branch. This module is intended to contain general
@@ -392,11 +383,11 @@
         The <a href="https://scalameta.org/mdoc/">mdoc</a> content lives in <code>docs/docs</code>.<br>
         <a href="https://scalameta.org/mdoc/">mdoc</a> is used to typecheck our documentation as part of the build.</p>
         
-        <h3 id="running-the-site-locally" class="section">Running the Site Locally<a class="anchor-link right" href="#running-the-site-locally"><i class="icofont-laika">&#xef71;</i></a></h3>
+        <h3 id="running-the-site-locally" class="section"><a class="anchor-link left" href="#running-the-site-locally"><i class="icofont-laika link">&#xef71;</i></a>Running the Site Locally</h3>
         <p>For generating a static site locally, run from within sbt:</p>
-        <pre class="keep-together pdf epub"><code class="sh">site/tlSite</code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSite</span></code></pre>
         <p>For starting a preview server with live updates, run from within sbt:</p>
-        <pre class="keep-together pdf epub"><code class="sh">site/tlSitePreview</code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSitePreview</span></code></pre>
         <p>Now you can open a browser at <a href="http://localhost:4242/">http://localhost:4242/</a> to see the local version
         of the site. At <code>http://localhost:4242/v{currentVersion}/</code> would be the local version
         of the versioned part of the site (e.g. <code>http://localhost:4242/v0.23/</code>).</p>
@@ -404,7 +395,7 @@
         sources to its output directory which in turn Laika is watching. Note that when running <code>tlSitePreview</code> Laika does
         not write any output to disk, it serves the site entirely from memory. And btw: it uses http4s for that.</p>
         
-        <h2 id="submit-a-pull-request" class="section">Submit a Pull Request<a class="anchor-link right" href="#submit-a-pull-request"><i class="icofont-laika">&#xef71;</i></a></h2>
+        <h2 id="submit-a-pull-request" class="section"><a class="anchor-link left" href="#submit-a-pull-request"><i class="icofont-laika link">&#xef71;</i></a>Submit a Pull Request</h2>
         <p>Before you open a pull request, you should run <code>sbt quicklint</code> and
         commit any results.</p>
         <p>If your pull request addresses an existing issue, please tag that
@@ -419,14 +410,17 @@
         <hr>
         <p>This guide borrows heavily from the <a href="https://github.com/typelevel/cats/blob/master/CONTRIBUTING.md">Cats&#39; contributors guide</a>.</p>
 
-        <hr style="margin-top: 30px"/>
-        <footer style="font-size: 90%; text-align: center">
-          http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
-        </footer>
+        
+<hr class="footer-rule"/>
+<footer>
+  http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+</footer>
+
 
       </main>
 
     </div>
 
   </body>
+
 </html>
