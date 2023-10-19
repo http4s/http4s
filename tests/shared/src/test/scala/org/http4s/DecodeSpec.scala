@@ -78,20 +78,22 @@ class DecodeSpec extends Http4sSuite {
   }
 
   test("decode should be consistent with String constructor with BOM") {
-    forAll(Gen.alphaNumStr, Gen.choose(1, 1024)) { (ans: String, chunkSize: Int) =>
-      val s = "\uFEFF" + ans
-      val source: Stream[Pure, Byte] = Stream
-        .emits {
-          s.getBytes(StandardCharsets.UTF_8)
-            .grouped(chunkSize)
-            .map(Chunk.array[Byte])
-            .toSeq
-        }
-        .flatMap(Stream.chunk[Pure, Byte])
-      val expected = trimBOM(new String(source.toVector.toArray, StandardCharsets.UTF_8))
-      val decoded =
-        source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
-      assertEquals(decoded, Right(expected))
+    forAll(Gen.alphaNumStr, Gen.size /* Gen.choose(1, 1024) */) { (ans: String, chunkSize: Int) =>
+      (chunkSize > 0) ==> {
+        val s = "\uFEFF" + ans
+        val source: Stream[Pure, Byte] = Stream
+          .emits {
+            s.getBytes(StandardCharsets.UTF_8)
+              .grouped(chunkSize)
+              .map(Chunk.array[Byte])
+              .toSeq
+          }
+          .flatMap(Stream.chunk[Pure, Byte])
+        val expected = trimBOM(new String(source.toVector.toArray, StandardCharsets.UTF_8))
+        val decoded =
+          source.through(decodeWithCharset[Fallible](StandardCharsets.UTF_8)).compile.string
+        assertEquals(decoded, Right(expected))
+      }
     }
   }
 
