@@ -130,7 +130,7 @@ object Http4sPlugin extends AutoPlugin {
     val scalacheckEffect = "2.0.0-M2"
     val scalaJavaLocales = "1.5.1"
     val scalaJavaTime = "2.5.0"
-    val scodecBits = "1.1.37"
+    val scodecBits = "1.1.38"
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
