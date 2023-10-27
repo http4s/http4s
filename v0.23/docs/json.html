@@ -163,9 +163,9 @@
     <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
     <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
     <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
     <li class="level2 nav-leaf"><a href="server-middleware.html">Server Middleware</a></li>
-    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
@@ -273,7 +273,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@5df77f88
+//    = org.typelevel.vault.Vault@694f96da
 // )</span></code></pre>
         <p>The same <code>EntityEncoder[Json]</code> we use on server responses is also
         useful on client requests:</p>
@@ -296,7 +296,7 @@
   </span><span class="type-name">Encoder</span><span>.</span><span class="identifier">instance</span><span> { (</span><span class="identifier">hello</span><span>: </span><span class="type-name">Hello</span><span>) =&gt;
     </span><span class="string-literal">json&quot;&quot;&quot;{&quot;hello&quot;: </span><span class="substitution">${hello.name}</span><span class="string-literal">}&quot;&quot;&quot;</span><span>
   }
-</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@5c7c32a4
+</span><span class="comment">// HelloEncoder: Encoder[Hello] = io.circe.Encoder$$anon$3@7ce2be58
 </span><span>
 </span><span class="type-name">Hello</span><span>(</span><span class="string-literal">&quot;Alice&quot;</span><span>).</span><span class="identifier">asJson</span><span>
 </span><span class="comment">// res3: Json = JObject(value = object[hello -&gt; &quot;Alice&quot;])</span></code></pre>
@@ -314,7 +314,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: application/json, Content-Length: 17),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@60aab0ec
+//    = org.typelevel.vault.Vault@1f324fb4
 // )
 </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/hello&quot;</span><span>)
   .</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">User</span><span>(</span><span class="string-literal">&quot;Bob&quot;</span><span>).</span><span class="identifier">asJson</span><span>)
@@ -330,7 +330,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 14, Content-Type: application/json),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@49e9d9ff
+//    = org.typelevel.vault.Vault@3e5ca973
 // )</span></code></pre>
         <p>If within some route we serve json only, we can use:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>{
@@ -362,7 +362,7 @@
         the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
         an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">userDecoder</span><span>: </span><span class="type-name">EntityDecoder</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>] = </span><span class="identifier">jsonOf</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">User</span><span>]
-</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@2f84f475
+</span><span class="comment">// userDecoder: EntityDecoder[IO, User] = org.http4s.EntityDecoder$$anon$2@2bb00124
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">User</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res10: User = User(name = &quot;Alice&quot;)
 </span><span>
