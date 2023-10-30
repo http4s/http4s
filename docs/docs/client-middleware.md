@@ -9,7 +9,6 @@ First we prepare a server that we can make requests to:
 import cats.effect._
 import cats.syntax.all._
 import org.http4s._
-import io.circe._
 import io.circe.syntax._
 import io.circe.jawn._
 import org.http4s.headers._
@@ -32,7 +31,8 @@ val service = HttpRoutes.of[IO] {
   case GET -> Root / "ok" => Ok("👍")
   case r@GET -> Root / "rhinoFacts" =>
     // show a rhino fact, try to not repeat a fact the user already has seen
-    val knownFacts: List[Int] = r.cookies.find(_.name == "rhinoFacts")
+    // the cookie is an array of integers, encoded in json
+    val knownFacts: List[Int] = r.cookies.find(_.name == "knownRhinoFacts")
       .flatMap(cookie => decode[List[Int]](cookie.content).toOption)
       .toList
       .flatten
@@ -47,7 +47,7 @@ val service = HttpRoutes.of[IO] {
       .flatMap { index =>
         val cookie = index.map(_ :: knownFacts).getOrElse(knownFacts).asJson.noSpaces
         val response = index.flatMap(allRhinoFacts.get(_)).getOrElse("You know all the facts!")
-        Ok(response).map(_.addCookie("rhinoFacts", cookie))
+        Ok(response).map(_.addCookie("knownRhinoFacts", cookie))
       }
 }
 
@@ -79,7 +79,7 @@ implicit val mdocConsoleIO: Console[IO] = new Console[IO] {
 ## CookieJar
 Enhances a client to store and supply cookies. An in-memory implementation is provided,
 but it's also possible to supply your own method of persistence, see [CookieJar].
-In this example the service will use the `rhinoFacts` cookie to track the facts that have been shown to the client.
+In this example the service will use the `knowRhinoFacts` cookie to track the facts that have been shown to the client.
 
 ```scala mdoc:silent
 import org.http4s.client.middleware.CookieJar
@@ -194,14 +194,14 @@ val longRequest = Request[IO](Method.GET, uri"/long")
 // without gzip in our client, nothing exciting happens
 clientWithoutGzip
   .run(longRequest)
-  .use(_.bodyText.compile.foldMonoid)
+  .use(_.bodyText.compile.string)
   .unsafeRunSync()
 
 // with the middleware we can see that the original body is smaller and 
 // the response is decompressed transparently
 clientWithGzip
   .run(longRequest)
-  .use(_.bodyText.compile.foldMonoid)
+  .use(_.bodyText.compile.string)
   .unsafeRunSync()
 ```
 
