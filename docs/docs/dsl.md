@@ -424,13 +424,17 @@ val usersService = HttpRoutes.of[IO] {
 ```
 
 If you want to extract a variable of type `A`, you can provide a custom extractor
-which implements `cast: String => Try[A]`, similar to the way in which `IntVar` does it.
+via one of the following functions:
+
+- `PathVar.of[A](cast: String => A)`
+- `PathVar.fromPartialFunction[A](cast: PartialFunction[String, A])`
+- `PathVar.fromTry[A](cast: String => Try[A])`
 
 ```scala mdoc:silent
 import java.time.LocalDate
 import scala.util.Try
 
-val LocalDateVar = PathVar(str => Try(LocalDate.parse(str)))
+val LocalDateVar = PathVar.fromTry(str => Try(LocalDate.parse(str)))
 
 def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 

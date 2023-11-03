@@ -18,8 +18,6 @@ package org.http4s.dsl
 
 import org.http4s.Uri
 
-import scala.util.Try
-
 object request extends RequestDslBinCompat {
   val Path: Uri.Path.type = Uri.Path
   val Root: Uri.Path.Root.type = Uri.Path.Root
@@ -30,7 +28,7 @@ object request extends RequestDslBinCompat {
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
 
-  def PathVar[A](cast: String => Try[A]): impl.PathVar[A] = new impl.PathVar[A](cast)
+  lazy val PathVar: impl.PathVar.type = impl.PathVar
 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar

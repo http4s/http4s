@@ -141,11 +141,29 @@ class PathSuite extends Http4sSuite with AllSyntax {
         case "Green" => Green
         case "Blue" => Blue
       }
+
+      def partialFunction: PartialFunction[String, Color] = {
+        case "Red" => Red
+        case "Green" => Green
+        case "Blue" => Blue
+      }
     }
 
-    val ColorVar = PathVar(str => Try(Color.valueOf(str)))
+    val ColorVarPure = PathVar.of(Color.valueOf)
     assert(path"/Green" match {
-      case Root / ColorVar(color) => color == Color.Green
+      case Root / ColorVarPure(color) => color == Color.Green
+      case _ => false
+    })
+
+    val ColorVarPF = PathVar.fromPartialFunction(Color.partialFunction)
+    assert(path"/Green" match {
+      case Root / ColorVarPF(color) => color == Color.Green
+      case _ => false
+    })
+
+    val ColorVarTry = PathVar.fromTry(str => Try(Color.valueOf(str)))
+    assert(path"/Green" match {
+      case Root / ColorVarTry(color) => color == Color.Green
       case _ => false
     })
   }

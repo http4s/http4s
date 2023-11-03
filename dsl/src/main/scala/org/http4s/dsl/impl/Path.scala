@@ -171,16 +171,27 @@ object /: {
   *   enum Color:
   *     case Red, Green, Blue
   *
-  *   val ColorPath = new PathVar(str => Try(Color.valueOf(str)))
+  *   val ColorPath = PathVar.fromTry(str => Try(Color.valueOf(str)))
   *
   *   Path("/Green") match {
   *     case Root / ColorPath(color) => ...
   * }}}
   */
-class PathVar[A](cast: String => Try[A]) {
+class PathVar[A] private[impl] (cast: String => Option[A]) {
   def unapply(str: String): Option[A] =
-    if (str.nonEmpty) cast(str).toOption
+    if (str.nonEmpty) cast(str)
     else None
+}
+
+object PathVar {
+  def of[A](cast: String => A): PathVar[A] =
+    new PathVar(str => Option(cast(str)))
+
+  def fromPartialFunction[A](cast: PartialFunction[String, A]): PathVar[A] =
+    new PathVar(str => cast.lift(str))
+
+  def fromTry[A](cast: String => Try[A]): PathVar[A] =
+    new PathVar(str => cast(str).toOption)
 }
 
 /** Integer extractor of a path variable:
@@ -189,7 +200,7 @@ class PathVar[A](cast: String => Try[A]) {
   *      case Root / "user" / IntVar(userId) => ...
   * }}}
   */
-object IntVar extends PathVar(str => Try(str.toInt))
+object IntVar extends PathVar(str => Try(str.toInt).toOption)
 
 /** Long extractor of a path variable:
   * {{{
@@ -197,7 +208,7 @@ object IntVar extends PathVar(str => Try(str.toInt))
   *      case Root / "user" / LongVar(userId) => ...
   * }}}
   */
-object LongVar extends PathVar(str => Try(str.toLong))
+object LongVar extends PathVar(str => Try(str.toLong).toOption)
 
 /** UUID extractor of a path variable:
   * {{{
@@ -205,7 +216,7 @@ object LongVar extends PathVar(str => Try(str.toLong))
   *      case Root / "user" / UUIDVar(userId) => ...
   * }}}
   */
-object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)).toOption)
 
 /** Matrix path variable extractor
   * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
