@@ -20,7 +20,6 @@ import org.http4s.headers.Date
 object History {
   case class HistoryEntry(httpDate: HttpDate, method: Method, uri: Uri)
 
-
   def apply[F[_]: MonadCancelThrow: Clock](
       client: Client[F],
       history: Ref[F, Vector[HistoryEntry]],

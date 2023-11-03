@@ -1,7 +1,7 @@
 package org.http4s.client.middleware
 
 import cats.Applicative
-import cats.effect.{Clock, IO, Ref}
+import cats.effect.{Clock, IO, MonadCancelThrow, Ref}
 import org.http4s.client.Client
 import org.http4s.client.middleware.History.HistoryEntry
 import org.http4s.{Http4sSuite, HttpDate, HttpRoutes, Request}
@@ -59,17 +59,14 @@ class HistorySuite extends Http4sSuite {
   }
 
   test("History middeware should return 1 history item if 1 site has been visited") {
-    val date = Date(HttpDate.unsafeFromInstant(Instant.now()))
-    val req = Request[IO](uri = uri"/request").putHeaders(date)
-    val expected = Vector(HistoryEntry(req.headers.get[Date].get.date, req.method, req.uri))
+    val expected = Vector(HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri))
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-      History.apply(defaultClient, ref, 3).run(req).use(_ => IO.unit) >> ref.get.assertEquals(expected)
+      History.apply(defaultClient, ref, 3).run(req1).use(_ => IO.unit) >> ref.get.assertEquals(expected)
     }
   }
 
     test("History middeware should return visits in order of most recent to oldest"){
-
       val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri)).prepended(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
 
       Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
@@ -80,7 +77,6 @@ class HistorySuite extends Http4sSuite {
       }
   }
 
-  // the last history middleware run
   test("History middeware should return max number of visits if visits exceeds maxSize"){
 
     val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
@@ -95,11 +91,9 @@ class HistorySuite extends Http4sSuite {
     }
   }
 
-  // test 5 what happens when sending requests w/o date - what goes into history?
-  // what am I expecting to come back? a date, any date?
-  test("History middeware should return max number of visits if visits exceeds maxSize"){
+  test("History middeware should allow and use Clock parameter for httpDate timestamp"){
 
-    val sallysClock = new Clock[IO] {
+    implicit val testClock: Clock[IO] = new Clock[IO] {
       override def applicative: Applicative[IO] = Applicative[IO] // IO.asyncForIO
 
       override def monotonic: IO[FiniteDuration] = IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS ))
@@ -109,6 +103,7 @@ class HistorySuite extends Http4sSuite {
 
     val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
 
+    implicitly[Clock[IO]]
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
       val historyClient = History(defaultClient, ref, 2)
 
