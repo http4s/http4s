@@ -47,6 +47,7 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
   val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
+  val StringVar: impl.StringVar.type = impl.StringVar
 }
 
 trait Http4sDsl[F[_]] extends Http4sDsl2[F, F] {
