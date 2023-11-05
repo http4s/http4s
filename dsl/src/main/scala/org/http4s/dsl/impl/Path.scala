@@ -208,11 +208,11 @@ object LongVar extends PathVar(str => Try(str.toLong))
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
 
 /** StringVar extractor of a path variable, used mostly for composition:
- * {{{
- *   Path("/user/John") match {
- *      case Root / "user" / StringVar(userName) => ...
- * }}}
- */
+  * {{{
+  *   Path("/user/John") match {
+  *      case Root / "user" / StringVar(userName) => ...
+  * }}}
+  */
 object StringVar extends PathVar(str => Success(str))
 
 /** Matrix path variable extractor
