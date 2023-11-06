@@ -31,12 +31,13 @@ object Cookie {
     ParseResult.fromParser(parser, "Invalid Cookie header")(s)
 
   private[http4s] val parser: Parser[Cookie] = {
-    import Parser.{char, string}
+    import Parser.char
 
     /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
-    val cookieString = (RequestCookie.parser ~ (string("; ") *> RequestCookie.parser).rep0).map {
-      case (head, tail) =>
-        Cookie(NonEmptyList(head, tail))
+    val cookieString = (RequestCookie.parser ~ (
+      char(';').soft *> char(' ').rep0(min = 1) *> RequestCookie.parser
+    ).rep0).map { case (head, tail) =>
+      Cookie(NonEmptyList(head, tail))
     }
 
     // We also see trailing semi-colons in the wild, and grudgingly tolerate them here
