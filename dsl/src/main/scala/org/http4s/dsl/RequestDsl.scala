@@ -40,7 +40,7 @@ trait RequestDsl extends Methods with Auth {
   val IntVar: impl.IntVar.type
   val LongVar: impl.LongVar.type
   val UUIDVar: impl.UUIDVar.type
-  val StringVar: impl.StringVar.type
+  lazy val StringVar: impl.StringVar.type = impl.StringVar
 
   type QueryParamDecoderMatcher[T] = impl.QueryParamDecoderMatcher[T]
   type QueryParamMatcher[T] = impl.QueryParamMatcher[T]
