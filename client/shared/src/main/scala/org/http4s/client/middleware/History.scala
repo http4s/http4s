@@ -8,22 +8,21 @@ import org.http4s.headers.Date
 
 /**
   * This Middleware provides history tracking of Uri's visited.
-  * History entries are kept in order of most recent to oldest.
+  * History entries are ordered most recent to oldest.
   *
-  * @param httpDate Date is based on header timestamp.
-  * @param method
-  * @param uri
+  * @param client: Client[F]
+  * @param history: Ref[F, Vector[HistoryEntry]
+  * @param maxSize: Int
   *
  */
 
-// provide implicits for swapping and using user provided clock
 object History {
   case class HistoryEntry(httpDate: HttpDate, method: Method, uri: Uri)
 
   def apply[F[_]: MonadCancelThrow: Clock](
       client: Client[F],
       history: Ref[F, Vector[HistoryEntry]],
-      maxSize: Int,
+      maxSize: Int = 1024,
   ): Client[F] = Client[F] { req: Request[F] =>
     Resource.eval(req.headers.get[Date].fold(HttpDate.current[F])(d => d.date.pure[F])).flatMap {
       date =>
