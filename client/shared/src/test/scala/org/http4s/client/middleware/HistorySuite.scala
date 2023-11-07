@@ -12,28 +12,10 @@ import org.http4s.implicits.http4sLiteralsSyntax
 import java.time.{Duration, Instant}
 import scala.concurrent.duration.FiniteDuration
 
-
-// see if history matches?
-// test 1 history blank if no sitesvisited
-// test 2 history shows last NUM sites visited
-// test 3 history cuts off oldest sitesvisited after max reached
-// test 4 when max is exceeded, shoudl the newest places visited
-// test 5 what happens when sending requests w/o date - what goes into history?
-// or coudl use loop and loop 3 times and history should show3 visits
 class HistorySuite extends Http4sSuite {
 
   private val app = HttpRoutes
     .of[IO] {
-      case req @ _ -> Root / "site1" =>
-        req.as[String].flatMap {
-          case "OK" => Ok()
-          case "" => InternalServerError()
-        }
-      case req @ _ -> Root / "site2" =>
-        req.as[String].flatMap {
-          case "OK" => Ok()
-          case "" => InternalServerError()
-        }
       case _ =>
         Ok()
     }
