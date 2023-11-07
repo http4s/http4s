@@ -33,7 +33,12 @@ object Cookie {
   private[http4s] val parser: Parser[Cookie] = {
     import Parser.char
 
-    /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
+    /*
+    cookie-string = cookie-pair *( ";" *SP cookie-pair )
+
+    We go slightly off spec and tolerate zero or more spaces after a semicolon separating cookies
+    to align with other HTTP implementations (netty and pekko) and what we've seen in the wild
+     */
     val cookieString = (RequestCookie.parser ~ (
       (char(';') *> char(' ').rep0).soft *> RequestCookie.parser
     ).rep0).map { case (head, tail) =>
