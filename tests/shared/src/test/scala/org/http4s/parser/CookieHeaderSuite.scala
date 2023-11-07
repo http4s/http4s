@@ -27,7 +27,8 @@ class CookieHeaderSuite extends munit.FunSuite {
   private val cookie2str = "key2=\"value2\""
   private val cookiestr = cookie1str + "; " + cookie2str
   private val cookiestrSemicolon: String = cookiestr + ";"
-  private val cookiestrMultispace: String = cookie1str + ";  " + cookie2str + ";"
+  private val cookiestrNoSpace: String = cookie1str + ";" + cookie2str
+  private val cookiestrMultispace: String = cookie1str + ";  " + cookie2str
   private val cookies = List(RequestCookie("key1", "value1"), RequestCookie("key2", """"value2""""))
 
   test("Cookie parser should parse a cookie") {
@@ -43,6 +44,9 @@ class CookieHeaderSuite extends munit.FunSuite {
         RequestCookie("initialTrafficSource", "utmcsr=(direct)|utmcmd=(none)|utmccn=(not set)")
       ),
     )
+  }
+  test("Cookie parser should tolerate zero spaces between semicolons") {
+    assertEquals(parse(cookiestrNoSpace).values.toList, cookies)
   }
   test("Cookie parser should tolerate multiple spaces between semicolons") {
     assertEquals(parse(cookiestrMultispace).values.toList, cookies)

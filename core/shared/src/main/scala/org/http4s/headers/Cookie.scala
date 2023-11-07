@@ -35,7 +35,7 @@ object Cookie {
 
     /* cookie-string = cookie-pair *( ";" SP cookie-pair ) */
     val cookieString = (RequestCookie.parser ~ (
-      char(';').soft *> char(' ').rep0(min = 1) *> RequestCookie.parser
+      (char(';') *> char(' ').rep0).soft *> RequestCookie.parser
     ).rep0).map { case (head, tail) =>
       Cookie(NonEmptyList(head, tail))
     }
