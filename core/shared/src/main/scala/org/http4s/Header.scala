@@ -177,21 +177,19 @@ object Header {
         h: F[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
       val values = h
-        .foldLeft(collection.mutable.ListBuffer.empty[Header.Raw]) { (buf, v) =>
+        .foldLeft(List.newBuilder[Header.Raw]) { (buf, v) =>
           buf ++= convert(v).values
         }
-        .toList
+        .result()
     }
 
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values = h
-        .foldLeft(collection.mutable.ListBuffer.empty[Header.Raw]) { (buf, v) =>
-          buf ++= convert(v).values
-        }
-        .toList
+      val buf = List.newBuilder[Header.Raw]
+      h.foreach(buf ++= convert(_).values)
+      val values = buf.result()
     }
   }
 
