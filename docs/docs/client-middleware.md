@@ -207,14 +207,12 @@ Allows a client to handle server errors by retrying requests. See [Retry] and
 ```scala mdoc:silent
 import org.http4s.client.middleware.{Retry, RetryPolicy}
 
-object Bail extends Exception("not yet")
-
 // a service that fails the first three times it's called
 val flakyService =
   Ref[IO].of(0).map { attempts =>
     HttpRoutes.of[IO] {
       case _ => attempts.getAndUpdate(_ + 1)
-        .flatMap(a => IO.raiseWhen(a < 3)(Bail) >> Ok("ok"))
+        .flatMap(a => if (a < 3) ServiceUnavailable("not yet") else Ok("ok"))
     }
   }
 
