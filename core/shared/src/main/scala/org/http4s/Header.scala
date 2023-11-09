@@ -187,9 +187,11 @@ object Header {
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val buf = List.newBuilder[Header.Raw]
-      h.foreach(buf ++= convert(_).values)
-      val values = buf.result()
+      val values = {
+        val buf = List.newBuilder[Header.Raw]
+        h.foreach(buf ++= convert(_).values)
+        buf.result()
+      }
     }
   }
 
