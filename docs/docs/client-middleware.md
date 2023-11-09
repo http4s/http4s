@@ -1,4 +1,4 @@
-# Client middleware
+# Client Middleware
 
 Client middleware wraps a [Client] to add functionality. This document is a
 list of included client middleware, which can be found
