@@ -30,7 +30,7 @@ import org.typelevel.ci.CIStringSyntax
   *
   * @param value can be `DENY` or `SAMEORIGIN`.
   */
-sealed abstract case class `X-Frame-Options` private (value: CIString)
+sealed abstract class `X-Frame-Options` private (val value: CIString)
 
 object `X-Frame-Options` extends HeaderCompanion[`X-Frame-Options`]("X-Frame-Options") {
 
