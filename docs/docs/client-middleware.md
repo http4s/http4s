@@ -29,7 +29,7 @@ val allRhinoFacts = List(
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "redirect" => MovedPermanently(Location(uri"/ok"))
   case GET -> Root / "ok" => Ok("👍")
-  case r@GET -> Root / "rhinoFacts" =>
+  case r @ GET -> Root / "rhinoFacts" =>
     // show a rhino fact, try to not repeat a fact the user already has seen
     // the cookie is an array of integers, encoded in json
     val knownFacts: List[Int] = r.cookies.find(_.name == "knownRhinoFacts")
@@ -192,17 +192,11 @@ val longRequest = Request[IO](Method.GET, uri"/long")
 
 ```scala mdoc
 // without gzip in our client, nothing exciting happens
-clientWithoutGzip
-  .run(longRequest)
-  .use(_.bodyText.compile.string)
-  .unsafeRunSync()
+clientWithoutGzip.expect[String](longRequest).unsafeRunSync()
 
 // with the middleware we can see that the original body is smaller and 
 // the response is decompressed transparently
-clientWithGzip
-  .run(longRequest)
-  .use(_.bodyText.compile.string)
-  .unsafeRunSync()
+clientWithGzip.expect[String](longRequest).unsafeRunSync()
 ```
 
 ## Retry
