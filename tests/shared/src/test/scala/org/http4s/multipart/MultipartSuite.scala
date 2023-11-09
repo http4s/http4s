@@ -254,11 +254,7 @@ I am a big moose
       val request =
         Request(method = Method.POST, uri = url, body = badBody, headers = multipart.headers)
 
-      mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
-        val result = decoded.value
-        assertIO(result.attempt, Left(CustomError))
-      }.assert
+      mkDecoder.use(_.decode(request, true).value).intercept[CustomError.type]
     }
   }
 
