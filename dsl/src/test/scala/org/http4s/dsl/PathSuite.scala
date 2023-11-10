@@ -26,6 +26,8 @@ import org.http4s.syntax.AllSyntax
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 
+import scala.util.Try
+
 class PathSuite extends Http4sSuite with AllSyntax {
   implicit val arbitraryPath: Gen[Path] =
     arbitrary[List[String]]
@@ -235,7 +237,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Custom extractor with emap success") {
-    val NewIntVar = StringVar.emap(_.toIntOption)
+    val NewIntVar = StringVar.emap(s => Try(s.toInt).toOption)
     assert(
       path"/a/-123" match {
         case Root / "a" / NewIntVar(n) => n == -123
@@ -245,7 +247,7 @@ class PathSuite extends Http4sSuite with AllSyntax {
   }
 
   test("Custom extractor with emap failure") {
-    val NewIntVar = StringVar.emap(_.toIntOption)
+    val NewIntVar = StringVar.emap(s => Try(s.toInt).toOption)
 
     assert(
       path"/a/abab" match {
