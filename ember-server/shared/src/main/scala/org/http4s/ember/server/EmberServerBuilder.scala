@@ -209,19 +209,9 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestLineParseErrorHandler: Throwable => F[Response[F]]
   ): EmberServerBuilder[F] =
     copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
-
-  private val verifyTimeoutRelations: F[Unit] =
-    logger
-      .warn(
-        s"requestHeaderReceiveTimeout ($requestHeaderReceiveTimeout) is >= idleTimeout ($idleTimeout). " +
-          s"It is recommended to configure requestHeaderReceiveTimeout < idleTimeout, " +
-          s"otherwise timeout responses won't be delivered to clients."
-      )
-      .whenA(requestHeaderReceiveTimeout.isFinite && requestHeaderReceiveTimeout >= idleTimeout)
-
+    
   def build: Resource[F, Server] =
     for {
-      _ <- Resource.eval(verifyTimeoutRelations)
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
