@@ -209,7 +209,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       requestLineParseErrorHandler: Throwable => F[Response[F]]
   ): EmberServerBuilder[F] =
     copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
-    
+
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
