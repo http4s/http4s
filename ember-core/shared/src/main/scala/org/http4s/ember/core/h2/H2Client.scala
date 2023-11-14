@@ -361,8 +361,13 @@ private[ember] object H2Client {
       h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
+      val isWebSocketUpgrade = req.attributes.contains(H2Keys.WebSocketUpgradeIdentifier)
       val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
-      val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
+      // val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
+      val socketTypeF =
+        if (isWebSocketUpgrade) Some(Http1).pure[F]
+        else if (priorKnowledge) Some(Http2).pure[F]
+        else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
         case Some(Http2) =>
           h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication)

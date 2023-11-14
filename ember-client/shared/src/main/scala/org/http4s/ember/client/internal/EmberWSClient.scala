@@ -32,6 +32,7 @@ import org.http4s.client.websocket.WSConnection
 import org.http4s.client.websocket.WSFrame
 import org.http4s.ember.client.internal.WebSocketHelpers._
 import org.http4s.ember.core.WebSocketHelpers._
+import org.http4s.ember.core.h2.H2Keys.WebSocketUpgradeIdentifier
 import org.http4s.headers.`Sec-WebSocket-Key`
 import org.http4s.websocket.WebSocketFrame
 import scodec.bits.ByteVector
@@ -66,6 +67,7 @@ private[client] object EmberWSClient {
               )
             )
             .withMethod(Method.GET)
+            .withAttribute(WebSocketUpgradeIdentifier, ())
 
           socketOption <- getSocket(emberClient, httpWSRequest)
           socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
