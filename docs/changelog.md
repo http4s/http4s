@@ -5,6 +5,8 @@ ordered chronologically, so each release contains all changes described below it
 
 # v0.23.24 (2023-11-14)
 
+This release upgrades to [cats-parse v1.0.0](https://github.com/typelevel/cats-parse/releases/tag/v1.0.0) which may trigger eviction errors in your build. The cats-parse 1.x series is 100% binary-compatible with the cats-parse 0.3.x series, so it is safe to ignore the eviction errors in this case.
+
 ## What's Changed
 ### http4s-core
 * Avoid linking MimeDB in Scala Native by @lolgab in https://github.com/http4s/http4s/pull/7278
