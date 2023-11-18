@@ -74,6 +74,11 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     .default[IO]
     .buildWebSocket
 
+  val clientWithHTTP2Resource = EmberClientBuilder
+    .default[IO]
+    .withHttp2
+    .buildWebSocket
+
   val supportedWebSocketVersion = 13L
 
   val upgradeCi = ci"upgrade"
@@ -100,6 +105,25 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     (ResourceFunFixture(serverResource), ResourceFunFixture(clientResource), dispatcher).mapN(
       FunFixture.map3(_, _, _)
     )
+
+  private def fixture2 =
+    (ResourceFunFixture(serverResource), ResourceFunFixture(clientWithHTTP2Resource), dispatcher)
+      .mapN(
+        FunFixture.map3(_, _, _)
+      )
+
+  fixture2.test("always use HTTP/1") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Text("hello"))
+          received <- conn.receive
+        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
+      )
+  }
 
   fixture.test("open and close connection to server") { case (server, (_, wsClient), _) =>
     val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
