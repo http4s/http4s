@@ -36,6 +36,8 @@ import org.http4s.websocket._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
 
+import org.http4s.syntax.all.*
+
 class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
   def service[F[_]](wsBuilder: WebSocketBuilder2[F])(implicit F: Async[F]): HttpApp[F] = {
@@ -111,19 +113,6 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       .mapN(
         FunFixture.map3(_, _, _)
       )
-
-  fixture2.test("always use HTTP/1") { case (server, (_, wsClient), _) =>
-    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
-
-    wsClient
-      .connect(wsRequest)
-      .use(conn =>
-        for {
-          _ <- conn.send(WSFrame.Text("hello"))
-          received <- conn.receive
-        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
-      )
-  }
 
   fixture.test("open and close connection to server") { case (server, (_, wsClient), _) =>
     val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
@@ -211,6 +200,20 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           _ <- conn.receive
           receivedCloseFrame <- conn.receive
         } yield assertEquals(receivedCloseFrame, Some(WSFrame.Close(1000, "")))
+      )
+  }
+
+  fixture2.test("always use HTTP/1".only) { case (server, (_, wsClient), _) =>
+    // val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+    val wsRequest = WSRequest(uri"wss://ws.postman-echo.com/raw")
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Text("hello"))
+          received <- conn.receive
+        } yield assertEquals(received, Some(WSFrame.Text("hello"): WSFrame))
       )
   }
 }

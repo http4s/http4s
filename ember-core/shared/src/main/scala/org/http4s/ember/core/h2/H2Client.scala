@@ -363,7 +363,6 @@ private[ember] object H2Client {
       val key = H2Client.RequestKey.fromRequest(req)
       val isWebSocketUpgrade = req.attributes.contains(H2Keys.WebSocketUpgradeIdentifier)
       val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
-      // val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       val socketTypeF =
         if (isWebSocketUpgrade) Some(Http1).pure[F]
         else if (priorKnowledge) Some(Http2).pure[F]
