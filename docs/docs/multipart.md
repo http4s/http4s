@@ -49,18 +49,18 @@ You can try this self-contained example using `scala-cli` and pointing your brow
 It includes a page with a form and the endpoint receiving the submission.
 ```scala mdoc:compile-only
 
-//> using scala "3.3.1"
+//> using scala "2.13.12"
 //> using dep "org.http4s::http4s-ember-client:@VERSION@"
 //> using dep "org.http4s::http4s-ember-server:@VERSION@"
 //> using dep "org.http4s::http4s-dsl:@VERSION@"
 
-import cats.effect.*
-import cats.syntax.all.*
-import com.comcast.ip4s.*
-import org.http4s.*
-import org.http4s.dsl.io.*
+import cats.effect._
+import cats.syntax.all._
+import com.comcast.ip4s._
+import org.http4s._
+import org.http4s.dsl.io._
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.headers.*
+import org.http4s.headers._
 
 object Main extends IOApp.Simple {
   val routes = HttpRoutes.of[IO] {
