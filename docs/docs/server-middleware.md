@@ -346,7 +346,7 @@ are susceptible to this form of attack: the `String` entity decoder
 will read the complete value into memory, while a json entity decoder might build
 the full AST before attempting to decode. For this reason it's advisable to
 apply this middleware unless something else, like a reverse proxy, is
-applying this limit.
+enforcing this limit.
 
 ```scala mdoc:silent
 import org.http4s.server.middleware.EntityLimiter
