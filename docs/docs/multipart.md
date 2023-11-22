@@ -50,9 +50,9 @@ It includes a page with a form and the endpoint receiving the submission.
 ```scala mdoc:compile-only
 
 //> using scala "3.3.1"
-//> using dep "org.http4s::http4s-ember-client:0.23.24"
-//> using dep "org.http4s::http4s-ember-server:0.23.24"
-//> using dep "org.http4s::http4s-dsl:0.23.24"
+//> using dep "org.http4s::http4s-ember-client:@VERSION@"
+//> using dep "org.http4s::http4s-ember-server:@VERSION@"
+//> using dep "org.http4s::http4s-dsl:@VERSION@"
 
 import cats.effect.*
 import cats.syntax.all.*
