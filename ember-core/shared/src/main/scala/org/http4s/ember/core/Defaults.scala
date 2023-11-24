@@ -20,5 +20,5 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration.FiniteDuration
 
 private[ember] object Defaults {
-  val idleTimeout: FiniteDuration = 60.seconds
+  val IdleTimeout: FiniteDuration = 60.seconds
 }
