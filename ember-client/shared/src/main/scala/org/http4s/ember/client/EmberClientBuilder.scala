@@ -430,7 +430,7 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
     val idleConnectionTime: FiniteDuration = org.http4s.ember.core.Defaults.IdleTimeout
-    val timeout: Duration = org.http4s.ember.core.Defaults.IdleTimeout
+    val timeout: Duration = org.http4s.client.defaults.RequestTimeout
 
     // Pool Settings
     val maxPerKey: RequestKey => Int = { (_: RequestKey) =>
