@@ -203,7 +203,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       )
   }
 
-  fixture2.test("always use HTTP/1".only) { case (_, (_, wsClient), _) =>
+  fixture2.test("always use HTTP/1") { case (_, (_, wsClient), _) =>
     // val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsRequest = WSRequest(uri"wss://ws.postman-echo.com/raw")
 
