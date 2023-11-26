@@ -31,12 +31,11 @@ import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
 import org.http4s.server.Server
 import org.http4s.server.websocket._
+import org.http4s.syntax.all._
 import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
-
-import org.http4s.syntax.all.*
 
 class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
