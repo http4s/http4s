@@ -240,8 +240,18 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def withoutPushPromiseSupport: EmberClientBuilder[F] =
     copy(pushPromiseSupport = None)
 
+  private val verifyTimeoutRelations: F[Unit] =
+    logger
+      .warn(
+        s"timeout ($timeout) is >= idleConnectionTime ($idleConnectionTime). " +
+          s"It is recommended to configure timeout < idleConnectionTime, " +
+          s"or disable one of them explicitly by setting it to Duration.Inf."
+      )
+      .whenA(timeout.isFinite && timeout >= idleConnectionTime)
+
   private def buildHelper(ws: Boolean = false): Resource[F, Client[F]] =
     for {
+      _ <- Resource.eval(verifyTimeoutRelations)
       sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <-
         tlsContextOpt
