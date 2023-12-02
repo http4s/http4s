@@ -1,4 +1,4 @@
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.12"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.13"
 
 // https://github.com/coursier/coursier/issues/450
 classpathTypes += "maven-plugin"
