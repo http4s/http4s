@@ -39,13 +39,12 @@ class ReconnectSuite extends Http4sSuite {
             )
           }
         }
-        .toResource
-        .map(Reconnect(_))
-        .flatMap(_.connectHighLevel(WSRequest(Uri())))
-        .use { conn =>
-          conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
-          // reconnection happens
-          conn.receive.assertEquals(Some(WSFrame.Text("hello", true)))
+        .flatMap { client =>
+          Reconnect(client.connectHighLevel(WSRequest(Uri()))).use { conn =>
+            conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
+              // reconnection happens
+              conn.receive.assertEquals(Some(WSFrame.Text("hello", true)))
+          }
         }
     }
   }

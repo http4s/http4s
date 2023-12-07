@@ -14,59 +14,49 @@
  * limitations under the License.
  */
 
-package org.http4s
-package client
-package websocket
+package org.http4s.client.websocket
 package middleware
 
 import cats.Foldable
-import cats.effect.kernel.Concurrent
+import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.effect.kernel.DeferredSource
-import cats.effect.kernel.Resource
 import cats.effect.std.Hotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
 
 object Reconnect {
 
-  def apply[F[_]](client: WSClientHighLevel[F])(implicit F: Concurrent[F]): WSClientHighLevel[F] =
-    new ImplHighLevel(client)
+  def apply[F[_]](
+      connect: Resource[F, WSConnectionHighLevel[F]]
+  )(implicit F: Concurrent[F]): Resource[F, WSConnectionHighLevel[F]] =
+    Hotswap(connect.map(_.asRight[Throwable]))
+      .flatMap {
+        case (hs, Right(conn)) =>
+          def loop: F[Unit] = hs.swap(connect.attempt).flatMap {
+            case Left(_) => F.unit
+            case Right(conn) => conn.closeFrame.get *> loop
+          }
 
-  private def reconnect[F[_], C <: WSConnectionHighLevel[F]](open: Resource[F, C])(implicit
-      F: Concurrent[F]
-  ) = Hotswap(open.map(_.asRight[Throwable])).flatMap {
-    case (hs, Right(conn)) =>
-      def loop: F[Unit] = hs.swap(open.attempt).flatMap {
-        case Left(_) => F.unit
-        case Right(conn) => conn.closeFrame.get *> loop
+          (conn.closeFrame.get *> loop).background.as(
+            hs.get.evalMap(
+              _.toRight[Throwable](new IllegalStateException("No active connection")).flatten
+                .liftTo[F]
+            )
+          )
+        case _ => throw new AssertionError
       }
-
-      (conn.closeFrame.get *> loop).background.as(
-        hs.get.evalMap(
-          _.toRight[Throwable](new IllegalStateException("No active connection")).flatten.liftTo[F]
-        )
-      )
-    case _ => throw new AssertionError
-  }
-
-  private def neverCloseFrame[F[_]](implicit F: Concurrent[F]) =
-    new DeferredSource[F, WSFrame.Close] {
-      def get = F.never
-      def tryGet = F.pure(none)
-    }
-
-  private final class ImplHighLevel[F[_]](client: WSClientHighLevel[F])(implicit F: Concurrent[F])
-      extends WSClientHighLevel[F] {
-    def connectHighLevel(request: WSRequest) =
-      reconnect(client.connectHighLevel(request)).map { conn =>
+      .map { conn =>
         new WSConnectionHighLevel[F] {
-          def closeFrame = neverCloseFrame
           def receive = conn.use(_.receive).untilDefinedM.map(_.some)
           def send(wsf: WSDataFrame) = conn.use(_.send(wsf))
           def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]) = conn.use(_.sendMany(wsfs))
           def subprotocol = None
+          def closeFrame = new DeferredSource[F, WSFrame.Close] {
+            def get = F.never
+            def tryGet = F.pure(none)
+          }
         }
       }
-  }
 
 }
