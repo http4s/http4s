@@ -165,6 +165,7 @@ class WSTestClientSuite extends Http4sSuite {
         .flatMap(_.connectHighLevel(WSRequest(uri"/ws")))
         .use { conn =>
           conn.receive.assertEquals(Some(WSFrame.Text("hello"))) *>
+            conn.receive.assertEquals(None) *>
             conn.receive.assertEquals(None)
         }
     }
