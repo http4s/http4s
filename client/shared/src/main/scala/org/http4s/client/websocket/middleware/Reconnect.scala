@@ -24,6 +24,7 @@ import cats.effect.kernel.DeferredSource
 import cats.effect.std.Hotswap
 import cats.effect.syntax.all._
 import cats.syntax.all._
+import fs2.Stream
 
 object Reconnect {
 
@@ -52,9 +53,18 @@ object Reconnect {
             case None => F.cede *> receive
             case some => F.pure(some)
           }
+
+          override def receiveStream =
+            Stream.resource(conn).flatMap(_.receiveStream) ++
+              Stream.exec(F.cede) ++
+              receiveStream
+
           def send(wsf: WSDataFrame) = conn.use(_.send(wsf))
+
           def sendMany[G[_]: Foldable, A <: WSDataFrame](wsfs: G[A]) = conn.use(_.sendMany(wsfs))
+
           def subprotocol = None
+
           def closeFrame = new DeferredSource[F, WSFrame.Close] {
             def get = F.never
             def tryGet = F.pure(none)
