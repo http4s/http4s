@@ -60,8 +60,8 @@ object WSTestClient {
         subProtocol: Option[String],
     ): Resource[F, WSConnection[F]] =
       for {
-        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
-        _ <- socket.send.evalTap(clientReceiveQueue.offer).compile.drain.background
+        clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](1).toResource
+        _ <- socket.send.enqueueNoneTerminated(clientReceiveQueue).compile.drain.background
 
         clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
         consumer = Stream
@@ -82,7 +82,7 @@ object WSTestClient {
           wsfs.traverse_(send)
 
         def receive: F[Option[WSFrame]] =
-          clientReceiveQueue.take.map(_.toWSFrame.some)
+          clientReceiveQueue.take.map(_.map(_.toWSFrame))
 
         def subprotocol: Option[String] = subProtocol
       }
@@ -94,11 +94,11 @@ object WSTestClient {
       for {
 
         clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
-        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
+        clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](1).toResource
         receiveSend = Stream
           .fromQueueNoneTerminated[F, WebSocketFrame](clientSendQueue)
           .through(socket.receiveSend)
-          .evalTap(clientReceiveQueue.offer)
+          .enqueueNoneTerminated(clientReceiveQueue)
           .compile
           .drain
 
@@ -116,7 +116,7 @@ object WSTestClient {
           wsfs.traverse_(send)
 
         def receive: F[Option[WSFrame]] =
-          clientReceiveQueue.take.map(_.toWSFrame.some)
+          clientReceiveQueue.take.map(_.map(_.toWSFrame))
 
         def subprotocol: Option[String] = subProtocol
       }
