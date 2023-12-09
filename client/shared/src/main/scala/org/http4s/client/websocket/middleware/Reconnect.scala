@@ -31,21 +31,27 @@ object Reconnect {
   def apply[F[_]](
       connect: Resource[F, WSConnectionHighLevel[F]]
   )(implicit F: Concurrent[F]): Resource[F, WSConnectionHighLevel[F]] =
-    Hotswap(connect.map(_.asRight[Throwable]))
-      .flatMap {
-        case (hs, Right(conn)) =>
-          def loop: F[Unit] = hs.swap(connect.attempt).flatMap {
-            case Left(_) => F.unit
-            case Right(conn) => conn.closeFrame.get *> loop
-          }
+    Hotswap[F, Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]](
+      connect.map(c => Resource.pure(c.asRight))
+    )
+      .flatMap { case (hs, conn) =>
+        // we use memoize so that the swap succeeds immediately, and users will suspend while waiting for it to connect
+        // without it, users will keep getting the stale connection until the connect completes and installs the new one
+        def loop: F[Unit] = hs.swap(connect.attempt.memoize).flatMap {
+          _.use {
+            case Left(_) => F.canceled
+            case Right(conn) => conn.closeFrame.get.void
+          } *> loop
+        }
 
-          (conn.closeFrame.get *> loop).background.as(
-            hs.get.evalMap(
-              _.toRight[Throwable](new IllegalStateException("No active connection")).flatten
-                .liftTo[F]
+        (conn.use(_.liftTo[F].flatMap(_.closeFrame.get)) *> loop).background.as(
+          hs.get
+            .evalMap(
+              _.liftTo(new IllegalStateException("No active connection"))
             )
-          )
-        case _ => throw new AssertionError
+            .flatten
+            .evalMap(_.liftTo)
+        )
       }
       .map { conn =>
         new WSConnectionHighLevel[F] {
