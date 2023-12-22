@@ -231,44 +231,58 @@
         
         <h1 id="for-beginners" class="section"><a class="anchor-link left" href="#for-beginners"><i class="icofont-laika link">&#xef71;</i></a>For Beginners</h1>
         <p>When you start from a &quot;clean slate&quot; with http4s, one of the things you&#39;re likely to notice, is that http4s is swallowing your exceptions - let&#39;s see if we can prove it. Assuming you&#39;ve gotten the hello world example started, let&#39;s introduce another route, which is going to error out.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">errorRoute</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] { 
-      </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> @ </span><span class="type-name">GET</span><span> -&gt; </span><span class="string-literal">&quot;error&quot;</span><span> =&gt;
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>, </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">EmberServerBuilder</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">Router</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">EmberClientBuilder</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorAction</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorHandling</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">data</span><span>.</span><span class="type-name">OptionT</span></code></pre>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">comcast</span><span>.</span><span class="identifier">ip4s</span><span>.</span><span class="identifier">_</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">errorRoute</span><span>: </span><span class="type-name">HttpRoutes</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+      </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;error&quot;</span><span> =&gt;
         </span><span class="keyword">throw</span><span> </span><span class="keyword">new</span><span> </span><span class="type-name">Exception</span><span>(</span><span class="string-literal">&quot;Hey don&#39;t swallow me&quot;</span><span>)
-}</span></code></pre>
-        <p>Once you&#39;ve added that to your app and hit the &quot;error&quot; route, what you&#39;ll find, is that it returns a <code>500</code> response code... and no messages, and the console that hosts the http4s dev server is also showing you ... nothing. </p>
-        <p>Now, in general swallowing exceptions in software engineering is widely considered bad practise - now we have no idea our program is going wrong! Presumably in the case of http4s, having your public facing webserver &quot;secure by default&quot; trumps that consideration. </p>
-        <p>http4s provides an answer to this seeming paradox, in the form of <a href="middleware.html">middleware</a>. As this section is written by a beginner, we&#39;re going to assume you want to know your code is throwing exceptions and take the beginners path of least resistance to surfacing them. You probably have a server, instantiated something like this; </p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">EmberServerBuilder</span><span>
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">server</span><span> = </span><span class="type-name">EmberServerBuilder</span><span>
   .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
-  .</span><span class="identifier">withPort</span><span>(</span><span class="string-literal">port&quot;8081&quot;</span><span>)
+  .</span><span class="identifier">withPort</span><span>{</span><span class="string-literal">port&quot;8081&quot;</span><span>}
   .</span><span class="identifier">withHost</span><span>(</span><span class="string-literal">host&quot;localhost&quot;</span><span>)
-  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">errorRoute</span><span>)
+  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">errorRoute</span><span>.</span><span class="identifier">orNotFound</span><span>)
   .</span><span class="identifier">build</span></code></pre>
-        <p>We&#39;re going to make it look like this, instead. </p>
+        <p>Once you&#39;ve started this server, hit up the &quot;/error&quot; route in browser. What you&#39;ll find, is that it returns a <code>500</code> response code... and no messages, and the console that hosts the http4s dev server is also showing you ... nothing.</p>
+        <p>Now, in general swallowing exceptions in software engineering is widely considered bad practise - now we have no idea our program is going wrong! Presumably in the case of http4s, having your public facing webserver &quot;secure by default&quot; trumps that consideration.</p>
+        <p>http4s provides an answer to this seeming paradox, in the form of <a href="middleware.html">middleware</a>. As this section is written by a beginner, we&#39;re going to assume you want to know your code is throwing exceptions and take the beginners path of least resistance to surfacing them.</p>
+        <p>We&#39;re going to make the path to instantiating the server look like this, instead.</p>
         <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorAction</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ErrorHandling</span><span>
 
-...
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">errorHandler</span><span>(</span><span class="identifier">t</span><span>: </span><span class="type-name">Throwable</span><span>, </span><span class="identifier">msg</span><span>: =&gt; </span><span class="type-name">String</span><span>) : </span><span class="type-name">OptionT</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Unit</span><span>] =
+  </span><span class="type-name">OptionT</span><span>.</span><span class="identifier">liftF</span><span>(
+      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>) &gt;&gt;
+      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">t</span><span>) &gt;&gt;
+      </span><span class="type-name">IO</span><span>(</span><span class="identifier">t</span><span>.</span><span class="identifier">printStackTrace</span><span>())
+  )
+
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">withErrorLogging</span><span> = </span><span class="type-name">ErrorHandling</span><span>.</span><span class="type-name">Recover</span><span>.</span><span class="identifier">total</span><span>(
   </span><span class="type-name">ErrorAction</span><span>.</span><span class="identifier">log</span><span>(
     </span><span class="identifier">errorRoute</span><span>,
-    </span><span class="identifier">messageFailureLogAction</span><span> = (</span><span class="identifier">t</span><span>, </span><span class="identifier">msg</span><span>) =&gt; 
-      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>) &gt;&gt;
-      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">t</span><span>),                
-    </span><span class="identifier">serviceErrorLogAction</span><span> = (</span><span class="identifier">t</span><span>, </span><span class="identifier">msg</span><span>) =&gt; 
-      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>) &gt;&gt;
-      </span><span class="type-name">IO</span><span>.</span><span class="identifier">println</span><span>(</span><span class="identifier">t</span><span>)   
+    </span><span class="identifier">messageFailureLogAction</span><span> = </span><span class="identifier">errorHandler</span><span>,
+    </span><span class="identifier">serviceErrorLogAction</span><span> = </span><span class="identifier">errorHandler</span><span>
   )
 )
 
-</span><span class="type-name">EmberServerBuilder</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">thisServerPrintsErrors</span><span> = </span><span class="type-name">EmberServerBuilder</span><span>
   .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
   .</span><span class="identifier">withPort</span><span>(</span><span class="string-literal">port&quot;8081&quot;</span><span>)
   .</span><span class="identifier">withHost</span><span>(</span><span class="string-literal">host&quot;localhost&quot;</span><span>)
-  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">withErrorLogging</span><span>)
+  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">withErrorLogging</span><span>.</span><span class="identifier">orNotFound</span><span>)
   .</span><span class="identifier">build</span></code></pre>
-        <p>And now, you&#39;ll get told which endpoint is failing, and get the stacktrace printed to the console. Leveling up your error handling experience through fancy logging frameworks, tracing et al is left as an excercise for the (no longer beginner) reader... </p>
+        <p>And now, you&#39;ll get told which endpoint is failing, and get the stacktrace printed to the console. Leveling up your error handling experience through fancy logging frameworks, tracing et al is left as an excercise for the (no longer beginner) reader...</p>
         
         <h2 id="logging" class="section"><a class="anchor-link left" href="#logging"><i class="icofont-laika link">&#xef71;</i></a>Logging</h2>
         <p>If a <code>MessageFailure</code> is not handled by your HTTP service, it reaches
