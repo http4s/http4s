@@ -22,10 +22,13 @@ import cats.syntax.all._
 import cats.~>
 import org.typelevel.ci.CIStringSyntax
 
+import scala.concurrent.duration.FiniteDuration
+
 final case class WebSocketContext[F[_]](
     webSocket: WebSocket[F],
     headers: Headers,
     failureResponse: F[Response[F]],
+    autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
 ) {
 
   def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
@@ -33,6 +36,7 @@ final case class WebSocketContext[F[_]](
       webSocket.imapK(fk)(gk),
       headers,
       fk(failureResponse).map(_.mapK(fk)),
+      autoPing,
     )
 
   def subprotocol: Option[String] =

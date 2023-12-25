@@ -125,9 +125,9 @@ object WSTestClient {
         .eval(app.run(Request[F](method = req.method, uri = req.uri, headers = req.headers)))
         .flatMap { response =>
           response.attributes.lookup(wsb.webSocketKey) match {
-            case Some(c @ WebSocketContext(webSocket: WebSocketSeparatePipe[F], _, _)) =>
+            case Some(c @ WebSocketContext(webSocket: WebSocketSeparatePipe[F], _, _, _)) =>
               processSeparatedSocket(webSocket, c.subprotocol)
-            case Some(c @ WebSocketContext(webSocket: WebSocketCombinedPipe[F], _, _)) =>
+            case Some(c @ WebSocketContext(webSocket: WebSocketCombinedPipe[F], _, _, _)) =>
               processCombinedSocket(webSocket, c.subprotocol)
             case _ =>
               Resource.raiseError[F, WSConnection[F], Throwable](new WebSocketClientInitException())

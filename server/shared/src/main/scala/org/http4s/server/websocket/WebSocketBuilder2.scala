@@ -23,13 +23,11 @@ import cats.syntax.all._
 import cats.~>
 import fs2.Pipe
 import fs2.Stream
-import org.http4s.websocket.WebSocket
-import org.http4s.websocket.WebSocketCombinedPipe
-import org.http4s.websocket.WebSocketContext
-import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
-import org.http4s.websocket.WebSocketSeparatePipe
+import org.http4s.websocket._
 import org.typelevel.vault.Key
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -44,6 +42,8 @@ import org.typelevel.vault.Key
   *                    To prevent WebSocketBuilder2 from handling defrag, you must explicitly call withDefragment(false).
   *                    For more information on defrag processing, see the WebSocketFrameDefragmenter comment.
   *                    default: true
+  * @param autoPing If `Some`, send the given Websocket `Ping` frame at the given interval.
+  *                    If `None`, do not automatically send pings.
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
@@ -53,6 +53,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs: Boolean,
     defragFrame: Boolean,
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
+    autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
 ) {
   import WebSocketBuilder2.impl
 
@@ -76,6 +77,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs = filterPingPongs,
       defragFrame = false,
       webSocketKey = webSocketKey,
+      autoPing = None,
     )
 
   private def copy(
@@ -86,6 +88,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs: Boolean = this.filterPingPongs,
       defragFrame: Boolean = this.defragFrame,
       webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
+      autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)] = this.autoPing,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
     onNonWebSocketRequest,
@@ -94,6 +97,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs,
     defragFrame,
     webSocketKey,
+    autoPing,
   )
 
   def withHeaders(headers: Headers): WebSocketBuilder2[F] =
@@ -114,6 +118,9 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withDefragment(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
+  def withAutoPing(autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)]): WebSocketBuilder2[F] =
+    copy(autoPing = autoPing)
+
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
@@ -124,6 +131,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs,
       defragFrame,
       webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
+      autoPing,
     )
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -135,6 +143,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
             webSocket,
             headers,
             onHandshakeFailure,
+            autoPing,
           ),
         )
       )
@@ -245,6 +254,7 @@ object WebSocketBuilder2 {
       filterPingPongs = true,
       defragFrame = true,
       webSocketKey = webSocketKey,
+      autoPing = None,
     )
 
   private def impl[F[_]: Applicative](
@@ -255,6 +265,7 @@ object WebSocketBuilder2 {
       filterPingPongs: Boolean,
       defragFrame: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
       headers = headers,
@@ -264,5 +275,6 @@ object WebSocketBuilder2 {
       filterPingPongs = filterPingPongs,
       defragFrame = defragFrame,
       webSocketKey = webSocketKey,
+      autoPing = autoPing,
     ) {}
 }

@@ -23,6 +23,8 @@ import fs2.Pipe
 import fs2.Stream
 import org.http4s.websocket.WebSocketFrame
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
   * @param headers Handshake response headers, such as such as:Sec-WebSocket-Protocol.
@@ -30,6 +32,7 @@ import org.http4s.websocket.WebSocketFrame
   *                              default: NotImplemented
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
+  * autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
   */
 @deprecated(
   "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
@@ -41,6 +44,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
     onHandshakeFailure: F[Response[F]],
     onClose: F[Unit],
     filterPingPongs: Boolean,
+    autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
 ) {
 
   private lazy val delegate: WebSocketBuilder2[F] =
@@ -50,6 +54,7 @@ final case class WebSocketBuilder[F[_]: Applicative](
       .withOnHandshakeFailure(onHandshakeFailure)
       .withOnClose(onClose)
       .withFilterPingPongs(filterPingPongs)
+      .withAutoPing(autoPing)
 
   /** @param sendReceive The send-receive stream represents transforming of incoming messages to outgoing for a single websocket
     *                    Once the stream have terminated, the server will initiate a close of the websocket connection.
@@ -121,5 +126,6 @@ object WebSocketBuilder {
         Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F],
       onClose = Applicative[F].unit,
       filterPingPongs = true,
+      autoPing = None,
     )
 }

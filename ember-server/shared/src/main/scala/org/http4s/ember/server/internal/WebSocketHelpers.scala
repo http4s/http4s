@@ -22,6 +22,9 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Temporal
+import cats.effect.implicits.genSpawnOps
+import cats.effect.implicits.genTemporalOps_
+import cats.effect.kernel.Outcome
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -154,11 +157,21 @@ private[internal] object WebSocketHelpers {
           reader.concurrently(writer) -> onClose
       }
 
-      stream
+      val run = stream
         .interruptWhen(close.map(_ == BothClosed))
         .onFinalize(onClose)
         .compile
         .drain
+
+      ctx.autoPing match {
+        case None => run
+        case Some((delay, f)) =>
+          writeFrame(f)
+            .delayBy(delay)
+            .foreverM
+            .background
+            .use((_: F[Outcome[F, Throwable, Nothing]]) => run)
+      }
     }
   }
 

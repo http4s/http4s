@@ -36,10 +36,13 @@ import org.java_websocket.framing.CloseFrame
 import org.java_websocket.framing.Framedata
 import org.java_websocket.framing.PingFrame
 import org.java_websocket.handshake.ServerHandshake
+import scodec.bits.ByteVector
 
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
+import scala.concurrent.duration.DurationInt
 
 class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -72,6 +75,12 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
                 }.foreach(deferred.complete(_).void),
               )
           }
+        case GET -> Root / "ws-auto-ping" =>
+          wsBuilder
+            .withAutoPing(
+              Some((50.millis, WebSocketFrame.Ping(ByteVector("auto-ping".getBytes(UTF_8)))))
+            )
+            .build(identity)
       }
       .orNotFound
   }
@@ -89,6 +98,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       waitOpen: Deferred[IO, Option[Throwable]],
       waitClose: Deferred[IO, Option[Throwable]],
       messages: Queue[IO, String],
+      pings: Queue[IO, String],
       pongs: Queue[IO, String],
       remoteClosed: Deferred[IO, Unit],
       closeCode: Deferred[IO, Int],
@@ -111,6 +121,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       waitOpen <- Deferred[IO, Option[Throwable]]
       waitClose <- Deferred[IO, Option[Throwable]]
       queue <- Queue.unbounded[IO, String]
+      pingQueue <- Queue.unbounded[IO, String]
       pongQueue <- Queue.unbounded[IO, String]
       remoteClosed <- Deferred[IO, Unit]
       closeCode <- Deferred[IO, Int]
@@ -133,6 +144,11 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           val fa = waitOpen.complete(Some(ex)).attempt >> waitClose.complete(Some(ex)).attempt.void
           dispatcher.unsafeRunSync(fa)
         }
+        override def onWebsocketPing(conn: WebSocket, f: Framedata): Unit = {
+          val fa = pingQueue
+            .offer(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
+          dispatcher.unsafeRunSync(fa)
+        }
         override def onWebsocketPong(conn: WebSocket, f: Framedata): Unit = {
           val fa = pongQueue
             .offer(new String(f.getPayloadData().array(), StandardCharsets.UTF_8))
@@ -143,7 +159,16 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           ()
         }
       }
-    } yield Client(waitOpen, waitClose, queue, pongQueue, remoteClosed, closeCode, client)
+    } yield Client(
+      waitOpen,
+      waitClose,
+      queue,
+      pingQueue,
+      pongQueue,
+      remoteClosed,
+      closeCode,
+      client,
+    )
 
   fixture.test("open and close connection to server") { case (server, dispatcher) =>
     for {
@@ -180,6 +205,20 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       data <- client.pongs.take
       _ <- client.close
     } yield assertEquals(data, "hello")
+  }
+
+  fixture.test("auto ping") { case (server, dispatcher) =>
+    for {
+      client <- createClient(
+        URI.create(s"ws://${server.address.getHostName}:${server.address.getPort}/ws-auto-ping"),
+        dispatcher,
+      )
+      _ <- client.connect
+      data <- client.pings.take.product(IO.realTime).replicateA(6)
+      (pings, timestamps) = data.unzip
+      tsDiffs = timestamps.sliding2.map { case (ts1, ts2) => ts2 - ts1 }
+      _ <- client.close
+    } yield assert(pings.forall(_ === "auto-ping") && tsDiffs.forall(_ < 200.millis))
   }
 
   fixture.test("initiate close sequence with code=1000 (NORMAL) on stream termination") {
