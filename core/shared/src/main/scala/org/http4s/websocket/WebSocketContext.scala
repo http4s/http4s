@@ -29,7 +29,17 @@ final case class WebSocketContext[F[_]](
     headers: Headers,
     failureResponse: F[Response[F]],
     autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
-) {
+) { self =>
+  // required for binary compatibility
+  def this(webSocket: WebSocket[F], headers: Headers, failureResponse: F[Response[F]]) =
+    this(webSocket, headers, failureResponse, None)
+
+  // required for binary compatibility
+  def copy(
+      webSocket: WebSocket[F] = self.webSocket,
+      headers: Headers = self.headers,
+      failureResponse: F[Response[F]] = self.failureResponse,
+  ): WebSocketContext[F] = new WebSocketContext(webSocket, headers, failureResponse, None)
 
   def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =
     WebSocketContext[G](
@@ -41,5 +51,16 @@ final case class WebSocketContext[F[_]](
 
   def subprotocol: Option[String] =
     headers.get(ci"Sec-WebSocket-Protocol").map(_.head.value)
+
+}
+
+object WebSocketContext {
+  // required for binary compatibility
+  def apply[F[_]](
+      webSocket: WebSocket[F],
+      headers: Headers,
+      failureResponse: F[Response[F]],
+  ): WebSocketContext[F] =
+    new WebSocketContext(webSocket, headers, failureResponse, None)
 
 }

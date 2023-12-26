@@ -45,7 +45,35 @@ final case class WebSocketBuilder[F[_]: Applicative](
     onClose: F[Unit],
     filterPingPongs: Boolean,
     autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
-) {
+) { self =>
+
+  // required for binary compatibility
+  def this(
+      headers: Headers,
+      onNonWebSocketRequest: F[Response[F]],
+      onHandshakeFailure: F[Response[F]],
+      onClose: F[Unit],
+      filterPingPongs: Boolean,
+  ) =
+    this(headers, onNonWebSocketRequest, onHandshakeFailure, onClose, filterPingPongs, None)
+
+  // required for binary compatibility
+  def copy(
+      headers: Headers = self.headers,
+      onNonWebSocketRequest: F[Response[F]] = self.onNonWebSocketRequest,
+      onHandshakeFailure: F[Response[F]] = self.onHandshakeFailure,
+      onClose: F[Unit] = self.onClose,
+      filterPingPongs: Boolean = self.filterPingPongs,
+      F: Applicative[F] = implicitly[Applicative[F]],
+  ) =
+    new WebSocketBuilder(
+      headers,
+      onNonWebSocketRequest,
+      onHandshakeFailure,
+      onClose,
+      filterPingPongs,
+      None,
+    )(F)
 
   private lazy val delegate: WebSocketBuilder2[F] =
     WebSocketBuilder2(websocketKey[F])
@@ -127,5 +155,22 @@ object WebSocketBuilder {
       onClose = Applicative[F].unit,
       filterPingPongs = true,
       autoPing = None,
+    )
+
+  // required for binary compatibility
+  def apply[F[_]: Applicative](
+      headers: Headers,
+      onNonWebSocketRequest: F[Response[F]],
+      onHandshakeFailure: F[Response[F]],
+      onClose: F[Unit],
+      filterPingPongs: Boolean,
+  ): WebSocketBuilder[F] =
+    new WebSocketBuilder(
+      headers,
+      onNonWebSocketRequest,
+      onHandshakeFailure,
+      onClose,
+      filterPingPongs,
+      None,
     )
 }

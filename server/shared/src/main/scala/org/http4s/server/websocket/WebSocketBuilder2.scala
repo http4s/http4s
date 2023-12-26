@@ -57,6 +57,27 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 ) {
   import WebSocketBuilder2.impl
 
+  // required for binary compatibility
+  def this(
+      headers: Headers,
+      onNonWebSocketRequest: F[Response[F]],
+      onHandshakeFailure: F[Response[F]],
+      onClose: F[Unit],
+      filterPingPongs: Boolean,
+      defragFrame: Boolean,
+      webSocketKey: Key[WebSocketContext[F]],
+  ) =
+    this(
+      headers,
+      onNonWebSocketRequest,
+      onHandshakeFailure,
+      onClose,
+      filterPingPongs,
+      defragFrame,
+      webSocketKey,
+      None,
+    )
+
   @deprecated(
     "Kept for binary compatiblity. Use the constructor that includes `defragFrame` as an argument",
     "0.23.19",
