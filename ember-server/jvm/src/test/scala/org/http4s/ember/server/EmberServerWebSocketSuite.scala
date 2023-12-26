@@ -77,9 +77,7 @@ class EmberServerWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
           }
         case GET -> Root / "ws-auto-ping" =>
           wsBuilder
-            .withAutoPing(
-              Some((50.millis, WebSocketFrame.Ping(ByteVector("auto-ping".getBytes(UTF_8)))))
-            )
+            .withAutoPing(50.millis, WebSocketFrame.Ping(ByteVector("auto-ping".getBytes(UTF_8))))
             .build(identity)
       }
       .orNotFound

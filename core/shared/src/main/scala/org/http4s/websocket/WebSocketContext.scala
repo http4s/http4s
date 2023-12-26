@@ -30,15 +30,15 @@ final case class WebSocketContext[F[_]](
     failureResponse: F[Response[F]],
     autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)],
 ) { self =>
-  // required for binary compatibility
+  @deprecated("required for binary compatibility", "0.23.24")
   def this(webSocket: WebSocket[F], headers: Headers, failureResponse: F[Response[F]]) =
     this(webSocket, headers, failureResponse, None)
 
   // required for binary compatibility
   def copy(
-      webSocket: WebSocket[F] = self.webSocket,
-      headers: Headers = self.headers,
-      failureResponse: F[Response[F]] = self.failureResponse,
+      webSocket: WebSocket[F],
+      headers: Headers,
+      failureResponse: F[Response[F]],
   ): WebSocketContext[F] = new WebSocketContext(webSocket, headers, failureResponse, None)
 
   def imapK[G[_]: Functor](fk: F ~> G)(gk: G ~> F): WebSocketContext[G] =

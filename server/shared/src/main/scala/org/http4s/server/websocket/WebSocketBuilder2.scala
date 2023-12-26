@@ -139,8 +139,10 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withDefragment(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
-  def withAutoPing(autoPing: Option[(FiniteDuration, WebSocketFrame.Ping)]): WebSocketBuilder2[F] =
-    copy(autoPing = autoPing)
+  def withAutoPing(every: FiniteDuration, frame: WebSocketFrame.Ping): WebSocketBuilder2[F] =
+    copy(autoPing = Some((every, frame)))
+
+  def withoutAutoPing: WebSocketBuilder2[F] = copy(autoPing = None)
 
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
