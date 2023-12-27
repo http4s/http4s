@@ -45,8 +45,10 @@ client.expect[String](request)
   .unsafeRunSync()
 ```
 
-You can try this self-contained example using `scala-cli` and pointing your browser to http://localhost:8089/.
-It includes a page with a form and the endpoint receiving the submission.
+You can try this self-contained example using [scala-cli](https://scala-cli.virtuslab.org/) and pointing your
+browser to http://localhost:8089/. It includes a page with a form and the endpoint receiving the submission.
+To run this code use create a file (it should have the `.scala` extension) with the following contents and run 
+`scala-cli file.scala`. 
 ```scala mdoc:compile-only
 
 //> using scala 2.13
