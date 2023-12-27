@@ -17,13 +17,11 @@
 package org.http4s
 package server.websocket
 
-import cats.Applicative
 import cats.effect.kernel._
 import cats.effect.syntax.all._
 import cats.syntax.all._
-import cats.~>
-import fs2.Pipe
-import fs2.Stream
+import cats.{Applicative, ~>}
+import fs2.{Pipe, Stream}
 import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
 import org.http4s.websocket._
 import org.typelevel.vault.Key
@@ -167,8 +165,16 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 
           def deferred[A]: G[Deferred[G, A]] = fk(tf.deferred[A].map(_.mapK(fk)))
 
-          def start[A](fa: G[A]): G[Fiber[G, Throwable, A]] =
-            ??? // fk(tf.start(gk(fa)).map(x => x.ma))
+          def start[A](fa: G[A]): G[Fiber[G, Throwable, A]] = fk(
+            tf.start(gk(fa))
+              .map(f =>
+                new Fiber[G, Throwable, A] {
+                  def cancel: G[Unit] = fk(f.cancel)
+
+                  def join: G[Outcome[G, Throwable, A]] = fk(f.join.map(_.mapK(fk)))
+                }
+              )
+          )
 
           def never[A]: G[A] = fk(tf.never)
 
@@ -176,7 +182,12 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
 
           def forceR[A, B](fa: G[A])(fb: G[B]): G[B] = fk(tf.forceR(gk(fa))(gk(fb)))
 
-          def uncancelable[A](body: Poll[G] => G[A]): G[A] = ???
+          def uncancelable[A](body: Poll[G] => G[A]): G[A] =
+            fk(tf.uncancelable { pollF =>
+              gk(body(new Poll[G] {
+                def apply[B](gb: G[B]): G[B] = fk(pollF(gk(gb)))
+              }))
+            })
 
           def canceled: G[Unit] = fk(tf.canceled)
 
