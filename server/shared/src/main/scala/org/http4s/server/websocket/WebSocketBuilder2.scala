@@ -18,7 +18,8 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
-import cats.effect.kernel.Unique
+import cats.effect.implicits._
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import cats.~>
 import fs2.Pipe
@@ -45,7 +46,7 @@ import scala.concurrent.duration.FiniteDuration
   * @param autoPing If `Some`, send the given Websocket `Ping` frame at the given interval.
   *                    If `None`, do not automatically send pings.
   */
-sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
+sealed abstract class WebSocketBuilder2[F[_]: Temporal] private (
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
@@ -145,7 +146,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withoutAutoPing: WebSocketBuilder2[F] = copy(autoPing = None)
 
   /** Transform the parameterized effect from F to G. */
-  def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
+  def imapK[G[_]: Temporal](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
       headers,
       fk(onNonWebSocketRequest).map(_.mapK(fk)),
@@ -166,7 +167,6 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
             webSocket,
             headers,
             onHandshakeFailure,
-            autoPing,
           ),
         )
       )
@@ -200,7 +200,23 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (true, true) => sendReceive.compose(defragFragment.compose(filterPingPongFrames))
         case (false, true) => sendReceive.compose(defragFragment)
       }
-    buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
+
+    autoPing match {
+      case None => buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose)(None))
+      case Some((every, frame)) =>
+        val ping = Applicative[F].pure(frame).delayBy(every)
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping).repeat
+        buildResponse(
+          WebSocketCombinedPipe(
+            (input: Stream[F, WebSocketFrame]) =>
+              Stream(sendReceive(input), pings).parJoinUnbounded,
+            onClose,
+          )(
+            Some(AutoPingCombinedPipe(every, frame, finalSendReceive))
+          )
+        )
+    }
+
   }
 
   /** @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
@@ -237,7 +253,17 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (false, true) => receive.compose(defragFragment)
       }
 
-    buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
+    autoPing match {
+      case None => buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose)(None))
+      case Some((every, frame)) =>
+        val ping = Applicative[F].pure(frame).delayBy(every)
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping).repeat
+        buildResponse(
+          WebSocketSeparatePipe(Stream(send, pings).parJoinUnbounded, finalReceive, onClose)(
+            Some(AutoPingSeparatePipe(every, frame, send))
+          )
+        )
+    }
   }
 
   private val isPingPong: WebSocketFrame => Boolean = {
@@ -256,15 +282,15 @@ object WebSocketBuilder2 {
     "Use the arg-less constructor to create a `WebSocketBuilder2` and access its key with the webSocketKey method",
     "0.23.15",
   )
-  private[http4s] def apply[F[_]: Applicative](
+  private[http4s] def apply[F[_]: Temporal](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     withKey(webSocketKey)
 
-  def apply[F[_]: Applicative: Unique]: F[WebSocketBuilder2[F]] =
+  def apply[F[_]: Temporal]: F[WebSocketBuilder2[F]] =
     Key.newKey[F, WebSocketContext[F]].map(withKey[F])
 
-  private def withKey[F[_]: Applicative](
+  private def withKey[F[_]: Temporal](
       webSocketKey: Key[WebSocketContext[F]]
   ): WebSocketBuilder2[F] =
     impl(
@@ -280,7 +306,7 @@ object WebSocketBuilder2 {
       autoPing = None,
     )
 
-  private def impl[F[_]: Applicative](
+  private def impl[F[_]: Temporal](
       headers: Headers,
       onNonWebSocketRequest: F[Response[F]],
       onHandshakeFailure: F[Response[F]],

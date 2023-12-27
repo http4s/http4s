@@ -18,6 +18,7 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
+import cats.effect.kernel.Temporal
 import cats.syntax.all._
 import fs2.Pipe
 import fs2.Stream
@@ -35,7 +36,7 @@ import org.http4s.websocket.WebSocketFrame
   "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
   "0.23.5",
 )
-final case class WebSocketBuilder[F[_]: Applicative](
+final case class WebSocketBuilder[F[_]: Temporal](
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]],
@@ -112,7 +113,7 @@ object WebSocketBuilder {
     "Relies on an unsafe cast; instead obtain a WebSocketBuilder2 via .withHttpWebSocketApp on your server builder",
     "0.23.5",
   )
-  def apply[F[_]: Applicative]: WebSocketBuilder[F] =
+  def apply[F[_]: Temporal]: WebSocketBuilder[F] =
     new WebSocketBuilder[F](
       headers = Headers.empty,
       onNonWebSocketRequest =

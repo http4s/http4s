@@ -25,6 +25,7 @@ import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Resource
 import cats.effect.implicits._
+import cats.effect.kernel.Temporal
 import cats.effect.std.Queue
 import cats.implicits._
 import fs2.Stream
@@ -40,7 +41,7 @@ import org.http4s.websocket.WebSocketSeparatePipe
 
 object WSTestClient {
 
-  def fromHttpWebSocketApp[F[_]: Concurrent](
+  def fromHttpWebSocketApp[F[_]: Temporal](
       f: WebSocketBuilder2[F] => HttpApp[F]
   ): F[WSClient[F]] =
     fromHttpWebSocketApp(respondToPings = true)(f)
@@ -52,7 +53,7 @@ object WSTestClient {
     * @param respondToPings if true, the client will respond to ping frames with a pong frame.
     * @param f a function that takes a [[org.http4s.server.websocket.WebSocketBuilder2]] and returns an [[HttpApp]].
     */
-  def fromHttpWebSocketApp[F[_]: Concurrent](
+  def fromHttpWebSocketApp[F[_]: Temporal](
       respondToPings: Boolean
   )(f: WebSocketBuilder2[F] => HttpApp[F]): F[WSClient[F]] = {
 
@@ -125,9 +126,9 @@ object WSTestClient {
         .eval(app.run(Request[F](method = req.method, uri = req.uri, headers = req.headers)))
         .flatMap { response =>
           response.attributes.lookup(wsb.webSocketKey) match {
-            case Some(c @ WebSocketContext(webSocket: WebSocketSeparatePipe[F], _, _, _)) =>
+            case Some(c @ WebSocketContext(webSocket: WebSocketSeparatePipe[F], _, _)) =>
               processSeparatedSocket(webSocket, c.subprotocol)
-            case Some(c @ WebSocketContext(webSocket: WebSocketCombinedPipe[F], _, _, _)) =>
+            case Some(c @ WebSocketContext(webSocket: WebSocketCombinedPipe[F], _, _)) =>
               processCombinedSocket(webSocket, c.subprotocol)
             case _ =>
               Resource.raiseError[F, WSConnection[F], Throwable](new WebSocketClientInitException())
