@@ -815,7 +815,7 @@ object MultipartParser {
       .eval(parseHeaders(headerStream))
       .flatMap(headers => Pull.output1(PartStart(headers): Event))
       .productR(pullPartChunks(delimiterBytes, rest))
-      .flatMap { rest =>
+      .flatMap { case rest =>
         // We hit a boundary, but the rest of the stream is empty
         // and thus it's not a properly capped multipart body
         if (rest == streamEmpty)
