@@ -209,7 +209,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Temporal] private (
         buildResponse(
           WebSocketCombinedPipe(
             (input: Stream[F, WebSocketFrame]) =>
-              Stream(sendReceive(input), pings).parJoinUnbounded,
+              Stream(finalSendReceive(input), pings).parJoinUnbounded,
             onClose,
           )(
             Some(AutoPingCombinedPipe(every, frame, finalSendReceive))
