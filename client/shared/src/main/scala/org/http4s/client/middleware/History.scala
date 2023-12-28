@@ -14,7 +14,32 @@ import org.http4s.headers.Date
   * @param maxSize: Int
   */
 
-case class HistoryEntry(httpDate: HttpDate, method: Method, uri: Uri)
+class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri: Uri) {
+
+  override def toString = s"HistoryEntry(httpDate=$httpDate, method=$method, uri=$uri)"
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[HistoryEntry]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: HistoryEntry =>
+      (that canEqual this) &&
+        httpDate == that.httpDate &&
+        method == that.method &&
+        uri == that.uri
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(httpDate, method, uri)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+
+}
+
+object HistoryEntry {
+  def apply(date: HttpDate, method: Method, uri: Uri): HistoryEntry = new HistoryEntry(date, method, uri)
+
+}
 
 final class History[F[_]: MonadCancelThrow: Clock] private (
                                     val client: Client[F],
