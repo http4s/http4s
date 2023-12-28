@@ -1,9 +1,8 @@
 package org.http4s.client.middleware
 
 import cats.Applicative
-import cats.effect.{Clock, IO, MonadCancelThrow, Ref}
+import cats.effect.{Clock, IO, Ref}
 import org.http4s.client.Client
-import org.http4s.client.middleware.History.HistoryEntry
 import org.http4s.{Http4sSuite, HttpDate, HttpRoutes, Request}
 import org.http4s.dsl.io._
 import org.http4s.headers.Date
@@ -15,9 +14,8 @@ import scala.concurrent.duration.FiniteDuration
 class HistorySuite extends Http4sSuite {
 
   private val app = HttpRoutes
-    .of[IO] {
-      case _ =>
-        Ok()
+    .of[IO] { case _ =>
+      Ok()
     }
     .orNotFound
 
@@ -35,7 +33,7 @@ class HistorySuite extends Http4sSuite {
     val expected: Vector[HistoryEntry] = Vector.empty
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-      History.apply(defaultClient, ref, 3)
+      HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build
       ref.get.assertEquals(expected)
     }
   }
@@ -44,27 +42,33 @@ class HistorySuite extends Http4sSuite {
     val expected = Vector(HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri))
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-      History.apply(defaultClient, ref, 3).run(req1).use(_ => IO.unit) >> ref.get.assertEquals(expected)
+      HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build.run(req1).use(_ => IO.unit) >> ref.get
+        .assertEquals(expected)
     }
   }
 
-    test("History middeware should return visits in order of most recent to oldest"){
-      val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri)).prepended(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
-
-      Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-        History(defaultClient, ref, 3).run(req1).use_ >>
-          History(defaultClient, ref, 3).run(req2).use_ >>
-          History(defaultClient, ref, 3).run(req3).use_ >>
-          ref.get.assertEquals(expected)
-      }
-  }
-
-  test("History middeware should return max number of visits if visits exceeds maxSize"){
-
-    val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
+  test("History middeware should return visits in order of most recent to oldest") {
+    val expected: Vector[HistoryEntry] =
+      Vector(HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri))
+        .prepended(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri))
+        .prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-      val historyClient = History(defaultClient, ref, 2)
+      HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build.run(req1).use_ >>
+        HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build.run(req2).use_ >>
+        HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build.run(req3).use_ >>
+        ref.get.assertEquals(expected)
+    }
+  }
+
+  test("History middeware should return max number of visits if visits exceeds maxSize") {
+
+    val expected: Vector[HistoryEntry] = Vector(
+      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)
+    ).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
+
+    Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
+      val historyClient = HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(2).build
 
       historyClient.run(req1).use_ >>
         historyClient.run(req2).use_ >>
@@ -73,21 +77,25 @@ class HistorySuite extends Http4sSuite {
     }
   }
 
-  test("History middeware should allow and use Clock parameter for httpDate timestamp"){
+  test("History middeware should allow and use Clock parameter for httpDate timestamp") {
 
     implicit val testClock: Clock[IO] = new Clock[IO] {
       override def applicative: Applicative[IO] = Applicative[IO] // IO.asyncForIO
 
-      override def monotonic: IO[FiniteDuration] = IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS ))
+      override def monotonic: IO[FiniteDuration] =
+        IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS))
 
-      override def realTime: IO[FiniteDuration] = IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS ))
+      override def realTime: IO[FiniteDuration] =
+        IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS))
     }
 
-    val expected: Vector[HistoryEntry] = Vector(HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
+    val expected: Vector[HistoryEntry] = Vector(
+      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)
+    ).prepended(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri))
 
     implicitly[Clock[IO]]
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
-      val historyClient = History(defaultClient, ref, 2)
+      val historyClient = HistoryBuilder.default(defaultClient, ref).withMaxSize(2).build
 
       historyClient.run(req1).use_ >>
         historyClient.run(req2).use_ >>
