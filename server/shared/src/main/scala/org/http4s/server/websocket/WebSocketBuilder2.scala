@@ -215,7 +215,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       case None => buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose)(None))
       case Some(AutoPing(every, frame, temporal)) =>
         val ping = temporal.pure(frame).delayBy(every)(temporal)
-        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping).repeat
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping)
         buildResponse(
           WebSocketCombinedPipe(
             (input: Stream[F, WebSocketFrame]) =>
@@ -267,7 +267,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       case None => buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose)(None))
       case Some(AutoPing(every, frame, temporal)) =>
         val ping = temporal.pure(frame).delayBy(every)(temporal)
-        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping).repeat
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping)
         buildResponse(
           WebSocketSeparatePipe(
             Stream(send, pings).parJoinUnbounded(temporal),
