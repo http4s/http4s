@@ -5,12 +5,15 @@ ordered chronologically, so each release contains all changes described below it
 
 # v0.23.25 (2023-01-03)
 
-Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` — `45s` -> `60s`. See the [original PR](https://github.com/http4s/http4s/pull/7329) for details.
+Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` from `45s` to `60s`. See the [PR](https://github.com/http4s/http4s/pull/7329) and [related issue](https://github.com/http4s/http4s/issues/7327) for details.
 
 ## What's Changed
 
 ### http4s-ember-core
 * Align the server and client idle timeouts in Ember by @rlavolee in https://github.com/http4s/http4s/pull/7329
+
+### http4s-client-testkit
+* Fix handling of connection closure in `WSTestClient` by @armanbilge in https://github.com/http4s/http4s/pull/7334
 
 ### Documentation
 * Add note about cats-parse to 0.23.24 changelog by @armanbilge in https://github.com/http4s/http4s/pull/7322
@@ -31,7 +34,6 @@ Primarily, this is a maintenance release, binary compatible with the 0.23.x seri
 * Update Java-WebSocket to 1.5.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7344
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7345
 * Update netty-buffer, netty-codec-http to 4.1.104.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7342
-* Fix handling of connection closure in `WSTestClient` by @armanbilge in https://github.com/http4s/http4s/pull/7334
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7349
 
 ## New Contributors
