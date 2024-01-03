@@ -3,6 +3,44 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.25 (2023-01-03)
+
+Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` from `45s` to `60s`. See the [PR](https://github.com/http4s/http4s/pull/7329) and [related issue](https://github.com/http4s/http4s/issues/7327) for details.
+
+## What's Changed
+
+### http4s-ember-core
+* Align the server and client idle timeouts in Ember by @rlavolee in https://github.com/http4s/http4s/pull/7329
+
+### http4s-client-testkit
+* Fix handling of connection closure in `WSTestClient` by @armanbilge in https://github.com/http4s/http4s/pull/7334
+
+### Documentation
+* Add note about cats-parse to 0.23.24 changelog by @armanbilge in https://github.com/http4s/http4s/pull/7322
+* Ross is not a moderator by @rossabaker in https://github.com/http4s/http4s/pull/7346
+* Push error handling docs through mdoc by @Quafadas in https://github.com/http4s/http4s/pull/7340
+
+### Behind the scenes
+* Update http4s-circe, http4s-ember-client, ... to 0.23.24 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7323
+* Update scalafmt-core to 3.7.17 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7324
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7325
+* Update logback-classic to 1.2.13 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7331
+* Update sbt-http4s-org to 0.16.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7332
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7333
+* Update sbt-jmh to 0.4.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7336
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7337
+* Update netty-buffer, netty-codec-http to 4.1.103.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7339
+* Update sbt to 1.9.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7341
+* Update Java-WebSocket to 1.5.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7344
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7345
+* Update netty-buffer, netty-codec-http to 4.1.104.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7342
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7349
+
+## New Contributors
+* @rlavolee made their first contribution in https://github.com/http4s/http4s/pull/7329
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.24...v0.23.25
+
 # v0.23.24 (2023-11-14)
 
 This release upgrades to [cats-parse v1.0.0](https://github.com/typelevel/cats-parse/releases/tag/v1.0.0) which may trigger eviction errors in your build. The cats-parse 1.x series is 100% binary-compatible with the cats-parse 0.3.x series, so it is safe to ignore the eviction errors in this case.
