@@ -5,7 +5,6 @@ changelog:
       - series/0.22
       # - series/0.23
   categories:
-
     - title: http4s-core
       labels:
         - module:core
@@ -24,7 +23,6 @@ changelog:
       exclude:
         labels:
           - behind-the-scenes
-
     - title: http4s-server
       labels:
         - module:server
@@ -57,103 +55,16 @@ changelog:
         labels:
           - behind-the-scenes
 
-    - title: http4s-blaze-core
-      labels:
-        - module:blaze-core
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-blaze-server
-      labels:
-        - module:blaze-server
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-blaze-client
-      labels:
-        - module:blaze-client
-      exclude:
-        labels:
-          - behind-the-scenes
-
-    - title: http4s-servlet
-      labels:
-        - module:servlet
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-tomcat
-      labels:
-        - module:tomcat
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-jetty-server
-      labels:
-        - module:jetty-server
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-jetty-client
-      labels:
-        - module:jetty-client
-      exclude:
-        labels:
-          - behind-the-scenes
-
-    - title: http4s-async-http-client
-      labels:
-        - module:async-http-client
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-okhttp-client
-      labels:
-        - module:okhttp-client
-      exclude:
-        labels:
-          - behind-the-scenes
-
     - title: http4s-jawn
       labels:
         - module:jawn
       exclude:
         labels:
           - behind-the-scenes
+
     - title: http4s-circe
       labels:
         - module:circe
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-play-json
-      labels:
-        - module:play-json
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-scalatags
-      labels:
-        - module:scalatags
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-twirl
-      labels:
-        - module:twirl
-      exclude:
-        labels:
-          - behind-the-scenes
-
-    - title: http4s-dropwizard-metrics
-      labels:
-        - module:dropwizard-metrics
-      exclude:
-        labels:
-          - behind-the-scenes
-    - title: http4s-prometheus-metrics
-      labels:
-        - module:prometheus-metrics
       exclude:
         labels:
           - behind-the-scenes
@@ -164,12 +75,14 @@ changelog:
       exclude:
         labels:
           - behind-the-scenes
+
     - title: Documentation
       labels:
         - docs
       exclude:
         labels:
           - behind-the-scenes
+
     - title: Behind the scenes
       labels:
         - "*"
