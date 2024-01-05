@@ -41,22 +41,16 @@ object HistoryEntry {
 
 }
 
-final class History[F[_]: MonadCancelThrow: Clock] private (
-                                    val client: Client[F],
-                                    val history: Ref[F, Vector[HistoryEntry]],
-                                    val maxSize: Int,
-                                  )
-
 final class HistoryBuilder[F[_]: MonadCancelThrow: Clock] private (
     private val client: Client[F],
     private val history: Ref[F, Vector[HistoryEntry]],
     val maxSize: Int = 1024,
 ) { self =>
 
-  private def copy(
+   private def copy(
       client: Client[F] = self.client,
       history: Ref[F, Vector[HistoryEntry]] = self.history,
-      maxSize: Int = self.maxSize,
+      maxSize: Int,
   ): HistoryBuilder[F] = new HistoryBuilder[F](client, history, maxSize)
 
   def withMaxSize(size: Int): HistoryBuilder[F] = copy(maxSize = size)
