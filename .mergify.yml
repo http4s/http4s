@@ -91,6 +91,13 @@ pull_request_rules:
     label:
       add: ['module:circe']
 
+- name: label client-testkit PRs
+  conditions:
+    - files~=^client-testkit/
+  actions:
+    label:
+      add: ['module:client-testkit']
+
 - name: label docs PRs
   conditions:
   - or:
