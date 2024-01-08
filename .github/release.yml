@@ -157,6 +157,12 @@ changelog:
       exclude:
         labels:
           - behind-the-scenes
+    - title: http4s-client-testkit
+      labels:
+        - module:client-testkit
+      exclude:
+        labels:
+          - behind-the-scenes
 
     - title: Scalafixes
       labels:
