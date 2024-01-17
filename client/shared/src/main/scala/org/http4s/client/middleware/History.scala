@@ -16,16 +16,16 @@ import org.http4s.headers.Date
 
 class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri: Uri) {
 
-  override def toString = s"HistoryEntry(httpDate=$httpDate, method=$method, uri=$uri)"
+  override def toString: String = s"HistoryEntry(httpDate=$httpDate, method=$method, uri=$uri)"
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[HistoryEntry]
 
   override def equals(other: Any): Boolean = other match {
     case that: HistoryEntry =>
-      (that canEqual this) &&
-        httpDate == that.httpDate &&
-        method == that.method &&
-        uri == that.uri
+      (that.canEqual(this)) &&
+      httpDate == that.httpDate &&
+      method == that.method &&
+      uri == that.uri
     case _ => false
   }
 
@@ -37,7 +37,8 @@ class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri:
 }
 
 object HistoryEntry {
-  def apply(date: HttpDate, method: Method, uri: Uri): HistoryEntry = new HistoryEntry(date, method, uri)
+  def apply(date: HttpDate, method: Method, uri: Uri): HistoryEntry =
+    new HistoryEntry(date, method, uri)
 
 }
 
@@ -47,7 +48,7 @@ final class HistoryBuilder[F[_]: MonadCancelThrow: Clock] private (
     val maxSize: Int = 1024,
 ) { self =>
 
-   private def copy(
+  private def copy(
       client: Client[F] = self.client,
       history: Ref[F, Vector[HistoryEntry]] = self.history,
       maxSize: Int,
@@ -73,9 +74,6 @@ object HistoryBuilder {
 
   def default[F[_]: MonadCancelThrow: Clock](
       client: Client[F],
-      history: Ref[F, Vector[HistoryEntry]]
-  ): HistoryBuilder[F] = new HistoryBuilder[F](
-    client,
-    history)
+      history: Ref[F, Vector[HistoryEntry]],
+  ): HistoryBuilder[F] = new HistoryBuilder[F](client, history)
 }
-
