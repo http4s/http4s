@@ -194,6 +194,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         val handler: Stream[F, Nothing] = shutdown.trackConnection >>
           Stream
             .resource(upgradeSocket(connect, tlsInfoOpt, logger, enableHttp2))
+            .onError(err => Stream.eval(logger.warn(err)("Failed to upgrade socket to TLS")))
+            .mask
             .flatMap {
               case (socket, Some("h2")) =>
                 // ALPN H2 Strategy
