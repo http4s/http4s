@@ -60,10 +60,11 @@ class HistorySuite extends Http4sSuite {
 
   test("History middeware should return visits in order of most recent to oldest") {
     val expected: Vector[HistoryEntry] =
-      Vector(HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri),
+      Vector(
+        HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri),
         HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri),
-        HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri)
-    )
+        HistoryEntry(req1.headers.get[Date].get.date, req1.method, req1.uri),
+      )
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
       HistoryBuilder.default[IO](defaultClient, ref).withMaxSize(3).build.run(req1).use_ >>
@@ -77,7 +78,7 @@ class HistorySuite extends Http4sSuite {
 
     val expected: Vector[HistoryEntry] = Vector(
       HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri),
-      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)
+      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri),
     )
 
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
@@ -104,7 +105,7 @@ class HistorySuite extends Http4sSuite {
 
     val expected: Vector[HistoryEntry] = Vector(
       HistoryEntry(req3.headers.get[Date].get.date, req3.method, req3.uri),
-      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri)
+      HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri),
     )
 
     implicitly[Clock[IO]]
