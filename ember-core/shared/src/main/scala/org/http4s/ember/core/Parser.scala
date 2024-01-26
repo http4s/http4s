@@ -373,6 +373,12 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F],
+    ): F[(Response[F], Drain[F])] = parser2[F](maxHeaderSize)(buffer, read, discardBody = false)
+
+    def parser2[F[_]: Concurrent](maxHeaderSize: Int)(
+        buffer: Array[Byte],
+        read: Read[F],
+        discardBody: Boolean,
     ): F[(Response[F], Drain[F])] = {
       // per https://httpwg.org/specs/rfc7230.html#rfc.section.3.3.3
       def expectNoBody(status: Status): Boolean =
@@ -406,7 +412,9 @@ private[ember] object Parser {
         )
 
         resp <-
-          if (headerP.chunked) {
+          if (discardBody || expectNoBody(prelude.status)) {
+            (baseResp -> finalBuffer.some.pure[F]).pure[F]
+          } else if (headerP.chunked) {
             Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
               case (rest, trailers) =>
                 baseResp
@@ -417,8 +425,6 @@ private[ember] object Parser {
                   ) ->
                   rest.get
             }
-          } else if (expectNoBody(prelude.status)) {
-            (baseResp -> (Some(finalBuffer): Option[Array[Byte]]).pure[F]).pure[F]
           } else {
             headerP.contentLength
               .fold(Body.parseUnknownBody(finalBuffer, read))(

@@ -167,9 +167,10 @@ private[client] object ClientHelpers {
           // bytes from the pre-emptive read in this connection, which probably has not completed yet, hence the timout
           connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
         ).flatMapN { (head, firstRead) =>
-          Parser.Response.parser(maxResponseHeaderSize)(
+          Parser.Response.parser2(maxResponseHeaderSize)(
             firstRead.foldLeft(head)(Util.concatBytes(_, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
+            req.method == Method.HEAD,
           )
         }
 

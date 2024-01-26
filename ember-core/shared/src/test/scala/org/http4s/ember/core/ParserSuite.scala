@@ -254,7 +254,7 @@ class ParsingSuite extends Http4sSuite {
     } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
   }
 
-  test("Parser.Response.parser should handle a chunked response") {
+  test(" should handle a chunked response") {
     val defaultMaxHeaderLength = 4096
     val base =
       "SFRUUC8xLjEgMjAwIE9LDQpBcGktVmVyc2lvbjogMS40MA0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uDQpEb2NrZXItRXhwZXJpbWVudGFsOiBmYWxzZQ0KT3N0eXBlOiBsaW51eA0KU2VydmVyOiBEb2NrZXIvMTkuMDMuMTEtY2UgKGxpbnV4KQ0KRGF0ZTogRnJpLCAyNiBKdW4gMjAyMCAyMjozNTo0MiBHTVQNClRyYW5zZmVyLUVuY29kaW5nOiBjaHVua2VkDQoNCjhjMw0KeyJJRCI6IllNS0U6MkZZMzpTUUc3OjZSSFo6TFlTVDpRUk9JOkU1NEU6UTdXRjpERElLOlNOSUE6Rk5UTzpJVllSIiwiQ29udGFpbmVycyI6MjUsIkNvbnRhaW5lcnNSdW5uaW5nIjowLCJDb250YWluZXJzUGF1c2VkIjowLCJDb250YWluZXJzU3RvcHBlZCI6MjUsIkltYWdlcyI6ODMsIkRyaXZlciI6Im92ZXJsYXkyIiwiRHJpdmVyU3RhdHVzIjpbWyJCYWNraW5nIEZpbGVzeXN0ZW0iLCJleHRmcyJdLFsiU3VwcG9ydHMgZF90eXBlIiwidHJ1ZSJdLFsiTmF0aXZlIE92ZXJsYXkgRGlmZiIsImZhbHNlIl1dLCJTeXN0ZW1TdGF0dXMiOm51bGwsIlBsdWdpbnMiOnsiVm9sdW1lIjpbImxvY2FsIl0sIk5ldHdvcmsiOlsiYnJpZGdlIiwiaG9zdCIsImlwdmxhbiIsIm1hY3ZsYW4iLCJudWxsIiwib3ZlcmxheSJdLCJBdXRob3JpemF0aW9uIjpudWxsLCJMb2ciOlsiYXdzbG9ncyIsImZsdWVudGQiLCJnY3Bsb2dzIiwiZ2VsZiIsImpvdXJuYWxkIiwianNvbi1maWxlIiwibG9jYWwiLCJsb2dlbnRyaWVzIiwic3BsdW5rIiwic3lzbG9nIl19LCJNZW1vcnlMaW1pdCI6dHJ1ZSwiU3dhcExpbWl0Ijp0cnVlLCJLZXJuZWxNZW1vcnkiOnRydWUsIktlcm5lbE1lbW9yeVRDUCI6dHJ1ZSwiQ3B1Q2ZzUGVyaW9kIjp0cnVlLCJDcHVDZnNRdW90YSI6dHJ1ZSwiQ1BVU2hhcmVzIjp0cnVlLCJDUFVTZXQiOnRydWUsIlBpZHNMaW1pdCI6dHJ1ZSwiSVB2NEZvcndhcmRpbmciOnRydWUsIkJyaWRnZU5mSXB0YWJsZXMiOnRydWUsIkJyaWRnZU5mSXA2dGFibGVzIjp0cnVlLCJEZWJ1ZyI6ZmFsc2UsIk5GZCI6MjQsIk9vbUtpbGxEaXNhYmxlIjp0cnVlLCJOR29yb3V0aW5lcyI6NDAsIlN5c3RlbVRpbWUiOiIyMDIwLTA2LTI2VDE1OjM1OjQyLjU1MjUzMzQzMS0wNzowMCIsIkxvZ2dpbmdEcml2ZXIiOiJqc29uLWZpbGUiLCJDZ3JvdXBEcml2ZXIiOiJjZ3JvdXBmcyIsIk5FdmVudHNMaXN0ZW5lciI6MCwiS2VybmVsVmVyc2lvbiI6IjUuNy42LWFyY2gxLTEiLCJPcGVyYXRpbmdTeXN0ZW0iOiJBcmNoIExpbnV4IiwiT1NUeXBlIjoibGludXgiLCJBcmNoaXRlY3R1cmUiOiJ4ODZfNjQiLCJJbmRleFNlcnZlckFkZHJlc3MiOiJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iLCJSZWdpc3RyeUNvbmZpZyI6eyJBbGxvd05vbmRpc3RyaWJ1dGFibGVBcnRpZmFjdHNDSURScyI6W10sIkFsbG93Tm9uZGlzdHJpYnV0YWJsZUFydGlmYWN0c0hvc3RuYW1lcyI6W10sIkluc2VjdXJlUmVnaXN0cnlDSURScyI6WyIxMjcuMC4wLjAvOCJdLCJJbmRleENvbmZpZ3MiOnsiZG9ja2VyLmlvIjp7Ik5hbWUiOiJkb2NrZXIuaW8iLCJNaXJyb3JzIjpbXSwiU2VjdXJlIjp0cnVlLCJPZmZpY2lhbCI6dHJ1ZX19LCJNaXJyb3JzIjpbXX0sIk5DUFUiOjQsIk1lbVRvdGFsIjo4MjIwOTgzMjk2LCJHZW5lcmljUmVzb3VyY2VzIjpudWxsLCJEb2NrZXJSb290RGlyIjoiL3Zhci9saWIvZG9ja2VyIiwiSHR0cFByb3h5IjoiIiwiSHR0cHNQcm94eSI6IiIsIk5vUHJveHkiOiIiLCJOYW1lIjoiZGF2ZW5wb3J0LWxhcHRvcCIsIkxhYmVscyI6W10sIkV4cGVyaW1lbnRhbEJ1aWxkIjpmYWxzZSwiU2VydmVyVmVyc2lvbiI6IjE5LjAzLjExLWNlIiwiQ2x1c3RlclN0b3JlIjoiIiwiQ2x1c3RlckFkdmVydGlzZSI6IiIsIlJ1bnRpbWVzIjp7InJ1bmMiOnsicGF0aCI6InJ1bmMifX0sIkRlZmF1bHRSdW50aW1lIjoicnVuYyIsIlN3YXJtIjp7Ik5vZGVJRCI6IiIsIk5vZGVBZGRyIjoiIiwiTG9jYWxOb2RlU3RhdGUiOiJpbmFjdGl2ZSIsIkNvbnRyb2xBdmFpbGFibGUiOmZhbHNlLCJFcnJvciI6IiIsIlJlbW90ZU1hbmFnZXJzIjpudWxsfSwiTGl2ZVJlc3RvcmVFbmFibGVkIjpmYWxzZSwiSXNvbGF0aW9uIjoiIiwiSW5pdEJpbmFyeSI6ImRvY2tlci1pbml0IiwiQ29udGFpbmVyZENvbW1pdCI6eyJJRCI6ImQ3NmMxMjFmNzZhNWZjOGE0NjJkYzY0NTk0YWVhNzJmZTE4ZTExNzgubSIsIkV4cGVjdGVkIjoiZDc2YzEyMWY3NmE1ZmM4YTQ2MmRjNjQ1OTRhZWE3MmZlMThlMTE3OC5tIn0sIlJ1bmNDb21taXQiOnsiSUQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIiwiRXhwZWN0ZWQiOiJkYzkyMDhhMzMwM2ZlZWY1YjM4MzlmNDMyM2Q5YmViMzZkZjBhOWRkIn0sIkluaXRDb21taXQiOnsiSUQiOiJmZWMzNjgzIiwiRXhwZWN0ZWQiOiJmZWMzNjgzIn0sIlNlY3VyaXR5T3B0aW9ucyI6WyJuYW1lPXNlY2NvbXAscHJvZmlsZT1kZWZhdWx0Il0sIldhcm5pbmdzIjpudWxsfQoNCjANCg0K"
@@ -268,7 +268,7 @@ class ParsingSuite extends Http4sSuite {
     } yield body.size > 0).assert
   }
 
-  test("Parser.Response.parser should parse a chunked simple") {
+  test(" should parse a chunked simple") {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
@@ -299,7 +299,7 @@ class ParsingSuite extends Http4sSuite {
     } yield body == "MozillaDeveloperNetwork").assert
   }
 
-  test("Parser.Response.parser should parse a chunked with trailer headers") {
+  test(" should parse a chunked with trailer headers") {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
@@ -361,6 +361,38 @@ class ParsingSuite extends Http4sSuite {
     } yield {
       assertEquals(body, "hello")
       assertEquals(rest, "everything after the body")
+    }
+  }
+
+  test(
+    "Parser.Response.parser return everything if the body is discarded"
+  ) {
+    val defaultMaxHeaderLength = 4096
+    val raw =
+      """HTTP/1.1 200 OK
+        |Content-Length: 5
+        |
+        |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .map(Helpers.httpifyString)
+      .through(text.utf8.encode)
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser2[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take, true)
+      body <- result._1.body.through(text.utf8.decode).compile.string
+      rest <- Stream
+        .eval(result._2)
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
+        .through(text.utf8.decode)
+        .compile
+        .string
+    } yield {
+      assertEquals(body, "")
+      assertEquals(rest, "helloeverything after the body")
     }
   }
 
