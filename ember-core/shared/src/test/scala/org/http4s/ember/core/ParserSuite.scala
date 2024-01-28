@@ -382,7 +382,7 @@ class ParsingSuite extends Http4sSuite {
     for {
       take <- Helpers.taking[IO, Byte](byteStream)
       result <- Parser.Response
-        .parser2[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take, true)
+        .parser[IO](defaultMaxHeaderLength, discardBody = true)(Array.emptyByteArray, take)
       body <- result._1.body.through(text.utf8.decode).compile.string
       rest <- Stream
         .eval(result._2)

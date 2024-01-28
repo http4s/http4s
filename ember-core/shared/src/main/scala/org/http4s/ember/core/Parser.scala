@@ -373,12 +373,11 @@ private[ember] object Parser {
     def parser[F[_]: Concurrent](maxHeaderSize: Int)(
         buffer: Array[Byte],
         read: Read[F],
-    ): F[(Response[F], Drain[F])] = parser2[F](maxHeaderSize)(buffer, read, discardBody = false)
+    ): F[(Response[F], Drain[F])] = parser[F](maxHeaderSize, discardBody = false)(buffer, read)
 
-    def parser2[F[_]: Concurrent](maxHeaderSize: Int)(
+    def parser[F[_]: Concurrent](maxHeaderSize: Int, discardBody: Boolean)(
         buffer: Array[Byte],
         read: Read[F],
-        discardBody: Boolean,
     ): F[(Response[F], Drain[F])] = {
       // per https://httpwg.org/specs/rfc7230.html#rfc.section.3.3.3
       def expectNoBody(status: Status): Boolean =
