@@ -72,7 +72,7 @@ final class HistoryBuilder[F[_]: MonadCancelThrow: Clock] private (
 
   def withMaxSize(size: Int): HistoryBuilder[F] = copy(maxSize = size)
 
-  def build: Client[F] = Client[F] { req: Request[F] =>
+  def build: Client[F] = Client[F] { (req: Request[F]) =>
     Resource.eval(req.headers.get[Date].fold(HttpDate.current[F])(d => d.date.pure[F])).flatMap {
       date =>
         val method = req.method
