@@ -386,13 +386,14 @@ class ParsingSuite extends Http4sSuite {
       body <- result._1.body.through(text.utf8.decode).compile.string
       rest <- Stream
         .eval(result._2)
-        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk.get))))
+        .unNone
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk))))
         .through(text.utf8.decode)
         .compile
         .string
     } yield {
       assertEquals(body, "")
-      assertEquals(rest, "helloeverything after the body")
+      assertEquals(rest, "")
     }
   }
 

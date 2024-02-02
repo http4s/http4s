@@ -411,7 +411,9 @@ private[ember] object Parser {
         )
 
         resp <-
-          if (discardBody || expectNoBody(prelude.status)) {
+          if (discardBody) {
+            (baseResp -> none[Array[Byte]].pure[F]).pure[F]
+          } else if (expectNoBody(prelude.status)) {
             (baseResp -> finalBuffer.some.pure[F]).pure[F]
           } else if (headerP.chunked) {
             Ref.of[F, Option[Array[Byte]]](None).product(Deferred[F, Headers]).map {
