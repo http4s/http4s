@@ -27,7 +27,7 @@ import org.http4s.Request
 import org.http4s.client.Client
 import org.http4s.dsl.io._
 import org.http4s.headers.Date
-import org.http4s.implicits.http4sLiteralsSyntax
+import org.http4s.syntax.all.http4sLiteralsSyntax
 
 import java.time.Duration
 import java.time.Instant
