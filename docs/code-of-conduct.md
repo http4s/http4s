@@ -36,7 +36,6 @@ These are the policies for upholding our community’s standards of conduct. If
 you feel that a thread needs moderation, please contact anyone on the
 moderation team:
 
-- [Ross A. Baker](mailto:ross@rossabaker.com)
 - [Christopher Davenport](mailto:chris@christopherdavenport.tech)
 
 - Remarks that violate the above code of conduct, including hateful, hurtful, oppressive, or exclusionary remarks, are not allowed. (Cursing is allowed, but never targeting another user, and never in a hateful manner.)

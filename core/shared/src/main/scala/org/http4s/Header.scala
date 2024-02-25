@@ -153,12 +153,12 @@ object Header {
 
     implicit def rawToRaw(h: Header.Raw): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
-        val values = List(h)
+        val values = h :: Nil
       }
 
     implicit def keyValuesToRaw(kv: (String, String)): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
-        val values = List(Header.Raw(CIString(kv._1), kv._2))
+        val values = Header.Raw(CIString(kv._1), kv._2) :: Nil
       }
 
     implicit def headersToRaw(h: Headers): Header.ToRaw =
@@ -170,20 +170,28 @@ object Header {
         h: H
     )(implicit H: Header[H, _]): Header.ToRaw with Primitive =
       new Header.ToRaw with Primitive {
-        val values = List(Header.Raw(H.name, H.value(h)))
+        val values = Header.Raw(H.name, H.value(h)) :: Nil
       }
 
     implicit def foldablesToRaw[F[_]: Foldable, H](
         h: F[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values = h
+        .foldLeft(List.newBuilder[Header.Raw]) { (buf, v) =>
+          buf ++= convert(v).values
+        }
+        .result()
     }
 
     // Required for 2.12 to convert variadic args.
     implicit def scalaCollectionSeqToRaw[H](
         h: collection.Seq[H]
     )(implicit convert: H => ToRaw with Primitive): Header.ToRaw = new Header.ToRaw {
-      val values: List[Raw] = h.toList.foldMap(v => convert(v).values)
+      val values = {
+        val buf = List.newBuilder[Header.Raw]
+        h.foreach(buf ++= convert(_).values)
+        buf.result()
+      }
     }
   }
 

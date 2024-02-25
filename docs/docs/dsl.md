@@ -585,6 +585,28 @@ val routes = HttpRoutes.of[IO] {
 }
 ```
 
+#### Optional Multiple Query Paramters
+To accept multiple query parameters that are also optional, a `OptionalMultiQueryParamDecoderMatcher` can be used.
+
+```scala mdoc:nest
+object OptionalMultiColorQueryParam
+      extends OptionalMultiQueryParamDecoderMatcher[String]("maybeColors")
+
+def getProductsOfMaybeColors(maybeColors: List[String]): IO[String] = ???
+
+val routes = HttpRoutes.of[IO] {
+  case GET -> Root / "products" :? OptionalMultiColorQueryParam(maybeColors) =>
+
+    val _: cats.data.ValidatedNel[org.http4s.ParseFailure, List[String]] = maybeColors
+
+    maybeColors match {
+      case cats.data.Validated.Invalid(e) =>
+        BadRequest(s"Parse Error(s): ${e.toList.map(_.message).mkString(", ")}")
+      case cats.data.Validated.Valid(a) => Ok(getProductsOfMaybeColors(a))
+    }
+}
+```
+
 #### Missing Required Query Parameters
 
 A request with a missing required query parameter will fall through to the following `case` statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.
