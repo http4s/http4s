@@ -60,7 +60,6 @@ ThisBuild / jsEnv := {
 }
 
 lazy val modules: List[CompositeProject] = List(
-  kernel,
   core,
   laws,
   tests,
@@ -93,15 +92,6 @@ lazy val root = tlCrossRootProject
     startYear := Some(2013),
   )
   .aggregate(modules: _*)
-
-lazy val kernel = libraryCrossProject("kernel")
-  .settings(
-    startYear := Some(2024),
-    libraryDependencies := Seq(
-      catsCore.value,
-      catsEffectStd.value,
-    ),
-  )
 
 lazy val core = libraryCrossProject("core")
   .enablePlugins(BuildInfoPlugin)
@@ -144,7 +134,6 @@ lazy val core = libraryCrossProject("core")
       scalaJavaTime.value,
     )
   )
-  .dependsOn(kernel)
 
 lazy val laws = libraryCrossProject("laws", CrossType.Pure)
   .settings(
