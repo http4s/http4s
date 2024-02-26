@@ -100,7 +100,7 @@ lazy val kernel = libraryCrossProject("kernel")
     libraryDependencies := Seq(
       catsCore.value,
       catsEffectStd.value,
-    )
+    ),
   )
 
 lazy val core = libraryCrossProject("core")
