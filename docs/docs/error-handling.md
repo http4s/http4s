@@ -24,6 +24,7 @@ When you start from a "clean slate" with http4s, one of the things you're likely
 ```scala mdoc:silent
 import cats.effect._
 import cats.syntax.all._
+import cats.effect.unsafe.IORuntime
 import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
@@ -31,7 +32,11 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
 import cats.data.OptionT
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
+implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
 ```
 
 ```scala mdoc:silent

@@ -18,8 +18,12 @@ import org.http4s.client.Client
 import cats.effect.unsafe.IORuntime
 import scala.concurrent.duration._
 import cats.effect.std.{Console, Random}
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 implicit val runtime: IORuntime = cats.effect.unsafe.IORuntime.global
+implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+
 val allRhinoFacts = List(
   "Rhinoceros horns are made from keratin, just like human fingernails.",
   "The rhino is the second largest land animal, after the elephant.",
