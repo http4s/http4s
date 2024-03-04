@@ -25,7 +25,7 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = Http4sOrgPlugin
 
   val scala_213 = "2.13.12"
-  val scala_3 = "3.3.1"
+  val scala_3 = "3.3.3"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
