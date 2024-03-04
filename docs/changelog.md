@@ -3,7 +3,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.23.25 (2023-01-03)
+# v0.23.25 (2024-01-03)
 
 Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` from `45s` to `60s`. See the [PR](https://github.com/http4s/http4s/pull/7329) and [related issue](https://github.com/http4s/http4s/issues/7327) for details.
 
