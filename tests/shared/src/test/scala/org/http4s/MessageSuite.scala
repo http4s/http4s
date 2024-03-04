@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.Chain
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
@@ -27,6 +28,9 @@ import org.http4s.headers.Authorization
 import org.http4s.headers.Cookie
 import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
+import org.http4s.multipart.Boundary
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -332,6 +336,150 @@ class MessageSuite extends Http4sSuite {
       request
         .withHeaders("k6" -> "'v6'", "'k7'" -> "v7")
         .asCurl(),
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should build cURL representation with body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello world'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello world")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape single quotes in body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello y'\''all'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello y'all")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape single quotes in body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello y'\''all'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello y'all")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape form data") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 64' \
+        |  --header 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
+        |  --data 'foo=simple&bar=one&bar=two&baz&qux=complex+%26+quoted+%3D+fun%21'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity(
+          UrlForm(
+            Map(
+              "foo" -> Chain.one("simple"),
+              "bar" -> Chain("one", "two"),
+              "baz" -> Chain.nil,
+              "qux" -> Chain.one("complex & quoted = fun!"),
+            )
+          )
+        )
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should not mangle multi-part data") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Type: multipart/form-data; boundary="1234567890"' \
+        |  --data $'--1234567890\r
+        |Content-Disposition: form-data; name="foo"\r
+        |Content-Type: text/plain\r
+        |\r
+        |simple\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="bar"\r
+        |\r
+        |one\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="bar"\r
+        |\r
+        |two\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="baz"\r
+        |\r
+        |\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="qux"\r
+        |\r
+        |complex & quoted = fun!\r
+        |--1234567890--\r
+        |'""".stripMargin
+
+    val multipart = Multipart[IO](
+      Vector(
+        Part.formData("foo", "simple", `Content-Type`(MediaType.text.`plain`)),
+        Part.formData("bar", "one"),
+        Part.formData("bar", "two"),
+        Part.formData("baz", ""),
+        Part.formData("qux", "complex & quoted = fun!"),
+      ),
+      Boundary("1234567890"),
+    )
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity(multipart)
+        .putHeaders(
+          `Content-Type`(
+            MediaType.multipartType(
+              MediaType.multipart.`form-data`.subType,
+              multipart.boundary.value.some,
+            )
+          )
+        )
+        .asCurlWithBody()
+        ._1F,
       expected,
     )
   }

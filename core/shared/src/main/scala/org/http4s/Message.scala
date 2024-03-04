@@ -621,6 +621,25 @@ object Request {
     val UnixSocketAddress: Key[UnixSocketAddress] =
       Key.newKey[SyncIO, UnixSocketAddress].unsafeRunSync()
   }
+
+  implicit class RequestOps[F[_]](request: Request[F]) {
+
+    /** cURL representation of the request and a new request
+      *
+      * Supported cURL-Parameters are: --request, --url, --header --data.
+      * Note that `asCurlWith` will print the request body, which may have privacy implications.
+      *
+      * This method will consume the body create a new request with the cached body to avoid issues
+      * this may cause, which may consume large amounts of memory to cache a request that streams a
+      * large amount of data.
+      */
+    def asCurlWithBody(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
+        implicit
+        concurrent: Concurrent[F],
+        defaultCharset: Charset = Charset.`UTF-8`,
+    ): F[(String, Request[F])] =
+      CurlConverter.requestToCurlWithBody(request, redactHeadersWhen)
+  }
 }
 
 /** Representation of the HTTP response to send back to the client

@@ -341,7 +341,7 @@ object EmberServerBuilder {
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds
-    val idleTimeout: Duration = server.defaults.IdleTimeout
+    val idleTimeout: Duration = org.http4s.ember.core.Defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
     val additionalSocketOptions: List[SocketOption] = Nil
   }

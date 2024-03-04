@@ -22,6 +22,7 @@ import cats.Applicative
 import cats.Foldable
 import cats.MonadThrow
 import cats.effect.Concurrent
+import cats.effect.Ref
 import cats.effect.Resource
 import cats.effect.implicits._
 import cats.effect.std.Queue
@@ -60,8 +61,14 @@ object WSTestClient {
         subProtocol: Option[String],
     ): Resource[F, WSConnection[F]] =
       for {
-        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
-        _ <- socket.send.evalTap(clientReceiveQueue.offer).compile.drain.background
+        receivingClosed <- Concurrent[F].ref(false).toResource
+        clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](1).toResource
+        _ <- socket.send
+          .enqueueNoneTerminated(clientReceiveQueue)
+          .onFinalize(receivingClosed.set(true))
+          .compile
+          .drain
+          .background
 
         clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
         consumer = Stream
@@ -74,31 +81,26 @@ object WSTestClient {
 
         _ <- Resource.onFinalize(socket.onClose)
 
-      } yield new WSConnection[F] {
-        def send(wsf: WSFrame): F[Unit] =
-          wsf.toWebSocketFrame.flatMap(f => clientSendQueue.offer(f.some))
-
-        def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
-          wsfs.traverse_(send)
-
-        def receive: F[Option[WSFrame]] =
-          clientReceiveQueue.take.map(_.toWSFrame.some)
-
-        def subprotocol: Option[String] = subProtocol
-      }
+      } yield new WSConnectionImpl[F](
+        clientSendQueue,
+        clientReceiveQueue,
+        receivingClosed,
+        subProtocol,
+      )
 
     def processCombinedSocket(
         socket: WebSocketCombinedPipe[F],
         subProtocol: Option[String],
     ): Resource[F, WSConnection[F]] =
       for {
-
+        receivingClosed <- Concurrent[F].ref(false).toResource
         clientSendQueue <- Queue.synchronous[F, Option[WebSocketFrame]].toResource
-        clientReceiveQueue <- Queue.synchronous[F, WebSocketFrame].toResource
+        clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](1).toResource
         receiveSend = Stream
           .fromQueueNoneTerminated[F, WebSocketFrame](clientSendQueue)
           .through(socket.receiveSend)
-          .evalTap(clientReceiveQueue.offer)
+          .enqueueNoneTerminated(clientReceiveQueue)
+          .onFinalize(receivingClosed.set(true))
           .compile
           .drain
 
@@ -108,18 +110,12 @@ object WSTestClient {
 
         _ <- Resource.onFinalize(socket.onClose)
 
-      } yield new WSConnection[F] {
-        def send(wsf: WSFrame): F[Unit] =
-          wsf.toWebSocketFrame.flatMap(f => clientSendQueue.offer(f.some))
-
-        def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
-          wsfs.traverse_(send)
-
-        def receive: F[Option[WSFrame]] =
-          clientReceiveQueue.take.map(_.toWSFrame.some)
-
-        def subprotocol: Option[String] = subProtocol
-      }
+      } yield new WSConnectionImpl[F](
+        clientSendQueue,
+        clientReceiveQueue,
+        receivingClosed,
+        subProtocol,
+      )
 
     for {
       wsb <- WebSocketBuilder[F]
@@ -140,6 +136,26 @@ object WSTestClient {
         }
 
     }
+  }
+
+  private final class WSConnectionImpl[F[_]: Concurrent](
+      clientSendQueue: Queue[F, Option[WebSocketFrame]],
+      clientReceiveQueue: Queue[F, Option[WebSocketFrame]],
+      receivingClosed: Ref[F, Boolean],
+      val subprotocol: Option[String],
+  ) extends WSConnection[F] {
+    def send(wsf: WSFrame): F[Unit] =
+      wsf.toWebSocketFrame.flatMap(f => clientSendQueue.offer(f.some))
+
+    def sendMany[G[_]: Foldable, A <: WSFrame](wsfs: G[A]): F[Unit] =
+      wsfs.traverse_(send)
+
+    def receive: F[Option[WSFrame]] =
+      receivingClosed.get.ifM(
+        clientReceiveQueue.tryTake.map(_.flatten.map(_.toWSFrame)),
+        clientReceiveQueue.take.map(_.map(_.toWSFrame)),
+      )
+
   }
 
   implicit private[http4s] class WsFrameOps[F[_]: Concurrent](val wsFrame: WSFrame) {
