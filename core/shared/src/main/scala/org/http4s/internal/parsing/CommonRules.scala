@@ -89,10 +89,6 @@ private[parsing] trait CommonRules {
 
   final val CommentDefaultMaxDepth = 10
 
-  @deprecated("Use comment(Int) instead", "0.23.17")
-  private[http4s] lazy val comment: Parser[String] =
-    comment(CommentDefaultMaxDepth)
-
   def headerRep[A](element: Parser[A]): Parser0[List[A]] =
     headerRep1(element).?.map(_.fold(List.empty[A])(_.toList))
 
