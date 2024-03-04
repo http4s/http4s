@@ -7,17 +7,13 @@ ordered chronologically, so each release contains all changes described below it
 
 ## What's Changed
 
-### http4s-core
-
-### http4s-client
-* Fix the outdated code snippet in the client dsl scaladoc by @danicheg in https://github.com/http4s/http4s/pull/7381
-
 ### http4s-ember-server
 * Log errors in `upgradeSocket` by @froth in https://github.com/http4s/http4s/pull/7363
 * Ember: return HTTP 431 when maxHeaderSize is exceeded by @rossabaker in https://github.com/http4s/http4s/pull/7399
 
 ### Documentation
 * Add OptionalMultiQueryParamDecoderMatcher Documentation by @kejifasuyi in https://github.com/http4s/http4s/pull/7357
+* Fix the outdated code snippet in the client dsl scaladoc by @danicheg in https://github.com/http4s/http4s/pull/7381
 
 ### Upgrades
 * Update keypool to 0.4.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7364
