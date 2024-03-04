@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Typelevel Laika + Helium Theme" />
+  <title>Client Middleware</title>
+  
+  <meta name="author" content="http4s contributors"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Bjørn Madsen"/>
+  
+  <meta name="author" content="André Rouel"/>
+  
+  <meta name="author" content="Brad Fritz"/>
+  
+  <meta name="author" content="Bryce L. Anderson"/>
+  
+  <meta name="author" content="Ivan Porto Carrero"/>
+  
+  <meta name="author" content="Carlos Encarnacion"/>
+  
+  <meta name="author" content="Christopher Davenport"/>
+  
+  <meta name="author" content="Carlos Quiroz"/>
+  
+  <meta name="author" content="Heikki Vesalainen"/>
+  
+  <meta name="author" content="Paulo Siqueira"/>
+  
+  <meta name="author" content="Jean-Rémi Desjardins"/>
+  
+  <meta name="author" content="Jose Cardona"/>
+  
+  <meta name="author" content="Julien Truffaut"/>
+  
+  <meta name="author" content="Rodolfo Hansen"/>
+  
+  <meta name="author" content="Simon Hafner"/>
+  
+  <meta name="author" content="Arya Irani"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Sheng Chen"/>
+  
+  <meta name="author" content="Fabio Labella"/>
+  
+  
+  <meta name="description" content="Documentation for http4s"/>
+  
+  
+  
+  <link rel="icon"  type="image/svg+xml" href="../../images/http4s-favicon.svg"/>
+  
+  <link rel="icon" sizes="32x32" type="image/png" href="../../images/http4s-favicon.png"/>
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:500">
+  
+  <link rel="stylesheet" type="text/css" href="../../helium/site/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/site/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../styles/styles.css" />
+  <script src="../../helium/site/laika-helium.js"></script>
+    <script src="../../helium/site/laika-versions.js"></script>
+  <script>initVersions("../../", "/docs/client-middleware.html", "v1", null);</script>
+  
+  <script> /* for avoiding page load transitions */ </script>
+</head>
+
+  <body>
+
+    <header id="top-bar" class="light-default dark-default">
+
+  <div class="row">
+    <a id="nav-icon">
+      <i class="icofont-laika navigationMenu" title="Navigation">&#xefa2;</i>
+    </a>
+    
+    <div class="menu-container version-menu">
+      <a class="text-link menu-toggle" href="#">Version 1</a>
+      <nav class="menu-content">
+        <ul class="nav-list">
+          <li class="level1 nav-leaf"><a href="../../versions.html">Help me choose...</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+
+  <div class="row links">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>  
+
+</header>
+    
+    <nav id="sidebar">
+
+  <div class="row">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>
+
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="../../versions.html">Versions</a></li>
+    <li class="level1 nav-leaf"><a href="../../changelog.html">Changelog</a></li>
+    <li class="level1 nav-leaf"><a href="../../getting-help.html">Getting Help</a></li>
+    <li class="level1 nav-leaf"><a href="../../contributing.html">Contributing</a></li>
+    <li class="level1 nav-leaf"><a href="../../adopters.html">Adopters</a></li>
+    <li class="level1 nav-leaf"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+    <li class="level1 nav-leaf"><a href="../../further-reading.html">Further Reading</a></li>
+    <li class="level1 nav-header">User Guide</li>
+    <li class="level2 nav-leaf"><a href="quickstart.html">Quick Start</a></li>
+    <li class="level2 nav-leaf"><a href="integrations.html">Integrations</a></li>
+    <li class="level2 nav-leaf"><a href="upgrading.html">Upgrading</a></li>
+    <li class="level2 nav-leaf"><a href="service.html">Service</a></li>
+    <li class="level2 nav-leaf"><a href="dsl.html">The http4s DSL</a></li>
+    <li class="level2 nav-leaf"><a href="middleware.html">Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="server-middleware.html">Server Middleware</a></li>
+    <li class="level2 active nav-leaf"><a href="#">Client Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="auth.html">Authentication</a></li>
+    <li class="level2 nav-leaf"><a href="cors.html">CORS</a></li>
+    <li class="level2 nav-leaf"><a href="csrf.html">CSRF</a></li>
+    <li class="level2 nav-leaf"><a href="gzip.html">GZip Compression</a></li>
+    <li class="level2 nav-leaf"><a href="hsts.html">HSTS</a></li>
+    <li class="level2 nav-leaf"><a href="static.html">Static Files</a></li>
+    <li class="level2 nav-leaf"><a href="client.html">HTTP Client</a></li>
+    <li class="level2 nav-leaf"><a href="entity.html">Entity Handling</a></li>
+    <li class="level2 nav-leaf"><a href="streaming.html">Streaming</a></li>
+    <li class="level2 nav-leaf"><a href="json.html">JSON Handling</a></li>
+    <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
+    <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
+    <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
+    <li class="level1 nav-header">Related Projects</li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
+    <li class="level2 nav-leaf"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/rho/">rho</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/typelevel/feral/">feral</a></li>
+  </ul>
+
+</nav>
+
+    <div id="container">
+
+      
+<nav id="page-nav">
+  <p class="header"><a href="#">Client Middleware</a></p>
+
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#cookiejar">CookieJar</a></li>
+    <li class="level1 nav-leaf"><a href="#destinationattribute">DestinationAttribute</a></li>
+    <li class="level1 nav-leaf"><a href="#followredirects">FollowRedirects</a></li>
+    <li class="level1 nav-leaf"><a href="#logger-responselogger-requestlogger">Logger, ResponseLogger, RequestLogger</a></li>
+    <li class="level1 nav-leaf"><a href="#gzip">GZip</a></li>
+    <li class="level1 nav-leaf"><a href="#retry">Retry</a></li>
+    <li class="level1 nav-leaf"><a href="#unixsocket">UnixSocket</a></li>
+  </ul>
+
+  <p class="footer"></p>
+</nav>
+
+
+      <main class="content">
+
+        <h1 id="client-middleware" class="title">Client Middleware</h1>
+        <p>Client middleware wraps a <a href="client.html">Client</a> to add functionality. This document is a
+        list of included client middleware, which can be found
+        in the <code>org.http4s.client.middleware</code> package.</p>
+        <p>First we prepare a server that we can make requests to:</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">jawn</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">Client</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">scala</span><span>.</span><span class="identifier">concurrent</span><span>.</span><span class="identifier">duration</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">std</span><span>.{</span><span class="type-name">Console</span><span>, </span><span class="type-name">Random</span><span>}
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="type-name">LoggerFactory</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="identifier">slf4j</span><span>.</span><span class="type-name">Slf4jFactory</span><span>
+
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">allRhinoFacts</span><span> = </span><span class="type-name">List</span><span>(
+  </span><span class="string-literal">&quot;Rhinoceros horns are made from keratin, just like human fingernails.&quot;</span><span>,
+  </span><span class="string-literal">&quot;The rhino is the second largest land animal, after the elephant.&quot;</span><span>,
+  </span><span class="string-literal">&quot;The gestation period for a rhinoceros baby is almost 15 months.&quot;</span><span>,
+)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">service</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;redirect&quot;</span><span> =&gt; </span><span class="type-name">MovedPermanently</span><span>(</span><span class="type-name">Location</span><span>(</span><span class="string-literal">uri&quot;/ok&quot;</span><span>))
+  </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;ok&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;👍&quot;</span><span>)
+  </span><span class="keyword">case</span><span> </span><span class="identifier">r</span><span> @ </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;rhinoFacts&quot;</span><span> =&gt;
+    </span><span class="comment">// show a rhino fact, try to not repeat a fact the user already has seen
+</span><span>    </span><span class="comment">// the cookie is an array of integers, encoded in json
+</span><span>    </span><span class="keyword">val</span><span> </span><span class="identifier">knownFacts</span><span>: </span><span class="type-name">List</span><span>[</span><span class="type-name">Int</span><span>] = </span><span class="identifier">r</span><span>.</span><span class="identifier">cookies</span><span>.</span><span class="identifier">find</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">name</span><span> == </span><span class="string-literal">&quot;knownRhinoFacts&quot;</span><span>)
+      .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">cookie</span><span> =&gt; </span><span class="identifier">decode</span><span>[</span><span class="type-name">List</span><span>[</span><span class="type-name">Int</span><span>]](</span><span class="identifier">cookie</span><span>.</span><span class="identifier">content</span><span>).</span><span class="identifier">toOption</span><span>)
+      .</span><span class="identifier">toList</span><span>
+      .</span><span class="identifier">flatten</span><span>
+
+    </span><span class="comment">// choose the index of a fact
+</span><span>    </span><span class="keyword">val</span><span> </span><span class="identifier">factIndex</span><span> =
+      </span><span class="type-name">Random</span><span>.</span><span class="identifier">scalaUtilRandom</span><span>[</span><span class="type-name">IO</span><span>]
+        .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">rng</span><span> =&gt; </span><span class="identifier">rng</span><span>.</span><span class="identifier">shuffleList</span><span>(</span><span class="type-name">List</span><span>.</span><span class="identifier">range</span><span>(</span><span class="number-literal">0</span><span>, </span><span class="identifier">allRhinoFacts</span><span>.</span><span class="identifier">size</span><span>).</span><span class="identifier">filterNot</span><span>(</span><span class="identifier">knownFacts</span><span>.</span><span class="identifier">contains_</span><span>)))
+        .</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headOption</span><span>)
+
+    </span><span class="identifier">factIndex</span><span>
+      .</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">index</span><span> =&gt;
+        </span><span class="keyword">val</span><span> </span><span class="identifier">cookie</span><span> = </span><span class="identifier">index</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span> :: </span><span class="identifier">knownFacts</span><span>).</span><span class="identifier">getOrElse</span><span>(</span><span class="identifier">knownFacts</span><span>).</span><span class="identifier">asJson</span><span>.</span><span class="identifier">noSpaces</span><span>
+        </span><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="identifier">index</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">allRhinoFacts</span><span>.</span><span class="identifier">get</span><span>(</span><span class="identifier">_</span><span>)).</span><span class="identifier">getOrElse</span><span>(</span><span class="string-literal">&quot;You know all the facts!&quot;</span><span>)
+        </span><span class="type-name">Ok</span><span>(</span><span class="identifier">response</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">addCookie</span><span>(</span><span class="string-literal">&quot;knownRhinoFacts&quot;</span><span>, </span><span class="identifier">cookie</span><span>))
+      }
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)</span></code></pre>
+        
+        <h2 id="cookiejar" class="section"><a class="anchor-link left" href="#cookiejar"><i class="icofont-laika link">&#xef71;</i></a>CookieJar</h2>
+        <p>Enhances a client to store and supply cookies. An in-memory implementation is provided,
+        but it&#39;s also possible to supply your own method of persistence, see <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/org/http4s/client/middleware/CookieJar$.html">CookieJar</a>.
+        In this example the service will use the <code>knowRhinoFacts</code> cookie to track the facts that have been shown to the client.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">CookieJar</span><span>
+
+</span><span class="comment">// the domain is necessary because cookies are tied to a domain
+</span><span class="keyword">val</span><span> </span><span class="identifier">factRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;http://example.com/rhinoFacts&quot;</span><span>)</span></code></pre>
+        <pre><code class="nohighlight"><span class="comment">// without cookies the server will repeat facts
+</span><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">factRequest</span><span>)
+  .</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>)
+  .</span><span class="identifier">replicateA</span><span>(</span><span class="number-literal">4</span><span>)
+  .</span><span class="identifier">void</span><span>
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// Rhinoceros horns are made from keratin, just like human fingernails.
+// Rhinoceros horns are made from keratin, just like human fingernails.
+// The rhino is the second largest land animal, after the elephant.
+// The gestation period for a rhinoceros baby is almost 15 months.
+</span><span>
+</span><span class="comment">// the server won&#39;t repeat facts because the client indicates what it already knows
+</span><span class="type-name">CookieJar</span><span>.</span><span class="identifier">impl</span><span>(</span><span class="identifier">client</span><span>).</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">cl</span><span> =&gt;
+  </span><span class="identifier">cl</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">factRequest</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>).</span><span class="identifier">replicateA</span><span>(</span><span class="number-literal">4</span><span>).</span><span class="identifier">void</span><span>
+}.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// The gestation period for a rhinoceros baby is almost 15 months.
+// The rhino is the second largest land animal, after the elephant.
+// Rhinoceros horns are made from keratin, just like human fingernails.
+// You know all the facts!</span></code></pre>
+        
+        <h2 id="destinationattribute" class="section"><a class="anchor-link left" href="#destinationattribute"><i class="icofont-laika link">&#xef71;</i></a>DestinationAttribute</h2>
+        <p>This very simple middleware writes a value to the request attributes, which can be
+        read at any point during the processing of the request, by other middleware down the line.</p>
+        <p>In this example we create our own middleware that appends a header to the response. We use
+        <code>DestinationAttribute</code> to provide the value.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">DestinationAttribute</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">DestinationAttribute</span><span>.</span><span class="type-name">Destination</span><span>
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">myMiddleware</span><span>(</span><span class="identifier">cl</span><span>: </span><span class="type-name">Client</span><span>[</span><span class="type-name">IO</span><span>]): </span><span class="type-name">Client</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Client</span><span> { </span><span class="identifier">req</span><span> =&gt;
+  </span><span class="keyword">val</span><span> </span><span class="identifier">destination</span><span> = </span><span class="identifier">req</span><span>.</span><span class="identifier">attributes</span><span>.</span><span class="identifier">lookup</span><span>(</span><span class="type-name">Destination</span><span>).</span><span class="identifier">getOrElse</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>)
+  </span><span class="identifier">cl</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">req</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">putHeaders</span><span>(</span><span class="string-literal">&quot;X-Destination&quot;</span><span> -&gt; </span><span class="identifier">destination</span><span>))
+}
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">mwClient</span><span> = </span><span class="type-name">DestinationAttribute</span><span>(</span><span class="identifier">myMiddleware</span><span>(</span><span class="identifier">client</span><span>), </span><span class="string-literal">&quot;example&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">mwClient</span><span>.</span><span class="identifier">run</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)).</span><span class="identifier">use</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">pure</span><span>[</span><span class="type-name">IO</span><span>]).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res2: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 4, X-Destination: example)</span></code></pre>
+        
+        <h2 id="followredirects" class="section"><a class="anchor-link left" href="#followredirects"><i class="icofont-laika link">&#xef71;</i></a>FollowRedirects</h2>
+        <p>Allows a client to interpret redirect responses and follow them. See <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/org/http4s/client/middleware/FollowRedirect$.html">FollowRedirect</a>
+        for configuration.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">FollowRedirect</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">redirectRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/redirect&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">client</span><span>.</span><span class="identifier">status</span><span>(</span><span class="identifier">redirectRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res3: Status = Status(code = 301)
+</span><span class="type-name">FollowRedirect</span><span>(</span><span class="identifier">maxRedirects</span><span> = </span><span class="number-literal">3</span><span>)(</span><span class="identifier">client</span><span>).</span><span class="identifier">status</span><span>(</span><span class="identifier">redirectRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res4: Status = Status(code = 200)</span></code></pre>
+        
+        <h2 id="logger-responselogger-requestlogger" class="section"><a class="anchor-link left" href="#logger-responselogger-requestlogger"><i class="icofont-laika link">&#xef71;</i></a>Logger, ResponseLogger, RequestLogger</h2>
+        <p>Log requests and responses. <code>ResponseLogger</code> logs the responses, <code>RequestLogger</code>
+        logs the request, <code>Logger</code> logs both.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">Logger</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">loggerClient</span><span> = </span><span class="type-name">Logger</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">logHeaders</span><span> = </span><span class="boolean-literal">false</span><span>,
+  </span><span class="identifier">logBody</span><span> = </span><span class="boolean-literal">true</span><span>,
+  </span><span class="identifier">logAction</span><span> = </span><span class="type-name">Some</span><span>((</span><span class="identifier">msg</span><span>: </span><span class="type-name">String</span><span>) =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>))
+)(</span><span class="identifier">client</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">loggerClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">Unit</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// HTTP/1.1 GET /ok
+// HTTP/1.1 200 OK body=&quot;👍&quot;</span></code></pre>
+        
+        <h2 id="gzip" class="section"><a class="anchor-link left" href="#gzip"><i class="icofont-laika link">&#xef71;</i></a>GZip</h2>
+        <p>Adds support for gzip compression. The client will indicate it can read gzip responses
+        and if the server responds with gzip, the client will decode the response transparently.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">GZip</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.{</span><span class="type-name">GZip</span><span> =&gt; </span><span class="type-name">ServerGZip</span><span>}
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">ResponseLogger</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">gzipService</span><span> = </span><span class="type-name">ServerGZip</span><span>(
+  </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] { </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;long&quot;</span><span> =&gt; </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;0123456789&quot;</span><span> * </span><span class="number-literal">5</span><span>) }
+).</span><span class="identifier">orNotFound</span><span>
+
+</span><span class="comment">// the logger will print the bodies that are transferred
+</span><span class="keyword">val</span><span> </span><span class="identifier">clientWithoutGzip</span><span> = </span><span class="type-name">ResponseLogger</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">logHeaders</span><span> = </span><span class="boolean-literal">false</span><span>,
+  </span><span class="identifier">logBody</span><span> = </span><span class="boolean-literal">true</span><span>,
+  </span><span class="identifier">logAction</span><span> = </span><span class="type-name">Some</span><span>((</span><span class="identifier">msg</span><span>: </span><span class="type-name">String</span><span>) =&gt; </span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>(</span><span class="identifier">msg</span><span>)))(
+  </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">gzipService</span><span>)
+)
+
+</span><span class="comment">// this client will also log the bodies since it is backed by `clientWithoutGzip`
+// the middleware will transform the server response so that is uncompressed 
+// but the logger will allow us to print the body before it is uncompressed
+</span><span class="keyword">val</span><span> </span><span class="identifier">clientWithGzip</span><span> = </span><span class="type-name">GZip</span><span>()(</span><span class="identifier">clientWithoutGzip</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">longRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/long&quot;</span><span>)</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment">// without gzip in our client, nothing exciting happens
+</span><span class="identifier">clientWithoutGzip</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">longRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// HTTP/1.1 200 OK body=&quot;01234567890123456789012345678901234567890123456789&quot;
+// res6: String = &quot;01234567890123456789012345678901234567890123456789&quot;
+</span><span>
+</span><span class="comment">// with the middleware we can see that the original body is smaller and 
+// the response is decompressed transparently
+</span><span class="identifier">clientWithGzip</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">longRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// HTTP/1.1 200 OK body=&quot;�      30426153��4 � T���2   &quot;
+// res7: String = &quot;01234567890123456789012345678901234567890123456789&quot;</span></code></pre>
+        
+        <h2 id="retry" class="section"><a class="anchor-link left" href="#retry"><i class="icofont-laika link">&#xef71;</i></a>Retry</h2>
+        <p>Allows a client to handle server errors by retrying requests. See <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/org/http4s/client/middleware/Retry$.html">Retry</a> and
+        <a href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M40/org/http4s/client/middleware/RetryPolicy$.html">RetryPolicy</a> for ways of configuring the retry policy.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.{</span><span class="type-name">Retry</span><span>, </span><span class="type-name">RetryPolicy</span><span>}
+
+</span><span class="comment">// a service that fails the first three times it&#39;s called
+</span><span class="keyword">val</span><span> </span><span class="identifier">flakyService</span><span> =
+  </span><span class="type-name">Ref</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">of</span><span>(</span><span class="number-literal">0</span><span>).</span><span class="identifier">map</span><span> { </span><span class="identifier">attempts</span><span> =&gt;
+    </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+      </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="identifier">attempts</span><span>.</span><span class="identifier">getAndUpdate</span><span>(</span><span class="identifier">_</span><span> + </span><span class="number-literal">1</span><span>)
+        .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">a</span><span> =&gt; </span><span class="keyword">if</span><span> (</span><span class="identifier">a</span><span> &lt; </span><span class="number-literal">3</span><span>) </span><span class="type-name">ServiceUnavailable</span><span>(</span><span class="string-literal">&quot;not yet&quot;</span><span>) </span><span class="keyword">else</span><span> </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;ok&quot;</span><span>))
+    }
+  }
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">policy</span><span> = </span><span class="type-name">RetryPolicy</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">backoff</span><span> = </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Some</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">milli</span><span>))</span></code></pre>
+        <pre><code class="nohighlight"><span class="comment">// without the middleware the call will fail
+</span><span class="identifier">flakyService</span><span>.</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">service</span><span> =&gt;
+  </span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+  </span><span class="identifier">client</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/&quot;</span><span>)).</span><span class="identifier">attempt</span><span>
+}.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res8: Either[Throwable, String] = Left(
+//   value = UnexpectedStatus(
+//     status = Status(code = 503),
+//     requestMethod = GET,
+//     requestUri = Uri(
+//       scheme = None,
+//       authority = None,
+//       path = /,
+//       query = ,
+//       fragment = None
+//     )
+//   )
+// )
+</span><span>
+</span><span class="comment">// with the middleware the call will succeed eventually
+</span><span class="identifier">flakyService</span><span>.</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">service</span><span> =&gt;
+  </span><span class="keyword">val</span><span> </span><span class="identifier">client</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+  </span><span class="keyword">val</span><span> </span><span class="identifier">retryClient</span><span> = </span><span class="type-name">Retry</span><span>(</span><span class="identifier">policy</span><span>)(</span><span class="identifier">client</span><span>)
+  </span><span class="identifier">retryClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/&quot;</span><span>))
+}.</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res9: String = &quot;ok&quot;</span></code></pre>
+        
+        <h2 id="unixsocket" class="section"><a class="anchor-link left" href="#unixsocket"><i class="icofont-laika link">&#xef71;</i></a>UnixSocket</h2>
+        <p><a href="https://en.wikipedia.org/wiki/Unix_domain_socket">Unix domain sockets</a> are an operating system feature which allows communication between processes
+        while not needing to use the network.</p>
+        <p>This middleware allows a client to make requests to a domain socket.</p>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">file</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">net</span><span>.</span><span class="identifier">unixsocket</span><span>.</span><span class="type-name">UnixSocketAddress</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">net</span><span>.</span><span class="identifier">unixsocket</span><span>.</span><span class="type-name">UnixSockets</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">UnixSocket</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">EmberClientBuilder</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">EmberServerBuilder</span><span>
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">localSocket</span><span> = </span><span class="type-name">Files</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">tempFile</span><span>(</span><span class="type-name">None</span><span>, </span><span class="string-literal">&quot;&quot;</span><span>, </span><span class="string-literal">&quot;.sock&quot;</span><span>, </span><span class="type-name">None</span><span>)
+  .</span><span class="identifier">map</span><span>(</span><span class="identifier">path</span><span> =&gt; </span><span class="type-name">UnixSocketAddress</span><span>(</span><span class="identifier">path</span><span>.</span><span class="identifier">toString</span><span>))
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">server</span><span>(</span><span class="identifier">socket</span><span>: </span><span class="type-name">UnixSocketAddress</span><span>) = </span><span class="type-name">EmberServerBuilder</span><span>
+  .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
+  .</span><span class="identifier">withUnixSocketConfig</span><span>(</span><span class="type-name">UnixSockets</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="identifier">socket</span><span>) </span><span class="comment">// bind to a domain socket
+</span><span>  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
+  .</span><span class="identifier">withShutdownTimeout</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">second</span><span>)
+  .</span><span class="identifier">build</span><span>
+  .</span><span class="identifier">evalTap</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">IO</span><span>.</span><span class="identifier">sleep</span><span>(</span><span class="number-literal">4</span><span>.</span><span class="identifier">seconds</span><span>))
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">client</span><span>(</span><span class="identifier">socket</span><span>: </span><span class="type-name">UnixSocketAddress</span><span>) = </span><span class="type-name">EmberClientBuilder</span><span>
+  .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
+  .</span><span class="identifier">build</span><span>
+  .</span><span class="identifier">map</span><span>(</span><span class="type-name">UnixSocket</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">socket</span><span>)) </span><span class="comment">// apply the middleware</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">localSocket</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">socket</span><span> =&gt; </span><span class="identifier">server</span><span>(</span><span class="identifier">socket</span><span>) *&gt; </span><span class="identifier">client</span><span>(</span><span class="identifier">socket</span><span>))
+  .</span><span class="identifier">use</span><span>(</span><span class="identifier">cl</span><span> =&gt; </span><span class="identifier">cl</span><span>.</span><span class="identifier">status</span><span>(</span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/ok&quot;</span><span>)))
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res10: Status = Status(code = 200)</span></code></pre>
+
+        
+<hr class="footer-rule"/>
+<footer>
+  http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+</footer>
+
+
+      </main>
+
+    </div>
+
+  </body>
+
+</html>

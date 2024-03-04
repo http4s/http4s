@@ -7,6 +7,7 @@
   ],
   "linkTargets": [
     { "path": "/docs/auth.html", "versions": ["v0.22","v0.23","v1"] },
+    { "path": "/docs/client-middleware.html", "versions": ["v1"] },
     { "path": "/docs/client.html", "versions": ["v0.22","v0.23","v1"] },
     { "path": "/docs/cors.html", "versions": ["v0.22","v0.23","v1"] },
     { "path": "/docs/csrf.html", "versions": ["v0.22","v0.23","v1"] },
