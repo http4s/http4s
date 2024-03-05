@@ -22,8 +22,6 @@ ordered chronologically, so each release contains all changes described below it
 
 ### Behind the scenes
 
-<details>
-
 * Update http4s-circe, http4s-ember-client, ... to 0.23.25 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7353
 * Fix labelling PRs for the `client-testkit` module by @danicheg in https://github.com/http4s/http4s/pull/7354
 * Refactor `release.yml` by @danicheg in https://github.com/http4s/http4s/pull/7355
@@ -47,8 +45,7 @@ ordered chronologically, so each release contains all changes described below it
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7392
 * Update sbt-http4s-org to 0.16.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7393
 * Update scala3-library, ... to 3.3.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7394
-
-</details>
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7402
 
 ## New Contributors
 * @kejifasuyi made their first contribution in https://github.com/http4s/http4s/pull/7357
