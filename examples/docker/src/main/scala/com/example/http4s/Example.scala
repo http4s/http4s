@@ -23,7 +23,6 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server._
-import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Main extends IOApp {
@@ -33,16 +32,14 @@ object Main extends IOApp {
 
 object ExampleApp {
 
-  def serverStream[F[_]: Async: Network]: Resource[F, Server] = {
-    implicit val loggerFactory: LoggerFactory[F] =
-      Slf4jFactory.create[F]
-
+  def serverStream[F[_]: Async: Network]: Resource[F, Server] =
     EmberServerBuilder.default
       .withPort(port"8080")
       .withHost(host"0.0.0.0")
+      .withLoggerFactory(Slf4jFactory.create[F])
       .withHttpApp(new ExampleRoutes[F].routes.orNotFound)
       .build
-  }
+
 }
 
 final case class ExampleRoutes[F[_]: Sync]() extends Http4sDsl[F] {

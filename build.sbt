@@ -238,7 +238,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     libraryDependencies ++= Seq(
       log4catsCore.value,
       log4catsTesting.value % Test,
-      log4catsNoop.value % Test,
+      log4catsNoop.value,
     ),
   )
   .jvmSettings(
