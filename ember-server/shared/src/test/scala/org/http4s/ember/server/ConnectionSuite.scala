@@ -214,7 +214,7 @@ class ConnectionSuite extends Http4sSuite {
     emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
       .withMaxHeaderSize(100)
       .build
-      .flatMap(server => clientResource(server.addressIp4s))
+      .flatMap(server => clientResource(server.address))
   ).test(
     "return 431 by default on excessive header size"
   ) { client =>
@@ -233,7 +233,7 @@ class ConnectionSuite extends Http4sSuite {
         IO.fromEither(Status.fromInt(499)).map(Response(_))
       }
       .build
-      .flatMap(server => clientResource(server.addressIp4s))
+      .flatMap(server => clientResource(server.address))
   ).test(
     "respect user configured behavior for excessive header size "
   ) { client =>
