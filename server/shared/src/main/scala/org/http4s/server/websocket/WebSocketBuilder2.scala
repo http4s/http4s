@@ -33,7 +33,7 @@ import org.typelevel.vault.Key
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
-  * @param headers Handshake response headers, such as such as:Sec-WebSocket-Protocol.
+  * @param headers Handshake response headers, such as: Sec-WebSocket-Protocol.
   * @param onNonWebSocketRequest The status code to return to a client making a non-websocket HTTP request to this route.
   *                              default: NotImplemented
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.

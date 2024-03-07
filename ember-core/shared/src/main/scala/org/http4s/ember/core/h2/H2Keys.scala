@@ -34,6 +34,8 @@ object H2Keys {
   // mechanism.
   val Http2PriorKnowledge: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
 
+  val WebSocketUpgradeIdentifier: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
+
   private[ember] val H2cUpgrade =
     Key.newKey[SyncIO, (H2Frame.Settings.ConnectionSettings, Request[fs2.Pure])].unsafeRunSync()
 }

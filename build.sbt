@@ -13,6 +13,8 @@ ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
+ThisBuild / tlCiReleaseBranches += "ember-wsclient"
+
 ThisBuild / scalafixAll / skip := tlIsScala3.value
 ThisBuild / ScalafixConfig / skip := tlIsScala3.value
 ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
