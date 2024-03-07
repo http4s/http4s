@@ -29,6 +29,7 @@ import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
+import org.http4s.ember.core.EmberException
 import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Server
@@ -57,6 +58,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
+    private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -83,6 +85,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
         self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
+        self.maxHeaderSizeErrorHandler,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -104,6 +108,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
       requestLineParseErrorHandler = requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -162,8 +167,22 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def withReceiveBufferSize(receiveBufferSize: Int): EmberServerBuilder[F] =
     copy(receiveBufferSize = receiveBufferSize)
+
   def withMaxHeaderSize(maxHeaderSize: Int): EmberServerBuilder[F] =
     copy(maxHeaderSize = maxHeaderSize)
+
+  /** Customizes the error response when the request's header fields
+    * exceed `maxHeaderSize`.  The default behavior is to return an
+    * `431 Request Header Fields Too Large` response.
+    *
+    * @see [[https://www.rfc-editor.org/rfc/rfc9110.html#name-field-limits RFC 9110, Section 5.4]]
+    * @see [[https://www.rfc-editor.org/rfc/rfc6585.html#section-5 RFC 6585, Section 5]]
+    */
+  def withMaxHeaderSizeErrorHandler(
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]]
+  ): EmberServerBuilder[F] =
+    copy(maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler)
+
   def withRequestHeaderReceiveTimeout(
       requestHeaderReceiveTimeout: Duration
   ): EmberServerBuilder[F] =
@@ -236,6 +255,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               wsBuilder.webSocketKey,
               enableHttp2,
               requestLineParseErrorHandler,
+              maxHeaderSizeErrorHandler,
             )
             .compile
             .drain
@@ -263,6 +283,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             wsBuilder.webSocketKey,
             enableHttp2,
             requestLineParseErrorHandler,
+            maxHeaderSizeErrorHandler,
           )
           .compile
           .drain
@@ -299,6 +320,7 @@ object EmberServerBuilder {
       unixSocketConfig = None,
       enableHttp2 = false,
       requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
     )
 
   private object Defaults {
@@ -328,6 +350,15 @@ object EmberServerBuilder {
     def requestLineParseErrorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case _ =>
       Response[F](
         Status.BadRequest,
+        HttpVersion.`HTTP/1.1`,
+        Headers(org.http4s.headers.`Content-Length`.zero),
+      ).pure[F]
+    }
+
+    def maxHeaderSizeErrorHandler[F[_]: Applicative]
+        : EmberException.MessageTooLong => F[Response[F]] = { case _ =>
+      Response[F](
+        Status.RequestHeaderFieldsTooLarge,
         HttpVersion.`HTTP/1.1`,
         Headers(org.http4s.headers.`Content-Length`.zero),
       ).pure[F]

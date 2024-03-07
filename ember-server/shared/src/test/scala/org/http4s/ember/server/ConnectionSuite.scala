@@ -209,4 +209,40 @@ class ConnectionSuite extends Http4sSuite {
       resp <- client.responsePrelude
     } yield assertEquals(resp.status, Status.InternalServerError)
   }
+
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withMaxHeaderSize(100)
+      .build
+      .flatMap(server => clientResource(server.address))
+  ).test(
+    "return 431 by default on excessive header size"
+  ) { client =>
+    val tooMuchHeader = "X-Trash: " + ("." * 120)
+    val request = Stream(s"GET / HTTP/1.0\r\n${tooMuchHeader}\r\n")
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status.code, 431)
+  }
+
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withMaxHeaderSize(100)
+      .withMaxHeaderSizeErrorHandler { case _ =>
+        IO.fromEither(Status.fromInt(499)).map(Response(_))
+      }
+      .build
+      .flatMap(server => clientResource(server.address))
+  ).test(
+    "respect user configured behavior for excessive header size "
+  ) { client =>
+    val tooMuchHeader = "X-Trash: " + ("." * 120)
+    val request = Stream(s"GET / HTTP/1.0\r\n${tooMuchHeader}\r\n")
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status.code, 499)
+  }
+
 }
