@@ -20,10 +20,12 @@ import cats.effect._
 import org.typelevel.vault._
 
 object H2Keys {
-  // Client Side Key To Try Http2-Prior-Knowledge
-  // which means immediately using http2 without any upgrade mechanism
-  // but is invalid if the receiving server does not support the
-  // mechanism.
+
+  /** Client Side Key To Try Http2-Prior-Knowledge
+    * which means immediately using http2 without any upgrade mechanism
+    * but is invalid if the receiving server does not support the
+    * mechanism.
+    */
   val Http2PriorKnowledge: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
 
 }
