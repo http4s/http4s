@@ -3,7 +3,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v1.0.0-M41 (2024-03-11)
+# v1.0.0-M41 (2024-03-12)
 It's been a while since the last milestone release. This release includes numerous features and patches from the 0.23 series. Be sure to check out its release notes! As always within this milestone series, backward compatibility is not guaranteed.
 
 ## What's Changed
