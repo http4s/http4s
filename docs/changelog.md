@@ -3,6 +3,42 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M41 (2024-03-12)
+It's been a while since the last milestone release. This release includes numerous features and patches from the 0.23 series. Be sure to check out its release notes! As always within this milestone series, backward compatibility is not guaranteed.
+
+## What's Changed
+
+### http4s-core
+* remove deprecated `comment` parser from CommonRules by @txdv in https://github.com/http4s/http4s/pull/7398
+* remove unused deprecated method asMaskBased by @txdv in https://github.com/http4s/http4s/pull/7397
+
+### http4s-server
+* Delete Jsonp middleware by @froth in https://github.com/http4s/http4s/pull/7286
+
+### http4s-client
+* expose cookies in the CookieJar middleware by @massimosiani in https://github.com/http4s/http4s/pull/7160
+
+### Behind the scenes
+* 0.23 -> main by @armanbilge in https://github.com/http4s/http4s/pull/7296
+* Merge 0.23 -> main by @rossabaker in https://github.com/http4s/http4s/pull/7387
+* Merge 0.23.26 -> main by @rossabaker in https://github.com/http4s/http4s/pull/7404
+
+## New Contributors
+* @massimosiani made their first contribution in https://github.com/http4s/http4s/pull/7160
+* @george-wilson-rea made their first contribution in https://github.com/http4s/http4s/pull/7207
+* @lolgab made their first contribution in https://github.com/http4s/http4s/pull/7278
+* @grouzen made their first contribution in https://github.com/http4s/http4s/pull/7284
+* @morgen-peschke made their first contribution in https://github.com/http4s/http4s/pull/7238
+* @plokhotnyuk made their first contribution in https://github.com/http4s/http4s/pull/7228
+* @Marcus-Rosti made their first contribution in https://github.com/http4s/http4s/pull/7316
+* @LaurenceWarne made their first contribution in https://github.com/http4s/http4s/pull/7265
+* @sam-tombury made their first contribution in https://github.com/http4s/http4s/pull/7234
+* @rlavolee made their first contribution in https://github.com/http4s/http4s/pull/7329
+* @kejifasuyi made their first contribution in https://github.com/http4s/http4s/pull/7357
+* @txdv made their first contribution in https://github.com/http4s/http4s/pull/7398
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M40...v1.0.0-M41
+
 # v0.23.26 (2024-03-04)
 
 ## What's Changed
