@@ -17,11 +17,12 @@
 package org.http4s
 package multipart
 
+import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.std.Supervisor
-import cats.syntax.all._
-import fs2.Pipe
+import cats.syntax.all.*
+import fs2.{ Pipe, Stream }
 import fs2.io.file.Files
 
 private[http4s] object MultipartDecoder {
@@ -148,4 +149,46 @@ private[http4s] object MultipartDecoder {
           )
       }
     }
+
+  private def makeDecoder[F[_]: Concurrent, A](
+      impl: Boundary => EntityBody[F] => DecodeResult[F, A]
+  ): EntityDecoder[F, A] =
+    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
+      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+        case Some(boundary) =>
+          impl(Boundary(boundary))(msg.body)
+        case None =>
+          DecodeResult.failureT(
+            InvalidMessageBodyFailure("Missing boundary extension to Content-Type")
+          )
+      }
+    }
+
+  def fromReceiver[F[_]: Concurrent, A](
+      recv: MultipartReceiver[F, A],
+      headerLimit: Int = 1024,
+      maxParts: Option[Int] = Some(50),
+      failOnLimit: Boolean = false,
+  ): Resource[F, EntityDecoder[F, A]] = Supervisor[F].map { supervisor =>
+    val wrappedReceiver = recv.rejectUnexpectedParts
+    makeDecoder[F, A] { boundary =>
+      _.through(
+        MultipartParser.decodePartsSupervised[F, wrappedReceiver.Partial](
+          supervisor,
+          boundary,
+          // note: `rejectUnexpectedParts` makes `wrappedReceiver.decide` always return `Some`
+          part => EitherT(wrappedReceiver.decide(part.headers).get.receive(part)),
+          limit = headerLimit,
+          maxParts = maxParts,
+          failOnLimit = failOnLimit,
+        )
+      ).translate(
+        EitherT.liftK[F, DecodeFailure]
+      ).flatMap { r =>
+        Stream.eval(EitherT.fromEither[F](r))
+      }.compile.toList.flatMap { partials =>
+        EitherT.fromEither[F](wrappedReceiver.assemble(partials))
+      }
+    }
+  }
 }
