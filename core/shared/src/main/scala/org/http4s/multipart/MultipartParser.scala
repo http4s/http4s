@@ -17,7 +17,6 @@
 package org.http4s
 package multipart
 
-import cats.data.EitherT
 import cats.effect.{Concurrent, Deferred, Resource}
 import cats.effect.std.Supervisor
 import cats.syntax.all.*
@@ -808,9 +807,9 @@ object MultipartParser {
                 F.race(channel.send(chunk), resultPromise.get).flatMap {
                   case Left(_) =>
                     keepPulling // send completed normally; don't care if it was closed or not
-                  case Right(Right(a)) =>
+                  case Right(Right(_)) =>
                     keepPulling // send may have blocked, but the receiver already has a result
-                  case Right(Left(err)) =>
+                  case Right(Left(_)) =>
                     stopPulling // receiver raised an error, so abort the pull
                 }
               },

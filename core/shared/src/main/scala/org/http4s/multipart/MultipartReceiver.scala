@@ -3,10 +3,12 @@ package org.http4s.multipart
 import cats.arrow.FunctionK
 import cats.effect.Sync
 import cats.{ Applicative, ~> }
+import cats.syntax.foldable._
 import fs2.Stream
 import fs2.io.file.{ Files, Path }
 import org.http4s.{ DecodeFailure, EntityBody, Headers, InvalidMessageBodyFailure }
 import org.http4s.headers.`Content-Disposition`
+import org.typelevel.ci._
 
 trait MultipartReceiver[F[_], A] { self =>
   type Partial
@@ -59,9 +61,9 @@ object MultipartReceiver {
     def filePartOpt(name: String) = new PartNamedPartialApply[Option](name, isFile => Option.when(!isFile) { fail(s"Expected file content in '$name' part") }, new ExpectOpt(name))
     def textPartOpt(name: String) = new PartNamedPartialApply[Option](name, isFile => Option.when(isFile) { fail(s"Expected text content in '$name' part") }, new ExpectOpt(name))
 
-    def anyPartList(name: String) = new PartNamedPartialApply[List](name, _ => None, new ExpectList(name))
-    def filePartList(name: String) = new PartNamedPartialApply[List](name, isFile => Option.when(!isFile) { fail(s"Expected file content in '$name' part") }, new ExpectList(name))
-    def textPartList(name: String) = new PartNamedPartialApply[List](name, isFile => Option.when(isFile) { fail(s"Expected text content in '$name' part") }, new ExpectList(name))
+    def anyPartList(name: String) = new PartNamedPartialApply[List](name, _ => None, ExpectList)
+    def filePartList(name: String) = new PartNamedPartialApply[List](name, isFile => Option.when(!isFile) { fail(s"Expected file content in '$name' part") }, ExpectList)
+    def textPartList(name: String) = new PartNamedPartialApply[List](name, isFile => Option.when(isFile) { fail(s"Expected text content in '$name' part") }, ExpectList)
 
     class PartNamedPartialApply[C[_]](
       name: String,
@@ -87,7 +89,7 @@ object MultipartReceiver {
         case _ => Left(fail(s"Unexpected multiple parts found with name '$name'"))
       }
     }
-    private class ExpectList(name: String) extends FunctionK[List, Lambda[x => Either[DecodeFailure, List[x]]]] {
+    private object ExpectList extends FunctionK[List, Lambda[x => Either[DecodeFailure, List[x]]]] {
       def apply[A](partials: List[A]): Either[DecodeFailure, List[A]] = Right(partials)
     }
 
@@ -118,6 +120,11 @@ object MultipartReceiver {
       def assemble(partials: List[Partial]): Either[DecodeFailure, Map[String, FieldValue]] = Right(partials.toMap)
     }
 
+    def uniform[A](partReceiver: PartReceiver[F, A]): MultipartReceiver[F, Vector[A]] = new MultipartReceiver[F, Vector[A]] {
+      type Partial = A
+      def decide(partHeaders: Headers): Option[PartReceiver[F, Partial]] = Some(partReceiver)
+      def assemble(partials: List[Partial]): Either[DecodeFailure, Vector[A]] = Right(partials.toVector)
+    }
   }
 
   private class IgnoreUnexpected[F[_], A, P](inner: Aux[F, A, P]) extends MultipartReceiver[F, A] {

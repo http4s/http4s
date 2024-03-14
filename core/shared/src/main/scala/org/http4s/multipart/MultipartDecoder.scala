@@ -150,7 +150,7 @@ private[http4s] object MultipartDecoder {
       }
     }
 
-  private def makeDecoder[F[_]: Concurrent, A](
+  private def makeDecoder2[F[_]: Concurrent, A](
       impl: Boundary => EntityBody[F] => DecodeResult[F, A]
   ): EntityDecoder[F, A] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
@@ -171,7 +171,7 @@ private[http4s] object MultipartDecoder {
       failOnLimit: Boolean = false,
   ): Resource[F, EntityDecoder[F, A]] = Supervisor[F].map { supervisor =>
     val wrappedReceiver = recv.rejectUnexpectedParts
-    makeDecoder[F, A] { boundary =>
+    makeDecoder2[F, A] { boundary =>
       _.through(
         MultipartParser.decodePartsSupervised[F, wrappedReceiver.Partial](
           supervisor,
