@@ -478,14 +478,79 @@ class ParsingSuite extends Http4sSuite {
       }
   }
 
+  test(
+    "Response Prelude should parse an expected value even if the status reason phrase is missing"
+  ) {
+    val raw = """HTTP/1.1 200 
+        |""".stripMargin
+    val asHttp = Helpers.httpifyString(raw)
+    val bv = asHttp.getBytes()
+    Parser.Response.RespPrelude
+      .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+          assertEquals(prelude.status, Status.Ok)
+        case Left(_) => fail("Prelude was not right")
+      }
+  }
+
+  test(
+    "Response Prelude should parse an expected value even if status reason phrase & SP are missing"
+  ) {
+    val raw = """HTTP/1.1 200
+        |""".stripMargin
+    val asHttp = Helpers.httpifyString(raw)
+    val bv = asHttp.getBytes()
+    Parser.Response.RespPrelude
+      .parse[IO](bv, 4096, Parser.Response.RespPrelude.ParserState.initial)
+      .map {
+        case Right(prelude) =>
+          assertEquals(prelude.version, HttpVersion.`HTTP/1.1`)
+          assertEquals(prelude.status, Status.Ok)
+        case Left(_) => fail("Prelude was not right")
+      }
+  }
+
   test("Parser.Response.parser should parse two responses in a row") {
     val defaultMaxHeaderLength = 4096
     val respS =
       Stream(
-        "HTTP/1.1 200 OK\r\n",
+        "HTTP/1.1 200 \r\n",
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\n",
-        "helloHTTP/1.1 200 OK\r\n", // this is the crucial part
+        "helloHTTP/1.1 200 \r\n", // this is the crucial part
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\nworld",
+      )
+    val byteStream: Stream[IO, Byte] = respS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1)))
+      )
+
+    (for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      resp1 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
+      body1 <- resp1._1.body.through(fs2.text.utf8.decode).compile.string
+      drained <- resp1._2
+      _ <- IO(println(new String(drained.get)))
+      resp2 <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength)(drained.get, take)
+      body2 <- resp2._1.body.through(fs2.text.utf8.decode).compile.string
+    } yield body1 == "hello" && body2 == "world").assert
+  }
+
+  test(
+    "Parser.Response.parser should parse two responses in a row, even if their reason phrase is missing"
+  ) {
+    val defaultMaxHeaderLength = 4096
+    val respS =
+      Stream(
+        "HTTP/1.1 200\r\n",
+        "Content-Type: text/plain\r\n",
+        "Content-Length: 5\r\n\r\n",
+        "helloHTTP/1.1 200\r\n", // this is the crucial part
         "Content-Type: text/plain\r\n",
         "Content-Length: 5\r\n\r\nworld",
       )

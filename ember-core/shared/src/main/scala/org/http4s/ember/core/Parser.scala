@@ -476,6 +476,19 @@ private[ember] object Parser {
         var state = s.state // 0 Is for HttpVersion, 1 for Status Code, 2 For Reason Phrase
         val upperBound = Math.min(buffer.size - 1, maxHeaderSize)
 
+        def setStatusFromInt(codeInt: Int): Unit =
+          Status.fromInt(codeInt) match {
+            case Left(e) =>
+              if (NonFatal(e)) {
+                throwable = e
+                complete = true
+              } else
+                throw e
+            case Right(s) =>
+              status = s
+              complete = true
+          }
+
         while (!complete && idx <= upperBound) {
           val value = buffer(idx)
           (state: @switch) match {
@@ -497,21 +510,17 @@ private[ember] object Parser {
                 codeS = new String(buffer, start, idx - start)
                 state = 2
                 start = idx + 1
+              } else if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
+                // Even though a status line must have this pattern (rfc7230)
+                //    status-line = HTTP-version SP status-code SP reason-phrase CRLF
+                // some servers might remove the last SP if they do not implement the reason phrase
+                val codeInt = new String(buffer, start, idx - start - 1).toInt
+                setStatusFromInt(codeInt)
               }
             case 2 =>
               if (value == lf && (idx > 0 && buffer(idx - 1) == cr)) {
                 val codeInt = codeS.toInt
-                Status.fromInt(codeInt) match {
-                  case Left(e) =>
-                    if (NonFatal(e)) {
-                      throwable = e
-                      complete = true
-                    } else
-                      throw e
-                  case Right(s) =>
-                    status = s
-                    complete = true
-                }
+                setStatusFromInt(codeInt)
               }
           }
           idx += 1
