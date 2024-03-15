@@ -2,7 +2,7 @@ package org.http4s.multipart
 
 import fs2.Stream
 import fs2.io.file.{Files, Flags, Path}
-import org.http4s.{EntityBody, Header, Headers}
+import org.http4s.{EntityBody, Header}
 
 /** Generic representation of typical Multipart Part bodies, as either a string or a file path.
   * Produced by [[PartReceiver.toMixedBuffer]].

@@ -35,7 +35,25 @@ trait PartReceiver[F[_], A] {
   def withSizeLimit(limit: Long)(implicit F: ApplicativeError[F, Throwable]): PartReceiver[F, A] =
     preprocess(PartReceiver.limitPartSize[F](limit))
 
+  def rejectIfFile: PartReceiver[F, A] =
+    part =>
+      if (part.filename.isDefined) {
+        val effectivePartName = part.name.fold("<unnamed part")(name => s"'$name'")
+        Resource.pure(
+          Left(InvalidMessageBodyFailure(s"File data not allowed in $effectivePartName"))
+        )
+      } else {
+        this.receive(part)
+      }
 
+  def rejectIfNotFile: PartReceiver[F, A] =
+    part =>
+      if (part.filename.isEmpty) {
+        val effectivePartName = part.name.fold("<unnamed part")(name => s"'$name'")
+        Resource.pure(Left(InvalidMessageBodyFailure(s"File data required in $effectivePartName")))
+      } else {
+        this.receive(part)
+      }
 }
 
 object PartReceiver {
