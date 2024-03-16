@@ -7,7 +7,6 @@ import fs2.io.file.Files
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.{DecodeFailure, Headers, InvalidMessageBodyFailure}
 import org.typelevel.ci.*
-import scala.language.implicitConversions
 
 trait MultipartReceiver[F[_], A] { self =>
   type Partial
@@ -69,8 +68,10 @@ object MultipartReceiver {
 
   private abstract class ReceiverAt[F[_], A](name: String, receiver: PartReceiver[F, A]) {
     type Partial = A
-    def decide(headers: Headers): Option[PartReceiver[F, A]] =
-      Option.when(partName(headers).contains(name))(receiver)
+    def decide(headers: Headers): Option[PartReceiver[F, A]] = {
+      if (partName(headers).contains(name)) Some(receiver)
+      else None
+    }
   }
 
   def auto[F[_]: Sync: Files]: MultipartReceiver[F, Map[String, PartValue]] =

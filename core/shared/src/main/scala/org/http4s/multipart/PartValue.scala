@@ -39,7 +39,7 @@ sealed trait PartValue {
     */
   def toPart[F[_]: Files](name: String, headers: Header.ToRaw*): Part[F] = fold(
     s => Part.formData(name, s, headers: _*),
-    (filename, path) => Part.fileData(name, filename, bytes[F], headers: _*),
+    (filename, _) => Part.fileData(name, filename, bytes[F], headers: _*),
   )
 }
 object PartValue {
