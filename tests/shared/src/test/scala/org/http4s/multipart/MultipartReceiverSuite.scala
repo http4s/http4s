@@ -4,9 +4,12 @@ package multipart
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.syntax.apply.*
-import fs2.io.file.{Files, Path}
-import fs2.{Chunk, Stream}
+import fs2.Chunk
+import fs2.Stream
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.syntax.literals.*
+
 import scala.concurrent.duration.DurationInt
 
 class MultipartReceiverSuite extends Http4sSuite {

@@ -18,11 +18,14 @@ package org.http4s
 package multipart
 
 import cats.data.EitherT
+import cats.effect.Concurrent
+import cats.effect.Resource
 import cats.effect.std.Supervisor
-import cats.effect.{Concurrent, Resource}
 import cats.syntax.all.*
+import fs2.Collector
+import fs2.Pipe
+import fs2.Stream
 import fs2.io.file.Files
-import fs2.{Collector, Pipe, Stream}
 
 private[http4s] object MultipartDecoder {
 
