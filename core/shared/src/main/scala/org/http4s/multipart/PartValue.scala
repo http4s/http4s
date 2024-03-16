@@ -44,12 +44,12 @@ sealed trait PartValue {
 }
 object PartValue {
 
-  case class OfString(value: String) extends PartValue {
+  final case class OfString(value: String) extends PartValue {
     def bytes[F[_]: Files]: EntityBody[F] = fs2.text.utf8.encode[F](Stream.emit(value))
     def fold[A](onString: String => A, onFile: (String, Path) => A): A = onString(value)
   }
 
-  case class OfFile(filename: String, path: Path) extends PartValue {
+  final case class OfFile(filename: String, path: Path) extends PartValue {
     def bytes[F[_]: Files]: EntityBody[F] = Files[F].readAll(path, 8192, Flags.Read)
     def fold[A](onString: String => A, onFile: (String, Path) => A): A =
       onFile(filename, path)
