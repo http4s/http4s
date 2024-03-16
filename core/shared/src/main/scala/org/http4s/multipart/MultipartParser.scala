@@ -916,7 +916,7 @@ object MultipartParser {
           if (ix === dashBoundaryBytes.length) Pull.pure(remainder ++ rest)
           else go(rest, ix)
         case None =>
-          Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Malformed match"))
+          Pull.raiseError[F](MalformedMessageBodyFailure("Malformed match"))
       }
 
     go(stream, 0)
