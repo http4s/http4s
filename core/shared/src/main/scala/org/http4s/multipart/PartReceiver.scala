@@ -37,8 +37,8 @@ import fs2.Compiler
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *
-  * Used in conjunction with [[MultipartReceiver]] and [[MultipartDecoder.fromReceiver]]
-  * to create robust [[EntityDecoder]]s with fail-fast behavior.
+  * Used in conjunction with `MultipartReceiver` and `MultipartDecoder.fromReceiver`
+  * to create robust `EntityDecoder`s with fail-fast behavior.
   */
 trait PartReceiver[F[_], A] {
   def receive(part: Part[F]): Resource[F, Either[DecodeFailure, A]]
