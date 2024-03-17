@@ -20,6 +20,7 @@ import cats.Applicative
 import cats.ApplicativeError
 import cats.MonadThrow
 import cats.effect.kernel.Resource
+import fs2.Compiler
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
@@ -32,8 +33,6 @@ import org.http4s.DecodeFailure
 import org.http4s.EntityDecoder
 import org.http4s.Headers
 import org.http4s.InvalidMessageBodyFailure
-
-import fs2.Compiler
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *
