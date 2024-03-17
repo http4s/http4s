@@ -808,12 +808,24 @@ object MultipartParser {
                 val keepPulling = F.pure(true)
                 val stopPulling = F.pure(false)
                 F.race(channel.send(chunk), resultPromise.get).flatMap {
-                  case Left(_) =>
-                    keepPulling // send completed normally; don't care if it was closed or not
+                  case Left(Right(())) => keepPulling // send completed normally
+                  case Left(Left(Channel.Closed)) =>
+                    // Send no-opped because the channel was closed, presumably by the receiver side,
+                    // but we care if it was closed due to an error or just due to lack of interest.
+                    // In the case of an error, we should abort the pull entirely. Otherwise, we need
+                    // to keep draining the data from the current Part until we find the next one.
+                    resultPromise.tryGet.map {
+                      case Some(Left(_)) =>
+                        false // receiver raised an error; stop pulling
+                      case Some(Right(_)) =>
+                        true // receiver finished but didn't necessarily pull the whole stream; keep pulling
+                      case None =>
+                        true // receiver not finished yet; keep pulling
+                    }
                   case Right(Right(_)) =>
                     keepPulling // send may have blocked, but the receiver already has a result
                   case Right(Left(_)) =>
-                    stopPulling // receiver raised an error, so abort the pull
+                    stopPulling // send may have blocked, receiver raised an error, so abort the pull
                 }
               },
             )
