@@ -364,6 +364,39 @@ class ParsingSuite extends Http4sSuite {
     }
   }
 
+  test(
+    "Parser.Response.parser return everything if the body is discarded"
+  ) {
+    val defaultMaxHeaderLength = 4096
+    val raw =
+      """HTTP/1.1 200 OK
+        |Content-Length: 5
+        |
+        |helloeverything after the body""".stripMargin
+
+    val byteStream = Stream
+      .emit(raw)
+      .map(Helpers.httpifyString)
+      .through(text.utf8.encode)
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      result <- Parser.Response
+        .parser[IO](defaultMaxHeaderLength, discardBody = true)(Array.emptyByteArray, take)
+      body <- result._1.body.through(text.utf8.decode).compile.string
+      rest <- Stream
+        .eval(result._2)
+        .unNone
+        .flatMap(chunk => Stream.chunk(Chunk.byteVector(ByteVector(chunk))))
+        .through(text.utf8.decode)
+        .compile
+        .string
+    } yield {
+      assertEquals(body, "")
+      assertEquals(rest, "")
+    }
+  }
+
   test("Parser.Response.parser should Parse a response without Content-Length") {
     val defaultMaxHeaderLength = 4096
     val raw =
