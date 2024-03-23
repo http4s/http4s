@@ -184,7 +184,7 @@ be initiated from the browser.
 
 You can try this self-contained example using [scala-cli] and pointing your
 browser to http://localhost:8089/. It includes a page with a form and the endpoint receiving the submission.
-To run this code use create a file (it should have the `.scala` extension) with the following contents and run
+To run this code create a file (it should have the `.scala` extension) with the following contents and run
 `scala-cli file.scala`.
 
 ```scala mdoc:compile-only
