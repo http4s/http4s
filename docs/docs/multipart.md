@@ -18,13 +18,16 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.multipart._
 import org.http4s.implicits._
-import cats.effect.unsafe.implicits.global
 ```
 
 @:callout(info)
 Because this documentation is running in [mdoc] we need an implicit `IORuntime` to let us run our `IO` values explicitly with `.unsafeRunSync()`.
-We do this by importing `cats.effect.unsafe.implicits.global`.
 In real code you should construct your whole program in `IO` and assign it to `run` in `IOApp`.
+
+```scala mdoc:silent
+import cats.effect.unsafe.IORuntime
+implicit val runtime: IORuntime = IORuntime.global
+```
 @:@
 
 ## UrlForm
