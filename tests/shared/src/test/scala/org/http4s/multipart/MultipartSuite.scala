@@ -256,6 +256,35 @@ I am a big moose
 
       mkDecoder.use(_.decode(request, true).value).intercept[CustomError.type]
     }
+
+    test("Should handle characters > 0x00ff in filename") {
+      // U+202F (narrow no-break space) has been encountered in the wild.
+      val body =
+        """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
+Content-Disposition: form-data; name="file"; filename="oh no.txt"
+
+That's a narrow no-break space in the file name!  Yeehaw!
+--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
+
+        """.replace("\n", "\r\n")
+      val header = Headers(
+        `Content-Type`(
+          MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))
+        )
+      )
+      val request = Request[IO](
+        method = Method.POST,
+        uri = url,
+        body = Stream.emit(body).through(text.utf8.encode),
+        headers = header,
+      )
+      mkDecoder
+        .use { decoder =>
+          val decoded = decoder.decode(request, true)
+          decoded.map(multipart => multipart.parts.headOption.flatMap(part => part.filename)).value
+        }
+        .assertEquals(Right(Some("oh no.txt")))
+    }
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
@@ -281,5 +310,4 @@ I am a big moose
     trait F2[A] extends F1[A]
     testPart[F2].covary[F1]
   }
-
 }

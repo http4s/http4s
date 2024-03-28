@@ -31,11 +31,49 @@ import org.typelevel.ci._
 import java.io.File
 import java.io.InputStream
 import java.net.URL
+import java.nio.charset.{Charset => NioCharset}
+import java.nio.charset.StandardCharsets
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
-  def name: Option[String] = headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
+
+  /** This part's name from its Content-Disposition header, decoded as UTF-8 */
+  def name: Option[String] =
+    name(StandardCharsets.UTF_8)
+
+  /** This part's name from its Content-Disposition header, decoded as the specified charset */
+  def name(charset: NioCharset): Option[String] =
+    contentDispositionParam(ci"name", charset)
+
+  /** This part's name from its Content-Disposition header, decoded as the specified charset */
+  def nameDecoded(f: Array[Byte] => Option[String]): Option[String] =
+    contentDispositionParamDecoded(ci"name", f)
+
+  /** This part's filename from its Content-Disposition header, decoded as UTF-8 */
   def filename: Option[String] =
-    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
+    filename(StandardCharsets.UTF_8)
+
+  /** This part's filename from its Content-Disposition header, decoded as the specified charset */
+  def filename(charset: NioCharset): Option[String] =
+    contentDispositionParam(ci"filename", charset)
+
+  def filenameDecoded(f: Array[Byte] => Option[String]): Option[String] =
+    contentDispositionParamDecoded(ci"filename", f)
+
+  private def contentDispositionParam(name: CIString, charset: NioCharset): Option[String] =
+    charset match {
+      case StandardCharsets.ISO_8859_1 =>
+        headers.get[`Content-Disposition`].flatMap(_.parameters.get(name))
+      case charset =>
+        contentDispositionParamDecoded(name, bytes => Some(new String(bytes, charset)))
+    }
+
+  private def contentDispositionParamDecoded(
+      name: CIString,
+      f: Array[Byte] => Option[String],
+  ): Option[String] =
+    headers
+      .get[`Content-Disposition`]
+      .flatMap(_.parameters.get(name).map(_.getBytes(StandardCharsets.ISO_8859_1)).flatMap(f))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
