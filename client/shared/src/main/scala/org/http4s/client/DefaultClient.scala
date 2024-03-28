@@ -19,7 +19,6 @@ package client
 
 import cats.Applicative
 import cats.data.Kleisli
-import cats.data.NonEmptyList
 import cats.effect.MonadCancelThrow
 import cats.effect.Resource
 import cats.syntax.all._
@@ -88,14 +87,13 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(stream).flatMap(f)
 
+  private def reqWithMediaRangeAndQValue[A](req: Request[F], d: EntityDecoder[F, A]) =
+    d.consumes.toList.toNel.fold(req)(m => req.addHeader(Accept(m.map(MediaRangeAndQValue(_)))))
+
   def expectOr[A](
       req: Request[F]
   )(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[A] = {
-    val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
-      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
-    } else req
-
+    val r = reqWithMediaRangeAndQValue(req, d)
     run(r).use {
       case Successful(resp) =>
         d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
@@ -146,11 +144,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
   def expectOptionOr[A](
       req: Request[F]
   )(onError: Response[F] => F[Throwable])(implicit d: EntityDecoder[F, A]): F[Option[A]] = {
-    val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList
-      req.addHeader(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
-    } else req
-
+    val r = reqWithMediaRangeAndQValue(req, d)
     run(r).use {
       case Successful(resp) =>
         d.decode(resp, strict = false).leftWiden[Throwable].rethrowT.map(_.some)
@@ -171,11 +165,7 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     * decoding.
     */
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
-    val r = if (d.consumes.nonEmpty) {
-      val m = d.consumes.toList.map(MediaRangeAndQValue(_))
-      req.addHeader(Accept(NonEmptyList.fromListUnsafe(m)))
-    } else req
-
+    val r = reqWithMediaRangeAndQValue(req, d)
     run(r).use { resp =>
       d.decode(resp, strict = false).leftWiden[Throwable].rethrowT
     }
