@@ -40,7 +40,7 @@ class ReconnectSuite extends Http4sSuite {
           }
         }
         .flatMap { client =>
-          Reconnect(client.connectHighLevel(WSRequest(Uri()))).use { conn =>
+          Reconnect(client.connectHighLevel(WSRequest(Uri())), _ => IO.pure(true)).use { conn =>
             conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
               // reconnection happens
               conn.receive.assertEquals(Some(WSFrame.Text("hello", true)))

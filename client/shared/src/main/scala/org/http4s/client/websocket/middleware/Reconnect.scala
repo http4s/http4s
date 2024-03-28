@@ -29,7 +29,8 @@ import fs2.Stream
 object Reconnect {
 
   def apply[F[_]](
-      connect: Resource[F, WSConnectionHighLevel[F]]
+      connect: Resource[F, WSConnectionHighLevel[F]],
+      reconnect: WSFrame.Close => F[Boolean],
   )(implicit F: Concurrent[F]): Resource[F, WSConnectionHighLevel[F]] =
     Hotswap[F, Resource[F, Either[Throwable, WSConnectionHighLevel[F]]]](
       connect.map(c => Resource.pure(c.asRight))
@@ -44,14 +45,18 @@ object Reconnect {
           } *> loop
         }
 
-        (conn.use(_.liftTo[F].flatMap(_.closeFrame.get)) *> loop).background.as(
-          hs.get
-            .evalMap(
-              _.liftTo(new IllegalStateException("No active connection"))
-            )
-            .flatten
-            .evalMap(_.liftTo)
-        )
+        conn
+          .use(_.liftTo[F].flatMap(_.closeFrame.get))
+          .flatMap(reconnect(_).ifM(loop, F.unit))
+          .background
+          .as(
+            hs.get
+              .evalMap(
+                _.liftTo(new IllegalStateException("No active connection"))
+              )
+              .flatten
+              .evalMap(_.liftTo)
+          )
       }
       .map { conn =>
         new WSConnectionHighLevel[F] {
