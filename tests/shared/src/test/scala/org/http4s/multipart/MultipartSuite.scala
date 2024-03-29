@@ -258,18 +258,20 @@ I am a big moose
     }
 
     test("Should handle characters > 0x00ff in filename") {
-      // U+202F (narrow no-break space) has been encountered in the wild.
-      val body =
-        """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
-Content-Disposition: form-data; name="file"; filename="oh no.txt"
+      val body = """--------------------------UssgsAdBNPzvSMC3wDKwiB
+Content-Disposition: form-data; name="file"; filename="中文文件名.json"
+Content-Type: application/json
 
-That's a narrow no-break space in the file name!  Yeehaw!
---bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
+
+--------------------------UssgsAdBNPzvSMC3wDKwiB--
 
         """.replace("\n", "\r\n")
       val header = Headers(
         `Content-Type`(
-          MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))
+          MediaType.multipartType(
+            "form-data",
+            Some("------------------------UssgsAdBNPzvSMC3wDKwiB"),
+          )
         )
       )
       val request = Request[IO](
@@ -283,7 +285,7 @@ That's a narrow no-break space in the file name!  Yeehaw!
           val decoded = decoder.decode(request, true)
           decoded.map(multipart => multipart.parts.headOption.flatMap(part => part.filename)).value
         }
-        .assertEquals(Right(Some("oh no.txt")))
+        .assertEquals(Right(Some("中文文件名.json")))
     }
   }
 
