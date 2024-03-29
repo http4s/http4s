@@ -36,26 +36,39 @@ import java.nio.charset.StandardCharsets
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
 
-  /** This part's name from its Content-Disposition header, decoded as UTF-8 */
+  /** This part's name from its Content-Disposition header, decoded as
+    * UTF-8.
+    */
   def name: Option[String] =
     name(StandardCharsets.UTF_8)
 
-  /** This part's name from its Content-Disposition header, decoded as the specified charset */
+  /** This part's name from its Content-Disposition header, decoded as
+    * the specified charset.
+    */
   def name(charset: NioCharset): Option[String] =
     contentDispositionParam(ci"name", charset)
 
-  /** This part's name from its Content-Disposition header, decoded as the specified charset */
+  /** This part's name from its Content-Disposition header, decoded from
+    * raw bytes with the specified function.
+    */
   def nameDecoded(f: Array[Byte] => Option[String]): Option[String] =
     contentDispositionParamDecoded(ci"name", f)
 
-  /** This part's filename from its Content-Disposition header, decoded as UTF-8 */
+  /** This part's filename from its Content-Disposition header, decoded
+    * as UTF-8.
+    */
   def filename: Option[String] =
     filename(StandardCharsets.UTF_8)
 
-  /** This part's filename from its Content-Disposition header, decoded as the specified charset */
+  /** This part's filename from its Content-Disposition header, decoded
+    * as the specified charset.
+    */
   def filename(charset: NioCharset): Option[String] =
     contentDispositionParam(ci"filename", charset)
 
+  /** This part's filename from its Content-Disposition header, decoded
+    * from raw bytes with the specified function.
+    */
   def filenameDecoded(f: Array[Byte] => Option[String]): Option[String] =
     contentDispositionParamDecoded(ci"filename", f)
 
