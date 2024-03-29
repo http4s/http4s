@@ -31,8 +31,8 @@ import org.typelevel.ci._
 import java.io.File
 import java.io.InputStream
 import java.net.URL
-import java.nio.charset.{Charset => NioCharset}
 import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset => NioCharset}
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Media[F] {
 

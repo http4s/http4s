@@ -31,9 +31,10 @@ import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
-import java.nio.charset.StandardCharsets
 import org.http4s.internal.bug
 import org.typelevel.ci.CIString
+
+import java.nio.charset.StandardCharsets
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
