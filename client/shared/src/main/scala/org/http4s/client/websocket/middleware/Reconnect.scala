@@ -40,9 +40,9 @@ object Reconnect {
         // without it, users will keep getting the stale connection until the connect completes and installs the new one
         def loop: F[Unit] = hs.swap(connect.attempt.memoize).flatMap {
           _.use {
-            case Left(_) => F.canceled
-            case Right(conn) => conn.closeFrame.get.void
-          } *> loop
+            case Left(_) => F.canceled *> F.never[WSFrame.Close]
+            case Right(conn) => conn.closeFrame.get
+          }.flatMap(reconnect(_).ifM(loop, F.unit))
         }
 
         conn

@@ -26,9 +26,11 @@ import org.http4s.client.testkit.WSTestClient
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
 
+import scala.concurrent.duration._
+
 class ReconnectSuite extends Http4sSuite {
 
-  test("reconnects if connection closes") {
+  test("reconnects if requested when connection closes") {
     TestControl.executeEmbed {
       WSTestClient
         .fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
@@ -40,10 +42,18 @@ class ReconnectSuite extends Http4sSuite {
           }
         }
         .flatMap { client =>
-          Reconnect(client.connectHighLevel(WSRequest(Uri())), _ => IO.pure(true)).use { conn =>
-            conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
-              // reconnection happens
-              conn.receive.assertEquals(Some(WSFrame.Text("hello", true)))
+          IO.ref(true).flatMap { shouldReconnect =>
+            Reconnect(
+              client.connectHighLevel(WSRequest(Uri())),
+              _ => shouldReconnect.getAndSet(false),
+            ).use { conn =>
+              conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
+                // reconnection happens
+                conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
+                // no more reconnections
+                IO.sleep(1.second) *>
+                conn.
+            }
           }
         }
     }
