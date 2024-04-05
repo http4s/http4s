@@ -42,12 +42,12 @@ object Reconnect {
           _.use {
             case Left(_) => F.canceled *> F.never[WSFrame.Close]
             case Right(conn) => conn.closeFrame.get
-          }.flatMap(reconnect(_).ifM(loop, F.unit))
+          }.flatMap(reconnect(_).ifM(loop, hs.clear))
         }
 
         conn
           .use(_.liftTo[F].flatMap(_.closeFrame.get))
-          .flatMap(reconnect(_).ifM(loop, F.unit))
+          .flatMap(reconnect(_).ifM(loop, hs.clear))
           .background
           .as(
             hs.get

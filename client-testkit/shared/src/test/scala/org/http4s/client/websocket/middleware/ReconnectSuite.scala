@@ -30,7 +30,7 @@ import scala.concurrent.duration._
 
 class ReconnectSuite extends Http4sSuite {
 
-  test("reconnects if requested when connection closes") {
+  test("reconnects when connection closes if requested") {
     TestControl.executeEmbed {
       WSTestClient
         .fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
@@ -52,7 +52,7 @@ class ReconnectSuite extends Http4sSuite {
                 conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
                 // no more reconnections
                 IO.sleep(1.second) *>
-                conn.
+                conn.receive.intercept[IllegalStateException]
             }
           }
         }
