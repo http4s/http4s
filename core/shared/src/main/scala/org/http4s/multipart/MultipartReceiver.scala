@@ -17,18 +17,43 @@
 package org.http4s.multipart
 
 import cats.Applicative
-import cats.effect.Sync
-import cats.syntax.foldable.*
+import cats.effect.Concurrent
+import cats.syntax.foldable._
 import fs2.io.file.Files
 import org.http4s.DecodeFailure
 import org.http4s.Headers
 import org.http4s.InvalidMessageBodyFailure
 import org.http4s.headers.`Content-Disposition`
-import org.typelevel.ci.*
+import org.typelevel.ci._
 
 trait MultipartReceiver[F[_], A] { self =>
+
+  /** Common supertype for the values decoded from each received part.
+    */
   type Partial
+
+  /** Upon encountering the Headers for a new part, decide how (if at all)
+    * to handle the body of that part.
+    *
+    * Return  a `PartReceiver` wrapped in `Some` to use that receiver to
+    * decode the body of the part.
+    *
+    * Return `None` to indicate the part is unexpected. By default, this will
+    * result in a decode error upon encountering an unexpected part, but by
+    * calling [[ignoreUnexpectedParts]] you can create a MultipartReceiver that
+    * instead discards the body of any unexpected parts, without raising an error.
+    *
+    * @param partHeaders The `Headers` for a `Part` in a `multipart-form-data` request
+    * @return The receiver logic for that part
+    */
   def decide(partHeaders: Headers): Option[PartReceiver[F, Partial]]
+
+  /** At the end of the decoding process, assemble a final result from the individual
+    * part-decode results that were returned by the `decide` method for each part.
+    *
+    * @param partials A list of decoded results as returned by the `decide` method for each part
+    * @return `Right` to indicate a successful result, or `Left` if something went wrong
+    */
   def assemble(partials: List[Partial]): Either[DecodeFailure, A]
 
   def decideOrReject(partHeaders: Headers): PartReceiver[F, Partial] =
@@ -91,7 +116,7 @@ object MultipartReceiver {
       else None
   }
 
-  def auto[F[_]: Sync: Files]: MultipartReceiver[F, Map[String, PartValue]] =
+  def auto[F[_]: Concurrent: Files]: MultipartReceiver[F, Map[String, PartValue]] =
     new MultipartReceiver[F, Map[String, PartValue]] {
       type Partial = (String, PartValue)
       def decide(partHeaders: Headers): Option[PartReceiver[F, Partial]] =

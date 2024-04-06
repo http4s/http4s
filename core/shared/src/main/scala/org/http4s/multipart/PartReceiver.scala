@@ -19,12 +19,12 @@ package org.http4s.multipart
 import cats.Applicative
 import cats.ApplicativeError
 import cats.MonadThrow
+import cats.effect.Concurrent
 import cats.effect.kernel.Resource
 import fs2.Compiler
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
-import fs2.RaiseThrowable
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
@@ -90,7 +90,7 @@ object PartReceiver {
     *
     * The decoding will use UTF-8 unless the part provides a `Content-Type` header indicating otherwise.
     */
-  def bodyText[F[_]](implicit F: RaiseThrowable[F], cmp: Compiler[F, F]): PartReceiver[F, String] =
+  def bodyText[F[_]](implicit F: Concurrent[F]): PartReceiver[F, String] =
     part => Resource.eval(part.bodyText.compile.string).map(Right(_))
 
   /** Creates a PartReceiver which writes the part body to a temporary file, then returns that file's `Path`. */

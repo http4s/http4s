@@ -21,7 +21,7 @@ import cats.data.EitherT
 import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.std.Supervisor
-import cats.syntax.all.*
+import cats.syntax.all._
 import fs2.Collector
 import fs2.Pipe
 import fs2.Stream
