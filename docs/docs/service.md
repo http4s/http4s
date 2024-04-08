@@ -11,7 +11,7 @@ scalaVersion := "2.13.8" // Also supports 2.12.x and 3.x
 val http4sVersion = "@VERSION@"
 
 // Only necessary for SNAPSHOT releases
-resolvers += Resolver.sonatypeRepo("snapshots")
+resolvers += Resolver.sonatypeOssRepos("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,
