@@ -25,6 +25,7 @@ object Http4sSitePlugin extends AutoPlugin {
     mdocVariables ++= Map(
       "CIRCE_VERSION" -> Http4sPlugin.V.circe,
       "CRYPTOBITS_VERSION" -> Http4sPlugin.V.cryptobits,
+      "SCALA213_VERSION" -> Http4sPlugin.scala_213
     ),
     mdocVariables ++= {
       val latest = Http4sPlugin.latestPerMinorVersion(baseDirectory.value)
