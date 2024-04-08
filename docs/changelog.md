@@ -3,7 +3,56 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.23.25 (2023-01-03)
+# v0.23.26 (2024-03-04)
+
+## What's Changed
+
+### http4s-ember-server
+* Log errors in `upgradeSocket` by @froth in https://github.com/http4s/http4s/pull/7363
+* Ember: return HTTP 431 when maxHeaderSize is exceeded by @rossabaker in https://github.com/http4s/http4s/pull/7399
+
+### Documentation
+* Add OptionalMultiQueryParamDecoderMatcher Documentation by @kejifasuyi in https://github.com/http4s/http4s/pull/7357
+* Fix the outdated code snippet in the client dsl scaladoc by @danicheg in https://github.com/http4s/http4s/pull/7381
+
+### Upgrades
+* Update keypool to 0.4.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7364
+* Update fs2-core, fs2-io to 3.9.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7367
+* Update ip4s-core, ip4s-test-kit to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7376
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client, ... to 0.23.25 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7353
+* Fix labelling PRs for the `client-testkit` module by @danicheg in https://github.com/http4s/http4s/pull/7354
+* Refactor `release.yml` by @danicheg in https://github.com/http4s/http4s/pull/7355
+* Update sbt-scalajs, scalajs-compiler, ... to 1.15.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7358
+* Update netty-buffer, netty-codec-http to 4.1.105.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7361
+* Update cats-effect, cats-effect-std, ... to 3.5.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7360
+* Update netty-buffer, netty-codec-http to 4.1.106.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7365
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7368
+* Update nscplugin, sbt-scala-native, ... to 0.4.17 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7366
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7371
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7374
+* Update Java-WebSocket to 1.5.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7375
+* Update munit to 1.0.0-M11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7373
+* Update jnr-unixsocket to 0.38.22 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7380
+* Update netty-buffer, netty-codec-http to 4.1.107.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7378
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7377
+* Update sbt-scoverage to 2.0.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7379
+* Update scalafmt-core to 3.8.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7383
+* Update sbt to 1.9.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7384
+* Update sbt-scoverage to 2.0.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7385
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7392
+* Update sbt-http4s-org to 0.16.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7393
+* Update scala3-library, ... to 3.3.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7394
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7402
+
+## New Contributors
+* @kejifasuyi made their first contribution in https://github.com/http4s/http4s/pull/7357
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.25...v0.23.26
+
+# v0.23.25 (2024-01-03)
 
 Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` from `45s` to `60s`. See the [PR](https://github.com/http4s/http4s/pull/7329) and [related issue](https://github.com/http4s/http4s/issues/7327) for details.
 
