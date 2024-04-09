@@ -217,12 +217,12 @@
         <p>This tutorial will walk you through creating your first http4s service
         and calling it with http4s&#39; client.</p>
         <p>Create a new directory, with the following build.sbt in the root:</p>
-        <pre><code class="nohighlight"><span class="identifier">scalaVersion</span><span> := </span><span class="string-literal">&quot;2.13.8&quot;</span><span> </span><span class="comment">// Also supports 2.12.x and 3.x
+        <pre><code class="nohighlight"><span class="identifier">scalaVersion</span><span> := </span><span class="string-literal">&quot;2.13.12&quot;</span><span> </span><span class="comment">// Also supports 2.12.x and 3.x
 </span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">http4sVersion</span><span> = </span><span class="string-literal">&quot;0.23.26&quot;</span><span>
 
 </span><span class="comment">// Only necessary for SNAPSHOT releases
-</span><span class="identifier">resolvers</span><span> += </span><span class="type-name">Resolver</span><span>.</span><span class="identifier">sonatypeRepo</span><span>(</span><span class="string-literal">&quot;snapshots&quot;</span><span>)
+</span><span class="identifier">resolvers</span><span> += </span><span class="type-name">Resolver</span><span>.</span><span class="identifier">sonatypeOssRepos</span><span>(</span><span class="string-literal">&quot;snapshots&quot;</span><span>)
 
 </span><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-dsl&quot;</span><span> % </span><span class="identifier">http4sVersion</span><span>,
