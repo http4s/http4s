@@ -21,10 +21,10 @@ import cats.ApplicativeError
 import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.kernel.Resource
+import fs2.Chunk
 import fs2.Compiler
 import fs2.Pipe
 import fs2.Pull
-import fs2.Pure
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
@@ -173,16 +173,18 @@ object PartReceiver {
       maxSizeBeforeFile: Int,
       chunkSize: Int,
   )(implicit c: Compiler[F, F]): Resource[F, Stream[F, Byte]] = {
-    final case class Acc(bytes: Stream[Pure, Byte], bytesSize: Int)
-    def go(acc: Acc, s: Stream[F, Byte]): Pull[F, Resource[F, Stream[F, Byte]], Unit] =
+    def go(acc: Chunk[Byte], s: Stream[F, Byte]): Pull[F, Resource[F, Stream[F, Byte]], Unit] =
       s.pull.uncons.flatMap {
         case Some((headChunk, tail)) =>
-          val newSize = acc.bytesSize + headChunk.size
-          val newBytes = acc.bytes ++ Stream.chunk(headChunk)
-          if (newSize > maxSizeBeforeFile) {
-            // dump accumulated buffer to a temp file and continue
-            // the pull, writing chunks to the file instead of accumulating
-            val toDump = newBytes ++ tail
+          // Append the incoming chunk of bytes to the accumulator
+          // (should be cheap to do so thanks to Chunk's Queue encoding).
+          // If the resulting buffer exceeds the threshold size, dump
+          // it all to a temp file, along with any remaining bytes from
+          // the `tail` stream. Otherwise, continue pulling and accumulating
+          // the in-memory buffer.
+          val newBytes = acc ++ headChunk
+          if (newBytes.size > maxSizeBeforeFile) {
+            val toDump = Stream.chunk(newBytes) ++ tail
             Pull.output1(
               Files[F].tempFile
                 .evalTap { path =>
@@ -191,16 +193,14 @@ object PartReceiver {
                 .map(Files[F].readAll(_, chunkSize, Flags.Read))
             )
           } else {
-            // add the incoming chunk to the in-memory buffer and recurse
-            val newAcc = Acc(acc.bytes ++ Stream.chunk(headChunk), newSize)
-            go(newAcc, tail)
+            go(newBytes, tail)
           }
 
         case None =>
-          Pull.output1(Resource.pure(acc.bytes.covary[F]))
+          Pull.output1(Resource.pure(Stream.chunk[F, Byte](acc)))
       }
     Resource.suspend {
-      go(Acc(Stream.empty, 0), input).stream.compile.lastOrError
+      go(Chunk.empty, input).stream.compile.lastOrError
     }
   }
 }
