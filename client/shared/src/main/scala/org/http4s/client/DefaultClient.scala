@@ -88,7 +88,11 @@ private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[
     Stream.eval(req).flatMap(stream).flatMap(f)
 
   private def reqWithMediaRangeAndQValue[A](req: Request[F], d: EntityDecoder[F, A]) =
-    d.consumes.toList.toNel.fold(req)(m => req.addHeader(Accept(m.map(MediaRangeAndQValue(_)))))
+    d.consumes.toList match {
+      case head :: next =>
+        req.addHeader(Accept(NonEmptyList(head, next).map(MediaRangeAndQValue(_))))
+      case Nil => req
+    }
 
   def expectOr[A](
       req: Request[F]
