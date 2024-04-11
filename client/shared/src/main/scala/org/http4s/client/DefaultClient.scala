@@ -26,6 +26,7 @@ import fs2.Stream
 import org.http4s.Status.Successful
 import org.http4s.headers.Accept
 import org.http4s.headers.MediaRangeAndQValue
+import cats.data.NonEmptyList
 
 private[http4s] abstract class DefaultClient[F[_]](implicit F: MonadCancelThrow[F])
     extends Client[F] {
