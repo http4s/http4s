@@ -20,7 +20,6 @@ import cats.kernel.laws.discipline.EqTests
 import cats.syntax.show._
 import org.http4s.laws.discipline.HttpCodecTests
 import org.http4s.laws.discipline.arbitrary._
-import org.http4s.syntax.all._
 
 class MediaTypeSuite extends Http4sSuite {
   checkAll("Eq[MediaType]", EqTests[MediaType].eqv)

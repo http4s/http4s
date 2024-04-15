@@ -41,6 +41,7 @@ import scala.util.control.NoStackTrace
 package object internal extends InternalPlatform {
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
 
@@ -75,9 +76,11 @@ package object internal extends InternalPlatform {
     iterateData(out, l)
   }
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
     decodeHex(data.toCharArray)
 
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private object HexDecodeException extends Exception with NoStackTrace
 
   /** Dirty, optimized hex decoding based off of apache
@@ -86,6 +89,7 @@ package object internal extends InternalPlatform {
     * @param data
     * @return
     */
+  @deprecated("Will be removed in 1.0.", "0.23.19")
   private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
     def toDigit(ch: Char): Int = {
       val digit = Character.digit(ch, 16)
@@ -97,24 +101,26 @@ package object internal extends InternalPlatform {
 
     val len = data.length
     if ((len & 0x01) != 0) None
-    val out = new Array[Byte](len >> 1)
-    var f: Int = -1
-    // two characters form the hex value.
-    try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xff).toByte
+    else {
+      val out = new Array[Byte](len >> 1)
+      var f: Int = -1
+      // two characters form the hex value.
+      try {
+        var i = 0
+        var j = 0
+        while (j < len) {
+          f = toDigit(data(j)) << 4
+          j += 1
+          f = f | toDigit(data(j))
+          j += 1
+          out(i) = (f & 0xff).toByte
 
-        i += 1
+          i += 1
+        }
+        Some(out)
+      } catch {
+        case HexDecodeException => None
       }
-      Some(out)
-    } catch {
-      case HexDecodeException => None
     }
   }
 
@@ -199,10 +205,10 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, true)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow =>
                 def flushLoop: Pull[F, String, Unit] =
-                  decoder.flush(charBuffer) match {
+                  (decoder.flush(charBuffer): @unchecked) match {
                     case result if result.isUnderflow =>
                       out
                     case result if result.isOverflow =>
@@ -222,7 +228,7 @@ package object internal extends InternalPlatform {
             byteBuffer.flip()
             val result = decoder.decode(byteBuffer, charBuffer, false)
             byteBuffer.compact()
-            result match {
+            (result: @unchecked) match {
               case _ if result.isUnderflow || result.isOverflow =>
                 out.as(Some(stream))
               case _ if result.isMalformed =>

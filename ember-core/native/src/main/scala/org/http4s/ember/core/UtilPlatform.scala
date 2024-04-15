@@ -32,9 +32,11 @@ private[core] trait UtilPlatform {
   def mkClientTLSParameters(
       address: Option[SocketAddress[Host]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): TLSParameters =
     TLSParameters(
-      serverName = address.map(a => extractHostname(a.host))
+      serverName =
+        if (enableServerNameIndication) address.map(a => extractHostname(a.host)) else None
     ) // TODO how to enable endpoint validation?
 
   @tailrec

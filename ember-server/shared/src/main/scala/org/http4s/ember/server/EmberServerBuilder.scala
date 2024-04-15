@@ -29,6 +29,7 @@ import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
 import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
+import org.http4s.ember.core.EmberException
 import org.http4s.ember.server.internal.ServerHelpers
 import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Ip4sServer
@@ -43,6 +44,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
     private val sgOpt: Option[SocketGroup[F]],
+    private val connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
     val maxConnections: Int,
@@ -55,6 +57,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     private val logger: Logger[F],
     private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
+    private val requestLineParseErrorHandler: Throwable => F[Response[F]],
+    private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
 ) { self =>
 
   @deprecated("Use org.http4s.ember.server.EmberServerBuilder.maxConnections", "0.22.3")
@@ -66,6 +70,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       httpApp: WebSocketBuilder2[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
       sgOpt: Option[SocketGroup[F]] = self.sgOpt,
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]] = self.connectionErrorHandler,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
       maxConnections: Int = self.maxConnections,
@@ -79,6 +84,9 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
         self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
+      requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
+        self.maxHeaderSizeErrorHandler,
   ): EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = host,
@@ -86,6 +94,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       httpApp = httpApp,
       tlsInfoOpt = tlsInfoOpt,
       sgOpt = sgOpt,
+      connectionErrorHandler = connectionErrorHandler,
       errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
       maxConnections = maxConnections,
@@ -98,6 +107,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       logger = logger,
       unixSocketConfig = unixSocketConfig,
       enableHttp2 = enableHttp2,
+      requestLineParseErrorHandler = requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler,
     )
 
   def withHostOption(host: Option[Host]): EmberServerBuilder[F] = copy(host = host)
@@ -126,6 +137,17 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withShutdownTimeout(shutdownTimeout: Duration): EmberServerBuilder[F] =
     copy(shutdownTimeout = shutdownTimeout)
 
+  /** Called when an error occurs while attempting to read a connection.
+    *
+    * For example on JVM `javax.net.ssl.SSLException` may be thrown if the client doesn't speak SSL.
+    *
+    * If the [[scala.PartialFunction]] does not match the error is just logged.
+    */
+  def withConnectionErrorHandler(
+      errorHandler: PartialFunction[Throwable, F[Unit]]
+  ): EmberServerBuilder[F] =
+    copy(connectionErrorHandler = errorHandler)
+
   @deprecated("Use withErrorHandler - Do not allow the F to fail", "0.21.17")
   def withOnError(onError: Throwable => Response[F]): EmberServerBuilder[F] =
     withErrorHandler { case e => onError(e).pure[F] }
@@ -149,8 +171,22 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def withReceiveBufferSize(receiveBufferSize: Int): EmberServerBuilder[F] =
     copy(receiveBufferSize = receiveBufferSize)
+
   def withMaxHeaderSize(maxHeaderSize: Int): EmberServerBuilder[F] =
     copy(maxHeaderSize = maxHeaderSize)
+
+  /** Customizes the error response when the request's header fields
+    * exceed `maxHeaderSize`.  The default behavior is to return an
+    * `431 Request Header Fields Too Large` response.
+    *
+    * @see [[https://www.rfc-editor.org/rfc/rfc9110.html#name-field-limits RFC 9110, Section 5.4]]
+    * @see [[https://www.rfc-editor.org/rfc/rfc6585.html#section-5 RFC 6585, Section 5]]
+    */
+  def withMaxHeaderSizeErrorHandler(
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]]
+  ): EmberServerBuilder[F] =
+    copy(maxHeaderSizeErrorHandler = maxHeaderSizeErrorHandler)
+
   def withRequestHeaderReceiveTimeout(
       requestHeaderReceiveTimeout: Duration
   ): EmberServerBuilder[F] =
@@ -176,6 +212,23 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   ): EmberServerBuilder[F] =
     copy(additionalSocketOptions = additionalSocketOptions)
 
+  /** An error handler which will run in cases where the server is unable to
+    * parse the "start-line" (http 2 name) or "request-line" (http 1.1
+    * name). This is the first line of the request, e.g. "GET / HTTP/1.1".
+    *
+    * In this case, RFC 9112 (HTTP 2) says a 400 should be returned.
+    *
+    * This handler allows for configuring the behavior. The default as of
+    * 0.23.19 is to return a 400.
+    *
+    * @see [[https://www.rfc-editor.org/rfc/rfc9112#section-2.2-9 RFC 9112]]
+    * @see [[https://www.rfc-editor.org/rfc/rfc7230 RFC 7230]]
+    */
+  def withRequestLineParseErrorHandler(
+      requestLineParseErrorHandler: Throwable => F[Response[F]]
+  ): EmberServerBuilder[F] =
+    copy(requestLineParseErrorHandler = requestLineParseErrorHandler)
+
   def build: Resource[F, Server] =
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
@@ -194,6 +247,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               tlsInfoOpt,
               ready,
               shutdown,
+              connectionErrorHandler,
               errorHandler,
               onWriteFailure,
               maxConnections,
@@ -204,6 +258,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               logger,
               wsBuilder.webSocketKey,
               enableHttp2,
+              requestLineParseErrorHandler,
+              maxHeaderSizeErrorHandler,
             )
             .compile
             .drain
@@ -219,6 +275,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             tlsInfoOpt,
             ready,
             shutdown,
+            connectionErrorHandler,
             errorHandler,
             onWriteFailure,
             maxConnections,
@@ -229,6 +286,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             logger,
             wsBuilder.webSocketKey,
             enableHttp2,
+            requestLineParseErrorHandler,
+            maxHeaderSizeErrorHandler,
           )
           .compile
           .drain
@@ -251,6 +310,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
       sgOpt = None,
+      connectionErrorHandler = Defaults.connectionErrorHandler[F],
       errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],
       maxConnections = Defaults.maxConnections,
@@ -261,8 +321,10 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       shutdownTimeout = Defaults.shutdownTimeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       logger = defaultLogger[F],
-      None,
-      false,
+      unixSocketConfig = None,
+      enableHttp2 = false,
+      requestLineParseErrorHandler = Defaults.requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
     )
 
   @deprecated("Use the overload which accepts a Network", "0.23.16")
@@ -277,6 +339,10 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
 
     private val serverFailure =
       Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
+    def connectionErrorHandler[F[_]]: PartialFunction[Throwable, F[Unit]] =
+      PartialFunction.empty[Throwable, F[Unit]]
+
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
     def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case (_: Throwable) =>
@@ -288,6 +354,24 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       serverFailure.covary[F]
     }
 
+    def requestLineParseErrorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case _ =>
+      Response(
+        Status.BadRequest,
+        HttpVersion.`HTTP/1.1`,
+        Headers(org.http4s.headers.`Content-Length`.zero),
+      ).pure[F]
+    }
+
+    def maxHeaderSizeErrorHandler[F[_]: Applicative]
+        : EmberException.MessageTooLong => F[Response[F]] =
+      Function.const(
+        Response(
+          Status.RequestHeaderFieldsTooLarge,
+          HttpVersion.`HTTP/1.1`,
+          Headers(org.http4s.headers.`Content-Length`.zero),
+        ).pure[F]
+      )
+
     def onWriteFailure[F[_]: Applicative]
         : (Option[Request[F]], Response[F], Throwable) => F[Unit] = {
       case _: (Option[Request[F]], Response[F], Throwable) => Applicative[F].unit
@@ -296,7 +380,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
     val receiveBufferSize: Int = 256 * 1024
     val maxHeaderSize: Int = server.defaults.MaxHeadersSize
     val requestHeaderReceiveTimeout: Duration = 5.seconds
-    val idleTimeout: Duration = server.defaults.IdleTimeout
+    val idleTimeout: Duration = org.http4s.ember.core.Defaults.IdleTimeout
     val shutdownTimeout: Duration = server.defaults.ShutdownTimeout
     val additionalSocketOptions: List[SocketOption] = Nil
   }

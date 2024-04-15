@@ -49,7 +49,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -68,7 +68,7 @@ class EntityLimiterSuite extends Http4sSuite {
       st.apply(Request[IO](POST, uri"/echo", body = b))
         .map(_ => -1L)
         .value
-        .handleError { case EntityTooLarge(i) => Some(i) }
+        .recover { case EntityTooLarge(i) => Some(i) }
         .assertEquals(Some(3L))
   }
 
@@ -78,7 +78,7 @@ class EntityLimiterSuite extends Http4sSuite {
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
       .value
-      .handleError { case EntityTooLarge(i) => Some(i) }
+      .recover { case EntityTooLarge(i) => Some(i) }
       .assertEquals(Some(3L))
   }
 
@@ -89,7 +89,43 @@ class EntityLimiterSuite extends Http4sSuite {
       .httpApp(app, 3L)
       .apply(Request[IO](POST, uri"/echo", body = b))
       .map(_ => -1L)
-      .handleError { case EntityTooLarge(i) => i }
+      .recover { case EntityTooLarge(i) => i }
       .assertEquals(3L)
+  }
+
+  test("Accept an appropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.empty[IO]))
+      .void
+  }
+
+  test("Reject an innapropriately sized streaming body") {
+    val app: HttpApp[IO] = routes.orNotFound
+
+    EntityLimiter
+      .httpApp(app, 5L)
+      .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.eval(IO[Byte](0))))
+      .as(-1L)
+      .recover { case EntityTooLarge(i) => i }
+      .assertEquals(5L)
+  }
+
+  test("Acually limit the bytes prior to raising error") {
+    IO.ref(0L).flatMap { counter => // count how many bytes are observed by the app
+      def middleware(r: Request[IO]) =
+        r.pipeBodyThrough(_.evalTap(_ => counter.getAndUpdate(_ + 1)))
+      val app: HttpApp[IO] =
+        routes.local(middleware).orNotFound
+
+      EntityLimiter
+        .httpApp(app, 5L)
+        .apply(Request[IO](POST, uri"/echo", body = b ++ Stream.eval(IO[Byte](0))))
+        .as(-1L)
+        .recover { case EntityTooLarge(i) => i }
+        .assertEquals(5L) *> counter.get.assertEquals(5L)
+    }
   }
 }

@@ -113,8 +113,8 @@ trait QueryOps {
       replaceQuery(newQuery)
     }
 
-  /** Creates maybe a new `Self` with the specified parameters. The entire
-    * [[Query]] will be replaced with the given one.
+  /** Creates maybe a new `Self` with the specified parameters.
+    * If any of the given parameters' keys already exists, the value(s) will be replaced.
     */
   def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](
       params: Map[K, collection.Seq[T]]

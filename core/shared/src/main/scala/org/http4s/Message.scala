@@ -397,6 +397,22 @@ final class Request[F[_]] private (
   def asCurl(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains): String =
     CurlConverter.requestToCurlWithoutBody(this, redactHeadersWhen)
 
+  /** cURL representation of the request and a new request
+    *
+    * Supported cURL-Parameters are: --request, --url, --header --data.
+    * Note that `asCurlWith` will print the request body, which may have privacy implications.
+    *
+    * This method will consume the body create a new request with the cached body to avoid issues
+    * this may cause, which may consume large amounts of memory to cache a request that streams a
+    * large amount of data.
+    */
+  def asCurlWithBody(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
+      implicit
+      concurrent: Concurrent[F],
+      defaultCharset: Charset = Charset.`UTF-8`,
+  ): F[(String, Request[F])] =
+    CurlConverter.requestToCurlWithBody(this, redactHeadersWhen)
+
   /** Representation of the query string as a map
     *
     * In case a parameter is available in query string but no value is there the

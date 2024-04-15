@@ -107,6 +107,11 @@ object WebSocketFrame {
         (data(0) << 8 & 0xff00) | (data(1) & 0xff) // 16-bit unsigned
       else 1005 // No code present
 
+    def reason: String =
+      if (data.length > 2)
+        new String(data.drop(2).toArray, UTF_8)
+      else ""
+
     override def toString: String =
       if (data.length > 0) s"Close(Array(${data.length}))"
       else s"Close"

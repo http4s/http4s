@@ -25,5 +25,5 @@ private[http4s] object Platform {
   final val isNative = false
 
   lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] =
-    log4cats.slf4j.loggerFactoryforSync[SyncIO]
+    log4cats.slf4j.Slf4jFactory.create[SyncIO]
 }

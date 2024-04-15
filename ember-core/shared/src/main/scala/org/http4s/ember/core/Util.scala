@@ -21,6 +21,7 @@ import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Clock
 import cats.effect.kernel.Temporal
+import cats.effect.syntax.clock._
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
@@ -28,6 +29,7 @@ import org.http4s.headers.Connection
 import org.typelevel.ci._
 
 import java.time.Instant
+import java.util.Arrays
 import java.util.Locale
 import scala.concurrent.duration._
 
@@ -65,6 +67,7 @@ private[ember] object Util extends UtilPlatform {
   )(implicit F: ApplicativeThrow[F], C: Clock[F]): Stream[F, Byte] = {
     def whenWontTimeout: Stream[F, Byte] =
       socket.reads
+
     def whenMayTimeout(remains: FiniteDuration): Stream[F, Byte] =
       if (remains <= 0.millis)
         streamCurrentTimeMillis(C)
@@ -75,15 +78,13 @@ private[ember] object Util extends UtilPlatform {
           )
       else
         for {
-          start <- streamCurrentTimeMillis(C)
-          read <- Stream.eval(socket.read(chunkSize)) //  Each Read Yields
-          end <- streamCurrentTimeMillis(C)
-          out <- read.fold[Stream[F, Byte]](
-            Stream.empty
-          )(
-            Stream.chunk(_) ++ go(remains - (end - start).millis)
-          )
+          (processingTime, read) <- Stream.eval(socket.read(chunkSize).timed) //  Each Read Yields
+          out <- read match {
+            case None => Stream.empty
+            case Some(chunk) => Stream.chunk(chunk) ++ go(remains - processingTime)
+          }
         } yield out
+
     def go(remains: FiniteDuration): Stream[F, Byte] =
       Stream
         .eval(shallTimeout)
@@ -91,6 +92,7 @@ private[ember] object Util extends UtilPlatform {
           whenMayTimeout(remains),
           whenWontTimeout,
         )
+
     go(timeout)
   }
 
@@ -128,5 +130,21 @@ private[ember] object Util extends UtilPlatform {
       case _ => sys.error("unsupported http version")
     }
   }
+
+  def concatBytes(a1: Array[Byte], a2: Chunk[Byte]): Array[Byte] =
+    if (a1.length == 0) {
+      a2 match {
+        case slice: Chunk.ArraySlice[Byte]
+            if slice.values.isInstanceOf[Array[Byte]] &&
+              slice.offset == 0 &&
+              slice.values.length == slice.length =>
+          slice.values
+        case _ => a2.toArray
+      }
+    } else {
+      val res = Arrays.copyOf(a1, a1.length + a2.size)
+      a2.copyToArray(res, a1.length)
+      res
+    }
 
 }

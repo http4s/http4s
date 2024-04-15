@@ -22,7 +22,7 @@ import cats.syntax.all._
 import fs2.io.net._
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.core.h2._
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 
 object EmberClientH2Example extends IOApp {
@@ -46,7 +46,7 @@ object EmberClientH2Example extends IOApp {
       Applicative[F].pure(Outcome.succeeded(Applicative[F].unit))
     }
 
-    def test[F[_]: Async]: F[Unit] =
+    def test[F[_]: Async: Network]: F[Unit] =
       Resource
         .eval(Network[F].tlsContext.insecure)
         .flatMap { tls =>
@@ -73,7 +73,7 @@ object EmberClientH2Example extends IOApp {
                   uri = uri"http://localhost:8080/trailers",
                   // uri = uri"https://www.nikkei.com/" // PUSH PROMISES
                 )
-                .withAttribute(H2Keys.Http2PriorKnowledge, ())
+                .withAttribute(Http2PriorKnowledge, ())
                 .putHeaders(Headers("trailers" -> "x-test-client"))
                 .withTrailerHeaders(Headers("x-test-client" -> "client-info").pure[F])
             )

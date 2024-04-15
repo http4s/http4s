@@ -24,35 +24,56 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.client.middleware.UnixSocket
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
 import scala.concurrent.duration._
 
 class EmberUnixSocketSuite extends Http4sSuite {
 
-  test("Should be able to connect to a server created") {
-    def app = HttpApp.liftF(Response[IO](Status.Ok).withEntity("Hello Unix Sockets!").pure[IO])
-    val test = for {
-      path <- Files[IO].tempFile(None, "", "sock", None)
-      _ <- Resource.eval(Files[IO].deleteIfExists(path))
-      localSocket = UnixSocketAddress(path.toString)
-      _ <- EmberServerBuilder
-        .default[IO]
-        .withUnixSocketConfig(UnixSockets[IO], localSocket)
-        .withHttpApp(app)
-        .build
-      client <- EmberClientBuilder
-        .default[IO]
-        .withUnixSockets(UnixSockets[IO])
-        .build
-        .map(UnixSocket(localSocket))
-      _ <- Resource.eval(IO.sleep(4.seconds))
-      resp <- client.run(Request[IO](Method.GET))
-      body <- Resource.eval(resp.bodyText.compile.string)
-    } yield {
-      assertEquals(resp.status, Status.Ok)
-      assertEquals(body, "Hello Unix Sockets!")
+  def run(
+      setupServer: EmberServerBuilder[IO] => EmberServerBuilder[IO],
+      setupClient: EmberClientBuilder[IO] => EmberClientBuilder[IO],
+      setupRequest: Request[IO] => Request[IO],
+  ): IO[Unit] = {
+
+    val msg = "Hello Unix Sockets!"
+
+    def app = HttpApp.liftF(Response[IO](Status.Ok).withEntity(msg).pure[IO])
+
+    Files[IO].tempFile(None, "", "sock", None).use { path =>
+      val localSocket = UnixSocketAddress(path.toString)
+
+      val server = setupServer(
+        EmberServerBuilder
+          .default[IO]
+          .withUnixSocketConfig(UnixSockets[IO], localSocket)
+          .withShutdownTimeout(1.second)
+          .withHttpApp(app)
+      ).build
+
+      val client = setupClient(
+        EmberClientBuilder
+          .default[IO]
+          .withUnixSockets(UnixSockets[IO])
+      ).build.map(UnixSocket(localSocket))
+
+      val request = setupRequest(Request[IO](Method.GET))
+
+      Files[IO].deleteIfExists(path) *>
+        (server *> client).use { client =>
+          IO.sleep(4.seconds) *>
+            client.expect[String](request).assertEquals(msg) *>
+            client.expect[String](request).assertEquals(msg)
+        }
     }
-    test.use(_ => ().pure[IO])
+  }
+
+  test("http/1.1") {
+    run(identity(_), identity(_), identity(_))
+  }
+
+  test("http/2") {
+    run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 
 }

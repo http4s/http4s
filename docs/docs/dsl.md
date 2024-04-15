@@ -128,6 +128,25 @@ HttpRoutes.of[IO] {
   case _ => NoContent()
 }.orNotFound.run(getRoot).unsafeRunSync()
 ```
+Some other examples are:
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Conflict()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Created()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
+
+```scala mdoc
+HttpRoutes.of[IO] {
+  case _ => Forbidden()
+}.orNotFound.run(getRoot).unsafeRunSync()
+```
 
 ### Headers
 
@@ -551,6 +570,28 @@ val routes = HttpRoutes.of[IO] {
         Ok(getAverageTemperatureForCurrentYear)
       case Some(year) =>
         Ok(getAverageTemperatureForYear(year))
+    }
+}
+```
+
+#### Optional Multiple Query Paramters
+To accept multiple query parameters that are also optional, a `OptionalMultiQueryParamDecoderMatcher` can be used.
+
+```scala mdoc:nest
+object OptionalMultiColorQueryParam
+      extends OptionalMultiQueryParamDecoderMatcher[String]("maybeColors")
+
+def getProductsOfMaybeColors(maybeColors: List[String]): IO[String] = ???
+
+val routes = HttpRoutes.of[IO] {
+  case GET -> Root / "products" :? OptionalMultiColorQueryParam(maybeColors) =>
+
+    val _: cats.data.ValidatedNel[org.http4s.ParseFailure, List[String]] = maybeColors
+
+    maybeColors match {
+      case cats.data.Validated.Invalid(e) =>
+        BadRequest(s"Parse Error(s): ${e.toList.map(_.message).mkString(", ")}")
+      case cats.data.Validated.Valid(a) => Ok(getProductsOfMaybeColors(a))
     }
 }
 ```

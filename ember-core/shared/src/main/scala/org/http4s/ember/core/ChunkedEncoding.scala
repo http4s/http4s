@@ -32,8 +32,10 @@ import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
 import cats.syntax.all._
 import fs2._
+import org.http4s.internal.appendSanitized
 import scodec.bits.ByteVector
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 import Shared._
@@ -120,15 +122,15 @@ private[ember] object ChunkedEncoding {
   private def parseTrailers[F[_]: MonadThrow](
       maxHeaderSize: Int
   )(buffer: Array[Byte], read: F[Option[Chunk[Byte]]]): F[Trailers] =
-    if (buffer.startsWith(Shared.crlf.toArray)) {
-      Trailers(Headers.empty, buffer.drop(crlf.size.toInt)).pure[F]
-    } else if (buffer.length < 2) {
+    if (buffer.length < 2) {
       read.flatMap {
         case None =>
           MonadThrow[F].raiseError(EmberException.ReachedEndOfStream())
         case Some(chunk) =>
-          parseTrailers(maxHeaderSize)(buffer ++ chunk.toArray[Byte], read)
+          parseTrailers(maxHeaderSize)(Util.concatBytes(buffer, chunk), read)
       }
+    } else if (buffer(0) == '\r' && buffer(1) == '\n') {
+      Trailers(Headers.empty, buffer.drop(2)).pure[F]
     } else {
       Parser.MessageP
         .recurseFind(buffer, read, maxHeaderSize, Parser.HeaderP.ParserState.initial)(
@@ -140,20 +142,44 @@ private[ember] object ChunkedEncoding {
     }
 
   private[this] val lastChunk: Stream[fs2.Pure, Byte] = {
-    val bytes = Array[Byte]('0', '\r', '\n', '\r', '\n')
+    val bytes = Array[Byte]('0', '\r', '\n')
+    Stream.chunk(Chunk.array(bytes))
+  }
+
+  private[this] val finalCrlf: Stream[fs2.Pure, Byte] = {
+    val bytes = Array[Byte]('\r', '\n')
     Stream.chunk(Chunk.array(bytes))
   }
 
   /** Encodes chunk of bytes to http chunked encoding.
     */
-  def encode[F[_]]: Pipe[F, Byte, Byte] = {
+  def encode[F[_]: Functor](trailers: F[Headers]): Pipe[F, Byte, Byte] = {
     def encodeChunk(bv: ByteVector): Chunk[Byte] =
-      Chunk.byteVector(
-        ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
-      )
-    _.mapChunks { ch =>
-      encodeChunk(ch.toByteVector)
-    } ++ lastChunk
+      if (bv.isEmpty) Chunk.empty
+      else
+        Chunk.byteVector(
+          ByteVector.view(bv.size.toHexString.toUpperCase.getBytes) ++ crlf ++ bv ++ crlf
+        )
+    _.mapChunks(ch => encodeChunk(ch.toByteVector)) ++
+      lastChunk ++
+      Stream.evalUnChunk(trailers.map(encodeTrailers(_))) ++
+      finalCrlf
+  }
+
+  private def encodeTrailers(trailers: Headers): Chunk[Byte] = {
+    val stringBuilder = new StringBuilder()
+
+    trailers.foreach { h =>
+      if (h.isNameValid) {
+        stringBuilder
+          .append(h.name)
+          .append(": ")
+        appendSanitized(stringBuilder, h.value)
+        stringBuilder.append("\r\n")
+      }
+    }
+
+    Chunk.array(stringBuilder.toString.getBytes(StandardCharsets.ISO_8859_1))
   }
 
   /** yields to size of header in case the chunked header was succesfully parsed, else yields to None */

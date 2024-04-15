@@ -23,9 +23,9 @@ import fs2.Stream
 import fs2.io.net.BindException
 import fs2.io.net.ConnectException
 import org.http4s._
-import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 import org.http4s.server.Server
 
@@ -33,24 +33,25 @@ import scala.concurrent.duration._
 
 class EmberServerSuite extends Http4sSuite {
 
-  def service[F[_]](implicit F: Async[F]): HttpApp[F] = {
-    val dsl = new Http4sDsl[F] {}
-    import dsl._
+  def service: HttpApp[IO] = {
+    import org.http4s.dsl.io._
 
     HttpRoutes
-      .of[F] {
+      .of[IO] {
         case GET -> Root =>
           Ok("Hello!")
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
         case GET -> Root / "failed-stream" =>
-          Ok(Stream.raiseError[F](new RuntimeException("BOOM")).covaryOutput[String])
+          Ok(Stream.raiseError[IO](new RuntimeException("BOOM")).covaryOutput[String])
       }
       .orNotFound
   }
 
-  def url(address: SocketAddress[Host], path: String = ""): String =
-    s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
+  def url(address: SocketAddress[Host], path: String = ""): Uri =
+    Uri.unsafeFromString(
+      s"http://${Uri.Host.fromIp4sHost(address.host).renderString}:${address.port.value}$path"
+    )
 
   def serverResource(
       f: EmberServerBuilder[IO] => EmberServerBuilder[IO] = identity
@@ -59,7 +60,7 @@ class EmberServerSuite extends Http4sSuite {
       EmberServerBuilder
         .default[IO]
         .withPort(port"0")
-        .withHttpApp(service[IO])
+        .withHttpApp(service)
     ).build
 
   private val client = ResourceFunFixture(EmberClientBuilder.default[IO].build)
@@ -67,7 +68,7 @@ class EmberServerSuite extends Http4sSuite {
   private def server(receiveBufferSize: Int = 256 * 1024) = ResourceFunFixture(
     EmberServerBuilder
       .default[IO]
-      .withHttpApp(service[IO])
+      .withHttpApp(service)
       .withPort(port"0")
       .withReceiveBufferSize(receiveBufferSize)
       .build
@@ -83,9 +84,7 @@ class EmberServerSuite extends Http4sSuite {
   }
 
   fixture().test("connection closed when response body stream fails") { case (server, client) =>
-    import org.http4s.dsl.io._
-    import org.http4s.client.dsl.io._
-    val req = GET(Uri.unsafeFromString(url(server.addressIp4s, "/failed-stream")))
+    val req = Request[IO](uri = url(server.addressIp4s, "/failed-stream"))
     client
       .stream(req)
       .flatMap(_.body)
@@ -133,14 +132,65 @@ class EmberServerSuite extends Http4sSuite {
         Stream.emit("hello").repeatN(256).through(fs2.text.utf8.encode)
       val expected = "hello" * 256
 
-      val uri = Uri
-        .fromString(url(server.addressIp4s, "/echo"))
-        .toOption
-        .get
+      val uri = url(server.addressIp4s, "/echo")
       val request = POST(body, uri)
       for {
         r1 <- client.fetchAs[String](request)
         r2 <- client.fetchAs[String](request)
       } yield assertEquals(expected, r1) && assertEquals(expected, r2)
   }
+
+  client.test("#4935 - client can detect a terminated connection") { client =>
+    def runReq(server: Server) = {
+      val req =
+        Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
+      client.expect[String](req).assertEquals("Hello!")
+    }
+
+    serverResource(_.withShutdownTimeout(0.nanos))
+      .use(server => runReq(server).as(server.addressIp4s.port))
+      .flatMap { port =>
+        IO.sleep(1.second) *> // so server shutdown propagates
+          serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+      }
+  }
+
+  test("#7146 - HTTP/2 request with body") {
+    val server = EmberServerBuilder
+      .default[IO]
+      .withPort(port"0")
+      .withHttp2
+      .withHttpApp(service)
+      .build
+
+    val client = EmberClientBuilder
+      .default[IO]
+      .withHttp2
+      .build
+
+    (server, client).tupled.use { case (server, client) =>
+      val req = Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo"))
+        .withEntity("hello")
+        .withAttribute(Http2PriorKnowledge, ())
+      client.expect[String](req).assertEquals("hello")
+    }
+  }
+
+  test("#7216 - client can replace a terminated connection with max total of 1") {
+    EmberClientBuilder.default[IO].withMaxTotal(1).build.use { client =>
+      def runReq(server: Server) = {
+        val req =
+          Request[IO](Method.POST, uri = url(server.addressIp4s, "/echo")).withEntity("Hello!")
+        client.expect[String](req).assertEquals("Hello!")
+      }
+
+      serverResource(_.withShutdownTimeout(0.nanos))
+        .use(server => runReq(server).as(server.addressIp4s.port))
+        .flatMap { port =>
+          IO.sleep(1.second) *> // so server shutdown propagates
+            serverResource(_.withPort(port).withShutdownTimeout(0.nanos)).use(runReq(_))
+        }
+    }
+  }
+
 }

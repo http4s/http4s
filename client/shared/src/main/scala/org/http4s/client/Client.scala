@@ -18,13 +18,16 @@ package org.http4s
 package client
 
 import cats.data._
-import cats.effect.Ref
 import cats.effect._
+import cats.effect.implicits.genSpawnOps
+import cats.effect.implicits.monadCancelOps_
 import cats.effect.kernel.CancelScope
 import cats.effect.kernel.Poll
+import cats.effect.kernel.Resource
 import cats.syntax.all._
 import cats.~>
 import fs2._
+import fs2.concurrent.Channel
 import org.http4s.headers.Host
 
 import java.io.IOException
@@ -289,16 +292,55 @@ object Client {
       go(source).stream
     }
 
-    def runOrDispose(req: Request[F]): F[Resource[F, Response[F]]] =
-      Ref[F].of(false).map { disposed =>
-        val req0 = addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
+    def processResponse(
+        response: Response[F],
+        disposed: Ref[F, Boolean],
+    ): Resource[F, Response[F]] =
+      for {
+        channel <- Resource.eval(Channel.synchronous[F, Chunk[Byte]])
+
+        producer = response.body.chunks
+          .through(channel.sendAll)
+          .compile
+          .drain
+          .uncancelable
+
+        _ <- Resource.make(producer.start)(p => channel.stream.compile.drain.guarantee(p.join.void))
+
+        r = response.withBodyStream(
+          Stream
+            .eval(disposed.get)
+            .ifM(
+              Stream.raiseError[F](new IOException("response was disposed")),
+              channel.stream.unchunks
+                .onFinalize(
+                  channel.stream.compile.drain
+                    .guarantee(disposed.set(true))
+                ),
+            )
+        )
+
+        _ <- Resource.onFinalize {
+          disposed.get
+            .ifM(
+              F.unit,
+              r.body.compile.drain,
+            )
+        }
+
+      } yield r
+
+    def run(req: Request[F]): Resource[F, Response[F]] =
+      Resource.eval(Ref[F].of(false)).flatMap { disposed =>
+        val reqAugmented =
+          addHostHeaderIfUriIsAbsolute(req.pipeBodyThrough(until(disposed)))
         Resource
-          .eval(app(req0))
+          .eval(app(reqAugmented))
           .onFinalize(disposed.set(true))
-          .map(_.pipeBodyThrough(until(disposed)))
+          .flatMap(processResponse(_, disposed))
       }
 
-    Client((req: Request[F]) => Resource.suspend(runOrDispose(req)))
+    Client(run)
   }
 
   /** This method introduces an important way for the effectful backends to allow tracing. As Kleisli types

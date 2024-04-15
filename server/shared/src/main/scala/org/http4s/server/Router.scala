@@ -98,13 +98,15 @@ object Router {
     dynamic.foldLeft(define(statics: _*)(default))(_ <+> _)
   }
 
+  // it should be used only if the `prefix` corresponds to the `req`'s path
   private[server] def translate[F[_]](prefix: Uri.Path)(req: Request[F]): Request[F] = {
-    val newCaret = req.pathInfo.findSplit(prefix)
-    val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret)
-    val resultCaret = oldCaret |+| newCaret
+    val newCaret = prefix.segments.size
+    val oldCaret = req.attributes.lookup(Request.Keys.PathInfoCaret).getOrElse(0)
+    val resultCaret = oldCaret + newCaret
+
     resultCaret match {
-      case Some(index) => req.withAttribute(Request.Keys.PathInfoCaret, index)
-      case None => req
+      case i if i == 0 => req
+      case index => req.withAttribute(Request.Keys.PathInfoCaret, index)
     }
   }
 }

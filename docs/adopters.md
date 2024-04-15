@@ -3,7 +3,7 @@
 
 ## Industrial
 
-[Banno Group inside of Jack Henry & Associates](https://banno.com)
+[Jack Henry](https://www.jackhenry.com/)
 : Extensively utilizes http4s to deliver mission-critical banking services.
 
 [Cammy](http://www.cammy.com)

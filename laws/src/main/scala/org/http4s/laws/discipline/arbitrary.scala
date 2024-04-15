@@ -39,9 +39,11 @@ import org.scalacheck._
 import org.scalacheck.rng.Seed
 import org.typelevel.ci.CIString
 import org.typelevel.ci.testing.arbitraries._
+import scodec.bits.ByteVector
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
+import java.util.Base64
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.nowarn
@@ -57,7 +59,8 @@ object arbitrary extends ArbitraryInstancesBinCompat0
 )
 object ArbitraryInstances extends ArbitraryInstancesBinCompat0
 
-private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat0 =>
+private[discipline] trait ArbitraryInstances {
+  this: ArbitraryInstancesBinCompat0 =>
 
   implicit private class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -312,7 +315,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
     }
 
   implicit val http4sTestingCogenForContentCoding: Cogen[ContentCoding] =
-    Cogen[String].contramap(_.coding.map(_.toUpper.toLower))
+    Cogen[String].contramap(cc => augmentString(cc.coding).map(_.toUpper.toLower))
 
   // MediaRange expects the quoted pair without quotes
   val http4sGenUnquotedPair: Gen[String] = genQDText
@@ -507,6 +510,20 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield headers.Date(httpDate)
     }
 
+  implicit val http4sTestingArbitraryForDeprecationHeader: Arbitrary[headers.Deprecation] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Deprecation(httpDate)
+    }
+
+  implicit val http4sTestingArbitraryForSunsetHeader: Arbitrary[headers.Sunset] =
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Sunset(httpDate)
+    }
+
   val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
@@ -617,6 +634,25 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       } yield `Transfer-Encoding`(codings)
     }
 
+  implicit val http4sTestingArbitraryForSecWebSocketAcceptHeader
+      : Arbitrary[`Sec-WebSocket-Accept`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](20, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Accept`(_))
+    }
+
+  implicit val http4sTestingArbitraryForSecWebSocketKeyHeader: Arbitrary[`Sec-WebSocket-Key`] =
+    Arbitrary {
+      Gen
+        .containerOfN[Array, Byte](16, getArbitrary[Byte])
+        .map(Base64.getEncoder().encode)
+        .map(ByteVector(_))
+        .map(`Sec-WebSocket-Key`(_))
+    }
+
   implicit val http4sTestingArbitraryForRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
@@ -634,6 +670,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       getArbitrary[String].suchThat { s =>
         !s.contains("\r") && !s.contains("\n")
       }
+
     Arbitrary(
       for {
         data <- frequency(
@@ -778,8 +815,9 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   implicit val http4sTestingAbitraryForPath: Arbitrary[Uri.Path] = Arbitrary {
     val genSegmentNzNc =
-      nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))).map(_.mkString)
-    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
+      nonEmptyListOf[Any](oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@")))
+        .map(_.mkString)
+    val genPChar = oneOf[Any](genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
     val genSegment = listOf(genPChar).map(_.mkString)
     val genPathEmpty = const("")
@@ -798,7 +836,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
 
   /** https://datatracker.ietf.org/doc/html/rfc3986 */
   implicit val http4sTestingArbitraryForUri: Arbitrary[Uri] = Arbitrary {
-    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
+    val genPChar = oneOf[Any](genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
 
     val genFragment: Gen[Uri.Fragment] =
@@ -899,6 +937,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
       mrs <- getArbitrary[Set[MediaRange]]
     } yield new EntityDecoder[F, A] {
       def decode(m: Media[F], strict: Boolean): DecodeResult[F, A] = f(m, strict)
+
       def consumes = mrs
     })
 
@@ -956,7 +995,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
   // These instances are private because they're half-baked and I don't want to encourage external use yet.
   implicit private[http4s] val http4sTestingCogenForDecodeFailure: Cogen[DecodeFailure] =
     Cogen { (seed: Seed, df: DecodeFailure) =>
-      df match {
+      (df: @unchecked) match {
         case MalformedMessageBodyFailure(d, t) =>
           Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
         case InvalidMessageBodyFailure(d, t) =>
@@ -988,6 +1027,7 @@ private[discipline] trait ArbitraryInstances { this: ArbitraryInstancesBinCompat
         case t: Throwable => t.printStackTrace(); throw t
       }
     }
+
   implicit private[http4s] def http4sTestingArbitraryForContextRequest[F[_], A: Arbitrary]
       : Arbitrary[ContextRequest[F, A]] =
     // TODO this is bad because the underlying generators are bad
@@ -1033,7 +1073,9 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForRegName: Arbitrary[Uri.RegName] =
     Arbitrary(
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+      listOf(oneOf[Any](genUnreserved, genPctEncoded, genSubDelims)).map(rn =>
+        Uri.RegName(rn.mkString)
+      )
     )
 
   implicit val http4sTestingCogenForRegName: Cogen[Uri.RegName] =
@@ -1082,7 +1124,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
 
   implicit val http4sTestingArbitraryForKeepAlive: Arbitrary[`Keep-Alive`] = Arbitrary {
     val genExtension = for {
-      extName <- genToken
+      extName <- genToken.filterNot(t => t === "timeout" || t === "max")
       quotedStringEquivWithoutQuotes =
         genQDText // The string parsed out does not have quotes around it.  QuotedPair was generating invalid as well.
       extValue <- Gen.option(Gen.oneOf(quotedStringEquivWithoutQuotes, genToken))
@@ -1118,6 +1160,9 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
   val dntGen: Gen[DNT] = Gen.oneOf(DNT.AllowTracking, DNT.DisallowTracking, DNT.NoPreference)
   implicit val arbDnt: Arbitrary[DNT] = Arbitrary[DNT](dntGen)
 
+  implicit val arbUpgradeInsecureRequests: Arbitrary[`Upgrade-Insecure-Requests`] =
+    Arbitrary[`Upgrade-Insecure-Requests`](`Upgrade-Insecure-Requests`)
+
   implicit val arbitraryAcceptPost: Arbitrary[`Accept-Post`] = Arbitrary {
     for {
       values <- listOf(http4sGenMediaType)
@@ -1130,6 +1175,19 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
         `Cross-Origin-Resource-Policy`.SameSite,
         `Cross-Origin-Resource-Policy`.SameOrigin,
         `Cross-Origin-Resource-Policy`.CrossOrigin,
+      )
+    )
+
+  implicit val arbitraryContentTransferEncoding: Arbitrary[`Content-Transfer-Encoding`] =
+    Arbitrary[`Content-Transfer-Encoding`](
+      Gen.oneOf(
+        `Content-Transfer-Encoding`.`7bit`,
+        `Content-Transfer-Encoding`.`8bit`,
+        `Content-Transfer-Encoding`.Binary,
+        `Content-Transfer-Encoding`.QuotedPrintable,
+        `Content-Transfer-Encoding`.Base64,
+        `Content-Transfer-Encoding`.IetfToken,
+        `Content-Transfer-Encoding`.XToken,
       )
     )
 

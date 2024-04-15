@@ -38,7 +38,6 @@ import org.http4s.headers.Referer
 import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
 import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.internal.decodeHexString
 import org.typelevel.ci._
 import scodec.bits.Bases.Alphabets
 import scodec.bits.ByteVector
@@ -170,9 +169,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
         val out = Hmac[SyncIO]
           .digest(key, ByteVector.view((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8)))
           .unsafeRunSync()
-        decodeHexString(signed) match {
+        ByteVector.fromHex(signed, Alphabets.HexUppercase) match {
           case Some(decoded) =>
-            if (SecureEq[ByteVector].eqv(out, ByteVector.view(decoded)))
+            if (SecureEq[ByteVector].eqv(out, decoded))
               Right(raw)
             else
               Left(CSRFCheckFailed)

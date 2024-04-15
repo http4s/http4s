@@ -17,6 +17,8 @@
 package org.http4s.ember.core.h2
 
 import cats._
+import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
@@ -24,6 +26,7 @@ import cats.syntax.all._
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
@@ -80,58 +83,57 @@ private[ember] object H2Server {
   )
   // Apply this, if it ever becomes Some, then rather than the next request, become an h2 connection
   def h2cUpgradeHttpRoute[F[_]: Concurrent]: HttpRoutes[F] =
-    cats.data.Kleisli[({ type L[A] = cats.data.OptionT[F, A] })#L, Request[F], Response[F]] {
-      (req: Request[F]) =>
-        val connectionCheck = req.headers
-          .get[org.http4s.headers.Connection]
-          .exists(connection =>
-            connection.values.contains_(ci"upgrade") && connection.values
-              .contains_(ci"http2-settings")
-          )
+    Kleisli[OptionT[F, *], Request[F], Response[F]] { (req: Request[F]) =>
+      val connectionCheck = req.headers
+        .get[org.http4s.headers.Connection]
+        .exists(connection =>
+          connection.values.contains_(ci"upgrade") && connection.values
+            .contains_(ci"http2-settings")
+        )
 
-        // checks are cascading so we execute the least amount of work
-        // if there is no upgrade, which is the likely case.
-        val upgradeCheck = connectionCheck && {
-          req.headers
-            .get(ci"upgrade")
-            .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
-        }
+      // checks are cascading so we execute the least amount of work
+      // if there is no upgrade, which is the likely case.
+      val upgradeCheck = connectionCheck && {
+        req.headers
+          .get(ci"upgrade")
+          .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
+      }
 
-        val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
-          req.headers
-            .get(ci"http2-settings")
-            .collectFirstSome(settings =>
-              settings.map(_.value).collectFirstSome { value =>
-                for {
-                  bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
-                  settings <- H2Frame.Settings
-                    .fromPayload(bv, 0, false)
-                    .toOption // This isn't an entire frame
-                  // It is Just the Payload section of the frame
-                } yield H2Frame.Settings
-                  .updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
-              }
-            )
-        } else None
-        val upgrade = connectionCheck && upgradeCheck
-        (settings, upgrade) match {
-          case (Some(settings), true) =>
-            cats.data.OptionT.liftF(req.body.compile.to(ByteVector): F[ByteVector]).flatMap { bv =>
-              val newReq: Request[fs2.Pure] = Request[fs2.Pure](
-                req.method,
-                req.uri,
-                HttpVersion.`HTTP/2`,
-                req.headers,
-                Stream.chunk(Chunk.byteVector(bv)),
-                req.attributes,
-              )
-              cats.data.OptionT.some(
-                upgradeResponse.covary[F].withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
-              )
+      val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
+        req.headers
+          .get(ci"http2-settings")
+          .collectFirstSome(settings =>
+            settings.map(_.value).collectFirstSome { value =>
+              for {
+                bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
+                settings <- H2Frame.Settings
+                  .fromPayload(bv, 0, false)
+                  .toOption // This isn't an entire frame
+                // It is Just the Payload section of the frame
+              } yield H2Frame.Settings
+                .updateSettings(settings, H2Frame.Settings.ConnectionSettings.default)
             }
+          )
+      } else None
+      val upgrade = connectionCheck && upgradeCheck
+      (settings, upgrade) match {
+        case (Some(settings), true) =>
+          cats.data.OptionT.liftF(req.body.compile.to(ByteVector): F[ByteVector]).flatMap { bv =>
+            val newReq: Request[fs2.Pure] = Request[fs2.Pure](
+              req.method,
+              req.uri,
+              HttpVersion.`HTTP/2`,
+              req.headers,
+              Stream.chunk(Chunk.byteVector(bv)),
+              req.attributes,
+            )
+            cats.data.OptionT.some(
+              upgradeResponse.covary[F].withAttribute(H2Keys.H2cUpgrade, (settings, newReq))
+            )
+          }
 
-          case (_, _) => cats.data.OptionT.none
-        }
+        case (_, _) => cats.data.OptionT.none
+      }
     }
 
   def h2cUpgradeMiddleware[F[_]: Concurrent](app: HttpApp[F]): HttpApp[F] =
@@ -186,7 +188,7 @@ private[ember] object H2Server {
         }
         _ <- s.request.complete(Either.right(req))
         er = Either.right(req.body.compile.to(fs2.Collector.supportsByteVector(ByteVector)))
-        _ <- s.readBuffer.offer(er)
+        _ <- s.readBuffer.send(er)
         _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
@@ -194,24 +196,16 @@ private[ember] object H2Server {
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
     def initH2Connection: F[H2Connection[F]] = for {
-      address <- socket.remoteAddress
-      (remotehost, remoteport) = (address.host, address.port)
+      address <- socket.remoteAddress.attempt.map(
+        // TODO, only used for logging
+        _.leftMap(_ => UnixSocketAddress("unknown.sock"))
+      )
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-      initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
-      stateRef <-
-        Concurrent[F].ref(
-          H2Connection.State(
-            initialRemoteSettings,
-            defaultSettings.initialWindowSize.windowSize,
-            initialWriteBlock,
-            localSettings.initialWindowSize.windowSize,
-            0,
-            0,
-            false,
-            None,
-            None,
-          )
-        )
+      stateRef <- H2Connection.initState[F](
+        initialRemoteSettings,
+        defaultSettings.initialWindowSize,
+        localSettings.initialWindowSize,
+      )
       queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
       hpack <- Hpack.create[F]
       settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
@@ -220,8 +214,7 @@ private[ember] object H2Server {
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
     } yield new H2Connection(
-      remotehost,
-      remoteport,
+      address,
       H2Connection.ConnectionType.Server,
       localSettings,
       ref,

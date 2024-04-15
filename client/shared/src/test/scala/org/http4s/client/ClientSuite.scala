@@ -21,7 +21,9 @@ import cats._
 import cats.arrow.FunctionK
 import cats.effect._
 import cats.effect.kernel.Deferred
+import cats.effect.testkit.TestControl
 import cats.syntax.all._
+import fs2.concurrent.Channel
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
 import org.http4s.multipart.Multipart
@@ -29,6 +31,8 @@ import org.http4s.server.middleware.VirtualHost
 import org.http4s.server.middleware.VirtualHost.exact
 import org.http4s.syntax.all._
 import scodec.bits._
+
+import scala.concurrent.duration.DurationInt
 
 class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
   private val app = HttpApp[IO] { case r =>
@@ -147,4 +151,106 @@ class ClientSpec extends Http4sSuite with Http4sDsl[IO] {
       .attempt
       .assertEquals(Left(MyThrowable), "Throwable did not get handled as expected")
   }
+
+  test("mock client should drain the body if it has not been consumed") {
+
+    def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .pipeBodyThrough(_.onFinalize(compiled.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      client = Client.fromHttpApp(app(compiledCounter))
+      _ <- client.status(Request[IO]()).void
+      compiled <- compiledCounter.get
+    } yield assertEquals(compiled, 1)
+  }
+
+  test("mock client should drain the body if it has been partially consumed") {
+
+    val entity = asciiBytes"foo"
+
+    def app(channel: Channel[IO, Byte], compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity(entity)
+        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(compiled.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      channel <- Channel.unbounded[IO, Byte]
+      client = Client.fromHttpApp(app(channel, compiledCounter))
+      result <- client.run(Request[IO]()).use(_.body.take(1).compile.toVector)
+      _ <- channel.close.void
+      resultWithDrained <- channel.stream.compile.toVector
+      compiled <- compiledCounter.get
+    } yield {
+      assertEquals(result, entity.take(1).toSeq.toVector)
+      assertEquals(resultWithDrained, entity.toSeq.toVector)
+      assertEquals(compiled, 1)
+    }
+
+  }
+
+  test("mock client should not read the body eagerly") {
+
+    def app(compiled: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity("foo")
+        .pipeBodyThrough(_ ++ fs2.Stream.exec(compiled.update(_ + 1)))
+        .pure[IO]
+    }
+
+    val test = for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      client = Client.fromHttpApp(app(compiledCounter))
+      _ <- client.run(Request[IO]()).use { _ =>
+        IO.sleep(1.second) *>
+          compiledCounter.get.assertEquals(0)
+      }
+      _ <- compiledCounter.get.assertEquals(1)
+    } yield ()
+
+    TestControl.executeEmbed(test)
+  }
+
+  test("mock client should drain the body if the client fails") {
+
+    val entity = asciiBytes"foo"
+    val expectedErrorMsg = "error"
+
+    def app(channel: Channel[IO, Byte], finalized: Ref[IO, Int]) = HttpApp[IO] { (_: Request[IO]) =>
+      Response[IO]()
+        .withEntity(entity)
+        .pipeBodyThrough(_.evalTap(channel.send).onFinalize(finalized.update(_ + 1)))
+        .pure[IO]
+    }
+
+    for {
+      compiledCounter <- Ref.of[IO, Int](0)
+      channel <- Channel.unbounded[IO, Byte]
+      client = Client.fromHttpApp(app(channel, compiledCounter))
+      result <- client
+        .run(Request[IO]())
+        .use { r =>
+          r.body
+            .evalTap(_ => IO.raiseError(new Exception(expectedErrorMsg)))
+            .compile
+            .toVector
+            .attempt
+        }
+      _ <- channel.close.void
+      resultWithDrained <- channel.stream.compile.toVector
+      compiled <- compiledCounter.get
+    } yield {
+      assertEquals(result.left.toOption.map(_.getMessage), expectedErrorMsg.some)
+      assertEquals(compiled, 1)
+      assertEquals(resultWithDrained, entity.toSeq.toVector)
+    }
+
+  }
+
 }

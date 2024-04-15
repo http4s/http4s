@@ -20,15 +20,20 @@ import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
 import cats.syntax.all._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
 import fs2._
+import fs2.concurrent.Channel
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
+import H2Frame.Settings.SettingsInitialWindowSize
+
 private[h2] class H2Connection[F[_]](
-    host: com.comcast.ip4s.Host,
-    port: com.comcast.ip4s.Port,
+    address: Either[UnixSocketAddress, SocketAddress[Host]],
     connectionType: H2Connection.ConnectionType,
     localSettings: H2Frame.Settings.ConnectionSettings,
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
@@ -45,6 +50,8 @@ private[h2] class H2Connection[F[_]](
     socket: Socket[F],
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
+
+  private[this] def addrStr = address.fold(_.toString, _.toString)
 
   def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
@@ -63,7 +70,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -99,7 +106,7 @@ private[h2] class H2Connection[F[_]](
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
     trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- cats.effect.std.Queue.unbounded[F, Either[Throwable, ByteVector]]
+    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
     refState <- Ref.of[F, H2Stream.State[F]](
       H2Stream.State(
         H2Stream.StreamState.Idle,
@@ -141,58 +148,61 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
+  private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
+    def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
+      val fullDataSize = chunk.foldLeft(0) {
+        case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
+        case (init, _) => init
+      }
+      // println(s"Next Write Block Window - data: $fullDataSize window:${s.writeWindow} $s")
+
+      if (fullDataSize <= s.writeWindow && s.writeWindow > 0) {
+        val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
+          acc ++ H2Frame.toByteVector(frame)
+        }
+        state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
+          socket.isOpen.ifM(
+            socket.write(Chunk.byteVector(bv)) >>
+              chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
+            new SocketException("Socket closed when attempting to write").raiseError,
+          )
+      } else {
+        val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
+          case None => (chunk, Chunk.empty[H2Frame])
+          case Some(ix) => chunk.splitAt(ix)
+        }
+
+        val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
+          acc ++ H2Frame.toByteVector(frame)
+        }
+        socket.isOpen.ifM(
+          socket.write(Chunk.byteVector(bv)) >>
+            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
+          new SocketException("Socket closed when attempting to write").raiseError,
+        ) >>
+          s.writeBlock.get.rethrow >>
+          go(after)
+      }
+    }
+    val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
+      mapRef.get.flatMap { m =>
+        m.values.toList.traverse_(connection => connection.receiveGoAway(g))
+      } >> state.update(s => s.copy(closed = true))
+    }
+    firstGoAway.getOrElse(F.unit) >> go(chunk)
+  }
+
   def writeLoop: Stream[F, Nothing] =
     Stream
-      .fromQueueUnterminatedChunk[F, H2Frame](outgoing, Int.MaxValue)
-      .chunks
-      .foreach { chunk =>
-        def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
-          val fullDataSize = chunk.foldLeft(0) {
-            case (init, H2Frame.Data(_, data, _, _)) => init + data.size.toInt
-            case (init, _) => init
-          }
-          // println(s"Next Write Block Window - data: $fullDataSize window:${s.writeWindow} $s")
+      .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
+      .foreach(writeChunk)
+      .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
 
-          if (fullDataSize <= s.writeWindow && s.writeWindow > 0) {
-            val bv = chunk.foldLeft(ByteVector.empty) { case (acc, frame) =>
-              acc ++ H2Frame.toByteVector(frame)
-            }
-            state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
-              socket.isOpen.ifM(
-                socket.write(Chunk.byteVector(bv)) >>
-                  chunk.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
-                new SocketException("Socket closed when attempting to write").raiseError,
-              )
-          } else {
-            val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
-              case None => (chunk, Chunk.empty[H2Frame])
-              case Some(ix) => chunk.splitAt(ix)
-            }
-
-            val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
-              acc ++ H2Frame.toByteVector(frame)
-            }
-            socket.isOpen.ifM(
-              socket.write(Chunk.byteVector(bv)) >>
-                nonData.traverse_(frame => logger.debug(s"$host:$port Write - $frame")),
-              new SocketException("Socket closed when attempting to write").raiseError,
-            ) >>
-              s.writeBlock.get.rethrow >>
-              go(after)
-          }
-        }
-        val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
-          mapRef.get.flatMap { m =>
-            m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-          } >> state.update(s => s.copy(closed = true))
-        }
-        firstGoAway.getOrElse(F.unit) >> go(chunk)
-      }
   // TODO Split Frames between Data and Others Hold Data If we are at cap
   //  Currently will backpressure at the data frame till its cleared
 
   def readLoop: F[Unit] = {
-    def connectionTerminated: String = s"Connection $host:$port readLoop Terminated"
+    def connectionTerminated: String = s"Connection $addrStr readLoop Terminated"
     val readFromSocket: F[Option[Chunk[Byte]]] =
       socket.read(localSettings.initialWindowSize.windowSize)
 
@@ -521,7 +531,7 @@ private[h2] class H2Connection[F[_]](
     def readLoopAux(acc: ByteVector): F[Unit] =
       readNextFrame(acc).flatMap {
         case Some((frame, nacc)) =>
-          logger.debug(s"$host:$port Read - $frame") >>
+          logger.debug(s"$addrStr Read - $frame") >>
             state.get.flatMap(processFrame(frame, _)) >>
             readLoopAux(nacc)
         case None => F.unit
@@ -554,6 +564,26 @@ private[h2] object H2Connection {
       headersInProgress: Option[(H2Frame.Headers, List[H2Frame.Continuation])],
       pushPromiseInProgress: Option[(H2Frame.PushPromise, List[H2Frame.Continuation])],
   )
+
+  def initState[F[_]](
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+      writeWindow: SettingsInitialWindowSize,
+      readWindow: SettingsInitialWindowSize,
+  )(implicit F: Async[F]): F[Ref[F, State[F]]] =
+    Deferred[F, Either[Throwable, Unit]].flatMap { writeBlock =>
+      val state = H2Connection.State(
+        remoteSettings,
+        writeWindow.windowSize,
+        writeBlock,
+        readWindow.windowSize,
+        highestStream = 0,
+        remoteHighestStream = 0,
+        closed = false,
+        headersInProgress = None,
+        pushPromiseInProgress = None,
+      )
+      F.ref(state)
+    }
 
   final case class KillWithoutMessage()
       extends RuntimeException

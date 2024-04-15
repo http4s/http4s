@@ -18,6 +18,7 @@ package org.http4s
 package server
 
 import cats.effect.kernel.Async
+import fs2.io.file.Files
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -32,8 +33,12 @@ package object staticcontent {
     ResourceServiceBuilder[F](basePath)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  def fileService[F[_]: Async](config: FileService.Config[F]): HttpRoutes[F] =
+  def fileService[F[_]: Async: Files](config: FileService.Config[F]): HttpRoutes[F] =
     FileService(config)
+
+  @deprecated("Use overload with Files constraint", "0.23.19")
+  def fileService[F[_]](config: FileService.Config[F], F: Async[F]): HttpRoutes[F] =
+    fileService(config)(F, Files.forAsync(F))
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files from webjars */
   def webjarServiceBuilder[F[_]]: WebjarServiceBuilder[F] =

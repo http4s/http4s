@@ -24,10 +24,13 @@ import com.comcast.ip4s._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
+import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
 import org.http4s.ember.core.Util
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -67,6 +70,7 @@ Connection
  */
 private[ember] class H2Client[F[_]](
     sg: SocketGroup[F],
+    unix: Option[UnixSockets[F]],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
     connections: Ref[
@@ -87,27 +91,33 @@ private[ember] class H2Client[F[_]](
       useTLS: Boolean,
       priorKnowledge: Boolean,
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): F[H2Connection[F]] =
     connections.get.map(_.get(key).map(_._1)).flatMap {
       case Some(connection) => Applicative[F].pure(connection)
       case None =>
-        createConnection(key, useTLS, priorKnowledge, enableEndpointValidation).allocated.flatMap(
-          tup =>
-            connections
-              .modify { map =>
-                val current = map.get(key)
-                val newMap = current.fold(map.+((key, tup)))(_ => map)
-                val out = current.fold(
-                  Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
-                )(r => Either.right((r._1, tup._2)))
-                (newMap, out)
-              }
-              .flatMap {
-                case Right((connection, shutdown)) =>
-                  shutdown.map(_ => connection)
-                case Left(connection) =>
-                  connection.pure[F]
-              }
+        createConnection(
+          key,
+          useTLS,
+          priorKnowledge,
+          enableEndpointValidation,
+          enableServerNameIndication,
+        ).allocated.flatMap(tup =>
+          connections
+            .modify { map =>
+              val current = map.get(key)
+              val newMap = current.fold(map.+((key, tup)))(_ => map)
+              val out = current.fold(
+                Either.left[H2Connection[F], (H2Connection[F], F[Unit])](tup._1)
+              )(r => Either.right((r._1, tup._2)))
+              (newMap, out)
+            }
+            .flatMap {
+              case Right((connection, shutdown)) =>
+                shutdown.map(_ => connection)
+              case Left(connection) =>
+                connection.pure[F]
+            }
         )
     }
 
@@ -117,11 +127,13 @@ private[ember] class H2Client[F[_]](
       useTLS: Boolean,
       priorKnowledge: Boolean,
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): Resource[F, H2Connection[F]] =
-    createSocket(key, useTLS, priorKnowledge, enableEndpointValidation).flatMap {
-      case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
-      case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
-    }
+    createSocket(key, useTLS, priorKnowledge, enableEndpointValidation, enableServerNameIndication)
+      .flatMap {
+        case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
+        case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
+      }
 
   // This is currently how we create http2 only sockets, will need to actually handle which
   // protocol to take
@@ -130,12 +142,27 @@ private[ember] class H2Client[F[_]](
       useTLS: Boolean,
       priorKnowledge: Boolean,
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
-    baseSocket <- sg.client(address)
+    baseSocket <- address match {
+      case Left(address) =>
+        unix
+          .liftTo[Resource[F, *]](
+            new RuntimeException(
+              "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
+            )
+          )
+          .flatMap(_.client(address))
+      case Right(address) => sg.client(address)
+    }
     socket <- {
       if (useTLS) {
-        val tlsParams = Util.mkClientTLSParameters(address.some, enableEndpointValidation)
+        val tlsParams = Util.mkClientTLSParameters(
+          address.toOption,
+          enableEndpointValidation,
+          enableServerNameIndication,
+        )
         for {
           tlsSocket <- tls
             .clientBuilder(baseSocket)
@@ -171,21 +198,11 @@ private[ember] class H2Client[F[_]](
         socketAdd <- RequestKey.getAddress(key)
         _ <- socket.write(Chunk.byteVector(Preface.clientBV))
         ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-        initialWriteBlock <- Deferred[F, Either[Throwable, Unit]]
-        stateRef <-
-          Concurrent[F].ref(
-            H2Connection.State(
-              defaultSettings,
-              defaultSettings.initialWindowSize.windowSize,
-              initialWriteBlock,
-              localSettings.initialWindowSize.windowSize,
-              0,
-              0,
-              false,
-              None,
-              None,
-            )
-          )
+        stateRef <- H2Connection.initState[F](
+          defaultSettings,
+          defaultSettings.initialWindowSize,
+          localSettings.initialWindowSize,
+        )
         queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
         hpack <- Hpack.create[F]
         settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
@@ -194,8 +211,7 @@ private[ember] class H2Client[F[_]](
         created <- cats.effect.std.Queue.unbounded[F, Int]
         closed <- cats.effect.std.Queue.unbounded[F, Int]
       } yield new H2Connection(
-        socketAdd.host,
-        socketAdd.port,
+        socketAdd,
         H2Connection.ConnectionType.Client,
         localSettings,
         ref,
@@ -264,9 +280,14 @@ private[ember] class H2Client[F[_]](
     } yield h2
   }
 
-  def runHttp2Only(req: Request[F], enableEndpointValidation: Boolean): Resource[F, Response[F]] = {
+  def runHttp2Only(
+      req: Request[F],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
+  ): Resource[F, Response[F]] = {
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
+    val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
     val useTLS = req.uri.scheme.map(_.value) match {
       case Some("http") => false
       case Some("https") => true
@@ -274,12 +295,17 @@ private[ember] class H2Client[F[_]](
       // this, but with http2, there can be arbitrary schemes
       // but also probably wrong if doing websockets over http/1.1
       case Some(_) => true
-      case None => true
+      case None => !priorKnowledge
     }
-    val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
     for {
       connection <- Resource.eval(
-        getOrCreate(key, useTLS, priorKnowledge, enableEndpointValidation)
+        getOrCreate(
+          key,
+          useTLS,
+          priorKnowledge,
+          enableEndpointValidation,
+          enableServerNameIndication,
+        )
       )
       // Stream Order Must Be Correct, so we must grab the global lock
       stream <- Resource.make(
@@ -297,18 +323,19 @@ private[ember] class H2Client[F[_]](
 
 private[ember] object H2Client {
   private type TinyClient[F[_]] = Request[F] => Resource[F, Response[F]]
-  def impl[F[_]: Async](
+  def impl[F[_]: Async: Network](
       onPushPromise: (
           org.http4s.Request[fs2.Pure],
           F[org.http4s.Response[F]],
       ) => F[Outcome[F, Throwable, Unit]],
       tlsContext: TLSContext[F],
+      unixSockets: Option[UnixSockets[F]],
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): Resource[F, TinyClient[F] => TinyClient[F]] =
     for {
-
       mapH2 <- Resource.make {
         Concurrent[F].ref(
           Map[H2Client.RequestKey, (H2Connection[F], F[Unit])]()
@@ -332,17 +359,18 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(Network[F], settings, tlsContext, mapH2, onPushPromise, logger)
+      h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
-      val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
+      val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
       val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
-        case Some(Http2) => h2.runHttp2Only(req, enableEndpointValidation)
+        case Some(Http2) =>
+          h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication)
         case Some(Http1) => http1Client(req)
-        case None =>
+        case _ =>
           (
-            h2.runHttp2Only(req, enableEndpointValidation) <*
+            h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication) <*
               Resource.eval(socketMap.update(s => s + (key -> Http2)))
           ).handleErrorWith[org.http4s.Response[F], Throwable] {
             case InvalidSocketType() | MissingHost() | MissingPort() =>
@@ -358,25 +386,35 @@ private[ember] object H2Client {
   case object Http1 extends SocketType
 
   /** Represents a key for requests that can conceivably share a [[Connection]]. */
-  final case class RequestKey(scheme: Scheme, authority: Authority) {
-    override def toString: String = s"${scheme.value}://${authority}"
+  final case class RequestKey(
+      scheme: Scheme,
+      authorityOrAddress: Either[UnixSocketAddress, Authority],
+  ) {
+    override def toString: String =
+      s"${scheme.value}://${authorityOrAddress.fold(_.toString, _.toString)}"
   }
 
   object RequestKey {
     def fromRequest[F[_]](request: Request[F]): RequestKey = {
       val uri = request.uri
-      RequestKey(uri.scheme.getOrElse(Scheme.http), uri.authority.getOrElse(Authority()))
+      val authOrAddr = request.attributes
+        .lookup(Request.Keys.UnixSocketAddress)
+        .toLeft(uri.authority.getOrElse(Authority()))
+      RequestKey(uri.scheme.getOrElse(Scheme.http), authOrAddr)
     }
 
-    def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
+    def getAddress[F[_]](
+        requestKey: RequestKey
+    )(implicit F: MonadThrow[F]): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
       requestKey match {
-        case RequestKey(s, auth) =>
+        case RequestKey(s, Right(auth)) =>
           val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
           val host = auth.host.value
           for {
             host <- Host.fromString(host).liftTo[F](MissingHost())
             port <- Port.fromInt(port).liftTo[F](MissingPort())
-          } yield SocketAddress[Host](host, port)
+          } yield Right(SocketAddress[Host](host, port))
+        case RequestKey(_, Left(unixAddress)) => F.pure(Left(unixAddress))
       }
   }
 

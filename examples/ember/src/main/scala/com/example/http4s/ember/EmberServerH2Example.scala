@@ -72,7 +72,7 @@ object EmberServerH2Example extends IOApp {
         .orNotFound
     }
 
-    def testALPN[F[_]: Async: Console] = for {
+    def testALPN[F[_]: Async: Console: Network] = for {
       sslContext <- Resource.eval(
         ssl.loadContextFromClasspath(ssl.keystorePassword, ssl.keyManagerPassword)
       )
@@ -93,7 +93,7 @@ object EmberServerH2Example extends IOApp {
     } yield ()
 
     // Can Test Both http2-prior-knowledge, and h2c
-    def testCleartext[F[_]: Async: Console] =
+    def testCleartext[F[_]: Async: Console: Network] =
       EmberServerBuilder
         .default[F]
         .withHttp2

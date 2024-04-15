@@ -22,6 +22,7 @@ import cats.effect.Ref
 import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Chunk
+import fs2.concurrent.Channel
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
@@ -42,7 +43,7 @@ class H2StreamSuite extends Http4sSuite {
       req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
       resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
       trailers <- Deferred[IO, Either[Throwable, Headers]]
-      readBuffer <- Queue.unbounded[IO, Either[Throwable, ByteVector]]
+      readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
@@ -149,6 +150,18 @@ class H2StreamSuite extends Http4sSuite {
       sq <- streamAndQueue(config)
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, frameSize, messageSize = 51200, numFrames = 2)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
+    } yield ()
+  }
+
+  test("H2Stream sendMessageBody empty message without 'Trailer' header closes Stream") {
+    val config = defaultSettings
+
+    for {
+      sq <- streamAndQueue(config)
+      (stream, queue) = sq
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+      _ <- stream.sendMessageBody(resp)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }

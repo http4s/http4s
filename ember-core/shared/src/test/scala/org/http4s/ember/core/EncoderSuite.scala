@@ -177,6 +177,32 @@ class EncoderSuite extends Http4sSuite {
     Helpers.encodeResponseRig(resp).assertEquals(expected)
   }
 
+  test("respToBytes should encode trailer headers") {
+    val resp = Response[IO](Status.Ok)
+      .withEntity(Stream[IO, String]("Mozilla", "Developer", "Network"))
+      .putHeaders("Trailer" -> "Expires")
+      .withTrailerHeaders(IO(Headers("Expires" -> "Wed, 21 Oct 2015 07:28:00 GMT")))
+
+    val expected =
+      """HTTP/1.1 200 OK
+      |Content-Type: text/plain; charset=UTF-8
+      |Transfer-Encoding: chunked
+      |Trailer: Expires
+      |
+      |7
+      |Mozilla
+      |9
+      |Developer
+      |7
+      |Network
+      |0
+      |Expires: Wed, 21 Oct 2015 07:28:00 GMT
+      |
+      |""".stripMargin
+
+    Helpers.encodeResponseRig(resp).assertEquals(expected)
+  }
+
   test("encoder a response where entity is not allowed correctly") {
     val resp = Response[IO](Status.NoContent)
     val expected =

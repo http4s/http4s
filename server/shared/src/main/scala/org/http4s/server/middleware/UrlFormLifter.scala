@@ -18,7 +18,9 @@ package org.http4s
 package server
 package middleware
 
+import cats.arrow.FunctionK
 import cats.data.Kleisli
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.all._
 import cats.~>
@@ -67,4 +69,13 @@ object UrlFormLifter {
 
   private def checkRequest[F[_]](req: Request[F]): Boolean =
     req.method == Method.POST || req.method == Method.PUT
+
+  def httpRoutes[F[_]: Async](
+      httpRoutes: HttpRoutes[F],
+      strictDecode: Boolean = false,
+  ): HttpRoutes[F] =
+    apply(OptionT.liftK)(httpRoutes, strictDecode)
+
+  def httpApp[F[_]: Async](httpApp: HttpApp[F], strictDecode: Boolean = false): HttpApp[F] =
+    apply(FunctionK.id[F])(httpApp, strictDecode)
 }

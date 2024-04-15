@@ -24,5 +24,6 @@ private[http4s] object Platform {
   final val isJs = true
   final val isNative = false
 
-  lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] = log4cats.noop.NoOpFactory[SyncIO]
+  lazy val loggerFactory: log4cats.LoggerFactory[SyncIO] =
+    log4cats.console.ConsoleLoggerFactory.create[SyncIO]
 }

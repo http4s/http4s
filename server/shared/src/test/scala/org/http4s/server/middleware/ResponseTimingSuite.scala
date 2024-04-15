@@ -31,9 +31,11 @@ import scala.concurrent.duration._
 class ResponseTimingSuite extends Http4sSuite {
   test("add a custom header with timing info") {
     forAllF(genFiniteDuration) { (artificialDelay: FiniteDuration) =>
-      val thisService = HttpApp[IO] { case GET -> Root / "request" =>
-        IO.sleep(artificialDelay) *>
-          Ok("request response")
+      val thisService = HttpApp[IO] {
+        case GET -> Root / "request" =>
+          IO.sleep(artificialDelay) *>
+            Ok("request response")
+        case _ => NotFound()
       }
       val req = Request[IO](uri = uri"/request")
       val app = ResponseTiming(thisService)

@@ -37,6 +37,9 @@ class ConnectionSuite extends Http4sSuite {
   import org.http4s.dsl.io._
   import org.http4s.client.dsl.io._
 
+  val defaultIdleTimeout: FiniteDuration = 60.seconds
+  def defaultHeaderTimeout: FiniteDuration = defaultIdleTimeout
+
   def service: HttpApp[IO] =
     HttpRoutes
       .of[IO] {
@@ -53,17 +56,22 @@ class ConnectionSuite extends Http4sSuite {
       }
       .orNotFound
 
-  def serverResource(
+  def emberServerBuilder(
       idleTimeout: FiniteDuration,
       headerTimeout: FiniteDuration,
-  ): Resource[IO, Server] =
+  ): EmberServerBuilder[IO] =
     EmberServerBuilder
       .default[IO]
       .withPort(port"0")
       .withHttpApp(service)
       .withIdleTimeout(idleTimeout)
       .withRequestHeaderReceiveTimeout(headerTimeout)
-      .build
+
+  def serverResource(
+      idleTimeout: FiniteDuration,
+      headerTimeout: FiniteDuration,
+  ): Resource[IO, Server] =
+    emberServerBuilder(idleTimeout, headerTimeout).build
 
   sealed case class TestClient(client: Socket[IO]) {
     private val clientChunkSize = 32 * 1024
@@ -75,6 +83,12 @@ class ConnectionSuite extends Http4sSuite {
         .map(_._1)
     def responseAndDrain: IO[Unit] =
       response.flatMap(_.body.compile.drain)
+
+    /** Like [[#response]], but drains the body and just returns the prelude. */
+    def responsePrelude: IO[ResponsePrelude] =
+      response.flatMap(response =>
+        response.body.compile.drain.as(ResponsePrelude.fromResponse(response))
+      )
     def readChunk: IO[Option[Chunk[Byte]]] =
       client.read(clientChunkSize)
     def writes(bytes: Stream[IO, Byte]): IO[Unit] =
@@ -87,8 +101,8 @@ class ConnectionSuite extends Http4sSuite {
     } yield TestClient(socket)
 
   private def fixture(
-      idleTimeout: FiniteDuration = 60.seconds,
-      headerTimeout: FiniteDuration = 60.seconds,
+      idleTimeout: FiniteDuration = defaultIdleTimeout,
+      headerTimeout: FiniteDuration = defaultHeaderTimeout,
   ) = ResourceFunFixture(
     for {
       server <- serverResource(idleTimeout, headerTimeout)
@@ -163,6 +177,72 @@ class ConnectionSuite extends Http4sSuite {
         _ <- client.responseAndDrain
         chunk <- client.readChunk
       } yield assertEquals(chunk, None)
+  }
+
+  fixture().test("#6931 - bad request on request/start-line which can not be parsed") { client =>
+    val request = Stream(
+      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n"
+    )
+
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status, Status.BadRequest)
+  }
+
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withRequestLineParseErrorHandler { case _ =>
+        IO.pure(Response(Status.InternalServerError))
+      }
+      .build
+      .flatMap(server => clientResource(server.addressIp4s))
+  ).test(
+    "#6931 - respect user configured behavior for request/start-line which can not be parsed"
+  ) { client =>
+    val request = Stream(
+      "GET /hello/colt?foo={ HTTP/1.1\r\n\r\n"
+    )
+
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status, Status.InternalServerError)
+  }
+
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withMaxHeaderSize(100)
+      .build
+      .flatMap(server => clientResource(server.addressIp4s))
+  ).test(
+    "return 431 by default on excessive header size"
+  ) { client =>
+    val tooMuchHeader = "X-Trash: " + ("." * 120)
+    val request = Stream(s"GET / HTTP/1.0\r\n${tooMuchHeader}\r\n")
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status.code, 431)
+  }
+
+  ResourceFunFixture(
+    emberServerBuilder(defaultIdleTimeout, defaultHeaderTimeout)
+      .withMaxHeaderSize(100)
+      .withMaxHeaderSizeErrorHandler { case _ =>
+        IO.fromEither(Status.fromInt(499)).map(Response(_))
+      }
+      .build
+      .flatMap(server => clientResource(server.addressIp4s))
+  ).test(
+    "respect user configured behavior for excessive header size "
+  ) { client =>
+    val tooMuchHeader = "X-Trash: " + ("." * 120)
+    val request = Stream(s"GET / HTTP/1.0\r\n${tooMuchHeader}\r\n")
+    for {
+      _ <- client.writes(fs2.text.utf8.encode(request))
+      resp <- client.responsePrelude
+    } yield assertEquals(resp.status.code, 499)
   }
 
 }

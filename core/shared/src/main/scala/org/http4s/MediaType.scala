@@ -263,6 +263,8 @@ object MediaType extends MimeDB {
 
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
+  // Not in MimeDB but recommended here https://graphql.org/learn/serving-over-http/#post-request
+  lazy val `application/graphql` = new MediaType("application", "graphql", compressible = true)
 
   // Accessing this would force the entire MimeDB to be linked on JS (roughly 400 KB after fullOptJS).
   // Anything that uses it (such as extensionMap) should be lazily initialized and never called in a
@@ -270,7 +272,7 @@ object MediaType extends MimeDB {
   private[this] var _all: Map[(String, String), MediaType] = null
   def all: Map[(String, String), MediaType] = {
     if (_all eq null)
-      _all = (`text/event-stream` :: allMediaTypes)
+      _all = (`text/event-stream` :: `application/graphql` :: allMediaTypes)
         .map(m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m)
         .toMap
     _all
@@ -311,7 +313,7 @@ object MediaType extends MimeDB {
   private[http4s] def getMediaType(_mainType: String, _subType: String): MediaType = {
     val mainType = _mainType.toLowerCase
     val subType = _subType.toLowerCase
-    if (Platform.isJvm || Platform.isNative)
+    if (Platform.isJvm)
       MediaType.all.getOrElse(
         (mainType, subType),
         new MediaType(mainType, subType),

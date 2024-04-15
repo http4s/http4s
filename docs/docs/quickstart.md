@@ -2,21 +2,24 @@
 
 ## Dependencies
 
-http4s is available for Scala 2.12, 2.13, and 3.
-
-You can add http4s to your build by adding its modules to your dependencies in `build.sbt`.
-Here are some common dependencies, more are available on the [integrations page][integrations].
+http4s is available for Scala 2.12, 2.13, and 3.2+. You can add http4s to your build by adding its modules to `libraryDependencies` in your `build.sbt`.
 
 ```scala
 val http4sVersion = "@VERSION@"
 
 libraryDependencies ++= Seq(
-  // get up and running with a client and server
   "org.http4s" %% "http4s-ember-client" % http4sVersion,
   "org.http4s" %% "http4s-ember-server" % http4sVersion,
   "org.http4s" %% "http4s-dsl"          % http4sVersion,
+)
+```
 
-  // for core classes and traits, e.g. `Client[F]`
+This brings in the [Ember HTTP client and server implementation][ember] as well as the [routing DSL][dsl]. This is _most likely_ what you want. Other [integration modules][integrations] are available as well, such as for working with [JSON], or using alternative client/server implementations, such as [Netty]. Note that these integration modules are generally versioned separately from http4s core; check their documentation for compatibility information.
+
+Depending on your usecase, you may want to consider one of several other http4s modules. For example, if you are writing a library, you probably want to develop it against the generic http4s interfaces, without hard-coding a particular implementation, such as Ember.
+
+```scala
+libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-core"         % http4sVersion,
   "org.http4s" %% "http4s-client"       % http4sVersion,
   "org.http4s" %% "http4s-server"       % http4sVersion,
@@ -128,7 +131,11 @@ to your project and starting the server from the SBT prompt with `reStart`.
 With just a few commands, we have a fully functional app for creating
 a simple JSON service.
 
+[dls]: dsl.md
+[ember]: integrations.md#ember
 [giter8 template]: https://github.com/http4s/http4s.g8
-[versions]: /versions/
+[JSON]: json.md
+[Netty]: https://github.com/http4s/http4s-netty
+[versions]: ../versions.md
 [sbt-revolver]: https://github.com/spray/sbt-revolver
 [integrations]: integrations.md

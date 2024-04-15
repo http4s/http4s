@@ -29,6 +29,8 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
+import cats.effect.std.Hotswap
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
@@ -51,10 +53,11 @@ import java.io.IOException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: Sync](
+  def requestToSocketWithKey[F[_]: MonadThrow](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
@@ -63,31 +66,36 @@ private[client] object ClientHelpers {
       requestKey,
       tlsContextOpt,
       enableEndpointValidation,
+      enableServerNameIndication,
       sg,
       additionalSocketOptions,
     )
   }
 
-  def unixSocket[F[_]: Async](
+  def unixSocket[F[_]: MonadThrow](
       request: Request[F],
       unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
       address: fs2.io.net.unixsocket.UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]],
+      enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
       unixSockets.client(address),
       tlsContextOpt,
-      false,
+      enableEndpointValidation,
+      enableServerNameIndication,
       None,
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: Sync](
+  def requestKeyToSocketWithKey[F[_]: MonadThrow](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] =
@@ -96,38 +104,42 @@ private[client] object ClientHelpers {
       .flatMap { address =>
         val s = sg.client(address, options = additionalSocketOptions)
         elevateSocket(
-          requestKey: RequestKey,
-          s: Resource[F, Socket[F]],
-          tlsContextOpt: Option[TLSContext[F]],
-          enableEndpointValidation: Boolean,
+          requestKey,
+          s,
+          tlsContextOpt,
+          enableEndpointValidation,
+          enableServerNameIndication,
           Some(address),
         )
       }
 
-  def elevateSocket[F[_]: Sync](
+  def elevateSocket[F[_]: MonadThrow](
       requestKey: RequestKey,
       initSocket: Resource[F, Socket[F]],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
+      enableServerNameIndication: Boolean,
       optionNames: Option[SocketAddress[Host]],
   ): Resource[F, RequestKeySocket[F]] =
     for {
       iSocket <- initSocket
-      socket <- {
-        if (requestKey.scheme === Uri.Scheme.https) {
-          tlsContextOpt.fold[Resource[F, Socket[F]]] {
-            ApplicativeThrow[Resource[F, *]].raiseError(
-              new Throwable("EmberClient Not Configured for Https")
-            )
-          } { tlsContext =>
-            tlsContext
-              .clientBuilder(iSocket)
-              .withParameters(Util.mkClientTLSParameters(optionNames, enableEndpointValidation))
+      socket <-
+        if (requestKey.scheme === Uri.Scheme.https)
+          tlsContextOpt.fold[Resource[F, Socket[F]]](
+            Resource.raiseError[F, Socket[F], Throwable](MissingTlsContext())
+          )(
+            _.clientBuilder(iSocket)
+              .withParameters(
+                Util.mkClientTLSParameters(
+                  optionNames,
+                  enableEndpointValidation,
+                  enableServerNameIndication,
+                )
+              )
               .build
               .widen[Socket[F]]
-          }
-        } else iSocket.pure[Resource[F, *]]
-      }
+          )
+        else iSocket.pure[Resource[F, *]]
     } yield RequestKeySocket(socket, requestKey)
 
   def request[F[_]: Async](
@@ -148,24 +160,31 @@ private[client] object ClientHelpers {
         .drain
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket) >>
-        connection.nextBytes.getAndSet(Array.emptyByteArray).flatMap { head =>
-          val parse = Parser.Response.parser(maxResponseHeaderSize)(
-            head,
+      writeRequestToSocket(req, connection.keySocket.socket).productR {
+        val parse = (
+          // leftover bytes from last request
+          connection.nextBytes.getAndSet(Array.emptyByteArray),
+          // bytes from the pre-emptive read in this connection, which probably has not completed yet, hence the timout
+          connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
+        ).flatMapN { (head, firstRead) =>
+          Parser.Response.parser(maxResponseHeaderSize)(
+            firstRead.foldLeft(head)(Util.concatBytes(_, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
-          timeoutToMaybe(
-            parse,
-            timeout,
-            Defer[F].defer(
-              ApplicativeThrow[F].raiseError(
-                new java.util.concurrent.TimeoutException(
-                  s"Timed Out on EmberClient Header Receive Timeout: $timeout"
-                )
-              )
-            ),
-          )
         }
+
+        timeoutToMaybe(
+          parse,
+          timeout,
+          Defer[F].defer(
+            ApplicativeThrow[F].raiseError(
+              new java.util.concurrent.TimeoutException(
+                s"Timed Out on EmberClient Header Receive Timeout: $timeout"
+              )
+            )
+          ),
+        )
+      }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
@@ -199,6 +218,7 @@ private[client] object ClientHelpers {
       drain: F[Option[Array[Byte]]],
       nextBytes: Ref[F, Array[Byte]],
       canBeReused: Ref[F, Reusable],
+      startNextRead: F[Unit],
   )(implicit F: Concurrent[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
@@ -206,44 +226,45 @@ private[client] object ClientHelpers {
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
 
         if (requestClose || responseClose) F.unit
-        else nextBytes.set(bytes) >> canBeReused.set(Reusable.Reuse)
+        else
+          nextBytes.set(bytes) *>
+            startNextRead *> // start the next read before returning to pool
+            canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
       case None => F.unit
     }
 
-  // https://github.com/http4s/http4s/blob/main/blaze-client/src/main/scala/org/http4s/client/blaze/Http1Support.scala#L86
-  private def getAddress[F[_]: Sync](requestKey: RequestKey): F[SocketAddress[Host]] =
+  private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
         val host = auth.host.value
-        Sync[F].delay(
-          SocketAddress[Host](Host.fromString(host).get, Port.fromInt(port).get)
-        ) // FIXME
+
+        for {
+          host <- Host.fromString(host).liftTo[F](MissingOrInvalidHost(host))
+          port <- Port.fromInt(port).liftTo[F](MissingOrInvalidPort(port))
+        } yield SocketAddress[Host](host, port)
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
-  private[client] def getValidManaged[F[_]: Sync](
+  private[client] def getValidManaged[F[_]: Async](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
   ): Resource[F, Managed[F, EmberConnection[F]]] =
-    pool.take(RequestKey.fromRequest(request)).flatMap { managed =>
-      Resource
-        .eval(managed.value.keySocket.socket.isOpen)
-        .ifM(
-          managed.pure[Resource[F, *]],
-          // Already Closed,
-          // The Resource Scopes Aren't doing us anything
-          // if we have max removed from pool we will need to revisit
-          if (managed.isReused) {
-            Resource.eval(managed.canBeReused.set(Reusable.DontReuse)) >>
-              getValidManaged(pool, request)
-          } else
-            Resource.eval(
+    Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
+      def go: F[Managed[F, EmberConnection[F]]] =
+        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
+          managed.value.isValid.ifM(
+            managed.pure,
+            if (managed.isReused) // keep swapping connections until we find a valid one
+              managed.canBeReused.set(Reusable.DontReuse) *> go
+            else
               Sync[F].raiseError(
                 new fs2.io.net.SocketException("Fresh connection from pool was not open")
-              )
-            ),
-        )
+              ),
+          )
+        }
+
+      go
     }
 
   private[ember] object RetryLogic {
@@ -269,4 +290,13 @@ private[client] object ClientHelpers {
         case _ => false
       }
   }
+
+  private case class MissingOrInvalidHost(host: String)
+      extends RuntimeException(s"Invalid hostname: $host")
+
+  private case class MissingOrInvalidPort(port: Int)
+      extends RuntimeException(s"Invalid port: $port")
+
+  private case class MissingTlsContext()
+      extends RuntimeException("EmberClient Is Not Configured for Https")
 }

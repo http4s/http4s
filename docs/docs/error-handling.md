@@ -17,6 +17,76 @@ include:
 * `MediaTypeMismatch`: indicates that the server received a media
   type that it wasn't prepared to handle.
 
+# For Beginners
+
+When you start from a "clean slate" with http4s, one of the things you're likely to notice, is that http4s is swallowing your exceptions - let's see if we can prove it. Assuming you've gotten the hello world example started, let's introduce another route, which is going to error out.
+
+```scala mdoc:silent
+import cats.effect._
+import cats.syntax.all._
+import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.server.Router
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.server.middleware.ErrorAction
+import org.http4s.server.middleware.ErrorHandling
+import cats.data.OptionT
+
+```
+
+```scala mdoc:silent
+import com.comcast.ip4s._
+
+val errorRoute: HttpRoutes[IO] = HttpRoutes.of[IO] {
+      case GET -> Root / "error" =>
+        throw new Exception("Hey don't swallow me")
+}
+
+val server = EmberServerBuilder
+  .default[IO]
+  .withPort{port"8081"}
+  .withHost(host"localhost")
+  .withHttpApp(errorRoute.orNotFound)
+  .build
+```
+Once you've started this server, hit up the "/error" route in browser. What you'll find, is that it returns a `500` response code... and no messages, and the console that hosts the http4s dev server is also showing you ... nothing.
+
+Now, in general swallowing exceptions in software engineering is widely considered bad practise - now we have no idea our program is going wrong! Presumably in the case of http4s, having your public facing webserver "secure by default" trumps that consideration.
+
+http4s provides an answer to this seeming paradox, in the form of [middleware](middleware.md). As this section is written by a beginner, we're going to assume you want to know your code is throwing exceptions and take the beginners path of least resistance to surfacing them.
+
+We're going to make the path to instantiating the server look like this, instead.
+
+```scala mdoc:silent
+import org.http4s.server.middleware.ErrorAction
+import org.http4s.server.middleware.ErrorHandling
+
+def errorHandler(t: Throwable, msg: => String) : OptionT[IO, Unit] =
+  OptionT.liftF(
+      IO.println(msg) >>
+      IO.println(t) >>
+      IO(t.printStackTrace())
+  )
+
+
+val withErrorLogging = ErrorHandling.Recover.total(
+  ErrorAction.log(
+    errorRoute,
+    messageFailureLogAction = errorHandler,
+    serviceErrorLogAction = errorHandler
+  )
+)
+
+val thisServerPrintsErrors = EmberServerBuilder
+  .default[IO]
+  .withPort(port"8081")
+  .withHost(host"localhost")
+  .withHttpApp(withErrorLogging.orNotFound)
+  .build
+
+```
+And now, you'll get told which endpoint is failing, and get the stacktrace printed to the console. Leveling up your error handling experience through fancy logging frameworks, tracing et al is left as an excercise for the (no longer beginner) reader...
+
 ## Logging
 
 If a `MessageFailure` is not handled by your HTTP service, it reaches
