@@ -18,6 +18,7 @@ package org.http4s
 package multipart
 
 import cats.effect.Sync
+import fs2.Chunk
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
@@ -48,11 +49,12 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
   def name(charset: NioCharset): Option[String] =
     contentDispositionParam(ci"name", charset)
 
-  /** This part's name from its Content-Disposition header, decoded from
-    * raw bytes with the specified function.
+  /** This part's name from its Content-Disposition header, as a chunk
+    * of bytes.  Interpretation into character data is the
+    * responsibility of the caller.
     */
-  def nameDecoded(f: Array[Byte] => Option[String]): Option[String] =
-    contentDispositionParamDecoded(ci"name", f)
+  def nameBytes: Option[Chunk[Byte]] =
+    contentDispositionParamByteChunk(ci"name")
 
   /** This part's filename from its Content-Disposition header, decoded
     * as UTF-8.
@@ -66,27 +68,32 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) extends Med
   def filename(charset: NioCharset): Option[String] =
     contentDispositionParam(ci"filename", charset)
 
-  /** This part's filename from its Content-Disposition header, decoded
-    * from raw bytes with the specified function.
+  /** This part's filename from its Content-Disposition header, as a
+    * chunk of bytes.  Interpretation into character data is the
+    * responsibility of the caller.
     */
-  def filenameDecoded(f: Array[Byte] => Option[String]): Option[String] =
-    contentDispositionParamDecoded(ci"filename", f)
+  def filenameBytes: Option[Chunk[Byte]] =
+    contentDispositionParamByteChunk(ci"filename")
 
   private def contentDispositionParam(name: CIString, charset: NioCharset): Option[String] =
     charset match {
       case StandardCharsets.ISO_8859_1 =>
         headers.get[`Content-Disposition`].flatMap(_.parameters.get(name))
       case charset =>
-        contentDispositionParamDecoded(name, bytes => Some(new String(bytes, charset)))
+        contentDispositionParamByteArray(name).map(new String(_, charset))
     }
 
-  private def contentDispositionParamDecoded(
-      name: CIString,
-      f: Array[Byte] => Option[String],
-  ): Option[String] =
+  private def contentDispositionParamByteChunk(
+      name: CIString
+  ): Option[Chunk[Byte]] =
+    contentDispositionParamByteArray(name).map(Chunk.array(_))
+
+  private def contentDispositionParamByteArray(
+      name: CIString
+  ): Option[Array[Byte]] =
     headers
       .get[`Content-Disposition`]
-      .flatMap(_.parameters.get(name).map(_.getBytes(StandardCharsets.ISO_8859_1)).flatMap(f))
+      .flatMap(_.parameters.get(name).map(_.getBytes(StandardCharsets.ISO_8859_1)))
 
   override def covary[F2[x] >: F[x]]: Part[F2] = this.asInstanceOf[Part[F2]]
 }
