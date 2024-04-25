@@ -74,6 +74,26 @@ class HeadersSpec extends Http4sSuite {
     assertEquals(hs.headers.contains(clength.toRaw1), true)
   }
 
+  test("Cookies with a Max-Age of 0 should be permitted") {
+    val resp = Response().putHeaders(
+      "Set-Cookie" -> "test1=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Path=/; Secure"
+    )
+    assertEquals(
+      resp.cookies,
+      List(
+        ResponseCookie(
+          name = "test1",
+          content = "",
+          expires = Some(HttpDate.Epoch),
+          maxAge = Some(0),
+          path = Some("/"),
+          sameSite = Some(SameSite.None),
+          secure = true,
+        )
+      ),
+    )
+  }
+
   // TODO this isn't really "raw headers" anymore
   test("Headers should Work with Raw headers (++)") {
     val foo = ContentCoding.unsafeFromString("foo")
