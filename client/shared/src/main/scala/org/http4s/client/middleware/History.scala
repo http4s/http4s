@@ -17,18 +17,10 @@
 package org.http4s.client.middleware
 
 import cats.effect._
-import cats.implicits.catsSyntaxApplicativeId
+import cats.syntax.applicative._
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.headers.Date
-
-/** This Middleware provides history tracking of Uri's visited.
-  * History entries are ordered most recent to oldest.
-  *
-  * @param client: Client[F]
-  * @param history: Ref[F, Vector[HistoryEntry]
-  * @param maxSize: Int
-  */
 
 class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri: Uri) {
 
@@ -57,6 +49,14 @@ object HistoryEntry {
     new HistoryEntry(date, method, uri)
 
 }
+
+/** This Middleware provides history tracking of Uri's visited.
+  * History entries are ordered most recent to oldest.
+  *
+  * @param client: Client[F]
+  * @param history: Ref[F, Vector[HistoryEntry]
+  * @param maxSize: Int
+  */
 
 final class HistoryBuilder[F[_]: MonadCancelThrow: Clock] private (
     private val client: Client[F],
