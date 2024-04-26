@@ -110,7 +110,7 @@ class HistorySuite extends Http4sSuite {
   test("History middeware should allow and use Clock parameter for httpDate timestamp") {
 
     implicit val testClock: Clock[IO] = new Clock[IO] {
-      override def applicative: Applicative[IO] = Applicative[IO] // IO.asyncForIO
+      override def applicative: Applicative[IO] = Applicative[IO]
 
       override def monotonic: IO[FiniteDuration] =
         IO.pure(FiniteDuration(0L, scala.concurrent.duration.HOURS))
@@ -124,7 +124,6 @@ class HistorySuite extends Http4sSuite {
       HistoryEntry(req2.headers.get[Date].get.date, req2.method, req2.uri),
     )
 
-    implicitly[Clock[IO]]
     Ref.of[IO, Vector[HistoryEntry]](Vector.empty).flatMap { ref =>
       val historyClient = HistoryBuilder.default(defaultClient, ref).withMaxSize(2).build
 
