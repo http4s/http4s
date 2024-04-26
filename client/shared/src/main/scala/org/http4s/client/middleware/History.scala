@@ -22,7 +22,7 @@ import org.http4s._
 import org.http4s.client.Client
 import org.http4s.headers.Date
 
-class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri: Uri) {
+final class HistoryEntry private (val httpDate: HttpDate, val method: Method, val uri: Uri) {
 
   override def toString: String = s"HistoryEntry(httpDate=$httpDate, method=$method, uri=$uri)"
 
