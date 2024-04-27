@@ -106,7 +106,7 @@ private[internal] object WebSocketHelpers {
     }
   }
 
-  private[this] val nonClientTranscoder = new FrameTranscoder(false)
+  private[this] val nonClientTranscoder = new FrameTranscoder(isClient = false)
 
   private def runConnection[F[_]](
       socket: Socket[F],
