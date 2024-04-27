@@ -76,7 +76,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -99,7 +99,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -126,7 +126,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -169,7 +169,7 @@ Content-Type: application/pdf
       )
 
       mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
+        val decoded = decoder.decode(request, strict = true)
         val result = decoded.value.map(_.isRight)
 
         result.assertEquals(true)
@@ -202,7 +202,7 @@ I am a big moose
       )
 
       mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
+        val decoded = decoder.decode(request, strict = true)
         val result = decoded.value.map(_.isRight)
 
         result.assertEquals(true)
@@ -254,7 +254,7 @@ I am a big moose
       val request =
         Request(method = Method.POST, uri = url, body = badBody, headers = multipart.headers)
 
-      mkDecoder.use(_.decode(request, true).value).intercept[CustomError.type]
+      mkDecoder.use(_.decode(request, strict = true).value).intercept[CustomError.type]
     }
 
     test("Should handle characters > 0x00ff in filename") {
@@ -282,7 +282,7 @@ Content-Type: application/json
       )
       mkDecoder
         .use { decoder =>
-          val decoded = decoder.decode(request, true)
+          val decoded = decoder.decode(request, strict = true)
           decoded.map(multipart => multipart.parts.headOption.flatMap(part => part.filename)).value
         }
         .assertEquals(Right(Some("中文文件名.json")))
