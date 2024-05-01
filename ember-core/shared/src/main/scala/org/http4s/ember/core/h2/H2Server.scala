@@ -107,7 +107,7 @@ private[ember] object H2Server {
               for {
                 bv <- ByteVector.fromBase64(value, Bases.Alphabets.Base64Url) // Base64 Url
                 settings <- H2Frame.Settings
-                  .fromPayload(bv, 0, false)
+                  .fromPayload(bv, 0, ack = false)
                   .toOption // This isn't an entire frame
                 // It is Just the Payload section of the frame
               } yield H2Frame.Settings
@@ -260,17 +260,17 @@ private[ember] object H2Server {
 
         def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks
-            .foreach(c => stream.sendData(c.toByteVector, false))
+            .foreach(c => stream.sendData(c.toByteVector, endStream = false))
             .compile
             .drain >> // PP Resp Body
-            stream.sendData(ByteVector.empty, true)
+            stream.sendData(ByteVector.empty, endStream = true)
 
         def respond(req: Request[Pure], stream: H2Stream[F]): F[(EntityBody[F], H2Stream[F])] =
           for {
             resp <- httpApp(req.covary[F])
             // _ <- Console.make[F].println("Push Promise Response Completed")
             pseudoHeaders = PseudoHeaders.responseToHeaders(resp)
-            _ <- stream.sendHeaders(pseudoHeaders, false) // PP Response
+            _ <- stream.sendHeaders(pseudoHeaders, endStream = false) // PP Response
           } yield (resp.body, stream)
 
         resp.attributes.lookup(H2Keys.PushPromises).traverse_ { (l: List[Request[Pure]]) =>
@@ -288,7 +288,7 @@ private[ember] object H2Server {
         stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
         req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
         resp <- httpApp(req)
-        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), false)
+        _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
         _ <- fulfillPushPromises(resp)
         _ <- stream.sendMessageBody(resp) // Initial Resp Body
         _ <- stream.sendTrailerHeaders(resp)
