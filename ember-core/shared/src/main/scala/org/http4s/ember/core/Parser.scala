@@ -508,8 +508,8 @@ private[ember] object Parser {
                       complete = true
                     } else
                       throw e
-                  case Right(s) =>
-                    status = s
+                  case Right(st) =>
+                    status = st
                     complete = true
                 }
               }

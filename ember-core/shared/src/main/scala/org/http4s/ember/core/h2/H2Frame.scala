@@ -456,7 +456,7 @@ private[ember] object H2Frame {
   }
   object Settings {
     final val `type` = 0x4
-    val Ack: Settings = Settings(0x0, true, Nil)
+    val Ack: Settings = Settings(0x0, ack = true, Nil)
 
     def updateSettings(
         settings: Settings,
@@ -517,7 +517,7 @@ private[ember] object H2Frame {
           } else Nil
         Settings(
           0,
-          false,
+          ack = false,
           tableSize.widen ::: enablePush.widen ::: maxConcurrentStreams.widen ::: initialWindowSize.widen ::: maxFrameSize.widen ::: maxHeaderListSize.widen,
         )
 
@@ -525,7 +525,7 @@ private[ember] object H2Frame {
 
       val default: ConnectionSettings = ConnectionSettings(
         tableSize = SettingsHeaderTableSize(4096),
-        enablePush = SettingsEnablePush(true),
+        enablePush = SettingsEnablePush(isEnabled = true),
         maxConcurrentStreams = SettingsMaxConcurrentStreams(1024),
         initialWindowSize = SettingsInitialWindowSize(65535),
         maxFrameSize = SettingsMaxFrameSize(16384),
@@ -579,8 +579,8 @@ private[ember] object H2Frame {
         case 0x1 => SettingsHeaderTableSize(value).asRight
         case 0x2 =>
           value.toInt match {
-            case 1 => SettingsEnablePush(true).asRight
-            case 0 => SettingsEnablePush(false).asRight
+            case 1 => SettingsEnablePush(isEnabled = true).asRight
+            case 0 => SettingsEnablePush(isEnabled = false).asRight
             case _ => H2Error.ProtocolError.asLeft
           }
         case 0x3 => SettingsMaxConcurrentStreams(value).asRight
@@ -738,8 +738,8 @@ private[ember] object H2Frame {
     final val `type` = 0x6
     private[this] val empty: ByteVector = ByteVector.view(Array[Byte](0, 0, 0, 0, 0, 0, 0, 0))
 
-    val default: Ping = Ping(0, false, empty)
-    val ack: Ping = Ping(0, true, empty)
+    val default: Ping = Ping(0, ack = false, empty)
+    val ack: Ping = Ping(0, ack = true, empty)
 
     def toRaw(ping: Ping): RawFrame = {
       val flag: Byte = (if (ping.ack) 0 | (1 << 0) else 0).toByte

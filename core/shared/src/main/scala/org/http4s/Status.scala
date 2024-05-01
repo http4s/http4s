@@ -90,7 +90,7 @@ object Status {
 
   @deprecated("Use fromInt(Int). This does not validate the code.", "0.22.6")
   def apply(code: Int): Status =
-    apply(code, "", true)
+    apply(code, "", isEntityAllowed = true)
 
   private def trust(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {

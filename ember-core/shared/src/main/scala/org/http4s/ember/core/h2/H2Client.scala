@@ -311,7 +311,7 @@ private[ember] class H2Client[F[_]](
       stream <- Resource.make(
         connection.streamCreateAndHeaders.use(_ =>
           connection.initiateLocalStream.flatMap(stream =>
-            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), false).as(stream)
+            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
           )
         )
       )(stream => connection.mapRef.update(m => m - stream.id))
