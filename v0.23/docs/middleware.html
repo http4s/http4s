@@ -167,6 +167,7 @@
     <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
     <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
     <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
+    <li class="level2 nav-leaf"><a href="multipart.html">Multipart and Form Handling</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
@@ -264,7 +265,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@527bd4db
+//    = org.typelevel.vault.Vault@550425aa
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[[A]IO[A]] = (
@@ -272,7 +273,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@13abf6b7
+//    = org.typelevel.vault.Vault@2ecb6b13
 // )</span></code></pre>
         <p>Now, we&#39;ll apply the service to our middleware function to create a new service, and try it out.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">modifiedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);</span></code></pre>
@@ -282,7 +283,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2db16f2c
+//    = org.typelevel.vault.Vault@64ee1da8
 // )
 </span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[[A]IO[A]] = (
@@ -290,7 +291,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@10ceb1d6
+//    = org.typelevel.vault.Vault@7370b804
 // )</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
         <p>If you intend to use you middleware in multiple places, you may want to implement
@@ -313,7 +314,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1c1f6218
+//    = org.typelevel.vault.Vault@72dfab5
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[[A]IO[A]] = (
@@ -321,7 +322,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@50cd3162
+//    = org.typelevel.vault.Vault@724b8ab0
 // )</span></code></pre>
         <p>Let&#39;s consider Authentication middleware as an example. Authentication
         middleware is a function that takes <code>AuthedRoutes[F]</code> 
@@ -355,7 +356,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@76a3ec58
+//    = org.typelevel.vault.Vault@66dcda0c
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[[A]IO[A]] = (
@@ -363,7 +364,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1386a35b
+//    = org.typelevel.vault.Vault@101aee4b
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
