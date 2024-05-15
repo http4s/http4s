@@ -522,7 +522,7 @@ val loggerService = Logger.httpRoutes[IO](
   logHeaders = false,
   logBody = true,
   redactHeadersWhen = _ => false,
-  logAction = Some((msg: String) => Console[IO].println(msg))
+  logAction = Some(IO.pure((msg: String) => Console[IO].println(msg)))
 )(service).orNotFound
 
 val loggerClient = Client.fromHttpApp(loggerService)
