@@ -47,9 +47,9 @@ class ReconnectSuite extends Http4sSuite {
               client.connectHighLevel(WSRequest(Uri())),
               _ => shouldReconnect.getAndSet(false),
             ).use { conn =>
-              conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
+              conn.receive.assertEquals(Some(WSFrame.Text("hello", last = true))) *>
                 // reconnection happens
-                conn.receive.assertEquals(Some(WSFrame.Text("hello", true))) *>
+                conn.receive.assertEquals(Some(WSFrame.Text("hello", last = true))) *>
                 // no more reconnections
                 IO.sleep(1.second) *>
                 conn.receive.intercept[IllegalStateException]
