@@ -30,6 +30,7 @@ import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
 import org.http4s.ember.core.Util
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
@@ -286,7 +287,7 @@ private[ember] class H2Client[F[_]](
   ): Resource[F, Response[F]] = {
     // Host And Port are required
     val key = H2Client.RequestKey.fromRequest(req)
-    val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
+    val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
     val useTLS = req.uri.scheme.map(_.value) match {
       case Some("http") => false
       case Some("https") => true
@@ -310,7 +311,7 @@ private[ember] class H2Client[F[_]](
       stream <- Resource.make(
         connection.streamCreateAndHeaders.use(_ =>
           connection.initiateLocalStream.flatMap(stream =>
-            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), false).as(stream)
+            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
           )
         )
       )(stream => connection.mapRef.update(m => m - stream.id))
@@ -361,7 +362,7 @@ private[ember] object H2Client {
       h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
-      val priorKnowledge = req.attributes.contains(H2Keys.Http2PriorKnowledge)
+      val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
       val socketTypeF = if (priorKnowledge) Some(Http2).pure[F] else socketMap.get.map(_.get(key))
       Resource.eval(socketTypeF).flatMap {
         case Some(Http2) =>

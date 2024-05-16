@@ -654,13 +654,13 @@ object Uri extends UriPlatform {
           Unreserved ++ "!$&'()*+,;="
 
         private def encodeUsername(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInUsername)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInUsername)
 
         private val SkipEncodeInPassword =
           SkipEncodeInUsername ++ ":"
 
         private def encodePassword(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInPassword)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInPassword)
 
         def compare(x: UserInfo, y: UserInfo): Int = x.compareTo(y)
 
@@ -1064,7 +1064,7 @@ object Uri extends UriPlatform {
     UriCoding.Unreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-    encode(s, charset, false, SkipEncodeInPath)
+    encode(s, charset, spaceIsPlus = false, SkipEncodeInPath)
 
   /** Percent-decodes a string.
     *

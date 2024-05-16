@@ -49,7 +49,7 @@ private[server] object Shutdown {
     for {
       unblockStart <- Deferred[F, Unit]
       unblockFinish <- Deferred[F, Unit]
-      state <- Ref.of[F, State](State(false, 0))
+      state <- Ref.of[F, State](State(isShutdown = false, 0))
     } yield new Shutdown[F] {
       override val await: F[Unit] =
         unblockStart

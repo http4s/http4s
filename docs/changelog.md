@@ -3,6 +3,144 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.27 (2024-05-03)
+
+This release is binary compatible with the 0.23.x series.
+
+## What's Changed
+### http4s-core
+* Move ember H2Keys Http2PriorKnowledge key to core by @hamnis in https://github.com/http4s/http4s/pull/7407
+* Handle characters > 0xff in multipart filenames by @rossabaker in https://github.com/http4s/http4s/pull/7419
+* feat: suppress stack trace on protocol exceptions by @mcenkar in https://github.com/http4s/http4s/pull/7428
+* Replace "*Decoded" Part methods with "*Bytes" by @rossabaker in https://github.com/http4s/http4s/pull/7436
+* RFC: Cookies with `Max-Age=0` should be permitted by @henricook in https://github.com/http4s/http4s/pull/7435
+* Update sbt-http4s-org to 0.17.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7437
+* Update cats-effect, cats-effect-std, ... to 3.5.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7405
+* Update fs2-core, fs2-io to 3.10.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7418
+* Update sbt-scalajs, scalajs-compiler, ... to 1.16.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7421
+
+### http4s-client
+* Small refactor to DefaultClient to remove unsafe calls and repeated code by @Adam-McDevitt in https://github.com/http4s/http4s/pull/7417
+* #6521 History client middleware by @SallyPerez in https://github.com/http4s/http4s/pull/7372
+### http4s-ember-core
+* Ember client drop head body by @hamnis in https://github.com/http4s/http4s/pull/7369
+### http4s-circe
+* Update circe-core, circe-generic, ... to 0.14.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7441
+### http4s-laws
+* Update scalacheck to 1.17.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7430
+* Update discipline-core to 1.6.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7432
+### Documentation
+* Removed reference to TSec in documentation by @KristianAN in https://github.com/http4s/http4s/pull/7401
+* Some tweaks to docs by @danicheg in https://github.com/http4s/http4s/pull/7422
+* Documentation form multipart and urlform by @fredshonorio in https://github.com/http4s/http4s/pull/7328
+
+### Behind the scenes
+* Update http4s-circe, http4s-ember-client, ... to 0.23.26 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7403
+* Update sbt-buildinfo to 0.12.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7413
+* Update scalafmt-core to 3.8.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7420
+* Update netty-buffer, netty-codec-http to 4.1.108.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7414
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7409
+* Update sbt-native-packager to 1.10.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7425
+* Update munit-cats-effect to 2.0.0-M5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7426
+* Update netty-buffer, netty-codec-http to 4.1.109.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7427
+* Update sbt-scala-native-config-brew to 0.3.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7440
+
+## New Contributors
+* @KristianAN made their first contribution in https://github.com/http4s/http4s/pull/7401
+* @Adam-McDevitt made their first contribution in https://github.com/http4s/http4s/pull/7417
+* @mcenkar made their first contribution in https://github.com/http4s/http4s/pull/7428
+* @henricook made their first contribution in https://github.com/http4s/http4s/pull/7435
+* @SallyPerez made their first contribution in https://github.com/http4s/http4s/pull/7372
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.26...v0.23.27
+
+# v0.23.26 (2024-03-04)
+
+## What's Changed
+
+### http4s-ember-server
+* Log errors in `upgradeSocket` by @froth in https://github.com/http4s/http4s/pull/7363
+* Ember: return HTTP 431 when maxHeaderSize is exceeded by @rossabaker in https://github.com/http4s/http4s/pull/7399
+
+### Documentation
+* Add OptionalMultiQueryParamDecoderMatcher Documentation by @kejifasuyi in https://github.com/http4s/http4s/pull/7357
+* Fix the outdated code snippet in the client dsl scaladoc by @danicheg in https://github.com/http4s/http4s/pull/7381
+
+### Upgrades
+* Update keypool to 0.4.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7364
+* Update fs2-core, fs2-io to 3.9.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7367
+* Update ip4s-core, ip4s-test-kit to 3.5.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7376
+
+### Behind the scenes
+
+* Update http4s-circe, http4s-ember-client, ... to 0.23.25 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7353
+* Fix labelling PRs for the `client-testkit` module by @danicheg in https://github.com/http4s/http4s/pull/7354
+* Refactor `release.yml` by @danicheg in https://github.com/http4s/http4s/pull/7355
+* Update sbt-scalajs, scalajs-compiler, ... to 1.15.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7358
+* Update netty-buffer, netty-codec-http to 4.1.105.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7361
+* Update cats-effect, cats-effect-std, ... to 3.5.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7360
+* Update netty-buffer, netty-codec-http to 4.1.106.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7365
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7368
+* Update nscplugin, sbt-scala-native, ... to 0.4.17 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7366
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7371
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7374
+* Update Java-WebSocket to 1.5.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7375
+* Update munit to 1.0.0-M11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7373
+* Update jnr-unixsocket to 0.38.22 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7380
+* Update netty-buffer, netty-codec-http to 4.1.107.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7378
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7377
+* Update sbt-scoverage to 2.0.10 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7379
+* Update scalafmt-core to 3.8.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7383
+* Update sbt to 1.9.9 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7384
+* Update sbt-scoverage to 2.0.11 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7385
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7392
+* Update sbt-http4s-org to 0.16.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7393
+* Update scala3-library, ... to 3.3.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7394
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7402
+
+## New Contributors
+* @kejifasuyi made their first contribution in https://github.com/http4s/http4s/pull/7357
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.25...v0.23.26
+
+# v0.23.25 (2024-01-03)
+
+Primarily, this is a maintenance release, binary compatible with the 0.23.x series. Also, it brings an increase in the default value for `idleConnectionTime` in `ember-client` from `45s` to `60s`. See the [PR](https://github.com/http4s/http4s/pull/7329) and [related issue](https://github.com/http4s/http4s/issues/7327) for details.
+
+## What's Changed
+
+### http4s-ember-core
+* Align the server and client idle timeouts in Ember by @rlavolee in https://github.com/http4s/http4s/pull/7329
+
+### http4s-client-testkit
+* Fix handling of connection closure in `WSTestClient` by @armanbilge in https://github.com/http4s/http4s/pull/7334
+
+### Documentation
+* Add note about cats-parse to 0.23.24 changelog by @armanbilge in https://github.com/http4s/http4s/pull/7322
+* Ross is not a moderator by @rossabaker in https://github.com/http4s/http4s/pull/7346
+* Push error handling docs through mdoc by @Quafadas in https://github.com/http4s/http4s/pull/7340
+
+### Behind the scenes
+* Update http4s-circe, http4s-ember-client, ... to 0.23.24 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7323
+* Update scalafmt-core to 3.7.17 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7324
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7325
+* Update logback-classic to 1.2.13 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7331
+* Update sbt-http4s-org to 0.16.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7332
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7333
+* Update sbt-jmh to 0.4.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7336
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7337
+* Update netty-buffer, netty-codec-http to 4.1.103.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7339
+* Update sbt to 1.9.8 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7341
+* Update Java-WebSocket to 1.5.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7344
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7345
+* Update netty-buffer, netty-codec-http to 4.1.104.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7342
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7349
+
+## New Contributors
+* @rlavolee made their first contribution in https://github.com/http4s/http4s/pull/7329
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.24...v0.23.25
+
 # v0.23.24 (2023-11-14)
 
 This release upgrades to [cats-parse v1.0.0](https://github.com/typelevel/cats-parse/releases/tag/v1.0.0) which may trigger eviction errors in your build. The cats-parse 1.x series is 100% binary-compatible with the cats-parse 0.3.x series, so it is safe to ignore the eviction errors in this case.

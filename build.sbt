@@ -766,6 +766,7 @@ lazy val unidocs = http4sProject("unidocs")
   .settings(
     moduleName := "http4s-docs",
     description := "Unified API documentation for http4s",
+    startYear := Some(2022),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         (List[ProjectReference](
@@ -866,6 +867,7 @@ lazy val scalafixInternalInput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
     semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
@@ -878,6 +880,7 @@ lazy val scalafixInternalOutput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
   )

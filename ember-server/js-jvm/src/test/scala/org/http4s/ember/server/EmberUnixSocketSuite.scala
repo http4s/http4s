@@ -24,7 +24,7 @@ import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.client.middleware.UnixSocket
 import org.http4s.ember.client.EmberClientBuilder
-import org.http4s.ember.core.h2.H2Keys
+import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
 import scala.concurrent.duration._
 
@@ -73,7 +73,7 @@ class EmberUnixSocketSuite extends Http4sSuite {
   }
 
   test("http/2") {
-    run(_.withHttp2, _.withHttp2, _.withAttribute(H2Keys.Http2PriorKnowledge, ()))
+    run(_.withHttp2, _.withHttp2, _.withAttribute(Http2PriorKnowledge, ()))
   }
 
 }
