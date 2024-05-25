@@ -47,10 +47,11 @@ trait PartReceiver[F[_], A] {
     part => this.receive(part).map(_.map(f(part.headers, _)))
 
   def withPartName: PartReceiver[F, (String, A)] =
-    part => part.name match {
-      case None => Resource.pure(Left(InvalidMessageBodyFailure(s"Part is missing a name")))
-      case Some(name) => this.receive(part).map(_.map(name -> _))
-    }
+    part =>
+      part.name match {
+        case None => Resource.pure(Left(InvalidMessageBodyFailure(s"Part is missing a name")))
+        case Some(name) => this.receive(part).map(_.map(name -> _))
+      }
 
   def tapStart(onStart: F[Unit]): PartReceiver[F, A] =
     part => Resource.eval(onStart).flatMap(_ => this.receive(part))
@@ -147,7 +148,7 @@ object PartReceiver {
     * @param chunkSize The chunk size used when reading data back from a temporary file created by this receiver
     * @return A PartReceiver which dynamically decides whether to buffer the part's body in memory or in a file
     */
-  def toMixedBuffer[F[_]: Files : Concurrent](
+  def toMixedBuffer[F[_]: Files: Concurrent](
       maxSizeBeforeFile: Int,
       chunkSize: Int = 8192,
   ): PartReceiver[F, Stream[F, Byte]] =
