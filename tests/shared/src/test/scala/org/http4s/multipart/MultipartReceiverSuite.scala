@@ -19,12 +19,12 @@ package multipart
 
 import cats.effect.IO
 import cats.effect.std.Random
-import cats.syntax.apply.*
+import cats.syntax.apply._
 import fs2.Chunk
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Path
-import org.http4s.syntax.literals.*
+import org.http4s.syntax.literals._
 
 import scala.concurrent.duration.DurationInt
 
