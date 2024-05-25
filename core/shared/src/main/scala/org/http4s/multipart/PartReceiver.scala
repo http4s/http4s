@@ -18,11 +18,9 @@ package org.http4s.multipart
 
 import cats.Applicative
 import cats.ApplicativeError
-import cats.MonadThrow
 import cats.effect.Concurrent
 import cats.effect.kernel.Resource
 import fs2.Chunk
-import fs2.Compiler
 import fs2.Pipe
 import fs2.Pull
 import fs2.Stream
@@ -47,6 +45,12 @@ trait PartReceiver[F[_], A] {
 
   def mapWithHeaders[B](f: (Headers, A) => B): PartReceiver[F, B] =
     part => this.receive(part).map(_.map(f(part.headers, _)))
+
+  def withPartName: PartReceiver[F, (String, A)] =
+    part => part.name match {
+      case None => Resource.pure(Left(InvalidMessageBodyFailure(s"Part is missing a name")))
+      case Some(name) => this.receive(part).map(_.map(name -> _))
+    }
 
   def tapStart(onStart: F[Unit]): PartReceiver[F, A] =
     part => Resource.eval(onStart).flatMap(_ => this.receive(part))
@@ -94,7 +98,7 @@ object PartReceiver {
     part => Resource.eval(part.bodyText.compile.string).map(Right(_))
 
   /** Creates a PartReceiver which writes the part body to a temporary file, then returns that file's `Path`. */
-  def toTempFile[F[_]](implicit F: Files[F], c: Compiler[F, F]): PartReceiver[F, Path] =
+  def toTempFile[F[_]](implicit F: Files[F], c: Concurrent[F]): PartReceiver[F, Path] =
     part =>
       F.tempFile
         .evalTap(path => part.body.through(F.writeAll(path)).compile.drain)
@@ -143,13 +147,9 @@ object PartReceiver {
     * @param chunkSize The chunk size used when reading data back from a temporary file created by this receiver
     * @return A PartReceiver which dynamically decides whether to buffer the part's body in memory or in a file
     */
-  def toMixedBuffer[F[_]](
+  def toMixedBuffer[F[_]: Files : Concurrent](
       maxSizeBeforeFile: Int,
       chunkSize: Int = 8192,
-  )(implicit
-      files: Files[F],
-      mt: MonadThrow[F],
-      c: Compiler[F, F],
   ): PartReceiver[F, Stream[F, Byte]] =
     part => readToBuffer[F](part.body, maxSizeBeforeFile, chunkSize).map(Right(_))
 
@@ -168,11 +168,11 @@ object PartReceiver {
     go(_, 0L).stream
   }
 
-  private def readToBuffer[F[_]: Files: MonadThrow](
+  private def readToBuffer[F[_]: Files: Concurrent](
       input: Stream[F, Byte],
       maxSizeBeforeFile: Int,
       chunkSize: Int,
-  )(implicit c: Compiler[F, F]): Resource[F, Stream[F, Byte]] = {
+  ): Resource[F, Stream[F, Byte]] = {
     def go(acc: Chunk[Byte], s: Stream[F, Byte]): Pull[F, Resource[F, Stream[F, Byte]], Unit] =
       s.pull.uncons.flatMap {
         case Some((headChunk, tail)) =>

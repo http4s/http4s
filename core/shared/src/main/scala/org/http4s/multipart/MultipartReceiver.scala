@@ -17,15 +17,58 @@
 package org.http4s.multipart
 
 import cats.Applicative
+import cats.Functor
 import cats.effect.Concurrent
 import cats.syntax.foldable._
 import fs2.io.file.Files
 import org.http4s.DecodeFailure
 import org.http4s.Headers
 import org.http4s.InvalidMessageBodyFailure
-import org.http4s.headers.`Content-Disposition`
-import org.typelevel.ci._
 
+/** Composable logic for receiving data from `multipart/form-data` request bodies.
+  *
+  * A `MultipartReceiver` works by delegating to a `PartReceiver` for each `Part`
+  * in the body. It may or may not use the same `PartReceiver` for each `Part`.
+  * The results from each `Part` are collected to a `List[Partial]` (where `Partial`
+  * is an abstract type significant to the specific `MultipartReceiver` instance),
+  * then post-processed into a final result of type `A`.
+  *
+  * For the simplest use-cases, [[MultipartReceiver.auto]] will suffice. However,
+  * `MultipartReceiver` is designed for customizability and control over how each
+  * `Part` is handled as its data is received.
+  *
+  * `MultipartReceiver` is `Applicative` in type `F`, allowing receiver logic to
+  * be defined for one field at a time, then compose the logic for each field into
+  * a single receiver. You can define single-field receivers with the DSL starting
+  * at [[MultipartReceiver.at]]. For example:
+  *
+  * {{{
+  * case class Nominee(name: String, age: Int, accolades: List[String], photo: fs2.io.file.Path)
+  *
+  * val nomineeReceiver: MultipartReceiver[IO, Nominee] = (
+  *   MultipartReceiver.at("name", PartReceiver.bodyText[IO].withSizeLimit(256)).once,
+  *   MultipartReceiver.at("age", PartReceiver.decode[IO, Int].withSizeLimit(8)).once,
+  *   MultipartReceiver.at("accolades", PartReceiver.bodyText[IO].withSizeLimit(1024)).asList,
+  *   MultipartReceiver.at("photo", PartReceiver.toTempFile[IO].withSizeLimit(2 * 1024 * 1024)).once,
+  * ).mapN(Nominee.apply)
+  *
+  * val nomineeDecoderRes: Resource[IO, EntityDecoder[IO, Nominee]] =
+  *   MultipartDecoder.fromReceiver(nomineeReceiver)
+  * }}}
+  *
+  * When used to construct an `EntityDecoder` via `MultipartDecoder.fromReceiver`, the
+  * result is expressed as a `Resource`. This allows the `MultipartReceiver` to allocate
+  * resources (like temp files) whose lifetimes are tied to the decoder resource. I.e.
+  * {{{
+  * nomineeDecoderRes.use { nomineeDecoder =>
+  *   nomineeDecoder
+  *     .decode(request, strict = false) // <- may allocate temp files
+  * } // <- temp files deleted on release
+  * }}}
+  *
+  * @tparam F The effect type
+  * @tparam A The result type
+  */
 trait MultipartReceiver[F[_], A] { self =>
 
   /** Common supertype for the values decoded from each received part.
@@ -56,6 +99,8 @@ trait MultipartReceiver[F[_], A] { self =>
     */
   def assemble(partials: List[Partial]): Either[DecodeFailure, A]
 
+  def map[B](f: A => B): MultipartReceiver[F, B] = Functor[MultipartReceiver[F, *]].map(this)(f)
+
   def decideOrReject(partHeaders: Headers): PartReceiver[F, Partial] =
     decide(partHeaders).getOrElse {
       PartReceiver.reject[F, Partial](MultipartReceiver.partName(partHeaders) match {
@@ -76,10 +121,8 @@ trait MultipartReceiver[F[_], A] { self =>
 object MultipartReceiver {
   type Aux[F[_], A, P] = MultipartReceiver[F, A] { type Partial = P }
 
-  private def partName(headers: Headers) =
-    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"name"))
-  private def partFilename(headers: Headers) =
-    headers.get[`Content-Disposition`].flatMap(_.parameters.get(ci"filename"))
+  private def partName(headers: Headers) = Part(headers, fs2.Stream.empty).name
+  private def partFilename(headers: Headers) = Part(headers, fs2.Stream.empty).filename
   private def fail(message: String) = InvalidMessageBodyFailure(message)
 
   def at[F[_], A](name: String, receiver: PartReceiver[F, A]) = new At[F, A](name, receiver)
@@ -116,6 +159,19 @@ object MultipartReceiver {
       else None
   }
 
+  /** Creates a `MultipartReceiver` which inspects each `Part`'s headers to decide whether
+    * to receive each `Part` as text or as a file upload.
+    *
+    * Parts that look like file uploads will have their content written to a temp file,
+    * represented with `PartValue.OfFile`. All other parts will be decoded to text,
+    * represented with `PartValue.OfString`. Each part's name is used as a key in the
+    * resulting `Map[String, PartValue]`.
+    *
+    * @tparam F The effect type
+    * @return A `MultipartReceiver` which builds a `Map` containing each `Part`, where the
+    *         map's key is the part name, and value is the decoded part, represented as
+    *         either plain text or as a temporary file.
+    */
   def auto[F[_]: Concurrent: Files]: MultipartReceiver[F, Map[String, PartValue]] =
     new MultipartReceiver[F, Map[String, PartValue]] {
       type Partial = (String, PartValue)
@@ -134,6 +190,37 @@ object MultipartReceiver {
       )
     }
 
+  /** Creates a `MultipartReceiver` which handles all parts the same way, using the
+    * given `partReceiver`.
+    *
+    * Note that the resulting `MultipartReceiver` does not inherently capture any metadata
+    * about each `Part`; only the decoded values are returned as a `List`. The given
+    * `partReceiver` can be constructed to provide the necessary metadata, e.g. by
+    * using [[PartReceiver.withPartName]]
+    *
+    * Example usage:
+    * {{{
+    * val genericReceiver: MultipartReceiver[IO, Map[String, Stream[IO, Byte]]] =
+    *   MultipartReceiver.uniform(
+    *     PartReceiver
+    *       .toMixedBuffer[IO](maxSizeBeforeFile = 10 * 1024 * 1024)
+    *       .withPartName
+    *   ).map(_.toMap)
+    * }}}
+    *
+    * The above passes a `PartReceiver.toMixedBuffer` to load part data into memory
+    * up to a certain per-part limit, dumping the buffer to a temporary file after
+    * that limit is reached. The buffer for each part is exposed as a generic byte
+    * stream which can safely be re-read until the underlying buffers are released.
+    * The `withPartName` method transforms the `PartReceiver` to include the Part
+    * name so we can return a convenient `Map` representation of the result.
+    *
+    * @param partReceiver The `PartReceiver` to use for each part
+    * @tparam F The effect type
+    * @tparam A The value type returned by the `partReceiver`
+    * @return A `MultipartReceiver` which delegates to the given `partReceiver` for all parts,
+    *         returning a `List` of all parts' decoded values.
+    */
   def uniform[F[_], A](partReceiver: PartReceiver[F, A]): MultipartReceiver.Aux[F, List[A], A] =
     new MultipartReceiver[F, List[A]] {
       type Partial = A

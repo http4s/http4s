@@ -765,6 +765,9 @@ object MultipartParser {
       partDecoder: Part[F] => DecodeResult[Resource[F, *], A],
   )(implicit F: Concurrent[F]): Pipe[F, Event, Either[DecodeFailure, A]] = {
 
+    val keepPulling = F.pure(true)
+    val stopPulling = F.pure(false)
+
     def pullPartStart(
         s: Stream[F, Event]
     ): Pull[F, Either[DecodeFailure, A], Unit] = s.pull.uncons1.flatMap {
@@ -803,9 +806,7 @@ object MultipartParser {
           restOfStream <-
             pullUntilPartEnd(
               tail,
-              chunk => {
-                val keepPulling = F.pure(true)
-                val stopPulling = F.pure(false)
+              chunk =>
                 F.race(channel.send(chunk), resultPromise.get).flatMap {
                   case Left(Right(())) => keepPulling // send completed normally
                   case Left(Left(Channel.Closed)) =>
@@ -825,8 +826,7 @@ object MultipartParser {
                     keepPulling // send may have blocked, but the receiver already has a result
                   case Right(Left(_)) =>
                     stopPulling // send may have blocked, receiver raised an error, so abort the pull
-                }
-              },
+                },
             )
               // when this part of the Pull completes, make sure to close the channel
               // so that the `receiver` Stream sees an EOF signal.

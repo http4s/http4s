@@ -24,7 +24,7 @@ import org.http4s.EntityBody
 import org.http4s.Header
 
 /** Generic representation of typical Multipart Part bodies, as either a string or a file path.
-  * Produced by [[PartReceiver.toMixedBuffer]].
+  * Produced by [[MultipartReceiver.auto]].
   *
   * Similar to [[Part]], but with less Header-oriented detail, and a clearer distinction
   * between in-memory data vs on-disk data.
