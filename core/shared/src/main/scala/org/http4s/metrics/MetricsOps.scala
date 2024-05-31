@@ -21,6 +21,7 @@ import cats.~>
 import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Status
+import org.typelevel.scalaccompat.annotation.nowarn
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */
@@ -32,6 +33,7 @@ trait MetricsOps[F[_]] {
     */
   def increaseActiveRequests(classifier: Option[String]): F[Unit]
 
+  @nowarn("cat=unused")
   def increaseActiveRequests(
       classifier: Option[String],
       customLabelValues: List[String],
@@ -43,6 +45,7 @@ trait MetricsOps[F[_]] {
     */
   def decreaseActiveRequests(classifier: Option[String]): F[Unit]
 
+  @nowarn("cat=unused")
   def decreaseActiveRequests(
       classifier: Option[String],
       customLabelValues: List[String],
@@ -56,6 +59,7 @@ trait MetricsOps[F[_]] {
     */
   def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
 
+  @nowarn("cat=unused")
   def recordHeadersTime(
       method: Method,
       elapsed: Long,
@@ -77,6 +81,7 @@ trait MetricsOps[F[_]] {
       classifier: Option[String],
   ): F[Unit]
 
+  @nowarn("cat=unused")
   def recordTotalTime(
       method: Method,
       status: Status,
@@ -97,6 +102,7 @@ trait MetricsOps[F[_]] {
       classifier: Option[String],
   ): F[Unit]
 
+  @nowarn("cat=unused")
   def recordAbnormalTermination(
       elapsed: Long,
       terminationType: TerminationType,
