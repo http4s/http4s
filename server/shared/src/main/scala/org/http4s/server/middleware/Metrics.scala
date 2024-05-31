@@ -93,7 +93,13 @@ object Metrics {
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => F[Option[String]],
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
-    effectWithCustomLabelValues(ops, List.empty, emptyResponseHandler, errorResponseHandler, classifierF)(routes)
+    effectWithCustomLabelValues(
+      ops,
+      List.empty,
+      emptyResponseHandler,
+      errorResponseHandler,
+      classifierF,
+    )(routes)
 
   def effectWithCustomLabelValues[F[_]](
       ops: MetricsOps[F],
@@ -122,7 +128,12 @@ object Metrics {
       for {
         now <- F.monotonic
         headerTime = now.toNanos - metrics.startTime
-        _ <- ops.recordHeadersTime(metrics.method, headerTime, metrics.classifier, customLabelValues)
+        _ <- ops.recordHeadersTime(
+          metrics.method,
+          headerTime,
+          metrics.classifier,
+          customLabelValues,
+        )
       } yield ContextResponse(resp.status, resp)
 
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
@@ -130,7 +141,13 @@ object Metrics {
     } { case (metrics, maybeStatus, outcome) =>
       stopMetrics(metrics).flatMap { totalTime =>
         def recordTotal(status: Status): F[Unit] =
-          ops.recordTotalTime(metrics.method, status, totalTime, metrics.classifier, customLabelValues)
+          ops.recordTotalTime(
+            metrics.method,
+            status,
+            totalTime,
+            metrics.classifier,
+            customLabelValues,
+          )
 
         def recordAbnormal(term: TerminationType): F[Unit] =
           ops.recordAbnormalTermination(totalTime, term, metrics.classifier, customLabelValues)
@@ -143,7 +160,12 @@ object Metrics {
           case (Outcome.Errored(e), None) =>
             // If an error occurred, and the status is empty, this means
             // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(metrics.method, totalTime, metrics.classifier, customLabelValues) *>
+            ops.recordHeadersTime(
+              metrics.method,
+              totalTime,
+              metrics.classifier,
+              customLabelValues,
+            ) *>
               recordAbnormal(Error(e)) *>
               errorResponseHandler(e).traverse_(recordTotal)
 
