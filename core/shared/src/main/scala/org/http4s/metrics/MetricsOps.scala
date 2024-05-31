@@ -116,25 +116,62 @@ trait MetricsOps[F[_]] {
       override def increaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
         ops.increaseActiveRequests(classifier)
       )
+      override def increaseActiveRequests(
+          classifier: Option[String],
+          customLabelValues: List[String],
+      ): G[Unit] = fk(
+        ops.increaseActiveRequests(classifier, customLabelValues)
+      )
+
       override def decreaseActiveRequests(classifier: Option[String]): G[Unit] = fk(
         ops.decreaseActiveRequests(classifier)
       )
+      override def decreaseActiveRequests(
+          classifier: Option[String],
+          customLabelValues: List[String],
+      ): G[Unit] = fk(
+        ops.decreaseActiveRequests(classifier, customLabelValues)
+      )
+
       override def recordHeadersTime(
           method: Method,
           elapsed: Long,
           classifier: Option[String],
       ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier))
+      override def recordHeadersTime(
+          method: Method,
+          elapsed: Long,
+          classifier: Option[String],
+          customLabelValues: List[String],
+      ): G[Unit] = fk(ops.recordHeadersTime(method, elapsed, classifier, customLabelValues))
+
       override def recordTotalTime(
           method: Method,
           status: Status,
           elapsed: Long,
           classifier: Option[String],
       ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier))
+      override def recordTotalTime(
+          method: Method,
+          status: Status,
+          elapsed: Long,
+          classifier: Option[String],
+          customLabelValues: List[String],
+      ): G[Unit] = fk(ops.recordTotalTime(method, status, elapsed, classifier, customLabelValues))
+
       override def recordAbnormalTermination(
           elapsed: Long,
           terminationType: TerminationType,
           classifier: Option[String],
       ): G[Unit] = fk(ops.recordAbnormalTermination(elapsed, terminationType, classifier))
+      override def recordAbnormalTermination(
+          elapsed: Long,
+          terminationType: TerminationType,
+          classifier: Option[String],
+          customLabelValues: List[String],
+      ): G[Unit] = fk(
+        ops.recordAbnormalTermination(elapsed, terminationType, classifier, customLabelValues)
+      )
     }
   }
 }
