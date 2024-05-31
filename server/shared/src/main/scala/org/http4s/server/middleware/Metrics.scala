@@ -72,7 +72,13 @@ object Metrics {
         None
       },
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
-    effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
+    effectWithCustomLabelValues[F](
+      ops,
+      customLabelValues,
+      emptyResponseHandler,
+      errorResponseHandler,
+      classifierF(_).pure[F],
+    )(routes)
 
   /** A server middleware capable of recording metrics
     *
