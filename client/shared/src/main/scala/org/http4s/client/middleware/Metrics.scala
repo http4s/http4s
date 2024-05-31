@@ -66,7 +66,7 @@ object Metrics {
         None
       },
   )(client: Client[F])(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
-    effect(ops, customLabelValues, classifierF.andThen(_.pure[F]))(client)
+    effectWithCustomLabelValues(ops, customLabelValues, classifierF.andThen(_.pure[F]))(client)
 
   /** Wraps a [[Client]] with a middleware capable of recording metrics
     *
