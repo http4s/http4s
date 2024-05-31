@@ -85,7 +85,7 @@ object Metrics {
   )(implicit F: Clock[F], C: Concurrent[F]): Client[F] =
     Client(withMetrics(client, ops, classifierF, List.empty))
 
-  def effect[F[_]](
+  def effectWithCustomLabelValues[F[_]](
       ops: MetricsOps[F],
       customLabelValues: List[String],
       classifierF: Request[F] => F[Option[String]],
