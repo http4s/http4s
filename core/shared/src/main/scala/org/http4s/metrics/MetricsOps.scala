@@ -33,7 +33,7 @@ trait MetricsOps[F[_]] {
     */
   def increaseActiveRequests(classifier: Option[String]): F[Unit]
 
-  @nowarn("cat=unused")
+  @nowarn
   def increaseActiveRequests(
       classifier: Option[String],
       customLabelValues: List[String],
@@ -45,7 +45,7 @@ trait MetricsOps[F[_]] {
     */
   def decreaseActiveRequests(classifier: Option[String]): F[Unit]
 
-  @nowarn("cat=unused")
+  @nowarn
   def decreaseActiveRequests(
       classifier: Option[String],
       customLabelValues: List[String],
@@ -59,7 +59,7 @@ trait MetricsOps[F[_]] {
     */
   def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): F[Unit]
 
-  @nowarn("cat=unused")
+  @nowarn
   def recordHeadersTime(
       method: Method,
       elapsed: Long,
@@ -81,7 +81,7 @@ trait MetricsOps[F[_]] {
       classifier: Option[String],
   ): F[Unit]
 
-  @nowarn("cat=unused")
+  @nowarn
   def recordTotalTime(
       method: Method,
       status: Status,
@@ -102,7 +102,7 @@ trait MetricsOps[F[_]] {
       classifier: Option[String],
   ): F[Unit]
 
-  @nowarn("cat=unused")
+  @nowarn
   def recordAbnormalTermination(
       elapsed: Long,
       terminationType: TerminationType,
