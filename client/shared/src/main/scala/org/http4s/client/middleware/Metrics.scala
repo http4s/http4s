@@ -170,6 +170,11 @@ object Metrics {
         if (e.isInstanceOf[TimeoutException])
           ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier, customLabelValues)
         else
-          ops.recordAbnormalTermination(now.toNanos - start, Error(e), classifier, customLabelValues)
+          ops.recordAbnormalTermination(
+            now.toNanos - start,
+            Error(e),
+            classifier,
+            customLabelValues,
+          )
       }
 }
