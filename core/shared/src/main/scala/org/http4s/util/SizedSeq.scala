@@ -20,7 +20,7 @@ sealed trait SizedSeq[+A] {
   def toSeq: Seq[A]
 }
 
-abstract class SizedSeqBase[+A] extends SizedSeq[A] {
+sealed abstract class SizedSeqBase[+A] extends SizedSeq[A] {
   protected val seq: Seq[A]
   override def toSeq: Seq[A] = seq
 }
