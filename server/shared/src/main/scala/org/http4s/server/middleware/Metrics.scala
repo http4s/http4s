@@ -21,11 +21,14 @@ import cats.effect.Clock
 import cats.effect.kernel.*
 import cats.syntax.all.*
 import org.http4s.*
-import org.http4s.metrics.{CustomMetricsOps, MetricsOps, TerminationType}
+import org.http4s.metrics.CustomMetricsOps
+import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
-import org.http4s.util.{SizedSeq, SizedSeq0}
+import org.http4s.util.SizedSeq
+import org.http4s.util.SizedSeq0
 
 /** Server middleware to record metrics for the http4s server.
   *

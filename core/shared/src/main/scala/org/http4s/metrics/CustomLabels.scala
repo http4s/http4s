@@ -16,7 +16,8 @@
 
 package org.http4s.metrics
 
-import org.http4s.util.{SizedSeq, SizedSeq0}
+import org.http4s.util.SizedSeq
+import org.http4s.util.SizedSeq0
 
 trait CustomLabels[+SL <: SizedSeq[String]] {
   def labels: SL
@@ -31,7 +32,7 @@ object CustomLabels {
     }
 }
 
-case class EmptyCustomLabels() extends CustomLabels[SizedSeq0[String]] {
+final case class EmptyCustomLabels() extends CustomLabels[SizedSeq0[String]] {
   override def labels: SizedSeq0[String] = SizedSeq0[String]()
   override def values: SizedSeq0[String] = SizedSeq0[String]()
 }

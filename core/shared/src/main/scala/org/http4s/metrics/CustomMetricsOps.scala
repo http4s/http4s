@@ -17,8 +17,10 @@
 package org.http4s.metrics
 
 import cats.~>
-import org.http4s.util.{SizedSeq, SizedSeq0}
-import org.http4s.{Method, Status}
+import org.http4s.Method
+import org.http4s.Status
+import org.http4s.util.SizedSeq
+import org.http4s.util.SizedSeq0
 
 /** Describes an algebra capable of writing metrics to a metrics registry
   */

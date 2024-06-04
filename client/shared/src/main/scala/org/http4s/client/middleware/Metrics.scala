@@ -25,10 +25,12 @@ import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
 import org.http4s.client.Client
-import org.http4s.metrics.{CustomMetricsOps, MetricsOps}
+import org.http4s.metrics.CustomMetricsOps
+import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.metrics.TerminationType.Timeout
-import org.http4s.util.{SizedSeq, SizedSeq0}
+import org.http4s.util.SizedSeq
+import org.http4s.util.SizedSeq0
 
 import scala.concurrent.TimeoutException
 
