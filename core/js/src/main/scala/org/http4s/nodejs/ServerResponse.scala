@@ -28,7 +28,7 @@ import scala.scalajs.js
   */
 @js.native
 @nowarn212("cat=unused")
-private[http4s] trait ServerResponse extends js.Object with Writable {
+trait ServerResponse extends js.Object with Writable {
 
   protected[nodejs] def writeHead(
       statusCode: Int,
@@ -38,7 +38,7 @@ private[http4s] trait ServerResponse extends js.Object with Writable {
 
 }
 
-private[http4s] object ServerResponse {
+object ServerResponse {
 
   implicit def http4sNodeJsServerResponseOps(serverResponse: ServerResponse): ServerResponseOps =
     new ServerResponseOps(serverResponse)
