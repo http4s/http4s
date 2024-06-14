@@ -134,7 +134,7 @@ object Http4sPlugin extends AutoPlugin {
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.5.0"
+    val vault = "3.6.0"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
