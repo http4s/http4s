@@ -20,11 +20,11 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowJobSetup ~= { steps =>
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("cachix", "install-nix-action", "v20"),
+      UseRef.Public("cachix", "install-nix-action", "v27"),
       name = Some("Install Nix"),
     ),
     WorkflowStep.Use(
-      UseRef.Public("cachix", "cachix-action", "v12"),
+      UseRef.Public("cachix", "cachix-action", "v15"),
       name = Some("Install Cachix"),
       params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
     ),
