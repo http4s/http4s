@@ -101,7 +101,7 @@ object Http4sPlugin extends AutoPlugin {
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
     val caseInsensitive = "1.4.0"
-    val cats = "2.10.0"
+    val cats = "2.11.0"
     val catsEffect = "3.5.4"
     val catsParse = "1.0.0"
     val circe = "0.14.7"
@@ -134,7 +134,7 @@ object Http4sPlugin extends AutoPlugin {
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.5.0"
+    val vault = "3.6.0"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze
