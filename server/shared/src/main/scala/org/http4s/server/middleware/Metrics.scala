@@ -18,9 +18,9 @@ package org.http4s.server.middleware
 
 import cats.data.Kleisli
 import cats.effect.Clock
-import cats.effect.kernel.*
-import cats.syntax.all.*
-import org.http4s.*
+import cats.effect.kernel._
+import cats.syntax.all._
+import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType

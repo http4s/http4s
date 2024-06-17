@@ -20,7 +20,7 @@ import cats.effect.Clock
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Resource
-import cats.syntax.all.*
+import cats.syntax.all._
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.Status
