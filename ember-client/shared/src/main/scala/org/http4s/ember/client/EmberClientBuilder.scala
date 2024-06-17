@@ -291,7 +291,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           logger,
           if (pushPromiseSupport.isDefined) default
           else
-            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(isEnabled = false)),
           checkEndpointIdentification,
           serverNameIndication,
         )

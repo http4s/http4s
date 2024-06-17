@@ -101,9 +101,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      true,
+      createRequestVault = true,
       webSocketKey,
-      enableHttp2,
+      enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
     )
@@ -160,9 +160,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
-      false,
+      createRequestVault = false,
       webSocketKey,
-      enableHttp2,
+      enableHttp2 = enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
     )

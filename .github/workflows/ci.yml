@@ -53,10 +53,10 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v27
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v15
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -150,10 +150,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v27
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v15
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -236,10 +236,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v27
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v15
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -324,15 +324,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.12]
+        scala: [2.13.14]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v27
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v15
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -395,10 +395,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install Nix
-        uses: cachix/install-nix-action@v20
+        uses: cachix/install-nix-action@v27
 
       - name: Install Cachix
-        uses: cachix/cachix-action@v12
+        uses: cachix/cachix-action@v15
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -452,7 +452,7 @@ jobs:
 
       - name: Publish site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/series/0.23'
-        uses: peaceiris/actions-gh-pages@v3.9.3
+        uses: peaceiris/actions-gh-pages@v4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: site/target/docs/site
