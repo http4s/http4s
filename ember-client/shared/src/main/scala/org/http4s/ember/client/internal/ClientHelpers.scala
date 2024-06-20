@@ -286,7 +286,7 @@ private[client] object ClientHelpers {
         case Left(_: ClosedChannelException) => true
         case Left(ex: IOException) =>
           val msg = ex.getMessage()
-          msg == "Connection reset by peer" || msg == "Broken pipe"
+          msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
         case _ => false
       }
   }
