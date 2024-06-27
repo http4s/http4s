@@ -36,10 +36,11 @@ object GZip extends GZipPlatform {
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] =
     Kleisli { (req: Request[G]) =>
-      req.headers.get[`Accept-Encoding`] match {
+      val unzippedRequest = unzipOrPass(req, bufferSize)
+      unzippedRequest.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          http(req).map(zipOrPass(_, bufferSize, level, isZippable))
-        case _ => http(req)
+          http(unzippedRequest).map(zipOrPass(_, bufferSize, level, isZippable))
+        case _ => http(unzippedRequest)
       }
     }
 
@@ -50,6 +51,11 @@ object GZip extends GZipPlatform {
     (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType == MediaType.application.`octet-stream`))
   }
+
+  private def isZipped[F[_]](req: Request[F]): Boolean =
+    req.headers.get[`Content-Encoding`].map(_.contentCoding).exists { coding =>
+      coding === ContentCoding.gzip || coding === ContentCoding.`x-gzip`
+    }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
@@ -65,6 +71,15 @@ object GZip extends GZipPlatform {
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
       case resp => resp // Don't touch it, Content-Encoding already set
+    }
+
+  private def unzipOrPass[F[_]: Compression](
+      request: Request[F],
+      bufferSize: Int,
+  ): Request[F] =
+    request match {
+      case req if isZipped(req) => unzipRequest(bufferSize, req)
+      case req => req
     }
 
   private def zipResponse[F[_]: Compression](
@@ -88,5 +103,17 @@ object GZip extends GZipPlatform {
       .removeHeader[`Content-Length`]
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
       .pipeBodyThrough(compressPipe)
+  }
+
+  private def unzipRequest[F[_]: Compression](
+      bufferSize: Int,
+      req: Request[F],
+  ): Request[F] = {
+    val decompressPipe = Compression[F].gunzip(bufferSize = bufferSize).andThenF(_.content)
+    logger.trace("GZip middleware decoding content").unsafeRunSync()
+    req
+      .removeHeader[`Content-Length`]
+      .removeHeader[`Content-Encoding`]
+      .pipeBodyThrough(decompressPipe)
   }
 }
