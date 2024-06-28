@@ -28,6 +28,7 @@ import org.http4s.ember.core.EmberException
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 import org.http4s.server.Server
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 
 import scala.concurrent.duration._
 

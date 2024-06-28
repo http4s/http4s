@@ -37,11 +37,12 @@ import org.http4s.ember.core.h2.H2Frame.Settings.ConnectionSettings.default
 import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
+import org.typelevel.otel4s.trace.Tracer
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
-final class EmberClientBuilder[F[_]: Async: Network] private (
+final class EmberClientBuilder[F[_]: Async: Network: Tracer] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
@@ -399,7 +400,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
 
 object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
 
-  def default[F[_]: Async: Network] =
+  def default[F[_]: Async: Network: Tracer] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       sgOpt = None,
@@ -420,10 +421,6 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       enableHttp2 = false,
       pushPromiseSupport = None,
     )
-
-  @deprecated("Use the overload which accepts a Network", "0.23.16")
-  def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
-    default(async, Network.forAsync(async))
 
   private object Defaults {
     val acgFixedThreadPoolSize: Int = 100
