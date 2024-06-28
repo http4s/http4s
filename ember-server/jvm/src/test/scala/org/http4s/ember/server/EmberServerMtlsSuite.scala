@@ -27,6 +27,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits._
 import org.http4s.server.ServerRequestKeys
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 
 import java.io.IOException
 import java.security.KeyStore

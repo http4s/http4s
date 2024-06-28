@@ -21,6 +21,7 @@ import cats.effect.IO
 import cats.effect.Resource
 import org.http4s.client.Client
 import org.http4s.client.testkit.ClientRouteTestBattery
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 
 class EmberClientSuite extends ClientRouteTestBattery("EmberClient") {
 
