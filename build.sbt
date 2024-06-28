@@ -5,7 +5,7 @@ import org.http4s.sbt.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
-ThisBuild / crossScalaVersions := Seq(scala_3, scala_212, scala_213)
+ThisBuild / crossScalaVersions := Seq(scala_3, scala_213)
 ThisBuild / tlBspCrossProjectPlatforms := Set(JVMPlatform)
 ThisBuild / tlBaseVersion := "0.23"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
@@ -471,6 +471,7 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
     unusedCompileDependenciesFilter -= moduleFilter("io.chrisdavenport", "log4cats-core"),
     libraryDependencies ++= Seq(
       log4catsCore.value,
+      otel4sCoreTrace.value,
       log4catsTesting.value % Test,
       log4catsNoop.value % Test,
     ),
@@ -635,6 +636,7 @@ lazy val emberServer = libraryCrossProject("ember-server")
   .jvmSettings(
     libraryDependencies ++= Seq(
       log4catsSlf4j,
+      otel4sCoreTrace.value,
       javaWebSocket % Test,
       jnrUnixSocket % Test, // Necessary for jdk < 16
     )
@@ -656,7 +658,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
     description := "ember implementation for http4s clients",
     startYear := Some(2019),
     libraryDependencies ++= Seq(
-      keypool.value
+      keypool.value,
+      otel4sCoreTrace.value,
+      otel4sSemconv.value,
     ),
     mimaBinaryIssueFilters := Seq(
       ProblemFilters

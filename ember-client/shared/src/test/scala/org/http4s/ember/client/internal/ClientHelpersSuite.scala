@@ -25,6 +25,7 @@ import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool.Reusable
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 
 class ClientHelpersSuite extends Http4sSuite {
 

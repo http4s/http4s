@@ -28,6 +28,7 @@ import org.http4s.circe._
 import org.http4s.client._
 import org.http4s.implicits._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 import scodec.bits.ByteVector
 
 import scala.concurrent.duration._

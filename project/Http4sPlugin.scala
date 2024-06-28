@@ -125,6 +125,7 @@ object Http4sPlugin extends AutoPlugin {
     val munitCatsEffect = "2.0.0"
     val munitDiscipline = "2.0.0-M3"
     val netty = "4.1.111.Final"
+    val otel4s = "0.8.0"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
@@ -183,6 +184,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val munitDiscipline = Def.setting("org.typelevel" %%% "discipline-munit" % V.munitDiscipline)
   lazy val nettyBuffer = "io.netty" % "netty-buffer" % V.netty
   lazy val nettyCodecHttp = "io.netty" % "netty-codec-http" % V.netty
+  lazy val otel4sCoreTrace = Def.setting("org.typelevel" %%% "otel4s-core-trace" % V.otel4s)
+  lazy val otel4sSemconv = Def.setting("org.typelevel" %%% "otel4s-semconv" % V.otel4s)
   lazy val quasiquotes = "org.scalamacros" %% "quasiquotes" % V.quasiquotes
   lazy val scalacheck = Def.setting("org.scalacheck" %%% "scalacheck" % V.scalacheck)
   lazy val scalacheckEffect =

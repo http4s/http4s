@@ -151,7 +151,6 @@ private[client] object ClientHelpers {
       timeout: Duration,
       userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
-
     def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
@@ -186,16 +185,18 @@ private[client] object ClientHelpers {
         )
       }
 
-    for {
-      processedReq <- preprocessRequest(request, userAgent)
-      res <- writeRead(processedReq)
-    } yield res
-  }.adaptError { case e: EmberException.EmptyStream =>
-    new ClosedChannelException() {
-      initCause(e)
+    locally {
+      for {
+        processedReq <- preprocessRequest(request, userAgent)
+        res <- writeRead(processedReq)
+      } yield res
+    }.adaptError { case e: EmberException.EmptyStream =>
+      new ClosedChannelException() {
+        initCause(e)
 
-      override def getMessage(): String =
-        "Remote Disconnect: Received zero bytes after sending request"
+        override def getMessage(): String =
+          "Remote Disconnect: Received zero bytes after sending request"
+      }
     }
   }
 
