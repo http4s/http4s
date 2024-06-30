@@ -20,7 +20,13 @@ import cats.Applicative
 import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import fs2.text
-import org.http4s.{Charset, Entity, Headers, MediaType, Method, Request, Uri}
+import org.http4s.Charset
+import org.http4s.Entity
+import org.http4s.Headers
+import org.http4s.MediaType
+import org.http4s.Method
+import org.http4s.Request
+import org.http4s.Uri
 import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
