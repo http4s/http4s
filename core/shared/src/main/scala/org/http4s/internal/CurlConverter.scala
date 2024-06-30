@@ -25,7 +25,7 @@ import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
 private[http4s] object CurlConverter {
-  private def newline: String = " \\\n  "
+  private lazy val newline: String = " \\\n  "
 
   private def prepareMethodName(method: Method): String =
     s"$newline--request ${method.name}"
