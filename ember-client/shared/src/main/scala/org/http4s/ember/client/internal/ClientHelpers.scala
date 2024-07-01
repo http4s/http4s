@@ -48,6 +48,8 @@ import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
+import org.typelevel.otel4s.semconv.attributes.HttpAttributes
+import org.typelevel.otel4s.trace.Tracer
 
 import java.io.IOException
 import scala.concurrent.duration._
@@ -142,7 +144,7 @@ private[client] object ClientHelpers {
         else iSocket.pure[Resource[F, *]]
     } yield RequestKeySocket(socket, requestKey)
 
-  def request[F[_]: Async](
+  def request[F[_]: Async: Tracer](
       request: Request[F],
       connection: EmberConnection[F],
       chunkSize: Int,
@@ -151,7 +153,6 @@ private[client] object ClientHelpers {
       timeout: Duration,
       userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
-
     def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
       Encoder
         .reqToBytes(req)
@@ -186,16 +187,28 @@ private[client] object ClientHelpers {
         )
       }
 
-    for {
-      processedReq <- preprocessRequest(request, userAgent)
-      res <- writeRead(processedReq)
-    } yield res
-  }.adaptError { case e: EmberException.EmptyStream =>
-    new ClosedChannelException() {
-      initCause(e)
+    connection.spanOpsRes.trace {
+      // TODO: attributes
+      Tracer[F]
+        .span(
+          "Ember HTTP client request",
+          HttpAttributes.HttpRequestMethod(request.method.name),
+        )
+        .surround {
+          locally {
+            for {
+              processedReq <- preprocessRequest(request, userAgent)
+              res <- writeRead(processedReq)
+            } yield res
+          }.adaptError { case e: EmberException.EmptyStream =>
+            new ClosedChannelException() {
+              initCause(e)
 
-      override def getMessage(): String =
-        "Remote Disconnect: Received zero bytes after sending request"
+              override def getMessage(): String =
+                "Remote Disconnect: Received zero bytes after sending request"
+            }
+          }
+        }
     }
   }
 
@@ -246,7 +259,7 @@ private[client] object ClientHelpers {
     }
 
   // Assumes that the request doesn't have fancy finalizers besides shutting down the pool
-  private[client] def getValidManaged[F[_]: Async](
+  private[client] def getValidManaged[F[_]: Async: Tracer](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
   ): Resource[F, Managed[F, EmberConnection[F]]] =

@@ -24,6 +24,7 @@ import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
+import org.typelevel.otel4s.trace.Tracer.Implicits.noop
 
 object EmberClientH2Example extends IOApp {
 

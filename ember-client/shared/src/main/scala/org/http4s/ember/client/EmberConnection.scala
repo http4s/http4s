@@ -23,8 +23,11 @@ import cats.effect.kernel.Ref
 import cats.effect.std.Hotswap
 import cats.syntax.all._
 import fs2.Chunk
+import org.typelevel.otel4s.trace.SpanKind
+import org.typelevel.otel4s.trace.SpanOps
+import org.typelevel.otel4s.trace.Tracer
 
-private[ember] final case class EmberConnection[F[_]](
+private[ember] final case class EmberConnection[F[_]] (
     keySocket: RequestKeySocket[F],
     chunkSize: Int,
     shutdown: F[Unit],
@@ -36,6 +39,7 @@ private[ember] final case class EmberConnection[F[_]](
      */
     hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+    spanOpsRes: SpanOps.Res[F],
 )(implicit F: Concurrent[F]) {
 
   /** For the connection to be valid, the socket must be open,
@@ -76,7 +80,7 @@ private[ember] object EmberConnection {
   def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]],
       chunkSize: Int,
-  )(implicit F: Concurrent[F]): Resource[F, EmberConnection[F]] =
+  )(implicit F: Concurrent[F], tracer: Tracer[F]): Resource[F, EmberConnection[F]] =
     (
       Resource.eval(keySocketResource.allocated),
       Resource.eval(F.ref(Array.emptyByteArray)),
@@ -86,11 +90,18 @@ private[ember] object EmberConnection {
           .flatTap(_.complete(Right(Some(Chunk.empty))))
           .flatMap(F.ref(_))
       ),
-    ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
-      Resource.make(
-        F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead))
-      )(
-        _.cleanup
-      )
+      tracer
+        .spanBuilder("Ember HTTP client connection") // TODO: attributes
+        .withSpanKind(SpanKind.Client)
+        .build
+        .resource,
+    ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead, res) =>
+      Resource
+        .make(
+          F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead, res))
+        )(
+          _.cleanup
+        )
+        .mapK(res.trace)
     }
 }
