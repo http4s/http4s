@@ -87,10 +87,11 @@ private[ember] object EmberConnection {
           .flatMap(F.ref(_))
       ),
     ).flatMapN { case ((keySocket, release), nextBytes, hotRead, nextRead) =>
-      Resource.make(
-        F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead))
-      )(
-        _.cleanup
-      )
+      Resource
+        .make(
+          F.pure(EmberConnection(keySocket, chunkSize, release, nextBytes, hotRead, nextRead))
+        )(
+          _.cleanup
+        )
     }
 }

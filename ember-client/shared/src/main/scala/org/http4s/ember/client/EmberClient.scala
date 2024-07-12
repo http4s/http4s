@@ -22,8 +22,11 @@ import cats.syntax.functor._
 import org.http4s._
 import org.http4s.client._
 import org.typelevel.keypool._
+import org.typelevel.otel4s.semconv.attributes.HttpAttributes
+import org.typelevel.otel4s.trace.SpanKind
+import org.typelevel.otel4s.trace.Tracer
 
-final class EmberClient[F[_]] private[client] (
+final class EmberClient[F[_]: Tracer] private[client] (
     private val client: Client[F],
     private val pool: KeyPool[F, RequestKey, EmberConnection[F]],
 )(implicit F: MonadCancelThrow[F])
@@ -37,7 +40,35 @@ final class EmberClient[F[_]] private[client] (
     */
   def state: F[(Int, Map[RequestKey, Int])] = pool.state
 
-  def run(req: Request[F]): Resource[F, Response[F]] = client.run(req)
+  def run(req: Request[F]): Resource[F, Response[F]] = {
+    val tracer = Tracer[F]
+    for {
+      fullReqSpan <- {
+        if (tracer.meta.isEnabled) {
+          tracer // TODO: attributes
+            .spanBuilder("Ember HTTP client request")
+            .withSpanKind(SpanKind.Client)
+            .addAttribute(HttpAttributes.HttpRequestMethod(req.method.name))
+            .build
+            .resource
+        } else tracer.meta.noopSpanBuilder.build.resource
+      }
+      sendReqSpan <-
+        tracer
+          .span("Ember HTTP client send request")
+          .resource
+          .mapK(fullReqSpan.trace)
+      recvRespSpan <-
+        tracer
+          .span("Ember HTTP client receive response")
+          .resource
+          .mapK(fullReqSpan.trace)
+      response <-
+        client
+          .run(req.mapK(sendReqSpan.trace))
+          .mapK(fullReqSpan.trace)
+    } yield response.mapK(recvRespSpan.trace)
+  }
 
   override def defaultOnError(req: Request[F])(resp: Response[F])(implicit
       G: Applicative[F]
