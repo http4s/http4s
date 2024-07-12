@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-http4s is available for Scala 2.12, 2.13, and 3.2+. You can add http4s to your build by adding its modules to `libraryDependencies` in your `build.sbt`.
+http4s is available for Scala 2.12, 2.13, and 3.3+. You can add http4s to your build by adding its modules to `libraryDependencies` in your `build.sbt`.
 
 ```scala
 val http4sVersion = "@VERSION@"
