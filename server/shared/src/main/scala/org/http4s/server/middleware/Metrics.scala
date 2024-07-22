@@ -20,12 +20,9 @@ import cats.data.Kleisli
 import cats.effect.Clock
 import cats.effect.kernel._
 import cats.syntax.all._
-import com.comcast.ip4s.IpAddress
-import com.comcast.ip4s.SocketAddress
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.NetworkProtocol
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
@@ -48,11 +45,7 @@ import scala.concurrent.duration.FiniteDuration
 object Metrics {
 
   private[this] final case class MetricsEntry(
-      method: Method,
-      uri: Uri,
-      protocol: NetworkProtocol,
-      address: Option[SocketAddress[IpAddress]],
-      requestLength: Option[Long],
+      request: RequestPrelude,
       startTime: FiniteDuration,
       classifier: Option[String],
   )
@@ -133,24 +126,10 @@ object Metrics {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
       for {
         classifier <- classifierF(request)
-        protocol = NetworkProtocol.http(request.httpVersion)
-        _ <- ops.increaseActiveRequests(
-          request.method,
-          request.uri,
-          request.server,
-          classifier,
-        )
+        _ <- ops.increaseActiveRequests(request.requestPrelude, classifier)
         startTime <- F.monotonic
       } yield ContextRequest(
-        MetricsEntry(
-          request.method,
-          request.uri,
-          protocol,
-          request.server,
-          request.contentLength,
-          startTime,
-          classifier,
-        ),
+        MetricsEntry(request.requestPrelude, startTime, classifier),
         request,
       )
 
@@ -159,95 +138,71 @@ object Metrics {
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
       for {
-        _ <- ops.decreaseActiveRequests(
-          metrics.method,
-          metrics.uri,
-          metrics.address,
-          metrics.classifier,
-        )
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.classifier)
         endTime <- F.monotonic
       } yield endTime - metrics.startTime
 
     def metricHeaders(
         metrics: MetricsEntry,
         resp: Response[F],
-    ): F[ContextResponse[F, (Status, Option[Long])]] =
+    ): F[ContextResponse[F, ResponsePrelude]] =
       for {
         now <- F.monotonic
-        _ <- ops.recordHeadersTime(
-          metrics.method,
-          metrics.uri,
-          metrics.protocol,
-          metrics.address,
-          now - metrics.startTime,
-          metrics.classifier,
-        )
-      } yield ContextResponse((resp.status, resp.contentLength), resp)
+        _ <- ops.recordHeadersTime(metrics.request, now - metrics.startTime, metrics.classifier)
+      } yield ContextResponse(resp.responsePrelude, resp)
 
-    def finalize(
-        metrics: MetricsEntry,
-        totalTime: FiniteDuration,
-        status: Option[Status],
-        respLength: Option[Long],
-        tt: Option[TerminationType],
-    ): F[Unit] = {
-      val MetricsEntry(m, uri, protocol, addr, reqLength, _, classifier) = metrics
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, ResponsePrelude] {
+      startMetrics
+    } { case (metrics, maybeStatus, outcome) =>
+      stopMetrics(metrics).flatMap { totalTime =>
+        def recordTotal(response: Option[ResponsePrelude], tt: Option[TerminationType]): F[Unit] = {
+          val MetricsEntry(request, _, classifier) = metrics
+          val status = response.map(_.status)
 
-      ops.recordTotalTime(m, uri, protocol, addr, status, tt, totalTime, classifier) *>
-        ops.recordRequestBodySize(m, uri, protocol, addr, status, tt, reqLength, classifier) *>
-        ops.recordResponseBodySize(m, uri, protocol, addr, status, tt, respLength, classifier)
-    }
-
-    BracketRequestResponse
-      .bracketRequestResponseCaseRoutes_[F, MetricsEntry, (Status, Option[Long])] {
-        startMetrics
-      } { case (metrics, maybeStatus, outcome) =>
-        stopMetrics(metrics).flatMap { totalTime =>
-          def recordTotal(
-              status: Option[Status],
-              responseLength: Option[Long],
-              tt: Option[TerminationType],
-          ): F[Unit] =
-            finalize(metrics, totalTime, status, responseLength, tt)
-
-          (outcome, maybeStatus) match {
-            case (Outcome.Succeeded(_), None) => recordTotal(emptyResponseHandler, None, None)
-
-            case (Outcome.Succeeded(_), Some((status, responseLength))) =>
-              recordTotal(Some(status), responseLength, None)
-
-            case (Outcome.Errored(e), None) =>
-              // If an error occurred, and the status is empty, this means
-              // the error occurred before the routes could generate a response.
-              ops.recordHeadersTime(
-                metrics.method,
-                metrics.uri,
-                metrics.protocol,
-                metrics.address,
-                totalTime,
-                metrics.classifier,
-              ) *> recordTotal(errorResponseHandler(e), None, Some(Error(e)))
-
-            case (Outcome.Errored(e), Some((status, responseLength))) =>
-              // If an error occurred, but the status is non-empty, this means
-              // the error occurred during the stream processing of the response body.
-              // In which case recordHeadersTime was invoked in the normal manner,
-              // so we do not need to invoke it here.
-              recordTotal(Some(status), responseLength, Some(Abnormal(e)))
-
-            case (Outcome.Canceled(), None) =>
-              recordTotal(None, None, Some(Canceled))
-
-            case (Outcome.Canceled(), Some((status, responseLength))) =>
-              recordTotal(Some(status), responseLength, Some(Canceled))
-
-          }
+          ops.recordTotalTime(request, status, tt, totalTime, classifier) *>
+            ops.recordRequestBodySize(request, status, tt, classifier) *>
+            response.traverse_(ops.recordResponseBodySize(request, _, tt, classifier))
         }
-      }(C)(
-        Kleisli { case ContextRequest(metrics, req) =>
-          routes(req).semiflatMap(metricHeaders(metrics, _))
+
+        def mkResponsePrelude(status: Status) =
+          ResponsePrelude(Headers.empty, metrics.request.httpVersion, status)
+
+        (outcome, maybeStatus) match {
+          case (Outcome.Succeeded(_), None) =>
+            recordTotal(emptyResponseHandler.map(mkResponsePrelude), None)
+
+          case (Outcome.Succeeded(_), Some(response)) =>
+            recordTotal(Some(response), None)
+
+          case (Outcome.Errored(e), None) =>
+            // If an error occurred, and the status is empty, this means
+            // the error occurred before the routes could generate a response.
+            ops.recordHeadersTime(
+              metrics.request,
+              totalTime,
+              metrics.classifier,
+            ) *> recordTotal(errorResponseHandler(e).map(mkResponsePrelude), Some(Error(e)))
+
+          case (Outcome.Errored(e), Some(response)) =>
+            // If an error occurred, but the status is non-empty, this means
+            // the error occurred during the stream processing of the response body.
+            // In which case recordHeadersTime was invoked in the normal manner,
+            // so we do not need to invoke it here.
+            recordTotal(Some(response), Some(Abnormal(e)))
+
+          case (Outcome.Canceled(), None) =>
+            recordTotal(None, Some(Canceled))
+
+          case (Outcome.Canceled(), Some(response)) =>
+            recordTotal(Some(response), Some(Canceled))
+
         }
-      )
+      }
+    }(C)(
+      Kleisli { case ContextRequest(metrics, req) =>
+        routes(req).semiflatMap(metricHeaders(metrics, _))
+      }
+    )
   }
 
 }

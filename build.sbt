@@ -193,8 +193,8 @@ lazy val server = libraryCrossProject("server")
     buildInfoPackage := "org.http4s.server.test",
     libraryDependencies ++= Seq(
       crypto.value,
-      scalacheck.value,
-      scalacheckEffectMunit.value,
+      scalacheck.value % Test,
+      scalacheckEffectMunit.value % Test,
     ),
   )
   .dependsOn(core, tests % Test, theDsl % Test)
@@ -205,8 +205,8 @@ lazy val client = libraryCrossProject("client")
     startYear := Some(2014),
     libraryDependencies ++= Seq(
       crypto.value,
-      scalacheck.value,
-      scalacheckEffectMunit.value,
+      scalacheck.value % Test,
+      scalacheckEffectMunit.value % Test,
     ),
   )
   .jvmSettings(

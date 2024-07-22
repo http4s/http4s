@@ -22,11 +22,10 @@ import cats.effect.Resource
 import cats.syntax.all._
 import org.http4s.Request
 import org.http4s.Response
-import org.http4s.Status
+import org.http4s.ResponsePrelude
 import org.http4s.client.Client
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.NetworkProtocol
 import org.http4s.metrics.TerminationType
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
@@ -103,17 +102,15 @@ object Metrics {
       customLabelValues: SL,
       classifierF: Request[F] => F[Option[String]],
   )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] = {
-    val method = req.method
-    val uri = req.uri
-    val protocol = NetworkProtocol.http(req.httpVersion)
+    val rp = req.requestPrelude
 
     for {
       start <- Resource.eval(F.monotonic)
-      statusRef <- Resource.eval(C.ref((Option.empty[Status], Option.empty[Long])))
+      responseRef <- Resource.eval(C.ref(Option.empty[ResponsePrelude]))
       classifier <- Resource.eval(classifierF(req))
 
-      _ <- Resource.make(ops.increaseActiveRequests(method, uri, req.server, classifier, customLabelValues))(_ =>
-        ops.decreaseActiveRequests(method, uri, req.server, classifier, customLabelValues)
+      _ <- Resource.make(ops.increaseActiveRequests(rp, classifier, customLabelValues))(_ =>
+        ops.decreaseActiveRequests(rp, classifier, customLabelValues)
       )
 
       _ <- Resource.onFinalizeCase { exitCase =>
@@ -131,48 +128,18 @@ object Metrics {
             Some(TerminationType.Canceled)
         }
 
-        (statusRef.get, F.monotonic).flatMapN { case ((status, responseLength), now) =>
-          ops.recordTotalTime(
-            method,
-            uri,
-            protocol,
-            req.server,
-            status,
-            tpe,
-            now - start,
-            classifier,
-          ) *>
-            ops.recordRequestBodySize(
-              method,
-              uri,
-              protocol,
-              req.server,
-              status,
-              tpe,
-              req.contentLength,
-              classifier,
-            customLabelValues,
-                )) *>
-            ops.recordResponseBodySize(
-              method,
-              uri,
-              protocol,
-              req.server,
-              status,
-              tpe,
-              responseLength,
-              classifier,
-            )
+        (responseRef.get, F.monotonic).flatMapN { case (response, now) =>
+          val status = response.map(_.status)
+          ops.recordTotalTime(rp, status, tpe, now - start, classifier) *>
+            ops.recordRequestBodySize(rp, status, tpe, classifier) *>
+            response.traverse_(ops.recordResponseBodySize(rp, _, tpe, classifier))
         }
       }
 
       resp <- client.run(req)
-      _ <- Resource.eval(statusRef.set((Some(resp.status), resp.contentLength)))
-      _ <- Resource.eval(
-        F.monotonic.flatMap { now =>
-          ops.recordHeadersTime(method, uri, protocol, req.server, now - start, classifier)
-        }
-      )
+      _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
+      now <- Resource.monotonic
+      _ <- Resource.eval(ops.recordHeadersTime(rp, now - start, classifier))
     } yield resp
   }
 

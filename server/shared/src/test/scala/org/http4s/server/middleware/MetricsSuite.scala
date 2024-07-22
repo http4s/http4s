@@ -20,18 +20,11 @@ import cats.effect.IO
 import cats.effect.Ref
 import cats.effect.testkit.TestControl
 import cats.syntax.applicative._
-import com.comcast.ip4s._
 import munit.ScalaCheckSuite
-import org.http4s.Http4sSuite
-import org.http4s.HttpRoutes
-import org.http4s.HttpVersion
-import org.http4s.Method
-import org.http4s.Request
-import org.http4s.Status
-import org.http4s.Uri
+import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.headers.`Content-Length`
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.NetworkProtocol
 import org.http4s.metrics.TerminationType
 import org.http4s.syntax.literals._
 import org.scalacheck.Gen
@@ -41,6 +34,7 @@ import scala.concurrent.duration._
 
 class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
   import MetricsSuite._
+  import MetricsOp._
 
   private val DelayGen = Gen.posNum[Int].map(_.millis)
 
@@ -75,8 +69,7 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
         }
       }
 
-      val request =
-        Request[IO](GET, uri"/ok").withAttribute(Request.Keys.ConnectionInfo, connection)
+      val request = Request[IO](GET, uri"/ok")
 
       val headersTime = server match {
         case Payload.Stream(_, _) => Duration.Zero
@@ -93,12 +86,12 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
       val responseSize = getResponseSize(server)
       val status = Status.Ok
       val expected = Vector(
-        MetricsOp.IncreaseActiveRequests(request.method, request.uri),
-        MetricsOp.RecordHeadersTime(request.method, request.uri, headersTime),
-        MetricsOp.DecreaseActiveRequests(request.method, request.uri),
-        MetricsOp.RecordTotalTime(request.method, request.uri, Some(status), totalTime),
-        MetricsOp.RecordRequestBodySize(request.method, request.uri, Some(status), None),
-        MetricsOp.RecordResponseBodySize(request.method, request.uri, Some(status), responseSize),
+        IncreaseActiveRequests(request.method, request.uri),
+        RecordHeadersTime(request.method, request.uri, headersTime),
+        DecreaseActiveRequests(request.method, request.uri),
+        RecordTotalTime(request.method, request.uri, Some(status), totalTime),
+        RecordRequestBodySize(request.method, request.uri, Some(status), None),
+        RecordResponseBodySize(request.method, request.uri, status, responseSize),
       )
 
       TestControl.executeEmbed {
@@ -151,12 +144,12 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
       val responseSize = getResponseSize(server)
       val status = Status.Ok
       val expected = Vector(
-        MetricsOp.IncreaseActiveRequests(request.method, request.uri),
-        MetricsOp.RecordHeadersTime(request.method, request.uri, headersTime),
-        MetricsOp.DecreaseActiveRequests(request.method, request.uri),
-        MetricsOp.RecordTotalTime(request.method, request.uri, Some(status), totalTime),
-        MetricsOp.RecordRequestBodySize(request.method, request.uri, Some(status), requestSize),
-        MetricsOp.RecordResponseBodySize(request.method, request.uri, Some(status), responseSize),
+        IncreaseActiveRequests(request.method, request.uri),
+        RecordHeadersTime(request.method, request.uri, headersTime),
+        DecreaseActiveRequests(request.method, request.uri),
+        RecordTotalTime(request.method, request.uri, Some(status), totalTime),
+        RecordRequestBodySize(request.method, request.uri, Some(status), requestSize),
+        RecordResponseBodySize(request.method, request.uri, status, responseSize),
       )
 
       TestControl.executeEmbed {
@@ -193,13 +186,12 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
       val status = Status.InternalServerError
       val tt = TerminationType.Error(error)
       val expected = Vector(
-        MetricsOp.IncreaseActiveRequests(request.method, request.uri),
-        MetricsOp.DecreaseActiveRequests(request.method, request.uri),
-        MetricsOp.RecordHeadersTime(request.method, request.uri, headersTime),
-        MetricsOp.RecordTotalTime(request.method, request.uri, Some(status), totalTime, Some(tt)),
-        MetricsOp
-          .RecordRequestBodySize(request.method, request.uri, Some(status), requestSize, Some(tt)),
-        MetricsOp.RecordResponseBodySize(request.method, request.uri, Some(status), None, Some(tt)),
+        IncreaseActiveRequests(request.method, request.uri),
+        DecreaseActiveRequests(request.method, request.uri),
+        RecordHeadersTime(request.method, request.uri, headersTime),
+        RecordTotalTime(request.method, request.uri, Some(status), totalTime, Some(tt)),
+        RecordRequestBodySize(request.method, request.uri, Some(status), requestSize, Some(tt)),
+        RecordResponseBodySize(request.method, request.uri, status, None, Some(tt)),
       )
 
       TestControl.executeEmbed {
@@ -236,7 +228,6 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
         MetricsOp.DecreaseActiveRequests(request.method, request.uri),
         MetricsOp.RecordTotalTime(request.method, request.uri, None, totalTime, Some(tt)),
         MetricsOp.RecordRequestBodySize(request.method, request.uri, None, requestSize, Some(tt)),
-        MetricsOp.RecordResponseBodySize(request.method, request.uri, None, None, Some(tt)),
       )
 
       TestControl.executeEmbed {
@@ -251,7 +242,7 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
   }
 
   private def mkPostRequest(payload: Payload): Request[IO] = {
-    val req = Request[IO](POST, uri"/ok").withAttribute(Request.Keys.ConnectionInfo, connection)
+    val req = Request[IO](POST, uri"/ok")
 
     payload match {
       case Payload.Empty(_) => req
@@ -285,97 +276,60 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
     private def add(op: MetricsOp): IO[Unit] =
       ops.update(_ :+ op)
 
-    def increaseActiveRequests(
-        method: Method,
-        uri: Uri,
-        address: Option[SocketAddress[IpAddress]],
-        classifier: Option[String],
-    ): IO[Unit] =
-      add(MetricsOp.IncreaseActiveRequests(method, uri, address, classifier))
+    def increaseActiveRequests(request: RequestPrelude, classifier: Option[String]): IO[Unit] =
+      add(IncreaseActiveRequests(request.method, request.uri, classifier))
 
-    def decreaseActiveRequests(
-        method: Method,
-        uri: Uri,
-        address: Option[SocketAddress[IpAddress]],
-        classifier: Option[String],
-    ): IO[Unit] =
-      add(MetricsOp.DecreaseActiveRequests(method, uri, address, classifier))
+    def decreaseActiveRequests(request: RequestPrelude, classifier: Option[String]): IO[Unit] =
+      add(DecreaseActiveRequests(request.method, request.uri, classifier))
 
     def recordHeadersTime(
-        method: Method,
-        uri: Uri,
-        protocol: NetworkProtocol,
-        address: Option[SocketAddress[IpAddress]],
+        request: RequestPrelude,
         elapsed: FiniteDuration,
         classifier: Option[String],
     ): IO[Unit] =
-      add(MetricsOp.RecordHeadersTime(method, uri, elapsed, protocol, address, classifier))
+      add(RecordHeadersTime(request.method, request.uri, elapsed, classifier))
 
     def recordTotalTime(
-        method: Method,
-        uri: Uri,
-        protocol: NetworkProtocol,
-        address: Option[SocketAddress[IpAddress]],
+        request: RequestPrelude,
         status: Option[Status],
         terminationType: Option[TerminationType],
         elapsed: FiniteDuration,
         classifier: Option[String],
     ): IO[Unit] =
       add(
-        MetricsOp.RecordTotalTime(
-          method,
-          uri,
-          status,
-          elapsed,
-          terminationType,
-          protocol,
-          address,
-          classifier,
-        )
+        RecordTotalTime(request.method, request.uri, status, elapsed, terminationType, classifier)
       )
 
     def recordRequestBodySize(
-        method: Method,
-        uri: Uri,
-        protocol: NetworkProtocol,
-        address: Option[SocketAddress[IpAddress]],
+        request: RequestPrelude,
         status: Option[Status],
         terminationType: Option[TerminationType],
-        contentLength: Option[Long],
         classifier: Option[String],
     ): IO[Unit] =
       add(
-        MetricsOp.RecordRequestBodySize(
-          method,
-          uri,
+        RecordRequestBodySize(
+          request.method,
+          request.uri,
           status,
-          contentLength,
+          request.headers.get[`Content-Length`].map(_.length),
           terminationType,
-          protocol,
-          address,
           classifier,
         )
       )
 
     def recordResponseBodySize(
-        method: Method,
-        uri: Uri,
-        protocol: NetworkProtocol,
-        address: Option[SocketAddress[IpAddress]],
-        status: Option[Status],
+        request: RequestPrelude,
+        response: ResponsePrelude,
         terminationType: Option[TerminationType],
-        contentLength: Option[Long],
         classifier: Option[String],
     ): IO[Unit] =
       add(
-        MetricsOp.RecordResponseBodySize(
-          method,
-          uri,
-          status,
-          contentLength,
+        RecordResponseBodySize(
+          request.method,
+          request.uri,
+          response.status,
+          response.headers.get[`Content-Length`].map(_.length),
           terminationType,
-          protocol,
-          address,
           classifier,
         )
       )
@@ -385,26 +339,17 @@ class MetricsSuite extends Http4sSuite with ScalaCheckSuite {
 
 object MetricsSuite {
 
-  private val protocol = NetworkProtocol.http(HttpVersion.`HTTP/1.1`)
-  private val connection = Request.Connection(
-    local = SocketAddress(ip"127.0.0.1", port"8081"),
-    remote = SocketAddress(ip"127.0.0.1", port"8082"),
-    secure = true,
-  )
-
   private sealed trait MetricsOp
   private object MetricsOp {
     final case class IncreaseActiveRequests(
         method: Method,
         uri: Uri,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
 
     final case class DecreaseActiveRequests(
         method: Method,
         uri: Uri,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
 
@@ -412,8 +357,6 @@ object MetricsSuite {
         method: Method,
         uri: Uri,
         elapsed: FiniteDuration,
-        protocol: NetworkProtocol = protocol,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
 
@@ -423,8 +366,6 @@ object MetricsSuite {
         status: Option[Status],
         elapsed: FiniteDuration,
         terminationType: Option[TerminationType] = None,
-        protocol: NetworkProtocol = protocol,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
 
@@ -434,19 +375,15 @@ object MetricsSuite {
         status: Option[Status],
         contentLength: Option[Long],
         terminationType: Option[TerminationType] = None,
-        protocol: NetworkProtocol = protocol,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
 
     final case class RecordResponseBodySize(
         method: Method,
         uri: Uri,
-        status: Option[Status],
+        status: Status,
         contentLength: Option[Long],
         terminationType: Option[TerminationType] = None,
-        protocol: NetworkProtocol = protocol,
-        address: Option[SocketAddress[IpAddress]] = Some(connection.local),
         classifier: Option[String] = None,
     ) extends MetricsOp
   }
