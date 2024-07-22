@@ -20,15 +20,20 @@ import cats.data.Kleisli
 import cats.effect.Clock
 import cats.effect.kernel._
 import cats.syntax.all._
+import com.comcast.ip4s.IpAddress
+import com.comcast.ip4s.SocketAddress
 import org.http4s._
 import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.NetworkProtocol
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -44,7 +49,11 @@ object Metrics {
 
   private[this] final case class MetricsEntry(
       method: Method,
-      startTime: Long,
+      uri: Uri,
+      protocol: NetworkProtocol,
+      address: Option[SocketAddress[IpAddress]],
+      requestLength: Option[Long],
+      startTime: FiniteDuration,
       classifier: Option[String],
   )
 
@@ -124,79 +133,121 @@ object Metrics {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
       for {
         classifier <- classifierF(request)
-        _ <- ops.increaseActiveRequests(classifier, customLabelValues)
+        protocol = NetworkProtocol.http(request.httpVersion)
+        _ <- ops.increaseActiveRequests(
+          request.method,
+          request.uri,
+          request.server,
+          classifier,
+        )
         startTime <- F.monotonic
-      } yield ContextRequest(MetricsEntry(request.method, startTime.toNanos, classifier), request)
+      } yield ContextRequest(
+        MetricsEntry(
+          request.method,
+          request.uri,
+          protocol,
+          request.server,
+          request.contentLength,
+          startTime,
+          classifier,
+        ),
+        request,
+      )
 
-    def stopMetrics(metrics: MetricsEntry): F[Long] =
+    def stopMetrics(metrics: MetricsEntry): F[FiniteDuration] =
       // Decrease active requests _first_ in case any of the other effects triggers an error.
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
       for {
-        _ <- ops.decreaseActiveRequests(metrics.classifier, customLabelValues)
+        _ <- ops.decreaseActiveRequests(
+          metrics.method,
+          metrics.uri,
+          metrics.address,
+          metrics.classifier,
+        )
         endTime <- F.monotonic
-      } yield endTime.toNanos - metrics.startTime
+      } yield endTime - metrics.startTime
 
-    def metricHeaders(metrics: MetricsEntry, resp: Response[F]): F[ContextResponse[F, Status]] =
+    def metricHeaders(
+        metrics: MetricsEntry,
+        resp: Response[F],
+    ): F[ContextResponse[F, (Status, Option[Long])]] =
       for {
         now <- F.monotonic
-        headerTime = now.toNanos - metrics.startTime
         _ <- ops.recordHeadersTime(
           metrics.method,
-          headerTime,
+          metrics.uri,
+          metrics.protocol,
+          metrics.address,
+          now - metrics.startTime,
           metrics.classifier,
-          customLabelValues,
         )
-      } yield ContextResponse(resp.status, resp)
+      } yield ContextResponse((resp.status, resp.contentLength), resp)
 
-    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
-      startMetrics
-    } { case (metrics, maybeStatus, outcome) =>
-      stopMetrics(metrics).flatMap { totalTime =>
-        def recordTotal(status: Status): F[Unit] =
-          ops.recordTotalTime(
-            metrics.method,
-            status,
-            totalTime,
-            metrics.classifier,
-            customLabelValues,
-          )
+    def finalize(
+        metrics: MetricsEntry,
+        totalTime: FiniteDuration,
+        status: Option[Status],
+        respLength: Option[Long],
+        tt: Option[TerminationType],
+    ): F[Unit] = {
+      val MetricsEntry(m, uri, protocol, addr, reqLength, _, classifier) = metrics
 
-        def recordAbnormal(term: TerminationType): F[Unit] =
-          ops.recordAbnormalTermination(totalTime, term, metrics.classifier, customLabelValues)
+      ops.recordTotalTime(m, uri, protocol, addr, status, tt, totalTime, classifier) *>
+        ops.recordRequestBodySize(m, uri, protocol, addr, status, tt, reqLength, classifier) *>
+        ops.recordResponseBodySize(m, uri, protocol, addr, status, tt, respLength, classifier)
+    }
 
-        (outcome, maybeStatus) match {
-          case (Outcome.Succeeded(_), None) => emptyResponseHandler.traverse_(recordTotal)
+    BracketRequestResponse
+      .bracketRequestResponseCaseRoutes_[F, MetricsEntry, (Status, Option[Long])] {
+        startMetrics
+      } { case (metrics, maybeStatus, outcome) =>
+        stopMetrics(metrics).flatMap { totalTime =>
+          def recordTotal(
+              status: Option[Status],
+              responseLength: Option[Long],
+              tt: Option[TerminationType],
+          ): F[Unit] =
+            finalize(metrics, totalTime, status, responseLength, tt)
 
-          case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
+          (outcome, maybeStatus) match {
+            case (Outcome.Succeeded(_), None) => recordTotal(emptyResponseHandler, None, None)
 
-          case (Outcome.Errored(e), None) =>
-            // If an error occurred, and the status is empty, this means
-            // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(
-              metrics.method,
-              totalTime,
-              metrics.classifier,
-              customLabelValues,
-            ) *>
-              recordAbnormal(Error(e)) *>
-              errorResponseHandler(e).traverse_(recordTotal)
+            case (Outcome.Succeeded(_), Some((status, responseLength))) =>
+              recordTotal(Some(status), responseLength, None)
 
-          case (Outcome.Errored(e), Some(status)) =>
-            // If an error occurred, but the status is non-empty, this means
-            // the error occurred during the stream processing of the response body.
-            // In which case recordHeadersTime was invoked in the normal manner,
-            // so we do not need to invoke it here.
-            recordAbnormal(Abnormal(e)) *> recordTotal(status)
+            case (Outcome.Errored(e), None) =>
+              // If an error occurred, and the status is empty, this means
+              // the error occurred before the routes could generate a response.
+              ops.recordHeadersTime(
+                metrics.method,
+                metrics.uri,
+                metrics.protocol,
+                metrics.address,
+                totalTime,
+                metrics.classifier,
+              ) *> recordTotal(errorResponseHandler(e), None, Some(Error(e)))
 
-          case (Outcome.Canceled(), _) => recordAbnormal(Canceled)
+            case (Outcome.Errored(e), Some((status, responseLength))) =>
+              // If an error occurred, but the status is non-empty, this means
+              // the error occurred during the stream processing of the response body.
+              // In which case recordHeadersTime was invoked in the normal manner,
+              // so we do not need to invoke it here.
+              recordTotal(Some(status), responseLength, Some(Abnormal(e)))
+
+            case (Outcome.Canceled(), None) =>
+              recordTotal(None, None, Some(Canceled))
+
+            case (Outcome.Canceled(), Some((status, responseLength))) =>
+              recordTotal(Some(status), responseLength, Some(Canceled))
+
+          }
         }
-      }
-    }(C)(
-      Kleisli { case ContextRequest(metrics, req) =>
-        routes(req).semiflatMap(metricHeaders(metrics, _))
-      }
-    )
+      }(C)(
+        Kleisli { case ContextRequest(metrics, req) =>
+          routes(req).semiflatMap(metricHeaders(metrics, _))
+        }
+      )
   }
 
 }

@@ -191,7 +191,11 @@ lazy val server = libraryCrossProject("server")
       BuildInfoKey.map(Test / resourceDirectory) { case (k, v) => k -> v.toString }
     ),
     buildInfoPackage := "org.http4s.server.test",
-    libraryDependencies += crypto.value,
+    libraryDependencies ++= Seq(
+      crypto.value,
+      scalacheck.value,
+      scalacheckEffectMunit.value,
+    ),
   )
   .dependsOn(core, tests % Test, theDsl % Test)
 
@@ -199,7 +203,11 @@ lazy val client = libraryCrossProject("client")
   .settings(
     description := "Base library for building http4s clients",
     startYear := Some(2014),
-    libraryDependencies += crypto.value,
+    libraryDependencies ++= Seq(
+      crypto.value,
+      scalacheck.value,
+      scalacheckEffectMunit.value,
+    ),
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
