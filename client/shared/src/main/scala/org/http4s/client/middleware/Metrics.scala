@@ -18,7 +18,6 @@ package org.http4s.client.middleware
 
 import cats.effect.Clock
 import cats.effect.Concurrent
-import cats.effect.Ref
 import cats.effect.Resource
 import cats.syntax.all._
 import org.http4s.Request
@@ -26,8 +25,8 @@ import org.http4s.Response
 import org.http4s.Status
 import org.http4s.client.Client
 import org.http4s.metrics.MetricsOps
-import org.http4s.metrics.TerminationType.Error
-import org.http4s.metrics.TerminationType.Timeout
+import org.http4s.metrics.NetworkProtocol
+import org.http4s.metrics.TerminationType
 
 import scala.concurrent.TimeoutException
 
@@ -80,61 +79,77 @@ object Metrics {
       client: Client[F],
       ops: MetricsOps[F],
       classifierF: Request[F] => F[Option[String]],
-  )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
+  )(req: Request[F])(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] = {
+    val method = req.method
+    val uri = req.uri
+    val protocol = NetworkProtocol.http(req.httpVersion)
+
     for {
-      statusRef <- Resource.eval(C.ref[Option[Status]](None))
       start <- Resource.eval(F.monotonic)
-      resp <- executeRequestAndRecordMetrics(
-        client,
-        ops,
-        classifierF,
-        req,
-        statusRef,
-        start.toNanos,
+      statusRef <- Resource.eval(C.ref((Option.empty[Status], Option.empty[Long])))
+      classifier <- Resource.eval(classifierF(req))
+
+      _ <- Resource.make(ops.increaseActiveRequests(method, uri, req.server, classifier))(_ =>
+        ops.decreaseActiveRequests(method, uri, req.server, classifier)
+      )
+
+      _ <- Resource.onFinalizeCase { exitCase =>
+        val tpe = exitCase match {
+          case Resource.ExitCase.Succeeded =>
+            None
+
+          case Resource.ExitCase.Errored(e) if e.isInstanceOf[TimeoutException] =>
+            Some(TerminationType.Timeout)
+
+          case Resource.ExitCase.Errored(e) =>
+            Some(TerminationType.Error(e))
+
+          case Resource.ExitCase.Canceled =>
+            Some(TerminationType.Canceled)
+        }
+
+        (statusRef.get, F.monotonic).flatMapN { case ((status, responseLength), now) =>
+          ops.recordTotalTime(
+            method,
+            uri,
+            protocol,
+            req.server,
+            status,
+            tpe,
+            now - start,
+            classifier,
+          ) *>
+            ops.recordRequestBodySize(
+              method,
+              uri,
+              protocol,
+              req.server,
+              status,
+              tpe,
+              req.contentLength,
+              classifier,
+            ) *>
+            ops.recordResponseBodySize(
+              method,
+              uri,
+              protocol,
+              req.server,
+              status,
+              tpe,
+              responseLength,
+              classifier,
+            )
+        }
+      }
+
+      resp <- client.run(req)
+      _ <- Resource.eval(statusRef.set((Some(resp.status), resp.contentLength)))
+      _ <- Resource.eval(
+        F.monotonic.flatMap { now =>
+          ops.recordHeadersTime(method, uri, protocol, req.server, now - start, classifier)
+        }
       )
     } yield resp
+  }
 
-  private def executeRequestAndRecordMetrics[F[_]](
-      client: Client[F],
-      ops: MetricsOps[F],
-      classifierF: Request[F] => F[Option[String]],
-      req: Request[F],
-      statusRef: Ref[F, Option[Status]],
-      start: Long,
-  )(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
-    (for {
-      classifier <- Resource.eval(classifierF(req))
-      _ <- Resource.make(ops.increaseActiveRequests(classifier))(_ =>
-        ops.decreaseActiveRequests(classifier)
-      )
-      _ <- Resource.onFinalize(
-        F.monotonic
-          .flatMap(now =>
-            statusRef.get.flatMap(oStatus =>
-              oStatus.traverse_(status =>
-                ops.recordTotalTime(req.method, status, now.toNanos - start, classifier)
-              )
-            )
-          )
-      )
-      resp <- client.run(req)
-      _ <- Resource.eval(statusRef.set(Some(resp.status)))
-      end <- Resource.eval(F.monotonic)
-      _ <- Resource.eval(ops.recordHeadersTime(req.method, end.toNanos - start, classifier))
-    } yield resp).handleErrorWith { (e: Throwable) =>
-      Resource.eval(
-        classifierF(req).flatMap(registerError(start, ops, _)(e)) *> C.raiseError[Response[F]](e)
-      )
-    }
-
-  private def registerError[F[_]](start: Long, ops: MetricsOps[F], classifier: Option[String])(
-      e: Throwable
-  )(implicit F: Clock[F], C: Concurrent[F]): F[Unit] =
-    F.monotonic
-      .flatMap { now =>
-        if (e.isInstanceOf[TimeoutException])
-          ops.recordAbnormalTermination(now.toNanos - start, Timeout, classifier)
-        else
-          ops.recordAbnormalTermination(now.toNanos - start, Error(e), classifier)
-      }
 }
