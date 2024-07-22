@@ -18,13 +18,10 @@ package org.http4s.metrics
 
 import cats.Foldable
 import cats.~>
-import com.comcast.ip4s.IpAddress
-import com.comcast.ip4s.SocketAddress
-import org.http4s.HttpVersion
-import org.http4s.Method
 import org.http4s.Request
+import org.http4s.RequestPrelude
+import org.http4s.ResponsePrelude
 import org.http4s.Status
-import org.http4s.Uri
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -37,97 +34,40 @@ trait MetricsOps[F[_]] {
 
   /** Increases the count of active requests
     *
-    * {{{
-    * | Name                | Example                    | Requirement level |
-    * |---------------------|----------------------------|-------------------|
-    * | http.request.method | `GET`, `POST`              |     Required      |
-    * | url.scheme          | `http`, `https`            |     Required      |
-    * | server.address      | `example.com`, `10.1.2.80` |     Opt-In        |
-    * | server.port         | `80`, `8080`               |     Opt-In        |
-    * }}}
-    *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param address the address of the local server
+    * @param request the request
     * @param classifier the classifier to apply
     */
-  def increaseActiveRequests(
-      method: Method,
-      uri: Uri,
-      address: Option[SocketAddress[IpAddress]],
-      classifier: Option[String],
-  ): F[Unit]
+  def increaseActiveRequests(request: RequestPrelude, classifier: Option[String]): F[Unit]
 
   /** Decreases the count of active requests
     *
-    * {{{
-    * | Name                | Example                    | Requirement level |
-    * |---------------------|----------------------------|-------------------|
-    * | http.request.method | `GET`, `POST`              |     Required      |
-    * | url.scheme          | `http`, `https`            |     Required      |
-    * | server.address      | `example.com`, `10.1.2.80` |     Opt-In        |
-    * | server.port         | `80`, `8080`               |     Opt-In        |
-    * }}}
-    *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param address the address of the local server
+    * @param request the request
     * @param classifier the classifier to apply
     */
-  def decreaseActiveRequests(
-      method: Method,
-      uri: Uri,
-      address: Option[SocketAddress[IpAddress]],
-      classifier: Option[String],
-  ): F[Unit]
+  def decreaseActiveRequests(request: RequestPrelude, classifier: Option[String]): F[Unit]
 
   /** Records the time to receive the response headers
     *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param protocol the protocol of the request
-    * @param address the address of the local server
+    * @param request the request
     * @param elapsed the headers receiving time
     * @param classifier the classifier to apply
     */
   def recordHeadersTime(
-      method: Method,
-      uri: Uri,
-      protocol: NetworkProtocol,
-      address: Option[SocketAddress[IpAddress]],
+      request: RequestPrelude,
       elapsed: FiniteDuration,
       classifier: Option[String],
   ): F[Unit]
 
   /** Records the time to fully consume the response, including the body
     *
-    * {{{
-    * | Name                      | Example                         | Requirement level                                            |
-    * |---------------------------|---------------------------------|--------------------------------------------------------------|
-    * | http.request.method       | `GET`, `POST`                   | Required                                                     |
-    * | url.scheme                |  `http`, `https`                | Required                                                     |
-    * | error.type                | `java.net.UnknownHostException` | Required If request has ended with an error                  |
-    * | http.response.status_code | `200`, `404`                    | Conditionally Required If and only if one was received/sent. |
-    * | network.protocol.name     |  `http`, `spdy`                 | Conditionally Required                                       |
-    * | network.protocol.version  | `1.0`, `1.1`, `2`, `3`          | Recommended                                                  |
-    * | server.address            | `example.com`, `10.1.2.80`      | Opt-In                                                       |
-    * | server.port               | `80`, `8080`                    | Opt-In                                                       |
-    * }}}
-    *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param protocol the protocol of the request
-    * @param address the address of the local server
+    * @param request the request
     * @param status the status of the response
     * @param terminationType the termination type
     * @param elapsed the processing time
     * @param classifier the classifier to apply
     */
   def recordTotalTime(
-      method: Method,
-      uri: Uri,
-      protocol: NetworkProtocol,
-      address: Option[SocketAddress[IpAddress]],
+      request: RequestPrelude,
       status: Option[Status],
       terminationType: Option[TerminationType],
       elapsed: FiniteDuration,
@@ -136,71 +76,29 @@ trait MetricsOps[F[_]] {
 
   /** Records the size of the request body
     *
-    * {{{
-    * | Name                      | Example                         | Requirement level                                            |
-    * |---------------------------|---------------------------------|--------------------------------------------------------------|
-    * | http.request.method       | `GET`, `POST`                   | Required                                                     |
-    * | url.scheme                |  `http`, `https`                | Required                                                     |
-    * | error.type                | `java.net.UnknownHostException` | Required If request has ended with an error                  |
-    * | http.response.status_code | `200`, `404`                    | Conditionally Required If and only if one was received/sent. |
-    * | network.protocol.name     |  `http`, `spdy`                 | Conditionally Required                                       |
-    * | network.protocol.version  | `1.0`, `1.1`, `2`, `3`          | Recommended                                                  |
-    * | server.address            | `example.com`, `10.1.2.80`      | Opt-In                                                       |
-    * | server.port               | `80`, `8080`                    | Opt-In                                                       |
-    * }}}
-    *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param protocol the protocol of the request
-    * @param address the address of the local server
+    * @param request the request
     * @param status the status of the response
     * @param terminationType the termination type
-    * @param contentLength the size of the request body
     * @param classifier the classifier to apply
     */
   def recordRequestBodySize(
-      method: Method,
-      uri: Uri,
-      protocol: NetworkProtocol,
-      address: Option[SocketAddress[IpAddress]],
+      request: RequestPrelude,
       status: Option[Status],
       terminationType: Option[TerminationType],
-      contentLength: Option[Long],
       classifier: Option[String],
   ): F[Unit]
 
   /** Records the size of the response body
     *
-    * {{{
-    * | Name                      | Example                         | Requirement level                                            |
-    * |---------------------------|---------------------------------|--------------------------------------------------------------|
-    * | http.request.method       | `GET`, `POST`                   | Required                                                     |
-    * | url.scheme                |  `http`, `https`                | Required                                                     |
-    * | error.type                | `java.net.UnknownHostException` | Required If request has ended with an error                  |
-    * | http.response.status_code | `200`, `404`                    | Conditionally Required If and only if one was received/sent. |
-    * | network.protocol.name     |  `http`, `spdy`                 | Conditionally Required                                       |
-    * | network.protocol.version  | `1.0`, `1.1`, `2`, `3`          | Recommended                                                  |
-    * | server.address            | `example.com`, `10.1.2.80`      | Opt-In                                                       |
-    * | server.port               | `80`, `8080`                    | Opt-In                                                       |
-    * }}}
-    *
-    * @param method the http method of the request
-    * @param uri the URI of the request
-    * @param protocol the protocol of the request
-    * @param address the address of the local server
-    * @param status the status of the response
+    * @param request the request
+    * @param response the response
     * @param terminationType the termination type
-    * @param contentLength the size of the response body
     * @param classifier the classifier to apply
     */
   def recordResponseBodySize(
-      method: Method,
-      uri: Uri,
-      protocol: NetworkProtocol,
-      address: Option[SocketAddress[IpAddress]],
-      status: Option[Status],
+      request: RequestPrelude,
+      response: ResponsePrelude,
       terminationType: Option[TerminationType],
-      contentLength: Option[Long],
       classifier: Option[String],
   ): F[Unit]
 
@@ -214,89 +112,37 @@ trait MetricsOps[F[_]] {
     val ops = this
     new MetricsOps[G] {
       override def increaseActiveRequests(
-          method: Method,
-          uri: Uri,
-          address: Option[SocketAddress[IpAddress]],
+          request: RequestPrelude,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.increaseActiveRequests(method, uri, address, classifier))
+      ): G[Unit] = fk(ops.increaseActiveRequests(request, classifier))
       override def decreaseActiveRequests(
-          method: Method,
-          uri: Uri,
-          address: Option[SocketAddress[IpAddress]],
+          request: RequestPrelude,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.decreaseActiveRequests(method, uri, address, classifier))
+      ): G[Unit] = fk(ops.decreaseActiveRequests(request, classifier))
       override def recordHeadersTime(
-          method: Method,
-          uri: Uri,
-          protocol: NetworkProtocol,
-          address: Option[SocketAddress[IpAddress]],
+          request: RequestPrelude,
           elapsed: FiniteDuration,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordHeadersTime(method, uri, protocol, address, elapsed, classifier))
+      ): G[Unit] = fk(ops.recordHeadersTime(request, elapsed, classifier))
       override def recordTotalTime(
-          method: Method,
-          uri: Uri,
-          protocol: NetworkProtocol,
-          address: Option[SocketAddress[IpAddress]],
+          request: RequestPrelude,
           status: Option[Status],
           terminationType: Option[TerminationType],
           elapsed: FiniteDuration,
           classifier: Option[String],
-      ): G[Unit] = fk(
-        ops.recordTotalTime(
-          method,
-          uri,
-          protocol,
-          address,
-          status,
-          terminationType,
-          elapsed,
-          classifier,
-        )
-      )
+      ): G[Unit] = fk(ops.recordTotalTime(request, status, terminationType, elapsed, classifier))
       override def recordRequestBodySize(
-          method: Method,
-          uri: Uri,
-          protocol: NetworkProtocol,
-          address: Option[SocketAddress[IpAddress]],
+          request: RequestPrelude,
           status: Option[Status],
           terminationType: Option[TerminationType],
-          contentLength: Option[Long],
           classifier: Option[String],
-      ): G[Unit] = fk(
-        ops.recordRequestBodySize(
-          method,
-          uri,
-          protocol,
-          address,
-          status,
-          terminationType,
-          contentLength,
-          classifier,
-        )
-      )
+      ): G[Unit] = fk(ops.recordRequestBodySize(request, status, terminationType, classifier))
       override def recordResponseBodySize(
-          method: Method,
-          uri: Uri,
-          protocol: NetworkProtocol,
-          address: Option[SocketAddress[IpAddress]],
-          status: Option[Status],
+          request: RequestPrelude,
+          response: ResponsePrelude,
           terminationType: Option[TerminationType],
-          contentLength: Option[Long],
           classifier: Option[String],
-      ): G[Unit] =
-        fk(
-          ops.recordResponseBodySize(
-            method,
-            uri,
-            protocol,
-            address,
-            status,
-            terminationType,
-            contentLength,
-            classifier,
-          )
-        )
+      ): G[Unit] = fk(ops.recordResponseBodySize(request, response, terminationType, classifier))
     }
   }
 }
@@ -355,18 +201,6 @@ object MetricsOps {
 
     Some(result)
   }
-}
-
-sealed trait NetworkProtocol {
-  def name: String
-  def version: HttpVersion
-}
-
-object NetworkProtocol {
-  def http(version: HttpVersion): NetworkProtocol =
-    Impl("http", version)
-
-  private final case class Impl(name: String, version: HttpVersion) extends NetworkProtocol
 }
 
 /** Describes the type of abnormal termination */
