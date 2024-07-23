@@ -16,18 +16,22 @@
 
 package org.http4s.internal
 
+import cats.Applicative
 import cats.effect.kernel.Concurrent
 import cats.syntax.all._
 import fs2.text
 import org.http4s.Charset
+import org.http4s.Entity
 import org.http4s.Headers
+import org.http4s.MediaType
 import org.http4s.Method
 import org.http4s.Request
 import org.http4s.Uri
 import org.typelevel.ci.CIString
+import scodec.bits.ByteVector
 
 private[http4s] object CurlConverter {
-  private def newline: String = " \\\n  "
+  private lazy val newline: String = " \\\n  "
 
   private def prepareMethodName(method: Method): String =
     s"$newline--request ${method.name}"
@@ -64,18 +68,46 @@ private[http4s] object CurlConverter {
   def requestToCurlWithBody[F[_]: Concurrent](
       request: Request[F],
       redactHeadersWhen: CIString => Boolean,
-  )(implicit defaultCharset: Charset): F[(String, Request[F])] =
-    for {
-      cachedBodyStream <- request.body.compile[F, F, Byte].toVector.map(fs2.Stream.emits(_))
-      bodyString <- {
-        val cs = request.charset.getOrElse(defaultCharset).nioCharset
-        cachedBodyStream.through(text.decodeWithCharset(cs)).compile[F, F, String].string
+  )(implicit defaultCharset: Charset): F[(String, Request[F])] = {
+    val isBinary = request.contentType.exists(_.mediaType.binary)
+    val isJson = request.contentType.exists(mT =>
+      mT.mediaType == MediaType.application.json || mT.mediaType.subType.endsWith("+json")
+    )
+    val makeCurl: String => String =
+      bodyString => {
+        val bodyArg =
+          if (bodyString.isEmpty) "" else s"$newline--data ${PosixQuoting.quote(bodyString)}"
+        s"${request.asCurl(redactHeadersWhen)}$bodyArg"
       }
-    } yield {
-      val bodyArg =
-        if (bodyString.isEmpty) "" else s"$newline--data ${PosixQuoting.quote(bodyString)}"
-      val curl = s"${request.asCurl(redactHeadersWhen)}$bodyArg"
-      val refreshedRequest = request.withBodyStream(cachedBodyStream)
-      (curl, refreshedRequest)
+
+    request.entity match {
+      case Entity.Empty =>
+        val curl = makeCurl("")
+        Applicative[F].pure(curl -> request)
+
+      case Entity.Strict(b) =>
+        val bodyString =
+          if (!isBinary || isJson) {
+            val cs = request.charset.getOrElse(defaultCharset).nioCharset
+            b.decodeStringLenient()(cs)
+          } else
+            b.toHex
+        val curl = makeCurl(bodyString)
+        Applicative[F].pure(curl -> request)
+
+      case Entity.Streamed(body, _) =>
+        for {
+          cachedBodyStream <- body.compile[F, F, Byte].toVector.map(fs2.Stream.emits(_))
+          bodyString <- {
+            val cs = request.charset.getOrElse(defaultCharset).nioCharset
+            if (!isBinary || isJson)
+              cachedBodyStream.through(text.decodeWithCharset(cs)).compile[F, F, String].string
+            else
+              cachedBodyStream.compile[F, F, Byte].to(ByteVector).map(_.toHex)
+          }
+          curl = makeCurl(bodyString)
+          refreshedRequest = request.withBodyStream(cachedBodyStream)
+        } yield curl -> refreshedRequest
     }
+  }
 }
