@@ -35,27 +35,27 @@ import java.nio.charset.{Charset => NioCharset}
 final case class Part[+F[_]](headers: Headers, entity: Entity[F]) extends Media[F] {
 
   /** This part's name from its Content-Disposition header, decoded as
-   * UTF-8.
-   */
+    * UTF-8.
+    */
   def name: Option[String] =
     name(StandardCharsets.UTF_8)
 
   /** This part's name from its Content-Disposition header, decoded as
-   * the specified charset.
-   */
+    * the specified charset.
+    */
   def name(charset: NioCharset): Option[String] =
     contentDispositionParam(ci"name", charset)
 
   /** This part's name from its Content-Disposition header, as a chunk
-   * of bytes.  Interpretation into character data is the
-   * responsibility of the caller.
-   */
+    * of bytes.  Interpretation into character data is the
+    * responsibility of the caller.
+    */
   def nameBytes: Option[Chunk[Byte]] =
     contentDispositionParamByteChunk(ci"name")
 
   /** This part's filename from its Content-Disposition header, decoded
-   * as UTF-8.
-   */
+    * as UTF-8.
+    */
   def filename: Option[String] =
     filename(StandardCharsets.UTF_8)
 
