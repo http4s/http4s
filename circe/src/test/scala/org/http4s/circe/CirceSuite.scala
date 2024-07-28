@@ -214,7 +214,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           ),
           Headers("content-type" -> "application/json"),
         ),
-        true,
+        strict = true,
       )
       list <- EitherT(
         stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure])
@@ -242,7 +242,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
         ),
         Headers.empty,
       ),
-      true,
+      strict = true,
     )
     result.value.assertEquals(Left(MediaTypeMissing(Set(MediaType.application.json))))
   }
@@ -258,7 +258,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
         ),
         Headers("content-type" -> "application/json"),
       ),
-      true,
+      strict = true,
     )
     result.value.map(_.isRight).assertEquals(true)
   }
@@ -275,7 +275,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
           ),
           Headers("content-type" -> "application/json"),
         ),
-        true,
+        strict = true,
       )
       list <- EitherT(
         stream.map(Printer.noSpaces.print).compile.toList.map(_.asRight[DecodeFailure])
@@ -406,7 +406,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       .withContentType(`Content-Type`(MediaType.application.json))
 
     val decoder = circeInstanceAllowingDuplicateKeys.jsonOf[IO, Foo]
-    val result = decoder.decode(req, true).value
+    val result = decoder.decode(req, strict = true).value
 
     result
       .map {
@@ -427,7 +427,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       .withContentType(`Content-Type`(MediaType.application.json))
 
     val decoder = circeInstanceNotAllowingDuplicateKeys.jsonOf[IO, Foo]
-    val result = decoder.decode(req, true).value
+    val result = decoder.decode(req, strict = true).value
     result
       .map {
         case Left(
@@ -448,7 +448,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       .withContentType(`Content-Type`(MediaType.application.json))
 
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-    val result = decoder.decode(req, true).value
+    val result = decoder.decode(req, strict = true).value
 
     result.map {
       case Left(_: MalformedMessageBodyFailure) => true
@@ -461,7 +461,7 @@ class CirceSuite extends JawnDecodeSupportSuite[Json] with Http4sLawSuite {
       .withEntity(Json.obj())
 
     val decoder = CirceInstances.builder.build.jsonOf[IO, Int]
-    val result = decoder.decode(req, true).value
+    val result = decoder.decode(req, strict = true).value
 
     result.map {
       case Left(_: InvalidMessageBodyFailure) => true

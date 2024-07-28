@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.http4s
-package websocket
+package org.http4s.h2
 
-import fs2.io.net.ProtocolException
+import cats.effect._
+import org.typelevel.vault._
 
-final class ReservedOpcodeException(opcode: Int)
-    extends ProtocolException(s"Opcode $opcode is reserved for future use as per RFC 6455")
-    with scala.util.control.NoStackTrace
+object H2Keys {
 
-final class UnknownOpcodeException(opcode: Int)
-    extends ProtocolException(
-      s"RFC 6455 protocol violation, unknown websocket frame opcode: $opcode"
-    )
-    with scala.util.control.NoStackTrace
+  /** Client Side Key To Try Http2-Prior-Knowledge
+    * which means immediately using http2 without any upgrade mechanism
+    * but is invalid if the receiving server does not support the
+    * mechanism.
+    */
+  val Http2PriorKnowledge: Key[Unit] = Key.newKey[SyncIO, Unit].unsafeRunSync()
+
+}
