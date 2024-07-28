@@ -103,10 +103,10 @@ Multiparts.forSync[IO].flatMap(multiparts =>
       Part.fileData[IO]( // there are also overloads for fileData that read directly from a file
         name = "picture",
         filename = "sunset.jpg",
-        entityBody = fs2.Stream.range[IO, Int](0, 100).map(_.toByte),
+        entity = Entity.stream(fs2.Stream.range[IO, Int](0, 100).map(_.toByte)),
         headers = `Content-Type`(MediaType.image.jpeg)
       ),
-      Part.formData[IO](name = "description", value = "A sunset")
+      Part.formData(name = "description", value = "A sunset")
     )
   )
 )
@@ -147,10 +147,10 @@ val mpRequest = Multiparts.forSync[IO].flatMap(multiparts =>
         Part.fileData[IO](
           name = "picture",
           filename = "sunset.jpg",
-          entityBody = fs2.Stream.range[IO, Int](0, 100).map(_.toByte),
+          entity = Entity.stream(fs2.Stream.range[IO, Int](0, 100).map(_.toByte)),
           headers = `Content-Type`(MediaType.image.jpeg)
         ),
-        Part.formData[IO](name = "description", value = "A sunset")
+        Part.formData(name = "description", value = "A sunset")
       )
     )
   )
@@ -203,8 +203,13 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers._
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Main extends IOApp.Simple {
+
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
+
   val routes = HttpRoutes.of[IO] {
     case GET -> Root / "form" =>
       Ok(
