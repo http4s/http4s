@@ -42,7 +42,7 @@ object RequestLogger {
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
+      logAction: Option[F[String => F[Unit]]] = None,
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
       G: MonadCancelThrow[G],
@@ -54,17 +54,17 @@ object RequestLogger {
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean,
-      logAction: Option[String => F[Unit]],
+      logAction: Option[F[String => F[Unit]]],
   )(http: Http[G, F])(implicit
       F: Concurrent[F],
       G: MonadCancelThrow[G],
   ): Http[G, F] = {
     val logger = LoggerFactory[F].getLogger
-    val log = logAction.fold { (s: String) =>
-      logger.info(s)
+    val logF = logAction.fold {
+      F.pure((s: String) => logger.info(s))
     }(identity)
 
-    def logMessage(r: Request[F]): F[Unit] =
+    def logMessage(r: Request[F], log: String => F[Unit]): F[Unit] =
       logBodyText match {
         case Left(bool) =>
           Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
@@ -78,8 +78,8 @@ object RequestLogger {
       case Right(_) => true
     }
 
-    def logRequest(req: Request[F]): G[Response[F]] = {
-      def logAct = logMessage(req)
+    def logRequest(req: Request[F], log: String => F[Unit]): G[Response[F]] = {
+      def logAct = logMessage(req, log)
       // This construction will log on Any Error/Cancellation
       // The Completed Case is Unit, as we rely on the semantics of G
       // As None Is Successful, but we oly want to log on Some
@@ -92,22 +92,22 @@ object RequestLogger {
 
     Kleisli {
       case req if !logBody =>
-        logRequest(req)
+        fk(logF).flatMap(log => logRequest(req, log))
       case req =>
         req.entity match {
           case Entity.Empty | Entity.Strict(_) =>
-            logRequest(req)
+            fk(logF).flatMap(log => logRequest(req, log))
 
           case Entity.Streamed(_, _) =>
-            fk(F.ref(Vector.empty[Chunk[Byte]]))
-              .flatMap { vec =>
+            fk(F.ref(Vector.empty[Chunk[Byte]]).product(logF))
+              .flatMap { case (vec, log) =>
                 val collectChunks: Pipe[F, Byte, Nothing] =
                   _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
 
                 val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
 
                 val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
-                val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody))
+                val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody), log)
 
                 http(changedRequest)
                   .guaranteeCase {
@@ -124,7 +124,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
+      logAction: Option[F[String => F[Unit]]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -132,7 +132,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
+      logAction: Option[F[String => F[Unit]]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
@@ -140,7 +140,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
+      logAction: Option[F[String => F[Unit]]] = None,
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
@@ -148,7 +148,7 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
-      logAction: Option[String => F[Unit]] = None,
+      logAction: Option[F[String => F[Unit]]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     impl[OptionT[F, *], F](
       logHeaders,
