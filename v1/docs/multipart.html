@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Typelevel Laika + Helium Theme" />
+  <title>Multipart and Form Handling</title>
+  
+  <meta name="author" content="http4s contributors"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Bjørn Madsen"/>
+  
+  <meta name="author" content="André Rouel"/>
+  
+  <meta name="author" content="Brad Fritz"/>
+  
+  <meta name="author" content="Bryce L. Anderson"/>
+  
+  <meta name="author" content="Ivan Porto Carrero"/>
+  
+  <meta name="author" content="Carlos Encarnacion"/>
+  
+  <meta name="author" content="Christopher Davenport"/>
+  
+  <meta name="author" content="Carlos Quiroz"/>
+  
+  <meta name="author" content="Heikki Vesalainen"/>
+  
+  <meta name="author" content="Paulo Siqueira"/>
+  
+  <meta name="author" content="Jean-Rémi Desjardins"/>
+  
+  <meta name="author" content="Jose Cardona"/>
+  
+  <meta name="author" content="Julien Truffaut"/>
+  
+  <meta name="author" content="Rodolfo Hansen"/>
+  
+  <meta name="author" content="Simon Hafner"/>
+  
+  <meta name="author" content="Arya Irani"/>
+  
+  <meta name="author" content="Ross A. Baker"/>
+  
+  <meta name="author" content="Sheng Chen"/>
+  
+  <meta name="author" content="Fabio Labella"/>
+  
+  
+  <meta name="description" content="Documentation for http4s"/>
+  
+  
+  
+  <link rel="icon"  type="image/svg+xml" href="../../images/http4s-favicon.svg"/>
+  
+  <link rel="icon" sizes="32x32" type="image/png" href="../../images/http4s-favicon.png"/>
+  
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:500">
+  
+  <link rel="stylesheet" type="text/css" href="../../helium/site/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../helium/site/laika-helium.css" />
+    <link rel="stylesheet" type="text/css" href="../../styles/styles.css" />
+  <script src="../../helium/site/laika-helium.js"></script>
+    <script src="../../helium/site/laika-versions.js"></script>
+  <script>initVersions("../../", "/docs/multipart.html", "v1", null);</script>
+  
+  <script> /* for avoiding page load transitions */ </script>
+</head>
+
+  <body>
+
+    <header id="top-bar" class="light-default dark-default">
+
+  <div class="row">
+    <a id="nav-icon">
+      <i class="icofont-laika navigationMenu" title="Navigation">&#xefa2;</i>
+    </a>
+    
+    <div class="menu-container version-menu">
+      <a class="text-link menu-toggle" href="#">Version 1</a>
+      <nav class="menu-content">
+        <ul class="nav-list">
+          <li class="level1 nav-leaf"><a href="../../versions.html">Help me choose...</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <a class="image-link" href="https://http4s.org"><img src="../../images/http4s-logo-text-dark.svg"></a>
+
+  <div class="row links">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M41/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>  
+
+</header>
+    
+    <nav id="sidebar">
+
+  <div class="row">
+    
+    <a class="icon-link svg-link" href="https://www.javadoc.io/doc/org.http4s/http4s-docs_2.13/1.0.0-M41/"><span class="api" title="API"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M75,47.5c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm-50,-0c13.246,-0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,-0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm2.705,16.735l7.239,0l0.622,-4.904l-21.833,0l-0,4.904l7.589,0l0,22.067l6.383,0l-0,-22.067Zm58.076,7.265c-0,-8.757 -3.698,-14.166 -10.781,-14.166c-7.083,-0 -10.781,5.604 -10.781,14.166c0,8.757 3.698,14.166 10.781,14.166c7.083,0 10.781,-5.604 10.781,-14.166Zm-6.539,0c0,6.538 -1.128,9.496 -4.242,9.496c-2.997,0 -4.242,-2.88 -4.242,-9.496c-0,-6.616 1.206,-9.496 4.242,-9.496c3.036,-0 4.242,2.88 4.242,9.496Zm-29.242,-67c13.246,0 24,10.754 24,24c0,13.246 -10.754,24 -24,24c-13.246,0 -24,-10.754 -24,-24c0,-13.246 10.754,-24 24,-24Zm0.512,9.834c-7.122,-0 -12.609,5.098 -12.609,14.127c-0,9.263 5.215,14.205 12.532,14.205c4.164,0 7.083,-1.634 9.068,-3.658l-2.88,-3.697c-1.518,1.206 -3.153,2.413 -5.838,2.413c-3.697,-0 -6.266,-2.763 -6.266,-9.263c-0,-6.616 2.724,-9.379 6.149,-9.379c2.102,-0 3.892,0.778 5.371,1.984l3.113,-3.775c-2.257,-1.868 -4.748,-2.957 -8.64,-2.957Z"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link svg-link" href="https://github.com/http4s/http4s"><span class="github" title="Source Code"><svg class="svg-icon" width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+  <g class="svg-shape">
+    <path d="M49.995,1c-27.609,-0 -49.995,22.386 -49.995,50.002c-0,22.09 14.325,40.83 34.194,47.444c2.501,0.458 3.413,-1.086 3.413,-2.412c0,-1.185 -0.043,-4.331 -0.067,-8.503c-13.908,3.021 -16.843,-6.704 -16.843,-6.704c-2.274,-5.773 -5.552,-7.311 -5.552,-7.311c-4.54,-3.103 0.344,-3.042 0.344,-3.042c5.018,0.356 7.658,5.154 7.658,5.154c4.46,7.64 11.704,5.433 14.552,4.156c0.454,-3.232 1.744,-5.436 3.174,-6.685c-11.102,-1.262 -22.775,-5.553 -22.775,-24.713c-0,-5.457 1.949,-9.92 5.147,-13.416c-0.516,-1.265 -2.231,-6.348 0.488,-13.233c0,0 4.199,-1.344 13.751,5.126c3.988,-1.108 8.266,-1.663 12.518,-1.682c4.245,0.019 8.523,0.574 12.517,1.682c9.546,-6.47 13.736,-5.126 13.736,-5.126c2.728,6.885 1.013,11.968 0.497,13.233c3.204,3.496 5.141,7.959 5.141,13.416c0,19.209 -11.691,23.436 -22.83,24.673c1.795,1.544 3.394,4.595 3.394,9.26c0,6.682 -0.061,12.076 -0.061,13.715c0,1.338 0.899,2.894 3.438,2.406c19.853,-6.627 34.166,-25.354 34.166,-47.438c-0,-27.616 -22.389,-50.002 -50.005,-50.002"/>
+  </g>
+</svg></span></a>
+    
+    <a class="icon-link glyph-link" href="https://discord.gg/XF3CXcMzqD"><i class="icofont-laika chat" title="Chat">&#xeed5;</i></a>
+    
+  </div>
+
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="../../versions.html">Versions</a></li>
+    <li class="level1 nav-leaf"><a href="../../changelog.html">Changelog</a></li>
+    <li class="level1 nav-leaf"><a href="../../getting-help.html">Getting Help</a></li>
+    <li class="level1 nav-leaf"><a href="../../contributing.html">Contributing</a></li>
+    <li class="level1 nav-leaf"><a href="../../adopters.html">Adopters</a></li>
+    <li class="level1 nav-leaf"><a href="../../code-of-conduct.html">Code of Conduct</a></li>
+    <li class="level1 nav-leaf"><a href="../../further-reading.html">Further Reading</a></li>
+    <li class="level1 nav-header">User Guide</li>
+    <li class="level2 nav-leaf"><a href="quickstart.html">Quick Start</a></li>
+    <li class="level2 nav-leaf"><a href="integrations.html">Integrations</a></li>
+    <li class="level2 nav-leaf"><a href="upgrading.html">Upgrading</a></li>
+    <li class="level2 nav-leaf"><a href="service.html">Service</a></li>
+    <li class="level2 nav-leaf"><a href="dsl.html">The http4s DSL</a></li>
+    <li class="level2 nav-leaf"><a href="middleware.html">Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="server-middleware.html">Server Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="client-middleware.html">Client Middleware</a></li>
+    <li class="level2 nav-leaf"><a href="auth.html">Authentication</a></li>
+    <li class="level2 nav-leaf"><a href="cors.html">CORS</a></li>
+    <li class="level2 nav-leaf"><a href="csrf.html">CSRF</a></li>
+    <li class="level2 nav-leaf"><a href="gzip.html">GZip Compression</a></li>
+    <li class="level2 nav-leaf"><a href="hsts.html">HSTS</a></li>
+    <li class="level2 nav-leaf"><a href="static.html">Static Files</a></li>
+    <li class="level2 nav-leaf"><a href="client.html">HTTP Client</a></li>
+    <li class="level2 nav-leaf"><a href="entity.html">Entity Handling</a></li>
+    <li class="level2 nav-leaf"><a href="streaming.html">Streaming</a></li>
+    <li class="level2 nav-leaf"><a href="json.html">JSON Handling</a></li>
+    <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
+    <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
+    <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
+    <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
+    <li class="level2 active nav-leaf"><a href="#">Multipart and Form Handling</a></li>
+    <li class="level1 nav-header">Related Projects</li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-armeria">http4s-armeria</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-curl/">http4s-curl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-dom/">http4s-dom</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-finagle/docs/">http4s-finagle</a></li>
+    <li class="level2 nav-leaf"><a href="https://jdk-http-client.http4s.org/">http4s-jdk-http-client</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-jetty/">http4s-jetty</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-netty/">http4s-netty</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-servlet/">http4s-servlet</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/rho/">rho</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-boopickle/">http4s-boopickle</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-fabric/">http4s-fabric</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-fs2-data/">http4s-fs2-data</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-scala-xml/">http4s-scala-xml</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-prometheus-metrics/">http4s-prometheus-metrics</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-scalatags/">http4s-scalatags</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/http4s-session/">http4s-session</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/http4s/http4s-twirl/">http4s-twirl</a></li>
+    <li class="level2 nav-leaf"><a href="https://http4s.github.io/sbt-http4s-org/">sbt-http4s-org</a></li>
+    <li class="level2 nav-leaf"><a href="https://github.com/typelevel/feral/">feral</a></li>
+  </ul>
+
+</nav>
+
+    <div id="container">
+
+      
+<nav id="page-nav">
+  <p class="header"><a href="#">Multipart and Form Handling</a></p>
+
+  <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#urlform">UrlForm</a></li>
+    <li class="level1 nav-leaf"><a href="#multipart-form">Multipart form</a></li>
+    <li class="level1 nav-leaf"><a href="#streaming-uploads">Streaming uploads</a></li>
+    <li class="level1 nav-leaf"><a href="#scala-cli-example">Scala-cli example</a></li>
+  </ul>
+
+  <p class="footer"></p>
+</nav>
+
+
+      <main class="content">
+
+        <h1 id="multipart-and-form-handling" class="title">Multipart and Form Handling</h1>
+        <p>Multipart is an HTTP content type for messages (requests or responses) composed of multiple parts.
+        Each part is itself similar to an HTTP message in that it has its own body and headers. A common use
+        for multipart requests is for user-submitted forms, especially ones that include files.
+        Browsers also support (and default to) another encoding for forms, <code>application/x-www-form-urlencoded</code>.
+        This encoding is simpler, but is not often used for binary data.
+        This page demonstrates the usage of forms in http4s and includes a <a href="https://scala-cli.virtuslab.org/">scala-cli</a> example at the <a href="#scala-cli-example">end</a>.</p>
+        <p>We&#39;ll start by defining imports for our examples:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">Client</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">multipart</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span></code></pre>
+        <div class="callout info">
+          <i class="icofont-laika info">&#xef4e;</i>
+          <p>Because this documentation is running in <a href="https://scalameta.org/mdoc/">mdoc</a> we need an implicit <code>IORuntime</code> to let us run our <code>IO</code> values explicitly with <code>.unsafeRunSync()</code>.
+          In real code you should construct your whole program in <code>IO</code> and assign it to <code>run</code> in <code>IOApp</code>.</p>
+          <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">unsafe</span><span>.</span><span class="type-name">IORuntime</span><span>
+</span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">runtime</span><span>: </span><span class="type-name">IORuntime</span><span> = </span><span class="type-name">IORuntime</span><span>.</span><span class="identifier">global</span></code></pre>
+        </div>
+        
+        <h2 id="urlform" class="section"><a class="anchor-link left" href="#urlform"><i class="icofont-laika link">&#xef71;</i></a>UrlForm</h2>
+        <p>To handle <code>application/x-www-form-urlencoded</code> messages, http4s provides <code>UrlForm</code> and respective <code>EntityEncoder</code> and 
+        <code>EntityDecoder</code>. The following example shows the client sending a form request and a server parsing it:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">urlRoutes</span><span> = </span><span class="type-name">HttpRoutes</span><span>
+  .</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] { </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;url-form&quot;</span><span> =&gt;
+    </span><span class="identifier">request</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">UrlForm</span><span>].</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">form</span><span> =&gt;
+      </span><span class="keyword">val</span><span> </span><span class="identifier">name</span><span> = </span><span class="identifier">form</span><span>.</span><span class="identifier">values</span><span>
+        .</span><span class="identifier">collectFirst</span><span> { </span><span class="keyword">case</span><span> (</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="identifier">values</span><span>) =&gt; </span><span class="identifier">values</span><span> }
+        .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headOption</span><span>)
+        .</span><span class="identifier">getOrElse</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>)
+      </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">&quot;</span><span>)
+    }
+  }
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">urlClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">urlRoutes</span><span>.</span><span class="identifier">orNotFound</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">urlRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](
+  </span><span class="identifier">method</span><span> = </span><span class="type-name">POST</span><span>,
+  </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;http://example/url-form&quot;</span><span>,
+).</span><span class="identifier">withEntity</span><span>(</span><span class="type-name">UrlForm</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span> -&gt; </span><span class="string-literal">&quot;Duncan&quot;</span><span>, </span><span class="string-literal">&quot;version&quot;</span><span> -&gt; </span><span class="string-literal">&quot;4&quot;</span><span>))</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">urlClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">urlRequest</span><span>)
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res0: String = &quot;Hello, Duncan&quot;</span></code></pre>
+        
+        <h2 id="multipart-form" class="section"><a class="anchor-link left" href="#multipart-form"><i class="icofont-laika link">&#xef71;</i></a>Multipart form</h2>
+        <p>http4s also supports multipart forms, although their usage is a bit more involved. A multipart body is represented
+        with a <code>Multipart[_]</code> value. There&#39;s an <code>EntityDecoder</code> for <code>Multipart[_]</code>, so parsing a request body works as expected:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;multipart-form&quot;</span><span> =&gt;
+    </span><span class="identifier">request</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">Multipart</span><span>[</span><span class="type-name">IO</span><span>]].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">multipart</span><span> =&gt; ???)
+}</span></code></pre>
+        <p>However, this approach buffers the contents in memory and so it&#39;s unsuitable if large requests are 
+        expected. The size of the body can be controlled using the <a href="server-middleware.html#entitylimiter">EntityLimiter</a> middleware, and it&#39;s advisable
+        to use it generally, even if no uploads are expected.</p>
+        <p>An alternative that handles large request bodies better is <code>EntityDecoder.mixedMultipartResource</code> which will stream
+        the body into files on disk if it reaches a specified size threshold. This method returns a <code>Resource</code> wrapping an <code>EntityDecoder</code>,
+        the resource is meant to be allocated in the scope of a single request as it cleans up any temporary files that
+        were created while decoding. Usage is as follows:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+  </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;multipart-form&quot;</span><span> =&gt;
+    </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">mixedMultipartResource</span><span>[</span><span class="type-name">IO</span><span>]().</span><span class="identifier">use</span><span>(</span><span class="identifier">decoder</span><span> =&gt;
+      </span><span class="identifier">request</span><span>.</span><span class="identifier">decodeWith</span><span>(</span><span class="identifier">decoder</span><span>, </span><span class="identifier">strict</span><span> = </span><span class="boolean-literal">true</span><span>)(</span><span class="identifier">multipart</span><span> =&gt; ???)
+    )
+}</span></code></pre>
+        <p>Creating a multipart request also differs slightly from other content types. Each part in a multipart request body is
+        surrounded by a boundary, which is a bit of text used by the server to distinguish between the different parts. This
+        text is also sent in the header of the request. Currently, the <code>EntityEncoder</code> can&#39;t define headers by inspecting the body,
+        and as such we have to define the boundary header in the request explicitly. Additionally, the boundary is randomly-generated,
+        which is an effect. We can call methods on the <code>Multiparts</code> companion object to get a <code>Multiparts[_]</code> instance, which is 
+        a builder of multipart requests. This instance can be shared. This is an example of the creation of a multipart request:</p>
+        <pre><code class="nohighlight"><span class="type-name">Multiparts</span><span>.</span><span class="identifier">forSync</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">multiparts</span><span> =&gt;
+  </span><span class="identifier">multiparts</span><span>.</span><span class="identifier">multipart</span><span>(
+    </span><span class="type-name">Vector</span><span>( </span><span class="comment">// a multipart request with two parts
+</span><span>      </span><span class="type-name">Part</span><span>.</span><span class="identifier">fileData</span><span>[</span><span class="type-name">IO</span><span>]( </span><span class="comment">// there are also overloads for fileData that read directly from a file
+</span><span>        </span><span class="identifier">name</span><span> = </span><span class="string-literal">&quot;picture&quot;</span><span>,
+        </span><span class="identifier">filename</span><span> = </span><span class="string-literal">&quot;sunset.jpg&quot;</span><span>,
+        </span><span class="identifier">entity</span><span> = </span><span class="type-name">Entity</span><span>.</span><span class="identifier">stream</span><span>(</span><span class="identifier">fs2</span><span>.</span><span class="type-name">Stream</span><span>.</span><span class="identifier">range</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Int</span><span>](</span><span class="number-literal">0</span><span>, </span><span class="number-literal">100</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">toByte</span><span>)),
+        </span><span class="identifier">headers</span><span> = </span><span class="identifier">`Content-Type`</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">image</span><span>.</span><span class="identifier">jpeg</span><span>)
+      ),
+      </span><span class="type-name">Part</span><span>.</span><span class="identifier">formData</span><span>(</span><span class="identifier">name</span><span> = </span><span class="string-literal">&quot;description&quot;</span><span>, </span><span class="identifier">value</span><span> = </span><span class="string-literal">&quot;A sunset&quot;</span><span>)
+    )
+  )
+)
+  .</span><span class="identifier">map</span><span>(</span><span class="identifier">multipartRequest</span><span> =&gt;
+    </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](
+      </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>,
+      </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;http://example.com/&quot;</span><span>,
+      </span><span class="identifier">headers</span><span> = </span><span class="identifier">multipartRequest</span><span>.</span><span class="identifier">headers</span><span> </span><span class="comment">// set the headers related to this multipart request
+</span><span>    ).</span><span class="identifier">withEntity</span><span>(</span><span class="identifier">multipartRequest</span><span>)
+  )</span></code></pre>
+        <p>Here&#39;s a full example with a client and a server:</p>
+        <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">mpRoutes</span><span> = </span><span class="type-name">HttpRoutes</span><span>
+  .</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] { </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;multipart-form&quot;</span><span> =&gt;
+    </span><span class="type-name">EntityDecoder</span><span>.</span><span class="identifier">mixedMultipartResource</span><span>[</span><span class="type-name">IO</span><span>]().</span><span class="identifier">use</span><span>(</span><span class="identifier">decoder</span><span> =&gt;
+      </span><span class="identifier">request</span><span>.</span><span class="identifier">decodeWith</span><span>(</span><span class="identifier">decoder</span><span>, </span><span class="identifier">strict</span><span> = </span><span class="boolean-literal">true</span><span>) { </span><span class="identifier">multipart</span><span> =&gt;
+        </span><span class="keyword">val</span><span> </span><span class="identifier">picture</span><span> = </span><span class="identifier">multipart</span><span>.</span><span class="identifier">parts</span><span>.</span><span class="identifier">find</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">name</span><span>.</span><span class="identifier">contains</span><span>(</span><span class="string-literal">&quot;picture&quot;</span><span>))
+        </span><span class="keyword">val</span><span> </span><span class="identifier">pictureSize</span><span> = </span><span class="identifier">picture</span><span>.</span><span class="identifier">traverse</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">body</span><span>.</span><span class="identifier">compile</span><span>.</span><span class="identifier">count</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">getOrElse</span><span>(</span><span class="number-literal">0L</span><span>))
+
+        </span><span class="keyword">val</span><span> </span><span class="identifier">description</span><span> = </span><span class="identifier">multipart</span><span>.</span><span class="identifier">parts</span><span>.</span><span class="identifier">find</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">name</span><span>.</span><span class="identifier">contains</span><span>(</span><span class="string-literal">&quot;description&quot;</span><span>))
+        </span><span class="keyword">val</span><span> </span><span class="identifier">descriptionText</span><span> = </span><span class="identifier">description</span><span>.</span><span class="identifier">traverse</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">bodyText</span><span>.</span><span class="identifier">compile</span><span>.</span><span class="identifier">string</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">getOrElse</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>))
+
+        (</span><span class="identifier">pictureSize</span><span>, </span><span class="identifier">descriptionText</span><span>)
+          .</span><span class="identifier">flatMapN</span><span>((</span><span class="identifier">size</span><span>, </span><span class="identifier">description</span><span>) =&gt; 
+            </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;This is a </span><span class="substitution">$size</span><span class="string-literal"> byte file, with the description &#39;</span><span class="substitution">$description</span><span class="string-literal">&#39;&quot;</span><span>)
+          )
+      }
+    )
+  }
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">mpClient</span><span> = </span><span class="type-name">Client</span><span>.</span><span class="identifier">fromHttpApp</span><span>(</span><span class="identifier">mpRoutes</span><span>.</span><span class="identifier">orNotFound</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">mpRequest</span><span> = </span><span class="type-name">Multiparts</span><span>.</span><span class="identifier">forSync</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">multiparts</span><span> =&gt;
+    </span><span class="identifier">multiparts</span><span>.</span><span class="identifier">multipart</span><span>(
+      </span><span class="type-name">Vector</span><span>(
+        </span><span class="type-name">Part</span><span>.</span><span class="identifier">fileData</span><span>[</span><span class="type-name">IO</span><span>](
+          </span><span class="identifier">name</span><span> = </span><span class="string-literal">&quot;picture&quot;</span><span>,
+          </span><span class="identifier">filename</span><span> = </span><span class="string-literal">&quot;sunset.jpg&quot;</span><span>,
+          </span><span class="identifier">entity</span><span> = </span><span class="type-name">Entity</span><span>.</span><span class="identifier">stream</span><span>(</span><span class="identifier">fs2</span><span>.</span><span class="type-name">Stream</span><span>.</span><span class="identifier">range</span><span>[</span><span class="type-name">IO</span><span>, </span><span class="type-name">Int</span><span>](</span><span class="number-literal">0</span><span>, </span><span class="number-literal">100</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">toByte</span><span>)),
+          </span><span class="identifier">headers</span><span> = </span><span class="identifier">`Content-Type`</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">image</span><span>.</span><span class="identifier">jpeg</span><span>)
+        ),
+        </span><span class="type-name">Part</span><span>.</span><span class="identifier">formData</span><span>(</span><span class="identifier">name</span><span> = </span><span class="string-literal">&quot;description&quot;</span><span>, </span><span class="identifier">value</span><span> = </span><span class="string-literal">&quot;A sunset&quot;</span><span>)
+      )
+    )
+  )
+  .</span><span class="identifier">map</span><span>(</span><span class="identifier">multipartRequest</span><span> =&gt;
+    </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](
+      </span><span class="identifier">method</span><span> = </span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>,
+      </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;http://example.com/multipart-form&quot;</span><span>,
+      </span><span class="identifier">headers</span><span> = </span><span class="identifier">multipartRequest</span><span>.</span><span class="identifier">headers</span><span>
+    )
+      .</span><span class="identifier">withEntity</span><span>(</span><span class="identifier">multipartRequest</span><span>)
+  )</span></code></pre>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">mpRequest</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">mpClient</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">_</span><span>))
+  .</span><span class="identifier">unsafeRunSync</span><span>()
+</span><span class="comment">// res4: String = &quot;This is a 100 byte file, with the description &#39;A sunset&#39;&quot;</span></code></pre>
+        <p>Like <a href="#urlform">UrlForm</a>, browsers can also submit forms in a multipart request, to use this encoding the <code>enctype</code> attribute is
+        used in the <code>form</code> element, like this: <code>&lt;form method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;</code>. </p>
+        
+        <h2 id="streaming-uploads" class="section"><a class="anchor-link left" href="#streaming-uploads"><i class="icofont-laika link">&#xef71;</i></a>Streaming uploads</h2>
+        <p>The usage of multipart is somewhat convoluted, in part because one expects a fixed-size sequence of parts when processing
+        a request (notice that <code>parts</code> is a <code>Vector</code>, not a <code>Stream</code>), this means that http4s has to get to
+        the end of the request so that it knows all the parts. But this isn&#39;t the only way to upload files (although it is the 
+        only way to do it in pure HTML). For a simpler form of upload a client could send a request with a <code>Stream[F, Byte]</code>
+        as the entity. See <a href="streaming.html">Streaming</a>.
+        This alternative allows the server to work in a fully streaming fashion, although it&#39;s obviously missing the <code>description</code>
+        from our previous example and any other form of metadata. The other parts could be put into the query string or headers (taking into account their encoding and size limitations)
+        or in subsequent requests. This type of request with a binary payload can also be created in Javascript, and thus can
+        be initiated from the browser.</p>
+        
+        <h2 id="scala-cli-example" class="section"><a class="anchor-link left" href="#scala-cli-example"><i class="icofont-laika link">&#xef71;</i></a>Scala-cli example</h2>
+        <p>You can try this self-contained example using <a href="https://scala-cli.virtuslab.org/">scala-cli</a> and pointing your
+        browser to <a href="http://localhost:8089/">http://localhost:8089/</a>. It includes a page with a form and the endpoint receiving the submission.
+        To run this code create a file (it should have the <code>.scala</code> extension) with the following contents and run
+        <code>scala-cli file.scala</code>.</p>
+        <pre><code class="nohighlight"><span class="comment">//&gt; using scala 2.13
+//&gt; using dep org.http4s::http4s-ember-client::1.0.0-M41
+//&gt; using dep org.http4s::http4s-ember-server::1.0.0-M41
+//&gt; using dep org.http4s::http4s-dsl::1.0.0-M41
+</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">syntax</span><span>.</span><span class="identifier">all</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">comcast</span><span>.</span><span class="identifier">ip4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">dsl</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">EmberServerBuilder</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">headers</span><span>.</span><span class="identifier">_</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="type-name">LoggerFactory</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">log4cats</span><span>.</span><span class="identifier">slf4j</span><span>.</span><span class="type-name">Slf4jFactory</span><span>
+
+</span><span class="keyword">object</span><span> </span><span class="type-name">Main</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">IOApp</span><span>.</span><span class="type-name">Simple</span><span> {
+
+  </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">loggerFactory</span><span>: </span><span class="type-name">LoggerFactory</span><span>[</span><span class="type-name">IO</span><span>] = </span><span class="type-name">Slf4jFactory</span><span>.</span><span class="identifier">create</span><span>[</span><span class="type-name">IO</span><span>]
+
+  </span><span class="keyword">val</span><span> </span><span class="identifier">routes</span><span> = </span><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">GET</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;form&quot;</span><span> =&gt;
+      </span><span class="type-name">Ok</span><span>(
+        </span><span class="string-literal">&quot;&quot;&quot;
+          |&lt;form method=&quot;post&quot;&gt;
+          |  &lt;label for=&quot;name&quot;&gt;Name&lt;/label&gt;
+          |  &lt;input id=&quot;name&quot; name=&quot;name&quot; /&gt;
+          |  &lt;button&gt;Submit&lt;/button&gt;
+          |&lt;/form&gt;
+          |&quot;&quot;&quot;</span><span>.</span><span class="identifier">stripMargin</span><span>
+      ).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">withContentType</span><span>(</span><span class="identifier">`Content-Type`</span><span>(</span><span class="type-name">MediaType</span><span>.</span><span class="identifier">text</span><span>.</span><span class="identifier">html</span><span>)))
+
+    </span><span class="keyword">case</span><span> </span><span class="identifier">req</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;form&quot;</span><span> =&gt;
+      </span><span class="identifier">req</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">UrlForm</span><span>].</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">form</span><span> =&gt;
+        </span><span class="type-name">Ok</span><span>(
+          </span><span class="identifier">form</span><span>.</span><span class="identifier">values</span><span>
+            .</span><span class="identifier">map</span><span> { </span><span class="keyword">case</span><span> (</span><span class="identifier">k</span><span>, </span><span class="identifier">v</span><span>) =&gt; </span><span class="string-literal">s&quot;</span><span class="substitution">$k</span><span class="string-literal">: </span><span class="substitution">${v.mkString_(&quot;,&quot;)}</span><span class="string-literal">&quot;</span><span> }
+            .</span><span class="identifier">toList</span><span>
+            .</span><span class="identifier">mkString_</span><span>(</span><span class="string-literal">&quot;</span><span class="escape-sequence">\n</span><span class="string-literal">&quot;</span><span>)
+        )
+      }
+  }
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">run</span><span>: </span><span class="type-name">IO</span><span>[</span><span class="type-name">Unit</span><span>] =
+    </span><span class="type-name">EmberServerBuilder</span><span>
+      .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
+      .</span><span class="identifier">withPort</span><span>(</span><span class="string-literal">port&quot;8089&quot;</span><span>)
+      .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">routes</span><span>.</span><span class="identifier">orNotFound</span><span>)
+      .</span><span class="identifier">build</span><span>
+      .</span><span class="identifier">useForever</span><span>
+}</span></code></pre>
+
+        
+<hr class="footer-rule"/>
+<footer>
+  http4s is a <a href="https://typelevel.org/">Typelevel</a> project distributed under the <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</a> license.
+</footer>
+
+
+      </main>
+
+    </div>
+
+  </body>
+
+</html>

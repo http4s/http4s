@@ -21,6 +21,7 @@
     { "path": "/docs/json.html", "versions": ["v0.22","v0.23","v1"] },
     { "path": "/docs/methods.html", "versions": ["v0.22","v0.23","v1"] },
     { "path": "/docs/middleware.html", "versions": ["v0.22","v0.23","v1"] },
+    { "path": "/docs/multipart.html", "versions": ["v1"] },
     { "path": "/docs/quickstart.html", "versions": ["v0.22","v0.23","v1"] },
     { "path": "/docs/server-middleware.html", "versions": ["v1"] },
     { "path": "/docs/service.html", "versions": ["v0.22","v0.23","v1"] },
