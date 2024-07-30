@@ -249,7 +249,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1e944711
+//    = org.typelevel.vault.Vault@56d1b5ea
 // )</span></code></pre>
         <p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">server</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="identifier">_</span><span>
@@ -261,7 +261,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@3ffe669d
+//    = org.typelevel.vault.Vault@492450c9
 // )</span></code></pre>
         <p>So far, there was no change. That&#39;s because an <code>Origin</code> header is required
         in the requests and it must include a scheme. This, of course, is the responsibility of the caller.</p>
@@ -272,7 +272,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://somewhere.com),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2ff1ee1a
+//    = org.typelevel.vault.Vault@677c51c2
 // )
 </span><span>
 </span><span class="identifier">corsService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">corsRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
@@ -281,7 +281,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@7076f434
+//    = org.typelevel.vault.Vault@142dc2de
 // )</span></code></pre>
         <p>Notice how the response has the CORS headers added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -301,7 +301,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://google.com),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@216a559a
+//    = org.typelevel.vault.Vault@4a51061f
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">yahooPut</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">PUT</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://yahoo.com&quot;</span><span>))
@@ -311,7 +311,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://yahoo.com),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@183e63ae
+//    = org.typelevel.vault.Vault@6c9eca6e
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">duckPost</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">POST</span><span>, </span><span class="string-literal">uri&quot;/&quot;</span><span>,
   </span><span class="identifier">headers</span><span> = </span><span class="type-name">Headers</span><span>(</span><span class="string-literal">&quot;Origin&quot;</span><span> -&gt; </span><span class="string-literal">&quot;https://duckduckgo.com&quot;</span><span>))
@@ -321,7 +321,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Origin: https://duckduckgo.com),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@2e387d9e
+//    = org.typelevel.vault.Vault@6f850949
 // )</span></code></pre>
         <p>Now, we&#39;ll create a configuration that limits the allowed methods to <code>GET</code>
         and <code>POST</code>, pass that to the <code>CORS</code> middleware, and try it out on our requests.</p>
@@ -339,7 +339,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1eb64035
+//    = org.typelevel.vault.Vault@14188387
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res4: Response[[A]IO[A]] = (
@@ -347,7 +347,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@631d56bd
+//    = org.typelevel.vault.Vault@72d2a989
 // )
 </span><span class="identifier">corsMethodSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[[A]IO[A]] = (
@@ -355,7 +355,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: *),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@48066271
+//    = org.typelevel.vault.Vault@18c6045
 // )</span></code></pre>
         <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
         Next, we&#39;ll create a configuration that limits the origins to &quot;yahoo.com&quot; and
@@ -377,7 +377,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Vary: Origin),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@6dea659e
+//    = org.typelevel.vault.Vault@6f2475b4
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">yahooPut</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[[A]IO[A]] = (
@@ -385,7 +385,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://yahoo.com, Vary: Origin),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@3a66b1c3
+//    = org.typelevel.vault.Vault@12408a95
 // )
 </span><span class="identifier">corsOriginSvc</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">duckPost</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res8: Response[[A]IO[A]] = (
@@ -393,7 +393,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, Access-Control-Allow-Origin: https://duckduckgo.com, Vary: Origin),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@79298d42
+//    = org.typelevel.vault.Vault@251c9d14
 // )</span></code></pre>
         <p>Again, the results are as expected. You can, of course, create a configuration that
         combines limits on HTTP method, origin, and headers.</p>
