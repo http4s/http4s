@@ -27,6 +27,8 @@ import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Server middleware to record metrics for the http4s server.
   *
   * This middleware will record:
@@ -40,8 +42,8 @@ import org.http4s.metrics.TerminationType.Error
 object Metrics {
 
   private[this] final case class MetricsEntry(
-      method: Method,
-      startTime: Long,
+      request: RequestPrelude,
+      startTime: FiniteDuration,
       classifier: Option[String],
   )
 
@@ -85,56 +87,76 @@ object Metrics {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
       for {
         classifier <- classifierF(request)
-        _ <- ops.increaseActiveRequests(classifier)
+        _ <- ops.increaseActiveRequests(request.requestPrelude, classifier)
         startTime <- F.monotonic
-      } yield ContextRequest(MetricsEntry(request.method, startTime.toNanos, classifier), request)
+      } yield ContextRequest(
+        MetricsEntry(request.requestPrelude, startTime, classifier),
+        request,
+      )
 
-    def stopMetrics(metrics: MetricsEntry): F[Long] =
+    def stopMetrics(metrics: MetricsEntry): F[FiniteDuration] =
       // Decrease active requests _first_ in case any of the other effects triggers an error.
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
       for {
-        _ <- ops.decreaseActiveRequests(metrics.classifier)
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.classifier)
         endTime <- F.monotonic
-      } yield endTime.toNanos - metrics.startTime
+      } yield endTime - metrics.startTime
 
-    def metricHeaders(metrics: MetricsEntry, resp: Response[F]): F[ContextResponse[F, Status]] =
+    def metricHeaders(
+        metrics: MetricsEntry,
+        resp: Response[F],
+    ): F[ContextResponse[F, ResponsePrelude]] =
       for {
         now <- F.monotonic
-        headerTime = now.toNanos - metrics.startTime
-        _ <- ops.recordHeadersTime(metrics.method, headerTime, metrics.classifier)
-      } yield ContextResponse(resp.status, resp)
+        _ <- ops.recordHeadersTime(metrics.request, now - metrics.startTime, metrics.classifier)
+      } yield ContextResponse(resp.responsePrelude, resp)
 
-    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
+    BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, ResponsePrelude] {
       startMetrics
     } { case (metrics, maybeStatus, outcome) =>
       stopMetrics(metrics).flatMap { totalTime =>
-        def recordTotal(status: Status): F[Unit] =
-          ops.recordTotalTime(metrics.method, status, totalTime, metrics.classifier)
+        def recordTotal(response: Option[ResponsePrelude], tt: Option[TerminationType]): F[Unit] = {
+          val MetricsEntry(request, _, classifier) = metrics
+          val status = response.map(_.status)
 
-        def recordAbnormal(term: TerminationType): F[Unit] =
-          ops.recordAbnormalTermination(totalTime, term, metrics.classifier)
+          ops.recordTotalTime(request, status, tt, totalTime, classifier) *>
+            ops.recordRequestBodySize(request, status, tt, classifier) *>
+            response.traverse_(ops.recordResponseBodySize(request, _, tt, classifier))
+        }
+
+        def mkResponsePrelude(status: Status) =
+          ResponsePrelude(Headers.empty, metrics.request.httpVersion, status)
 
         (outcome, maybeStatus) match {
-          case (Outcome.Succeeded(_), None) => emptyResponseHandler.traverse_(recordTotal)
+          case (Outcome.Succeeded(_), None) =>
+            recordTotal(emptyResponseHandler.map(mkResponsePrelude), None)
 
-          case (Outcome.Succeeded(_), Some(status)) => recordTotal(status)
+          case (Outcome.Succeeded(_), Some(response)) =>
+            recordTotal(Some(response), None)
 
           case (Outcome.Errored(e), None) =>
             // If an error occurred, and the status is empty, this means
             // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(metrics.method, totalTime, metrics.classifier) *>
-              recordAbnormal(Error(e)) *>
-              errorResponseHandler(e).traverse_(recordTotal)
+            ops.recordHeadersTime(
+              metrics.request,
+              totalTime,
+              metrics.classifier,
+            ) *> recordTotal(errorResponseHandler(e).map(mkResponsePrelude), Some(Error(e)))
 
-          case (Outcome.Errored(e), Some(status)) =>
+          case (Outcome.Errored(e), Some(response)) =>
             // If an error occurred, but the status is non-empty, this means
             // the error occurred during the stream processing of the response body.
             // In which case recordHeadersTime was invoked in the normal manner,
             // so we do not need to invoke it here.
-            recordAbnormal(Abnormal(e)) *> recordTotal(status)
+            recordTotal(Some(response), Some(Abnormal(e)))
 
-          case (Outcome.Canceled(), _) => recordAbnormal(Canceled)
+          case (Outcome.Canceled(), None) =>
+            recordTotal(None, Some(Canceled))
+
+          case (Outcome.Canceled(), Some(response)) =>
+            recordTotal(Some(response), Some(Canceled))
+
         }
       }
     }(C)(
