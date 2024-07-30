@@ -6,12 +6,12 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.13.8" // Also supports 3.x
+scalaVersion := "@SCALA213_VERSION@" // Also supports 3.x
 
 val http4sVersion = "@VERSION@"
 
 // Only necessary for SNAPSHOT releases
-resolvers += Resolver.sonatypeRepo("snapshots")
+resolvers += Resolver.sonatypeOssRepos("snapshots")
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion,

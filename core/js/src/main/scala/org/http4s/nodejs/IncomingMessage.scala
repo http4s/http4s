@@ -28,7 +28,7 @@ import scala.scalajs.js
 /** Facade for [[https://nodejs.org/api/http.html#class-httpincomingmessage]]
   */
 @js.native
-private[http4s] trait IncomingMessage extends js.Object with Readable {
+trait IncomingMessage extends js.Object with Readable {
   protected[nodejs] def httpVersionMajor: Int = js.native
   protected[nodejs] def httpVersionMinor: Int = js.native
   protected[nodejs] def rawHeaders: js.Array[String] = js.native
@@ -39,7 +39,7 @@ private[http4s] trait IncomingMessage extends js.Object with Readable {
   protected[nodejs] def statusCode: Int = js.native
 }
 
-private[http4s] object IncomingMessage {
+object IncomingMessage {
 
   implicit def http4sNodeJsIncomingMessageOps(
       incomingMessage: IncomingMessage

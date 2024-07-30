@@ -19,8 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.parse.Parser
-import org.http4s.CharsetRange.Atom
-import org.http4s.CharsetRange.*
+import org.http4s.CharsetRange._
 import org.typelevel.ci._
 
 object `Accept-Charset` {

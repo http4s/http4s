@@ -18,11 +18,11 @@ ThisBuild / Test / scalafixConfig := Some(file(".scalafix.test.conf"))
 ThisBuild / githubWorkflowJobSetup ~= { steps =>
   Seq(
     WorkflowStep.Use(
-      UseRef.Public("cachix", "install-nix-action", "v20"),
+      UseRef.Public("cachix", "install-nix-action", "v27"),
       name = Some("Install Nix"),
     ),
     WorkflowStep.Use(
-      UseRef.Public("cachix", "cachix-action", "v12"),
+      UseRef.Public("cachix", "cachix-action", "v15"),
       name = Some("Install Cachix"),
       params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
     ),
@@ -164,7 +164,6 @@ lazy val tests = libraryCrossProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
-      log4catsNoop.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
@@ -215,7 +214,6 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      log4catsNoop.value,
       munit.value,
       munitCatsEffect.value,
     ),
@@ -357,6 +355,7 @@ lazy val unidocs = http4sProject("unidocs")
   .settings(
     moduleName := "http4s-docs",
     description := "Unified API documentation for http4s",
+    startYear := Some(2022),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         (List[ProjectReference](
@@ -459,6 +458,7 @@ lazy val scalafixInternalInput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
     semanticdbOptions ++= Seq("-P:semanticdb:synthetics:on").filter(_ => !tlIsScala3.value),
@@ -471,6 +471,7 @@ lazy val scalafixInternalOutput = project
   .disablePlugins(ScalafixPlugin)
   .settings(scalafixInternalSettings)
   .settings(
+    startYear := Some(2022),
     headerSources / excludeFilter := AllPassFilter,
     tlFatalWarnings := false,
   )

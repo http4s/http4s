@@ -91,7 +91,7 @@ object FileService {
       val matchingPath: F[Option[Path]] =
         for {
           path <- resolvePath
-          existsPath <- Files[F].exists(path, false)
+          existsPath <- Files[F].exists(path, followLinks = false)
         } yield
           if (existsPath && path.startsWith(rootPath))
             Some(path.absolute.normalize)
