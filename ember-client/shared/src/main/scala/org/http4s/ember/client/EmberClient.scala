@@ -19,11 +19,12 @@ package org.http4s.ember.client
 import cats.Applicative
 import cats.effect._
 import cats.syntax.functor._
-import fs2.Stream
 import org.http4s._
 import org.http4s.client._
+import org.http4s.ember.core.Util.spanMessage
+import org.typelevel.ci.CIString
 import org.typelevel.keypool._
-import org.typelevel.otel4s.Attribute
+import org.typelevel.otel4s.context.propagation.TextMapUpdater
 import org.typelevel.otel4s.semconv.attributes.HttpAttributes
 import org.typelevel.otel4s.trace.SpanKind
 import org.typelevel.otel4s.trace.Tracer
@@ -33,6 +34,7 @@ final class EmberClient[F[_]: Tracer] private[client] (
     private val pool: KeyPool[F, RequestKey, EmberConnection[F]],
 )(implicit F: MonadCancelThrow[F])
     extends DefaultClient[F] {
+  import EmberClient.headersTMU
 
   /** The reason for this extra class. This allows you to see the present state
     * of the underlying Pool, without having access to the pool itself.
@@ -55,30 +57,23 @@ final class EmberClient[F[_]: Tracer] private[client] (
             .resource
         } else tracer.meta.noopSpanBuilder.build.resource
       }
+      propagatedHeaders <- Resource.eval(tracer.propagate(req.headers)).mapK(fullReqSpan.trace)
       response <- client
         .run {
-          req.withBodyStream {
-            Stream
-              .resource {
-                tracer
-                  .span("Ember HTTP client send request body")
-                  .resource
-                  .mapK(fullReqSpan.trace)
-              }
-              .flatMap(res => req.body.translate(res.trace))
-          }
+          spanMessage {
+            tracer
+              .span("Ember HTTP client send request body")
+              .resource
+              .mapK(fullReqSpan.trace)
+          }(req.withHeaders(propagatedHeaders))
         }
-        .map { resp =>
-          resp.withBodyStream {
-            Stream
-              .resource {
-                tracer
-                  .span("Ember HTTP client receive response body")
-                  .resource
-                  .mapK(fullReqSpan.trace)
-              }
-              .flatMap(res => resp.body.translate(res.trace))
-          }
+        .map {
+          spanMessage {
+            tracer
+              .span("Ember HTTP client receive response body")
+              .resource
+              .mapK(fullReqSpan.trace)
+          }(_)
         }
         .mapK(fullReqSpan.trace)
     } yield response
@@ -94,4 +89,9 @@ final class EmberClient[F[_]: Tracer] private[client] (
     case _ =>
       F.pure(UnexpectedStatus(resp.status, req.method, req.uri))
   }
+}
+
+private object EmberClient {
+  implicit private val headersTMU: TextMapUpdater[Headers] =
+    (headers, key, value) => headers.put(Header.Raw(CIString(key), value))
 }

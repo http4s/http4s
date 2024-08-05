@@ -19,14 +19,14 @@ package ember.core
 
 import cats._
 import cats.data.NonEmptyList
-import cats.effect.kernel.Clock
-import cats.effect.kernel.Temporal
+import cats.effect.kernel.{Clock, MonadCancelThrow, Resource, Temporal}
 import cats.effect.syntax.clock._
 import cats.syntax.all._
 import fs2._
 import fs2.io.net.Socket
 import org.http4s.headers.Connection
 import org.typelevel.ci._
+import org.typelevel.otel4s.trace.SpanOps
 
 import java.time.Instant
 import java.util.Arrays
@@ -147,4 +147,9 @@ private[ember] object Util extends UtilPlatform {
       res
     }
 
+  def spanMessage[F[_]: MonadCancelThrow](spanRes: Resource[F, SpanOps.Res[F]])(m: Message[F]): m.Self =
+    m.withBodyStream {
+      Stream.resource(spanRes)
+        .flatMap(res => m.body.translate(res.trace))
+    }
 }

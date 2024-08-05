@@ -41,8 +41,13 @@ import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.server.ServerRequestKeys
 import org.http4s.websocket.WebSocketContext
+import org.typelevel.ci.CIString
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.SelfAwareLogger
+import org.typelevel.otel4s.context.propagation.TextMapGetter
+import org.typelevel.otel4s.semconv.attributes.HttpAttributes
+import org.typelevel.otel4s.trace.SpanKind
+import org.typelevel.otel4s.trace.Tracer
 import org.typelevel.vault.Key
 import org.typelevel.vault.Vault
 import scodec.bits.ByteVector
@@ -51,6 +56,13 @@ import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 private[server] object ServerHelpers extends ServerHelpersPlatform {
+  implicit private val headersTMG: TextMapGetter[Headers] =
+    new TextMapGetter[Headers] {
+      def get(carrier: Headers, key: String): Option[String] =
+        carrier.get(CIString(key)).map(_.head.value)
+      def keys(carrier: Headers): Iterable[String] =
+        carrier.headers.view.map(_.name).distinct.map(_.toString).toSeq
+    }
 
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
@@ -78,7 +90,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
-  )(implicit F: Async[F]): Stream[F, Nothing] = {
+  )(implicit F: Async[F], T: Tracer[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
         .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
@@ -109,7 +121,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
-  def unixSocketServer[F[_]: Async](
+  def unixSocketServer[F[_]: Async: Tracer](
       unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean,
@@ -172,7 +184,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     *                               `javax.net.ssl.SSLException` maybe be thrown if the client doesn't speak SSL. By
     *                               default this just logs the error.
     */
-  def serverInternal[F[_]: Async](
+  def serverInternal[F[_]: Async: Tracer](
       server: Stream[F, Socket[F]],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
@@ -370,7 +382,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       errorHandler: Throwable => F[Response[F]],
       socket: Socket[F],
       createRequestVault: Boolean,
-  )(implicit F: Temporal[F], D: Defer[F]): F[(Request[F], Response[F], Drain[F])] = {
+  )(implicit F: Temporal[F], D: Defer[F], T: Tracer[F]): F[(Request[F], Response[F], Drain[F])] = {
 
     val parse = Parser.Request.parser(maxHeaderSize)(head, read)
     val parseWithHeaderTimeout = timeoutToMaybe(
@@ -385,12 +397,37 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
 
     for {
       tmp <- parseWithHeaderTimeout
-      (req, drain) = tmp
-      requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
-      resp <- httpApp
-        .run(req.withAttributes(requestVault))
-        .handleErrorWith(errorHandler)
-        .handleError(_ => serverFailure.covary[F])
+      (untracedReq, drain) = tmp
+      (req, resp) <- T.joinOrRoot(untracedReq.headers) {
+        val spanOps =
+          if (T.meta.isEnabled) {
+            T.spanBuilder("Ember HTTP server request")
+              .withSpanKind(SpanKind.Server)
+              .addAttribute(HttpAttributes.HttpRequestMethod(untracedReq.method.name))
+              .build
+          } else T.meta.noopSpanBuilder.build
+        spanOps.resource.use { fullReqSpan =>
+          val request =
+            spanMessage {
+              T.span("Ember HTTP server receive request body")
+                .resource
+                .mapK(fullReqSpan.trace)
+            }(untracedReq)
+          val respBodySpan =
+            T.span("Ember HTTP server send response body")
+              .resource
+              .mapK(fullReqSpan.trace)
+          fullReqSpan.trace {
+            for {
+              requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
+              untracedResp <- httpApp
+                .run(request.withAttributes(requestVault))
+                .handleErrorWith(errorHandler)
+                .handleError(_ => serverFailure.covary[F])
+            } yield (request, spanMessage(respBodySpan)(untracedResp))
+          }
+        }
+      }
     } yield (req, resp, drain)
   }
 
@@ -419,7 +456,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     } yield resp.withHeaders(Headers(date, connection) ++ resp.headers)
   }
 
-  private[internal] def runConnection[F[_]: Async](
+  private[internal] def runConnection[F[_]: Async: Tracer](
       socket: Socket[F],
       logger: Logger[F],
       idleTimeout: Duration,

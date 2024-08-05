@@ -35,10 +35,11 @@ import org.http4s.ember.server.internal.Shutdown
 import org.http4s.server.Ip4sServer
 import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
+import org.typelevel.otel4s.trace.Tracer
 
 import scala.concurrent.duration._
 
-final class EmberServerBuilder[F[_]: Async: Network] private (
+final class EmberServerBuilder[F[_]: Async: Network: Tracer] private (
     val host: Option[Host],
     val port: Port,
     private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
@@ -303,7 +304,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 }
 
 object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
-  def default[F[_]: Async: Network]: EmberServerBuilder[F] =
+  def default[F[_]: Async: Network: Tracer]: EmberServerBuilder[F] =
     new EmberServerBuilder[F](
       host = Host.fromString(Defaults.host),
       port = Port.fromInt(Defaults.port).get,
@@ -327,9 +328,9 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       maxHeaderSizeErrorHandler = Defaults.maxHeaderSizeErrorHandler,
     )
 
-  @deprecated("Use the overload which accepts a Network", "0.23.16")
+  @deprecated("Use the overload which accepts a Network and Tracer", "0.23.16")
   def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
-    default(async, Network.forAsync(async))
+    default(async, Network.forAsync(async), Tracer.noop[F](async))
 
   private object Defaults {
     val host: String = server.defaults.IPv4Host
