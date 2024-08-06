@@ -21,11 +21,14 @@ import cats.effect.Clock
 import cats.effect.kernel._
 import cats.syntax.all._
 import org.http4s._
+import org.http4s.metrics.CustomMetricsOps
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.metrics.TerminationType.Abnormal
 import org.http4s.metrics.TerminationType.Canceled
 import org.http4s.metrics.TerminationType.Error
+import org.http4s.util.SizedSeq
+import org.http4s.util.SizedSeq0
 
 /** Server middleware to record metrics for the http4s server.
   *
@@ -63,6 +66,23 @@ object Metrics {
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
     effect[F](ops, emptyResponseHandler, errorResponseHandler, classifierF(_).pure[F])(routes)
 
+  def withCustomLabels[F[_], SL <: SizedSeq[String]](
+      ops: CustomMetricsOps[F, SL],
+      customLabelValues: SL,
+      emptyResponseHandler: Option[Status] = Status.NotFound.some,
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      classifierF: Request[F] => Option[String] = { (_: Request[F]) =>
+        None
+      },
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] =
+    effectWithCustomLabels[F, SL](
+      ops,
+      customLabelValues,
+      emptyResponseHandler,
+      errorResponseHandler,
+      classifierF(_).pure[F],
+    )(routes)
+
   /** A server middleware capable of recording metrics
     *
     * Same as [[apply]], but can classify requests effectually, e.g. performing side-effects.
@@ -82,10 +102,29 @@ object Metrics {
       errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
       classifierF: Request[F] => F[Option[String]],
   )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] = {
+    val cops = CustomMetricsOps.fromMetricsOps(ops)
+    val emptyCustomLabelValues = SizedSeq0[String]()
+    effectWithCustomLabels(
+      cops,
+      emptyCustomLabelValues,
+      emptyResponseHandler,
+      errorResponseHandler,
+      classifierF,
+    )(routes)
+
+  }
+
+  def effectWithCustomLabels[F[_], SL <: SizedSeq[String]](
+      ops: CustomMetricsOps[F, SL],
+      customLabelValues: SL,
+      emptyResponseHandler: Option[Status] = Status.NotFound.some,
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some,
+      classifierF: Request[F] => F[Option[String]],
+  )(routes: HttpRoutes[F])(implicit F: Clock[F], C: MonadCancel[F, Throwable]): HttpRoutes[F] = {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
       for {
         classifier <- classifierF(request)
-        _ <- ops.increaseActiveRequests(classifier)
+        _ <- ops.increaseActiveRequests(classifier, customLabelValues)
         startTime <- F.monotonic
       } yield ContextRequest(MetricsEntry(request.method, startTime.toNanos, classifier), request)
 
@@ -94,7 +133,7 @@ object Metrics {
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
       for {
-        _ <- ops.decreaseActiveRequests(metrics.classifier)
+        _ <- ops.decreaseActiveRequests(metrics.classifier, customLabelValues)
         endTime <- F.monotonic
       } yield endTime.toNanos - metrics.startTime
 
@@ -102,7 +141,12 @@ object Metrics {
       for {
         now <- F.monotonic
         headerTime = now.toNanos - metrics.startTime
-        _ <- ops.recordHeadersTime(metrics.method, headerTime, metrics.classifier)
+        _ <- ops.recordHeadersTime(
+          metrics.method,
+          headerTime,
+          metrics.classifier,
+          customLabelValues,
+        )
       } yield ContextResponse(resp.status, resp)
 
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, Status] {
@@ -110,10 +154,16 @@ object Metrics {
     } { case (metrics, maybeStatus, outcome) =>
       stopMetrics(metrics).flatMap { totalTime =>
         def recordTotal(status: Status): F[Unit] =
-          ops.recordTotalTime(metrics.method, status, totalTime, metrics.classifier)
+          ops.recordTotalTime(
+            metrics.method,
+            status,
+            totalTime,
+            metrics.classifier,
+            customLabelValues,
+          )
 
         def recordAbnormal(term: TerminationType): F[Unit] =
-          ops.recordAbnormalTermination(totalTime, term, metrics.classifier)
+          ops.recordAbnormalTermination(totalTime, term, metrics.classifier, customLabelValues)
 
         (outcome, maybeStatus) match {
           case (Outcome.Succeeded(_), None) => emptyResponseHandler.traverse_(recordTotal)
@@ -123,7 +173,12 @@ object Metrics {
           case (Outcome.Errored(e), None) =>
             // If an error occurred, and the status is empty, this means
             // the error occurred before the routes could generate a response.
-            ops.recordHeadersTime(metrics.method, totalTime, metrics.classifier) *>
+            ops.recordHeadersTime(
+              metrics.method,
+              totalTime,
+              metrics.classifier,
+              customLabelValues,
+            ) *>
               recordAbnormal(Error(e)) *>
               errorResponseHandler(e).traverse_(recordTotal)
 
