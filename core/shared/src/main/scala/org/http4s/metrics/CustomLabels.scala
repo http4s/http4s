@@ -38,6 +38,6 @@ final abstract case class EmptyCustomLabels private () extends CustomLabels[Size
 }
 
 object EmptyCustomLabels {
-  private[this] val instance = EmptyCustomLabels[SizedSeq0[Nothing]]()
+  private[this] val instance = EmptyCustomLabels()
   def apply[A](): EmptyCustomLabels = instance
 }
