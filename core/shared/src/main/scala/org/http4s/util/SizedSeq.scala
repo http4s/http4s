@@ -21,8 +21,12 @@ sealed trait SizedSeq[+A] {
 }
 
 // format: off
-final case class SizedSeq0[+A]() extends SizedSeq[A] {
+final case class SizedSeq0[+A] private () extends SizedSeq[A] {
   val toSeq: Seq[A] = Seq.empty[A]
+}
+object SizedSeq0 {
+  private[this] val instance = SizedSeq0[Nothing]()
+  def apply[A](): SizedSeq0[A] = instance
 }
 
 final case class SizedSeq1[+A](s1: A) extends SizedSeq[A] {
