@@ -32,7 +32,7 @@ object CustomLabels {
     }
 }
 
-abstract case class EmptyCustomLabels private () extends CustomLabels[SizedSeq0[String]] {
+abstract sealed case class EmptyCustomLabels private () extends CustomLabels[SizedSeq0[String]] {
   override def labels: SizedSeq0[String] = SizedSeq0[String]()
   override def values: SizedSeq0[String] = SizedSeq0[String]()
 }
