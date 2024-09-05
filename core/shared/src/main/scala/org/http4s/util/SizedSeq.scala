@@ -20,8 +20,7 @@ sealed trait SizedSeq[+A] {
   def toSeq: Seq[A]
 }
 
-// format: off
-abstract sealed case class SizedSeq0[+A] private () extends SizedSeq[A] {
+sealed abstract case class SizedSeq0[+A] private () extends SizedSeq[A] {
   val toSeq: Seq[A] = Seq.empty[A]
 }
 object SizedSeq0 {
@@ -53,6 +52,7 @@ final case class SizedSeq6[+A](s1: A, s2: A, s3: A, s4: A, s5: A, s6: A) extends
   val toSeq: Seq[A] = Seq(s1, s2, s3, s4, s5, s6)
 }
 
+// format: off
 final case class SizedSeq7[+A](s1: A, s2: A, s3: A, s4: A, s5: A, s6: A, s7: A) extends SizedSeq[A] {
   val toSeq: Seq[A] = Seq(s1, s2, s3, s4, s5, s6, s7)
 }
