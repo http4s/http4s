@@ -32,12 +32,12 @@ object CustomLabels {
     }
 }
 
-final abstract case class EmptyCustomLabels private () extends CustomLabels[SizedSeq0[String]] {
+sealed abstract case class EmptyCustomLabels private () extends CustomLabels[SizedSeq0[String]] {
   override def labels: SizedSeq0[String] = SizedSeq0[String]()
   override def values: SizedSeq0[String] = SizedSeq0[String]()
 }
 
 object EmptyCustomLabels {
-  private[this] val instance = EmptyCustomLabels()
+  private[this] val instance: EmptyCustomLabels = new EmptyCustomLabels() {}
   def apply[A](): EmptyCustomLabels = instance
 }
