@@ -53,7 +53,7 @@ In order to play with a `Client` we'll first create an http4s `Server`.
 Ensure you have the following dependencies in your build.sbt:
 
 ```scala
-scalaVersion := "2.13.8" // Also supports 3.x
+scalaVersion := "@SCALA213_VERSION@" // Also supports 3.x
 
 val http4sVersion = "@VERSION@"
 

@@ -167,7 +167,7 @@ private[client] object ClientHelpers {
           // bytes from the pre-emptive read in this connection, which probably has not completed yet, hence the timout
           connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout),
         ).flatMapN { (head, firstRead) =>
-          Parser.Response.parser(maxResponseHeaderSize)(
+          Parser.Response.parser(maxResponseHeaderSize, discardBody = req.method == Method.HEAD)(
             firstRead.foldLeft(head)(Util.concatBytes(_, _)),
             timeoutMaybe(connection.keySocket.socket.read(chunkSize), idleTimeout),
           )
@@ -286,7 +286,7 @@ private[client] object ClientHelpers {
         case Left(_: ClosedChannelException) => true
         case Left(ex: IOException) =>
           val msg = ex.getMessage()
-          msg == "Connection reset by peer" || msg == "Broken pipe"
+          msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
         case _ => false
       }
   }

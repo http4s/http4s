@@ -63,7 +63,7 @@ private[http4s] abstract class ClientRouteTestBattery(name: String)
   val server: IOFixture[ServerScaffold[IO]] =
     resourceSuiteFixture(
       "server",
-      ServerScaffold[IO](1, false, testHandler),
+      ServerScaffold[IO](1, secure = false, testHandler),
     )
 
   val client: IOFixture[Client[IO]] =

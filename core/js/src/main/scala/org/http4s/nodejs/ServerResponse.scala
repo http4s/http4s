@@ -36,7 +36,7 @@ private[http4s] trait ServerResponse extends js.Object with Writable {
 
 }
 
-private[http4s] object ServerResponse {
+object ServerResponse {
 
   implicit def http4sNodeJsServerResponseOps(serverResponse: ServerResponse): ServerResponseOps =
     new ServerResponseOps(serverResponse)
@@ -49,15 +49,12 @@ private[http4s] object ServerResponse {
         F: Async[F]
     ): F[Unit] =
       for {
-        headers <- F.delay {
+        _ <- F.delay {
           val headers = new js.Array[String]
           response.headers.foreach { case Header.Raw(name, value) =>
             headers.push(name.toString, value)
             ()
           }
-          headers
-        }
-        _ <- F.delay {
           serverResponse.writeHead(response.status.code, response.status.reason, headers)
         }
         _ <- response.body

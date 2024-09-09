@@ -48,7 +48,7 @@ private[http4s] trait ClientRequest extends js.Object with Writable {
     js.native
 }
 
-private[http4s] object ClientRequest {
+object ClientRequest {
 
   implicit def http4sNodeJsServerResponseOps(clientRequest: ClientRequest): ClientRequestOps =
     new ClientRequestOps(clientRequest)

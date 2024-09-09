@@ -97,9 +97,9 @@ private[http4s] object WebSocketFrameDefragmenter {
             val defraggedFrame = fragmentSum.head.fold(result ++ Chunk(curFrame)) { firstFrame =>
               firstFrame match {
                 case WebSocketFrame.Text(_, _) =>
-                  result ++ Chunk.singleton(WebSocketFrame.Text(defraggedData, true))
+                  result ++ Chunk.singleton(WebSocketFrame.Text(defraggedData, last = true))
                 case WebSocketFrame.Binary(_, _) =>
-                  result ++ Chunk.singleton(WebSocketFrame.Binary(defraggedData, true))
+                  result ++ Chunk.singleton(WebSocketFrame.Binary(defraggedData, last = true))
                 case _: WebSocketFrame =>
                   // Here is an illegal path, since the first frame of a fragmented frame
                   // must be Text or Binary.
