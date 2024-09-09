@@ -19,5 +19,5 @@
 1. Merge the changelog PR.
 1. Now you're ready to release! Edit your draft release on GitHub and press the green "Publish Release" button.
 1. Wait for CI and publishing to finish, and then announce the release (mastodon, discord).
-1. Merge `series/0.23` to main and open a PR.
+1. Merge `series/0.23` to `main` and open a PR.
     - There will likely be conflicts here that need working through. Don't be afraid to ask for help.
