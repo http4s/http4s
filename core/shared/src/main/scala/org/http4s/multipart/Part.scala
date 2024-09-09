@@ -19,7 +19,6 @@ package multipart
 
 import cats.effect.Sync
 import fs2.Chunk
-import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path

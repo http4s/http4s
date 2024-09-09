@@ -164,7 +164,6 @@ lazy val tests = libraryCrossProject("tests")
     description := "Tests for core project",
     startYear := Some(2013),
     libraryDependencies ++= Seq(
-      log4catsNoop.value,
       munitCatsEffect.value,
       munitDiscipline.value,
       scalacheck.value,
@@ -215,7 +214,6 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      log4catsNoop.value,
       munit.value,
       munitCatsEffect.value,
     ),

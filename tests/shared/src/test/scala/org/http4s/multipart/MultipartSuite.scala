@@ -276,7 +276,7 @@ Content-Type: application/json
       val request = Request[IO](
         method = Method.POST,
         uri = url,
-        body = Stream.emit(body).through(text.utf8.encode),
+        entity = Entity.stream(Stream.emit(body).through(text.utf8.encode)),
         headers = header,
       )
       mkDecoder

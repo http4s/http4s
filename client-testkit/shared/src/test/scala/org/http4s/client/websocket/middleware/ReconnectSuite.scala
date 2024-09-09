@@ -23,7 +23,7 @@ import cats.effect.IO
 import cats.effect.testkit.TestControl
 import fs2.Stream
 import org.http4s.client.testkit.WSTestClient
-import org.http4s.server.websocket.WebSocketBuilder2
+import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 
 import scala.concurrent.duration._
@@ -33,7 +33,7 @@ class ReconnectSuite extends Http4sSuite {
   test("reconnects when connection closes if requested") {
     TestControl.executeEmbed {
       WSTestClient
-        .fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
+        .fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder[IO]) =>
           HttpApp[IO] { case _ =>
             wsb.build(
               Stream(WebSocketFrame.Text("hello"), WebSocketFrame.Close(1000).toOption.get),
