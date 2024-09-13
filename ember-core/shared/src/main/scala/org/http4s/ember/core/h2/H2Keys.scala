@@ -32,7 +32,7 @@ object H2Keys {
   // which means immediately using http2 without any upgrade mechanism
   // but is invalid if the receiving server does not support the
   // mechanism.
-  @deprecated(message = "Use org.http4s.h2.H2Keys.Http2PriorKnowledge instead", since = "0.23.27")
+  @deprecated(message = "Use org.http4s.h2.H2Keys.Http2PriorKnowledge instead", since = "0.23.28")
   val Http2PriorKnowledge: Key[Unit] = org.http4s.h2.H2Keys.Http2PriorKnowledge
 
   private[ember] val H2cUpgrade =
