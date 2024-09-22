@@ -26,7 +26,7 @@ import scala.scalajs.js
 /** Facade for [[https://nodejs.org/api/http.html#class-httpserverresponse]]
   */
 @js.native
-private[http4s] trait ServerResponse extends js.Object with Writable {
+trait ServerResponse extends js.Object with Writable {
 
   protected[nodejs] def writeHead(
       statusCode: Int,
