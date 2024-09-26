@@ -16,13 +16,12 @@
 
 package org.http4s.bench
 
+import cats.Id
 import fs2.Stream
 import org.http4s.ServerSentEvent
-
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
-import cats.Id
 import ServerSentEventDecoderBench.sampleLine
 
 @State(Scope.Benchmark)
@@ -44,5 +43,6 @@ class ServerSentEventDecoderBench {
 }
 
 object ServerSentEventDecoderBench {
-  val sampleLine = s"data: ${"a" * 100000}\nevent: live\nid: 1727268457046.11\n\n".getBytes()
+  val sampleLine: Array[Byte] =
+    s"data: ${"a" * 100000}\nevent: live\nid: 1727268457046.11\n\n".getBytes()
 }

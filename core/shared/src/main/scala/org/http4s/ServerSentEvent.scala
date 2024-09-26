@@ -100,8 +100,7 @@ object ServerSentEvent {
           if (s.startsWith("data:")) {
             go(dataBuffer.append(dropPrefix(s, 5)), eventType, id, retry, commentBuffer, stream)
           } else if (s.startsWith("id:")) {
-            val newId = EventId(dropPrefix(s, 3))
-            go(dataBuffer, eventType, Some(newId), retry, commentBuffer, stream)
+            go(dataBuffer, eventType, Some(EventId(dropPrefix(s, 3))), retry, commentBuffer, stream)
           } else if (s.startsWith("event:")) {
             go(dataBuffer, Some(dropPrefix(s, 6)), id, retry, commentBuffer, stream)
           } else if (s.startsWith("retry:")) {
@@ -109,9 +108,14 @@ object ServerSentEvent {
             go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
           } else if (s.startsWith(":")) {
             go(dataBuffer, eventType, id, retry, commentBuffer.append(dropPrefix(s, 1)), stream)
-          } else {
-            go(dataBuffer, eventType, id, retry, commentBuffer, stream)
-          }
+          } else
+            s match {
+              case "data" => go(dataBuffer.append(""), eventType, id, retry, commentBuffer, stream)
+              case "id" =>
+                go(dataBuffer, eventType, Some(EventId("")), retry, commentBuffer, stream)
+              case "event" => go(dataBuffer, Some(""), id, retry, commentBuffer, stream)
+              case _ => go(dataBuffer, eventType, id, retry, commentBuffer, stream)
+            }
       }
     }
 
