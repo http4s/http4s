@@ -26,8 +26,6 @@ import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKeySpec
 import scodec.bits.ByteVector
 
-import scala.annotation.nowarn
-
 object SignatureAlgorithm {
 
   private[oauth1] object Names {
@@ -72,11 +70,11 @@ trait SignatureAlgorithm {
 
   @deprecated("Use generateBase64[F[_]: MonadThrow] instead", "0.23.28")
   def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
-    MonadThrow[F].catchNonFatal(generate(input, secretKey): @nowarn("cat=deprecation"))
+    MonadThrow[F].catchNonFatal(generate(input, secretKey))
 
   @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
   def generate(input: String, secretKey: String): String =
-    generate[SyncIO](input, secretKey).unsafeRunSync(): @nowarn("cat=deprecation")
+    generate[SyncIO](input, secretKey).unsafeRunSync()
 
   /** Apply the implementation's algorithm to the input
     *
