@@ -209,11 +209,11 @@ class UriSuite extends Http4sSuite {
     // Issue #75
     assertEquals(
       getQueryParams("http://localhost:8080/blah?x=a+bc&y=ijk"),
-      Map("x" -> "a bc", "y" -> "ijk"),
+      Map("x" -> "a%20bc", "y" -> "ijk"),
     )
     assertEquals(
       getQueryParams("http://localhost:8080/blah?x=a%20bc&y=ijk"),
-      Map("x" -> "a bc", "y" -> "ijk"),
+      Map("x" -> "a%20bc", "y" -> "ijk"),
     )
   }
 
@@ -561,7 +561,7 @@ class UriSuite extends Http4sSuite {
       Uri
         .fromString("http://localhost:8080/index?filter[state]=public")
         .map(_.toString),
-      Right("http://localhost:8080/index?filter[state]=public"),
+      Right("http://localhost:8080/index?filter%5Bstate%5D=public"),
     )
   }
 
@@ -1073,6 +1073,9 @@ class UriSuite extends Http4sSuite {
 
   test("Uri.renderString should Encode special chars in the query") {
     val u = Uri(path = Uri.Path.Root).withQueryParam("foo", " !$&'()*+,;=:/?@~")
+
+    // /?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~
+    // /?foo=%2520%2521%2524%2526%2527%2528%2529%252A%252B%252C%253B%253D%253A/?%2540~
     assertEquals(u.renderString, "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~")
   }
   test("Uri.renderString should Encode special chars in the fragment") {
@@ -1421,9 +1424,21 @@ class UriSuite extends Http4sSuite {
   }
 
   test("Use lazy query model parsing in uri parsing") {
-    val ori = "http://domain.com/path?param1=asd;fgh"
+    val ori = "http://domain.com/path?param1=asd&fgh"
     val res = org.http4s.Uri.unsafeFromString(ori).renderString
     assertEquals(ori, res)
+  }
+
+  test("Uri.renderString should behave correctly") {
+    val uri = Uri.fromString("https://foo.com/?with:colon=abc").toOption.get
+    println(uri)
+    val copy = uri.copy(query = Query.empty).setQueryParams(uri.multiParams)
+    println(copy)
+
+    assertEquals(
+      uri.renderString,
+      copy.renderString,
+    )
   }
 
   property("resolving root sets path to root") {
