@@ -17,13 +17,16 @@
 package org.http4s.client.oauth1
 
 import cats.MonadThrow
-import cats.syntax.all._
+import cats.effect.SyncIO
+import cats.syntax.all.*
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
-import org.http4s.client.oauth1.SignatureAlgorithm.Names._
+import org.http4s.client.oauth1.SignatureAlgorithm.Names.*
 import org.http4s.crypto.Hmac
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKeySpec
 import scodec.bits.ByteVector
+
+import scala.annotation.nowarn
 
 object SignatureAlgorithm {
 
@@ -69,7 +72,11 @@ trait SignatureAlgorithm {
 
   @deprecated("Use generateBase64[F[_]: MonadThrow] instead", "0.23.28")
   def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
-    generateBase64(input, secretKey)
+    MonadThrow[F].catchNonFatal(generate(input, secretKey): @nowarn("cat=deprecation"))
+
+  @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
+  def generate(input: String, secretKey: String): String =
+    generate[SyncIO](input, secretKey).unsafeRunSync(): @nowarn("cat=deprecation")
 
   /** Apply the implementation's algorithm to the input
     *
