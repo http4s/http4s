@@ -18,7 +18,8 @@ class ServerSentEventDecoderBench {
   @BenchmarkMode(Array(Mode.Throughput))
   @OperationsPerInvocation(LINES)
   def serverSentEventDecoder(bh: Blackhole): Unit = {
-    val input = Stream.repeatEval[Id, Array[Byte]](sampleLine).take(LINES).flatMap(s => Stream.emits(s))
+    val input =
+      Stream.repeatEval[Id, Array[Byte]](sampleLine).take(LINES).flatMap(s => Stream.emits(s))
     val ret = ServerSentEvent.decoder[Id](input).compile.count
     assert(ret == LINES + 1)
     bh.consume(ret)
