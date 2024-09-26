@@ -249,7 +249,7 @@ package object oauth1 {
   ): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-    algorithm.generate(baseString, key)
+    algorithm.generateBase64(baseString, key)
   }
 
   // Needs to have all params already encoded
