@@ -36,7 +36,9 @@ import org.http4s.Uri.Path._
 import org.http4s._
 import org.http4s.headers.Allow
 
+import scala.util.Success
 import scala.util.Try
+import scala.util.control.NoStackTrace
 
 object :? {
   def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, collection.Seq[String]])] =
@@ -172,6 +174,13 @@ protected class PathVar[A](cast: String => Try[A]) {
       cast(str).toOption
     else
       None
+
+  def map[B](f: A => B): PathVar[B] =
+    new PathVar[B](str => cast(str).map(f))
+
+  def emap[B](f: A => Option[B]): PathVar[B] =
+    new PathVar[B](str => cast(str).flatMap(a => f(a).toRight(new NoStackTrace {}).toTry))
+
 }
 
 /** Integer extractor of a path variable:
@@ -197,6 +206,14 @@ object LongVar extends PathVar(str => Try(str.toLong))
   * }}}
   */
 object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
+
+/** StringVar extractor of a path variable, used mostly for composition:
+  * {{{
+  *   Path("/user/John") match {
+  *      case Root / "user" / StringVar(userName) => ...
+  * }}}
+  */
+object StringVar extends PathVar(str => Success(str))
 
 /** Matrix path variable extractor
   * For an example see [[https://www.w3.org/DesignIssues/MatrixURIs.html MatrixURIs]]
