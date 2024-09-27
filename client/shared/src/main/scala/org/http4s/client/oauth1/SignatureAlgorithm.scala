@@ -18,9 +18,9 @@ package org.http4s.client.oauth1
 
 import cats.MonadThrow
 import cats.effect.SyncIO
-import cats.syntax.all.*
+import cats.syntax.all._
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
-import org.http4s.client.oauth1.SignatureAlgorithm.Names.*
+import org.http4s.client.oauth1.SignatureAlgorithm.Names._
 import org.http4s.crypto.Hmac
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKeySpec

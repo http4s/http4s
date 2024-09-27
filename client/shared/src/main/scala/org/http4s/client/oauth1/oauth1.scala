@@ -22,8 +22,8 @@ import cats.MonadThrow
 import cats.Show
 import cats.data.NonEmptyList
 import cats.effect.SyncIO
-import cats.instances.order.*
-import cats.syntax.all.*
+import cats.instances.order._
+import cats.syntax.all._
 import org.http4s.client.oauth1.ProtocolParameter.Callback
 import org.http4s.client.oauth1.ProtocolParameter.Custom
 import org.http4s.client.oauth1.ProtocolParameter.Nonce
