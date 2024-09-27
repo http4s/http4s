@@ -138,6 +138,9 @@ lazy val core = libraryCrossProject("core")
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.http4s.HttpApp.local"),
       ProblemFilters
         .exclude[IncompatibleMethTypeProblem]("org.http4s.internal.Logger.logMessageWithBodyText"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "org.http4s.client.oauth1.SignatureAlgorithm.generateByteVector"
+      ),
 
       // private constructors so effectively final already
       ProblemFilters.exclude[FinalClassProblem]("org.http4s.internal.CharPredicate$General"),
