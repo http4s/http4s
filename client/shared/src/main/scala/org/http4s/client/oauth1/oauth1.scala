@@ -22,8 +22,8 @@ import cats.MonadThrow
 import cats.Show
 import cats.data.NonEmptyList
 import cats.effect.SyncIO
-import cats.instances.order._
-import cats.syntax.all._
+import cats.instances.order.*
+import cats.syntax.all.*
 import org.http4s.client.oauth1.ProtocolParameter.Callback
 import org.http4s.client.oauth1.ProtocolParameter.Custom
 import org.http4s.client.oauth1.ProtocolParameter.Nonce
@@ -34,6 +34,7 @@ import org.http4s.client.oauth1.ProtocolParameter.Verifier
 import org.http4s.client.oauth1.ProtocolParameter.Version
 import org.http4s.headers.Authorization
 
+import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
@@ -249,7 +250,7 @@ package object oauth1 {
   ): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-    algorithm.generate(baseString, key)
+    algorithm.generate[F](baseString, key): @nowarn("cat=deprecation")
   }
 
   // Needs to have all params already encoded
