@@ -127,6 +127,12 @@ object HmacSha1 extends SignatureAlgorithm {
       secretKey: String,
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
+
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA1, secretKey).map(_.toBase64)
 }
 
 /** An implementation of the `HMAC-SHA256` oauth signature method.
@@ -140,6 +146,11 @@ object HmacSha256 extends SignatureAlgorithm {
       secretKey: String,
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA256, secretKey).map(_.toBase64)
 }
 
 /** An implementation of the `HMAC-SHA512` oauth signature method.
@@ -154,4 +165,10 @@ object HmacSha512 extends SignatureAlgorithm {
       secretKey: String,
   ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
+
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA512, secretKey).map(_.toBase64)
 }
