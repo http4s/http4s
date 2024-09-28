@@ -3,6 +3,31 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M42 (2024-09-29)
+
+## What's Changed
+### http4s-core
+* Address the Entity model in `CurlConverter.requestToCurlWithBody` by @danicheg in https://github.com/http4s/http4s/pull/7480
+* Merge series/0.23 into main by @danicheg in https://github.com/http4s/http4s/pull/7494
+* Merge 0.23.28 -> main by @rossabaker in https://github.com/http4s/http4s/pull/7518
+### Documentation
+* Tweak the 'versions' page by @danicheg in https://github.com/http4s/http4s/pull/7488
+### Behind the scenes
+* Ignore sbt-scala-native-config-brew updates on main by @danicheg in https://github.com/http4s/http4s/pull/7442
+* Ignore `com.earldouglas:xsbt-web-plugin` updates on main by @danicheg in https://github.com/http4s/http4s/pull/7479
+
+## New Contributors
+* @KristianAN made their first contribution in https://github.com/http4s/http4s/pull/7401
+* @Adam-McDevitt made their first contribution in https://github.com/http4s/http4s/pull/7417
+* @mcenkar made their first contribution in https://github.com/http4s/http4s/pull/7428
+* @henricook made their first contribution in https://github.com/http4s/http4s/pull/7435
+* @SallyPerez made their first contribution in https://github.com/http4s/http4s/pull/7372
+* @Chingles2404 made their first contribution in https://github.com/http4s/http4s/pull/7452
+* @Dichotomia made their first contribution in https://github.com/http4s/http4s/pull/7472
+* @dj707chen made their first contribution in https://github.com/http4s/http4s/pull/7469
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M41...v1.0.0-M42
+
 # v0.23.28 (2024-09-09)
 
 ## What's Changed
