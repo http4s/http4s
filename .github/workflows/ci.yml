@@ -57,6 +57,10 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Install sbt
+        if: contains(runner.os, 'macos')
+        run: brew install sbt
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -168,6 +172,10 @@ jobs:
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install sbt
+        if: contains(runner.os, 'macos')
+        run: brew install sbt
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
@@ -315,6 +323,10 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Install sbt
+        if: contains(runner.os, 'macos')
+        run: brew install sbt
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -408,6 +420,10 @@ jobs:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Install sbt
+        if: contains(runner.os, 'macos')
+        run: brew install sbt
+
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -473,6 +489,10 @@ jobs:
         with:
           name: http4s
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install sbt
+        if: contains(runner.os, 'macos')
+        run: brew install sbt
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v4

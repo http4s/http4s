@@ -49,15 +49,12 @@ object ServerResponse {
         F: Async[F]
     ): F[Unit] =
       for {
-        headers <- F.delay {
+        _ <- F.delay {
           val headers = new js.Array[String]
           response.headers.foreach { case Header.Raw(name, value) =>
             headers.push(name.toString, value)
             ()
           }
-          headers
-        }
-        _ <- F.delay {
           serverResponse.writeHead(response.status.code, response.status.reason, headers)
         }
         _ <- response.body
