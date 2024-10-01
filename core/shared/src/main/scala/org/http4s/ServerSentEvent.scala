@@ -97,25 +97,25 @@ object ServerSentEvent {
         case Some(("", stream)) =>
           dispatch(stream)
         case Some((s, stream)) =>
-          if (s.startsWith("data:")) {
-            go(dataBuffer.append(dropPrefix(s, 5)), eventType, id, retry, commentBuffer, stream)
-          } else if (s.startsWith("id:")) {
-            go(dataBuffer, eventType, Some(EventId(dropPrefix(s, 3))), retry, commentBuffer, stream)
-          } else if (s.startsWith("event:")) {
-            go(dataBuffer, Some(dropPrefix(s, 6)), id, retry, commentBuffer, stream)
-          } else if (s.startsWith("retry:")) {
-            val newRetry = Try(dropPrefix(s, 6).toLong).toOption.orElse(retry)
-            go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
-          } else if (s.startsWith(":")) {
-            go(dataBuffer, eventType, id, retry, commentBuffer.append(dropPrefix(s, 1)), stream)
-          } else
-            s match {
-              case "data" => go(dataBuffer.append(""), eventType, id, retry, commentBuffer, stream)
-              case "id" =>
-                go(dataBuffer, eventType, Some(EventId("")), retry, commentBuffer, stream)
-              case "event" => go(dataBuffer, Some(""), id, retry, commentBuffer, stream)
-              case _ => go(dataBuffer, eventType, id, retry, commentBuffer, stream)
-            }
+          s match {
+            case _ if s.startsWith("data:") =>
+              go(dataBuffer.append(dropPrefix(s, 5)), eventType, id, retry, commentBuffer, stream)
+            case _ if s.startsWith("id:") =>
+              val eventId = Some(EventId(dropPrefix(s, 3)))
+              go(dataBuffer, eventType, eventId, retry, commentBuffer, stream)
+            case _ if s.startsWith("event:") =>
+              go(dataBuffer, Some(dropPrefix(s, 6)), id, retry, commentBuffer, stream)
+            case _ if s.startsWith("retry:") =>
+              val newRetry = Try(dropPrefix(s, 6).toLong).toOption.orElse(retry)
+              go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
+            case _ if s.startsWith(":") =>
+              go(dataBuffer, eventType, id, retry, commentBuffer.append(dropPrefix(s, 1)), stream)
+            case "data" => go(dataBuffer.append(""), eventType, id, retry, commentBuffer, stream)
+            case "id" =>
+              go(dataBuffer, eventType, Some(EventId("")), retry, commentBuffer, stream)
+            case "event" => go(dataBuffer, Some(""), id, retry, commentBuffer, stream)
+            case _ => go(dataBuffer, eventType, id, retry, commentBuffer, stream)
+          }
       }
     }
 
