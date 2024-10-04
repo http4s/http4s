@@ -3,7 +3,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v1.0.0-M42 (2024-09-29)
+# v1.0.0-M42 (2024-10-04)
 
 ## What's Changed
 ### http4s-core
