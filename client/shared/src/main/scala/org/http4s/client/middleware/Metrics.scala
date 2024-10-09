@@ -130,16 +130,18 @@ object Metrics {
 
         (responseRef.get, F.monotonic).flatMapN { case (response, now) =>
           val status = response.map(_.status)
-          ops.recordTotalTime(rp, status, tpe, now - start, classifier) *>
-            ops.recordRequestBodySize(rp, status, tpe, classifier) *>
-            response.traverse_(ops.recordResponseBodySize(rp, _, tpe, classifier))
+          ops.recordTotalTime(rp, status, tpe, now - start, classifier, customLabelValues) *>
+            ops.recordRequestBodySize(rp, status, tpe, classifier, customLabelValues) *>
+            response.traverse_(
+              ops.recordResponseBodySize(rp, _, tpe, classifier, customLabelValues)
+            )
         }
       }
 
       resp <- client.run(req)
       _ <- Resource.eval(responseRef.set(Some(resp.responsePrelude)))
       now <- Resource.monotonic
-      _ <- Resource.eval(ops.recordHeadersTime(rp, now - start, classifier))
+      _ <- Resource.eval(ops.recordHeadersTime(rp, now - start, classifier, customLabelValues))
     } yield resp
   }
 

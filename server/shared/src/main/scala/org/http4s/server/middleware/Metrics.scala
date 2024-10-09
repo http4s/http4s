@@ -126,7 +126,7 @@ object Metrics {
     def startMetrics(request: Request[F]): F[ContextRequest[F, MetricsEntry]] =
       for {
         classifier <- classifierF(request)
-        _ <- ops.increaseActiveRequests(request.requestPrelude, classifier)
+        _ <- ops.increaseActiveRequests(request.requestPrelude, classifier, customLabelValues)
         startTime <- F.monotonic
       } yield ContextRequest(
         MetricsEntry(request.requestPrelude, startTime, classifier),
@@ -138,7 +138,7 @@ object Metrics {
       // This differs from the < 0.21.14 semantics, which decreased it _after_ the other effects.
       // This may have caused the bugs that reported the active requests counter to have drifted.
       for {
-        _ <- ops.decreaseActiveRequests(metrics.request, metrics.classifier)
+        _ <- ops.decreaseActiveRequests(metrics.request, metrics.classifier, customLabelValues)
         endTime <- F.monotonic
       } yield endTime - metrics.startTime
 
@@ -148,7 +148,12 @@ object Metrics {
     ): F[ContextResponse[F, ResponsePrelude]] =
       for {
         now <- F.monotonic
-        _ <- ops.recordHeadersTime(metrics.request, now - metrics.startTime, metrics.classifier)
+        _ <- ops.recordHeadersTime(
+          metrics.request,
+          now - metrics.startTime,
+          metrics.classifier,
+          customLabelValues,
+        )
       } yield ContextResponse(resp.responsePrelude, resp)
 
     BracketRequestResponse.bracketRequestResponseCaseRoutes_[F, MetricsEntry, ResponsePrelude] {
@@ -159,9 +164,11 @@ object Metrics {
           val MetricsEntry(request, _, classifier) = metrics
           val status = response.map(_.status)
 
-          ops.recordTotalTime(request, status, tt, totalTime, classifier) *>
+          ops.recordTotalTime(request, status, tt, totalTime, classifier, customLabelValues) *>
             ops.recordRequestBodySize(request, status, tt, classifier) *>
-            response.traverse_(ops.recordResponseBodySize(request, _, tt, classifier))
+            response.traverse_(
+              ops.recordResponseBodySize(request, _, tt, classifier, customLabelValues)
+            )
         }
 
         def mkResponsePrelude(status: Status) =
@@ -181,6 +188,7 @@ object Metrics {
               metrics.request,
               totalTime,
               metrics.classifier,
+              customLabelValues,
             ) *> recordTotal(errorResponseHandler(e).map(mkResponsePrelude), Some(Error(e)))
 
           case (Outcome.Errored(e), Some(response)) =>
