@@ -22,6 +22,10 @@ class LiteralSyntaxMacrosSuite extends Http4sSuite {
   test("'uri' macro works for valid input") {
     assertEquals(uri"a.b.c", Uri.fromString("a.b.c").toOption.get)
   }
+  test("'uri' macro works with variable named 'org'") {
+    val org = "blerf"
+    assertEquals(uri"org" / org, Uri.fromString("org/blerf").toOption.get)
+  }
   test("invalid uri won't compile") {
     assert(
       compileErrors {
