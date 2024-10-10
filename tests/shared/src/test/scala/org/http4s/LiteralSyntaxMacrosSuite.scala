@@ -30,7 +30,7 @@ class LiteralSyntaxMacrosSuite extends Http4sSuite {
   }
   test("'uri' macro works with implicit variable named 'org' in scope") {
     @nowarn implicit val org = "the-problem"
-    assertEquals(uri"example", uri"example")
+    assertEquals(uri"example", Uri.fromString("example").toOption.get)
   }
   test("invalid uri won't compile") {
     assert(
