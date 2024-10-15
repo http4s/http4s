@@ -233,7 +233,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     for {
       sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
-      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
+      shutdown <- Resource.eval(Shutdown[F](shutdownTimeout, logger))
       wsBuilder <- Resource.eval(WebSocketBuilder2[F])
       _ <- unixSocketConfig.fold(
         Concurrent[F].background(
