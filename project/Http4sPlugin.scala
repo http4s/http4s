@@ -26,9 +26,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.14"
-  val scala_212 = "2.12.19"
-  val scala_3 = "3.3.3"
+  val scala_213 = "2.13.15"
+  val scala_212 = "2.12.20"
+  val scala_3 = "3.3.4"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -100,7 +100,7 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
-    val caseInsensitive = "1.4.0"
+    val caseInsensitive = "1.4.2"
     val cats = "2.11.0"
     val catsEffect = "3.5.4"
     val catsParse = "1.0.0"
@@ -115,7 +115,7 @@ object Http4sPlugin extends AutoPlugin {
     val javaWebSocket = "1.5.7"
     val jawn = "1.5.1"
     val jawnFs2 = "2.4.0"
-    val jnrUnixSocket = "0.38.22"
+    val jnrUnixSocket = "0.38.23"
     val keypool = "0.4.10"
     val literally = "1.1.0"
     val logback = "1.2.6"
@@ -124,7 +124,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.0.0"
     val munitCatsEffect = "2.0.0"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.113.Final"
+    val netty = "4.1.114.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
