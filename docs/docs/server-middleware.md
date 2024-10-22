@@ -478,28 +478,46 @@ data. Also provided are implementations for [Dropwizard](https://http4s.github.i
 and [Prometheus](https://http4s.github.io/http4s-prometheus-metrics/) metrics.
 
 ```scala mdoc:silent
+import org.http4s._
 import org.http4s.server.middleware.Metrics
 import org.http4s.metrics.{MetricsOps, TerminationType}
 
 val metricsOps = new MetricsOps[IO] {
-  def increaseActiveRequests(classifier: Option[String]): IO[Unit] =
+  def increaseActiveRequests(request: RequestPrelude, classifier: Option[String]): IO[Unit] =
     Console[IO].println("increaseActiveRequests")
 
-  def decreaseActiveRequests(classifier: Option[String]): IO[Unit] = IO.unit
-  def recordHeadersTime(method: Method, elapsed: Long, classifier: Option[String]): IO[Unit] =
-    IO.unit
-  def recordTotalTime(
-    method: Method,
-    status: Status,
-    elapsed: Long,
+  def decreaseActiveRequests(request: RequestPrelude, classifier: Option[String]): IO[Unit] =
+    Console[IO].println("decreaseActiveRequests")
+
+  def recordHeadersTime(
+    request: RequestPrelude, 
+    elapsed: FiniteDuration, 
     classifier: Option[String]
   ): IO[Unit] = IO.unit
 
-  def recordAbnormalTermination(
-    elapsed: Long,
-    terminationType: TerminationType,
+  def recordTotalTime(
+    request: RequestPrelude, 
+    status: Option[Status], 
+    terminationType: Option[TerminationType], 
+    elapsed: FiniteDuration, 
     classifier: Option[String]
-  ): IO[Unit] = Console[IO].println(s"abnormalTermination - $terminationType")
+  ): IO[Unit] = IO.unit
+
+  def recordRequestBodySize(
+    request: RequestPrelude, 
+    status: Option[Status], 
+    terminationType: Option[TerminationType], 
+    classifier: Option[String]
+  ): IO[Unit] =
+    Console[IO].println(s"record request body - $request")
+
+  def recordResponseBodySize(
+    request: RequestPrelude, 
+    response: ResponsePrelude, 
+    terminationType: Option[TerminationType], 
+    classifier: Option[String]
+  ): IO[Unit] =
+    Console[IO].println(s"record response body - $response")
 }
 
 val metricsService = Metrics[IO](metricsOps)(service).orNotFound
