@@ -22,6 +22,8 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.effect.Temporal
+import cats.effect.kernel.Outcome
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.Chunk
 import fs2.Pipe
@@ -36,6 +38,8 @@ import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
 import org.http4s.headers._
 import org.http4s.syntax.all._
+import org.http4s.websocket.AutoPingCombinedPipe
+import org.http4s.websocket.AutoPingSeparatePipe
 import org.http4s.websocket.FrameTranscoder
 import org.http4s.websocket.Rfc6455
 import org.http4s.websocket.WebSocketCombinedPipe
@@ -122,14 +126,26 @@ private[internal] object WebSocketHelpers {
 
     // TODO followup: handle close frames from the user?
     SignallingRef[F, Close](Open).flatMap { close =>
-      val (stream, onClose) = ctx.webSocket match {
-        case WebSocketCombinedPipe(receiveSend, onClose) =>
-          incoming
-            .through(decodeFrames[F])
-            .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
-            .through(receiveSend)
-            .foreach(writeFrame) -> onClose
-        case WebSocketSeparatePipe(send, receive, onClose) =>
+      val (stream, onClose, autoPing) = ctx.webSocket match {
+        case webSocket @ WebSocketCombinedPipe(receiveSend, onClose) =>
+          webSocket.autoPing match {
+            case None =>
+              val s = incoming
+                .through(decodeFrames[F])
+                .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
+                .through(receiveSend)
+                .foreach(writeFrame)
+              (s, onClose, None)
+            case Some(AutoPingCombinedPipe(every, frame, receiveSendWithoutAutoPing)) =>
+              val s = incoming
+                .through(decodeFrames[F])
+                .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
+                .through(receiveSendWithoutAutoPing)
+                .foreach(writeFrame)
+              (s, onClose, Some(writeFrame(frame).delayBy(every)))
+          }
+
+        case webSocket @ WebSocketSeparatePipe(send, receive, onClose) =>
           val sendClosingFrame: F[Unit] = close.get.flatMap {
             case Open =>
               for {
@@ -143,21 +159,34 @@ private[internal] object WebSocketHelpers {
             case _ => F.unit
           }
 
-          val writer: Stream[F, Nothing] = send.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
-
           val reader = incoming
             .through(decodeFrames[F])
             .evalMapFilter(handleIncomingFrame[F](writeFrame, close))
             .through(receive)
 
-          reader.concurrently(writer) -> onClose
+          webSocket.autoPing match {
+            case None =>
+              val writer: Stream[F, Nothing] =
+                send.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
+              (reader.concurrently(writer), onClose, None)
+            case Some(AutoPingSeparatePipe(every, frame, sendWithoutAutoPing)) =>
+              val writer: Stream[F, Nothing] =
+                sendWithoutAutoPing.foreach(writeFrame) ++ Stream.exec(sendClosingFrame)
+              (reader.concurrently(writer), onClose, Some(writeFrame(frame).delayBy(every)))
+          }
       }
 
-      stream
+      val run = stream
         .interruptWhen(close.map(_ == BothClosed))
         .onFinalize(onClose)
         .compile
         .drain
+
+      autoPing match {
+        case None => run
+        case Some(pings) =>
+          pings.foreverM.background.use((_: F[Outcome[F, Throwable, Nothing]]) => run)
+      }
     }
   }
 
