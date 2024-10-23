@@ -39,7 +39,6 @@ import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (

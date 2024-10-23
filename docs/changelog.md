@@ -3,6 +3,39 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.29 (2024-10-23)
+
+This is a maintenance release to fix scalafix processing exceptions in http4s modules.
+
+## What's Changed
+### http4s-core
+* Update scala3-library, ... to 3.3.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7531
+* Update a bunch of upstream dependencies to align with Scala 2.12.20 and 2.13.15 by @http4s-steward in https://github.com/http4s/http4s/pull/7541
+* Fix for Uri macro with `org` variable by @samspills in https://github.com/http4s/http4s/pull/7537
+### Documentation
+* notes on how to put together a v0.23.xx release by @samspills in https://github.com/http4s/http4s/pull/7519
+### Behind the scenes
+
+<details>
+
+* Update http4s-circe, http4s-ember-client, ... to 0.23.28 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7521
+* Update sbt to 1.10.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7524
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7522
+* Update netty-buffer, netty-codec-http to 4.1.114.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7533
+* Update sbt-http4s-org to 0.17.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7514
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7525
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7536
+* Update case-insensitive, ... to 1.4.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7535
+* Update jnr-unixsocket to 0.38.23 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7542
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7544
+* Ignore http4s-scalafix-internal updates by @rossabaker in https://github.com/http4s/http4s/pull/7545
+* Update sbt-scoverage to 2.2.2 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7546
+* Update sbt to 1.10.3 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7548
+
+</details>
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.28...v0.23.29
+
 # v1.0.0-M42 (2024-10-04)
 
 ## What's Changed

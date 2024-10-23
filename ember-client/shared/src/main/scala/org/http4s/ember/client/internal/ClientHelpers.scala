@@ -16,7 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import _root_.fs2.io.net.SocketGroup
 import _root_.fs2.io.net.tls._
 import _root_.org.http4s.ember.core.Encoder
 import _root_.org.http4s.ember.core.Parser

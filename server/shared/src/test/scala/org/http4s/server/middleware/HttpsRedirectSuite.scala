@@ -23,7 +23,6 @@ import cats.syntax.all._
 import org.http4s.Uri.Authority
 import org.http4s.Uri.RegName
 import org.http4s.Uri.Scheme
-import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.syntax.all._

@@ -18,9 +18,19 @@ package org.http4s
 
 import org.http4s.implicits._
 
+import scala.annotation.nowarn
+
 class LiteralSyntaxMacrosSuite extends Http4sSuite {
   test("'uri' macro works for valid input") {
     assertEquals(uri"a.b.c", Uri.fromString("a.b.c").toOption.get)
+  }
+  test("'uri' macro works with variable named 'org'") {
+    val org = "blerf"
+    assertEquals(uri"org" / org, Uri.fromString("org/blerf").toOption.get)
+  }
+  test("'uri' macro works with implicit variable named 'org' in scope") {
+    @nowarn implicit val org = "the-problem"
+    assertEquals(uri"example", Uri.fromString("example").toOption.get)
   }
   test("invalid uri won't compile") {
     assert(
