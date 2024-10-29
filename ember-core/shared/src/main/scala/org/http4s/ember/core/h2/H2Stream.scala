@@ -239,7 +239,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h.toList).void
+                  case _ =>
+                    if (headers.endStream) s.readBuffer.close *> s.trailWith(h.toList).void
+                    else s.trailWith(h.toList).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {
@@ -386,7 +388,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
       val newSize = oldSize + window.windowSizeIncrement
       val sizeValid = (s.writeWindow >= 0 && newSize >= 0) || s.writeWindow < 0 // Less than 2^31-1
       val newS = s.copy(writeBlock = newWriteBlock, writeWindow = newSize)
-      // println(s"Receive Window Update $newS - increment: ${window.windowSizeIncrement} oldSize: $oldSize")
       (newS, (s.writeBlock, sizeValid))
     }
     (oldWriteBlock, valid) = t
@@ -402,7 +403,6 @@ private[h2] class H2Stream[F[_]: Concurrent](
     oldWriteBlock <- state.modify { s =>
       val newSize = s.writeWindow + amount
       val newS = s.copy(writeBlock = newWriteBlock, writeWindow = newSize)
-      // println(s"Modify Write Window $newS")
       (newS, s.writeBlock)
     }
 
