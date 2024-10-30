@@ -41,7 +41,8 @@
 1. Create a branch and commit the changes to the changelog. Open a PR, and wait for tests to pass and for someone to approve.
 1. Merge the changelog PR.
 1. Now you're ready to release! Edit you draft release on GitHub.
-    - click the checkbox for `Set as a pre-release`
-    - make sure that `Set as the latest release` is NOT CHECKED
+    - click the checkbox for `Set as a pre-release`.
+    - make sure that `Set as the latest release` is NOT CHECKED.
     - click the checkbox for `Create a discussion for this release`. Set the category for the discussion to `Releases`.
+1. Press the green "Publish Release" button.
 1. Wait for CI and publishing to finish!
