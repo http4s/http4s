@@ -3,6 +3,14 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M43 (2024-10-30)
+
+## What's Changed
+### http4s-core
+* merge v0.23.29 -> main by @samspills in https://github.com/http4s/http4s/pull/7550
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M42...v1.0.0-M43
+
 # v0.23.29 (2024-10-23)
 
 This is a maintenance release to fix scalafix processing exceptions in http4s modules.
