@@ -45,4 +45,34 @@
     - make sure that `Set as the latest release` is NOT CHECKED.
     - click the checkbox for `Create a discussion for this release`. Set the category for the discussion to `Releases`.
 1. Press the green "Publish Release" button.
+    - Edit the resulting discussion to add the "Ancillary repo releases" section
+      <details><summary>Ancillary repo releases copy paste</summary>
+
+      ```
+      ---
+
+      ## Ancillary repo releases:
+
+      Modules where a volunteer maintainer steps up cut to the front of the line! :smile:
+
+      * [ ] armeria
+      * [ ] blaze
+      * [ ] boopickle
+      * [ ] dom
+      * [ ] fabric
+      * [ ] feral
+      * [ ] finagle
+      * [ ] fs2-data
+      * [ ] jdk-http-client
+      * [ ] jetty
+      * [ ] netty
+      * [ ] prometheus-client
+      * [ ] rho
+      * [ ] scala-xml
+      * [ ] scalatags
+      * [ ] servlet
+      * [ ] session
+      * [ ] twirl
+      ```
+      </details>
 1. Wait for CI and publishing to finish!
