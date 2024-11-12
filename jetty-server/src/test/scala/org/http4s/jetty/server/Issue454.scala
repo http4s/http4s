@@ -20,12 +20,12 @@ package server
 
 import cats.effect.ContextShift
 import cats.effect.IO
+import org.eclipse.jetty.ee8.servlet.ServletContextHandler
+import org.eclipse.jetty.ee8.servlet.ServletHolder
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletHolder
 import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
 import org.http4s.servlet.AsyncHttp4sServlet

@@ -24,9 +24,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.8"
-  val scala_212 = "2.12.15"
-  val scala_3 = "3.0.2"
+  val scala_213 = "2.13.11"
+  val scala_212 = "2.12.18"
+  val scala_3 = "3.3.4"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -154,7 +154,8 @@ object Http4sPlugin extends AutoPlugin {
     val javaWebSocket = "1.5.3"
     val jawn = "1.3.2"
     val jawnFs2 = "1.2.1"
-    val jetty = "9.4.46.v20220331"
+//    val jetty = "9.4.46.v20220331"
+    val jetty = "12.0.15"
     val keypool = "0.3.6"
     val literally = "1.0.2"
     val logback = "1.2.6"
@@ -172,15 +173,19 @@ object Http4sPlugin extends AutoPlugin {
     val quasiquotes = "2.1.0"
     val scalacheck = "1.15.4"
     val scalacheckEffect = "1.0.3"
+    val scalacCompatAnnotation = "0.1.4"
+    val scalaJava8Compat = "1.0.2"
     val scalatags = "0.10.0"
     val scalaXml = "2.1.0"
     val scodecBits = "1.1.29"
-    val servlet = "3.1.0"
+    val servlet = "4.0.1"
     val slf4j = "1.7.36"
     val tomcat = "9.0.62"
     val treehugger = "0.4.4"
     val twirl = "1.4.2"
     val vault = "2.2.1"
+
+    val scalafix = "0.11.0"
   }
 
   lazy val asyncHttpClient = "org.asynchttpclient" % "async-http-client" % V.asyncHttpClient
@@ -218,10 +223,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnPlay = "org.typelevel" %% "jawn-play" % V.jawn
   lazy val jettyClient = "org.eclipse.jetty" % "jetty-client" % V.jetty
   lazy val jettyHttp = "org.eclipse.jetty" % "jetty-http" % V.jetty
-  lazy val jettyHttp2Server = "org.eclipse.jetty.http2" % "http2-server" % V.jetty
-  lazy val jettyRunner = "org.eclipse.jetty" % "jetty-runner" % V.jetty
+  lazy val jettyHttp2Server = "org.eclipse.jetty.http2" % "jetty-http2-server" % V.jetty
   lazy val jettyServer = "org.eclipse.jetty" % "jetty-server" % V.jetty
-  lazy val jettyServlet = "org.eclipse.jetty" % "jetty-servlet" % V.jetty
+  lazy val jettyRunner = "org.eclipse.jetty.ee8" % "jetty-ee8-runner" % V.jetty
+  lazy val jettyServlet = "org.eclipse.jetty.ee8" % "jetty-ee8-servlet" % V.jetty
   lazy val jettyUtil = "org.eclipse.jetty" % "jetty-util" % V.jetty
   lazy val keypool = "org.typelevel" %% "keypool" % V.keypool
   lazy val literally = "org.typelevel" %% "literally" % V.literally
@@ -246,7 +251,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalacheck = "org.scalacheck" %% "scalacheck" % V.scalacheck
   lazy val scalacheckEffect = "org.typelevel" %% "scalacheck-effect" % V.scalacheckEffect
   lazy val scalacheckEffectMunit = "org.typelevel" %% "scalacheck-effect-munit" % V.scalacheckEffect
+  lazy val scalacCompatAnnotation =
+    "org.typelevel" %% "scalac-compat-annotation" % V.scalacCompatAnnotation
   def scalaReflect(sv: String) = "org.scala-lang" % "scala-reflect" % sv
+  lazy val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % V.scalaJava8Compat
   lazy val scalatagsApi = "com.lihaoyi" %% "scalatags" % V.scalatags
   lazy val scalaXml = "org.scala-lang.modules" %% "scala-xml" % V.scalaXml
   lazy val scodecBits = "org.scodec" %% "scodec-bits" % V.scodecBits

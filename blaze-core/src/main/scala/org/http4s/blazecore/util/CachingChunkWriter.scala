@@ -25,6 +25,7 @@ import org.http4s.util.StringWriter
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
+import scala.annotation.nowarn
 import scala.collection.mutable.Buffer
 import scala.concurrent._
 
@@ -38,6 +39,7 @@ private[http4s] class CachingChunkWriter[F[_]](
   import ChunkWriter._
 
   private[this] var pendingHeaders: StringWriter = _
+  @nowarn("msg=local var .* is never updated")
   private[this] var bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
   private[this] var size: Int = 0
 

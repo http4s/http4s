@@ -23,18 +23,18 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
 import cats.syntax.all._
 import fs2._
-import org.eclipse.jetty.client.util.DeferredContentProvider
+import org.eclipse.jetty.client.AsyncRequestContent
 import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
 
-private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[F])(implicit
+private[jetty] final case class StreamRequestContent[F[_]](s: Semaphore[F])(implicit
     F: Effect[F]
-) extends DeferredContentProvider {
-  import StreamRequestContentProvider.logger
+) extends AsyncRequestContent {
+  import StreamRequestContent.logger
 
-  def write(req: Request[F]): F[Unit] =
-    req.body.chunks
+  def write(body: Stream[F, Byte]): F[Unit] =
+    body.chunks
       .through(pipe)
       .compile
       .drain
@@ -43,13 +43,11 @@ private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[
   private val pipe: Pipe[F, Chunk[Byte], Unit] =
     _.evalMap { c =>
       write(c)
-        .ensure(new Exception("something terrible has happened"))(res => res)
-        .map(_ => ())
     }
 
-  private def write(chunk: Chunk[Byte]): F[Boolean] =
+  private def write(chunk: Chunk[Byte]): F[Unit] =
     s.acquire
-      .map(_ => super.offer(chunk.toByteBuffer, callback))
+      .map(_ => super.write(chunk.toByteBuffer, callback))
 
   private val callback: JettyCallback = new JettyCallback {
     override def succeeded(): Unit =
@@ -57,9 +55,10 @@ private[jetty] final case class StreamRequestContentProvider[F[_]](s: Semaphore[
   }
 }
 
-private[jetty] object StreamRequestContentProvider {
+private[jetty] object StreamRequestContent {
   private val logger = getLogger
 
-  def apply[F[_]]()(implicit F: ConcurrentEffect[F]): F[StreamRequestContentProvider[F]] =
-    Semaphore[F](1).map(StreamRequestContentProvider(_))
+  def apply[F[_]]()(implicit F: ConcurrentEffect[F]): F[StreamRequestContent[F]] =
+    Semaphore[F](1).map(new StreamRequestContent(_))
+
 }

@@ -29,8 +29,8 @@ import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.log4s.getLogger
 import org.typelevel.ci._
+import org.typelevel.scalaccompat.annotation._
 
-import scala.annotation.nowarn
 import scala.concurrent.duration._
 import scala.util.hashing.MurmurHash3
 
@@ -195,7 +195,7 @@ object CORS {
     "Depends on a deficient `CORSConfig`. See https://github.com/http4s/http4s/security/advisories/GHSA-52cf-226f-rhr6. If config.anyOrigin is true and config.allowCredentials is true, then the `Access-Control-Allow-Credentials` header will be suppressed starting with 0.22.3.",
     "0.21.27",
   )
-  @nowarn("cat=deprecation")
+  @nowarn212("cat=deprecation")
   def apply[F[_], G[_]](http: Http[F, G], config: CORSConfig = CORSConfig.default)(implicit
       F: Applicative[F]
   ): Http[F, G] = {

@@ -55,36 +55,40 @@ private[jetty] object JettyLifeCycle {
     * internally, e.g. due to some internal error occurring.
     */
   private[this] def stopLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
-    F.async[Unit] { cb =>
-      lifeCycle.addLifeCycleListener(
-        new LifeCycle.Listener {
-          override def lifeCycleStopped(a: LifeCycle): Unit =
-            cb(Right(()))
-          override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =
-            cb(Left(error))
+    F.asyncF[Unit] { cb =>
+      F.defer {
+        val listener =
+          new LifeCycle.Listener {
+            override def lifeCycleStopped(a: LifeCycle): Unit =
+              cb(Right(()))
+
+            override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =
+              cb(Left(error))
+          }
+        lifeCycle.addEventListener(listener)
+
+        // In the general case, it is not sufficient to merely call stop(). For
+        // example, the concrete implementation of stop() for the canonical
+        // Jetty Server instance will shortcut to a `return` call taking no
+        // action if the server is "stopping". This method _can't_ return until
+        // we are _actually stopped_, so we have to check three different states
+        // here.
+
+        if (lifeCycle.isStopped) {
+          // If the first case, we are already stopped, so our listener won't be
+          // called and we just return.
+          cb(Right(()))
+        } else if (lifeCycle.isStopping()) {
+          // If it is stopping, we need to wait for our listener to get invoked.
+          ()
+        } else {
+          // If it is neither stopped nor stopping, we need to request a stop
+          // and then wait for the event. It is imperative that we add the
+          // listener beforehand here. Otherwise we have some very annoying race
+          // conditions.
+          lifeCycle.stop()
         }
-      )
-
-      // In the general case, it is not sufficient to merely call stop(). For
-      // example, the concrete implementation of stop() for the canonical
-      // Jetty Server instance will shortcut to a `return` call taking no
-      // action if the server is "stopping". This method _can't_ return until
-      // we are _actually stopped_, so we have to check three different states
-      // here.
-
-      if (lifeCycle.isStopped) {
-        // If the first case, we are already stopped, so our listener won't be
-        // called and we just return.
-        cb(Right(()))
-      } else if (lifeCycle.isStopping()) {
-        // If it is stopping, we need to wait for our listener to get invoked.
-        ()
-      } else {
-        // If it is neither stopped nor stopping, we need to request a stop
-        // and then wait for the event. It is imperative that we add the
-        // listener beforehand here. Otherwise we have some very annoying race
-        // conditions.
-        lifeCycle.stop()
+        F.delay(lifeCycle.removeEventListener(listener)).void
       }
     }
 
@@ -95,51 +99,55 @@ private[jetty] object JettyLifeCycle {
     * (or starting) this will fail.
     */
   private[this] def startLifeCycle[F[_]](lifeCycle: LifeCycle)(implicit F: Async[F]): F[Unit] =
-    F.async[Unit] { cb =>
-      lifeCycle.addLifeCycleListener(
-        new LifeCycle.Listener {
-          override def lifeCycleStarted(a: LifeCycle): Unit =
-            cb(Right(()))
-          override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =
-            cb(Left(error))
-        }
-      )
+    F.asyncF[Unit] { cb =>
+      F.defer {
+        val listener =
+          new LifeCycle.Listener {
+            override def lifeCycleStarted(a: LifeCycle): Unit =
+              cb(Right(()))
 
-      // Sanity check to ensure the LifeCycle component is not already
-      // started. A couple of notes here.
-      //
-      // - There is _always_ going to be a small chance of a race condition
-      //   here in the final branch where we invoke `lifeCycle.start()` _if_
-      //   something else has a reference to the `LifeCycle`
-      //   value. Thankfully, unlike the stopLifeCycle function, this is
-      //   completely in the control of the caller. As long as the caller
-      //   doesn't leak the reference (or call .start() themselves) nothing
-      //   internally to Jetty should ever invoke .start().
-      // - Jetty components allow for reuse in many cases, unless the
-      //   .destroy() method is invoked (and the particular type implements
-      //   `Destroyable`, it's not part of `LifeCycle`). Jetty uses this for
-      //   "soft" resets of the `LifeCycle` component. Thus it is possible
-      //   that this `LifeCycle` component has been started before, though I
-      //   don't recommend this and we don't (at this time) do that in the
-      //   http4s codebase.
-      if (lifeCycle.isStarted) {
-        cb(
-          Left(
-            new IllegalStateException(
-              "Attempting to start Jetty LifeCycle component, but it is already started."
+            override def lifeCycleFailure(a: LifeCycle, error: Throwable): Unit =
+              cb(Left(error))
+          }
+        lifeCycle.addEventListener(listener)
+
+        // Sanity check to ensure the LifeCycle component is not already
+        // started. A couple of notes here.
+        //
+        // - There is _always_ going to be a small chance of a race condition
+        //   here in the final branch where we invoke `lifeCycle.start()` _if_
+        //   something else has a reference to the `LifeCycle`
+        //   value. Thankfully, unlike the stopLifeCycle function, this is
+        //   completely in the control of the caller. As long as the caller
+        //   doesn't leak the reference (or call .start() themselves) nothing
+        //   internally to Jetty should ever invoke .start().
+        // - Jetty components allow for reuse in many cases, unless the
+        //   .destroy() method is invoked (and the particular type implements
+        //   `Destroyable`, it's not part of `LifeCycle`). Jetty uses this for
+        //   "soft" resets of the `LifeCycle` component. Thus it is possible
+        //   that this `LifeCycle` component has been started before, though I
+        //   don't recommend this and we don't (at this time) do that in the
+        //   http4s codebase.
+        if (lifeCycle.isStarted) {
+          cb(
+            Left(
+              new IllegalStateException(
+                "Attempting to start Jetty LifeCycle component, but it is already started."
+              )
             )
           )
-        )
-      } else if (lifeCycle.isStarting) {
-        cb(
-          Left(
-            new IllegalStateException(
-              "Attempting to start Jetty LifeCycle component, but it is already starting."
+        } else if (lifeCycle.isStarting) {
+          cb(
+            Left(
+              new IllegalStateException(
+                "Attempting to start Jetty LifeCycle component, but it is already starting."
+              )
             )
           )
-        )
-      } else {
-        lifeCycle.start()
+        } else {
+          lifeCycle.start()
+        }
+        F.delay(lifeCycle.removeEventListener(listener)).void
       }
     }
 }

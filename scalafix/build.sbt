@@ -1,4 +1,5 @@
 lazy val V = _root_.scalafix.sbt.BuildInfo
+lazy val scalafixVersion = V.scalafixVersion
 lazy val outputVersion = "0.22.7"
 inThisBuild(
   List(
@@ -40,7 +41,7 @@ skip in publish := true
 
 lazy val rules = project.settings(
   moduleName := "http4s-scalafix",
-  libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % V.scalafixVersion
+  libraryDependencies += "ch.epfl.scala" %% "scalafix-core" % scalafixVersion,
 )
   .settings(scalafixSettings)
 
@@ -75,7 +76,7 @@ lazy val output = project.settings(
 lazy val tests = project
   .settings(
     skip in publish := true,
-    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % V.scalafixVersion % Test cross CrossVersion.full,
+    libraryDependencies += "ch.epfl.scala" % "scalafix-testkit" % scalafixVersion % Test cross CrossVersion.full,
     Compile / compile :=
       (Compile / compile).dependsOn(input / Compile / compile).value,
     scalafixTestkitOutputSourceDirectories :=
