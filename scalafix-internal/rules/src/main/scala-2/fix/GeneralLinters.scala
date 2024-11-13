@@ -40,7 +40,7 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
 
   def noNonFinalCaseClass(implicit doc: SemanticDocument) =
     doc.tree.collect {
-      case c @ Defn.Class(mods, _, _, _, _)
+      case c @ Defn.Class.After_4_6_0(mods, _, _, _, _)
           if mods.exists(_.is[Mod.Case]) && !mods.exists(mod =>
             (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private])
           ) && !c.isDescendentOf[Defn.Def] && !c.isDescendentOf[Defn.Val] =>
@@ -49,17 +49,17 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
 
   def leakingSealedHierarchy(implicit doc: SemanticDocument) = {
     def doCheck(t: Tree, mods: List[Mod], inits: List[Init]): Patch = inits.collect {
-      case Init(typ, _, _) if typ.symbol.info.exists(_.isSealed) =>
+      case Init.After_4_6_0(typ, _, _) if typ.symbol.info.exists(_.isSealed) =>
         if (!mods.exists(mod => (mod.is[Mod.Final] | mod.is[Mod.Sealed] | mod.is[Mod.Private]))) {
           Patch.lint(LeakingSealedHierarchy(t))
         } else Patch.empty
     }.asPatch
 
     doc.tree.collect {
-      case t @ Defn.Class(mods, _, _, _, Template(_, inits, _, _))
+      case t @ Defn.Class.After_4_6_0(mods, _, _, _, Template.Initial(_, inits, _, _))
           if !t.isDescendentOf[Defn.Def] && !t.isDescendentOf[Defn.Val] =>
         doCheck(t, mods, inits)
-      case t @ Defn.Trait(mods, _, _, _, Template(_, inits, _, _))
+      case t @ Defn.Trait.After_4_6_0(mods, _, _, _, Template.Initial(_, inits, _, _))
           if !t.isDescendentOf[Defn.Def] && !t.isDescendentOf[Defn.Val] =>
         doCheck(t, mods, inits)
     }.asPatch
@@ -67,7 +67,7 @@ class GeneralLinters extends SemanticRule("Http4sGeneralLinters") {
 
   def nonValidatingCopyConstructor(implicit doc: SemanticDocument) =
     doc.tree.collect {
-      case c @ Defn.Class(mods, _, _, Ctor.Primary(ctorMods, _, _), _)
+      case c @ Defn.Class.After_4_6_0(mods, _, _, Ctor.Primary.After_4_6_0(ctorMods, _, _), _)
           if mods.exists(_.is[Mod.Case]) && ctorMods
             .exists(_.is[Mod.Private]) && !mods.exists(_.is[Mod.Abstract]) =>
         Patch.lint(NonValidatingCopyConstructor(c))

@@ -231,6 +231,9 @@ lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",
     startYear := Some(2014),
+    libraryDependencies ++= Seq(
+      scalacCompatAnnotation
+    ),
     mimaBinaryIssueFilters ++= Seq(
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.http4s.server.middleware.CSRF.this"
@@ -581,6 +584,7 @@ lazy val jettyClient = libraryProject("jetty-client")
       Http4sPlugin.jettyClient,
       jettyHttp,
       jettyUtil,
+      scalaJava8Compat,
     ),
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
@@ -888,7 +892,7 @@ lazy val scalafixInternalRules = project
   .settings(
     startYear := Some(2021),
     libraryDependencies ++= Seq(
-      "ch.epfl.scala" %% "scalafix-core" % _root_.scalafix.sbt.BuildInfo.scalafixVersion
+      "ch.epfl.scala" %% "scalafix-core" % V.scalafix
     ).filter(_ => !tlIsScala3.value),
   )
 
@@ -931,6 +935,12 @@ lazy val scalafixInternalTests = project
   .settings(headerSources / excludeFilter := AllPassFilter)
   .disablePlugins(ScalafixPlugin)
   .dependsOn(scalafixInternalRules)
+  .settings(
+    dependencyOverrides ++= Seq(
+      "ch.epfl.scala" %% "scalafix-core" % V.scalafix,
+      "ch.epfl.scala" %% "scalafix-testkit" % V.scalafix % Test cross CrossVersion.full,
+    )
+  )
 
 def http4sProject(name: String) =
   Project(name, file(name))

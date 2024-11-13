@@ -24,11 +24,10 @@ import cats.syntax.all._
 import fs2.Stream._
 import fs2._
 import fs2.concurrent.Queue
-import org.eclipse.jetty.client.api.Result
-import org.eclipse.jetty.client.api.{Response => JettyResponse}
+import org.eclipse.jetty.client.Result
+import org.eclipse.jetty.client.{Response => JettyResponse}
 import org.eclipse.jetty.http.HttpFields
 import org.eclipse.jetty.http.{HttpVersion => JHttpVersion}
-import org.eclipse.jetty.util.{Callback => JettyCallback}
 import org.http4s.internal.CollectionCompat.CollectionConverters._
 import org.http4s.internal.invokeCallback
 import org.http4s.internal.loggingAsyncCallback
@@ -40,8 +39,8 @@ import java.nio.ByteBuffer
 private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Item],
     cb: Callback[Resource[F, Response[F]]],
-)(implicit F: ConcurrentEffect[F])
-    extends JettyResponse.Listener.Adapter {
+)(implicit F: ConcurrentEffect[F], CS: ContextShift[F])
+    extends JettyResponse.Listener {
   import ResponseListener.logger
 
   /* Needed to properly propagate client errors */
@@ -87,14 +86,13 @@ private[jetty] final case class ResponseListener[F[_]](
   override def onContent(
       response: JettyResponse,
       content: ByteBuffer,
-      callback: JettyCallback,
   ): Unit = {
     val copy = ByteBuffer.allocate(content.remaining())
     copy.put(content).flip()
     enqueue(Item.Buf(copy)) {
-      case Right(_) => IO(callback.succeeded())
+      case Right(_) => IO.unit
       case Left(e) =>
-        IO(logger.error(e)("Error in asynchronous callback")) >> IO(callback.failed(e))
+        IO(logger.error(e)("Error in asynchronous callback"))
     }
   }
 
@@ -110,11 +108,21 @@ private[jetty] final case class ResponseListener[F[_]](
   // (the request might complete after the response has been entirely received)
   override def onComplete(result: Result): Unit = ()
 
-  private def abort(t: Throwable, response: JettyResponse): Unit =
-    if (!response.abort(t)) // this also aborts the request
-      logger.error(t)("Failed to abort the response")
-    else
-      closeStream()
+  private def abort(t: Throwable, response: JettyResponse): Unit = {
+    import scala.compat.java8.FutureConverters._
+
+    Async
+      .fromFuture(F.delay(response.abort(t).toScala))
+      .runAsync { attempt =>
+        loggingAsyncCallback(logger)(attempt.map { aborted =>
+          if (!aborted)
+            logger.error(t)("Failed to abort the response")
+          else
+            closeStream()
+        })
+      }
+      .unsafeRunSync()
+  }
 
   private def closeStream(): Unit =
     enqueue(Item.Done)(loggingAsyncCallback(logger))
@@ -135,9 +143,9 @@ private[jetty] object ResponseListener {
 
   private val logger = getLogger
 
-  def apply[F[_]](
+  def apply[F[_]: ConcurrentEffect: ContextShift](
       cb: Callback[Resource[F, Response[F]]]
-  )(implicit F: ConcurrentEffect[F]): F[ResponseListener[F]] =
+  ): F[ResponseListener[F]] =
     Queue
       .synchronous[F, Item]
       .map(q => ResponseListener(q, cb))
