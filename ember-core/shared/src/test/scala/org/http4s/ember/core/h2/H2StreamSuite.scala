@@ -88,7 +88,7 @@ class H2StreamSuite extends Http4sSuite {
 
       state <- Ref[IO].of(
         H2Stream.State[IO](
-          state = H2Stream.StreamState.Open,
+          state = H2Stream.StreamState.Idle,
           writeWindow = defaultSettings.initialWindowSize.windowSize,
           writeBlock = writeBlock,
           readWindow = config.initialWindowSize.windowSize,
@@ -184,7 +184,7 @@ class H2StreamSuite extends Http4sSuite {
       actual <- Queue.unbounded[IO, Chunk[Byte]]
 
       _ <- stream.receiveHeaders(init)
-
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- (
         // Taken from `sendMessageBody` to emulate messages sent from server.
         source.zipWithNext
