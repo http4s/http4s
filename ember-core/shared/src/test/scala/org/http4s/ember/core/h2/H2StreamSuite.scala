@@ -148,7 +148,7 @@ class H2StreamSuite extends Http4sSuite {
   }
 
   test(
-    "streaming response with trailers hangs on client side if endStream is indicated by headers"
+    "client should not hang when endStream is sent by H2Frame.Headers as trailers"
   ) {
     for {
       stream <- clientStream(defaultSettings)
