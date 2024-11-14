@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core.h2
 
+import cats.data.NonEmptyList
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
@@ -31,7 +32,6 @@ import org.http4s.Response
 import org.http4s.Status
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
-import cats.data.NonEmptyList
 
 class H2StreamSuite extends Http4sSuite {
   val defaultSettings = H2Frame.Settings.ConnectionSettings.default
