@@ -16,6 +16,7 @@
 
 package org.http4s.ember.core.h2
 
+import cats.data.NonEmptyList
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
@@ -75,6 +76,46 @@ class H2StreamSuite extends Http4sSuite {
       )
     } yield (stream, outgoing)
 
+  def clientStream(
+      config: H2Frame.Settings.ConnectionSettings
+  ): IO[H2Stream[IO]] =
+    for {
+      writeBlock <- Deferred[IO, Either[Throwable, Unit]]
+      req <- Deferred[IO, Either[Throwable, Request[fs2.Pure]]]
+      resp <- Deferred[IO, Either[Throwable, Response[fs2.Pure]]]
+      trailers <- Deferred[IO, Either[Throwable, Headers]]
+      readBuffer <- Channel.unbounded[IO, Either[Throwable, ByteVector]]
+
+      state <- Ref[IO].of(
+        H2Stream.State[IO](
+          state = H2Stream.StreamState.Open,
+          writeWindow = defaultSettings.initialWindowSize.windowSize,
+          writeBlock = writeBlock,
+          readWindow = config.initialWindowSize.windowSize,
+          request = req,
+          response = resp,
+          trailers = trailers,
+          readBuffer = readBuffer,
+          contentLengthCheck = None,
+        )
+      )
+      hpack <- Hpack.create[IO]
+      logger <- log4cats.noop.NoOpFactory[IO].fromClass(classOf[H2StreamSuite])
+      enqueue <- Queue.unbounded[IO, Chunk[H2Frame]]
+      stream = new H2Stream[IO](
+        1,
+        defaultSettings,
+        H2Connection.ConnectionType.Client,
+        IO.pure(config),
+        state,
+        hpack,
+        enqueue,
+        IO.unit,
+        _ => IO.unit,
+        logger,
+      )
+    } yield stream
+
   private def testMessageSize(
       stream: H2Stream[IO],
       outgoing: Queue[IO, Chunk[H2Frame]],
@@ -103,6 +144,71 @@ class H2StreamSuite extends Http4sSuite {
       (stream, queue) = sq
       _ <- testMessageSize(stream, queue, 0, messageSize = 0, numFrames = 1)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
+    } yield ()
+  }
+
+  test(
+    "client should not hang when endStream is sent by H2Frame.Headers as trailers"
+  ) {
+    for {
+      stream <- clientStream(defaultSettings)
+      headers <- stream.hpack.encodeHeaders(
+        NonEmptyList.of(
+          (":status", "200", false),
+          (":method", "GET", false),
+        )
+      )
+      init = H2Frame.Headers(
+        0,
+        None,
+        endStream = false,
+        endHeaders = false,
+        headers,
+        None,
+      )
+      headers <- stream.hpack.encodeHeaders(
+        NonEmptyList.of(
+          ("grpc-status", "0", false)
+        )
+      )
+      trailers = H2Frame.Headers(
+        1,
+        None,
+        endStream = true,
+        endHeaders = true,
+        headers,
+        None,
+      )
+
+      source = fs2.Stream.repeatEval(IO(42.toByte)).take(10000).chunkN(100)
+      actual <- Queue.unbounded[IO, Chunk[Byte]]
+
+      _ <- stream.receiveHeaders(init)
+
+      _ <- (
+        // Taken from `sendMessageBody` to emulate messages sent from server.
+        source.zipWithNext
+          .foreach { case (c, nextChunk) =>
+            val noTrailers = false
+            val isEndStream = nextChunk.isEmpty && noTrailers
+            stream.receiveData(H2Frame.Data(0, c.toByteVector, None, isEndStream)) >>
+              actual.offer(c)
+          }
+          .compile
+          .drain >>
+          // Taken from `sendTrailerHeaders` to emulate trailers headers sent from server.
+          stream
+            .receiveHeaders(trailers)
+      )
+        // Note: Without closing `readBuffer` on headers with `endStream=true`, `readBody` hangs forever.
+        .both(stream.readBody.compile.drain)
+      expect <- source.compile.count
+      _ <- assertIO(
+        actual.size,
+        expect.toInt,
+        "expect the client to consume all the elements in the streaming response body before closing",
+      )
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedRemote)
     } yield ()
   }
 
