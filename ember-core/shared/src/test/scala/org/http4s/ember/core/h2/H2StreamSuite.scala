@@ -187,7 +187,6 @@ class H2StreamSuite extends Http4sSuite {
 
       _ <- (
         // Taken from `sendMessageBody` to emulate messages sent from server.
-        // If there's trailers, it hangs.
         source.zipWithNext
           .foreach { case (c, nextChunk) =>
             val noTrailers = false
@@ -201,10 +200,7 @@ class H2StreamSuite extends Http4sSuite {
           stream
             .receiveHeaders(trailers)
       )
-        // `readBody` hangs forever because the inside readBuffer channel won't be closed.
-        // This is because http4s ember client assumes `endStream` to be sent as H2Frame.Data.
-        // However, it differs whether `endStream` is signaled by `H2Frame.Data` or `H2Frame.Headers`
-        // depending on server implementation.
+        // Note: Without closing `readBuffer` on headers with `endStream=true`, `readBody` hangs forever.
         .both(stream.readBody.compile.drain)
       expect <- source.compile.count
       _ <- assertIO(
