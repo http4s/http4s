@@ -547,7 +547,7 @@ object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant]("timesta
 
 #### Flag Query Parameters
 
-To handle query parameters that do not contain any values but are simple flags the `FlagQueryParamMatcher` must be used.
+To handle query parameters that do not contain any values but are simple flags the `FlagQueryParamMatcher` should be used.
 
 ```scala mdoc:nest
 object WithClouds extends FlagQueryParamMatcher("with-clouds")
