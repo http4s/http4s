@@ -213,7 +213,9 @@ object Uri extends UriPlatform {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
-    ParseResult.fromParser(Parser.uriReferenceUtf8, "Invalid URI")(s)
+    ParseResult
+      .fromParser(Parser.uriReferenceUtf8, "Invalid URI")(s)
+      .map(uri => uri.copy(query = uri.query.encode))
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
     *  fails, throws a [[ParseFailure]].
