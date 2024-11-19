@@ -19,7 +19,7 @@ package org.http4s.dsl
 import cats.arrow.FunctionK
 import org.http4s.Method
 import org.http4s.Uri
-import org.http4s.dsl.impl._
+import org.http4s.dsl.impl.*
 
 trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, G] {
   val Path: Uri.Path.type = Uri.Path
@@ -43,6 +43,8 @@ trait Http4sDsl2[F[_], G[_]] extends RequestDsl with Statuses with Responses[F, 
     * }}}
     */
   val → : impl.->.type = impl.->
+
+  lazy val PathVar: impl.PathVar.type = impl.PathVar
 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
