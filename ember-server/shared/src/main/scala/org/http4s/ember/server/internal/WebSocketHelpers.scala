@@ -34,7 +34,6 @@ import org.http4s.crypto.Hash
 import org.http4s.crypto.HashAlgorithm
 import org.http4s.ember.core.Read
 import org.http4s.ember.core.Util.timeoutMaybe
-import org.http4s.headers.Connection
 import org.http4s.headers._
 import org.http4s.syntax.all._
 import org.http4s.websocket.FrameTranscoder
@@ -106,7 +105,7 @@ private[internal] object WebSocketHelpers {
     }
   }
 
-  private[this] val nonClientTranscoder = new FrameTranscoder(false)
+  private[this] val nonClientTranscoder = new FrameTranscoder(isClient = false)
 
   private def runConnection[F[_]](
       socket: Socket[F],

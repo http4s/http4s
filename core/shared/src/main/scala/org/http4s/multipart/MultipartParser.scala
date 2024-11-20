@@ -17,6 +17,7 @@
 package org.http4s
 package multipart
 
+import cats.ApplicativeThrow
 import cats.effect.Concurrent
 import cats.effect.Deferred
 import cats.effect.Resource
@@ -34,6 +35,8 @@ import fs2.io.file.Flags
 import fs2.io.file.Path
 import org.http4s.internal.bug
 import org.typelevel.ci.CIString
+
+import java.nio.charset.StandardCharsets
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -308,13 +311,28 @@ object MultipartParser {
     }
   }
 
+  private def iso_8859_1Decoder[F[_]: ApplicativeThrow] =
+    fs2.text.decodeWithCharset(StandardCharsets.ISO_8859_1)
+
   /** Take the stream of headers separated by
     * double CRLF bytes and return the headers
     */
   private def parseHeaders[F[_]: Concurrent](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap { case (l, r) =>
-        l.through(fs2.text.utf8.decode[F])
+        /* We need to decode as some byte-per-character encoding, like
+         * ISO-8859-1, so any non-ASCII bytes fit in the 0x80-0xff
+         * "obs-text" range and are treated opaquely.  We can't decode
+         * as UTF-8 here, because:
+         *
+         * 1. Not all arbitrary byte sequences are UTF-8.
+         * 2. The parsers, like Content-Disposition, don't expect
+         *    characters greater than 0xff.
+         *
+         * Interpretation of these opaque bytes is left to operations
+         * on [[Part]].
+         */
+        l.through(iso_8859_1Decoder)
           .fold("")(_ ++ _)
           .map { string =>
             val ix = string.indexOf(':')

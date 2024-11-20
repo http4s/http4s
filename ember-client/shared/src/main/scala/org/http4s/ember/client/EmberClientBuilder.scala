@@ -38,7 +38,6 @@ import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async: Network] private (
@@ -291,7 +290,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           logger,
           if (pushPromiseSupport.isDefined) default
           else
-            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(false)),
+            default.copy(enablePush = H2Frame.Settings.SettingsEnablePush(isEnabled = false)),
           checkEndpointIdentification,
           serverNameIndication,
         )

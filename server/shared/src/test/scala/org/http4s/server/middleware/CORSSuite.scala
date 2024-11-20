@@ -222,7 +222,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(nonPreflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, true)
+        assertAllowCredentials(resp, b = true)
       }
   }
 
@@ -233,7 +233,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(preflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, true)
+        assertAllowCredentials(resp, b = true)
       }
   }
 
@@ -244,7 +244,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(nonPreflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 
@@ -255,7 +255,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(preflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 
@@ -265,7 +265,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(nonPreflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 
@@ -275,7 +275,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(preflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 
@@ -285,7 +285,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(nonPreflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 
@@ -295,7 +295,7 @@ class CORSSuite extends Http4sSuite {
       .apply(app)
       .run(preflightReq)
       .map { resp =>
-        assertAllowCredentials(resp, false)
+        assertAllowCredentials(resp, b = false)
       }
   }
 

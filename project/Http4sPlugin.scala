@@ -26,9 +26,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.12"
-  val scala_212 = "2.12.18"
-  val scala_3 = "3.3.3"
+  val scala_213 = "2.13.15"
+  val scala_212 = "2.12.20"
+  val scala_3 = "3.3.4"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -100,33 +100,33 @@ object Http4sPlugin extends AutoPlugin {
     // reference of all the projects we depend on, and hopefully will reduce
     // error-prone merge conflicts in the dependencies below.
     val blaze = "0.15.3"
-    val caseInsensitive = "1.4.0"
-    val cats = "2.10.0"
-    val catsEffect = "3.5.4"
+    val caseInsensitive = "1.4.2"
+    val cats = "2.11.0"
+    val catsEffect = "3.5.5"
     val catsParse = "1.0.0"
-    val circe = "0.14.6"
+    val circe = "0.14.8"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
-    val disciplineCore = "1.5.1"
+    val disciplineCore = "1.6.0"
     val epollcat = "0.1.6"
-    val fs2 = "3.9.4"
-    val ip4s = "3.5.0"
+    val fs2 = "3.11.0"
+    val ip4s = "3.6.0"
     val hpack = "1.0.4"
-    val javaWebSocket = "1.5.6"
+    val javaWebSocket = "1.5.7"
     val jawn = "1.5.1"
     val jawnFs2 = "2.4.0"
-    val jnrUnixSocket = "0.38.22"
-    val keypool = "0.4.9"
+    val jnrUnixSocket = "0.38.23"
+    val keypool = "0.4.10"
     val literally = "1.1.0"
     val logback = "1.2.6"
-    val log4cats = "2.6.0"
+    val log4cats = "2.7.0"
     val log4s = "1.10.0"
-    val munit = "1.0.0-M11"
-    val munitCatsEffect = "2.0.0-M4"
+    val munit = "1.0.0"
+    val munitCatsEffect = "2.0.0"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.107.Final"
+    val netty = "4.1.115.Final"
     val quasiquotes = "2.1.0"
-    val scalacheck = "1.17.0"
+    val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
     val scalaJavaLocales = "1.5.1"
     val scalaJavaTime = "2.5.0"
@@ -134,7 +134,7 @@ object Http4sPlugin extends AutoPlugin {
     val slf4j = "1.7.36"
     val treehugger = "0.4.4"
     val twitterHpack = "1.0.2"
-    val vault = "3.5.0"
+    val vault = "3.6.0"
   }
 
   lazy val blazeCore = "org.http4s" %% "blaze-core" % V.blaze

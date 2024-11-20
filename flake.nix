@@ -12,7 +12,7 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ typelevel-nix.overlay ];
+          overlays = [ typelevel-nix.overlays.default ];
         };
 
         mkShell = jdk: pkgs.devshell.mkShell {
