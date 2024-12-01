@@ -242,10 +242,7 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">urlRoutes</span><span> = </span><span class="type-name">HttpRoutes</span><span>
   .</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] { </span><span class="keyword">case</span><span> </span><span class="identifier">request</span><span> @ </span><span class="type-name">POST</span><span> -&gt; </span><span class="type-name">Root</span><span> / </span><span class="string-literal">&quot;url-form&quot;</span><span> =&gt;
     </span><span class="identifier">request</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">UrlForm</span><span>].</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">form</span><span> =&gt;
-      </span><span class="keyword">val</span><span> </span><span class="identifier">name</span><span> = </span><span class="identifier">form</span><span>.</span><span class="identifier">values</span><span>
-        .</span><span class="identifier">collectFirst</span><span> { </span><span class="keyword">case</span><span> (</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="identifier">values</span><span>) =&gt; </span><span class="identifier">values</span><span> }
-        .</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">headOption</span><span>)
-        .</span><span class="identifier">getOrElse</span><span>(</span><span class="string-literal">&quot;&quot;</span><span>)
+      </span><span class="keyword">val</span><span> </span><span class="identifier">name</span><span> = </span><span class="identifier">form</span><span>.</span><span class="identifier">getFirstOrElse</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="string-literal">&quot;&quot;</span><span>)
       </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">s&quot;Hello, </span><span class="substitution">$name</span><span class="string-literal">&quot;</span><span>)
     }
   }
