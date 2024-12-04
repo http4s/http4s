@@ -239,7 +239,9 @@ private[h2] class H2Stream[F[_]: Concurrent](
                         logger.error("Headers Unable to be parsed") >>
                           rstStream(H2Error.ProtocolError)
                     }
-                  case _ => s.trailWith(h.toList).void
+                  case _ =>
+                    if (headers.endStream) s.readBuffer.close *> s.trailWith(h.toList).void
+                    else s.trailWith(h.toList).void
                 }
               case H2Connection.ConnectionType.Server =>
                 request.tryGet.flatMap {
