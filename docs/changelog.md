@@ -3,6 +3,46 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.30 (2024-12-04)
+
+## What's Changed
+### http4s-core
+* Add `X-Forwarded-Host` header in series/0.23 by @NthPortal in https://github.com/http4s/http4s/pull/7577
+### http4s-ember-core
+* Fix/i7538 end stream by trailers cause client to hang by @i10416 in https://github.com/http4s/http4s/pull/7582
+* tidy: client stream should start from idle state by @i10416 in https://github.com/http4s/http4s/pull/7584
+### Documentation
+* Add documenation for FlagQueryParamMatcher. by @jan0sch in https://github.com/http4s/http4s/pull/7581
+* Simplify form example by @yawaramin in https://github.com/http4s/http4s/pull/7589
+### Behind the scenes
+<details>
+
+* Update http4s-circe, http4s-ember-client to 0.23.29 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7552
+* Update sbt-doctest to 0.11.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7554
+* Update sbt-http4s-org to 0.17.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7553
+* Update sbt to 1.10.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7556
+* Update cats-effect, cats-effect-std, ... to 3.5.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7555
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7557
+* Update sbt-buildinfo to 0.13.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7573
+* Update sbt to 1.10.5 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7574
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7575
+* Update sbt-buildinfo to 0.13.1 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7576
+* Update netty-buffer, netty-codec-http to 4.1.115.Final in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7580
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7585
+* Update cats-effect, cats-effect-std, ... to 3.5.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7586
+* flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7587
+* Update cats-effect, cats-effect-std, ... to 3.5.7 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7588
+
+</details>
+
+## New Contributors
+* @i10416 made their first contribution in https://github.com/http4s/http4s/pull/7582
+* @NthPortal made their first contribution in https://github.com/http4s/http4s/pull/7577
+* @yawaramin made their first contribution in https://github.com/http4s/http4s/pull/7589
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.29...v0.23.30
+
+
 # v1.0.0-M43 (2024-10-30)
 
 ## What's Changed
