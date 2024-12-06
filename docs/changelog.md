@@ -3,6 +3,23 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M44 (2024-12-06)
+
+## What's Changed
+### http4s-core
+* merge 0.23.30 -> main by @samspills in https://github.com/http4s/http4s/pull/7594
+### Documentation
+* update 1.0.0-Mxx releasing guide re ancillary releases by @samspills in https://github.com/http4s/http4s/pull/7572
+### Behind the scenes
+* Fix Scala Steward config by @danicheg in https://github.com/http4s/http4s/pull/7569
+
+## New Contributors
+* @i10416 made their first contribution in https://github.com/http4s/http4s/pull/7582
+* @NthPortal made their first contribution in https://github.com/http4s/http4s/pull/7577
+* @yawaramin made their first contribution in https://github.com/http4s/http4s/pull/7589
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M43...v1.0.0-M44
+
 # v0.23.30 (2024-12-04)
 
 ## What's Changed
