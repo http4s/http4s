@@ -1135,7 +1135,7 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       max <- Gen.option(Gen.chooseNum(0L, Long.MaxValue))
       l <- Gen.listOf(genExtension)
       if timeout.isDefined || max.isDefined || l.nonEmpty // One of these fields is necessary to be valid.
-    } yield `Keep-Alive`.unsafeApply(timeout, max, l)
+    } yield `Keep-Alive`.unsafeApply(timeout, max, l.filterNot { case (s, _) => s == "token" })
   }
 
   val genCustomStatusReason: Gen[String] = {
