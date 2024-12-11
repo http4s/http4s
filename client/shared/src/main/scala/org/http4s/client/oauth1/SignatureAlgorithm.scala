@@ -17,7 +17,6 @@
 package org.http4s.client.oauth1
 
 import cats.MonadThrow
-import cats.effect.SyncIO
 import cats.syntax.all._
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
@@ -68,6 +67,7 @@ trait SignatureAlgorithm {
     */
   def name: String
 
+  @annotation.nowarn("msg=deprecated")
   def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
     MonadThrow[F].catchNonFatal(generate(input, secretKey))
 

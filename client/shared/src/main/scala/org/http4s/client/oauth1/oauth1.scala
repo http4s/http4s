@@ -34,7 +34,6 @@ import org.http4s.client.oauth1.ProtocolParameter.Verifier
 import org.http4s.client.oauth1.ProtocolParameter.Version
 import org.http4s.headers.Authorization
 
-import scala.annotation.nowarn
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 
@@ -250,7 +249,7 @@ package object oauth1 {
   ): F[String] = {
 
     val key = encode(consumerSecret) + "&" + tokenSecret.map(t => encode(t)).getOrElse("")
-    algorithm.generate[F](baseString, key): @nowarn("cat=deprecation")
+    algorithm.generate[F](baseString, key)
   }
 
   // Needs to have all params already encoded
