@@ -39,10 +39,7 @@ To handle `application/x-www-form-urlencoded` messages, http4s provides `UrlForm
 val urlRoutes = HttpRoutes
   .of[IO] { case request @ POST -> Root / "url-form" =>
     request.as[UrlForm].flatMap { form =>
-      val name = form.values
-        .collectFirst { case ("name", values) => values }
-        .flatMap(_.headOption)
-        .getOrElse("")
+      val name = form.getFirstOrElse("name", "")
       Ok(s"Hello, $name")
     }
   }
