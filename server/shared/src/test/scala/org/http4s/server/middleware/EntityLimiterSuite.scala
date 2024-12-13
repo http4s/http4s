@@ -128,4 +128,20 @@ class EntityLimiterSuite extends Http4sSuite {
         .assertEquals(5L) *> counter.get.assertEquals(5L)
     }
   }
+
+  test("Drain entity on failure") {
+    IO.ref(false).flatMap { finalized =>
+      val app: HttpApp[IO] = routes.orNotFound
+      val body = b ++
+        Stream.eval(IO[Byte](0)) ++
+        Stream.eval(IO[Byte](42)).onFinalize(finalized.set(true))
+
+      EntityLimiter
+        .httpApp(app, 5L)
+        .apply(Request[IO](POST, uri"/echo", body = body))
+        .attempt
+        .flatMap(res => IO(assertEquals(res, Left(EntityTooLarge(5L))))) *>
+        finalized.get.assert
+    }
+  }
 }

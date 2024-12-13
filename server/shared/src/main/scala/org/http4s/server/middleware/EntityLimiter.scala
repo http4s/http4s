@@ -50,8 +50,15 @@ object EntityLimiter {
     _.pull
       .take(n)
       .flatMap {
-        case Some(rest) => // if rest is empty then we won't raise an error
-          (rest >> Stream.raiseError(EntityTooLarge(n))).pull.echo
+        case Some(rest) =>
+          // Drain the rest of the entity. If `rest` is empty then we won't raise an error
+          rest.last
+            .flatMap {
+              case Some(_) => Stream.raiseError(EntityTooLarge(n))
+              case None => Stream.empty
+            }
+            .pull
+            .echo
         case None =>
           Pull.done
       }
