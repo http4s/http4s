@@ -21,11 +21,28 @@ package middleware
 import cats.ApplicativeThrow
 import cats.data.Kleisli
 import fs2._
+import org.http4s.headers.{Connection, `Content-Length`}
 
 import scala.util.control.NoStackTrace
 
 object EntityLimiter {
-  final case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace
+  final case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace { self =>
+    def toMessageFailure: MessageFailure = new MessageFailure {
+      override def message: String = s"Content Too Large [limit=$limit]"
+
+      override def cause: Option[Throwable] = Some(self)
+
+      override def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
+        Response(
+          Status.PayloadTooLarge,
+          httpVersion,
+          Headers(
+            Connection.close,
+            `Content-Length`.zero,
+          ),
+        )
+    }
+  }
 
   val DefaultMaxEntitySize: Long = 2L * 1024L * 1024L // 2 MB default
 
