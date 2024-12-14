@@ -24,6 +24,7 @@ import fs2.Stream._
 import fs2._
 import org.http4s.Method._
 import org.http4s.Status._
+import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.syntax.all._
 
@@ -127,5 +128,30 @@ class EntityLimiterSuite extends Http4sSuite {
         .recover { case EntityTooLarge(i) => i }
         .assertEquals(5L) *> counter.get.assertEquals(5L)
     }
+  }
+
+  test("EntityTooLarge should translate to a 413 response") {
+    val etl = EntityTooLarge(42)
+    val response =
+      etl.toMessageFailure.toHttpResponse(HttpVersion.`HTTP/1.0`)
+    val expectedResponse =
+      Response(
+        Status.PayloadTooLarge,
+        HttpVersion.`HTTP/1.0`,
+        Headers(
+          Connection.close,
+          `Content-Length`.zero,
+        ),
+      )
+
+    assertEquals(
+      response.status,
+      expectedResponse.status,
+    )
+
+    assertEquals(
+      response.headers,
+      expectedResponse.headers,
+    )
   }
 }
