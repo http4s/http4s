@@ -21,7 +21,8 @@ package middleware
 import cats.ApplicativeThrow
 import cats.data.Kleisli
 import fs2._
-import org.http4s.headers.{Connection, `Content-Length`}
+import org.http4s.headers.Connection
+import org.http4s.headers.`Content-Length`
 
 import scala.util.control.NoStackTrace
 
