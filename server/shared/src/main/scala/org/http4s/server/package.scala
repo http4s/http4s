@@ -25,7 +25,6 @@ import cats.syntax.all._
 import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
-import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -183,41 +182,31 @@ package object server {
 
   def inDefaultServiceErrorHandler[F[_], G[_]](implicit
       F: Monad[F]
-  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] = {
-    val handleMessageFailure =
-      (req: Request[G]) =>
-        (mf: MessageFailure) => {
-          messageFailureLogger
-            .debug(mf)(
-              s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                  .getOrElse("<unknown>")}"""
-            )
-            .unsafeRunSync()
-          mf.toHttpResponse[G](req.httpVersion).pure[F]
-        }
-
-    req => {
-      case etl: EntityTooLarge =>
-        handleMessageFailure(req)(etl.toMessageFailure)
-      case mf: MessageFailure =>
-        handleMessageFailure(req)(mf)
-      case NonFatal(t) =>
-        serviceErrorLogger
-          .error(t)(
-            s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
-          )
-          .unsafeRunSync()
-        F.pure(
-          Response(
-            Status.InternalServerError,
-            req.httpVersion,
-            Headers(
-              Connection.close,
-              `Content-Length`.zero,
-            ),
-          )
+  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
+    case mf: MessageFailure =>
+      messageFailureLogger
+        .debug(mf)(
+          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+              .getOrElse("<unknown>")}"""
         )
-    }
+        .unsafeRunSync()
+      F.pure(mf.toHttpResponse[G](req.httpVersion))
+    case NonFatal(t) =>
+      serviceErrorLogger
+        .error(t)(
+          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+              .getOrElse("<unknown>")}"""
+        )
+        .unsafeRunSync()
+      F.pure(
+        Response(
+          Status.InternalServerError,
+          req.httpVersion,
+          Headers(
+            Connection.close,
+            `Content-Length`.zero,
+          ),
+        )
+      )
   }
 }

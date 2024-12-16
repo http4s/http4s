@@ -131,10 +131,10 @@ class EntityLimiterSuite extends Http4sSuite {
     }
   }
 
-  test("EntityTooLarge should translate to a 413 response") {
+  test("EntityTooLarge should encode a 413 response") {
     val etl = EntityTooLarge(42)
     val response =
-      etl.toMessageFailure.toHttpResponse(HttpVersion.`HTTP/1.0`)
+      etl.toHttpResponse(HttpVersion.`HTTP/1.0`)
     val expectedResponse =
       Response(
         Status.PayloadTooLarge,
