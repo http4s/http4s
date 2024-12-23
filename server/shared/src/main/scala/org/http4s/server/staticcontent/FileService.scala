@@ -127,8 +127,12 @@ object FileService {
     Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
-  private def filesOnly[F[_]: Files: LoggerFactoryGen](path: Path, config: Config[F], req: Request[F])(
-      implicit F: MonadThrow[F]
+  private def filesOnly[F[_]: Files: LoggerFactoryGen](
+      path: Path,
+      config: Config[F],
+      req: Request[F],
+  )(implicit
+      F: MonadThrow[F]
   ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
       if (attr.isDirectory)

@@ -281,7 +281,8 @@ sealed class CORSPolicy(
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
-      LoggerFactory.getLogger[G]
+      LoggerFactory
+        .getLogger[G]
         .warn(
           "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses."
         )

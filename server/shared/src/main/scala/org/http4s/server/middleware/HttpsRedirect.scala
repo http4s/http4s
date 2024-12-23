@@ -44,7 +44,9 @@ import org.typelevel.log4cats.LoggerFactoryGen
   * which does not support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
-  def apply[F[_]: LoggerFactoryGen, G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] = {
+  def apply[F[_]: LoggerFactoryGen, G[_]](
+      http: Http[F, G]
+  )(implicit F: Applicative[F]): Http[F, G] = {
     implicit val logger: log4cats.Logger[F] = LoggerFactory.getLogger[F]
     Kleisli { req =>
       (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
