@@ -27,6 +27,7 @@ import cats.~>
 import fs2.Stream
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 /** Simple Middleware for Logging All Requests and Responses
   */
@@ -34,14 +35,14 @@ object Logger {
   def defaultRedactHeadersWhen(name: CIString): Boolean =
     Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
 
-  def apply[G[_], F[_]: LoggerFactory](
+  def apply[G[_], F[_]: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Http[G, F] = {
-    val logger = LoggerFactory[F].getLogger
+    val logger = LoggerFactory.getLogger[F]
     val log: String => F[Unit] = logAction.getOrElse { s =>
       logger.info(s)
     }
@@ -50,14 +51,14 @@ object Logger {
     )
   }
 
-  def logBodyText[G[_], F[_]: LoggerFactory](
+  def logBodyText[G[_], F[_]: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       fk: F ~> G,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
       logAction: Option[String => F[Unit]] = None,
   )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Http[G, F] = {
-    val logger = LoggerFactory[F].getLogger
+    val logger = LoggerFactory.getLogger[F]
     val log: String => F[Unit] = logAction.getOrElse { s =>
       logger.info(s)
     }
@@ -66,7 +67,7 @@ object Logger {
     )
   }
 
-  def httpApp[F[_]: Concurrent: LoggerFactory](
+  def httpApp[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -74,7 +75,7 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactory](
+  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -82,7 +83,7 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     logBodyText(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutes[F[_]: Concurrent: LoggerFactory](
+  def httpRoutes[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -90,7 +91,7 @@ object Logger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactory](
+  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,

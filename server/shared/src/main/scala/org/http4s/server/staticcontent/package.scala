@@ -20,7 +20,7 @@ package server
 import cats.effect.kernel.Concurrent
 import fs2.io.file.Files
 import org.http4s.headers.`Accept-Ranges`
-import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 /** Helpers for serving static content from http4s
   *
@@ -30,11 +30,11 @@ import org.typelevel.log4cats.LoggerFactory
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files, possibly from the classpath. */
-  def resourceServiceBuilder[F[_]: LoggerFactory](basePath: String): ResourceServiceBuilder[F] =
+  def resourceServiceBuilder[F[_]: LoggerFactoryGen](basePath: String): ResourceServiceBuilder[F] =
     ResourceServiceBuilder[F](basePath)
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  def fileService[F[_]: Concurrent: Files: LoggerFactory](
+  def fileService[F[_]: Concurrent: Files: LoggerFactoryGen](
       config: FileService.Config[F]
   ): HttpRoutes[F] =
     FileService(config)

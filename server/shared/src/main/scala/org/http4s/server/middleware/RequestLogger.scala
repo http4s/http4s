@@ -32,12 +32,13 @@ import fs2.Pipe
 import fs2.Stream
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 /** Simple Middleware for Logging Requests As They Are Processed
   */
 object RequestLogger {
 
-  def apply[G[_], F[_]: LoggerFactory](
+  def apply[G[_], F[_]: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       fk: F ~> G,
@@ -49,7 +50,7 @@ object RequestLogger {
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
-  private[server] def impl[G[_], F[_]: LoggerFactory](
+  private[server] def impl[G[_], F[_]: LoggerFactoryGen](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
       fk: F ~> G,
@@ -59,7 +60,7 @@ object RequestLogger {
       F: Concurrent[F],
       G: MonadCancelThrow[G],
   ): Http[G, F] = {
-    val logger = LoggerFactory[F].getLogger
+    val logger = LoggerFactory.getLogger[F]
     val log = logAction.fold { (s: String) =>
       logger.info(s)
     }(identity)
@@ -120,7 +121,7 @@ object RequestLogger {
     }
   }
 
-  def httpApp[F[_]: Concurrent: LoggerFactory](
+  def httpApp[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -128,7 +129,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutes[F[_]: Concurrent: LoggerFactory](
+  def httpRoutes[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -136,7 +137,7 @@ object RequestLogger {
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
 
-  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactory](
+  def httpAppLogBodyText[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
@@ -144,7 +145,7 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     impl[F, F](logHeaders, Right(logBody), FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
-  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactory](
+  def httpRoutesLogBodyText[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

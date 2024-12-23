@@ -22,6 +22,7 @@ import cats.effect.Concurrent
 import cats.syntax.apply._
 import cats.syntax.functor._
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 import scodec.bits.ByteVector
 
 import java.util.concurrent.ConcurrentHashMap
@@ -31,8 +32,8 @@ import java.util.concurrent.ConcurrentHashMap
   * This is useful when serving a very limited amount of static content and want
   * to avoid disk access.
   */
-class MemoryCache[F[_]: LoggerFactory] extends CacheStrategy[F] {
-  private[this] val logger = LoggerFactory[F].getLogger
+class MemoryCache[F[_]: LoggerFactoryGen] extends CacheStrategy[F] {
+  private[this] val logger = LoggerFactory.getLogger[F]
   private val cacheMap = new ConcurrentHashMap[Uri.Path, Response[F]]()
 
   override def cache(uriPath: Uri.Path, resp: Response[F])(implicit
@@ -63,5 +64,5 @@ class MemoryCache[F[_]: LoggerFactory] extends CacheStrategy[F] {
 }
 
 object MemoryCache {
-  def apply[F[_]: LoggerFactory](): MemoryCache[F] = new MemoryCache[F]
+  def apply[F[_]: LoggerFactoryGen](): MemoryCache[F] = new MemoryCache[F]
 }

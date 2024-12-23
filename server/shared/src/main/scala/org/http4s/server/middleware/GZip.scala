@@ -31,13 +31,13 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Monad: log4cats.LoggerFactory, G[_]: Compression](
+  def apply[F[_]: Monad: log4cats.LoggerFactoryGen, G[_]: Compression](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: DeflateParams.Level = DeflateParams.Level.DEFAULT,
       isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G]),
   ): Http[F, G] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     Kleisli { (req: Request[G]) =>
       req.headers.get[`Accept-Encoding`] match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>

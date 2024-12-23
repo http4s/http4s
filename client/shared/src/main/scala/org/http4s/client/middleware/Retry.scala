@@ -27,6 +27,7 @@ import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`Retry-After`
 import org.typelevel.ci.CIString
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 import org.typelevel.vault.Key
 
 import scala.concurrent.duration._
@@ -44,18 +45,18 @@ object Retry {
     */
   val AttemptCountKey: Key[Int] = Key.newKey[cats.effect.SyncIO, Int].unsafeRunSync()
 
-  def apply[F[_]: LoggerFactory](
+  def apply[F[_]: LoggerFactoryGen](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] =
     create[F](policy, redactHeaderWhen)(client)
 
-  def create[F[_]: LoggerFactory](
+  def create[F[_]: LoggerFactoryGen](
       policy: RetryPolicy[F],
       redactHeaderWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logRetries: Boolean = true,
   )(client: Client[F])(implicit F: Temporal[F]): Client[F] = {
-    val logger = LoggerFactory[F].getLogger
+    val logger = LoggerFactory.getLogger[F]
 
     def showRequest(request: Request[F], redactWhen: CIString => Boolean): String = {
       val headers = request.headers.mkString(",", redactWhen)

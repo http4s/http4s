@@ -24,6 +24,7 @@ import cats.effect.Async
 import cats.syntax.all._
 import org.http4s.server.middleware.TranslateUri
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 import java.io.File
 import java.nio.file.Paths
@@ -41,7 +42,7 @@ import scala.util.control.NoStackTrace
   * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
   * @param classLoader optional classloader for extracting the resources
   */
-class ResourceServiceBuilder[F[_]: LoggerFactory] private (
+class ResourceServiceBuilder[F[_]: LoggerFactoryGen] private (
     basePath: String,
     pathPrefix: String,
     bufferSize: Int,
@@ -49,7 +50,7 @@ class ResourceServiceBuilder[F[_]: LoggerFactory] private (
     preferGzipped: Boolean,
     classLoader: Option[ClassLoader],
 ) {
-  private[this] val logger = LoggerFactory[F].getLogger
+  private[this] val logger = LoggerFactory.getLogger[F]
 
   private def copy(
       basePath: String = basePath,
@@ -130,7 +131,7 @@ class ResourceServiceBuilder[F[_]: LoggerFactory] private (
 }
 
 object ResourceServiceBuilder {
-  def apply[F[_]: LoggerFactory](basePath: String): ResourceServiceBuilder[F] =
+  def apply[F[_]: LoggerFactoryGen](basePath: String): ResourceServiceBuilder[F] =
     new ResourceServiceBuilder[F](
       basePath = basePath,
       pathPrefix = "",
