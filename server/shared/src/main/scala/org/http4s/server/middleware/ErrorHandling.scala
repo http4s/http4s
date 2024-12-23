@@ -17,13 +17,13 @@
 package org.http4s.server
 package middleware
 
-import cats.*
+import cats._
 import cats.data.Kleisli
 import cats.data.OptionT
-import cats.syntax.all.*
-import org.http4s.*
-import org.http4s.headers.*
-import org.typelevel.ci.*
+import cats.syntax.all._
+import org.http4s._
+import org.http4s.headers._
+import org.typelevel.ci._
 import org.typelevel.log4cats.LoggerFactoryGen
 
 object ErrorHandling {

@@ -17,8 +17,8 @@
 package org.http4s
 package server
 
-import cats.syntax.functor._
 import cats.Functor
+import cats.syntax.functor._
 import cats.~>
 import org.typelevel.log4cats
 import org.typelevel.log4cats.LoggerFactoryGen
