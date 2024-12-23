@@ -34,13 +34,13 @@ object ResponseLogger {
   private def defaultLogAction[F[_]: log4cats.Logger](s: String): F[Unit] =
     log4cats.Logger[F].info(s)
 
-  def apply[F[_]: Concurrent: log4cats.LoggerFactory](
+  def apply[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody) { response =>
       Logger.logMessage(response)(
         logHeaders,
@@ -50,13 +50,13 @@ object ResponseLogger {
     }
   }
 
-  def logBodyText[F[_]: Concurrent: log4cats.LoggerFactory](
+  def logBodyText[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody = true) { response =>
       InternalLogger.logMessageWithBodyText(response)(
         logHeaders,
@@ -66,12 +66,12 @@ object ResponseLogger {
     }
   }
 
-  def customized[F[_]: Concurrent: log4cats.LoggerFactory](
+  def customized[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       client: Client[F],
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None,
   )(responseToText: Response[F] => F[String]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody) { response =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       responseToText(response).flatMap(log)
@@ -121,7 +121,7 @@ object ResponseLogger {
       case Status.ServerError => Console.RED
     }
 
-  def colored[F[_]: Concurrent: log4cats.LoggerFactory](
+  def colored[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

@@ -35,6 +35,7 @@ import org.http4s.syntax.header._
 import org.typelevel.ci._
 import org.typelevel.log4cats
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 /** [[Middleware]] to redirect http traffic to https.
   * Inspects `X-Forwarded-Proto` header and if it is set to `http`,
@@ -43,8 +44,8 @@ import org.typelevel.log4cats.LoggerFactory
   * which does not support such redirect feature, e.g. Heroku.
   */
 object HttpsRedirect {
-  def apply[F[_]: LoggerFactory, G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] = {
-    implicit val logger: log4cats.Logger[F] = LoggerFactory[F].getLogger
+  def apply[F[_]: LoggerFactoryGen, G[_]](http: Http[F, G])(implicit F: Applicative[F]): Http[F, G] = {
+    implicit val logger: log4cats.Logger[F] = LoggerFactory.getLogger[F]
     Kleisli { req =>
       (req.headers.get(ci"X-Forwarded-Proto"), req.headers.get[Host]) match {
         case (Some(NonEmptyList(proto, _)), Some(host))
@@ -61,11 +62,12 @@ object HttpsRedirect {
     }
   }
 
-  def httpRoutes[F[_]: Monad: LoggerFactory](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
-    implicit val factory: LoggerFactory[OptionT[F, *]] = LoggerFactory[F].mapK(OptionT.liftK)
+  def httpRoutes[F[_]: Monad: LoggerFactoryGen](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
+    implicit val factory: LoggerFactoryGen[OptionT[F, *]] =
+      implicitly[LoggerFactoryGen[F]].mapK(OptionT.liftK)
     apply(httpRoutes)
   }
 
-  def httpApp[F[_]: Applicative: LoggerFactory](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: Applicative: LoggerFactoryGen](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 }

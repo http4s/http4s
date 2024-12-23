@@ -33,6 +33,7 @@ import org.http4s.server.middleware.TranslateUri
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 import scala.util.control.NoStackTrace
 
@@ -57,7 +58,7 @@ object FileService {
   )
 
   object Config {
-    def apply[F[_]: MonadThrow: Files: LoggerFactory](
+    def apply[F[_]: MonadThrow: Files: LoggerFactoryGen](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
@@ -70,10 +71,10 @@ object FileService {
   }
 
   /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
-  private[staticcontent] def apply[F[_]: Files: LoggerFactory](
+  private[staticcontent] def apply[F[_]: Files: LoggerFactoryGen](
       config: Config[F]
   )(implicit F: Concurrent[F]): HttpRoutes[F] = {
-    implicit val logger: Logger[F] = LoggerFactory[F].getLogger
+    implicit val logger: Logger[F] = LoggerFactory.getLogger[F]
     object BadTraversal extends Exception with NoStackTrace
     def withPath(rootPath: Path)(request: Request[F]): OptionT[F, Response[F]] = {
       val resolvePath: F[Path] =
@@ -126,7 +127,7 @@ object FileService {
     Kleisli((_: Any) => OptionT.liftF(inner)).flatten
   }
 
-  private def filesOnly[F[_]: Files: LoggerFactory](path: Path, config: Config[F], req: Request[F])(
+  private def filesOnly[F[_]: Files: LoggerFactoryGen](path: Path, config: Config[F], req: Request[F])(
       implicit F: MonadThrow[F]
   ): OptionT[F, Response[F]] =
     OptionT(Files[F].getBasicFileAttributes(path).flatMap { attr =>
@@ -152,7 +153,7 @@ object FileService {
     })
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile[F[_]: Files: LoggerFactory](
+  private def getPartialContentFile[F[_]: Files: LoggerFactoryGen](
       file: Path,
       config: Config[F],
       req: Request[F],

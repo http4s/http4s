@@ -26,6 +26,7 @@ import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.typelevel.ci._
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 import scala.concurrent.duration._
 
@@ -84,7 +85,7 @@ sealed class CORSPolicy(
 ) {
   import CORSPolicy._
 
-  def apply[F[_]: Applicative, G[_]: Applicative: LoggerFactory](
+  def apply[F[_]: Applicative, G[_]: Applicative: LoggerFactoryGen](
       http: Http[F, G]
   ): G[Http[F, G]] = {
     val allowCredentialsHeader =
@@ -280,7 +281,7 @@ sealed class CORSPolicy(
       }
 
     if (allowOrigin == AllowOrigin.All && allowCredentials == AllowCredentials.Allow) {
-      LoggerFactory[G].getLogger
+      LoggerFactory.getLogger[G]
         .warn(
           "CORS disabled due to insecure config prohibited by spec. Call withCredentials(false) to avoid sharing credential-tainted responses with arbitrary origins, or call withAllowOrigin* method to be explicit who you trust with credential-tainted responses."
         )
@@ -289,10 +290,10 @@ sealed class CORSPolicy(
       Kleisli(dispatch).pure[G]
   }
 
-  def httpRoutes[F[_]: Monad: LoggerFactory](httpRoutes: HttpRoutes[F]): F[HttpRoutes[F]] =
+  def httpRoutes[F[_]: Monad: LoggerFactoryGen](httpRoutes: HttpRoutes[F]): F[HttpRoutes[F]] =
     apply(httpRoutes)
 
-  def httpApp[F[_]: Applicative: LoggerFactory](httpApp: HttpApp[F]): F[HttpApp[F]] =
+  def httpApp[F[_]: Applicative: LoggerFactoryGen](httpApp: HttpApp[F]): F[HttpApp[F]] =
     apply(httpApp)
 
   private def copy(

@@ -17,17 +17,17 @@
 package org.http4s.server
 package middleware
 
-import cats._
+import cats.*
 import cats.data.Kleisli
 import cats.data.OptionT
-import cats.syntax.all._
-import org.http4s._
-import org.http4s.headers._
-import org.typelevel.ci._
-import org.typelevel.log4cats.LoggerFactory
+import cats.syntax.all.*
+import org.http4s.*
+import org.http4s.headers.*
+import org.typelevel.ci.*
+import org.typelevel.log4cats.LoggerFactoryGen
 
 object ErrorHandling {
-  def apply[F[_]: LoggerFactory, G[_]](
+  def apply[F[_]: LoggerFactoryGen, G[_]](
       k: Kleisli[F, Request[G], Response[G]]
   )(implicit F: MonadThrow[F]): Kleisli[F, Request[G], Response[G]] =
     Kleisli { req =>
@@ -41,12 +41,13 @@ object ErrorHandling {
       }
     }
 
-  def httpRoutes[F[_]: MonadThrow: LoggerFactory](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
-    implicit val factory: LoggerFactory[OptionT[F, *]] = LoggerFactory[F].mapK(OptionT.liftK)
+  def httpRoutes[F[_]: MonadThrow: LoggerFactoryGen](httpRoutes: HttpRoutes[F]): HttpRoutes[F] = {
+    implicit val factory: LoggerFactoryGen[OptionT[F, *]] =
+      implicitly[LoggerFactoryGen[F]].mapK(OptionT.liftK)
     apply(httpRoutes)
   }
 
-  def httpApp[F[_]: MonadThrow: LoggerFactory](httpApp: HttpApp[F]): HttpApp[F] =
+  def httpApp[F[_]: MonadThrow: LoggerFactoryGen](httpApp: HttpApp[F]): HttpApp[F] =
     apply(httpApp)
 
   object Custom {

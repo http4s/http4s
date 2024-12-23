@@ -21,7 +21,7 @@ package middleware
 import cats.effect._
 import fs2.Stream
 import org.typelevel.ci.CIString
-import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 /** Simple Middleware for Logging All Requests and Responses
   */
@@ -29,7 +29,7 @@ object Logger {
   def defaultRedactHeadersWhen(name: CIString): Boolean =
     Headers.SensitiveHeaders.contains(name) || name.toString.toLowerCase.contains("token")
 
-  def apply[F[_]: Concurrent: LoggerFactory](
+  def apply[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -41,7 +41,7 @@ object Logger {
       )
     )
 
-  def logBodyText[F[_]: Concurrent: LoggerFactory](
+  def logBodyText[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
@@ -61,7 +61,7 @@ object Logger {
     org.http4s.internal.Logger
       .logMessage(message)(logHeaders, logBody, redactHeadersWhen)(log)
 
-  def colored[F[_]: Concurrent: LoggerFactory](
+  def colored[F[_]: Concurrent: LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = defaultRedactHeadersWhen,
