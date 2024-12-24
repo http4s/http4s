@@ -1212,4 +1212,16 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
     )
   )
+
+  implicit val http4sTestingArbitraryForSecFetchDest: Arbitrary[`Sec-Fetch-Dest`] =
+    Arbitrary(Gen.oneOf(`Sec-Fetch-Dest`.types.values))
+
+  implicit val http4sTestingArbitraryForSecFetchMode: Arbitrary[`Sec-Fetch-Mode`] =
+    Arbitrary(Gen.oneOf(`Sec-Fetch-Mode`.types.values))
+
+  implicit val http4sTestingArbitraryForSecFetchSite: Arbitrary[`Sec-Fetch-Site`] =
+    Arbitrary(Gen.oneOf(`Sec-Fetch-Site`.types.values))
+
+  implicit val http4sTestingArbitraryForSecFetchUser: Arbitrary[`Sec-Fetch-User`] =
+    Arbitrary(Gen.const(`Sec-Fetch-User`.`?1`))
 }
