@@ -17,14 +17,18 @@
 package org.http4s.ember.client
 
 import cats.effect.Async
+import cats.effect.IO
 import fs2.io.net.unixsocket.UnixSockets
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 
 private[client] trait EmberClientBuilderPlatform {
 
-  private[client] def defaultUnixSockets[F[_]]: Option[UnixSockets[F]] =
-    None
+  private[client] def defaultUnixSockets[F[_]](implicit F: Async[F]): Option[UnixSockets[F]] =
+    if (F eq IO.asyncForIO)
+      Some(UnixSockets.forLiftIO[IO].asInstanceOf[UnixSockets[F]])
+    else
+      None
 
 }
 
