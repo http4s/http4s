@@ -31,7 +31,7 @@ private[client] trait EmberClientBuilderPlatform {
       None
 
   @deprecated("bincompat stub", "0.23.31")
-  def defaultUnixSockets(): Option[Nothing] = None
+  private[client] def defaultUnixSockets: Option[Nothing] = None
 
 }
 
