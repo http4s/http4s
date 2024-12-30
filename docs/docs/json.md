@@ -175,7 +175,7 @@ the way from HTTP to your type `A`.  Specifically, `jsonOf[A]` takes
 an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
 ```scala mdoc
-implicit val userDecoder = jsonOf[IO, User]
+implicit val userDecoder: EntityDecoder[IO, User] = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync()
 
 Request[IO](Method.POST, uri"/hello")
@@ -233,7 +233,7 @@ import scala.concurrent.duration._
 case class User(name: String)
 case class Hello(greeting: String)
 
-implicit val decoder = jsonOf[IO, User]
+implicit val decoder: EntityDecoder[IO, User] = jsonOf[IO, User]
 
 val jsonApp = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>

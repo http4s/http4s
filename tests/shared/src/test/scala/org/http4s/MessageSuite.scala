@@ -16,6 +16,7 @@
 
 package org.http4s
 
+import cats.data.Chain
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all._
@@ -25,6 +26,9 @@ import org.http4s.headers.Authorization
 import org.http4s.headers.Cookie
 import org.http4s.headers.`Content-Type`
 import org.http4s.headers.`X-Forwarded-For`
+import org.http4s.multipart.Boundary
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.Part
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 import org.typelevel.vault._
@@ -35,7 +39,7 @@ class MessageSuite extends Http4sSuite {
 
   test("ConnectionInfo should get remote connection info when present") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.server, Some(local))
     assertEquals(r.remote, Some(remote))
   }
@@ -48,14 +52,14 @@ class MessageSuite extends Http4sSuite {
 
   test("ConnectionInfo should be utilized to determine the address of server and remote") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.serverAddr, Some(local.host))
     assertEquals(r.remoteAddr, Some(remote.host))
   }
 
   test("ConnectionInfo should be utilized to determine the port of server and remote") {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.serverPort, Some(local.port))
     assertEquals(r.remotePort, Some(remote.port))
   }
@@ -67,7 +71,7 @@ class MessageSuite extends Http4sSuite {
       NonEmptyList.of(Some(ipv4"192.168.1.1"), Some(ipv4"192.168.1.2"))
     val r = Request()
       .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.from, forwardedValues.head)
   }
 
@@ -75,7 +79,7 @@ class MessageSuite extends Http4sSuite {
     "ConnectionInfo should be utilized to determine the from value (remote value if X-Forwarded-For is not present)"
   ) {
     val r = Request()
-      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, false))
+      .withAttribute(Request.Keys.ConnectionInfo, Request.Connection(local, remote, secure = false))
     assertEquals(r.from, Option(remote.host))
   }
 
@@ -295,6 +299,150 @@ class MessageSuite extends Http4sSuite {
       request
         .withHeaders("k6" -> "'v6'", "'k7'" -> "v7")
         .asCurl(),
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should build cURL representation with body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello world'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello world")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape single quotes in body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello y'\''all'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello y'all")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape single quotes in body") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 11' \
+        |  --header 'Content-Type: text/plain; charset=UTF-8' \
+        |  --data 'hello y'\''all'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity("hello y'all")
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should escape form data") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Length: 64' \
+        |  --header 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
+        |  --data 'foo=simple&bar=one&bar=two&baz&qux=complex+%26+quoted+%3D+fun%21'""".stripMargin
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity(
+          UrlForm(
+            Map(
+              "foo" -> Chain.one("simple"),
+              "bar" -> Chain("one", "two"),
+              "baz" -> Chain.nil,
+              "qux" -> Chain.one("complex & quoted = fun!"),
+            )
+          )
+        )
+        .asCurlWithBody()
+        ._1F,
+      expected,
+    )
+  }
+
+  test("asCurlWithBody should not mangle multi-part data") {
+    val expected =
+      """curl \
+        |  --request POST \
+        |  --url 'http://localhost:1234/foo' \
+        |  --header 'Content-Type: multipart/form-data; boundary="1234567890"' \
+        |  --data $'--1234567890\r
+        |Content-Disposition: form-data; name="foo"\r
+        |Content-Type: text/plain\r
+        |\r
+        |simple\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="bar"\r
+        |\r
+        |one\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="bar"\r
+        |\r
+        |two\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="baz"\r
+        |\r
+        |\r
+        |--1234567890\r
+        |Content-Disposition: form-data; name="qux"\r
+        |\r
+        |complex & quoted = fun!\r
+        |--1234567890--\r
+        |'""".stripMargin
+
+    val multipart = Multipart[IO](
+      Vector(
+        Part.formData[IO]("foo", "simple", `Content-Type`(MediaType.text.`plain`)),
+        Part.formData[IO]("bar", "one"),
+        Part.formData[IO]("bar", "two"),
+        Part.formData[IO]("baz", ""),
+        Part.formData[IO]("qux", "complex & quoted = fun!"),
+      ),
+      Boundary("1234567890"),
+    )
+
+    assertIO(
+      request
+        .withMethod(Method.POST)
+        .withEntity(multipart)
+        .putHeaders(
+          `Content-Type`(
+            MediaType.multipartType(
+              MediaType.multipart.`form-data`.subType,
+              multipart.boundary.value.some,
+            )
+          )
+        )
+        .asCurlWithBody()
+        ._1F,
       expected,
     )
   }

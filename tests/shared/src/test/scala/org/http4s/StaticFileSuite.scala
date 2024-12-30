@@ -118,7 +118,7 @@ class StaticFileSuite extends Http4sSuite {
     StaticFile
       .fromPath[IO](Path("tests/shared/src/test/resources/lipsum-symlink.txt"))
       .semiflatMap(_.body.compile.count)
-      .getOrElse(0)
+      .getOrElse(0L)
       .map2(Files[IO].size(CrossPlatformResource("/lorem-ipsum.txt")))(assertEquals(_, _))
   }
 

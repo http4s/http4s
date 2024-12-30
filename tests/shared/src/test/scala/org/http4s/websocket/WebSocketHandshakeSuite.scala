@@ -32,7 +32,7 @@ class WebSocketHandshakeSpec extends Http4sSuite {
     val valid = WebSocketHandshake.serverHandshake(client.initHeaders)
     assert(valid.isRight)
 
-    val Right(headers) = valid
+    val Right(headers) = valid: @unchecked
     assert(client.checkResponse(headers).isRight)
   }
 

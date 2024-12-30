@@ -82,12 +82,18 @@ private[http4s] class QueryParser(
     }
 
     def endPair(): Unit = {
-      if (!flush) input.mark()
+      if (!flush) {
+        input.mark()
+        ()
+      }
       appendValue()
       state = KEY
     }
 
-    if (!flush) input.mark()
+    if (!flush) {
+      input.mark()
+      ()
+    }
 
     // begin iterating through the chars
     while (error == null && input.hasRemaining) {
@@ -131,14 +137,18 @@ private[http4s] object QueryParser {
 
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] =
     if (queryString.isEmpty) Right(Query.empty)
-    else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
+    else
+      new QueryParser(codec, colonSeparators = true)
+        .decode(CharBuffer.wrap(queryString), flush = true)
 
   def parseQueryStringVector(
       queryString: String,
       codec: Codec = Codec.UTF8,
   ): ParseResult[Vector[Query.KeyValue]] =
     if (queryString.isEmpty) Right(Vector.empty)
-    else new QueryParser(codec, true).decodeVector(CharBuffer.wrap(queryString), true)
+    else
+      new QueryParser(codec, colonSeparators = true)
+        .decodeVector(CharBuffer.wrap(queryString), flush = true)
 
   private sealed trait State
   private case object KEY extends State

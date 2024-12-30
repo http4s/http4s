@@ -21,6 +21,7 @@ import cats.effect.Async
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import fs2.io.Writable
+import org.typelevel.scalaccompat.annotation._
 
 import scala.scalajs.concurrent.QueueExecutionContext
 import scala.scalajs.js
@@ -28,7 +29,8 @@ import scala.scalajs.js
 /** Facade for [[https://nodejs.org/api/http.html#class-httpclientrequest]]
   */
 @js.native
-private[http4s] trait ClientRequest extends js.Object with Writable {
+@nowarn212("cat=unused")
+trait ClientRequest extends js.Object with Writable {
 
   protected[nodejs] def setHeader(name: String, value: js.Array[String]): Unit = js.native
 
@@ -48,7 +50,7 @@ private[http4s] trait ClientRequest extends js.Object with Writable {
     js.native
 }
 
-private[http4s] object ClientRequest {
+object ClientRequest {
 
   implicit def http4sNodeJsServerResponseOps(clientRequest: ClientRequest): ClientRequestOps =
     new ClientRequestOps(clientRequest)

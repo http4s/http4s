@@ -41,7 +41,7 @@ class ErrorActionSuite extends Http4sSuite {
       Connection(
         SocketAddress(Ipv4Address.fromBytes(127, 0, 0, 1), port"80"),
         SocketAddress(remote, port"80"),
-        false,
+        secure = false,
       ),
     ),
   )

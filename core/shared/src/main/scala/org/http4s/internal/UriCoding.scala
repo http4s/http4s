@@ -38,12 +38,15 @@ private[http4s] object UriCoding {
       val c = in.get().toChar
       if (toSkip(c)) {
         out.put(c)
+        ()
       } else if (c == ' ' && spaceIsPlus) {
         out.put('+')
+        ()
       } else {
         out.put('%')
         out.put(HexUpperCaseChars((c >> 4) & 0xf))
         out.put(HexUpperCaseChars(c & 0xf))
+        ()
       }
     }
     out.flip()

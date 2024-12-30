@@ -112,7 +112,7 @@ class ExampleService[F[_]](implicit F: Async[F]) extends Http4sDsl[F] {
               case None => BadRequest(s"Invalid data: " + data)
             }
           }
-          .handleErrorWith { // We can handle errors using effect methods
+          .recoverWith { // We can handle errors using effect methods
             case e: NumberFormatException => BadRequest("Not an int: " + e.getMessage)
           }
 

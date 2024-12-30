@@ -38,9 +38,15 @@ object `Access-Control-Max-Age` {
     *
     * @param age age of the response (in seconds)
     */
-  final case class Cache private (age: Long) extends `Access-Control-Max-Age` { // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+  final case class Cache private[`Access-Control-Max-Age`] ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+      age: Long
+  ) extends `Access-Control-Max-Age` {
     def duration: Option[FiniteDuration] = Try(age.seconds).toOption
     def unsafeDuration: FiniteDuration = age.seconds
+  }
+
+  object Cache extends scala.runtime.AbstractFunction1[Long, Cache] {
+    def apply(age: Long): Cache = new Cache(age)
   }
 
   def fromLong(age: Long): ParseResult[`Access-Control-Max-Age`] =
@@ -67,11 +73,12 @@ object `Access-Control-Max-Age` {
   private[http4s] val parser = AdditionalRules.Long.map(unsafeFromLong)
 
   implicit val headerInstance: Header[`Access-Control-Max-Age`, Header.Single] =
-    Header.createRendered(
+    Header.createRendered[`Access-Control-Max-Age`, Header.Single, Long](
       name,
       {
         case Cache(age) => age
         case NoCaching => -1
+        case _ => throw new AssertionError
       },
       parse,
     )

@@ -1,28 +1,20 @@
 package org.http4s.sbt
 
-import sbt._, Keys._
-
+import sbt._
+import Keys._
 import cats.effect._
 import laika.ast._
-import laika.rewrite._
 import laika.ast.Path.Root
-import laika.ast._
-import laika.bundle.ExtensionBundle
-import laika.config.{ConfigBuilder, LaikaKeys}
+import laika.config.{Version, Versions}
 import laika.helium.Helium
-import laika.helium.config.{Favicon, HeliumIcon, IconLink, ImageLink, ReleaseInfo, Teaser, TextLink}
+import laika.helium.config.{IconLink, LinkGroup, ReleaseInfo, Teaser, TextLink, VersionMenu}
 import laika.io.model.InputTree
 import laika.theme.ThemeProvider
 import laika.theme.ThemeBuilder
 import laika.theme.Theme
-import laika.rewrite.link.LinkConfig
-import laika.rewrite.nav.CoverImage
-import laika.rewrite.{Version, Versions}
-import laika.sbt.LaikaPlugin.autoImport._
 import mdoc.MdocPlugin.autoImport._
-import org.typelevel.sbt.gha.GitHubActionsPlugin.autoImport
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport._
-
+import org.typelevel.sbt.site.GenericSiteSettings
 import Http4sPlugin.autoImport._
 
 object Http4sSitePlugin extends AutoPlugin {
@@ -33,6 +25,7 @@ object Http4sSitePlugin extends AutoPlugin {
     mdocVariables ++= Map(
       "CIRCE_VERSION" -> Http4sPlugin.V.circe,
       "CRYPTOBITS_VERSION" -> Http4sPlugin.V.cryptobits,
+      "SCALA213_VERSION" -> Http4sPlugin.scala_213,
     ),
     mdocVariables ++= {
       val latest = Http4sPlugin.latestPerMinorVersion(baseDirectory.value)
@@ -40,25 +33,38 @@ object Http4sSitePlugin extends AutoPlugin {
         s"VERSION_${major}_${minor}" -> v.toString
       }
     },
-    tlSiteHeliumConfig := {
-      tlSiteHeliumConfig.value.site.versions(versions.config(isCi.value))
-    },
-    tlSiteHeliumConfig := {
+    tlSiteHelium := {
+      val base = tlSiteHelium.value
+        .extendWith(redirects.theme)
+        .site
+        .internalCSS(Root / "styles")
+        .site
+        .versions(versions.config(isCi.value))
+        .site
+        .topNavigationBar(versionMenu = versions.menu("Documentation"))
+
       val latest = Http4sPlugin.latestPerMinorVersion(baseDirectory.value)
       // helpful to render landing page when previewing locally
       if (version.value.startsWith("1.") || !isCi.value)
         landingPage.configure(
-          tlSiteHeliumConfig.value,
+          base,
           latest((0, 23)).toString,
           latest((1, 0)).toString,
+          GenericSiteSettings.githubLink.value.toList ++ Seq(
+            Http4sOrgSitePlugin.chatLink
+          ),
         )
-      else tlSiteHeliumConfig.value
+      else base
     },
-    laikaTheme := laikaTheme.value.extend(redirects.theme),
   )
 
   object landingPage {
-    def configure(helium: Helium, stableVersion: String, milestoneVersion: String): Helium =
+    def configure(
+        helium: Helium,
+        stableVersion: String,
+        milestoneVersion: String,
+        links: Seq[IconLink],
+    ): Helium =
       helium.site.landingPage(
         logo = Some(Image.internal(Root / "images" / "http4s-logo-text-light.svg")),
         title = None,
@@ -68,8 +74,11 @@ object Http4sSitePlugin extends AutoPlugin {
           ReleaseInfo("Latest Milestone Release", milestoneVersion),
         ),
         license = Some("Apache 2.0"),
+        titleLinks = Seq(
+          versions.menu("Getting Started"),
+          LinkGroup.create(links.head, links.tail: _*),
+        ),
         documentationLinks = projectLinks,
-        projectLinks = Nil, // TODO
         teasers = landingPage.teasers,
       )
 
@@ -101,37 +110,36 @@ object Http4sSitePlugin extends AutoPlugin {
   }
 
   object versions {
-    def config(isCi: Boolean): Versions = Versions(
-      currentVersion = current,
-      olderVersions = all.dropWhile(_ != current).drop(1),
-      newerVersions = all.takeWhile(_ != current),
-      // helpful to render unversioned pages when previewing locally
-      renderUnversioned = current == v1_0 || !isCi,
-    )
+    def config(isCi: Boolean): Versions = Versions
+      .forCurrentVersion(current)
+      .withOlderVersions(all.dropWhile(_ != current).drop(1) *)
+      .withNewerVersions(all.takeWhile(_ != current) *)
+      .withRenderUnversioned(current == v1_0 || !isCi)
+    // helpful to render unversioned pages when previewing locally
 
     private def version(version: String, label: String): Version =
-      Version(version, "v" + version, "/docs/quickstart.html", Some(label))
+      Version(version, "v" + version).withFallbackLink("/docs/quickstart.html").withLabel(label)
 
     val v1_0: Version = version("1", "Dev")
     val v0_23: Version = version("0.23", "Stable")
     val v0_22: Version = version("0.22", "EOL")
-    val v0_21: Version = Version("0.21", "v0.21", "/index.html", Some("EOL"))
-    val choose: Version = Version(
-      "Help me choose...",
-      "",
-      "/versions.html",
-    ) // Pretend it's a "version" to get it into the menu
+    val v0_21: Version = Version("0.21", "v0.21").withFallbackLink("/index.html").withLabel("EOL")
 
-    val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21, choose)
+    val all: Seq[Version] = Seq(v1_0, v0_23, v0_22, v0_21)
 
     val current: Version = v0_23
+
+    def menu(unversionedLabel: String): VersionMenu = VersionMenu.create(
+      unversionedLabel = unversionedLabel,
+      additionalLinks = Seq(TextLink.internal(Root / "versions.md", "Help me choose...")),
+    )
   }
 
   object redirects {
 
     def theme = new ThemeProvider {
-      def build[F[_]: Sync]: Resource[F, Theme[F]] =
-        ThemeBuilder[F]("Http4s Redirects")
+      def build[F[_]: Async]: Resource[F, Theme[F]] =
+        ThemeBuilder[F]("http4s Redirects")
           .addInputs(
             // add redirect htmls to the virtual file tree
             // for simplicity, we treat these as unversioned pages

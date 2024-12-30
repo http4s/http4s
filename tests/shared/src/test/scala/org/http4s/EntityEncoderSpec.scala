@@ -27,7 +27,6 @@ import fs2._
 import fs2.io.file.Files
 import org.http4s.headers._
 import org.http4s.laws.discipline.arbitrary._
-import org.scalacheck.Arbitrary
 
 import java.io._
 import java.nio.charset.StandardCharsets
@@ -161,12 +160,6 @@ class EntityEncoderSpec extends Http4sSuite {
       Eq.by[EntityEncoder[Id, A], (Headers, A => Entity[Id])] { enc =>
         (enc.headers, enc.toEntity)
       }
-
-    // todo this is needed for scala 2.12, remove once we no longer support it
-    implicit def contravariant: Contravariant[EntityEncoder[Id, *]] =
-      EntityEncoder.entityEncoderContravariant[Id]
-    implicit def arb[A: org.scalacheck.Cogen]: Arbitrary[EntityEncoder[Id, A]] =
-      http4sTestingArbitraryForEntityEncoder[Id, A]
 
     checkAll(
       "Contravariant[EntityEncoder[F, *]]",

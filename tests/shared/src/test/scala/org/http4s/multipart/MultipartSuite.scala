@@ -76,7 +76,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -99,7 +99,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -126,7 +126,7 @@ class MultipartSuite extends Http4sSuite {
             Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
           mkDecoder.use { decoder =>
-            val decoded = decoder.decode(request, true)
+            val decoded = decoder.decode(request, strict = true)
             val result = decoded.value
 
             assertIOBoolean(
@@ -169,7 +169,7 @@ Content-Type: application/pdf
       )
 
       mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
+        val decoded = decoder.decode(request, strict = true)
         val result = decoded.value.map(_.isRight)
 
         result.assertEquals(true)
@@ -202,7 +202,7 @@ I am a big moose
       )
 
       mkDecoder.use { decoder =>
-        val decoded = decoder.decode(request, true)
+        val decoded = decoder.decode(request, strict = true)
         val result = decoded.value.map(_.isRight)
 
         result.assertEquals(true)
@@ -245,6 +245,48 @@ I am a big moose
         Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
       request.as[String].map(s => assert(s.endsWith("--arf--\r\n"), s))
     }
+
+    test(s"$name should not wrap errors unrelated to multipart decoding") {
+      object CustomError extends Throwable
+
+      val badBody = Stream.raiseError[IO](CustomError)
+      val multipart = Multipart[IO](Vector.empty, Boundary("boundary"))
+      val request =
+        Request(method = Method.POST, uri = url, body = badBody, headers = multipart.headers)
+
+      mkDecoder.use(_.decode(request, strict = true).value).intercept[CustomError.type]
+    }
+
+    test("Should handle characters > 0x00ff in filename") {
+      val body = """--------------------------UssgsAdBNPzvSMC3wDKwiB
+Content-Disposition: form-data; name="file"; filename="中文文件名.json"
+Content-Type: application/json
+
+
+--------------------------UssgsAdBNPzvSMC3wDKwiB--
+
+        """.replace("\n", "\r\n")
+      val header = Headers(
+        `Content-Type`(
+          MediaType.multipartType(
+            "form-data",
+            Some("------------------------UssgsAdBNPzvSMC3wDKwiB"),
+          )
+        )
+      )
+      val request = Request[IO](
+        method = Method.POST,
+        uri = url,
+        body = Stream.emit(body).through(text.utf8.encode),
+        headers = header,
+      )
+      mkDecoder
+        .use { decoder =>
+          val decoded = decoder.decode(request, strict = true)
+          decoded.map(multipart => multipart.parts.headOption.flatMap(part => part.filename)).value
+        }
+        .assertEquals(Right(Some("中文文件名.json")))
+    }
   }
 
   multipartSpec("with default decoder")(Resource.pure(implicitly))
@@ -270,5 +312,4 @@ I am a big moose
     trait F2[A] extends F1[A]
     testPart[F2].covary[F1]
   }
-
 }

@@ -20,7 +20,6 @@ import cats.Hash
 import cats.Order
 import cats.Show
 import cats.parse.Parser
-import cats.syntax.all._
 import org.http4s.internal.parsing.CommonRules
 import org.http4s.util.Renderable
 import org.http4s.util.Writer

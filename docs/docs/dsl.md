@@ -545,6 +545,24 @@ implicit val isoInstantCodec: QueryParamCodec[Instant] =
 object IsoInstantParamMatcher extends QueryParamDecoderMatcher[Instant]("timestamp")
 ```
 
+#### Flag Query Parameters
+
+To handle query parameters that do not contain any values but are simple flags the `FlagQueryParamMatcher` should be used.
+
+```scala mdoc:nest
+object WithClouds extends FlagQueryParamMatcher("with-clouds")
+
+val serviceWithFlags = HttpRoutes.of[IO] {
+  case GET -> Root / "weather" / "map" :? WithClouds(clouds) =>
+    if (clouds)
+      Ok("Showing clouds on the weather map.")
+    else
+      Ok("Showing no clouds on the weather map.")
+}
+```
+
+Please note that you have to use the same syntax as with the other query parameters (i.e. `MyFlag(value)`) in the routes definition.
+
 #### Optional Query Parameters
 
 To accept an optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
@@ -570,6 +588,28 @@ val routes = HttpRoutes.of[IO] {
         Ok(getAverageTemperatureForCurrentYear)
       case Some(year) =>
         Ok(getAverageTemperatureForYear(year))
+    }
+}
+```
+
+#### Optional Multiple Query Paramters
+To accept multiple query parameters that are also optional, a `OptionalMultiQueryParamDecoderMatcher` can be used.
+
+```scala mdoc:nest
+object OptionalMultiColorQueryParam
+      extends OptionalMultiQueryParamDecoderMatcher[String]("maybeColors")
+
+def getProductsOfMaybeColors(maybeColors: List[String]): IO[String] = ???
+
+val routes = HttpRoutes.of[IO] {
+  case GET -> Root / "products" :? OptionalMultiColorQueryParam(maybeColors) =>
+
+    val _: cats.data.ValidatedNel[org.http4s.ParseFailure, List[String]] = maybeColors
+
+    maybeColors match {
+      case cats.data.Validated.Invalid(e) =>
+        BadRequest(s"Parse Error(s): ${e.toList.map(_.message).mkString(", ")}")
+      case cats.data.Validated.Valid(a) => Ok(getProductsOfMaybeColors(a))
     }
 }
 ```

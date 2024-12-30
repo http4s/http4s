@@ -185,7 +185,10 @@ final case class Uri(
         writer << p
     }
 
-    if (query.nonEmpty) writer << '?' << query
+    if (query.nonEmpty) {
+      writer << '?' << query
+      ()
+    }
     fragment.foreach { f =>
       writer << '#' << Uri.encode(f, spaceIsPlus = false)
     }
@@ -612,7 +615,7 @@ object Uri extends UriPlatform {
     *
     * @see [[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1 RFC 3986, Section 3.2.1, User Information]]
     */
-  final case class UserInfo private ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
+  final case class UserInfo private[Uri] ( // scalafix:ok Http4sGeneralLinters.nonValidatingCopyConstructor; bincompat until 1.0
       username: String,
       password: Option[String],
   ) extends Ordered[UserInfo] {
@@ -624,6 +627,9 @@ object Uri extends UriPlatform {
   }
 
   object UserInfo {
+
+    def apply(username: String, password: Option[String]): UserInfo =
+      new UserInfo(username, password)
 
     /** Parses a userInfo from a percent-encoded string. */
     def fromString(s: String): ParseResult[UserInfo] =
@@ -648,13 +654,13 @@ object Uri extends UriPlatform {
           Unreserved ++ "!$&'()*+,;="
 
         private def encodeUsername(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInUsername)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInUsername)
 
         private val SkipEncodeInPassword =
           SkipEncodeInUsername ++ ":"
 
         private def encodePassword(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-          encode(s, charset, false, SkipEncodeInPassword)
+          encode(s, charset, spaceIsPlus = false, SkipEncodeInPassword)
 
         def compare(x: UserInfo, y: UserInfo): Int = x.compareTo(y)
 
@@ -955,7 +961,7 @@ object Uri extends UriPlatform {
     val out = new StringBuilder
 
     // 2.  While the input buffer is not empty, loop as follows:
-    while (in.nonEmpty)
+    while (in.nonEmpty) {
       // A.  If the input buffer begins with a prefix of "../" or "./",
       //     then remove that prefix from the input buffer; otherwise,
       if (startsWith(in, "../"))
@@ -1004,6 +1010,8 @@ object Uri extends UriPlatform {
             out.append(in)
             in.setLength(0)
         }
+      ()
+    }
 
     // 3.  Finally, the output buffer is returned as the result of
     //     remove_dot_segments.
@@ -1056,7 +1064,7 @@ object Uri extends UriPlatform {
     UriCoding.Unreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: JCharset = StandardCharsets.UTF_8): String =
-    encode(s, charset, false, SkipEncodeInPath)
+    encode(s, charset, spaceIsPlus = false, SkipEncodeInPath)
 
   /** Percent-decodes a string.
     *
@@ -1093,31 +1101,40 @@ object Uri extends UriPlatform {
               val oo = (x << 4) + y
               if (!toSkip(oo.toChar)) {
                 out.put(oo.toByte)
+                ()
               } else {
                 out.put('%'.toByte)
                 out.put(xc.toByte)
                 out.put(yc.toByte)
+                ()
               }
             } else {
               out.put('%'.toByte)
               in.position(mark + 1)
+              ()
             }
           } else {
             // This is an invalid encoding. Fail gracefully by treating the '%' as
             // a literal.
             out.put(c.toByte)
-            while (in.hasRemaining) out.put(in.get().toByte)
+            while (in.hasRemaining) {
+              out.put(in.get().toByte)
+              ()
+            }
           }
         } else if (c == '+' && plusIsSpace) {
           out.put(' '.toByte)
+          ()
         } else {
           // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
           // however there are cases where a string can be partially decoded
           // so we have to make sure the non us-ascii chars get preserved properly.
           if (toSkip(c)) {
             out.put(c.toByte)
+            ()
           } else {
             out.put(charset.encode(String.valueOf(c)))
+            ()
           }
         }
       }
@@ -1222,7 +1239,7 @@ object Uri extends UriPlatform {
       Rfc3986.unreserved
         .orElse(Rfc3986.pctEncoded)
         .orElse(Rfc3986.subDelims)
-        .orElse(P.char('@'))
+        .orElse[Any](P.char('@'))
         .rep
         .string
         .map(Uri.Path.Segment.encoded(_))

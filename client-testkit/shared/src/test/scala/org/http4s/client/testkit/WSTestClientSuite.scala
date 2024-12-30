@@ -20,7 +20,7 @@ package testkit
 
 import cats.effect._
 import cats.effect.std.Queue
-import cats.implicits.toBifunctorOps
+import cats.effect.testkit.TestControl
 import fs2.Stream
 import org.http4s.client.websocket.WSClient
 import org.http4s.client.websocket.WSFrame
@@ -142,10 +142,33 @@ class WSTestClientSuite extends Http4sSuite {
         )
       )
       .flatMap(_.connect(WSRequest(uri"/ws")))
-      .use(_ => IO.unit)
-      .attempt
-      .map(_.leftMap(_.getClass))
-      .assertEquals(Left(classOf[WebSocketClientInitException]))
+      .use_
+      .intercept[WebSocketClientInitException]
+  }
+
+  test("receive returns None when connection is closed") {
+    TestControl.executeEmbed {
+      Resource
+        .eval(
+          fromHttpWebSocketApp[IO] { (wsb: WebSocketBuilder2[IO]) =>
+            HttpRoutes
+              .of[IO] { case GET -> Root / "ws" =>
+                wsb
+                  .build(
+                    Stream(WebSocketFrame.Text("hello"), WebSocketFrame.Close(1000).toOption.get),
+                    _.drain,
+                  )
+              }
+              .orNotFound
+          }
+        )
+        .flatMap(_.connectHighLevel(WSRequest(uri"/ws")))
+        .use { conn =>
+          conn.receive.assertEquals(Some(WSFrame.Text("hello"))) *>
+            conn.receive.assertEquals(None) *>
+            conn.receive.assertEquals(None)
+        }
+    }
   }
 
 }

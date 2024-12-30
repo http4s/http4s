@@ -20,7 +20,6 @@ package headers
 import cats.data.NonEmptyList
 import cats.parse.Parser
 import cats.syntax.all._
-import org.http4s.Header
 import org.http4s.internal.parsing.CommonRules
 import org.typelevel.ci._
 

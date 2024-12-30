@@ -22,21 +22,21 @@ import cats.effect.IO
 
 /** Provides extension methods for using a http4s [[org.http4s.client.Client]]
   * {{{
+  *
   *   import cats.effect.IO
-  *   import org.http4s._
+  *   import cats.effect.unsafe.implicits.global
   *   import org.http4s.client._
-  *   import org.http4s.client.io._
-  *   import org.http4s.Http4s._
-  *   import org.http4s.Status._
+  *   import org.http4s.client.dsl.io._
   *   import org.http4s.Method._
-  *   import org.http4s.EntityDecoder
+  *   import org.http4s.syntax.all._
   *
   *   def client: Client[IO] = ???
   *
-  *   val r: IO[String] = client(GET(uri("https://www.foo.bar/"))).as[String]
-  *   val r2: DecodeResult[String] = client(GET(uri("https://www.foo.bar/"))).attemptAs[String] // implicitly resolve the decoder
-  *   val req1 = r.unsafeRunSync()
-  *   val req2 = r.unsafeRunSync() // Each invocation fetches a new Result based on the behavior of the Client
+  *   val r: IO[String] = client.run(GET(uri"https://www.foo.bar/")).use(_.as[String])
+  *   val r2: IO[String] = client.fetchAs[String](GET(uri"https://www.foo.bar/")) // implicitly resolve the decoder
+  *
+  *   val req1 = r.unsafeRunSync() // note that you shouldn't use `unsafeRunSync` in your application!
+  *   val req2 = r2.unsafeRunSync() // Each invocation fetches a new Result based on the behavior of the Client
   *
   * }}}
   */

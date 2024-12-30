@@ -66,15 +66,14 @@ private[http4s] object Rfc3986 {
     unreserved.orElse(pctEncoded).orElse(subDelims).orElse(charIn(":@"))
 
   private val ipv4Bytes: Parser[(Byte, Byte, Byte, Byte)] = {
-    val decOctet = (char('1') ~ digit ~ digit).backtrack
-      .orElse(char('2') ~ charIn('0' to '4') ~ digit)
+    val decOctet = (char('1') ~ digit ~ digit).string.backtrack
+      .orElse((char('2') ~ charIn('0' to '4') ~ digit).string)
       .backtrack
-      .orElse(string("25") ~ charIn('0' to '5'))
+      .orElse((string("25") ~ charIn('0' to '5')).string)
       .backtrack
-      .orElse(charIn('1' to '9') ~ digit)
+      .orElse((charIn('1' to '9') ~ digit).string)
       .backtrack
-      .orElse(digit)
-      .string
+      .orElse(digit.string)
       .map(_.toInt.toByte)
       .backtrack
 
@@ -93,7 +92,9 @@ private[http4s] object Rfc3986 {
     import cats.parse.Parser.{char, string}
 
     def toIpv6(lefts: collection.Seq[Short], rights: collection.Seq[Short]): Ipv6Address =
-      lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(0.toShort) ++ rights match {
+      ((lefts ++ collection.Seq.fill(8 - lefts.size - rights.size)(
+        0.toShort
+      ) ++ rights): @unchecked) match {
         case collection.Seq(a, b, c, d, e, f, g, h) =>
           val bb = ByteBuffer.allocate(16)
           bb.putShort(a)

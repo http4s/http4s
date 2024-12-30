@@ -23,7 +23,7 @@ import org.http4s.headers.Location
 class LocationHeaderSuite extends munit.FunSuite {
   test("LocationHeader parser shouldParse a simple uri") {
     val s = "http://www.foo.com"
-    val Right(uri) = Uri.fromString(s)
+    val Right(uri) = Uri.fromString(s): @unchecked
     val hs = Headers(("Location", s))
 
     val extracted = hs.get[Location]
@@ -32,7 +32,7 @@ class LocationHeaderSuite extends munit.FunSuite {
 
   test("LocationHeader parser shouldParse a simple uri with a path but no authority") {
     val s = "http:/foo/bar"
-    val Right(uri) = Uri.fromString(s)
+    val Right(uri) = Uri.fromString(s): @unchecked
     val hs = Headers(("Location", s))
 
     val extracted = hs.get[Location]
@@ -41,7 +41,7 @@ class LocationHeaderSuite extends munit.FunSuite {
 
   test("LocationHeader parser shouldParse a relative reference") {
     val s = "/cats"
-    val Right(uri) = Uri.fromString(s)
+    val Right(uri) = Uri.fromString(s): @unchecked
     val hs = Headers(("Location", s))
 
     val extracted = hs.get[Location]

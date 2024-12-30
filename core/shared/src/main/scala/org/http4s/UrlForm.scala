@@ -100,9 +100,9 @@ object UrlForm {
 
   def apply(values: (String, String)*): UrlForm =
     values match {
-      case Seq() => empty
-      case Seq(x) => single(x._1, x._2)
-      case h +: tail => tail.foldLeft(single(h._1, h._2))(_ + _)
+      case h +: tail =>
+        tail.foldLeft(single(h._1, h._2))(_ + _)
+      case _ => empty
     }
 
   def fromChain(values: Chain[(String, String)]): UrlForm =

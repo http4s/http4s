@@ -20,7 +20,6 @@ package dsl
 import cats.Monad
 import cats.effect.IO
 import cats.syntax.all._
-import org.http4s.MediaType
 import org.http4s.dsl.io._
 import org.http4s.headers.Accept
 import org.http4s.headers.Location

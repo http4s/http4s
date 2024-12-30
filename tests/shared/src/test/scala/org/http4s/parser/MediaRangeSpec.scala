@@ -18,7 +18,6 @@ package org.http4s
 package parser
 
 import org.http4s.MediaRange._
-import org.http4s.MediaType
 
 class MediaRangeSpec extends Http4sSuite {
   val `text/asp`: MediaType =
