@@ -52,7 +52,7 @@ object RequestId {
   def apply[G[_], F[_]](headerName: CIString, http: Http[G, F], G: Sync[G]): Http[G, F] =
     apply(headerName)(http)(G, UUIDGen.fromSync(G))
 
-  @deprecated("Preserved for bincompat", "0.23.30")
+  @deprecated("Preserved for bincompat", "0.23.31")
   def apply[G[_], F[_]](
       headerName: CIString,
       http: Http[G, F],
@@ -66,7 +66,7 @@ object RequestId {
   )(http: Http[G, F]): Http[G, F] =
     apply(headerName, UUIDGen.randomUUID[G])(http)
 
-  @deprecated("Preserved for bincompat", "0.23.30")
+  @deprecated("Preserved for bincompat", "0.23.31")
   def apply[G[_], F[_]](
       fk: F ~> G,
       headerName: CIString,
@@ -117,14 +117,14 @@ object RequestId {
     }
 
   object httpApp {
-    @deprecated("Preserved for bincompat", "0.23.30")
+    @deprecated("Preserved for bincompat", "0.23.31")
     def apply[F[_]](httpApp: HttpApp[F], F: Sync[F]): HttpApp[F] =
       apply(httpApp)(F, UUIDGen.fromSync(F))
 
     def apply[F[_]: Monad: UUIDGen](httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(requestIdHeader)(httpApp)
 
-    @deprecated("Preserved for bincompat", "0.23.30")
+    @deprecated("Preserved for bincompat", "0.23.31")
     def apply[F[_]](headerName: CIString, httpApp: HttpApp[F], F: Sync[F]): HttpApp[F] =
       apply(headerName)(httpApp)(F, UUIDGen.fromSync(F))
 
@@ -133,7 +133,7 @@ object RequestId {
     )(httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(headerName)(httpApp)
 
-    @deprecated("Preserved for bincompat", "0.23.30")
+    @deprecated("Preserved for bincompat", "0.23.31")
     def apply[F[_]](
         headerName: CIString,
         genReqId: F[UUID],
@@ -158,7 +158,7 @@ object RequestId {
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(headerName)(httpRoutes)
 
-    @deprecated("Preserved for bincompat", "0.23.30")
+    @deprecated("Preserved for bincompat", "0.23.31")
     def apply[F[_]](
         headerName: CIString,
         genReqId: F[UUID],
