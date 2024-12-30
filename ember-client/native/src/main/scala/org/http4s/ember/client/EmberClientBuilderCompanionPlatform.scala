@@ -30,6 +30,9 @@ private[client] trait EmberClientBuilderPlatform {
     else
       None
 
+  @deprecated("bincompat stub", "0.23.31")
+  private[EmberClientBuilderPlatform] def defaultUnixSockets: Option[Nothing] = None
+
 }
 
 private[client] trait EmberClientBuilderCompanionPlatform {
