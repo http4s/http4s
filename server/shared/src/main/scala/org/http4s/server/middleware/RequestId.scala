@@ -23,7 +23,6 @@ import cats.FlatMap
 import cats.Monad
 import cats.arrow.FunctionK
 import cats.data.Kleisli
-import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.effect.SyncIO
@@ -75,24 +74,16 @@ object RequestId {
       G: FlatMap[G],
       F: Sync[F],
   ): Http[G, F] = {
-    def kleisli(
-        fk: F ~> G,
-        headerName: CIString,
-        genReqId: F[UUID],
-        http: Http[G, F],
-    )(implicit G: FlatMap[G], F: Sync[F]) =
-      Kleisli[G, Request[F], Response[F]] { req =>
-        for {
-          header <- fk(req.headers.get(headerName) match {
-            case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-            case Some(NonEmptyList(header, _)) => F.pure(header)
-          })
-          reqId = header.value
-          response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
-        } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-      }
+    implicit val monadForG: Monad[G] = new Monad[G] {
+      def pure[A](a: A): G[A] = fk(F.pure(a))
 
-    kleisli(fk, headerName, genReqId, http)(G, F)
+      def flatMap[A, B](fa: G[A])(f: A => G[B]): G[B] = G.flatMap(fa)(f)
+
+      def tailRecM[A, B](a: A)(f: A => G[Either[A, B]]): G[B] =
+        G.tailRecM(a)(f)
+    }
+
+    apply(headerName, fk(genReqId))(http)
   }
 
   def apply[G[_]: Monad, F[_]](
