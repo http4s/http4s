@@ -863,8 +863,16 @@ object Uri extends UriPlatform {
     def fromInet6Address(address: Inet6Address): Ipv6Address =
       apply(ip4s.Ipv6Address.fromInet6Address(address))
 
-    def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
-        : Ipv6Address = {
+    def fromShorts(
+        a: Short,
+        b: Short,
+        c: Short,
+        d: Short,
+        e: Short,
+        f: Short,
+        g: Short,
+        h: Short,
+    ): Ipv6Address = {
       val bb = ByteBuffer.allocate(16)
       bb.putShort(a)
       bb.putShort(b)
