@@ -93,11 +93,10 @@ private[ember] object H2Server {
 
       // checks are cascading so we execute the least amount of work
       // if there is no upgrade, which is the likely case.
-      val upgradeCheck = connectionCheck && {
+      val upgradeCheck = connectionCheck &&
         req.headers
           .get(ci"upgrade")
           .exists(upgrade => upgrade.map(r => r.value).exists(_ === "h2c"))
-      }
 
       val settings: Option[H2Frame.Settings.ConnectionSettings] = if (upgradeCheck) {
         req.headers
