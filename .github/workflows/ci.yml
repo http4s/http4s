@@ -333,7 +333,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04]
-        scala: [2.13.15]
+        scala: [2.13.16]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
