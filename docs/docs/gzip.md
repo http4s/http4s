@@ -133,7 +133,7 @@ Now, similarly to `GZip`, let's wrap the service with the `GUnzip` middleware.
 ```scala mdoc:silent
 import org.http4s.server.middleware._
 import org.typelevel.log4cats.LoggerFactory
-import org.typelevel.log4cats.Slf4jFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create
 val serviceUnzip = GUnzip(service)

@@ -29,16 +29,15 @@ import org.http4s.MalformedMessageBodyFailure
 import org.http4s.Request
 import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats
 
 object GUnzip {
 
-  def apply[F[_]: Monad: LoggerFactory, G[_]: ApplicativeThrow: Compression](
+  def apply[F[_]: Monad: log4cats.LoggerFactory, G[_]: ApplicativeThrow: Compression](
       http: Http[F, G],
       bufferSize: Int = 32 * 1024,
   ): Http[F, G] = {
-    implicit val logger: Logger[F] = LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     Kleisli { (req: Request[G]) =>
       for {
         unzippedRequest <- req match {
@@ -58,7 +57,7 @@ object GUnzip {
   private def unzipRequest[F[_]: Functor, G[_]: Compression](
       bufferSize: Int,
       req: Request[G],
-  )(implicit logger: Logger[F], G: ApplicativeThrow[G]): F[Request[G]] = {
+  )(implicit logger: log4cats.Logger[F], G: ApplicativeThrow[G]): F[Request[G]] = {
     val decompressPipe = Compression[G].gunzip(bufferSize = bufferSize).andThenF(_.content).andThen {
       _.handleErrorWith { e =>
         Stream.eval(

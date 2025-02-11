@@ -33,7 +33,7 @@ class GUnzipSuite extends Http4sSuite {
 
   test("decodes random content-type if content-encoding allows it") {
     val request = "Request string"
-    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root => Ok(req.body) }
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
     val gzipRoutes: HttpRoutes[IO] = GUnzip(routes)
 
     val req: Request[IO] = Request[IO](Method.POST, uri"/")
@@ -52,7 +52,7 @@ class GUnzipSuite extends Http4sSuite {
 
   test("doesn't decode request if content-encoding doesn't allow it") {
     val request = "Request string"
-    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root => Ok(req.body) }
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
     val gzipRoutes: HttpRoutes[IO] = GUnzip(routes)
 
     val req: Request[IO] = Request[IO](Method.POST, uri"/")
@@ -71,7 +71,7 @@ class GUnzipSuite extends Http4sSuite {
 
   test("returns response with MalformedMessageBodyFailure if request body isn't in gzip format") {
     val request = "Request string"
-    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case req @ POST -> Root => Ok(req.body) }
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
     val gzipRoutes: HttpRoutes[IO] = GUnzip(routes)
 
     val req: Request[IO] = Request[IO](Method.POST, uri"/")
