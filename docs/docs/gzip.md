@@ -1,7 +1,7 @@
 # GZip Compression
 
 Http4s provides [Middleware], named `GZip`, for allowing for the compression of the `Response`
-body and [Middleware], named `GUnzip`, for the decompression of the incoming `Request` body.
+body using GZip.
 
 Examples in this document have the following dependencies.
 
@@ -83,7 +83,7 @@ that only some of your endpoints are `GZip` enabled.
 
 ## Decompressing Request
 
-There is a separate `GUnzip` middleware that supports decompressing request.
+There is a separate [Middleware], named `GUnzip`, that supports decompressing request.
 Let's see how it works with a simple echo service, returning the body of incoming requests.
 
 ```scala mdoc:reset:invisible
