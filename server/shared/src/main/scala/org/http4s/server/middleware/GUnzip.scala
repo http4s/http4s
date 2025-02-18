@@ -27,8 +27,10 @@ import org.http4s.ContentCoding
 import org.http4s.Http
 import org.http4s.MalformedMessageBodyFailure
 import org.http4s.Request
+import org.http4s.TransferCoding
 import org.http4s.headers.`Content-Encoding`
 import org.http4s.headers.`Content-Length`
+import org.http4s.headers.`Transfer-Encoding`
 import org.typelevel.log4cats
 
 object GUnzip {
@@ -70,10 +72,11 @@ object GUnzip {
         )
       }
     }
-    val response = req
+    val unzippedRequest = req
       .removeHeader[`Content-Length`]
       .removeHeader[`Content-Encoding`]
+      .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
       .pipeBodyThrough(decompressPipe)
-    logger.trace("GUnzip middleware decoding content").as(response)
+    logger.trace("GUnzip middleware decoding content").as(unzippedRequest)
   }
 }
