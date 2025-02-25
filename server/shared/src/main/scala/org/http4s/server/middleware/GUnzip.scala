@@ -34,10 +34,11 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.typelevel.log4cats
 
 object GUnzip {
+  private final val DefaultBufferSize = 32 * 1024
 
   def apply[F[_]: Monad: log4cats.LoggerFactory, G[_]: ApplicativeThrow: Compression](
       http: Http[F, G],
-      bufferSize: Int = 32 * 1024,
+      bufferSize: Int = DefaultBufferSize,
   ): Http[F, G] = {
     implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
     Kleisli { (req: Request[G]) =>
@@ -65,7 +66,7 @@ object GUnzip {
         Stream.eval(
           G.raiseError(
             MalformedMessageBodyFailure(
-              "Failed to decode gzippped request body",
+              "Failed to decode gzipped request body",
               Some(e),
             )
           )
