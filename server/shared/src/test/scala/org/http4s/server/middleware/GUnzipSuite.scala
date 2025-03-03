@@ -86,6 +86,32 @@ class GUnzipSuite extends Http4sSuite {
     }
   }
 
+  test("safely decodes a gzip bomb") {
+    val request = "Request string"
+    val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
+    val gzipRoutes: HttpRoutes[IO] = GUnzip(routes)
+
+    val req: Request[IO] = Request[IO](Method.POST, uri"/")
+      .putHeaders(Header.Raw(ci"Content-Encoding", "gzip"))
+      .withBodyStream(
+        Stream
+          .emits(request.getBytes())
+          .repeatN(1024L * 1024L * 1024L)
+          .through(Compression[IO].gzip())
+      )
+
+    gzipRoutes.orNotFound(req).flatMap { response =>
+      response.body
+        .take(request.length.toLong)
+        .compile
+        .to(Chunk)
+        .map { decoded =>
+          Arrays.equals(request.getBytes(), decoded.toArray)
+        }
+        .assert
+    }
+  }
+
   test("returns response with EntityTooLarge if unzipped request size exceeds the limit") {
     val request = "Request string"
     val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
