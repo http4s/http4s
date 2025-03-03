@@ -24,6 +24,7 @@ import fs2.compression._
 import fs2.io.compression._
 import org.http4s.dsl.io._
 import org.http4s.headers._
+import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.syntax.all._
 import org.typelevel.ci._
 
@@ -85,26 +86,25 @@ class GUnzipSuite extends Http4sSuite {
     }
   }
 
-  test("safely decodes a gzip bomb") {
+  test("returns response with EntityTooLarge if unzipped request size exceeds the limit") {
     val request = "Request string"
     val routes: HttpRoutes[IO] = HttpRoutes.of[IO] { case r @ POST -> Root => Ok(r.body) }
-    val gzipRoutes: HttpRoutes[IO] = GUnzip(routes)
+    val entityLimit = request.length * 1024L * 1024L * 3L
+    val gzipRoutes: HttpRoutes[IO] = GUnzip(EntityLimiter(routes, entityLimit))
 
     val req: Request[IO] = Request[IO](Method.POST, uri"/")
       .putHeaders(Header.Raw(ci"Content-Encoding", "gzip"))
       .withBodyStream(
-        Stream.emits(request.getBytes()).repeatN(1024 * 1024 * 1024).through(Compression[IO].gzip())
+        Stream
+          .emits(request.getBytes())
+          .repeatN(1024L * 1024L * 1024L)
+          .through(Compression[IO].gzip())
       )
 
     gzipRoutes.orNotFound(req).flatMap { response =>
-      response.body
-        .take(request.length.toLong)
-        .compile
+      response.body.compile
         .to(Chunk)
-        .map { decoded =>
-          Arrays.equals(request.getBytes(), decoded.toArray)
-        }
-        .assert
+        .intercept[EntityTooLarge]
     }
   }
 }
