@@ -454,6 +454,31 @@ private[h2] object H2Stream {
 
   }
 
+  def initState[F[_]](
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+  )(implicit F: Concurrent[F]): F[Ref[F, State[F]]] =
+    for {
+      writeBlock <- Deferred[F, Either[Throwable, Unit]]
+      request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
+      response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
+      trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
+      body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+      refState <- F.ref(
+        H2Stream.State(
+          H2Stream.StreamState.Idle,
+          remoteSettings.initialWindowSize.windowSize,
+          writeBlock,
+          localSettings.initialWindowSize.windowSize,
+          request,
+          response,
+          trailers,
+          body,
+          None,
+        )
+      )
+    } yield refState
+
   sealed trait StreamState
   object StreamState {
     /*

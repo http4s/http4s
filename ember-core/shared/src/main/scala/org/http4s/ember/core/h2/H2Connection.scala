@@ -19,6 +19,8 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
+import cats.effect.std.Mutex
+import cats.effect.std.Queue
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
@@ -46,7 +48,6 @@ private[h2] class H2Connection[F[_]](
     hpack: Hpack[F],
     val streamCreateAndHeaders: Resource[F, Unit],
     val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
-    acc: ByteVector, // Any Bytes Already Read
     socket: Socket[F],
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
@@ -65,25 +66,7 @@ private[h2] class H2Connection[F[_]](
       (s.copy(highestStream = newHighest), (s.remoteSettings, newHighest))
     }
     (settings, id) = t
-
-    writeBlock <- Deferred[F, Either[Throwable, Unit]]
-    request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
-    response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
-    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
-    refState <- Ref.of[F, H2Stream.State[F]](
-      H2Stream.State(
-        H2Stream.StreamState.Idle,
-        settings.initialWindowSize.windowSize,
-        writeBlock,
-        localSettings.initialWindowSize.windowSize,
-        request,
-        response,
-        trailers,
-        body,
-        None,
-      )
-    )
+    refState <- H2Stream.initState[F](localSettings = localSettings, remoteSettings = settings)
     stream = new H2Stream(
       id,
       localSettings,
@@ -537,7 +520,7 @@ private[h2] class H2Connection[F[_]](
         case None => F.unit
       }
 
-    F.guaranteeCase(readLoopAux(acc)) {
+    F.guaranteeCase(readLoopAux(ByteVector.empty)) {
       case Outcome.Errored(H2Connection.KillWithoutMessage()) =>
         logger.debug(s"ReadLoop has received that is should kill") >>
           state.update(s => s.copy(closed = true))
@@ -565,7 +548,7 @@ private[h2] object H2Connection {
       pushPromiseInProgress: Option[(H2Frame.PushPromise, List[H2Frame.Continuation])],
   )
 
-  def initState[F[_]](
+  private def initState[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: SettingsInitialWindowSize,
       readWindow: SettingsInitialWindowSize,
@@ -584,6 +567,41 @@ private[h2] object H2Connection {
       )
       F.ref(state)
     }
+
+  def init[F[_]: Async](
+      address: Either[UnixSocketAddress, SocketAddress[Host]],
+      connectionType: H2Connection.ConnectionType,
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+      writeWindow: SettingsInitialWindowSize,
+      readWindow: SettingsInitialWindowSize,
+      socket: Socket[F],
+      logger: Logger[F],
+  ): F[H2Connection[F]] = for {
+    ref <- Concurrent[F].ref(Map.empty[Int, H2Stream[F]])
+    stateRef <- H2Connection.initState[F](remoteSettings, writeWindow, readWindow)
+    queue <- Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+    hpack <- Hpack.create[F]
+    settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
+    streamCreationLock <- Mutex[F]
+    // data <- Queue.unbounded[F, Frame.Data]
+    created <- Queue.unbounded[F, Int]
+    closed <- Queue.unbounded[F, Int]
+  } yield new H2Connection(
+    address,
+    connectionType,
+    localSettings,
+    ref,
+    stateRef,
+    queue,
+    created,
+    closed,
+    hpack,
+    streamCreationLock.lock,
+    settingsAck,
+    socket,
+    logger,
+  )
 
   final case class KillWithoutMessage()
       extends RuntimeException

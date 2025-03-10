@@ -32,7 +32,6 @@ import org.http4s._
 import org.http4s.ember.core.Util
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.typelevel.log4cats.Logger
-import scodec.bits._
 
 import scala.concurrent.duration._
 
@@ -86,7 +85,7 @@ private[ember] class H2Client[F[_]](
   import org.http4s._
   import H2Client._
 
-  def getOrCreate(
+  private def getOrCreate(
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
@@ -122,7 +121,7 @@ private[ember] class H2Client[F[_]](
     }
 
   //
-  def createConnection(
+  private def createConnection(
       key: H2Client.RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
@@ -131,13 +130,13 @@ private[ember] class H2Client[F[_]](
   ): Resource[F, H2Connection[F]] =
     createSocket(key, useTLS, priorKnowledge, enableEndpointValidation, enableServerNameIndication)
       .flatMap {
-        case (socket, Http2) => fromSocket(ByteVector.empty, socket, key)
+        case (socket, Http2) => fromSocket(socket, key)
         case (_, Http1) => Resource.eval(InvalidSocketType().raiseError)
       }
 
   // This is currently how we create http2 only sockets, will need to actually handle which
   // protocol to take
-  def createSocket(
+  private def createSocket(
       key: RequestKey,
       useTLS: Boolean,
       priorKnowledge: Boolean,
@@ -188,8 +187,7 @@ private[ember] class H2Client[F[_]](
     }
 
   // This Socket Becomes an Http2 Socket
-  def fromSocket(
-      acc: ByteVector,
+  private def fromSocket(
       socket: Socket[F],
       key: RequestKey,
   ): Resource[F, H2Connection[F]] = {
@@ -197,35 +195,17 @@ private[ember] class H2Client[F[_]](
       for {
         socketAdd <- RequestKey.getAddress(key)
         _ <- socket.write(Chunk.byteVector(Preface.clientBV))
-        ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
-        stateRef <- H2Connection.initState[F](
-          defaultSettings,
-          defaultSettings.initialWindowSize,
-          localSettings.initialWindowSize,
+        connection <- H2Connection.init[F](
+          address = socketAdd,
+          connectionType = H2Connection.ConnectionType.Client,
+          localSettings = localSettings,
+          remoteSettings = defaultSettings,
+          writeWindow = defaultSettings.initialWindowSize,
+          readWindow = localSettings.initialWindowSize,
+          socket = socket,
+          logger = logger,
         )
-        queue <- cats.effect.std.Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
-        hpack <- Hpack.create[F]
-        settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
-        streamCreationLock <- cats.effect.std.Semaphore[F](1)
-        // data <- Resource.eval(cats.effect.std.Queue.unbounded[F, Frame.Data])
-        created <- cats.effect.std.Queue.unbounded[F, Int]
-        closed <- cats.effect.std.Queue.unbounded[F, Int]
-      } yield new H2Connection(
-        socketAdd,
-        H2Connection.ConnectionType.Client,
-        localSettings,
-        ref,
-        stateRef,
-        queue,
-        created,
-        closed,
-        hpack,
-        streamCreationLock.permit,
-        settingsAck,
-        acc,
-        socket,
-        logger,
-      )
+      } yield connection
 
     def clearClosed(h2: H2Connection[F]): F[Unit] =
       Stream
