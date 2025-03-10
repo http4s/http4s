@@ -211,16 +211,16 @@ private[ember] class H2Client[F[_]](
       Stream
         .fromQueueUnterminated(h2.closedStreams)
         .repeat
-        .foreach(i => if (i % 2 != 0) h2.mapRef.update(m => m - i) else F.unit)
+        .foreach(i => if (i % 2 != 0) h2.removeStream(i) else F.unit)
         .compile
         .drain
 
     def pullCreatedStreams(h2: H2Connection[F]): F[Unit] = {
       def processStream(i: Int): F[Unit] =
         (for {
-          stream <- h2.mapRef.get.flatMap { streamMap =>
-            streamMap.get(i).liftTo(new ProtocolException("Stream missing for push promise"))
-          } // FOLD
+          stream <- h2.getStream(i).flatMap {
+            _.liftTo(new ProtocolException("Stream missing for push promise"))
+          }
           // _ <- Sync[F].delay(println(s"Push promise stream acquired for $i"))
           req <- stream.getRequest
           resp = stream.getResponse.map(_.covary[F].withBodyStream(stream.readBody))
@@ -230,7 +230,7 @@ private[ember] class H2Client[F[_]](
             case Outcome.Errored(_) => stream.rstStream(H2Error.RefusedStream)
             case Outcome.Succeeded(f) => f
           }.attempt
-          _ <- h2.mapRef.update(_ - i)
+          _ <- h2.removeStream(i)
           out <- outE.liftTo[F]
         } yield out)
           .onError { case e => logger.warn(e)(s"Error Handling Push Promise") }
@@ -294,7 +294,7 @@ private[ember] class H2Client[F[_]](
             stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
           )
         )
-      )(stream => connection.mapRef.update(m => m - stream.id))
+      )(stream => connection.removeStream(stream.id))
       _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background
       resp <- Resource.eval(stream.getResponse).map(_.covary[F].withBodyStream(stream.readBody))
     } yield resp

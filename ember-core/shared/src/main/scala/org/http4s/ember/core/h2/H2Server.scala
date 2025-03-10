@@ -217,7 +217,7 @@ private[ember] object H2Server {
           Stream.eval(
             // Max Time After Close We Will Still Accept Messages
             (Temporal[F].sleep(1.seconds) >>
-              h2.mapRef.update(m => m - i)).timeout(15.seconds).attempt.start
+              h2.removeStream(i)).timeout(15.seconds).attempt.start
           )
         )
         .parJoin(localSettings.maxConcurrentStreams.maxConcurrency)
@@ -265,7 +265,11 @@ private[ember] object H2Server {
       }
 
       for {
-        stream <- h2.mapRef.get.map(_.get(streamIx)).map(_.get) // FOLD
+        stream <- h2
+          .getStream(streamIx)
+          .flatMap(
+            _.liftTo(new ProtocolException("Created stream missing"))
+          )
         req <- stream.getRequest.map(_.covary[F].withBodyStream(stream.readBody))
         resp <- httpApp(req)
         _ <- stream.sendHeaders(PseudoHeaders.responseToHeaders(resp), endStream = false)
