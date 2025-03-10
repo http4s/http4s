@@ -41,7 +41,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     val remoteSettings: F[H2Frame.Settings.ConnectionSettings],
     val state: Ref[F, H2Stream.State[F]],
     val hpack: Hpack[F],
-    val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    enqueue: cats.effect.std.QueueSink[F, Chunk[H2Frame]],
     val onClosed: F[Unit],
     val goAway: H2Error => F[Unit],
     private[this] val logger: Logger[F],

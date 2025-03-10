@@ -40,8 +40,8 @@ private[h2] class H2Connection[F[_]](
     localSettings: H2Frame.Settings.ConnectionSettings,
     mapRef: Ref[F, Map[Int, H2Stream[F]]],
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
-    val outgoing: cats.effect.std.Queue[F, Chunk[H2Frame]],
-    // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
+    outgoing: Queue[F, Chunk[H2Frame]],
+    // val outgoingData: Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
 
     val createdStreams: cats.effect.std.Queue[F, Int],
     val closedStreams: cats.effect.std.Queue[F, Int],
@@ -127,7 +127,7 @@ private[h2] class H2Connection[F[_]](
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
-      outgoing.offer(Chunk.singleton(g))
+      sendOutgoingFrame(g)
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
@@ -393,7 +393,7 @@ private[h2] class H2Connection[F[_]](
           (settings, difference, oldWriteBlock) = t
           _ <- oldWriteBlock.complete(Either.unit)
           _ <- foreachStream(_.modifyWriteWindow(difference))
-          _ <- outgoing.offer(Chunk.singleton(H2Frame.Settings.Ack))
+          _ <- sendOutgoingFrame(H2Frame.Settings.Ack)
           _ <- settingsAck.complete(Either.right(settings)).void
         } yield ()
       case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
@@ -401,11 +401,11 @@ private[h2] class H2Connection[F[_]](
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
-        foreachStream(_.receiveGoAway(g)) >> outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        foreachStream(_.receiveGoAway(g)) >> sendOutgoingFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
       case (H2Frame.Ping(0, false, bv), _) =>
-        outgoing.offer(Chunk.singleton(H2Frame.Ping.ack.copy(data = bv)))
+        sendOutgoingFrame(H2Frame.Ping.ack.copy(data = bv))
       case (H2Frame.Ping(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Ping(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
@@ -467,12 +467,10 @@ private[h2] class H2Connection[F[_]](
                 )
                 _ <-
                   if (needsWindowUpdate)
-                    outgoing.offer(
-                      Chunk.singleton(
-                        H2Frame.WindowUpdate(
-                          0,
-                          st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                        )
+                    sendOutgoingFrame(
+                      H2Frame.WindowUpdate(
+                        0,
+                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
                       )
                     )
                   else Applicative[F].unit
@@ -544,6 +542,11 @@ private[h2] class H2Connection[F[_]](
 
   def isClosed: F[Boolean] =
     state.get.map(_.closed)
+
+  // outgoing frames
+
+  def sendOutgoingFrame(frame: H2Frame): F[Unit] =
+    outgoing.offer(Chunk.singleton(frame))
 
 }
 
