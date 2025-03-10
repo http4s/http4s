@@ -168,7 +168,7 @@ private[h2] class H2Connection[F[_]](
       }
     }
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
-      foreachStream(_.receiveGoAway(g)) >> state.update(s => s.copy(closed = true))
+      foreachStream(_.receiveGoAway(g)) >> close
     }
     firstGoAway.getOrElse(F.unit) >> go(chunk)
   }
@@ -513,14 +513,12 @@ private[h2] class H2Connection[F[_]](
 
     F.guaranteeCase(readLoopAux(ByteVector.empty)) {
       case Outcome.Errored(H2Connection.KillWithoutMessage()) =>
-        logger.debug(s"ReadLoop has received that is should kill") >>
-          state.update(s => s.copy(closed = true))
+        logger.debug(s"ReadLoop has received that is should kill") >> close
       case Outcome.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
           goAway(H2Error.InternalError) >>
-          state.update(s => s.copy(closed = true))
-
-      case _ => state.update(s => s.copy(closed = true))
+          close
+      case _ => close
     }
   }
 
@@ -539,6 +537,14 @@ private[h2] class H2Connection[F[_]](
     mapRef.get.flatMap { map =>
       map.valuesIterator.foldLeft(F.unit)((acc, stream) => F.productR(acc)(f(stream)))
     }
+
+  // connection state
+
+  private def close: F[Unit] = state.update(_.copy(closed = true))
+
+  def isClosed: F[Boolean] =
+    state.get.map(_.closed)
+
 }
 
 private[h2] object H2Connection {

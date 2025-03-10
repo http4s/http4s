@@ -331,10 +331,10 @@ private[ember] object H2Client {
         .awakeDelay(1.seconds)
         .evalMap(_ => mapH2.get)
         .flatMap(m => Stream.emits(m.toList))
-        .evalMap { case (t, (connection, shutdown)) =>
-          connection.state.get.flatMap { s =>
-            if (s.closed) mapH2.update(m => m - t) >> shutdown else Applicative[F].unit
-          }.attempt
+        .foreach { case (t, (connection, shutdown)) =>
+          connection.isClosed.flatMap { closed =>
+            if (closed) mapH2.update(_ - t) >> shutdown else Applicative[F].unit
+          }.voidError
         }
         .compile
         .drain

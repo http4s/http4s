@@ -190,8 +190,8 @@ private[ember] object H2Server {
         _ <- s.writeBlock.complete(Either.unit)
       } yield ()
 
-    def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
-      F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
+    def holdWhileOpen(isClosed: F[Boolean]): F[Unit] =
+      F.sleep(1.seconds) >> isClosed.ifM(F.unit, holdWhileOpen(isClosed))
 
     def initH2Connection: F[H2Connection[F]] = for {
       address <- socket.remoteAddress.attempt.map(
@@ -306,7 +306,7 @@ private[ember] object H2Server {
       _ <- Resource.eval(
         h2.state.update(s => s.copy(writeWindow = s.remoteSettings.initialWindowSize.windowSize))
       )
-      _ <- Resource.eval(holdWhileOpen(h2.state))
+      _ <- Resource.eval(holdWhileOpen(h2.isClosed))
     } yield ()
   }
 }
