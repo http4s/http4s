@@ -230,13 +230,11 @@ private[ember] object H2Server {
     ): F[Unit] = {
       def fulfillPushPromises(resp: Response[F]): F[Unit] = {
         def sender(req: Request[Pure]): F[(Request[Pure], H2Stream[F])] =
-          h2.streamCreateAndHeaders.use[(Request[Pure], H2Stream[F])](_ =>
-            h2.initiateLocalStream.flatMap { stream =>
-              stream
-                .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
-                .map(_ => (req, stream))
-            }
-          )
+          h2.createLocalStream.use[(Request[Pure], H2Stream[F])] { stream =>
+            stream
+              .sendPushPromise(streamIx, PseudoHeaders.requestToHeaders(req))
+              .map(_ => (req, stream))
+          }
 
         def sendData(resp: Response[F], stream: H2Stream[F]): F[Unit] =
           resp.body.chunks

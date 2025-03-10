@@ -289,10 +289,8 @@ private[ember] class H2Client[F[_]](
       )
       // Stream Order Must Be Correct, so we must grab the global lock
       stream <- Resource.make(
-        connection.streamCreateAndHeaders.use(_ =>
-          connection.initiateLocalStream.flatMap(stream =>
-            stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
-          )
+        connection.createLocalStream.use(stream =>
+          stream.sendHeaders(PseudoHeaders.requestToHeaders(req), endStream = false).as(stream)
         )
       )(stream => connection.removeStream(stream.id))
       _ <- (stream.sendMessageBody(req) >> stream.sendTrailerHeaders(req)).background

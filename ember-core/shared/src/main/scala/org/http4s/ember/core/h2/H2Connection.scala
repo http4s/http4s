@@ -46,7 +46,7 @@ private[h2] class H2Connection[F[_]](
     val createdStreams: cats.effect.std.Queue[F, Int],
     val closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
-    val streamCreateAndHeaders: Resource[F, Unit],
+    streamCreateAndHeaders: Resource[F, Unit],
     val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
     socket: Socket[F],
     logger: Logger[F],
@@ -54,7 +54,7 @@ private[h2] class H2Connection[F[_]](
 
   private[this] def addrStr = address.fold(_.toString, _.toString)
 
-  def initiateLocalStream: F[H2Stream[F]] = for {
+  private def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
       val highestIsEven = s.highestStream % 2 == 0
       val newHighest = connectionType match {
@@ -223,13 +223,7 @@ private[h2] class H2Connection[F[_]](
               case Some(s) =>
                 s.receiveHeaders(h, cs ::: c :: Nil: _*)
               case None =>
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(id)
-                    _ <- createdStreams.offer(id)
-                    _ <- stream.receiveHeaders(h, cs ::: c :: Nil: _*)
-                  } yield ()
-                )
+                createRemoteStream(id).use(_.receiveHeaders(h, cs ::: c :: Nil: _*))
             }
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -245,14 +239,7 @@ private[h2] class H2Connection[F[_]](
               case Some(s) =>
                 s.receivePushPromise(p, cs ::: c :: Nil: _*)
               case None =>
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(id)
-                    _ <- createdStreams.offer(id)
-                    _ <- stream.receivePushPromise(p, cs ::: c :: Nil: _*)
-
-                  } yield ()
-                )
+                createRemoteStream(id).use(_.receivePushPromise(p, cs ::: c :: Nil: _*))
             }
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -314,14 +301,7 @@ private[h2] class H2Connection[F[_]](
                 ) >>
                   goAway(H2Error.ProtocolError)
               } else {
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(i)
-                    _ <- createdStreams.offer(i)
-                    _ <- stream.receiveHeaders(h)
-
-                  } yield ()
-                )
+                createRemoteStream(i).use(_.receiveHeaders(h))
               }
           }
         }
@@ -354,13 +334,7 @@ private[h2] class H2Connection[F[_]](
                 )
                 goAway(H2Error.ProtocolError)
               } else {
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(i)
-                    _ <- createdStreams.offer(i)
-                    _ <- stream.receivePushPromise(h)
-                  } yield ()
-                )
+                createRemoteStream(i).use(_.receivePushPromise(h))
               }
           }
         }
@@ -535,6 +509,14 @@ private[h2] class H2Connection[F[_]](
     mapRef.get.flatMap { map =>
       map.valuesIterator.foldLeft(F.unit)((acc, stream) => F.productR(acc)(f(stream)))
     }
+
+  // stream creation with lock
+
+  private def createRemoteStream[A](id: Int): Resource[F, H2Stream[F]] =
+    streamCreateAndHeaders.evalMap(_ => initiateRemoteStreamById(id) <* createdStreams.offer(id))
+
+  def createLocalStream: Resource[F, H2Stream[F]] =
+    streamCreateAndHeaders.evalMap(_ => initiateLocalStream)
 
   // connection state
 
