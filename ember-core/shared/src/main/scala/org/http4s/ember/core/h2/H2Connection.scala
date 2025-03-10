@@ -47,7 +47,6 @@ private[h2] class H2Connection[F[_]](
     val closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
     streamCreateAndHeaders: Resource[F, Unit],
-    val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
     socket: Socket[F],
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
@@ -368,7 +367,6 @@ private[h2] class H2Connection[F[_]](
           _ <- oldWriteBlock.complete(Either.unit)
           _ <- foreachStream(_.modifyWriteWindow(difference))
           _ <- sendOutgoingFrame(H2Frame.Settings.Ack)
-          _ <- settingsAck.complete(Either.right(settings)).void
         } yield ()
       case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Settings(_, _, _), _) =>
@@ -579,7 +577,6 @@ private[h2] object H2Connection {
     stateRef <- H2Connection.initState[F](remoteSettings, writeWindow, readWindow)
     queue <- Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
     hpack <- Hpack.create[F]
-    settingsAck <- Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]]
     streamCreationLock <- Mutex[F]
     // data <- Queue.unbounded[F, Frame.Data]
     created <- Queue.unbounded[F, Int]
@@ -595,7 +592,6 @@ private[h2] object H2Connection {
     closed,
     hpack,
     streamCreationLock.lock,
-    settingsAck,
     socket,
     logger,
   )
