@@ -208,9 +208,7 @@ private[ember] class H2Client[F[_]](
       } yield connection
 
     def clearClosed(h2: H2Connection[F]): F[Unit] =
-      Stream
-        .fromQueueUnterminated(h2.closedStreams)
-        .repeat
+      h2.getClosedStreams.repeat
         .foreach(i => if (i % 2 != 0) h2.removeStream(i) else F.unit)
         .compile
         .drain
@@ -237,8 +235,7 @@ private[ember] class H2Client[F[_]](
           .attempt
           .void
 
-      Stream
-        .fromQueueUnterminated(h2.createdStreams)
+      h2.getCreatedStreams
         .parEvalMap(10)(i => if (i % 2 == 0) processStream(i) else F.unit)
         .compile
         .drain

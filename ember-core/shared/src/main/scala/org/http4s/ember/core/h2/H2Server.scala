@@ -211,8 +211,7 @@ private[ember] object H2Server {
     } yield connection
 
     def clearClosedStreams(h2: H2Connection[F]): F[Unit] =
-      Stream
-        .fromQueueUnterminated(h2.closedStreams)
+      h2.getClosedStreams
         .map(i =>
           Stream.eval(
             // Max Time After Close We Will Still Accept Messages
@@ -278,8 +277,7 @@ private[ember] object H2Server {
     }
 
     def processCreatedStreams(h2: H2Connection[F]): F[Unit] =
-      Stream
-        .fromQueueUnterminated(h2.createdStreams)
+      h2.getCreatedStreams
         .parEvalMapUnordered(localSettings.maxConcurrentStreams.maxConcurrency)(i =>
           processCreatedStream(h2, i)
             .handleErrorWith(e => logger.error(e)(s"Error while processing stream"))

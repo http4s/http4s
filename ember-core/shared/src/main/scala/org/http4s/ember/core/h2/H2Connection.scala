@@ -42,9 +42,8 @@ private[h2] class H2Connection[F[_]](
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
     outgoing: Queue[F, Chunk[H2Frame]],
     // val outgoingData: Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
-
     val createdStreams: cats.effect.std.Queue[F, Int],
-    val closedStreams: cats.effect.std.Queue[F, Int],
+    closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
     streamCreateAndHeaders: Resource[F, Unit],
     socket: Socket[F],
@@ -515,6 +514,12 @@ private[h2] class H2Connection[F[_]](
 
   def createLocalStream: Resource[F, H2Stream[F]] =
     streamCreateAndHeaders.evalMap(_ => initiateLocalStream)
+
+  // created and closed streams
+
+  def getCreatedStreams: Stream[F, Int] = Stream.fromQueueUnterminated(createdStreams)
+
+  def getClosedStreams: Stream[F, Int] = Stream.fromQueueUnterminated(closedStreams)
 
   // connection state
 
