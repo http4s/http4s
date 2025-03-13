@@ -239,7 +239,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@39c4261f
+//    = org.typelevel.vault.Vault@668c8a10
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">body</span><span> = </span><span class="identifier">response</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// body: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -255,7 +255,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@66c4ad3d
+//    = org.typelevel.vault.Vault@7ebad316
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyNormal</span><span> = </span><span class="identifier">respNormal</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyNormal: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -271,7 +271,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Accept-Encoding: gzip),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@806cfc6
+//    = org.typelevel.vault.Vault@57913ba1
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -281,7 +281,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@563418f4
+//    = org.typelevel.vault.Vault@6f1cb38d
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyZip</span><span> = </span><span class="identifier">respZip</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyZip: String = &quot;\u001f�\b\u0000\u0000\u0000\u0000\u0000\u0000\u0003�T(J-HM,Qȭ,N�IS(�H�S�T�U(�KI-R(.)J-.�S�2\u0000UX�&lt;u\u0000\u0000\u0000&quot;
