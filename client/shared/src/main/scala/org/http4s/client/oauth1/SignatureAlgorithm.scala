@@ -99,7 +99,8 @@ trait SignatureAlgorithm {
     * @param secretKey The secret key
     * @return The ByteVector output
     */
-  def generateByteVector[F[_]: MonadThrow](input: String, secretKey: String): F[ByteVector]
+  def generateByteVector[F[_]: MonadThrow](input: String, secretKey: String): F[ByteVector] =
+    MonadThrow[F].raiseError(new NotImplementedError())
 
   private[oauth1] def generateHMAC[F[_]: MonadThrow: Hmac](
       input: String,
