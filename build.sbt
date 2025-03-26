@@ -380,9 +380,6 @@ lazy val client = libraryCrossProject("client")
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.client.oauth1.package.makeSHASig"
       ), // private[oauth1]
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.client.oauth1.SignatureAlgorithm.generateByteVector"
-      ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "org.http4s.client.oauth1.*.generateHMAC"
       ), // private[oauth1]
