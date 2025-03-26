@@ -6258,7 +6258,7 @@ private[http4s] trait MimeDB {
     lazy val `adpcm`: MediaType = new MediaType("audio", "adpcm", Compressible, Binary, List("adp"))
     lazy val `amr`: MediaType = new MediaType("audio", "amr", Compressible, Binary, List("amr"))
     lazy val `amr-wb`: MediaType = new MediaType("audio", "amr-wb", Compressible, Binary)
-    lazy val `amr-wb+` : MediaType = new MediaType("audio", "amr-wb+", Compressible, Binary)
+    lazy val `amr-wb+`: MediaType = new MediaType("audio", "amr-wb+", Compressible, Binary)
     lazy val `aptx`: MediaType = new MediaType("audio", "aptx", Compressible, Binary)
     lazy val `asc`: MediaType = new MediaType("audio", "asc", Compressible, Binary)
     lazy val `atrac-advanced-lossless`: MediaType =
