@@ -223,9 +223,8 @@ lazy val core = libraryCrossProject("core")
     )
   )
   .jvmSettings(
-    libraryDependencies ++= {
-      Seq(log4catsSlf4j)
-    },
+    libraryDependencies ++=
+      Seq(log4catsSlf4j),
     libraryDependencies ++= {
       if (tlIsScala3.value) Seq.empty
       else
@@ -575,11 +574,10 @@ lazy val emberCore = libraryCrossProject("ember-core", CrossType.Full)
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5"),
-    mimaBinaryIssueFilters ++= {
+    mimaBinaryIssueFilters ++=
       Seq(
         ProblemFilters.exclude[Problem]("org.http4s.ember.core.h2.facade.*")
-      )
-    },
+      ),
     mimaBinaryIssueFilters ++= {
       if (tlIsScala3.value)
         Seq(

@@ -26,7 +26,7 @@ object MimeLoaderPlugin extends AutoPlugin {
   override def trigger = noTrigger
 
   override lazy val projectSettings = Seq(
-    generateMimeDb := {
+    generateMimeDb :=
       MimeLoader
         .toFile(
           new File(
@@ -38,7 +38,6 @@ object MimeLoaderPlugin extends AutoPlugin {
           "MediaType",
         )
         .unsafeRunSync()(cats.effect.unsafe.implicits.global)
-    }
   )
 }
 

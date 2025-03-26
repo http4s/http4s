@@ -26,9 +26,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.15"
+  val scala_213 = "2.13.16"
   val scala_212 = "2.12.20"
-  val scala_3 = "3.3.4"
+  val scala_3 = "3.3.5"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -112,7 +112,7 @@ object Http4sPlugin extends AutoPlugin {
     val fs2 = "3.11.0"
     val ip4s = "3.6.0"
     val hpack = "1.0.4"
-    val javaWebSocket = "1.5.7"
+    val javaWebSocket = "1.6.0"
     val jawn = "1.5.1"
     val jawnFs2 = "2.4.0"
     val jnrUnixSocket = "0.38.23"
@@ -124,7 +124,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.0.0"
     val munitCatsEffect = "2.0.0"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.115.Final"
+    val netty = "4.1.119.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
