@@ -44,7 +44,11 @@ object RequestId {
 
   val requestIdAttrKey: Key[String] = Key.newKey[SyncIO, String].unsafeRunSync()
 
-  def apply[G[_]: Sync, F[_]](http: Http[G, F]): Http[G, F] =
+  @deprecated("Preserved for bincompat", "0.23.31")
+  def apply[G[_], F[_]](http: Http[G, F], G: Sync[G]): Http[G, F] =
+    apply(requestIdHeader)(http)(G, UUIDGen.fromSync(G))
+
+  def apply[G[_]: Monad: UUIDGen, F[_]](http: Http[G, F]): Http[G, F] =
     apply(requestIdHeader)(http)
 
   @deprecated("Preserved for bincompat", "0.23.12")
@@ -141,10 +145,18 @@ object RequestId {
   }
 
   object httpRoutes {
-    def apply[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](httpRoutes: HttpRoutes[F], F: Sync[F]): HttpRoutes[F] =
+      apply(httpRoutes)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(requestIdHeader)(httpRoutes)
 
-    def apply[F[_]: Sync](
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](headerName: CIString, httpRoutes: HttpRoutes[F], F: Sync[F]): HttpRoutes[F] =
+      apply(headerName)(httpRoutes)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](
         headerName: CIString
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(headerName)(httpRoutes)
