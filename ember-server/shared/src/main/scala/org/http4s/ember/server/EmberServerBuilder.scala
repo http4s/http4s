@@ -331,7 +331,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
   def default[F[_]](async: Async[F]): EmberServerBuilder[F] =
     default(async, Network.forAsync(async))
 
-  private object Defaults {
+  private[server] object Defaults {
     val host: String = server.defaults.IPv4Host
     val port: Int = server.defaults.HttpPort
 

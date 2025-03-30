@@ -25,6 +25,7 @@ import fs2.io.net.ConnectException
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.server.EmberServerBuilder.Defaults
 import org.http4s.h2.H2Keys.Http2PriorKnowledge
 import org.http4s.implicits._
 import org.http4s.server.Server
@@ -44,6 +45,8 @@ class EmberServerSuite extends Http4sSuite {
           Ok(req.body)
         case GET -> Root / "failed-stream" =>
           Ok(Stream.raiseError[IO](new RuntimeException("BOOM")).covaryOutput[String])
+        case POST -> Root / "ignored-body" / foo =>
+          Ok(s"$foo")
       }
       .orNotFound
   }
@@ -65,7 +68,7 @@ class EmberServerSuite extends Http4sSuite {
 
   private val client = ResourceFunFixture(EmberClientBuilder.default[IO].build)
 
-  private def server(receiveBufferSize: Int = 256 * 1024) = ResourceFunFixture(
+  private def server(receiveBufferSize: Int = Defaults.receiveBufferSize) = ResourceFunFixture(
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service)
@@ -74,7 +77,7 @@ class EmberServerSuite extends Http4sSuite {
       .build
   )
 
-  private def fixture(receiveBufferSize: Int = 256 * 1024) =
+  private def fixture(receiveBufferSize: Int = Defaults.receiveBufferSize) =
     (server(receiveBufferSize), client).mapN(FunFixture.map2(_, _))
 
   fixture().test("server responds to requests") { case (server, client) =>
@@ -193,4 +196,19 @@ class EmberServerSuite extends Http4sSuite {
     }
   }
 
+  fixture().test(
+    "#7655 — client shouldn't fail request processing when server ignores the request body"
+  ) { case (server, client) =>
+    def runReq[A: EntityEncoder[IO, *]](server: Server, entity: A) = {
+      val req =
+        Request[IO](Method.POST, uri = url(server.addressIp4s, "/ignored-body/what"))
+          .withEntity(entity)
+      client
+        .expect[String](req)
+        .timeout(1.second)
+        .assertEquals("what")
+    }
+
+    runReq(server, Array.fill(1024 * 1024)(42.toByte))
+  }
 }
