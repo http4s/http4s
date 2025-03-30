@@ -344,7 +344,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
         Resource
           .eval(
             unixSockets
-              .orElse(defaultUnixSockets)
+              .orElse(defaultUnixSockets[F])
               .liftTo(
                 new RuntimeException(
                   "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"

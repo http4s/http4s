@@ -38,6 +38,7 @@ import java.util.UUID
   * when the `X-Request-Id` header is unset.
   * https://devcenter.heroku.com/articles/http-request-id
   */
+@org.typelevel.scalaccompat.annotation.nowarn
 object RequestId {
 
   private[this] val requestIdHeader = ci"X-Request-ID"
