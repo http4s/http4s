@@ -209,6 +209,6 @@ class EmberServerSuite extends Http4sSuite {
         .assertEquals("what")
     }
 
-    runReq(server, Array.fill(1024 * 1024)(42.toByte))
+    runReq(server, Array.fill(10 * 1024 * 1024)(42.toByte))
   }
 }
