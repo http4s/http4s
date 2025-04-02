@@ -16,8 +16,6 @@
 
 package org.http4s
 
-import cats.effect.unsafe.IORuntime
-
 trait Http4sSuitePlatform { this: Http4sSuite =>
   // allow flaky tests on ci
   override def munitFlakyOK: Boolean = sys.env.contains("CI")
