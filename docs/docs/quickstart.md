@@ -46,7 +46,7 @@ $ sbt new http4s/http4s.g8 --branch 0.23
 $ sbt new http4s/http4s.g8 --branch 0.23-scala3
 ```
 
-Or instead with [mill]:
+Or instead with [Mill Build Tool]:
 
 ```sh
 # for Scala 2.x
@@ -109,7 +109,7 @@ that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
 $ sbt run
 ```
 
-Or with [mill]:
+Or with [Mill Build Tool]:
 
 ```sh
 $ mill run
@@ -152,4 +152,4 @@ a simple JSON service.
 [versions]: ../versions.md
 [sbt-revolver]: https://github.com/spray/sbt-revolver
 [integrations]: integrations.md
-[mill]: https://mill-build.org/mill/cli/installation-ide.html
+[Mill Build Tool]: https://mill-build.org/mill/cli/installation-ide.html
