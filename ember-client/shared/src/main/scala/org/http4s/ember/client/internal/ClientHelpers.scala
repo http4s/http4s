@@ -151,12 +151,32 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] = {
+      // Start monitoring for response in parallel with request transmission
+      val responseMonitor = connection.nextRead.get.flatMap(_.get).rethrow.timeout(idleTimeout).flatMap { firstRead =>
+        Parser.Response.parser(maxResponseHeaderSize, discardBody = true)(
+          firstRead,
+          timeoutMaybe(socket.read(chunkSize), idleTimeout),
+        ).map(_._1)
+      }
+
+      // Write request while monitoring for response
       Encoder
         .reqToBytes(req)
-        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+        .through(_.chunks.foreach(c => 
+          // Check for error response before writing each chunk
+          responseMonitor.flatMap { response =>
+            if (response.status.isError || response.headers.get[Connection].exists(_.hasClose)) {
+              // Server sent error or wants to close connection, stop sending
+              ApplicativeThrow[F].raiseError(new IOException("Server closed connection during request transmission"))
+            } else {
+              timeoutMaybe(socket.write(c), idleTimeout)
+            }
+          }
+        ))
         .compile
         .drain
+    }
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
       writeRequestToSocket(req, connection.keySocket.socket).productR {
