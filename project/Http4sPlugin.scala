@@ -102,14 +102,13 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.3"
     val caseInsensitive = "1.4.2"
     val cats = "2.11.0"
-    val catsEffect = "3.5.7"
+    val catsEffect = "3.6.1"
     val catsParse = "1.0.0"
     val circe = "0.14.8"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.6.0"
-    val epollcat = "0.1.6"
-    val fs2 = "3.11.0"
+    val fs2 = "3.12.0"
     val ip4s = "3.6.0"
     val hpack = "1.0.4"
     val javaWebSocket = "1.6.0"
@@ -122,7 +121,7 @@ object Http4sPlugin extends AutoPlugin {
     val log4cats = "2.7.0"
     val log4s = "1.10.0"
     val munit = "1.0.0"
-    val munitCatsEffect = "2.0.0"
+    val munitCatsEffect = "2.1.0"
     val munitDiscipline = "2.0.0-M3"
     val netty = "4.1.119.Final"
     val quasiquotes = "2.1.0"
@@ -158,7 +157,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val crypto = Def.setting("org.http4s" %%% "http4s-crypto" % V.crypto)
   lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
   lazy val disciplineCore = Def.setting("org.typelevel" %%% "discipline-core" % V.disciplineCore)
-  lazy val epollcat = Def.setting("com.armanbilge" %%% "epollcat" % V.epollcat)
   lazy val fs2Core = Def.setting("co.fs2" %%% "fs2-core" % V.fs2)
   lazy val fs2Io = Def.setting("co.fs2" %%% "fs2-io" % V.fs2)
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)

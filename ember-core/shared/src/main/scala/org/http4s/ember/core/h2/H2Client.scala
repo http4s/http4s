@@ -372,7 +372,7 @@ private[ember] object H2Client {
           (
             h2.runHttp2Only(req, enableEndpointValidation, enableServerNameIndication) <*
               Resource.eval(socketMap.update(s => s + (key -> Http2)))
-          ).handleErrorWith[org.http4s.Response[F], Throwable] {
+          ).handleErrorWith[org.http4s.Response[F]] {
             case InvalidSocketType() | MissingHost() | MissingPort() =>
               Resource.eval(socketMap.update(s => s + (key -> Http1))) >>
                 http1Client(req)
