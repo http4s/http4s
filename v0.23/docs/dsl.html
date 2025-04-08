@@ -389,7 +389,7 @@
       </span><span class="identifier">expires</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="identifier">now</span><span>), </span><span class="identifier">httpOnly</span><span> = </span><span class="boolean-literal">true</span><span>, </span><span class="identifier">secure</span><span> = </span><span class="boolean-literal">true</span><span>))
 }</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">cookieResp</span><span>.</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Tue, 08 Apr 2025 05:58:58 GMT; Secure; HttpOnly)</span></code></pre>
+</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Tue, 08 Apr 2025 08:22:31 GMT; Secure; HttpOnly)</span></code></pre>
         <p>To request a cookie to be removed on the client, you need to set the cookie value
         to empty. http4s can do that with <code>removeCookie</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">removeCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
@@ -497,11 +497,11 @@
   .</span><span class="identifier">compile</span><span>
   .</span><span class="identifier">drain</span><span>
 </span><span class="comment">// dripOutIO: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$$Lambda$20207/0x0000000804cc9840@50cb8cb2,
+//   body = cats.effect.IO$$$Lambda$20044/0x0000000804c94840@50cb8cb2,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span class="identifier">dripOutIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// 101717935 nanoseconds200842065 nanoseconds300852799 nanoseconds400779488 nanoseconds500929157 nanoseconds600805887 nanoseconds700871601 nanoseconds800819749 nanoseconds900786449 nanoseconds1000776546 nanoseconds</span></code></pre>
+</span><span class="comment">// 101742877 nanoseconds200635569 nanoseconds300743538 nanoseconds400577088 nanoseconds500866844 nanoseconds600855680 nanoseconds700688958 nanoseconds800651693 nanoseconds900601446 nanoseconds1000574268 nanoseconds</span></code></pre>
         <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
         <code>Stream</code> as they are emitted.  Note that a stream&#39;s length can&#39;t
         generally be anticipated before it runs, so this triggers chunked
@@ -687,7 +687,7 @@
       .</span><span class="identifier">map</span><span>(</span><span class="string-literal">s&quot;Average temperature for </span><span class="substitution">$country</span><span class="string-literal"> in </span><span class="substitution">$year</span><span class="string-literal"> was: &quot;</span><span> + </span><span class="identifier">_</span><span>))
 }
 </span><span class="comment">// averageTemperatureService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@5bfbac04
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@5bfbac04
 // )</span></code></pre>
         <p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
         outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
@@ -711,7 +711,7 @@
       </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Showing no clouds on the weather map.&quot;</span><span>)
 }
 </span><span class="comment">// serviceWithFlags: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@14d37483
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@14d37483
 // )</span></code></pre>
         <p>Please note that you have to use the same syntax as with the other query parameters (i.e. <code>MyFlag(value)</code>) in the routes definition.</p>
         
@@ -738,7 +738,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@57aeed46
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@57aeed46
 // )</span></code></pre>
         
         <h4 id="optional-multiple-query-paramters" class="section"><a class="anchor-link left" href="#optional-multiple-query-paramters"><i class="icofont-laika link">&#xef71;</i></a>Optional Multiple Query Paramters</h4>
@@ -760,7 +760,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@64242b98
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@64242b98
 // )</span></code></pre>
         
         <h4 id="missing-required-query-parameters" class="section"><a class="anchor-link left" href="#missing-required-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Missing Required Query Parameters</h4>
@@ -785,7 +785,7 @@
     )
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@cd5b48e
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@cd5b48e
 // )</span></code></pre>
         
         <h4 id="optional-invalid-query-parameter-handling" class="section"><a class="anchor-link left" href="#optional-invalid-query-parameter-handling"><i class="icofont-laika link">&#xef71;</i></a>Optional Invalid Query Parameter Handling</h4>
@@ -808,7 +808,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$19719/0x0000000804a37840@28488a67
+//   run = org.http4s.HttpRoutes$$$Lambda$19556/0x00000008049ff840@28488a67
 // )</span></code></pre>
 
         
