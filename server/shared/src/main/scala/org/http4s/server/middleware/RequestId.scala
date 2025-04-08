@@ -20,9 +20,9 @@ package server
 package middleware
 
 import cats.FlatMap
+import cats.Monad
 import cats.arrow.FunctionK
 import cats.data.Kleisli
-import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.effect.SyncIO
@@ -44,53 +44,100 @@ object RequestId {
 
   val requestIdAttrKey: Key[String] = Key.newKey[SyncIO, String].unsafeRunSync()
 
-  def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
+  @deprecated("Preserved for bincompat", "0.23.31")
+  def apply[G[_], F[_]](http: Http[G, F], G: Sync[G]): Http[G, F] =
+    apply(requestIdHeader)(http)(G, UUIDGen.fromSync(G))
+
+  def apply[G[_]: Monad: UUIDGen, F[_]](http: Http[G, F]): Http[G, F] =
     apply(requestIdHeader)(http)
 
   @deprecated("Preserved for bincompat", "0.23.12")
   def apply[G[_], F[_]](headerName: CIString, http: Http[G, F], G: Sync[G]): Http[G, F] =
     apply(headerName)(http)(G, UUIDGen.fromSync(G))
 
+  @deprecated("Preserved for bincompat", "0.23.31")
   def apply[G[_], F[_]](
+      headerName: CIString,
+      http: Http[G, F],
+      G: Sync[G],
+      gen: UUIDGen[G],
+  ): Http[G, F] =
+    apply(headerName)(http)(G, gen)
+
+  def apply[G[_]: Monad: UUIDGen, F[_]](
       headerName: CIString
-  )(http: Http[G, F])(implicit G: Sync[G], gen: UUIDGen[G]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
-      for {
-        header <- req.headers.get(headerName).map(_.head) match {
-          case None => UUIDGen.randomString[G].map(Header.Raw(headerName, _))
-          case Some(header) => G.pure(header)
-        }
-        reqId = header.value
-        response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
-      } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
+  )(http: Http[G, F]): Http[G, F] =
+    apply(headerName, UUIDGen.randomUUID[G])(http)
+
+  @deprecated("Preserved for bincompat", "0.23.31")
+  def apply[G[_], F[_]](
+      fk: F ~> G,
+      headerName: CIString,
+      genReqId: F[UUID],
+      http: Http[G, F],
+      G: FlatMap[G],
+      F: Sync[F],
+  ): Http[G, F] = {
+    implicit val monadForG: Monad[G] = new Monad[G] {
+      def pure[A](a: A): G[A] = fk(F.pure(a))
+
+      def flatMap[A, B](fa: G[A])(f: A => G[B]): G[B] = G.flatMap(fa)(f)
+
+      def tailRecM[A, B](a: A)(f: A => G[Either[A, B]]): G[B] =
+        G.tailRecM(a)(f)
     }
 
-  def apply[G[_], F[_]](
+    apply(headerName, fk(genReqId))(http)
+  }
+
+  def apply[G[_]: Monad, F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
       genReqId: F[UUID],
-  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
+  )(http: Http[G, F]): Http[G, F] =
+    apply(headerName, fk(genReqId))(http)
+
+  def apply[G[_], F[_]](headerName: CIString, genReqId: G[UUID])(
+      http: Http[G, F]
+  )(implicit G: Monad[G]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
-        header <- fk(req.headers.get(headerName) match {
-          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-          case Some(NonEmptyList(header, _)) => F.pure(header)
-        })
+        header <- req.headers
+          .get(headerName)
+          .map(_.head)
+          .fold(genReqId.map(reqId => Header.Raw(headerName, reqId.show)))(G.pure)
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
       } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
     }
 
   object httpApp {
-    def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](httpApp: HttpApp[F], F: Sync[F]): HttpApp[F] =
+      apply(httpApp)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(requestIdHeader)(httpApp)
 
-    def apply[F[_]: Sync](
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](headerName: CIString, httpApp: HttpApp[F], F: Sync[F]): HttpApp[F] =
+      apply(headerName)(httpApp)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](
         headerName: CIString
     )(httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(headerName)(httpApp)
 
-    def apply[F[_]: Sync](
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](
+        headerName: CIString,
+        genReqId: F[UUID],
+        httpApp: HttpApp[F],
+        F: Sync[F],
+    ): HttpApp[F] =
+      apply(headerName, genReqId)(httpApp)(F)
+
+    def apply[F[_]: Monad](
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID],
     )(httpApp: HttpApp[F]): HttpApp[F] =
@@ -98,15 +145,32 @@ object RequestId {
   }
 
   object httpRoutes {
-    def apply[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](httpRoutes: HttpRoutes[F], F: Sync[F]): HttpRoutes[F] =
+      apply(httpRoutes)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(requestIdHeader)(httpRoutes)
 
-    def apply[F[_]: Sync](
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](headerName: CIString, httpRoutes: HttpRoutes[F], F: Sync[F]): HttpRoutes[F] =
+      apply(headerName)(httpRoutes)(F, UUIDGen.fromSync(F))
+
+    def apply[F[_]: Monad: UUIDGen](
         headerName: CIString
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(headerName)(httpRoutes)
 
-    def apply[F[_]: Sync](
+    @deprecated("Preserved for bincompat", "0.23.31")
+    def apply[F[_]](
+        headerName: CIString,
+        genReqId: F[UUID],
+        httpRoutes: HttpRoutes[F],
+        F: Sync[F],
+    ): HttpRoutes[F] =
+      apply(headerName, genReqId)(httpRoutes)(F)
+
+    def apply[F[_]: Monad](
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID],
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
