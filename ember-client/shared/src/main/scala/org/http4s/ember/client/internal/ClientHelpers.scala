@@ -37,6 +37,7 @@ import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
+import org.http4s.ember.client.internal.ClientHelpers.RetryLogic._
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
@@ -153,7 +154,7 @@ private[client] object ClientHelpers {
         socket.isOpen.flatMap {
           case true =>
             socket.write(c).adaptError {
-              case e: IOException if e.getMessage == "Broken pipe" =>
+              case e: IOException if isRetryableIOException(e) =>
                 new ClosedChannelException
             }
           case false =>
@@ -305,11 +306,14 @@ private[client] object ClientHelpers {
       result match {
         case Right(_) => false
         case Left(_: ClosedChannelException) => true
-        case Left(ex: IOException) =>
-          val msg = ex.getMessage()
-          msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
+        case Left(ex: IOException) => isRetryableIOException(ex)
         case _ => false
       }
+
+    def isRetryableIOException(ex: IOException): Boolean = {
+      val msg = ex.getMessage
+      msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
+    }
   }
 
   private case class MissingOrInvalidHost(host: String)
