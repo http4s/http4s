@@ -16,12 +16,7 @@
 
 package org.http4s
 
-import cats.effect.unsafe.IORuntime
-import epollcat.unsafe.EpollRuntime
-
 trait Http4sSuitePlatform { this: Http4sSuite =>
-  override def munitIORuntime: IORuntime = EpollRuntime.global
-
   // allow flaky tests on ci
   override def munitFlakyOK: Boolean = sys.env.contains("CI")
 }
