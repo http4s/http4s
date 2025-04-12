@@ -199,16 +199,15 @@ class EmberServerSuite extends Http4sSuite {
   fixture().test(
     "#7655 — client shouldn't fail request processing when server ignores the request body"
   ) { case (server, client) =>
-    def runReq[A: EntityEncoder[IO, *]](server: Server, entity: A) = {
-      val req =
-        Request[IO](Method.POST, uri = url(server.addressIp4s, "/ignored-body/what"))
-          .withEntity(entity)
-      client
-        .expect[String](req)
-        .timeout(1.second)
-        .assertEquals("what")
-    }
+    val req =
+      Request[IO](
+        Method.POST,
+        uri = url(server.addressIp4s, "/ignored-body/hello"),
+        body = fs2.Stream.constant(42.toByte),
+      )
 
-    runReq(server, Array.fill(10 * 1024 * 1024)(42.toByte))
+    client
+      .expect[String](req)
+      .assertEquals("hello")
   }
 }

@@ -16,10 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import _root_.fs2.io.net.tls._
-import _root_.org.http4s.ember.core.Encoder
-import _root_.org.http4s.ember.core.Parser
-import _root_.org.http4s.ember.core.Util._
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Async
@@ -36,15 +32,16 @@ import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import fs2.io.ClosedChannelException
 import fs2.io.net._
+import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
-import org.http4s.ember.core.EmberException
-import org.http4s.ember.core.Util
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
+import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Util}
+import org.http4s.ember.core.Util._
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
@@ -151,15 +148,31 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] = {
+      def wrt(c: fs2.Chunk[Byte]): F[Unit] =
+        socket.isOpen.flatMap {
+          case true =>
+            socket.write(c).adaptError {
+              case e: IOException if e.getMessage == "Broken pipe" =>
+                new ClosedChannelException
+            }
+          case false =>
+            Async[F].raiseError(new ClosedChannelException)
+        }
+
       Encoder
         .reqToBytes(req)
-        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+        .through(_.chunks.foreach(c => timeoutMaybe(wrt(c), idleTimeout)))
         .compile
         .drain
+        .handleErrorWith {
+          case _: ClosedChannelException => Async[F].unit
+          case err => Async[F].raiseError(err)
+        }
+    }
 
-    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket).productR {
+    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] = {
+      def read: F[(Response[F], Drain[F])] = {
         val parse = (
           // leftover bytes from last request
           connection.nextBytes.getAndSet(Array.emptyByteArray),
@@ -184,6 +197,15 @@ private[client] object ClientHelpers {
           ),
         )
       }
+
+      writeRequestToSocket(req, connection.keySocket.socket).attempt
+        .flatMap {
+          case Right(_) =>
+            read
+          case Left(err) =>
+            Async[F].raiseError(err)
+        }
+    }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
