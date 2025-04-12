@@ -38,11 +38,15 @@ import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
 import org.http4s.ember.client.internal.ClientHelpers.RetryLogic._
+import org.http4s.ember.core.Drain
+import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
+import org.http4s.ember.core.Util
+import org.http4s.ember.core.Util._
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
-import org.http4s.ember.core.{Drain, EmberException, Encoder, Parser, Util}
-import org.http4s.ember.core.Util._
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
