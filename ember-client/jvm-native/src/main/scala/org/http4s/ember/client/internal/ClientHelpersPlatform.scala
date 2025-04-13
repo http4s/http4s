@@ -20,11 +20,11 @@ import fs2.io.IOException
 
 private[client] trait ClientHelpersPlatform {
 
-  private[this] lazy val retryableExceptionMsgs =
+  private[this] lazy val closedChannelIOExceptions =
     Set("Broken pipe", "Connection reset", "Connection reset by peer")
 
-  private[client] def isRetryableIOException(ex: Exception): Boolean = ex match {
-    case _: IOException => retryableExceptionMsgs.contains(ex.getMessage)
+  private[client] def isClosedChannelException(ex: Exception): Boolean = ex match {
+    case _: IOException => closedChannelIOExceptions.contains(ex.getMessage)
     case _ => false
   }
 }

@@ -22,17 +22,17 @@ import scala.scalajs.js.JavaScriptException
 
 private[client] trait ClientHelpersPlatform {
 
-  private[this] val retryableFs2IOExceptions =
+  private[this] val closedChannelIOExceptions =
     Set("Broken pipe", "Connection reset", "Connection reset by peer")
 
-  private[this] val retryableJsExceptions =
+  private[this] val closedChannelJsExceptions =
     Set("ECONNRESET", "EPIPE")
 
-  private[client] def isRetryableIOException(ex: Exception): Boolean = ex match {
+  private[client] def isClosedChannelException(ex: Exception): Boolean = ex match {
     case jsEx: JavaScriptException =>
-      retryableJsExceptions.exists(jsEx.getMessage.contains)
+      closedChannelJsExceptions.exists(jsEx.getMessage.contains)
     case ioEx: IOException =>
-      retryableFs2IOExceptions.exists(ioEx.getMessage.contains)
+      closedChannelIOExceptions.exists(ioEx.getMessage.contains)
     case _ =>
       false
   }

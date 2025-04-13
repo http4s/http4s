@@ -157,7 +157,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
         socket.isOpen.flatMap {
           case true =>
             socket.write(c).adaptError {
-              case e: IOException if isRetryableIOException(e) =>
+              case e: Exception if isClosedChannelException(e) =>
                 new ClosedChannelException
             }
           case false =>
@@ -303,7 +303,7 @@ private[client] object ClientHelpers extends ClientHelpersPlatform {
       result match {
         case Right(_) => false
         case Left(_: ClosedChannelException) => true
-        case Left(ex: IOException) => isRetryableIOException(ex)
+        case Left(ex: IOException) => isClosedChannelException(ex)
         case _ => false
       }
   }
