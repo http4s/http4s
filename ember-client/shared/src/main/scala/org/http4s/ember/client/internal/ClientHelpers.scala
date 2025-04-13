@@ -30,7 +30,6 @@ import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
-import fs2.io.ClosedChannelException
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
@@ -51,6 +50,7 @@ import org.typelevel.ci._
 import org.typelevel.keypool._
 
 import java.io.IOException
+import java.nio.channels.ClosedChannelException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
@@ -170,10 +170,6 @@ private[client] object ClientHelpers {
         .through(_.chunks.foreach(c => timeoutMaybe(wrt(c), idleTimeout)))
         .compile
         .drain
-        .handleErrorWith {
-          case _: ClosedChannelException => Async[F].unit
-          case err => Async[F].raiseError(err)
-        }
     }
 
     def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] = {
@@ -205,10 +201,8 @@ private[client] object ClientHelpers {
 
       writeRequestToSocket(req, connection.keySocket.socket).attempt
         .flatMap {
-          case Right(_) =>
-            read
-          case Left(err) =>
-            Async[F].raiseError(err)
+          case Left(_: ClosedChannelException) | Right(_) => read
+          case Left(err) => Async[F].raiseError(err)
         }
     }
 
