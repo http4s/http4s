@@ -30,13 +30,14 @@ import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import fs2.io.ClosedChannelException
+import fs2.io.IOException
 import fs2.io.net._
 import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
-import org.http4s.ember.client.internal.ClientHelpers.RetryLogic._
 import org.http4s.ember.core.Drain
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.core.Encoder
@@ -49,11 +50,9 @@ import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
-import java.io.IOException
-import java.nio.channels.ClosedChannelException
 import scala.concurrent.duration._
 
-private[client] object ClientHelpers {
+private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: MonadThrow](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
@@ -307,11 +306,6 @@ private[client] object ClientHelpers {
         case Left(ex: IOException) => isRetryableIOException(ex)
         case _ => false
       }
-
-    def isRetryableIOException(ex: IOException): Boolean = {
-      val msg = ex.getMessage
-      msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
-    }
   }
 
   private case class MissingOrInvalidHost(host: String)
