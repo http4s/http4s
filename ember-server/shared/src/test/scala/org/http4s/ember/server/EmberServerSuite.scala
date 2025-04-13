@@ -199,6 +199,11 @@ class EmberServerSuite extends Http4sSuite {
   fixture().test(
     "#7655 — client shouldn't fail request processing when server ignores the request body"
   ) { case (server, client) =>
+    assume(
+      Platform.isJvm || Platform.isNative,
+      "Currently, the mentioned behaviour is only supported on JVM/Native",
+    )
+
     val req =
       Request[IO](
         Method.POST,
