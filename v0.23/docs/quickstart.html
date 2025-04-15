@@ -243,6 +243,9 @@ $ sbt new http4s/http4s.g8 --branch 0.23
 
 # for Scala 3
 $ sbt new http4s/http4s.g8 --branch 0.23-scala3</code></pre>
+        <p>Or instead with <a href="https://mill-build.org/mill/cli/installation-ide.html">Mill Build Tool</a>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="comment"># for Scala 2.x
+</span><span>$ mill -i init http4s/http4s.g</span><span class="number-literal">8</span><span> --branch </span><span class="number-literal">0.23</span><span>-mill</span></code></pre>
         <p>Follow the prompts.  For every step along the way, a default value is
         provided in brackets.</p>
         <p><code>name</code>
@@ -279,6 +282,8 @@ $ find src/main -name </span><span class="string-literal">&#39;*.scala&#39;</spa
         <p><code>QuickStartRoutes</code> has two <code>route</code> definitions. The <code>helloWorldRoutes</code> containing a simple <code>HttpRoutes</code>
         that responds to <code>GET/hello/$USERNAME</code> with a JSON greeting.  Let&#39;s try it:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>$ sbt run</span></code></pre>
+        <p>Or with <a href="https://mill-build.org/mill/cli/installation-ide.html">Mill Build Tool</a>:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>$ mill run</span></code></pre>
         <p>Depending on the state of your Ivy cache, several dependencies will
         download.  This is a good time to grab a beverage.  When you come
         back, you should see a line similar to this:</p>
