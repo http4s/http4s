@@ -22,12 +22,7 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
     WorkflowStep.Use(
       UseRef.Public("cachix", "install-nix-action", "v27"),
       name = Some("Install Nix"),
-    ),
-    WorkflowStep.Use(
-      UseRef.Public("cachix", "cachix-action", "v15"),
-      name = Some("Install Cachix"),
-      params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
-    ),
+    )
   ) ++ steps
 }
 
