@@ -55,12 +55,6 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
 
-      - name: Install Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: http4s
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -155,12 +149,6 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
 
-      - name: Install Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: http4s
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -243,12 +231,6 @@ jobs:
     steps:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
-
-      - name: Install Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: http4s
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
@@ -340,12 +322,6 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
 
-      - name: Install Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: http4s
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
         with:
@@ -408,12 +384,6 @@ jobs:
     steps:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
-
-      - name: Install Cachix
-        uses: cachix/cachix-action@v15
-        with:
-          name: http4s
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
