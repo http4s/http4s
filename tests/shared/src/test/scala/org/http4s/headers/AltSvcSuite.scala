@@ -1,0 +1,56 @@
+package org.http4s.headers
+
+import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId}
+import org.http4s.headers.`Alt-Svc`.{AltAuthority, AltService, Value}
+import org.http4s.headers.`Alt-Svc`.Value.{AltValue, Clear}
+import org.http4s.implicits.http4sSelectSyntaxOne
+import org.typelevel.ci.CIStringSyntax
+
+class AltSvcSuite extends HeaderLaws {
+
+  //checkAll("Alt-Svc", headerLaws[`Alt-Svc`])
+
+  test("`Alt-Svc` parses `Clear") {
+    assertEquals(`Alt-Svc`.fromString("Clear"), Right(`Alt-Svc`(Clear)))
+  }
+
+  test("`Alt-Svc` renders `Clear`") {
+    assertEquals(
+      `Alt-Svc`(Value.Clear).renderString,
+      "Alt-Svc: clear"
+    )
+  }
+
+  test("`Alt-Svc` renders alternative service") {
+    assertEquals(
+      `Alt-Svc`(AltValue(AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true))).renderString,
+      """Alt-Svc: h2=":8080"; ma=120; persist=1"""
+    )
+  }
+
+  test("`Alt-Svc` renders multiple services") {
+    assertEquals(
+      `Alt-Svc`(
+        AltValue(
+          AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true),
+          AltService(`Alt-Svc`.`http/1.1`, AltAuthority(ci"mydomain.com".some, 8081), 230L.some),
+          AltService(`Alt-Svc`.`h3-25`, AltAuthority(ci"anotherhost.com".some, 8083)),
+        )
+      ).renderString,
+      """Alt-Svc: h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083""""
+    )
+  }
+
+  test("`Alt-Svc` parsers multiple services") {
+    assertEquals(
+      `Alt-Svc`.fromString("""h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083""""),
+      `Alt-Svc`(
+        AltValue(
+          AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true),
+          AltService(`Alt-Svc`.`http/1.1`, AltAuthority(ci"mydomain.com".some, 8081), 230L.some),
+          AltService(`Alt-Svc`.`h3-25`, AltAuthority(ci"anotherhost.com".some, 8083))
+        )
+      ).asRight[Throwable]
+    )
+  }
+}
