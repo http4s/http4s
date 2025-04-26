@@ -3,7 +3,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits.catsSyntaxOptionId
-import cats.parse.{Parser, Parser0, Rfc5234}
+import cats.parse.{Parser, Parser0}
 import org.http4s.Header
 import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.internal.parsing.Rfc3986
@@ -29,7 +29,7 @@ import scala.util.Try
  * limitations under the License.
  */
 
-case class `Alt-Svc`(alternatives: `Alt-Svc`.Value)
+final case class `Alt-Svc`(alternatives: `Alt-Svc`.Value)
 
 object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
@@ -69,9 +69,9 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   }
 
   sealed trait ProtocolId
-  case object `http/1.1` extends ProtocolId
-  case object `h2` extends ProtocolId
-  case object `h3-25` extends ProtocolId
+  final case object `http/1.1` extends ProtocolId
+  final case object `h2` extends ProtocolId
+  final case object `h3-25` extends ProtocolId
   object ProtocolId {
     private[`Alt-Svc`] val parser: Parser[ProtocolId] = Parser.oneOf(
       Parser.string("http/1.1").map(_ => `http/1.1`) ::
@@ -85,8 +85,8 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   sealed trait Value
   object Value {
     /** All alternative services of the origin are invalidated. */
-    case object Clear extends Value
-    case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
+    final case object Clear extends Value
+    final case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
     object AltValue {
       def apply(altService: AltService, altServices: AltService*): AltValue =
         AltValue(NonEmptyList.of(altService, altServices *))
