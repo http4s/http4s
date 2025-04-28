@@ -16,6 +16,9 @@
 [Eckerd College](https://www.eckerd.edu/)
 : Uses http4s for several of its internal services.
 
+[Famly ApS](https://www.famly.co/)
+: Uses http4s for several services.
+
 [Formation](https://www.formation.ai/)
 : Uses the client internally
 
