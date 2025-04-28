@@ -28,13 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-<<<<<<< HEAD
-        os: [ubuntu-latest]
-        scala: [3, 2.13]
-=======
         os: [ubuntu-22.04]
-        scala: [3, 2.12, 2.13]
->>>>>>> series/0.23
+        scala: [3, 2.13]
         java: [temurin@8, temurin@11, temurin@17]
         project: [rootJS, rootJVM, rootNative]
         exclude:
