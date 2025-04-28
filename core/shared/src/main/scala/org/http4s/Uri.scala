@@ -830,8 +830,16 @@ object Uri extends UriPlatform {
           )
       }
 
-    def fromShorts(a: Short, b: Short, c: Short, d: Short, e: Short, f: Short, g: Short, h: Short)
-        : Ipv6Address = {
+    def fromShorts(
+        a: Short,
+        b: Short,
+        c: Short,
+        d: Short,
+        e: Short,
+        f: Short,
+        g: Short,
+        h: Short,
+    ): Ipv6Address = {
       val bb = ByteBuffer.allocate(16)
       bb.putShort(a)
       bb.putShort(b)
