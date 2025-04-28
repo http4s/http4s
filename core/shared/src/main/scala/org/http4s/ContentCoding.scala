@@ -74,7 +74,7 @@ object ContentCoding {
   def fromString(coding: String): ParseResult[ContentCoding] =
     parse(coding)
 
-  val `*` : ContentCoding = new ContentCoding("*")
+  val `*`: ContentCoding = new ContentCoding("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
   val aes128gcm = new ContentCoding("aes128gcm")

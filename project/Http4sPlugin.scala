@@ -24,9 +24,9 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.15"
+  val scala_213 = "2.13.16"
 
-  val scala_3 = "3.3.4"
+  val scala_3 = "3.3.5"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -100,17 +100,16 @@ object Http4sPlugin extends AutoPlugin {
     val blaze = "0.15.3"
     val caseInsensitive = "1.4.2"
     val cats = "2.11.0"
-    val catsEffect = "3.5.7"
+    val catsEffect = "3.6.1"
     val catsParse = "1.0.0"
     val circe = "0.14.8"
     val crypto = "0.2.4"
     val cryptobits = "1.3"
     val disciplineCore = "1.6.0"
-    val epollcat = "0.1.6"
-    val fs2 = "3.11.0"
-    val ip4s = "3.6.0"
+    val fs2 = "3.12.0"
+    val ip4s = "3.7.0"
     val hpack = "1.0.4"
-    val javaWebSocket = "1.5.7"
+    val javaWebSocket = "1.6.0"
     val jawn = "1.5.1"
     val jawnFs2 = "2.4.0"
     val jnrUnixSocket = "0.38.23"
@@ -119,9 +118,9 @@ object Http4sPlugin extends AutoPlugin {
     val logback = "1.2.6"
     val log4cats = "2.7.0"
     val munit = "1.0.0"
-    val munitCatsEffect = "2.0.0"
+    val munitCatsEffect = "2.1.0"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.1.115.Final"
+    val netty = "4.2.0.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
@@ -155,7 +154,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val crypto = Def.setting("org.http4s" %%% "http4s-crypto" % V.crypto)
   lazy val cryptobits = "org.reactormonk" %% "cryptobits" % V.cryptobits
   lazy val disciplineCore = Def.setting("org.typelevel" %%% "discipline-core" % V.disciplineCore)
-  lazy val epollcat = Def.setting("com.armanbilge" %%% "epollcat" % V.epollcat)
   lazy val fs2Core = Def.setting("co.fs2" %%% "fs2-core" % V.fs2)
   lazy val fs2Io = Def.setting("co.fs2" %%% "fs2-io" % V.fs2)
   lazy val ip4sCore = Def.setting("com.comcast" %%% "ip4s-core" % V.ip4s)

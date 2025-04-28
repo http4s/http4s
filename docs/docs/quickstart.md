@@ -39,6 +39,13 @@ $ sbt new http4s/http4s.g8 --branch 1.0
 $ sbt new http4s/http4s.g8 --branch 1.0-scala3
 ```
 
+Or instead with [Mill Build Tool]:
+
+```sh
+# for Scala 2.x
+$ mill -i init http4s/http4s.g8 --branch 0.23-mill
+```
+
 Follow the prompts.  For every step along the way, a default value is
 provided in brackets.
 
@@ -95,6 +102,12 @@ that responds to `GET/hello/$USERNAME` with a JSON greeting.  Let's try it:
 $ sbt run
 ```
 
+Or with [Mill Build Tool]:
+
+```sh
+$ mill run
+```
+
 Depending on the state of your Ivy cache, several dependencies will
 download.  This is a good time to grab a beverage.  When you come
 back, you should see a line similar to this:
@@ -132,3 +145,4 @@ a simple JSON service.
 [versions]: ../versions.md
 [sbt-revolver]: https://github.com/spray/sbt-revolver
 [integrations]: integrations.md
+[Mill Build Tool]: https://mill-build.org/mill/cli/installation-ide.html

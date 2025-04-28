@@ -165,8 +165,7 @@ package object server {
 
   def inDefaultServiceErrorHandler[F[_]: LoggerFactory, G[_]](implicit
       F: Functor[F]
-  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
-    req => {
+  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
       case mf: MessageFailure =>
         messageFailureLogger
           .debug(mf)(
