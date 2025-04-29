@@ -117,7 +117,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
   implicit val altAuthorityRendered: Renderer[AltAuthority] = new Renderer[AltAuthority] {
     override def render(writer: Writer, t: AltAuthority): writer.type =
-      writer << ci"\"" << t.host.getOrElse(ci"") << ci":" << t.port << ci"\""
+      writer << CIString("\"") << t.host.getOrElse(ci"") << ci":" << t.port << CIString("\"")
   }
 
   implicit val altServiceRendered: Renderer[AltService] = new Renderer[AltService] {
