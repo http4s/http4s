@@ -24,7 +24,7 @@ import org.typelevel.ci.CIStringSyntax
 
 class AltSvcSuite extends HeaderLaws {
 
-  //checkAll("Alt-Svc", headerLaws[`Alt-Svc`])
+  // checkAll("Alt-Svc", headerLaws[`Alt-Svc`])
 
   test("`Alt-Svc` parses `Clear") {
     assertEquals(`Alt-Svc`.fromString("Clear"), Right(`Alt-Svc`(Clear)))
@@ -33,14 +33,16 @@ class AltSvcSuite extends HeaderLaws {
   test("`Alt-Svc` renders `Clear`") {
     assertEquals(
       `Alt-Svc`(Value.Clear).renderString,
-      "Alt-Svc: clear"
+      "Alt-Svc: clear",
     )
   }
 
   test("`Alt-Svc` renders alternative service") {
     assertEquals(
-      `Alt-Svc`(AltValue(AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true))).renderString,
-      """Alt-Svc: h2=":8080"; ma=120; persist=1"""
+      `Alt-Svc`(
+        AltValue(AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true))
+      ).renderString,
+      """Alt-Svc: h2=":8080"; ma=120; persist=1""",
     )
   }
 
@@ -53,20 +55,22 @@ class AltSvcSuite extends HeaderLaws {
           AltService(`Alt-Svc`.`h3-25`, AltAuthority(ci"anotherhost.com".some, 8083)),
         )
       ).renderString,
-      """Alt-Svc: h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083""""
+      """Alt-Svc: h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083"""",
     )
   }
 
   test("`Alt-Svc` parsers multiple services") {
     assertEquals(
-      `Alt-Svc`.fromString("""h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083""""),
+      `Alt-Svc`.fromString(
+        """h2=":8080"; ma=120; persist=1, http/1.1="mydomain.com:8081"; ma=230, h3-25="anotherhost.com:8083""""
+      ),
       `Alt-Svc`(
         AltValue(
           AltService(`Alt-Svc`.`h2`, AltAuthority(None, 8080), 120L.some, persist = true),
           AltService(`Alt-Svc`.`http/1.1`, AltAuthority(ci"mydomain.com".some, 8081), 230L.some),
-          AltService(`Alt-Svc`.`h3-25`, AltAuthority(ci"anotherhost.com".some, 8083))
+          AltService(`Alt-Svc`.`h3-25`, AltAuthority(ci"anotherhost.com".some, 8083)),
         )
-      ).asRight[Throwable]
+      ).asRight[Throwable],
     )
   }
 }
