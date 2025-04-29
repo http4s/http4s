@@ -1,18 +1,3 @@
-package org.http4s
-package headers
-
-import cats.data.NonEmptyList
-import cats.implicits.catsSyntaxOptionId
-import cats.parse.{Parser, Parser0, Rfc5234}
-import org.http4s.Header
-import org.http4s.headers.`Alt-Svc`.Value.Clear
-import org.http4s.internal.parsing.Rfc3986
-import org.http4s.parser.AdditionalRules
-import org.http4s.util.{Renderer, Writer}
-import org.typelevel.ci.{CIString, CIStringSyntax}
-
-import scala.util.Try
-
 /*
  * Copyright 2013 http4s.org
  *
@@ -28,6 +13,21 @@ import scala.util.Try
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.http4s
+package headers
+
+import cats.data.NonEmptyList
+import cats.implicits.catsSyntaxOptionId
+import cats.parse.{Parser, Parser0, Rfc5234}
+import org.http4s.Header
+import org.http4s.headers.`Alt-Svc`.Value.Clear
+import org.http4s.internal.parsing.Rfc3986
+import org.http4s.parser.AdditionalRules
+import org.http4s.util.{Renderer, Writer}
+import org.typelevel.ci.{CIString, CIStringSyntax}
+
+import scala.util.Try
 
 case class `Alt-Svc`(alternatives: `Alt-Svc`.Value)
 
