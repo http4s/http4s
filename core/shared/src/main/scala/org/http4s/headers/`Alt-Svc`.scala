@@ -19,8 +19,7 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits.catsSyntaxOptionId
-import cats.parse.{Parser, Parser0, Rfc5234}
-import org.http4s.Header
+import cats.parse.{Parser, Parser0}
 import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.AdditionalRules
