@@ -38,7 +38,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   def fromString(header: String): ParseResult[`Alt-Svc`] =
     ParseResult.fromParser(parser, s"Cannot parse `Alt-Svc` header from $header")(header)
 
-  final case class AltAuthority private(host: Option[CIString], port: Int )
+  final case class AltAuthority private (host: Option[CIString], port: Int)
   object AltAuthority {
     private[`Alt-Svc`] val parser: Parser0[AltAuthority] = {
       val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
@@ -46,23 +46,34 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
       }
 
       (Uri.Parser.host.? ~ port).map { case (host, port) =>
-        AltAuthority(host.map(v => CIString(v.value)).flatMap(c => if (c.isEmpty) None else c.some), port)
+        AltAuthority(
+          host.map(v => CIString(v.value)).flatMap(c => if (c.isEmpty) None else c.some),
+          port,
+        )
       }
     }
     def fromString(authority: String): ParseResult[AltAuthority] =
       ParseResult.fromParser(parser, s"Cannot parse authority from $authority")(authority)
   }
-  final case class AltService(protocolId: ProtocolId, authority: AltAuthority, maxAge: Option[Long] = None, persist: Boolean = false)
+  final case class AltService(
+      protocolId: ProtocolId,
+      authority: AltAuthority,
+      maxAge: Option[Long] = None,
+      persist: Boolean = false,
+  )
   object AltService {
     private[`Alt-Svc`] val parser: Parser[AltService] =
-      ( (ProtocolId.parser <* Parser.string("=")) ~
+      ((ProtocolId.parser <* Parser.string("=")) ~
         AltAuthority.parser.surroundedBy(Parser.char('"')) ~
         (
           Parser.ignoreCase(";") ~ Parser.char(' ').rep0 ~ Parser.ignoreCase("ma=") *>
             AdditionalRules.NonNegativeLong
-          ).? ~
-         (Parser.char(';') ~ Parser.char(' ').rep0 *> Parser.ignoreCase("persist=1")).?.map(_.isDefined)
-        ).map{ case (((protocol, authority), ma), persist) =>  AltService(protocol, authority, ma, persist) }
+        ).? ~
+        (Parser.char(';') ~ Parser.char(' ').rep0 *> Parser.ignoreCase("persist=1")).?.map(
+          _.isDefined
+        )).map { case (((protocol, authority), ma), persist) =>
+        AltService(protocol, authority, ma, persist)
+      }
 
     def fromString(altService: String): ParseResult[AltService] =
       ParseResult.fromParser(parser, s"Cannot parse altService from $altService")(altService)
@@ -75,8 +86,8 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   object ProtocolId {
     private[`Alt-Svc`] val parser: Parser[ProtocolId] = Parser.oneOf(
       Parser.string("http/1.1").map(_ => `http/1.1`) ::
-      Parser.string("h2").map(_ => `h2`) ::
-      Parser.string("h3-25").map(_ => `h3-25`) :: Nil
+        Parser.string("h2").map(_ => `h2`) ::
+        Parser.string("h3-25").map(_ => `h3-25`) :: Nil
     )
     def fromString(protocol: String): ParseResult[ProtocolId] =
       ParseResult.fromParser(parser, s"Cannot parse protocol $protocol")(protocol)
@@ -84,6 +95,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
   sealed trait Value
   object Value {
+
     /** All alternative services of the origin are invalidated. */
     case object Clear extends Value
     case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
@@ -95,13 +107,13 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
   implicit val protocolRenderer: Renderer[ProtocolId] = new Renderer[ProtocolId] {
     override def render(writer: Writer, t: ProtocolId): writer.type =
-       writer << {
-         t match {
-           case `http/1.1` => ci"http/1.1"
-           case `h2` => ci"h2"
-           case `h3-25` => ci"h3-25"
-         }
-       }
+      writer << {
+        t match {
+          case `http/1.1` => ci"http/1.1"
+          case `h2` => ci"h2"
+          case `h3-25` => ci"h3-25"
+        }
+      }
   }
 
   implicit val altAuthorityRendered: Renderer[AltAuthority] = new Renderer[AltAuthority] {
@@ -111,7 +123,9 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
   implicit val altServiceRendered: Renderer[AltService] = new Renderer[AltService] {
     override def render(writer: Writer, t: AltService): writer.type =
-      writer << t.protocolId << ci"=" << t.authority << t.maxAge.map(a => ci"; ma=$a").getOrElse(ci"") << {
+      writer << t.protocolId << ci"=" << t.authority << t.maxAge
+        .map(a => ci"; ma=$a")
+        .getOrElse(ci"") << {
         if (t.persist) ci"; persist=1" else ci""
       }
   }
@@ -121,26 +135,26 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
       t match {
         case Value.Clear => writer << "clear"
         case Value.AltValue(alternatives) =>
-          alternatives.foldLeft((writer, 1)){ case ((w, ind), svc) =>
-            (w << svc << {if (ind < alternatives.size) ", " else ""}, ind + 1)
+          alternatives.foldLeft((writer, 1)) { case ((w, ind), svc) =>
+            (w << svc << { if (ind < alternatives.size) ", " else "" }, ind + 1)
           }
           writer
       }
   }
 
-  implicit val headerInstance: Header[`Alt-Svc`, Header.Single] = {
+  implicit val headerInstance: Header[`Alt-Svc`, Header.Single] =
     Header.createRendered(
       ci"Alt-Svc",
       _.alternatives,
-      parse
+      parse,
     )
-  }
 
   override private[http4s] val parser: Parser0[`Alt-Svc`] =
     Parser.oneOf(
       Parser.ignoreCase("Clear").map(_ => `Alt-Svc`(Clear)) ::
-       Parser.repSep(AltService.parser, Parser.char(',') ~ Parser.char(' ').rep0)
-        .map(svcs => `Alt-Svc`(Value.AltValue(svcs))) ::
-      Nil
+        Parser
+          .repSep(AltService.parser, Parser.char(',') ~ Parser.char(' ').rep0)
+          .map(svcs => `Alt-Svc`(Value.AltValue(svcs))) ::
+        Nil
     )
 }
