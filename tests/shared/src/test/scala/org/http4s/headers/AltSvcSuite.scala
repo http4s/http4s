@@ -18,14 +18,13 @@ package org.http4s.headers
 
 import cats.implicits.catsSyntaxEitherId
 import cats.implicits.catsSyntaxOptionId
+import org.http4s.headers.`Alt-Svc`.AltAuthority
 import org.http4s.headers.`Alt-Svc`.AltService
 import org.http4s.headers.`Alt-Svc`.Value
 import org.http4s.headers.`Alt-Svc`.Value.AltValue
 import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.implicits.http4sSelectSyntaxOne
 import org.typelevel.ci.CIStringSyntax
-
-import org.http4s.headers.`Alt-Svc`.AltAuthority
 
 class AltSvcSuite extends HeaderLaws {
 
