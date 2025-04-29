@@ -19,16 +19,19 @@ package headers
 
 import cats.data.NonEmptyList
 import cats.implicits.catsSyntaxOptionId
-import cats.parse.{Parser, Parser0}
+import cats.parse.Parser
+import cats.parse.Parser0
 import org.http4s.headers.`Alt-Svc`.Value.Clear
 import org.http4s.internal.parsing.Rfc3986
 import org.http4s.parser.AdditionalRules
-import org.http4s.util.{Renderer, Writer}
-import org.typelevel.ci.{CIString, CIStringSyntax}
+import org.http4s.util.Renderer
+import org.http4s.util.Writer
+import org.typelevel.ci.CIString
+import org.typelevel.ci.CIStringSyntax
 
 import scala.util.Try
 
-case class `Alt-Svc`(alternatives: `Alt-Svc`.Value)
+final case class `Alt-Svc`(alternatives: `Alt-Svc`.Value)
 
 object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
@@ -37,7 +40,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
   def fromString(header: String): ParseResult[`Alt-Svc`] =
     ParseResult.fromParser(parser, s"Cannot parse `Alt-Svc` header from $header")(header)
 
-  final case class AltAuthority private (host: Option[CIString], port: Int)
+  final case class AltAuthority(host: Option[CIString], port: Int)
   object AltAuthority {
     private[`Alt-Svc`] val parser: Parser0[AltAuthority] = {
       val port = Parser.string(":") *> Rfc3986.digit.rep.string.mapFilter { s =>
@@ -97,7 +100,7 @@ object `Alt-Svc` extends HeaderCompanion[`Alt-Svc`]("Alt-Svc") {
 
     /** All alternative services of the origin are invalidated. */
     case object Clear extends Value
-    case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
+    final case class AltValue(alternatives: NonEmptyList[AltService]) extends Value
     object AltValue {
       def apply(altService: AltService, altServices: AltService*): AltValue =
         AltValue(NonEmptyList.of(altService, altServices *))
