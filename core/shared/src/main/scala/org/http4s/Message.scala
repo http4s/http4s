@@ -633,8 +633,9 @@ object Request {
       * this may cause, which may consume large amounts of memory to cache a request that streams a
       * large amount of data.
       */
-    def asCurlWithBody(redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains)(
-        implicit
+    def asCurlWithBody(
+        redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains
+    )(implicit
         concurrent: Concurrent[F],
         defaultCharset: Charset = Charset.`UTF-8`,
     ): F[(String, Request[F])] =

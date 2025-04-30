@@ -121,7 +121,7 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
     s"Invalid message body: $details"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion): Response[F] =
-    Response(Status.UnprocessableEntity, httpVersion)
+    Response(Status.UnprocessableContent, httpVersion)
       .withEntity(s"The request body was invalid.")
 }
 

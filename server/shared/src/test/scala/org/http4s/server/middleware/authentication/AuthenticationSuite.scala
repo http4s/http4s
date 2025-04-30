@@ -288,10 +288,10 @@ class AuthenticationSuite extends Http4sSuite {
                 res <- doDigestAuth2(digestAuthService.orNotFound, challenge, withReplay = false)
                   .map(_._1)
               } yield
-              // We don't check whether res.status is Ok since it may not
-              // be due to the low nonce stale timer.  Instead, we check
-              // that it's found.
-              assertNotEquals(res.status, NotFound)
+                // We don't check whether res.status is Ok since it may not
+                // be due to the low nonce stale timer.  Instead, we check
+                // that it's found.
+                assertNotEquals(res.status, NotFound)
             )
             .toList
           results.parSequence

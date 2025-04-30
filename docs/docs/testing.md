@@ -3,7 +3,7 @@
 This document implements a simple `org.http4s.HttpRoutes` and then
 walks through the results (i.e. `org.http4s.Response`) of applying inputs (i.e. `org.http4s.Request`) to it.
 
-After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.
+After reading this doc, the reader should feel comfortable writing a unit test using their favorite Scala testing library.
 
 Now, let's define an `org.http4s.HttpRoutes`.
 
@@ -153,4 +153,3 @@ To add unit tests in your chosen Scala Testing Framework, please follow the abov
 * [Ross Baker's NEScala 2018 Presentation](https://rossabaker.github.io/boston-http4s/#2)
 * [Kleisli](https://typelevel.org/cats/datatypes/kleisli.html)
 * [OptionT](https://typelevel.org/cats/datatypes/optiont.html)
-
