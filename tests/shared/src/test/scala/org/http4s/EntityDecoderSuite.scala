@@ -205,7 +205,7 @@ class EntityDecoderSuite extends Http4sSuite {
       .map(_.toHttpResponse[IO](HttpVersion.`HTTP/1.1`))
       .map(_.status)
       .value
-      .assertEquals(Right(Status.UnprocessableEntity))
+      .assertEquals(Right(Status.UnprocessableContent))
   }
 
   test("Not match invalid media type") {

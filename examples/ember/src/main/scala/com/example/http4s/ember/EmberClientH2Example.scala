@@ -36,9 +36,8 @@ object EmberClientH2Example extends IOApp {
         Sync[F].delay(println(s"Push Promise: $req")) >>
           fResp
             .flatMap(resp =>
-              resp.bodyText.compile.string.flatMap(_ =>
-                Sync[F].delay(println(s"Push Promise Resp:($req, $resp)"))
-              )
+              resp.bodyText.compile.string
+                .flatMap(_ => Sync[F].delay(println(s"Push Promise Resp:($req, $resp)")))
             )
             .as(Outcome.succeeded(Applicative[F].unit))
     }

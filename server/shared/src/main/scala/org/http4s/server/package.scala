@@ -165,30 +165,29 @@ package object server {
 
   def inDefaultServiceErrorHandler[F[_]: LoggerFactory, G[_]](implicit
       F: Functor[F]
-  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] =
-    req => {
-      case mf: MessageFailure =>
-        messageFailureLogger
-          .debug(mf)(
-            s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
+  ): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
+    case mf: MessageFailure =>
+      messageFailureLogger
+        .debug(mf)(
+          s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+              .getOrElse("<unknown>")}"""
+        )
+        .as(mf.toHttpResponse[G](req.httpVersion))
+    case NonFatal(t) =>
+      serviceErrorLogger
+        .error(t)(
+          s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
+              .getOrElse("<unknown>")}"""
+        )
+        .as(
+          Response(
+            Status.InternalServerError,
+            req.httpVersion,
+            Headers(
+              Connection.close,
+              `Content-Length`.zero,
+            ),
           )
-          .as(mf.toHttpResponse[G](req.httpVersion))
-      case NonFatal(t) =>
-        serviceErrorLogger
-          .error(t)(
-            s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr
-                .getOrElse("<unknown>")}"""
-          )
-          .as(
-            Response(
-              Status.InternalServerError,
-              req.httpVersion,
-              Headers(
-                Connection.close,
-                `Content-Length`.zero,
-              ),
-            )
-          )
-    }
+        )
+  }
 }

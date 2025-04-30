@@ -26,7 +26,7 @@ import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel._
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.handler.codec.http._
@@ -100,16 +100,18 @@ private[http4s] object NettyTestServer {
     } yield new NettyTestServer(establishedConnections, localAddress, secure = sslContext.isDefined)
   }
 
-  private def nioEventLoopGroup[F[_]](implicit F: Async[F]): Resource[F, NioEventLoopGroup] =
+  private def nioEventLoopGroup[F[_]](implicit
+      F: Async[F]
+  ): Resource[F, MultiThreadIoEventLoopGroup] =
     Resource.make(
-      F.delay(new NioEventLoopGroup())
+      F.delay(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()))
     )(el => F.delay(el.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS)).liftToF)
 
   private def server[F[_]](bootstrap: ServerBootstrap, port: Int)(implicit
       F: Async[F]
   ): Resource[F, Channel] =
     Resource.make[F, Channel](
-      F.delay(bootstrap.bind(InetAddress.getLoopbackAddress(), port)).liftToFWithChannel
+      F.delay(bootstrap.bind(InetAddress.getLoopbackAddress, port)).liftToFWithChannel
     )(channel => F.delay(channel.close(new DefaultChannelPromise(channel))).liftToF)
 
   private def toSocketAddress(

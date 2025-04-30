@@ -19,12 +19,10 @@ package org.http4s
 package server
 package middleware
 
-import cats.FlatMap
+import cats.Monad
 import cats.arrow.FunctionK
 import cats.data.Kleisli
-import cats.data.NonEmptyList
 import cats.data.OptionT
-import cats.effect.Sync
 import cats.effect.SyncIO
 import cats.effect.std.UUIDGen
 import cats.syntax.all._
@@ -44,49 +42,45 @@ object RequestId {
 
   val requestIdAttrKey: Key[String] = Key.newKey[SyncIO, String].unsafeRunSync()
 
-  def apply[G[_], F[_]](http: Http[G, F])(implicit G: Sync[G]): Http[G, F] =
+  def apply[G[_]: Monad: UUIDGen, F[_]](http: Http[G, F]): Http[G, F] =
     apply(requestIdHeader)(http)
 
-  def apply[G[_], F[_]](
+  def apply[G[_]: Monad: UUIDGen, F[_]](
       headerName: CIString
-  )(http: Http[G, F])(implicit G: Sync[G], gen: UUIDGen[G]): Http[G, F] =
-    Kleisli[G, Request[F], Response[F]] { req =>
-      for {
-        header <- req.headers.get(headerName).map(_.head) match {
-          case None => UUIDGen.randomString[G].map(Header.Raw(headerName, _))
-          case Some(header) => G.pure(header)
-        }
-        reqId = header.value
-        response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
-      } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
-    }
+  )(http: Http[G, F]): Http[G, F] =
+    apply(headerName, UUIDGen.randomUUID[G])(http)
 
-  def apply[G[_], F[_]](
+  def apply[G[_]: Monad, F[_]](
       fk: F ~> G,
       headerName: CIString = requestIdHeader,
       genReqId: F[UUID],
-  )(http: Http[G, F])(implicit G: FlatMap[G], F: Sync[F]): Http[G, F] =
+  )(http: Http[G, F]): Http[G, F] =
+    apply(headerName, fk(genReqId))(http)
+
+  def apply[G[_], F[_]](headerName: CIString, genReqId: G[UUID])(
+      http: Http[G, F]
+  )(implicit G: Monad[G]): Http[G, F] =
     Kleisli[G, Request[F], Response[F]] { req =>
       for {
-        header <- fk(req.headers.get(headerName) match {
-          case None => genReqId.map(reqId => Header.Raw(headerName, reqId.show))
-          case Some(NonEmptyList(header, _)) => F.pure(header)
-        })
+        header <- req.headers
+          .get(headerName)
+          .map(_.head)
+          .fold(genReqId.map(reqId => Header.Raw(headerName, reqId.show)))(G.pure)
         reqId = header.value
         response <- http(req.withAttribute(requestIdAttrKey, reqId).putHeaders(header))
       } yield response.withAttribute(requestIdAttrKey, reqId).putHeaders(header)
     }
 
   object httpApp {
-    def apply[F[_]: Sync](httpApp: HttpApp[F]): HttpApp[F] =
+    def apply[F[_]: Monad: UUIDGen](httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(requestIdHeader)(httpApp)
 
-    def apply[F[_]: Sync](
+    def apply[F[_]: Monad: UUIDGen](
         headerName: CIString
     )(httpApp: HttpApp[F]): HttpApp[F] =
       RequestId.apply(headerName)(httpApp)
 
-    def apply[F[_]: Sync](
+    def apply[F[_]: Monad](
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID],
     )(httpApp: HttpApp[F]): HttpApp[F] =
@@ -94,15 +88,15 @@ object RequestId {
   }
 
   object httpRoutes {
-    def apply[F[_]: Sync](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    def apply[F[_]: Monad: UUIDGen](httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(requestIdHeader)(httpRoutes)
 
-    def apply[F[_]: Sync](
+    def apply[F[_]: Monad: UUIDGen](
         headerName: CIString
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
       RequestId.apply(headerName)(httpRoutes)
 
-    def apply[F[_]: Sync](
+    def apply[F[_]: Monad](
         headerName: CIString = requestIdHeader,
         genReqId: F[UUID],
     )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
