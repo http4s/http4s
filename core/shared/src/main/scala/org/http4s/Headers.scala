@@ -42,6 +42,16 @@ final class Headers(val headers: List[Header.Raw]) extends AnyVal {
   def get[A](implicit ev: Header.Select[A]): Option[ev.F[A]] =
     ev.from(headers).flatMap(_.toOption)
 
+  /** Attempt to parse a (potentially repeating) header from this collection of headers.
+    *
+    * @return a scala.Either possibly containing the resulting header or a [[ParseFailure]].
+    */
+  def parse[A](implicit ev: Header.Select[A]): Either[ParseFailure, ev.F[A]] =
+    ev.from(headers)
+      .fold(
+        ParseFailure("Header not found.", s"Given headers: $headers").asLeft[ev.F[A]]
+      )(_.leftMap(_.head).toEither)
+
   /** Attempt to get a (potentially repeating) header and/or any parse errors from this collection of headers.
     *
     * @return a scala.Option possibly containing the resulting (potentially repeating) header
