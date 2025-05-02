@@ -19,11 +19,12 @@ package org.http4s.ember.client
 import cats._
 import cats.effect._
 import cats.syntax.all._
+import com.comcast.ip4s.UnixSocketAddress
 import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket._
+import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.ProductId
 import org.http4s.Request
 import org.http4s.Response
@@ -42,7 +43,6 @@ import scala.concurrent.duration._
 
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
-    private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
     val maxPerKey: RequestKey => Int,
     val idleTimeInPool: Duration,
@@ -56,7 +56,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     val checkEndpointIdentification: Boolean,
     val serverNameIndication: Boolean,
     val retryPolicy: RetryPolicy[F],
-    private val unixSockets: Option[UnixSockets[F]],
     private val enableHttp2: Boolean,
     private val pushPromiseSupport: Option[
       (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
@@ -65,7 +64,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
 
   private def copy(
       tlsContextOpt: Option[TLSContext[F]] = self.tlsContextOpt,
-      sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       maxTotal: Int = self.maxTotal,
       maxPerKey: RequestKey => Int = self.maxPerKey,
       idleTimeInPool: Duration = self.idleTimeInPool,
@@ -79,7 +77,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       checkEndpointIdentification: Boolean = self.checkEndpointIdentification,
       serverNameIndication: Boolean = self.serverNameIndication,
       retryPolicy: RetryPolicy[F] = self.retryPolicy,
-      unixSockets: Option[UnixSockets[F]] = self.unixSockets,
       enableHttp2: Boolean = self.enableHttp2,
       pushPromiseSupport: Option[
         (Request[fs2.Pure], F[Response[F]]) => F[Outcome[F, Throwable, Unit]]
@@ -87,7 +84,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   ): EmberClientBuilder[F] =
     new EmberClientBuilder[F](
       tlsContextOpt = tlsContextOpt,
-      sgOpt = sgOpt,
       maxTotal = maxTotal,
       maxPerKey = maxPerKey,
       idleTimeInPool = idleTimeInPool,
@@ -101,7 +97,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
       checkEndpointIdentification = checkEndpointIdentification,
       serverNameIndication = serverNameIndication,
       retryPolicy = retryPolicy,
-      unixSockets = unixSockets,
       enableHttp2 = enableHttp2,
       pushPromiseSupport = pushPromiseSupport,
     )
@@ -116,7 +111,8 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
   /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
-  def withSocketGroup(sg: SocketGroup[F]): EmberClientBuilder[F] = copy(sgOpt = sg.some)
+  @deprecated("Explicit socket groups are no longer supported", "0.23.next")
+  def withSocketGroup(sg: SocketGroup[F]): EmberClientBuilder[F] = this
 
   /** Sets the connection pool's total maximum number of idle connections.
     * Per `RequestKey` values set with `withMaxPerKey` cannot override this total maximum.
@@ -200,8 +196,9 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     * Useful for secure and efficient inter-process communication.
     * See also `UnixSocket` client middleware to direct all requests to a `UnixSocketAddress`.
     */
+  @deprecated("No longer needed", "0.23.next")
   def withUnixSockets(unixSockets: UnixSockets[F]): EmberClientBuilder[F] =
-    copy(unixSockets = Some(unixSockets))
+    this
 
   /** Enables HTTP/2 support. Disabled by default. */
   def withHttp2: EmberClientBuilder[F] = copy(enableHttp2 = true)
@@ -248,7 +245,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def build: Resource[F, Client[F]] =
     for {
       _ <- Resource.eval(verifyTimeoutRelations)
-      sg <- Resource.pure(sgOpt.getOrElse(Network[F]))
       tlsContextOptWithDefault <-
         tlsContextOpt
           .fold(Network[F].tlsContext.systemResource.attempt.map(_.toOption))(
@@ -264,7 +260,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
                   tlsContextOptWithDefault,
                   checkEndpointIdentification,
                   serverNameIndication,
-                  sg,
                   additionalSocketOptions,
                 ),
               chunkSize,
@@ -286,7 +281,6 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
         H2Client.impl[F](
           pushPromiseSupport.getOrElse { case (_, _) => Applicative[F].pure(Outcome.canceled) },
           context,
-          unixSockets,
           logger,
           if (pushPromiseSupport.isDefined) default
           else
@@ -341,29 +335,17 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           enableEndpointValidation: Boolean,
           enableServerNameIndication: Boolean,
       ): Resource[F, Response[F]] =
-        Resource
-          .eval(
-            unixSockets
-              .orElse(defaultUnixSockets)
-              .liftTo(
-                new RuntimeException(
-                  "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
-                )
-              )
-          )
-          .flatMap(unixSockets =>
-            EmberConnection(
-              ClientHelpers.unixSocket(
-                request,
-                unixSockets,
-                address,
-                tlsContextOpt,
-                enableEndpointValidation,
-                enableServerNameIndication,
-              ),
-              chunkSize,
-            )
-          )
+        EmberConnection(
+          ClientHelpers.unixSocket(
+            request,
+            address,
+            tlsContextOpt,
+            enableEndpointValidation,
+            enableServerNameIndication,
+            Nil,
+          ),
+          chunkSize,
+        )
           .flatMap(connection =>
             Resource.eval(
               ClientHelpers
@@ -381,7 +363,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
           )
       val client = Client[F] { request =>
         request.attributes
-          .lookup(Request.Keys.UnixSocketAddress)
+          .lookup(Request.Keys.ForcedUnixSocketAddress)
           .fold(webClient(request))(
             unixSocketClient(request, _, checkEndpointIdentification, serverNameIndication)
           )
@@ -401,7 +383,6 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
   def default[F[_]: Async: Network] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
-      sgOpt = None,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
@@ -415,7 +396,6 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       checkEndpointIdentification = true,
       serverNameIndication = true,
       retryPolicy = Defaults.retryPolicy,
-      unixSockets = None,
       enableHttp2 = false,
       pushPromiseSupport = None,
     )

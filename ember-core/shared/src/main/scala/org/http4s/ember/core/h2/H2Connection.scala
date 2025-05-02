@@ -22,11 +22,11 @@ import cats.effect.kernel.Outcome
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.UnixSocketAddress
 import fs2._
 import fs2.concurrent.Channel
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
-import fs2.io.net.unixsocket.UnixSocketAddress
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 

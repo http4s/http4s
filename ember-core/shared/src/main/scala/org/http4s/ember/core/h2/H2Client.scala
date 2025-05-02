@@ -24,8 +24,6 @@ import com.comcast.ip4s._
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
@@ -69,8 +67,6 @@ Connection
 
  */
 private[ember] class H2Client[F[_]](
-    sg: SocketGroup[F],
-    unix: Option[UnixSockets[F]],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
     connections: Ref[
@@ -82,7 +78,7 @@ private[ember] class H2Client[F[_]](
         F[org.http4s.Response[F]],
     ) => F[Outcome[F, Throwable, Unit]],
     logger: Logger[F],
-)(implicit F: Async[F]) {
+)(implicit F: Async[F], F2: Network[F]) {
   import org.http4s._
   import H2Client._
 
@@ -147,14 +143,8 @@ private[ember] class H2Client[F[_]](
     address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- address match {
       case Left(address) =>
-        unix
-          .liftTo[Resource[F, *]](
-            new RuntimeException(
-              "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
-            )
-          )
-          .flatMap(_.client(address))
-      case Right(address) => sg.client(address)
+        Network[F].connect(address)
+      case Right(address) => Network[F].connect(address)
     }
     socket <- {
       if (useTLS) {
@@ -329,7 +319,6 @@ private[ember] object H2Client {
           F[org.http4s.Response[F]],
       ) => F[Outcome[F, Throwable, Unit]],
       tlsContext: TLSContext[F],
-      unixSockets: Option[UnixSockets[F]],
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
@@ -359,7 +348,7 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
+      h2 = new H2Client(settings, tlsContext, mapH2, onPushPromise, logger)
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
@@ -398,7 +387,7 @@ private[ember] object H2Client {
     def fromRequest[F[_]](request: Request[F]): RequestKey = {
       val uri = request.uri
       val authOrAddr = request.attributes
-        .lookup(Request.Keys.UnixSocketAddress)
+        .lookup(Request.Keys.ForcedUnixSocketAddress)
         .toLeft(uri.authority.getOrElse(Authority()))
       RequestKey(uri.scheme.getOrElse(Scheme.http), authOrAddr)
     }

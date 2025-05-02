@@ -23,10 +23,10 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
+import com.comcast.ip4s.UnixSocketAddress
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
-import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.typelevel.ci._
 import org.typelevel.log4cats.Logger

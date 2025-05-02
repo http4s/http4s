@@ -17,13 +17,21 @@
 package org.http4s.client.middleware
 
 import cats.effect.kernel.MonadCancelThrow
+import com.comcast.ip4s.UnixSocketAddress
+import fs2.io.net.unixsocket.{UnixSocketAddress => DeprecatedUnixSocketAddress}
 import org.http4s.Request
 import org.http4s.client.Client
 
-/** Middleware to direct all requests to the provided `UnixSocketAddress` */
+/** Middleware to direct all requests to the provided `UnixSocketAddress`. */
 object UnixSocket {
-  def apply[F[_]: MonadCancelThrow](address: fs2.io.net.unixsocket.UnixSocketAddress)(
+  @deprecated("Use overload that takes a com.comcast.ip4s.UnixSocketAddress", "0.23.next")
+  def apply[F[_]: MonadCancelThrow](address: DeprecatedUnixSocketAddress)(
       client: Client[F]
   ): Client[F] =
-    Client(req => client.run(req.withAttribute(Request.Keys.UnixSocketAddress, address)))
+    apply(UnixSocketAddress(address.path))(client)
+
+  def apply[F[_]: MonadCancelThrow](address: UnixSocketAddress)(
+      client: Client[F]
+  ): Client[F] =
+    Client(req => client.run(req.withAttribute(Request.Keys.ForcedUnixSocketAddress, address)))
 }
