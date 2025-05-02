@@ -159,7 +159,7 @@ private[h2] class H2Connection[F[_]](
         }
         state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
           socket.write(Chunk.byteVector(bv)) >>
-            chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
+          chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
       } else {
         val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
           case None => (chunk, Chunk.empty[H2Frame])
@@ -169,10 +169,10 @@ private[h2] class H2Connection[F[_]](
         val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-          socket.write(Chunk.byteVector(bv)) >>
-            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
-            s.writeBlock.get.rethrow >>
-            go(after)
+        socket.write(Chunk.byteVector(bv)) >>
+          nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
+          s.writeBlock.get.rethrow >>
+          go(after)
       }
     }
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
