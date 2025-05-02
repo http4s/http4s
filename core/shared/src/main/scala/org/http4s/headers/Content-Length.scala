@@ -27,17 +27,19 @@ import org.typelevel.ci._
   *
   * @param length the length
   */
-final case class `Content-Length`(length: Long) {
-  def modify(f: Long => Long): Option[`Content-Length`] =
-    `Content-Length`.fromLong(f(length)).toOption
+final case class `Content-Length`(length: NonNegative) {
+  // def modify(f: Long => Long): Option[`Content-Length`] =
+  //   `Content-Length`.fromLong(f(length)).toOption
 }
 
 object `Content-Length` {
-  val zero: `Content-Length` = apply(0)
+  val zero: `Content-Length` = apply(NonNegative.zero)
 
   def fromLong(length: Long): ParseResult[`Content-Length`] =
-    if (length >= 0L) ParseResult.success(apply(length))
-    else ParseResult.fail("Invalid Content-Length", length.toString)
+  NonNegative.fromLong(length) match {
+    case Some(nn) => ParseResult.success(`Content-Length`(nn))
+    case None => ParseResult.fail("Invalid Content-Length", length.toString)
+  }
 
   def unsafeFromLong(length: Long): `Content-Length` =
     fromLong(length).fold(throw _, identity)
@@ -52,7 +54,7 @@ object `Content-Length` {
   implicit val headerInstance: Header[`Content-Length`, Header.Single] =
     Header.createRendered(
       name,
-      _.length,
+      _.length.toString,
       parse,
     )
 
