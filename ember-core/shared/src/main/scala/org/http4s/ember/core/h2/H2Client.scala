@@ -201,7 +201,7 @@ private[ember] class H2Client[F[_]](
         created <- cats.effect.std.Queue.unbounded[F, Int]
         closed <- cats.effect.std.Queue.unbounded[F, Int]
       } yield new H2Connection(
-        socketAdd,
+        socketAdd.merge,
         H2Connection.ConnectionType.Client,
         localSettings,
         ref,

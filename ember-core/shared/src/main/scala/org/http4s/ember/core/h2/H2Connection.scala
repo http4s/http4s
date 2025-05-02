@@ -20,20 +20,17 @@ import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
 import cats.syntax.all._
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.SocketAddress
-import com.comcast.ip4s.UnixSocketAddress
+import com.comcast.ip4s.GenSocketAddress
 import fs2._
 import fs2.concurrent.Channel
 import fs2.io.net.Socket
-import fs2.io.net.SocketException
 import org.typelevel.log4cats.Logger
 import scodec.bits._
 
 import H2Frame.Settings.SettingsInitialWindowSize
 
 private[h2] class H2Connection[F[_]](
-    address: Either[UnixSocketAddress, SocketAddress[Host]],
+    address: GenSocketAddress,
     connectionType: H2Connection.ConnectionType,
     localSettings: H2Frame.Settings.ConnectionSettings,
     val mapRef: Ref[F, Map[Int, H2Stream[F]]],
@@ -51,7 +48,7 @@ private[h2] class H2Connection[F[_]](
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
 
-  private[this] def addrStr = address.fold(_.toString, _.toString)
+  private[this] def addrStr = address.toString
 
   def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
@@ -161,11 +158,8 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
-          socket.isOpen.ifM(
-            socket.write(Chunk.byteVector(bv)) >>
-              chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-            new SocketException("Socket closed when attempting to write").raiseError,
-          )
+          socket.write(Chunk.byteVector(bv)) >>
+            chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
       } else {
         val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
           case None => (chunk, Chunk.empty[H2Frame])
@@ -175,13 +169,10 @@ private[h2] class H2Connection[F[_]](
         val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        socket.isOpen.ifM(
           socket.write(Chunk.byteVector(bv)) >>
-            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-          new SocketException("Socket closed when attempting to write").raiseError,
-        ) >>
-          s.writeBlock.get.rethrow >>
-          go(after)
+            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
+            s.writeBlock.get.rethrow >>
+            go(after)
       }
     }
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>

@@ -23,7 +23,6 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
-import com.comcast.ip4s.UnixSocketAddress
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
@@ -195,10 +194,6 @@ private[ember] object H2Server {
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
     def initH2Connection: F[H2Connection[F]] = for {
-      address <- socket.remoteAddress.attempt.map(
-        // TODO, only used for logging
-        _.leftMap(_ => UnixSocketAddress("unknown.sock"))
-      )
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,
@@ -213,7 +208,7 @@ private[ember] object H2Server {
       created <- cats.effect.std.Queue.unbounded[F, Int]
       closed <- cats.effect.std.Queue.unbounded[F, Int]
     } yield new H2Connection(
-      address,
+      socket.peerAddress,
       H2Connection.ConnectionType.Server,
       localSettings,
       ref,
