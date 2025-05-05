@@ -26,8 +26,8 @@ import fs2.io.net.Network
 import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.{UnixSocketAddress => OldUnixSocketAddress}
 import fs2.io.net.unixsocket.UnixSockets
+import fs2.io.net.unixsocket.{UnixSocketAddress => OldUnixSocketAddress}
 import org.http4s._
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.server.internal.ServerHelpers
