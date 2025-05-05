@@ -650,7 +650,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
-      ProblemFilters.exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"
+      ),
     ),
   )
   .jvmSettings(
