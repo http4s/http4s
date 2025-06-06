@@ -28,7 +28,7 @@ object `Transfer-Encoding` {
   def apply(head: TransferCoding, tail: TransferCoding*): `Transfer-Encoding` =
     apply(NonEmptyList(head, tail.toList))
 
-  val name = ci"Transfer-Encoding"
+  val name: CIString = ci"Transfer-Encoding"
 
   def parse(s: String): ParseResult[`Transfer-Encoding`] =
     ParseResult.fromParser(parser, "Invalid Transfer-Encoding header")(s)
