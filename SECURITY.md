@@ -8,8 +8,8 @@ We are currently providing security updates to the following versions:
 | ------- | ------------------ |
 | 1.0.x   | :white_check_mark: |
 | 0.23.x  | :white_check_mark: |
-| 0.22.x  | :white_check_mark: |
-| 0.21.x  | :white_check_mark: |
+| 0.22.x  | :x: |
+| 0.21.x  | :x: |
 | 0.20.x  | :x: |
 | 0.19.x  | :x: |
 | 0.18.x  | :x: |
