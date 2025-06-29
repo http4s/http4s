@@ -22,7 +22,6 @@
             jdk.package = jdk;
             nodejs.enable = true;
             native.enable = true;
-            nodejs.package = pkgs.nodejs-18_x;
             native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl ];
           };
         };

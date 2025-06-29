@@ -28,7 +28,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val scala_213 = "2.13.16"
   val scala_212 = "2.12.20"
-  val scala_3 = "3.3.5"
+  val scala_3 = "3.3.6"
 
   override lazy val globalSettings = Seq(
     isCi := githubIsWorkflowBuild.value
@@ -118,12 +118,12 @@ object Http4sPlugin extends AutoPlugin {
     val keypool = "0.4.10"
     val literally = "1.1.0"
     val logback = "1.2.6"
-    val log4cats = "2.7.0"
+    val log4cats = "2.7.1"
     val log4s = "1.10.0"
     val munit = "1.0.0"
     val munitCatsEffect = "2.1.0"
     val munitDiscipline = "2.0.0-M3"
-    val netty = "4.2.0.Final"
+    val netty = "4.2.2.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.17.1"
     val scalacheckEffect = "2.0.0-M2"
