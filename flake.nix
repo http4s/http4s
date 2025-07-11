@@ -24,6 +24,10 @@
             native.enable = true;
             native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl pkgs.pkg-config ];
           };
+          env = [{
+            name = "PKG_CONFIG_PATH";
+            value ="${pkgs.openssl.dev}/lib/pkgconfig";
+          }];
         };
       in
       rec {
