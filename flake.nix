@@ -22,7 +22,7 @@
             jdk.package = jdk;
             nodejs.enable = true;
             native.enable = true;
-            native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl ];
+            native.libraries = [ pkgs.zlib pkgs.s2n-tls pkgs.openssl pkgs.pkg-config ];
           };
         };
       in
