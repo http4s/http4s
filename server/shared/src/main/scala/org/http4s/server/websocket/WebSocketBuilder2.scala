@@ -18,18 +18,24 @@ package org.http4s
 package server.websocket
 
 import cats.Applicative
-import cats.effect.kernel.Unique
+import cats.Functor
+import cats.effect.kernel._
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import cats.~>
 import fs2.Pipe
 import fs2.Stream
-import org.http4s.websocket.WebSocket
-import org.http4s.websocket.WebSocketCombinedPipe
-import org.http4s.websocket.WebSocketContext
-import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrameDefragmenter.defragFragment
-import org.http4s.websocket.WebSocketSeparatePipe
+import org.http4s.websocket._
 import org.typelevel.vault.Key
+
+import scala.concurrent.duration.FiniteDuration
+
+private case class AutoPing[F[_]](
+    every: FiniteDuration,
+    frame: WebSocketFrame.Ping,
+    temporal: Temporal[F],
+)
 
 /** Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
@@ -44,6 +50,8 @@ import org.typelevel.vault.Key
   *                    To prevent WebSocketBuilder2 from handling defrag, you must explicitly call withDefragment(false).
   *                    For more information on defrag processing, see the WebSocketFrameDefragmenter comment.
   *                    default: true
+  * @param autoPing If `Some`, send the given Websocket `Ping` frame at the given interval.
+  *                    If `None`, do not automatically send pings.
   */
 sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     headers: Headers,
@@ -53,8 +61,31 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs: Boolean,
     defragFrame: Boolean,
     private[http4s] val webSocketKey: Key[WebSocketContext[F]],
+    autoPing: Option[AutoPing[F]],
 ) {
   import WebSocketBuilder2.impl
+  import WebSocketBuilder2.TemporalOps
+
+  // required for binary compatibility
+  def this(
+      headers: Headers,
+      onNonWebSocketRequest: F[Response[F]],
+      onHandshakeFailure: F[Response[F]],
+      onClose: F[Unit],
+      filterPingPongs: Boolean,
+      defragFrame: Boolean,
+      webSocketKey: Key[WebSocketContext[F]],
+  ) =
+    this(
+      headers,
+      onNonWebSocketRequest,
+      onHandshakeFailure,
+      onClose,
+      filterPingPongs,
+      defragFrame,
+      webSocketKey,
+      None,
+    )
 
   @deprecated(
     "Kept for binary compatiblity. Use the constructor that includes `defragFrame` as an argument",
@@ -76,6 +107,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs = filterPingPongs,
       defragFrame = false,
       webSocketKey = webSocketKey,
+      autoPing = None,
     )
 
   private def copy(
@@ -86,6 +118,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs: Boolean = this.filterPingPongs,
       defragFrame: Boolean = this.defragFrame,
       webSocketKey: Key[WebSocketContext[F]] = this.webSocketKey,
+      autoPing: Option[AutoPing[F]] = this.autoPing,
   ): WebSocketBuilder2[F] = WebSocketBuilder2.impl[F](
     headers,
     onNonWebSocketRequest,
@@ -94,6 +127,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
     filterPingPongs,
     defragFrame,
     webSocketKey,
+    autoPing,
   )
 
   def withHeaders(headers: Headers): WebSocketBuilder2[F] =
@@ -114,6 +148,13 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
   def withDefragment(defragFrame: Boolean): WebSocketBuilder2[F] =
     copy(defragFrame = defragFrame)
 
+  def withAutoPing(every: FiniteDuration, frame: WebSocketFrame.Ping)(implicit
+      T: Temporal[F]
+  ): WebSocketBuilder2[F] =
+    copy(autoPing = Some(AutoPing(every, frame, T)))
+
+  def withoutAutoPing: WebSocketBuilder2[F] = copy(autoPing = None)
+
   /** Transform the parameterized effect from F to G. */
   def imapK[G[_]: Applicative](fk: F ~> G)(gk: G ~> F): WebSocketBuilder2[G] =
     impl[G](
@@ -124,6 +165,7 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
       filterPingPongs,
       defragFrame,
       webSocketKey.imap(_.imapK(fk)(gk))(_.imapK(gk)(fk)),
+      autoPing.map(x => x.copy(temporal = x.temporal.imapK(fk)(gk))),
     )
 
   private def buildResponse(webSocket: WebSocket[F]): F[Response[F]] =
@@ -168,7 +210,23 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (true, true) => sendReceive.compose(defragFragment.compose(filterPingPongFrames))
         case (false, true) => sendReceive.compose(defragFragment)
       }
-    buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose))
+
+    autoPing match {
+      case None => buildResponse(WebSocketCombinedPipe(finalSendReceive, onClose)(None))
+      case Some(AutoPing(every, frame, temporal)) =>
+        val ping = temporal.pure(frame).delayBy(every)(temporal)
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping)
+        buildResponse(
+          WebSocketCombinedPipe(
+            (input: Stream[F, WebSocketFrame]) =>
+              Stream(finalSendReceive(input), pings).parJoinUnbounded(temporal),
+            onClose,
+          )(
+            Some(AutoPingCombinedPipe(every, frame, finalSendReceive))
+          )
+        )
+    }
+
   }
 
   /** @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
@@ -205,7 +263,21 @@ sealed abstract class WebSocketBuilder2[F[_]: Applicative] private (
         case (false, true) => receive.compose(defragFragment)
       }
 
-    buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose))
+    autoPing match {
+      case None => buildResponse(WebSocketSeparatePipe(send, finalReceive, onClose)(None))
+      case Some(AutoPing(every, frame, temporal)) =>
+        val ping = temporal.pure(frame).delayBy(every)(temporal)
+        val pings: Stream[F, WebSocketFrame] = Stream.repeatEval(ping)
+        buildResponse(
+          WebSocketSeparatePipe(
+            Stream(send, pings).parJoinUnbounded(temporal),
+            finalReceive,
+            onClose,
+          )(
+            Some(AutoPingSeparatePipe(every, frame, send))
+          )
+        )
+    }
   }
 
   private val isPingPong: WebSocketFrame => Boolean = {
@@ -245,6 +317,7 @@ object WebSocketBuilder2 {
       filterPingPongs = true,
       defragFrame = true,
       webSocketKey = webSocketKey,
+      autoPing = None,
     )
 
   private def impl[F[_]: Applicative](
@@ -255,6 +328,7 @@ object WebSocketBuilder2 {
       filterPingPongs: Boolean,
       defragFrame: Boolean,
       webSocketKey: Key[WebSocketContext[F]],
+      autoPing: Option[AutoPing[F]],
   ): WebSocketBuilder2[F] =
     new WebSocketBuilder2[F](
       headers = headers,
@@ -264,5 +338,63 @@ object WebSocketBuilder2 {
       filterPingPongs = filterPingPongs,
       defragFrame = defragFrame,
       webSocketKey = webSocketKey,
+      autoPing = autoPing,
     ) {}
+
+  implicit class TemporalOps[F[_]: Functor](T: Temporal[F]) {
+    def imapK[G[_]](fk: F ~> G)(gk: G ~> F): Temporal[G] = new Temporal[G] {
+      protected def sleep(time: FiniteDuration): G[Unit] = fk(T.sleep(time))
+
+      def ref[A](a: A): G[Ref[G, A]] = fk(T.ref(a).map(_.mapK(fk)))
+
+      def deferred[A]: G[Deferred[G, A]] = fk(T.deferred[A].map(_.mapK(fk)))
+
+      def start[A](fa: G[A]): G[Fiber[G, Throwable, A]] = fk(
+        T.start(gk(fa))
+          .map(f =>
+            new Fiber[G, Throwable, A] {
+              def cancel: G[Unit] = fk(f.cancel)
+
+              def join: G[Outcome[G, Throwable, A]] = fk(f.join.map(_.mapK(fk)))
+            }
+          )
+      )
+
+      def never[A]: G[A] = fk(T.never)
+
+      def cede: G[Unit] = fk(T.cede)
+
+      def forceR[A, B](fa: G[A])(fb: G[B]): G[B] = fk(T.forceR(gk(fa))(gk(fb)))
+
+      def uncancelable[A](body: Poll[G] => G[A]): G[A] =
+        fk(T.uncancelable { pollF =>
+          gk(body(new Poll[G] {
+            def apply[B](gb: G[B]): G[B] = fk(pollF(gk(gb)))
+          }))
+        })
+
+      def canceled: G[Unit] = fk(T.canceled)
+
+      def onCancel[A](fa: G[A], fin: G[Unit]): G[A] = fk(T.onCancel(gk(fa), gk(fin)))
+
+      def flatMap[A, B](fa: G[A])(f: A => G[B]): G[B] = fk(T.flatMap(gk(fa))(a => gk(f(a))))
+
+      def tailRecM[A, B](a: A)(f: A => G[Either[A, B]]): G[B] =
+        fk(T.tailRecM(a)(a => gk(f(a))))
+
+      def unique: G[Unique.Token] = fk(T.unique)
+
+      def raiseError[A](e: Throwable): G[A] = fk(T.raiseError(e))
+
+      def handleErrorWith[A](fa: G[A])(f: Throwable => G[A]): G[A] =
+        fk(T.handleErrorWith(gk(fa))(ex => gk(f(ex))))
+
+      def monotonic: G[FiniteDuration] = fk(T.monotonic)
+
+      def realTime: G[FiniteDuration] = fk(T.realTime)
+
+      def pure[A](x: A): G[A] = fk(T.pure(x))
+    }
+  }
+
 }
