@@ -26,6 +26,8 @@ import org.http4s.syntax.AllSyntax
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 
+import scala.util.Try
+
 class PathSuite extends Http4sSuite with AllSyntax {
   implicit val arbitraryPath: Gen[Path] =
     arbitrary[List[String]]
@@ -203,6 +205,56 @@ class PathSuite extends Http4sSuite with AllSyntax {
       case Root / "user" / UUIDVar(userId @ _) => true
       case _ => false
     }))
+  }
+
+  test("String extractor success") {
+    assert(
+      path"/a/123" match {
+        case Root / "a" / StringVar(s) => s == "123"
+        case _ => false
+      }
+    )
+  }
+
+  test("Custom extractor with map success") {
+    val AbsIntVar = IntVar.map(math.abs)
+    assert(
+      path"/a/-123" match {
+        case Root / "a" / AbsIntVar(n) => n == 123
+        case _ => false
+      }
+    )
+  }
+
+  test("Custom extractor with map failure") {
+    val AbsIntVar = IntVar.map(math.abs)
+    assert(
+      path"/a/abab" match {
+        case Root / "a" / AbsIntVar(_) => false
+        case _ => true
+      }
+    )
+  }
+
+  test("Custom extractor with emap success") {
+    val NewIntVar = StringVar.emap(s => Try(s.toInt).toOption)
+    assert(
+      path"/a/-123" match {
+        case Root / "a" / NewIntVar(n) => n == -123
+        case _ => false
+      }
+    )
+  }
+
+  test("Custom extractor with emap failure") {
+    val NewIntVar = StringVar.emap(s => Try(s.toInt).toOption)
+
+    assert(
+      path"/a/abab" match {
+        case Root / "a" / NewIntVar(_) => false
+        case _ => true
+      }
+    )
   }
 
   object BoardExtractor extends impl.MatrixVar("square", List("x", "y"))
