@@ -1212,4 +1212,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
     )
   )
+
+  implicit val http4sTestingArbitraryForReferrerPolicyDir: Arbitrary[`Referrer-Policy`.Directive] =
+    Arbitrary(Gen.oneOf(`Referrer-Policy`.types.values))
+
+  implicit val http4sTestingArbitraryForReferrerPolicy: Arbitrary[`Referrer-Policy`] =
+    Arbitrary(getArbitrary[NonEmptyList[`Referrer-Policy`.Directive]].flatMap(`Referrer-Policy`(_)))
 }
