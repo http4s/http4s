@@ -51,11 +51,11 @@ keep-alive-extension = token [ "=" ( token / quoted-string ) ]
       extension: List[(String, Option[String])],
   ): ParseResult[`Keep-Alive`] =
     if (timeoutSeconds.isDefined || max.isDefined || extension.nonEmpty) {
-      val reservedTokens = List("token", "max")
-      if (extension.exists(p => reservedTokens.contains(p._1))) {
+      val reservedToken = "token"
+      if (extension.exists(p => p._1 == reservedToken)) {
         ParseResult.fail(
           "Invalid Keep-Alive header",
-          s"Reserved token of list $reservedTokens was found in the extensions.",
+          s"Reserved token '$reservedToken' was found in the extensions.",
         )
       } else {
         val validatedTimeoutSeconds = timeoutSeconds.traverse(t => nonNegativeLong(t, "timeout"))

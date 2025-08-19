@@ -20,7 +20,6 @@ package headers
 import org.http4s.laws.discipline.arbitrary._
 
 class KeepAliveSuite extends HeaderLaws {
-
   checkAll("Keep-Alive", headerLaws[`Keep-Alive`])
 
   test("invalid (empty) Keep-Alives should result in failure") {
@@ -95,6 +94,20 @@ class KeepAliveSuite extends HeaderLaws {
     assertEquals(
       Header[`Keep-Alive`].parse("timeout=3, max=33, extKey=1, max=8"),
       `Keep-Alive`(Some(3), Some(33), List(("extKey", Some("1")))),
+    )
+  }
+
+  test(
+    "parse keep-alive fails if extensions contain reserved 'token'"
+  ) {
+    assertEquals(
+      Header[`Keep-Alive`].parse("timeout=3, max=33, token=foo, max=8"),
+      Left(
+        ParseFailure(
+          "Invalid Keep-Alive header",
+          "Reserved token 'token' was found in the extensions.",
+        )
+      ),
     )
   }
 }
