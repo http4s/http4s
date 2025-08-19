@@ -1212,4 +1212,10 @@ private[discipline] trait ArbitraryInstancesBinCompat0 extends ArbitraryInstance
       Trailer(NonEmptyList.of(headers.head, headers.tail: _*))
     )
   )
+
+  implicit val http4sTestingArbitraryForClearSiteDataDir: Arbitrary[`Clear-Site-Data`.Directive] =
+    Arbitrary(Gen.oneOf(`Clear-Site-Data`.types.values))
+
+  implicit val http4sTestingArbitraryForClearSiteData: Arbitrary[`Clear-Site-Data`] =
+    Arbitrary(getArbitrary[NonEmptyList[`Clear-Site-Data`.Directive]].flatMap(`Clear-Site-Data`(_)))
 }
