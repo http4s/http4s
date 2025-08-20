@@ -26,18 +26,16 @@
 
 package org.http4s
 
-import cats.kernel.laws.discipline._
-import cats.syntax.all._
-import com.comcast.ip4s._
-import org.http4s.Uri._
+import cats.kernel.laws.discipline.*
+import cats.syntax.all.*
+import com.comcast.ip4s.*
+import org.http4s.Uri.*
 import org.http4s.internal.CharPredicate
-import org.http4s.laws.discipline.arbitrary._
-import org.http4s.syntax.all._
+import org.http4s.laws.discipline.arbitrary.*
+import org.http4s.syntax.all.*
 import org.scalacheck.Gen
-import org.scalacheck.Prop._
-import org.typelevel.ci._
-
-import scala.collection.immutable.Seq
+import org.scalacheck.Prop.*
+import org.typelevel.ci.*
 
 // TODO: this needs some more filling out
 class UriSuite extends Http4sSuite {
@@ -838,8 +836,10 @@ class UriSuite extends Http4sSuite {
   test(
     "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder and an implicit key"
   ) {
-    val u = Uri().+*?(Ttl(2))
-    assertEquals(u, Uri(query = Query.unsafeFromString(s"ttl=2")))
+    val u0 = Uri().+*?(Ttl(2))
+    assertEquals(u0, Uri(query = Query.unsafeFromString(s"ttl=2")))
+    val u1 = Uri().withQueryParamValue(Ttl(2))
+    assertEquals(u1, Uri(query = Query.unsafeFromString(s"ttl=2")))
   }
   test("Uri parameter convenience methods should add a QueryParam instance") {
     val u = Uri().withQueryParam[Ttl]
