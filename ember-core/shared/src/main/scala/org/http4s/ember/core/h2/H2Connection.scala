@@ -148,6 +148,7 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
+  @annotation.nowarn("cat=deprecation")
   private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {

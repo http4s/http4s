@@ -58,6 +58,11 @@ ThisBuild / jsEnv := {
   )
 }
 
+ThisBuild / resolvers += Resolver.sonatypeCentralSnapshots
+
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,

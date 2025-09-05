@@ -52,6 +52,7 @@ import org.typelevel.vault._
   * Headers whose names match `sensitiveHeaderFilter` are not exposed when
   * redirecting to a different authority.
   */
+@annotation.nowarn("cat=deprecation")
 object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
