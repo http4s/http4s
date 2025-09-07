@@ -265,7 +265,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@1fe80262
+//    = org.typelevel.vault.Vault@d0ad680
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[[A]IO[A]] = (
@@ -273,7 +273,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@30c32bd6
+//    = org.typelevel.vault.Vault@1656e24e
 // )</span></code></pre>
         <p>Now, we&#39;ll apply the service to our middleware function to create a new service, and try it out.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">modifiedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);</span></code></pre>
@@ -283,7 +283,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@748a2f58
+//    = org.typelevel.vault.Vault@7819a50f
 // )
 </span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[[A]IO[A]] = (
@@ -291,7 +291,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@c46b28d
+//    = org.typelevel.vault.Vault@88374bd
 // )</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
         <p>If you intend to use you middleware in multiple places, you may want to implement
@@ -314,7 +314,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@14538547
+//    = org.typelevel.vault.Vault@2628db98
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[[A]IO[A]] = (
@@ -322,7 +322,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@14076df8
+//    = org.typelevel.vault.Vault@4fc02578
 // )</span></code></pre>
         <p>Let&#39;s consider Authentication middleware as an example. Authentication
         middleware is a function that takes <code>AuthedRoutes[F]</code> 
@@ -356,7 +356,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0, SomeKey: SomeValue),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@405c785
+//    = org.typelevel.vault.Vault@205963e2
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[[A]IO[A]] = (
@@ -364,7 +364,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Length: 0),
 //    = Stream(..),
-//    = org.typelevel.vault.Vault@caec9a6
+//    = org.typelevel.vault.Vault@ae81a68
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
