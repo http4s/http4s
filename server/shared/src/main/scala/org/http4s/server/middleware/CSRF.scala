@@ -205,23 +205,31 @@ final class CSRF[F[_], G[_]] private[middleware] (
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
     * and a token is present, validate and regenerate it for BREACH to be impractical
     */
-  private[middleware] def validate(r: Request[G], response: F[Response[G]])(implicit
+  private[middleware] def validateSafe(
+      app: Kleisli[F, Request[G], Response[G]],
+      inject: (Request[G], CSRFToken) => Request[G] = (r, _) => r
+  )(r: Request[G])(implicit
       F: Async[F]
   ): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieSettings.cookieName) match {
       case Some(c) =>
         (for {
           raw <- extractRaw(c.content).flatMap(F.fromEither)
-          res <- response
           newToken <- signToken[F](raw)
+          req2   = inject(r, newToken)
+          res <- app(req2)
         } yield res.addCookie(createResponseCookie(newToken)))
           .recover { case CSRFCheckFailed =>
             onFailure
           }
       case None =>
-        if (createIfNotFound)
-          response.flatMap(r => embedNewInResponseCookie(r))
-        else response
+        if (createIfNotFound) {
+          for {
+            token <- generateToken[F]
+            req2   = inject(r, token)
+            res <- app(req2)
+          } yield res.addCookie(createResponseCookie(token))
+        } else app(r)
     }
 
   /** Check for CSRF validity for an unsafe action.
@@ -264,7 +272,20 @@ final class CSRF[F[_], G[_]] private[middleware] (
       predicate: Request[G] => Boolean = _.method.isSafe
   ): Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
     Kleisli { (r: Request[G]) =>
-      if (predicate(r)) validate(r, http(r)) else checkCSRF(r, http(r))
+      if (predicate(r)) validateSafe(http)(r) else checkCSRF(r, http(r))
+    }
+  }
+
+  /** Provides a middleware just like validate, but also exposes
+   * a method for modifying the request with the token, for
+   * example, if you need the token to server-side render a form
+   */
+  def validateWithToken(
+      inject: (Request[G], CSRFToken) => Request[G] = (r, _) => r,
+      predicate: Request[G] => Boolean = _.method.isSafe
+  ): Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
+    Kleisli { (r: Request[G]) =>
+      if (predicate(r)) validateSafe(http, inject)(r) else checkCSRF(r, http(r))
     }
   }
 
