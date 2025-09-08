@@ -112,7 +112,6 @@ lazy val core = libraryCrossProject("core")
       crypto.value,
       fs2Core.value,
       fs2Io.value,
-      ip4sCore.value,
       literally.value,
       munit.value % Test,
       scodecBits.value,
