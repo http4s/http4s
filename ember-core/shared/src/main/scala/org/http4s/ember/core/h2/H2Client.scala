@@ -141,11 +141,7 @@ private[ember] class H2Client[F[_]](
       enableServerNameIndication: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
-    baseSocket <- address match {
-      case Left(address) =>
-        Network[F].connect(address)
-      case Right(address) => Network[F].connect(address)
-    }
+    baseSocket <- Network[F].connect(address.merge)
     socket <- {
       if (useTLS) {
         val tlsParams = Util.mkClientTLSParameters(
