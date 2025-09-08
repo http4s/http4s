@@ -28,7 +28,7 @@ object `User-Agent` {
   def apply(id: ProductId, tail: ProductIdOrComment*): `User-Agent` =
     apply(id, tail.toList)
 
-  val name = ci"User-Agent"
+  val name: CIString = ci"User-Agent"
 
   @deprecated("Use parse(Int)(String) instead", "0.23.17")
   def parse(s: String): ParseResult[`User-Agent`] =
