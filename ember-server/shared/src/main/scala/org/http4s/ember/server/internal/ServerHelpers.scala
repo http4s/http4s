@@ -147,8 +147,8 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
         Network[F].bindAndAccept(
           unixSocketAddress,
           List(
-            SocketOption.unixServerSocketDeleteIfExists(deleteIfExists),
-            SocketOption.unixServerSocketDeleteOnClose(deleteOnClose),
+            SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+            SocketOption.unixSocketDeleteOnClose(deleteOnClose),
           ) ++ additionalSocketOptions,
         )
 
