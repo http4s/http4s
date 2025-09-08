@@ -2,16 +2,11 @@ package org.http4s.build
 
 import sbt._
 import sbt.Keys._
-import xerial.sbt.Sonatype
-import xerial.sbt.Sonatype.autoImport._
 
 object CentralRequirementsPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
-  override def requires = Sonatype
-
   override lazy val projectSettings = Seq(
-    sonatypeProfileName := "org.http4s",
     developers ++= List(
       // n.b. alphabetical by GitHub username
       Developer("aeons", "Bjørn Madsen", "bm@aeons.dk", url("https://github.com/aeons")),
@@ -67,7 +62,6 @@ object CentralRequirementsPlugin extends AutoPlugin {
     Compile / packageBin / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Test / publishArtifact := false,
-    publishTo := sonatypePublishToBundle.value,
     credentials ++= (for {
       username <- sys.env.get("SONATYPE_USERNAME")
       password <- sys.env.get("SONATYPE_PASSWORD")
