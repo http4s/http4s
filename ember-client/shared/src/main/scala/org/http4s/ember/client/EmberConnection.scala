@@ -24,6 +24,7 @@ import cats.effect.std.Hotswap
 import cats.syntax.all._
 import fs2.Chunk
 
+@annotation.nowarn("cat=deprecation")
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
     chunkSize: Int,
@@ -72,6 +73,7 @@ private[ember] final case class EmberConnection[F[_]](
       shutdown.attempt.void
 }
 
+@annotation.nowarn("cat=deprecation")
 private[ember] object EmberConnection {
   def apply[F[_]](
       keySocketResource: Resource[F, RequestKeySocket[F]],

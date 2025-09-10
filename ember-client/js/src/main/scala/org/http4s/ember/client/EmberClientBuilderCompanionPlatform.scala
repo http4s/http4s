@@ -23,6 +23,7 @@ import org.typelevel.log4cats.noop.NoOpLogger
 
 private[client] trait EmberClientBuilderPlatform {
 
+  @annotation.nowarn("cat=deprecation")
   private[client] def defaultUnixSockets[F[_]: Async]: Option[UnixSockets[F]] =
     Some(UnixSockets.forAsync)
 

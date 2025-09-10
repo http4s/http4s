@@ -40,6 +40,7 @@ import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration._
 
+@annotation.nowarn("cat=deprecation")
 final class EmberClientBuilder[F[_]: Async: Network] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
