@@ -23,6 +23,7 @@ import cats.syntax.all._
 import fs2._
 import org.http4s._
 import org.http4s.headers.Expires
+import org.http4s.ember.core.Parser.HeaderP.ParseHeadersError
 import org.http4s.implicits._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
@@ -252,6 +253,78 @@ class ParsingSuite extends Http4sSuite {
       drained <- req1._2
       req2 <- Parser.Request.parser[IO](Int.MaxValue)(drained.get, take)
     } yield req1._1.method == Method.GET && req2._1.method == Method.GET).assert
+  }
+
+  test("Parser.Request.parser should fail on invalid whitespace") {
+    val defaultMaxHeaderLength = 4096
+    val reqS = Stream(
+      "POST /foo HTTP/1.1\r\na\r\n"
+    )
+    val byteStream: Stream[IO, Byte] = reqS.flatMap(s =>
+      Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+    )
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      _ <- interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - InvalidHeaderWhitespace"
+      ) {
+        Parser.Request.parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
+      }
+    } yield ()
+  }
+
+  test("Parser.Request.parser should handle correct whitespace split across chunks") {
+    val defaultMaxHeaderLength = 4096
+    val raw1 = "POST /foo HTTP/1.1\r\nTransfer-Encoding: chunked\r\n"
+    val raw2 = "\r\n2\r\naa\r\n\r\n0\r\nTrailer: header\r"
+    val raw3 = "\n\r\n"
+
+    val byteStream: Stream[IO, Byte] =
+      (Stream(raw1) ++ Stream(raw2) ++ Stream(raw3)).through(fs2.text.utf8.encode)
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      req <- Parser.Request.parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
+      body <- req._1.body.through(text.utf8.decode).compile.string
+      th <- req._1.trailerHeaders
+    } yield {
+      assertEquals(req._1.method, Method.POST)
+      assertEquals(body, "aa")
+      assertEquals(th.headers, List(Header.Raw(ci"Trailer", "header")))
+    }
+  }
+
+  test(
+    "Parser.Request.parser should fail to parse a chunked body with malformed trailer headers"
+  ) {
+    val defaultMaxHeaderLength = 4096
+    val reqS =
+      Stream(
+        "POST /foo HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n",
+        "\r\n",
+        "2\r\n",
+        "aa\r\n",
+        "\r\n",
+        "0\r\nTrailer: header\r\n",
+        "a\r\n",
+      )
+
+    val byteStream: Stream[IO, Byte] = reqS
+      .flatMap(s =>
+        Stream.chunk(Chunk.array(s.getBytes(java.nio.charset.StandardCharsets.US_ASCII)))
+      )
+
+    for {
+      take <- Helpers.taking[IO, Byte](byteStream)
+      req1 <- Parser.Request.parser[IO](defaultMaxHeaderLength)(Array.emptyByteArray, take)
+      _ <- interceptMessageIO[ParseHeadersError](
+        "Encountered Error Attempting to Parse Headers - InvalidHeaderWhitespace"
+      ) {
+        // drain the body to trigger the trailing header parsing, which will raise an exception
+        req1._1.body.through(text.utf8.decode).compile.string
+      }
+    } yield ()
   }
 
   test("Parser.Response.parser should handle a chunked response") {
