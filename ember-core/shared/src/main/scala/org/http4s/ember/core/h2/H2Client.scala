@@ -141,11 +141,11 @@ private[ember] class H2Client[F[_]](
       enableServerNameIndication: Boolean,
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
-    baseSocket <- Network[F].connect(address.merge)
+    baseSocket <- Network[F].connect(address)
     socket <- {
       if (useTLS) {
         val tlsParams = Util.mkClientTLSParameters(
-          address.toOption,
+          Option(address).collect { case a: SocketAddress[Host] => a },
           enableEndpointValidation,
           enableServerNameIndication,
         )
@@ -197,7 +197,7 @@ private[ember] class H2Client[F[_]](
         created <- cats.effect.std.Queue.unbounded[F, Int]
         closed <- cats.effect.std.Queue.unbounded[F, Int]
       } yield new H2Connection(
-        socketAdd.merge,
+        socketAdd,
         H2Connection.ConnectionType.Client,
         localSettings,
         ref,
@@ -390,7 +390,7 @@ private[ember] object H2Client {
 
     def getAddress[F[_]](
         requestKey: RequestKey
-    )(implicit F: MonadThrow[F]): F[Either[UnixSocketAddress, SocketAddress[Host]]] =
+    )(implicit F: MonadThrow[F]): F[GenSocketAddress] =
       requestKey match {
         case RequestKey(s, Right(auth)) =>
           val port = auth.port.getOrElse(if (s == Uri.Scheme.https) 443 else 80)
@@ -398,8 +398,8 @@ private[ember] object H2Client {
           for {
             host <- Host.fromString(host).liftTo[F](MissingHost())
             port <- Port.fromInt(port).liftTo[F](MissingPort())
-          } yield Right(SocketAddress[Host](host, port))
-        case RequestKey(_, Left(unixAddress)) => F.pure(Left(unixAddress))
+          } yield SocketAddress[Host](host, port)
+        case RequestKey(_, Left(unixAddress)) => F.pure(unixAddress)
       }
   }
 

@@ -116,7 +116,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]): EmberServerBuilder[F] =
     copy(httpApp = f)
 
-  @deprecated("Explicit socket groups are no longer supported", "0.23.next")
+  @deprecated("Explicit socket groups are no longer supported", "0.23.31")
   def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
     this
 
@@ -194,7 +194,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
-  @deprecated("Use overload that doesn't take a UnixSockets[F]", "0.23.next")
+  @deprecated("Use overload that doesn't take a UnixSockets[F]", "0.23.31")
   def withUnixSocketConfig(
       unixSockets: UnixSockets[F],
       unixSocketAddress: OldUnixSocketAddress,

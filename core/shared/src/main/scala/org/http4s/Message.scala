@@ -634,11 +634,13 @@ object Request {
     val PathTranslated: Key[File] = Key.newKey[SyncIO, File].unsafeRunSync()
     val ConnectionInfo: Key[Connection] = Key.newKey[SyncIO, Connection].unsafeRunSync()
     val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
-    @deprecated("Use ForcedUnixSocketAddress instead", "0.23.next")
-    val UnixSocketAddress: Key[DeprecatedUnixSocketAddress] =
-      Key.newKey[SyncIO, DeprecatedUnixSocketAddress].unsafeRunSync()
     val ForcedUnixSocketAddress: Key[UnixSocketAddress] =
       Key.newKey[SyncIO, UnixSocketAddress].unsafeRunSync()
+    @deprecated("Use ForcedUnixSocketAddress instead", "0.23.31")
+    val UnixSocketAddress: Key[DeprecatedUnixSocketAddress] =
+      ForcedUnixSocketAddress.imap(a => DeprecatedUnixSocketAddress(a.path))(a =>
+        com.comcast.ip4s.UnixSocketAddress(a.path)
+      )
   }
 }
 
