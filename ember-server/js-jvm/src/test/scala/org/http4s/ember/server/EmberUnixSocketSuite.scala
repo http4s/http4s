@@ -27,7 +27,6 @@ import org.http4s.h2.H2Keys.Http2PriorKnowledge
 
 import scala.concurrent.duration._
 
-@annotation.nowarn("cat=deprecation")
 class EmberUnixSocketSuite extends Http4sSuite {
 
   def run(
