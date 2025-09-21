@@ -19,8 +19,15 @@ package org.http4s.ember.client
 import cats.effect.Async
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
+import fs2.io.net.unixsocket.UnixSockets
 
-private[client] trait EmberClientBuilderPlatform {}
+private[client] trait EmberClientBuilderPlatform {
+
+  @annotation.nowarn("cat=deprecation")
+  private[client] def defaultUnixSockets[F[_]: Async]: Option[UnixSockets[F]] =
+    Some(UnixSockets.forAsync)
+
+}
 
 private[client] trait EmberClientBuilderCompanionPlatform {
 

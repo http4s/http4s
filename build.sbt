@@ -10,7 +10,7 @@ ThisBuild / tlBspCrossProjectPlatforms := Set(JVMPlatform)
 ThisBuild / tlBaseVersion := "0.23"
 ThisBuild / developers += tlGitHubDev("rossabaker", "Ross A. Baker")
 
-ThisBuild / tlCiReleaseBranches := Seq("series/0.23")
+ThisBuild / tlCiReleaseBranches := Seq("series/0.23", "topic/0.23/sn-0.5")
 ThisBuild / tlSitePublishBranch := Some("series/0.23")
 
 ThisBuild / scalafixAll / skip := tlIsScala3.value
@@ -57,6 +57,9 @@ ThisBuild / jsEnv := {
     NodeJSEnv.Config().withEnv(Map("TZ" -> "UTC")).withArgs(List("--max-old-space-size=512"))
   )
 }
+
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
 
 lazy val modules: List[CompositeProject] = List(
   core,
@@ -942,7 +945,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.31").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

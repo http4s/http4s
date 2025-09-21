@@ -193,6 +193,7 @@ private[ember] object H2Server {
     def holdWhileOpen(stateRef: Ref[F, H2Connection.State[F]]): F[Unit] =
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
+    @annotation.nowarn("cat=deprecation")
     def initH2Connection: F[H2Connection[F]] = for {
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
