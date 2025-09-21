@@ -48,7 +48,6 @@ import scodec.bits.ByteVector
 import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
-@annotation.nowarn("cat=deprecation")
 private[server] object ServerHelpers extends ServerHelpersPlatform {
 
   private val serverFailure =

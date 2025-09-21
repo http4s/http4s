@@ -38,7 +38,6 @@ import org.http4s.server.websocket.WebSocketBuilder2
 
 import scala.concurrent.duration._
 
-@annotation.nowarn("cat=deprecation")
 final class EmberServerBuilder[F[_]: Async: Network] private (
     val host: Option[Host],
     val port: Port,
