@@ -69,7 +69,6 @@ private[ember] object Parser {
   )
 
   object HeaderP {
-    private[this] final val colon = 58 // ':'
     private[this] final val contentLengthS = "Content-Length"
     private[this] final val transferEncodingS = "Transfer-Encoding"
     private[this] final val chunkedS = "chunked"
