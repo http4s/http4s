@@ -25,6 +25,8 @@ ordered chronologically, so each release contains all changes described below it
 * Update 'his/her' to 'their' by @hugo-vrijswijk in https://github.com/http4s/http4s/pull/7654
 * Document Scala 2.x mill giter8 template support by @carlosrogue in https://github.com/http4s/http4s/pull/7660
 ### Behind the scenes
+<details>
+
 * Update http4s-circe, http4s-ember-client to 0.23.30 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7595
 * Update sbt, scripted-plugin to 1.10.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7590
 * flake.lock: Update by @http4s-steward in https://github.com/http4s/http4s/pull/7591
@@ -78,6 +80,8 @@ ordered chronologically, so each release contains all changes described below it
 * Update sbt-doctest to 0.11.4 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7712
 * Update scalafmt-core to 3.8.6 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7624
 * Update sbt-http4s-org to 2.0.0 in series/0.23 by @http4s-steward in https://github.com/http4s/http4s/pull/7685
+
+</details>
 
 ## New Contributors
 * @hugo-vrijswijk made their first contribution in https://github.com/http4s/http4s/pull/7654
