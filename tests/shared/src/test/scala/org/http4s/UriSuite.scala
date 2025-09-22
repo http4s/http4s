@@ -571,10 +571,16 @@ class UriSuite extends Http4sSuite {
   }
 
   test("Uri parameters should parse empty query string") {
-    assertEquals(Uri(query = Query.unsafeFromString("")).multiParams, Map("" -> Nil))
+    assertEquals(
+      Uri(query = Query.unsafeFromString("")).multiParams,
+      Map[String, Seq[String]]("" -> Nil),
+    )
   }
   test("Uri parameters should parse parameter without key but with empty value") {
-    assertEquals(Uri(query = Query.unsafeFromString("=")).multiParams, Map("" -> List("")))
+    assertEquals(
+      Uri(query = Query.unsafeFromString("=")).multiParams,
+      Map[String, Seq[String]]("" -> List("")),
+    )
   }
   test("Uri parameters should parse parameter without key but with value") {
     assertEquals(
@@ -714,9 +720,9 @@ class UriSuite extends Http4sSuite {
     )
   }
   test("Uri.multiParams should find parameter with empty key and without value") {
-    assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq()))
-    assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq()))
-    assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq()))
+    assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq[String]()))
+    assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq[String]()))
+    assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq[String]()))
   }
   test("Uri.multiParams should find parameter with an empty value") {
     assertEquals(
@@ -737,7 +743,7 @@ class UriSuite extends Http4sSuite {
   test("Uri.multiParams should find parameter without value") {
     assertEquals(
       Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-      Map("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
+      Map[String, Seq[String]]("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
     )
   }
 
