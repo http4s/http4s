@@ -116,7 +116,7 @@ private[ember] object Parser {
 
       while (!complete && idx <= upperBound) {
         if (!state) {
-          (message(idx): @switch) match {
+          message(idx) match {
             case ':' =>
               state = true // set state to check for header value
               name = new String(message, start, idx - start) // extract name string
