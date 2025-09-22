@@ -22,8 +22,8 @@ import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2._
 import org.http4s._
-import org.http4s.headers.Expires
 import org.http4s.ember.core.Parser.HeaderP.ParseHeadersError
+import org.http4s.headers.Expires
 import org.http4s.implicits._
 import org.typelevel.ci._
 import scodec.bits.ByteVector

@@ -26,8 +26,8 @@ import org.typelevel.ci.CIString
 import scodec.bits.ByteVector
 
 import scala.annotation.switch
-import scala.util.control.NonFatal
 import scala.util.control.NoStackTrace
+import scala.util.control.NonFatal
 
 private[ember] object Parser {
 
