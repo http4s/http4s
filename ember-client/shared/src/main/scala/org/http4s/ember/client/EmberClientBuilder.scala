@@ -38,10 +38,11 @@ import org.http4s.headers.`User-Agent`
 import org.typelevel.keypool._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 import scala.concurrent.duration._
 
-final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
+final class EmberClientBuilder[F[_]: Async: Network: LoggerFactoryGen] private (
     private val tlsContextOpt: Option[TLSContext[F]],
     private val sgOpt: Option[SocketGroup[F]],
     val maxTotal: Int,
@@ -399,14 +400,14 @@ final class EmberClientBuilder[F[_]: Async: Network: LoggerFactory] private (
 
 object EmberClientBuilder {
 
-  def default[F[_]: Async: Network: LoggerFactory] =
+  def default[F[_]: Async: Network: LoggerFactoryGen] =
     new EmberClientBuilder[F](
       tlsContextOpt = None,
       sgOpt = None,
       maxTotal = Defaults.maxTotal,
       maxPerKey = Defaults.maxPerKey,
       idleTimeInPool = Defaults.idleTimeInPool,
-      logger = LoggerFactory[F].getLogger,
+      logger = LoggerFactory.getLogger[F],
       chunkSize = Defaults.chunkSize,
       maxResponseHeaderSize = Defaults.maxResponseHeaderSize,
       idleConnectionTime = Defaults.idleConnectionTime,

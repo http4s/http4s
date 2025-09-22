@@ -26,19 +26,20 @@ import org.http4s.circe._
 import org.http4s.headers.Connection
 import org.typelevel.ci._
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 
 object JsonDebugErrorHandler {
 
   // Can be parametric on my other PR is merged.
-  def apply[F[_]: Concurrent: LoggerFactory, G[_]](
+  def apply[F[_]: Concurrent: LoggerFactoryGen, G[_]](
       service: Kleisli[F, Request[G], Response[G]],
       redactWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
   ): Kleisli[F, Request[G], Response[G]] = {
-    val serviceErrorLogger = LoggerFactory[F].getLoggerFromName(
+    val serviceErrorLogger = LoggerFactory.getLoggerFromName[F](
       "org.http4s.circe.middleware.jsondebugerrorhandler.service-errors"
     )
 
-    val messageFailureLogger = LoggerFactory[F].getLoggerFromName(
+    val messageFailureLogger = LoggerFactory.getLoggerFromName[F](
       "org.http4s.circe.middleware.jsondebugerrorhandler.message-failures"
     )
 

@@ -27,6 +27,7 @@ import com.comcast.ip4s
 import org.http4s.headers.Connection
 import org.http4s.headers.`Content-Length`
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 import org.typelevel.vault._
 
 import java.net.InetAddress
@@ -151,19 +152,19 @@ package object server {
         }
   }
 
-  private[this] def messageFailureLogger[F[_]: LoggerFactory] =
-    LoggerFactory[F].getLoggerFromName("org.http4s.server.message-failures")
-  private[this] def serviceErrorLogger[F[_]: LoggerFactory] =
-    LoggerFactory[F].getLoggerFromName("org.http4s.server.service-errors")
+  private[this] def messageFailureLogger[F[_]: LoggerFactoryGen] =
+    LoggerFactory.getLoggerFromName[F]("org.http4s.server.message-failures")
+  private[this] def serviceErrorLogger[F[_]: LoggerFactoryGen] =
+    LoggerFactory.getLoggerFromName[F]("org.http4s.server.service-errors")
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
-  def DefaultServiceErrorHandler[F[_]: LoggerFactory](implicit
+  def DefaultServiceErrorHandler[F[_]: LoggerFactoryGen](implicit
       F: Functor[F]
   ): Request[F] => PartialFunction[Throwable, F[Response[F]]] =
     inDefaultServiceErrorHandler[F, F]
 
-  def inDefaultServiceErrorHandler[F[_]: LoggerFactory, G[_]](implicit
+  def inDefaultServiceErrorHandler[F[_]: LoggerFactoryGen, G[_]](implicit
       F: Functor[F]
   ): Request[G] => PartialFunction[Throwable, F[Response[G]]] = req => {
     case mf: MessageFailure =>

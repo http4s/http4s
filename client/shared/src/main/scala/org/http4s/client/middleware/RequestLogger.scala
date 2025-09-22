@@ -32,13 +32,13 @@ object RequestLogger {
   private def defaultLogAction[F[_]: log4cats.Logger](s: String): F[Unit] =
     log4cats.Logger[F].info(s)
 
-  def apply[F[_]: Concurrent: log4cats.LoggerFactory](
+  def apply[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody) { request =>
       Logger.logMessage(request)(
         logHeaders,
@@ -48,13 +48,13 @@ object RequestLogger {
     }
   }
 
-  def logBodyText[F[_]: Concurrent: log4cats.LoggerFactory](
+  def logBodyText[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: Option[String => F[Unit]] = None,
   )(client: Client[F]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody = true) { request =>
       InternalLogger.logMessageWithBodyText(request)(
         logHeaders,
@@ -63,12 +63,12 @@ object RequestLogger {
       )(logAction.getOrElse(defaultLogAction[F]))
     }
   }
-  def customized[F[_]: Concurrent: log4cats.LoggerFactory](
+  def customized[F[_]: Concurrent: log4cats.LoggerFactoryGen](
       client: Client[F],
       logBody: Boolean = true,
       logAction: Option[String => F[Unit]] = None,
   )(requestToText: Request[F] => F[String]): Client[F] = {
-    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory[F].getLogger
+    implicit val logger: log4cats.Logger[F] = log4cats.LoggerFactory.getLogger[F]
     impl(client, logBody) { request =>
       val log = logAction.getOrElse(defaultLogAction[F] _)
       requestToText(request).flatMap(log)
@@ -125,7 +125,7 @@ object RequestLogger {
 
   val defaultRequestColor: String = Console.BLUE
 
-  def colored[F[_]: log4cats.LoggerFactory](
+  def colored[F[_]: log4cats.LoggerFactoryGen](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean = Headers.SensitiveHeaders.contains,

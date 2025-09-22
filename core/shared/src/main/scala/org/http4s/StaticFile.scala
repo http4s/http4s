@@ -35,6 +35,7 @@ import org.http4s.headers._
 import org.http4s.syntax.header._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.LoggerFactoryGen
 import org.typelevel.vault._
 
 import java.io._
@@ -43,7 +44,7 @@ import java.net.URL
 object StaticFile {
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Files: MonadThrow: LoggerFactory](
+  def fromString[F[_]: Files: MonadThrow: LoggerFactoryGen](
       url: String,
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
@@ -142,20 +143,20 @@ object StaticFile {
           else ""
         )
 
-  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactoryGen](
       f: Path,
       req: Option[Request[F]] = None,
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, calculateETag[F])
 
-  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactoryGen](
       f: Path,
       req: Option[Request[F]],
       etagCalculator: Path => F[String],
   ): OptionT[F, Response[F]] =
     fromPath(f, DefaultBufferSize, req, etagCalculator)
 
-  def fromPath[F[_]: Files: MonadThrow: LoggerFactory](
+  def fromPath[F[_]: Files: MonadThrow: LoggerFactoryGen](
       f: Path,
       buffsize: Int,
       req: Option[Request[F]],
@@ -170,7 +171,7 @@ object StaticFile {
         OptionT.none
       }
 
-  def fromPath[F[_]: Files: LoggerFactory](
+  def fromPath[F[_]: Files: LoggerFactoryGen](
       f: Path,
       start: Long,
       end: Long,
@@ -180,7 +181,7 @@ object StaticFile {
   )(implicit
       F: MonadError[F, Throwable]
   ): OptionT[F, Response[F]] = {
-    implicit val logger: Logger[F] = LoggerFactory[F].getLogger
+    implicit val logger: Logger[F] = LoggerFactory.getLogger[F]
 
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
