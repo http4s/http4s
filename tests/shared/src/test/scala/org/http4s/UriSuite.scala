@@ -37,8 +37,6 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.typelevel.ci._
 
-import scala.collection.immutable.Seq
-
 // TODO: this needs some more filling out
 class UriSuite extends Http4sSuite {
   sealed case class Ttl(seconds: Int)
@@ -573,10 +571,16 @@ class UriSuite extends Http4sSuite {
   }
 
   test("Uri parameters should parse empty query string") {
-    assertEquals(Uri(query = Query.unsafeFromString("")).multiParams, Map("" -> Nil))
+    assertEquals(
+      Uri(query = Query.unsafeFromString("")).multiParams,
+      Map[String, Seq[String]]("" -> Nil),
+    )
   }
   test("Uri parameters should parse parameter without key but with empty value") {
-    assertEquals(Uri(query = Query.unsafeFromString("=")).multiParams, Map("" -> List("")))
+    assertEquals(
+      Uri(query = Query.unsafeFromString("=")).multiParams,
+      Map[String, Seq[String]]("" -> List("")),
+    )
   }
   test("Uri parameters should parse parameter without key but with value") {
     assertEquals(
@@ -716,9 +720,9 @@ class UriSuite extends Http4sSuite {
     )
   }
   test("Uri.multiParams should find parameter with empty key and without value") {
-    assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Nil))
-    assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Nil))
-    assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Nil))
+    assertEquals(Uri(query = Query.unsafeFromString("&")).multiParams, Map("" -> Seq[String]()))
+    assertEquals(Uri(query = Query.unsafeFromString("&&")).multiParams, Map("" -> Seq[String]()))
+    assertEquals(Uri(query = Query.unsafeFromString("&&&")).multiParams, Map("" -> Seq[String]()))
   }
   test("Uri.multiParams should find parameter with an empty value") {
     assertEquals(
@@ -739,7 +743,7 @@ class UriSuite extends Http4sSuite {
   test("Uri.multiParams should find parameter without value") {
     assertEquals(
       Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-      Map("param1" -> Nil, "param2" -> Nil, "param3" -> Nil),
+      Map[String, Seq[String]]("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())
     )
   }
 
@@ -838,8 +842,10 @@ class UriSuite extends Http4sSuite {
   test(
     "Uri parameter convenience methods should add a query parameter with a QueryParamEncoder and an implicit key"
   ) {
-    val u = Uri().+*?(Ttl(2))
-    assertEquals(u, Uri(query = Query.unsafeFromString(s"ttl=2")))
+    val u0 = Uri().+*?(Ttl(2))
+    assertEquals(u0, Uri(query = Query.unsafeFromString(s"ttl=2")))
+    val u1 = Uri().withQueryParamValue(Ttl(2))
+    assertEquals(u1, Uri(query = Query.unsafeFromString(s"ttl=2")))
   }
   test("Uri parameter convenience methods should add a QueryParam instance") {
     val u = Uri().withQueryParam[Ttl]
