@@ -3,6 +3,27 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M45 (2025-09-22)
+
+## What's Changed
+### http4s-core
+* Merge series/0.23 into main by @danicheg in https://github.com/http4s/http4s/pull/7673
+* Merge 0.23 to main by @rossabaker in https://github.com/http4s/http4s/pull/7715
+* merge 0.23.31 into main by @samspills in https://github.com/http4s/http4s/pull/7718
+### Documentation
+* Add Famly to list of adopters by @christianharrington in https://github.com/http4s/http4s/pull/7672
+### Behind the scenes
+* Ignore sbt-doctest updates on main by @danicheg in https://github.com/http4s/http4s/pull/7601
+
+## New Contributors
+* @hugo-vrijswijk made their first contribution in https://github.com/http4s/http4s/pull/7654
+* @bio-aeon made their first contribution in https://github.com/http4s/http4s/pull/7611
+* @carlosrogue made their first contribution in https://github.com/http4s/http4s/pull/7660
+* @christianharrington made their first contribution in https://github.com/http4s/http4s/pull/7672
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M44...v1.0.0-M45
+
+
 # v0.23.31 (2025-09-22)
 
 ## What's Changed
