@@ -37,12 +37,9 @@ trait QueryOps {
   def +?[T: QueryParam]: Self =
     _withQueryParam(QueryParam[T].key, None)
 
-  /** alias for withQueryParam */
+  /** alias for withQueryParamValue */
   def +*?[T: QueryParamKeyLike: QueryParamEncoder](value: T): Self =
-    _withQueryParam(
-      QueryParamKeyLike[T].getKey(value),
-      Some(QueryParamEncoder[T].encode(value).value),
-    )
+    withQueryParamValue(value)
 
   /** alias for withQueryParam */
   def +*?[T: QueryParam: QueryParamEncoder](values: collection.Seq[T]): Self =
@@ -166,6 +163,13 @@ trait QueryOps {
       values: collection.Seq[T],
   ): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
+
+  /** Creates a new `Self` with the specified parameter in the [[Query]].
+    * If a parameter with the given `QueryParam.key` already exists the value(s) will be
+    * replaced.
+    */
+  def withQueryParamValue[T: QueryParamKeyLike: QueryParamEncoder](value: T): Self =
+    _withQueryParam(QueryParamKeyLike[T].getKey(value), QueryParamEncoder[T].encode(value) :: Nil)
 
   /** Creates maybe a new `Self` with all the specified parameters in the
     * [[Query]]. If any of the given parameters' keys already exists, the

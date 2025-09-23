@@ -37,7 +37,6 @@ import org.typelevel.log4cats.LoggerFactory
 /** Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
-
   def apply[G[_], F[_]: LoggerFactory, A](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -59,8 +58,10 @@ object ResponseLogger {
       http: Kleisli[G, A, Response[F]]
   )(implicit G: MonadCancelThrow[G], F: Concurrent[F]): Kleisli[G, A, Response[F]] = {
     implicit val logger: log4cats.Logger[F] = LoggerFactory[F].getLogger
+    val errorLogger = LoggerFactory[F].getLoggerFromName("org.http4s.server.service-errors")
     val fallback: String => F[Unit] = s => logger.info(s)
     val log = logAction.fold(fallback)(identity)
+    val errLog: (String, Throwable) => F[Unit] = (msg, th) => errorLogger.error(th)(msg)
 
     def logMessage(resp: Response[F]): F[Unit] =
       logBodyText match {
@@ -102,8 +103,8 @@ object ResponseLogger {
       http(req)
         .flatMap((response: Response[F]) => fk(logResponse(response)))
         .guaranteeCase {
-          case Outcome.Errored(t) => fk(log(s"service raised an error: ${t.getClass}"))
-          case Outcome.Canceled() => fk(log(s"service canceled response for request"))
+          case Outcome.Errored(th) => fk(errLog(s"Service raised an error", th))
+          case Outcome.Canceled() => fk(log(s"Service canceled response for request"))
           case Outcome.Succeeded(_) => G.unit
         }
     }
