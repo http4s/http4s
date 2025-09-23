@@ -743,7 +743,7 @@ class UriSuite extends Http4sSuite {
   test("Uri.multiParams should find parameter without value") {
     assertEquals(
       Uri(query = Query.unsafeFromString("param1&param2&param3")).multiParams,
-      Map[String, Seq[String]]("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq())
+      Map[String, Seq[String]]("param1" -> Seq(), "param2" -> Seq(), "param3" -> Seq()),
     )
   }
 
