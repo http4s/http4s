@@ -243,9 +243,8 @@ while not needing to use the network.
 This middleware allows a client to make requests to a domain socket.
 
 ```scala mdoc:silent
+import com.comcast.ip4s.UnixSocketAddress
 import fs2.io.file._
-import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.client.middleware.UnixSocket
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
@@ -255,7 +254,7 @@ val localSocket = Files[IO].tempFile(None, "", ".sock", None)
 
 def server(socket: UnixSocketAddress) = EmberServerBuilder
   .default[IO]
-  .withUnixSocketConfig(UnixSockets[IO], socket) // bind to a domain socket
+  .withUnixSocketConfig(socket) // bind to a domain socket
   .withHttpApp(service.orNotFound)
   .withShutdownTimeout(1.second)
   .build
