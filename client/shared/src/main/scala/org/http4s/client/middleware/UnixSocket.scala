@@ -24,7 +24,7 @@ import org.http4s.client.Client
 
 /** Middleware to direct all requests to the provided `UnixSocketAddress`. */
 object UnixSocket {
-  @deprecated("Use overload that takes a com.comcast.ip4s.UnixSocketAddress", "0.23.31")
+  @deprecated("Use overload that takes a com.comcast.ip4s.UnixSocketAddress", "0.23.32")
   def apply[F[_]: MonadCancelThrow](address: DeprecatedUnixSocketAddress)(
       client: Client[F]
   ): Client[F] =

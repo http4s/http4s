@@ -636,7 +636,7 @@ object Request {
     val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
     val ForcedUnixSocketAddress: Key[UnixSocketAddress] =
       Key.newKey[SyncIO, UnixSocketAddress].unsafeRunSync()
-    @deprecated("Use ForcedUnixSocketAddress instead", "0.23.31")
+    @deprecated("Use ForcedUnixSocketAddress instead", "0.23.32")
     val UnixSocketAddress: Key[DeprecatedUnixSocketAddress] =
       ForcedUnixSocketAddress.imap(a => DeprecatedUnixSocketAddress(a.path))(a =>
         com.comcast.ip4s.UnixSocketAddress(a.path)

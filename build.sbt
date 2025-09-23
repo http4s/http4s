@@ -945,7 +945,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.31").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.32").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

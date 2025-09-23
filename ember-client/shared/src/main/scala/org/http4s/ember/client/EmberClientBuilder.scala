@@ -111,7 +111,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
   def withoutTLSContext: EmberClientBuilder[F] = copy(tlsContextOpt = None)
 
   /** Sets the `SocketGroup`, a group of TCP sockets to be used in connections. */
-  @deprecated("Explicit socket groups are no longer supported", "0.23.31")
+  @deprecated("Explicit socket groups are no longer supported", "0.23.32")
   def withSocketGroup(sg: SocketGroup[F]): EmberClientBuilder[F] = this
 
   /** Sets the connection pool's total maximum number of idle connections.
@@ -196,7 +196,7 @@ final class EmberClientBuilder[F[_]: Async: Network] private (
     * Useful for secure and efficient inter-process communication.
     * See also `UnixSocket` client middleware to direct all requests to a `UnixSocketAddress`.
     */
-  @deprecated("No longer needed", "0.23.31")
+  @deprecated("No longer needed", "0.23.32")
   def withUnixSockets(unixSockets: UnixSockets[F]): EmberClientBuilder[F] =
     this
 
