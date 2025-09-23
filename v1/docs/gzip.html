@@ -245,13 +245,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@573aa3f0,
+//         at = scodec.bits.ByteVector$AtArray@1e0eacec,
 //         offset = 0L,
 //         size = 117L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@209075b
+//    = org.typelevel.vault.Vault@681025b8
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">body</span><span> = </span><span class="identifier">response</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// body: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -269,13 +269,13 @@
 //    = Strict(
 //     bytes = Chunk(
 //       bytes = View(
-//         at = scodec.bits.ByteVector$AtArray@64779fb,
+//         at = scodec.bits.ByteVector$AtArray@6c5eb911,
 //         offset = 0L,
 //         size = 117L
 //       )
 //     )
 //   ),
-//    = org.typelevel.vault.Vault@28685db7
+//    = org.typelevel.vault.Vault@505f7859
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyNormal</span><span> = </span><span class="identifier">respNormal</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyNormal: String = &quot;I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. I repeat myself when I&#39;m under stress. &quot;
@@ -291,7 +291,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Accept-Encoding: gzip),
 //    = Entity.Empty,
-//    = org.typelevel.vault.Vault@2f785e9d
+//    = org.typelevel.vault.Vault@66a6baa2
 // )
 </span><span>
 </span><span class="comment">// Do not call &#39;unsafeRun&#39; in your code - see note at bottom.
@@ -301,7 +301,7 @@
 //    = HttpVersion(major = 1, minor = 1),
 //    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip),
 //    = Streamed(body = Stream(..), length = None),
-//    = org.typelevel.vault.Vault@2fb83663
+//    = org.typelevel.vault.Vault@376b2af9
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">bodyZip</span><span> = </span><span class="identifier">respZip</span><span>.</span><span class="identifier">as</span><span>[</span><span class="type-name">String</span><span>].</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// bodyZip: String = &quot;\u001f�\b\u0000\u0000\u0000\u0000\u0000\u0000\u0003�T(J-HM,Qȭ,N�IS(�H�S�T�U(�KI-R(.)J-.�S�2\u0000UX�&lt;u\u0000\u0000\u0000&quot;
