@@ -53,6 +53,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private val serverFailure =
     Response(Status.InternalServerError).putHeaders(org.http4s.headers.`Content-Length`.zero)
 
+  private val badRequest =
+    Response(Status.BadRequest).putHeaders(org.http4s.headers.`Content-Length`.zero)
+
   def server[F[_]](
       host: Option[Host],
       port: Port,
@@ -396,6 +399,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
       resp <- httpApp
         .run(req.withAttributes(requestVault))
+        .recover { case Parser.HeaderP.ParseHeadersError(_) =>
+          badRequest.covary[F]
+        }
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
     } yield (req, resp, drain)
@@ -541,6 +547,7 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
                 Applicative[F].pure(None)
               case err =>
                 (err match {
+                  case err: Parser.HeaderP.ParseHeadersError => requestLineParseErrorHandler(err)
                   case err: Parser.Request.ReqPrelude.ParsePreludeError =>
                     requestLineParseErrorHandler(err)
                   case err: EmberException.MessageTooLong =>
