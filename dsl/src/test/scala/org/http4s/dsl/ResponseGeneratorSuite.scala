@@ -163,4 +163,10 @@ class ResponseGeneratorSuite extends Http4sSuite {
   test("UnprocessableEntity() has unambiguous and deprecated implicit") {
     val _ = UnprocessableEntity(): @nowarn("cat=deprecation")
   }
+
+  test("UnprocessableContent() can be called") {
+    // Unlike the others, this is a def, not a val, to restore binary
+    // compatibility.  This makes sure it works like the others.
+    val _ = UnprocessableContent()
+  }
 }
