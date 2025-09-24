@@ -63,7 +63,7 @@ trait Statuses {
   val UnsupportedMediaType: Status.UnsupportedMediaType.type = Status.UnsupportedMediaType
   val RangeNotSatisfiable: Status.RangeNotSatisfiable.type = Status.RangeNotSatisfiable
   val ExpectationFailed: Status.ExpectationFailed.type = Status.ExpectationFailed
-  val UnprocessableContent: Status.UnprocessableContent.type = Status.UnprocessableContent
+  def UnprocessableContent: Status.UnprocessableContent.type = Status.UnprocessableContent
   @deprecated("now called UnprocessableContent", since = "0.23.31")
   val UnprocessableEntity: Status.UnprocessableEntity.type = Status.UnprocessableEntity
   val Locked: Status.Locked.type = Status.Locked

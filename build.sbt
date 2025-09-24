@@ -670,14 +670,6 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.org$http4s$dsl$impl$Statuses$_setter_$UnprocessableContent_="
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.UnprocessableContent"
-      ),
-    ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
