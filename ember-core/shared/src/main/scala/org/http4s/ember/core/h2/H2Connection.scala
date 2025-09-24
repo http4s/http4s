@@ -193,8 +193,11 @@ private[h2] class H2Connection[F[_]](
   }
 
   def writeLoop: Stream[F, Nothing] =
+    // use optimized `fromQueueUnterminated`, but still pass combined chunk to `writeChunk`
     Stream
       .fromQueueUnterminated[F, Chunk[H2Frame]](outgoing, Int.MaxValue)
+      .chunks
+      .map(_.flatten)
       .foreach(writeChunk)
       .handleErrorWith(ex => Stream.exec(logger.debug(ex)("writeLoop terminated")))
 
