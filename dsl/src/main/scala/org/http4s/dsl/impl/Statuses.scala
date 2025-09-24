@@ -17,6 +17,7 @@
 package org.http4s.dsl.impl
 
 import org.http4s.Status
+
 import scala.annotation.unchecked.uncheckedStable
 
 trait Statuses {
