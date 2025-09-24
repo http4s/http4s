@@ -41,7 +41,7 @@ private[h2] class H2Stream[F[_]: Concurrent](
     val remoteSettings: F[H2Frame.Settings.ConnectionSettings],
     val state: Ref[F, H2Stream.State[F]],
     val hpack: Hpack[F],
-    val enqueue: cats.effect.std.Queue[F, Chunk[H2Frame]],
+    enqueue: cats.effect.std.QueueSink[F, Chunk[H2Frame]],
     val onClosed: F[Unit],
     val goAway: H2Error => F[Unit],
     private[this] val logger: Logger[F],
@@ -453,6 +453,31 @@ private[h2] object H2Stream {
     def isClosed: Boolean = state == StreamState.HalfClosedRemote || state == StreamState.Closed
 
   }
+
+  def initState[F[_]](
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+  )(implicit F: Concurrent[F]): F[Ref[F, State[F]]] =
+    for {
+      writeBlock <- Deferred[F, Either[Throwable, Unit]]
+      request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
+      response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
+      trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
+      body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
+      refState <- F.ref(
+        H2Stream.State(
+          H2Stream.StreamState.Idle,
+          remoteSettings.initialWindowSize.windowSize,
+          writeBlock,
+          localSettings.initialWindowSize.windowSize,
+          request,
+          response,
+          trailers,
+          body,
+          None,
+        )
+      )
+    } yield refState
 
   sealed trait StreamState
   object StreamState {
