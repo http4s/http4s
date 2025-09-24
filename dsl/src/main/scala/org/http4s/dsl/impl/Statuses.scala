@@ -18,6 +18,8 @@ package org.http4s.dsl.impl
 
 import org.http4s.Status
 
+import scala.annotation.unchecked.uncheckedStable
+
 trait Statuses {
   val Continue: Status.Continue.type = Status.Continue
   val SwitchingProtocols: Status.SwitchingProtocols.type = Status.SwitchingProtocols
@@ -63,7 +65,27 @@ trait Statuses {
   val UnsupportedMediaType: Status.UnsupportedMediaType.type = Status.UnsupportedMediaType
   val RangeNotSatisfiable: Status.RangeNotSatisfiable.type = Status.RangeNotSatisfiable
   val ExpectationFailed: Status.ExpectationFailed.type = Status.ExpectationFailed
-  def UnprocessableContent: Status.UnprocessableContent.type = Status.UnprocessableContent
+
+  /** For binary compatibility reasons, this one is a def instead of a val.  This prevents
+    * its use as a response extractor when the constant is imported from the DSL:
+    *
+    * {{{
+    * response match {
+    *   case UnprocessableContent(_) => // not found: UnprocessableContent
+    * }
+    * }}}
+    *
+    * A stable value, like the one from status, works:
+    *
+    * {{{
+    * response match {
+    *   case Status.UnprocessableContent(_) => // ok
+    * }
+    * }}}
+    */
+  @uncheckedStable final def UnprocessableContent: Status.UnprocessableContent.type =
+    Status.UnprocessableContent
+
   @deprecated("now called UnprocessableContent", since = "0.23.31")
   val UnprocessableEntity: Status.UnprocessableEntity.type = Status.UnprocessableEntity
   val Locked: Status.Locked.type = Status.Locked
