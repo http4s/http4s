@@ -6834,3 +6834,5 @@ the future client.
 # v0.1.0 (2014-04-15)
 
 * Initial public release.
+
+[bot]: https://github.com/http4s/steward
