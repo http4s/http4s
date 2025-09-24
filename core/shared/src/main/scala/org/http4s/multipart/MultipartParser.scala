@@ -19,6 +19,7 @@ package multipart
 
 import cats.ApplicativeThrow
 import cats.effect.Concurrent
+import cats.effect.Deferred
 import cats.effect.Resource
 import cats.effect.std.Supervisor
 import cats.syntax.all._
@@ -28,6 +29,7 @@ import fs2.Pull
 import fs2.Pure
 import fs2.RaiseThrowable
 import fs2.Stream
+import fs2.concurrent.Channel
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
@@ -748,6 +750,168 @@ object MultipartParser {
       ) *> deferred.get.rethrow
     }
 
+  // //////////////////////////////////////
+  // Resource-safe receiver-based parser //
+  // //////////////////////////////////////
+
+  /** Pipe that receives PartStart / PartChunk / PartEnd events,
+    * extracting the chunk data between each PartStart / PartEnd
+    * pair and feeding it through a new `partDecoder` for each part.
+    * Emits the results from each `partDecoder`.
+    *
+    * Resources allocated by the returned Pipe are supervised by
+    * the given `supervisor`, such that when the `supervisor` closes,
+    * the allocated resources also close.
+    *
+    * The `partDecoder` may or may not actually *consume* the part body.
+    * The underlying parser will wait at a `PartEnd` event until the
+    * consumer finishes, i.e. the point when its Resource allocates a value
+    * or raises an error. If the Resource never allocates, the Pipe will
+    * hang forever.
+    *
+    * @param supervisor  A Supervisor used to restrict the lifetimes
+    *                    of resources allocated by this Pipe
+    * @param partDecoder A function that consumes the body of a part.
+    *                    Will be called once for each `PartStart` in
+    *                    the incoming stream.
+    * @tparam A Value type returned for each successfully-parsed Part
+    * @return A pipe that transforms Part events into corresponding
+    *         decoded values.
+    */
+  private[this] def decodePartEventsSupervised[F[_], A](
+      supervisor: Supervisor[F],
+      partDecoder: Part[F] => DecodeResult[Resource[F, *], A],
+  )(implicit F: Concurrent[F]): Pipe[F, Event, Either[DecodeFailure, A]] = {
+
+    val keepPulling = F.pure(true)
+    val stopPulling = F.pure(false)
+
+    def pullPartStart(
+        s: Stream[F, Event]
+    ): Pull[F, Either[DecodeFailure, A], Unit] = s.pull.uncons1.flatMap {
+      case Some((ps: PartStart, tail)) =>
+        for {
+          // Created a shared channel that allows us to represent the `partConsumer`
+          // logic as a `Stream` consumer rather than some kind of "scan" operation.
+          // As new `PartChunk` events are pulled, they will be sent to the channel,
+          // and concurrently the `partConsumer` will consume the channel's `.stream`.
+          channel <- Pull.eval(Channel.synchronous[F, Chunk[Byte]])
+
+          // Since we'll run the `partConsumer` concurrently while pulling chunk events
+          // from the input stream, we use a `Deferred` to allow us to block on the
+          // consumer's completion. This also lets us un-block the event-pull during its
+          // attempts to `send` to the channel, in case the consumer completed without
+          // consuming the entire stream.
+          resultPromise <- Pull.eval(Deferred[F, Either[Throwable, A]])
+
+          // Start the "receiver" fiber to run in the background, sending
+          // its result to the `resultPromise` when it becomes available
+          _ <- Pull.eval(supervisor.supervise[Nothing] {
+            partDecoder(Part(ps.value, channel.stream.unchunks)).value.attempt.evalTap { r =>
+              resultPromise.complete(r.flatten) *> channel.close
+            }
+              // tries to allocate the resource but never close it, but since this
+              // will be started by the supervisor, when the supervisor closes, it
+              // will cancel the usage, allowing the resource to release
+              .useForever
+          })
+
+          // Continue pulling Chunks for the current Part, feeding them to the receiver
+          // via the shared Channel. Make sure the channel push operation doesn't block,
+          // by racing its `send` effect with `resultPromise.get`, so that if the receiver
+          // decides to abort early, we can stop trying to push to the channel. If the
+          // receiver raises an error, stop pulling completely
+          restOfStream <-
+            pullUntilPartEnd(
+              tail,
+              chunk =>
+                F.race(channel.send(chunk), resultPromise.get).flatMap {
+                  case Left(Right(())) => keepPulling // send completed normally
+                  case Left(Left(Channel.Closed)) =>
+                    // Send no-opped because the channel was closed, presumably by the receiver side,
+                    // but we care if it was closed due to an error or just due to lack of interest.
+                    // In the case of an error, we should abort the pull entirely. Otherwise, we need
+                    // to keep draining the data from the current Part until we find the next one.
+                    resultPromise.tryGet.map {
+                      case Some(Left(_)) =>
+                        false // receiver raised an error; stop pulling
+                      case Some(Right(_)) =>
+                        true // receiver finished but didn't necessarily pull the whole stream; keep pulling
+                      case None =>
+                        true // receiver not finished yet; keep pulling
+                    }
+                  case Right(Right(_)) =>
+                    keepPulling // send may have blocked, but the receiver already has a result
+                  case Right(Left(_)) =>
+                    stopPulling // send may have blocked, receiver raised an error, so abort the pull
+                },
+            )
+              // when this part of the Pull completes, make sure to close the channel
+              // so that the `receiver` Stream sees an EOF signal.
+              .handleErrorWith { err =>
+                Pull.eval(channel.close) >> Pull.raiseError[F](err)
+              }
+              .productL(Pull.eval(channel.close))
+
+          // Once we've reached the end of the current part, wait until the consumer
+          // finishes and sends its result (or error) to the promise.
+          partResult <- Pull.eval(resultPromise.get)
+
+          // Output the partResult, continuing the Pull if it was not an error
+          _ <- partResult match {
+            case Right(a) => Pull.output1(Right(a)) >> pullPartStart(restOfStream)
+            case Left(e: DecodeFailure) => Pull.output1(Left(e)).covary[F] >> Pull.done
+            case Left(e) => Pull.raiseError[F](e)
+          }
+        } yield ()
+
+      case None =>
+        Pull.done
+
+      case Some((PartEnd, _)) =>
+        Pull.raiseError[F](new IllegalStateException("unexpected PartEnd"))
+
+      case Some((PartChunk(_), _)) =>
+        Pull.raiseError[F](new IllegalStateException("unexpected PartChunk"))
+    }
+
+    def pullUntilPartEnd(
+        s: Stream[F, Event],
+        pushChunk: Chunk[Byte] => F[Boolean],
+    ): Pull[F, Nothing, Stream[F, Event]] = s.pull.uncons1.flatMap {
+      case Some((PartEnd, tail)) =>
+        Pull.pure(tail)
+      case Some((PartChunk(chunk), tail)) =>
+        Pull.eval(pushChunk(chunk)).flatMap { keepPulling =>
+          if (keepPulling) pullUntilPartEnd(tail, pushChunk)
+          else Pull.pure(Stream.empty)
+        }
+      case Some((PartStart(_), _)) | None =>
+        Pull.raiseError[F](new IllegalStateException("Missing PartEnd"))
+    }
+
+    events => pullPartStart(events).stream
+  }
+
+  private[multipart] def decodePartsSupervised[F[_]: Concurrent, A](
+      supervisor: Supervisor[F],
+      boundary: Boundary,
+      decodePart: Part[F] => DecodeResult[Resource[F, *], A],
+      limit: Int = 1024,
+      maxParts: Option[Int] = Some(20),
+      failOnLimit: Boolean = false,
+  ): Pipe[F, Byte, Either[DecodeFailure, A]] =
+    _.through(
+      parseEvents(boundary, limit)
+    ).through(
+      maxParts match {
+        case Some(m) => limitParts(m, failOnLimit)
+        case None => identity
+      }
+    ).through(
+      decodePartEventsSupervised(supervisor, decodePart)
+    )
+
   // //////////////////////////
   // Streaming event parser //
   // //////////////////////////
@@ -784,7 +948,7 @@ object MultipartParser {
           if (ix === dashBoundaryBytes.length) Pull.pure(remainder ++ rest)
           else go(rest, ix)
         case None =>
-          Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Malformed match"))
+          Pull.raiseError[F](MalformedMessageBodyFailure("Malformed match"))
       }
 
     go(stream, 0)
