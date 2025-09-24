@@ -3,6 +3,20 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.32 (2025-09-24)
+
+## What's Changed
+### http4s-dsl
+* Restore binary compatibility with <0.23.31 in dsl.Statuses by @rossabaker in https://github.com/http4s/http4s/pull/7722
+### Behind the scenes
+<details>
+
+* Update http4s-circe, http4s-ember-client to 0.23.31 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7721
+
+</details>
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.31...v0.23.32
+
 # v0.23.31 (2025-09-22)
 
 ## What's Changed
