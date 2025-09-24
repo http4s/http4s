@@ -17,7 +17,6 @@
 package org.http4s.client.oauth1
 
 import cats.MonadThrow
-import cats.effect.SyncIO
 import cats.syntax.all._
 import org.http4s.client.oauth1.ProtocolParameter.SignatureMethod
 import org.http4s.client.oauth1.SignatureAlgorithm.Names._
@@ -25,8 +24,6 @@ import org.http4s.crypto.Hmac
 import org.http4s.crypto.HmacAlgorithm
 import org.http4s.crypto.SecretKeySpec
 import scodec.bits.ByteVector
-
-import scala.annotation.nowarn
 
 object SignatureAlgorithm {
 
@@ -70,30 +67,54 @@ trait SignatureAlgorithm {
     */
   def name: String
 
+  @annotation.nowarn("msg=deprecated")
+  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+    MonadThrow[F].catchNonFatal(generate(input, secretKey))
+
+  @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
+  def generate(input: String, secretKey: String): String =
+    throw new NotImplementedError()
+
   /** Apply the implementation's algorithm to the input
     *
     * @param input The input value
     * @param secretKey The secret key
     * @return The base64-encoded output
     */
-  def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
-    MonadThrow[F].catchNonFatal(generate(input, secretKey): @nowarn("cat=deprecation"))
+  def generateBase64[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+    generateByteVector(input, secretKey).map(_.toBase64)
 
-  @deprecated("Use generate[F[_]: MonadThrow] instead", "0.22.5")
-  def generate(input: String, secretKey: String): String =
-    generate[SyncIO](input, secretKey).unsafeRunSync()
+  /** Apply the implementation's algorithm to the input
+    *
+    * @param input The input value
+    * @param secretKey The secret key
+    * @return The hexadecimal-encoded output
+    */
+  def generateHex[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+    generateByteVector(input, secretKey).map(_.toHex)
+
+  /** Apply the implementation's algorithm to the input
+    *
+    * @param input The input value
+    * @param secretKey The secret key
+    * @return The ByteVector output
+    */
+  def generateByteVector[F[_]: MonadThrow](input: String, secretKey: String): F[ByteVector] = {
+    val _ = (input, secretKey)
+    MonadThrow[F].raiseError(new NotImplementedError())
+  }
 
   private[oauth1] def generateHMAC[F[_]: MonadThrow: Hmac](
       input: String,
       algorithm: HmacAlgorithm,
       secretKey: String,
-  ): F[String] =
+  ): F[ByteVector] =
     for {
       keyData <- ByteVector.encodeUtf8(secretKey).liftTo[F]
       sk = SecretKeySpec(keyData, algorithm)
       data <- ByteVector.encodeUtf8(input).liftTo[F]
       digest <- Hmac[F].digest(sk, data)
-    } yield digest.toBase64
+    } yield digest
 
 }
 
@@ -103,8 +124,17 @@ trait SignatureAlgorithm {
   */
 object HmacSha1 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA1`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generateByteVector[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA1, secretKey)
+
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA1, secretKey).map(_.toBase64)
 }
 
 /** An implementation of the `HMAC-SHA256` oauth signature method.
@@ -113,8 +143,16 @@ object HmacSha1 extends SignatureAlgorithm {
   */
 object HmacSha256 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA256`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generateByteVector[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA256, secretKey)
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA256, secretKey).map(_.toBase64)
 }
 
 /** An implementation of the `HMAC-SHA512` oauth signature method.
@@ -124,6 +162,15 @@ object HmacSha256 extends SignatureAlgorithm {
   */
 object HmacSha512 extends SignatureAlgorithm {
   override val name: String = `HMAC-SHA512`
-  override def generate[F[_]: MonadThrow](input: String, secretKey: String): F[String] =
+  override def generateByteVector[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[ByteVector] =
     generateHMAC(input, HmacAlgorithm.SHA512, secretKey)
+
+  override def generate[F[_]: MonadThrow](
+      input: String,
+      secretKey: String,
+  ): F[String] =
+    generateHMAC(input, HmacAlgorithm.SHA512, secretKey).map(_.toBase64)
 }
