@@ -132,21 +132,6 @@ jobs:
         if: matrix.java == 'temurin@8'
         run: 'nix develop .#${{ matrix.java }} -c sbt ''project ${{ matrix.project }}'' ''++ ${{ matrix.scala }}'' unusedCompileDependenciesTest'
 
-      - name: Make target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: mkdir -p ember-core/js/target ember-server/js/target client-testkit/js/target ember-server/native/target server/jvm/target ember-client/native/target dsl/.native/target client/native/target server/native/target unidocs/target core/native/target laws/.jvm/target client/js/target ember-core/native/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target scalafix-internal/rules/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target ember-client/js/target project/target
-
-      - name: Compress target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: tar cf targets.tar ember-core/js/target ember-server/js/target client-testkit/js/target ember-server/native/target server/jvm/target ember-client/native/target dsl/.native/target client/native/target server/native/target unidocs/target core/native/target laws/.jvm/target client/js/target ember-core/native/target laws/.native/target client-testkit/native/target core/js/target ember-server/jvm/target circe/.js/target laws/.js/target jawn/.js/target scalafix-internal/rules/target client/jvm/target circe/.jvm/target dsl/.js/target ember-client/jvm/target jawn/.native/target circe/.native/target core/jvm/target dsl/.jvm/target ember-core/jvm/target jawn/.jvm/target server/js/target client-testkit/jvm/target ember-client/js/target project/target
-
-      - name: Upload target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        uses: actions/upload-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}-${{ matrix.project }}
-          path: targets.tar
-
   publish:
     name: Publish Artifacts
     needs: [build]
@@ -206,66 +191,6 @@ jobs:
       - name: sbt update
         if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
         run: 'nix develop .#${{ matrix.java }} -c sbt +update'
-
-      - name: Download target directories (3, rootJS)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootJS
-
-      - name: Inflate target directories (3, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (3, rootJVM)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootJVM
-
-      - name: Inflate target directories (3, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (3, rootNative)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-3-rootNative
-
-      - name: Inflate target directories (3, rootNative)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13, rootJS)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootJS
-
-      - name: Inflate target directories (2.13, rootJS)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13, rootJVM)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootJVM
-
-      - name: Inflate target directories (2.13, rootJVM)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
-
-      - name: Download target directories (2.13, rootNative)
-        uses: actions/download-artifact@v4
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.13-rootNative
-
-      - name: Inflate target directories (2.13, rootNative)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
 
       - name: Import signing key
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE == ''
