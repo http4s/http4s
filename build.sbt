@@ -26,26 +26,7 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
-ThisBuild / githubWorkflowAddedJobs ++= Seq(
-  WorkflowJob(
-    id = "coverage",
-    name = "Generate coverage report",
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-    steps = githubWorkflowJobSetup.value.toList ++
-      List(
-        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
-        WorkflowStep.Use(
-          UseRef.Public(
-            "codecov",
-            "codecov-action",
-            "v3",
-          ),
-          cond = Some("github.event_name != 'pull_request'"),
-        ),
-      ),
-  )
-)
+ThisBuild / githubWorkflowArtifactUpload := false
 
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
