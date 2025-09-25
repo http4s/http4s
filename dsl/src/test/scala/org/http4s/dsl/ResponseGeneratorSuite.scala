@@ -174,13 +174,10 @@ class ResponseGeneratorSuite extends Http4sSuite {
     }
   }
 
-  /* Broken in 0.23.  Fixed in 1.0. */
-  /*
   test("UnprocessableContent can be used as a response extractor") {
     val _ = Response[IO]() match {
       case UnprocessableContent(_) => true
       case _ => false
     }
   }
-   */
 }
