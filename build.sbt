@@ -26,8 +26,6 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
-ThisBuild / githubWorkflowArtifactUpload := false
-
 ThisBuild / jsEnv := {
   import org.scalajs.jsenv.nodejs.NodeJSEnv
   new NodeJSEnv(
