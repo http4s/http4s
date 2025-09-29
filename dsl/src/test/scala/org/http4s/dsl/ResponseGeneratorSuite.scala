@@ -27,8 +27,6 @@ import org.http4s.headers.`Content-Length`
 import org.http4s.headers.`Content-Type`
 import org.http4s.syntax.literals._
 
-import scala.annotation.nowarn
-
 class ResponseGeneratorSuite extends Http4sSuite {
   test("Add the EntityEncoder headers along with a content-length header") {
     val body = "foo"
@@ -155,10 +153,6 @@ class ResponseGeneratorSuite extends Http4sSuite {
           `Content-Length`.unsafeFromLong(3),
         ).headers
       )
-  }
-
-  test("UnprocessableEntity() has unambiguous and deprecated implicit") {
-    val _ = UnprocessableEntity(): @nowarn("cat=deprecation")
   }
 
   test("UnprocessableContent() can be called") {

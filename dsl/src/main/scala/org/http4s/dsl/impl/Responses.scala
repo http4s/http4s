@@ -135,11 +135,6 @@ trait Responses[F[_], G[_]] {
       status: UnprocessableContent.type
   ): UnprocessableContentOps[F, G] =
     new UnprocessableContentOps[F, G](status, liftG)
-  @deprecated("use http4sUnprocessableContentSyntax", since = "0.23.31")
-  implicit def http4sUnprocessableEntitySyntax(
-      status: UnprocessableEntity.type
-  ): Responses.UnprocessableEntityOps[F, G] =
-    new Responses.UnprocessableEntityOps[F, G](status, liftG)
   implicit def http4sLockedSyntax(status: Locked.type): LockedOps[F, G] =
     new LockedOps[F, G](status, liftG)
   implicit def http4sFailedDependencySyntax(
@@ -328,11 +323,6 @@ object Responses {
   ) extends EntityResponseGenerator[F, G]
   final class UnprocessableContentOps[F[_], G[_]](
       val status: UnprocessableContent.type,
-      val liftG: G ~> F,
-  ) extends EntityResponseGenerator[F, G]
-  @deprecated("use UnprocessableContentOps", since = "0.23.31")
-  final class UnprocessableEntityOps[F[_], G[_]](
-      val status: UnprocessableEntity.type,
       val liftG: G ~> F,
   ) extends EntityResponseGenerator[F, G]
   final class LockedOps[F[_], G[_]](val status: Locked.type, val liftG: G ~> F)
