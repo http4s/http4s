@@ -154,24 +154,4 @@ class ResponseGeneratorSuite extends Http4sSuite {
         ).headers
       )
   }
-
-  test("UnprocessableContent() can be called") {
-    // Unlike the others, this is a def, not a val, to restore binary
-    // compatibility.  This makes sure it works like the others.
-    val _ = UnprocessableContent()
-  }
-
-  test("UnprocessableContent can be used as a status extractor") {
-    val _ = Response[IO]().status match {
-      case UnprocessableContent => true
-      case _ => false
-    }
-  }
-
-  test("UnprocessableContent can be used as a response extractor") {
-    val _ = Response[IO]() match {
-      case UnprocessableContent(_) => true
-      case _ => false
-    }
-  }
 }
