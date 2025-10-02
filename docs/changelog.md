@@ -3,6 +3,16 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v1.0.0-M46 (2025-10-02)
+
+## What's Changed
+### http4s-core
+* merge 0.23 to main by @samspills in https://github.com/http4s/http4s/pull/7728
+
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v1.0.0-M45...v1.0.0-M46
+
+
 # v0.23.32 (2025-09-24)
 
 ## What's Changed
