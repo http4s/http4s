@@ -24,7 +24,6 @@ import org.http4s.util.Renderable
 import org.http4s.util.Writer
 
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
@@ -61,20 +60,16 @@ object ServerSentEvent {
     val reset: EventId = EventId("")
   }
 
-  // Pattern instead of Regex, because Regex doesn't have split with limit. :(
-  private val FieldSeparator =
-    Pattern.compile(""": ?""")
-
   def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] = {
     case class LineBuffer(lines: Chain[String] = Chain.empty) {
       def append(line: String): LineBuffer =
-        // val scrubbed = if (line.endsWith("\n")) line.dropRight(1) else line
         copy(lines = lines :+ line)
       def reify: Option[String] =
-        if (lines.nonEmpty) {
-          Some(lines.iterator.mkString("\n"))
-        } else
-          None
+        lines.sizeCompare(1) match {
+          case c if c < 0 => None
+          case 0 => lines.headOption
+          case _ => Some(lines.iterator.mkString("\n"))
+        }
     }
     val emptyBuffer = LineBuffer()
     def go(
@@ -85,7 +80,6 @@ object ServerSentEvent {
         commentBuffer: LineBuffer,
         stream: Stream[F, String],
     ): Pull[F, ServerSentEvent, Unit] = {
-      //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
         val sse = ServerSentEvent(
           dataBuffer.reify,
@@ -97,39 +91,30 @@ object ServerSentEvent {
         Pull.output1(sse) >> go(emptyBuffer, None, None, None, emptyBuffer, stream)
       }
 
-      def handleLine(
-          field: String,
-          value: String,
-          stream: Stream[F, String],
-      ): Pull[F, ServerSentEvent, Unit] =
-        field match {
-          case "" =>
-            go(dataBuffer, eventType, id, retry, commentBuffer.append(value), stream)
-          case "event" =>
-            go(dataBuffer, Some(value), id, retry, commentBuffer, stream)
-          case "data" =>
-            go(dataBuffer.append(value), eventType, id, retry, commentBuffer, stream)
-          case "id" =>
-            val newId = EventId(value)
-            go(dataBuffer, eventType, Some(newId), retry, commentBuffer, stream)
-          case "retry" =>
-            val newRetry = Try(value.toLong).toOption.orElse(retry)
-            go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
-          case _ =>
-            go(dataBuffer, eventType, id, retry, commentBuffer, stream)
-        }
-
       stream.pull.uncons1.flatMap {
         case None =>
           Pull.done
         case Some(("", stream)) =>
           dispatch(stream)
         case Some((s, stream)) =>
-          (FieldSeparator.split(s, 2): @unchecked) match {
-            case Array(field, value) =>
-              handleLine(field, value, stream)
-            case Array(line) =>
-              handleLine(line, "", stream)
+          s match {
+            case _ if s.startsWith("data:") =>
+              go(dataBuffer.append(dropPrefix(s, 5)), eventType, id, retry, commentBuffer, stream)
+            case _ if s.startsWith("id:") =>
+              val eventId = Some(EventId(dropPrefix(s, 3)))
+              go(dataBuffer, eventType, eventId, retry, commentBuffer, stream)
+            case _ if s.startsWith("event:") =>
+              go(dataBuffer, Some(dropPrefix(s, 6)), id, retry, commentBuffer, stream)
+            case _ if s.startsWith("retry:") =>
+              val newRetry = Try(dropPrefix(s, 6).toLong).toOption.orElse(retry)
+              go(dataBuffer, eventType, id, newRetry, commentBuffer, stream)
+            case _ if s.startsWith(":") =>
+              go(dataBuffer, eventType, id, retry, commentBuffer.append(dropPrefix(s, 1)), stream)
+            case "data" => go(dataBuffer.append(""), eventType, id, retry, commentBuffer, stream)
+            case "id" =>
+              go(dataBuffer, eventType, Some(EventId("")), retry, commentBuffer, stream)
+            case "event" => go(dataBuffer, Some(""), id, retry, commentBuffer, stream)
+            case _ => go(dataBuffer, eventType, id, retry, commentBuffer, stream)
           }
       }
     }
@@ -143,6 +128,15 @@ object ServerSentEvent {
         emptyBuffer,
         stream.through(utf8.decode.andThen(text.lines)),
       ).stream
+  }
+
+  @inline private def dropPrefix(s: String, n: Int): String = {
+    val l = s.length
+    if (l > n && s(n) == ' ') {
+      s.slice(n + 1, l)
+    } else {
+      s.slice(n, l)
+    }
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
