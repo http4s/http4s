@@ -21,7 +21,7 @@ package middleware
 import cats.effect.kernel.Async
 import org.typelevel.ci.CIString
 
-/** Configuration for logging actions in HTTP middleware.
+/** Configuration for logging actions in server middleware.
   *
   * @param logHeaders Whether to log headers
   * @param logBody Whether to log the body
@@ -54,18 +54,59 @@ object LogAction {
       redactHeadersWhen: CIString => Boolean,
       logAction: F[String => F[Unit]],
   ) {
+
+    /** Sets whether to log headers.
+      *
+      * @param logHeaders
+      */
     def withLogHeaders(logHeaders: Boolean): LogActionBuilder[F] =
       copy(logHeaders = logHeaders)
 
+    /** Sets whether to log body.
+      * @param logBody
+      */
     def withLogBody(logBody: Boolean): LogActionBuilder[F] =
       copy(logBody = logBody)
 
+    /** Sets the function to determine which headers should be redacted.
+      *
+      * @param redactHeadersWhen function to determine which headers to redact
+      */
     def withRedactHeadersWhen(redactHeadersWhen: CIString => Boolean): LogActionBuilder[F] =
       copy(redactHeadersWhen = redactHeadersWhen)
 
+    /** Sets the log action function.
+      *
+      * @param f log action
+      */
     def withLogAction(f: String => F[Unit]): LogActionBuilder[F] =
       copy(logAction = Async[F].pure(f))
 
+    /** Sets a deferred log action function.
+      *
+      * Use this when you want loggerFactory to capture context e.g. via IOLocal
+      * at the time of logging. Otherwise, context may be lost.
+      * Important for cases where `logBody` is enabled, which may happen on
+      * another fiber.
+      *
+      * @example  {{{
+      * import cats.effect.IOLocal
+      * import org.typelevel.log4cats.Logger
+      * val ioLocal = IOLocal(Map.empty[String, String])
+      * val logger: Logger[IO] = ...
+      * val logF: IO[String => IO[Unit]] =
+      *   ioLocal.get.map { ctx =>
+      *     { s => logger.info(s"$ctx $s") }
+      *   }
+      *
+      * LogAction.default[IO]
+      *   .withLogBody(true)
+      *   .withDeferredLogAction(logF)
+      *   .build
+      * }}}
+      *
+      * @param ff deferred log action
+      */
     def withDeferredLogAction(ff: F[String => F[Unit]]): LogActionBuilder[F] =
       copy(logAction = ff)
 
