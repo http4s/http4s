@@ -115,7 +115,6 @@ lazy val core = libraryCrossProject("core")
       crypto.value,
       fs2Core.value,
       fs2Io.value,
-      ip4sCore.value,
       literally.value,
       munit.value % Test,
       scodecBits.value,
@@ -653,6 +652,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"
+      ),
     ),
   )
   .jvmSettings(
@@ -943,7 +945,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.31").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.32").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },
