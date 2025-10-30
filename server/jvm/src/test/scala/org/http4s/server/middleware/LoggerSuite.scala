@@ -99,7 +99,7 @@ class LoggerSuite extends Http4sSuite {
         val logF: IO[String => IO[Unit]] =
           for {
             state <- local.get
-          } yield (message: String) => logs.update(_ :+ (message, state))
+          } yield (message: String) => logs.update(_ :+ ((message, state)))
 
         val logAction = LoggerConfig
           .default[IO]
