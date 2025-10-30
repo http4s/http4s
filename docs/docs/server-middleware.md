@@ -542,7 +542,7 @@ IOLocal(Map.empty[String, String]).map { traceContext =>
       (msg: String) =>
         Console[IO].println(s"[trace=${ctx.get("traceId")}] $msg")
     }
-  val logAction = LoggerConfig.default[IO](
+  val logAction = LoggerConfig.default[IO]
     .withLogBody(true)
     .withDeferredLogAction(action)
     .build
