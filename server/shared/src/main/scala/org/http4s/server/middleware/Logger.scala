@@ -53,11 +53,10 @@ object Logger {
   def withLoggerConfig[G[_], F[_]](
       logAction: LoggerConfig[F],
       fk: F ~> G,
-  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] =
     ResponseLogger.withLoggerConfig(logAction, fk)(
       RequestLogger.withLoggerConfig(logAction, fk)(http)
     )
-  }
 
   def logBodyText[G[_], F[_]](
       logHeaders: Boolean,

@@ -101,7 +101,8 @@ class LoggerSuite extends Http4sSuite {
             state <- local.get
           } yield (message: String) => logs.update(_ :+ (message, state))
 
-        val logAction = LoggerConfig.default[IO]
+        val logAction = LoggerConfig
+          .default[IO]
           .withLogBody(true)
           .withDeferredLogAction(logF)
           .build
