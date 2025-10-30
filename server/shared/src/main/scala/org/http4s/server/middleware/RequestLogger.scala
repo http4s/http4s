@@ -49,6 +49,22 @@ object RequestLogger {
   ): Http[G, F] =
     impl[G, F](logHeaders, Left(logBody), fk, redactHeadersWhen, logAction)(http)
 
+  def withLogAction[G[_], F[_]](
+      logAction: LogAction[F],
+      fk: F ~> G,
+      logActionF: Option[F[String => F[Unit]]],
+  )(http: Http[G, F])(implicit
+      F: Async[F],
+      G: MonadCancelThrow[G],
+  ): Http[G, F] =
+    implWithLogAction[G, F](
+      logAction.logHeaders,
+      Left(logAction.logBody),
+      fk,
+      logAction.redactHeadersWhen,
+      logActionF,
+    )(http)
+
   private[server] def impl[G[_], F[_]](
       logHeaders: Boolean,
       logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
@@ -109,6 +125,65 @@ object RequestLogger {
     }
   }
 
+  private[server] def implWithLogAction[G[_], F[_]](
+      logHeaders: Boolean,
+      logBodyText: Either[Boolean, Stream[F, Byte] => Option[F[String]]],
+      fk: F ~> G,
+      redactHeadersWhen: CIString => Boolean,
+      logAction: Option[F[String => F[Unit]]],
+  )(http: Http[G, F])(implicit
+      F: Async[F],
+      G: MonadCancelThrow[G],
+  ): Http[G, F] = {
+    val logF = logAction.fold {
+      F.pure((s: String) => logger.info(s).to[F])
+    }(identity)
+
+    def logMessage(r: Request[F], log: String => F[Unit]): F[Unit] =
+      logBodyText match {
+        case Left(bool) =>
+          Logger.logMessage[F, Request[F]](r)(logHeaders, bool, redactHeadersWhen)(log(_))
+        case Right(f) =>
+          org.http4s.internal.Logger
+            .logMessageWithBodyText(r)(logHeaders, f, redactHeadersWhen)(log(_))
+      }
+
+    val logBody: Boolean = logBodyText match {
+      case Left(bool) => bool
+      case Right(_) => true
+    }
+
+    Kleisli { req =>
+      if (!logBody) {
+        fk(logF).flatMap { log =>
+          val logAct = logMessage(req, log)
+          http(req)
+            .guaranteeCase {
+              case Outcome.Succeeded(_) => G.unit
+              case _ => fk(logAct)
+            } <* fk(logAct)
+        }
+      } else
+        fk(F.ref(Vector.empty[Chunk[Byte]]).product(logF))
+          .flatMap { case (vec, log) =>
+            val collectChunks: Pipe[F, Byte, Nothing] =
+              _.chunks.flatMap(c => Stream.exec(vec.update(_ :+ c)))
+
+            val changedRequest = req.pipeBodyThrough(_.observe(collectChunks))
+
+            val newBody = Stream.eval(vec.get).flatMap(v => Stream.emits(v)).unchunks
+            val logRequest: F[Unit] = logMessage(req.withBodyStream(newBody), log)
+
+            http(changedRequest)
+              .guaranteeCase {
+                case Outcome.Succeeded(_) => G.unit
+                case _ => fk(logRequest)
+              }
+              .map(_.pipeBodyThrough(_.onFinalizeWeak(logRequest)))
+          }
+    }
+  }
+
   def httpApp[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -117,6 +192,11 @@ object RequestLogger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  def httpAppWithLogAction[F[_]: Async](
+      logAction: LogAction[F]
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    withLogAction(logAction, FunctionK.id[F], logAction.logAction.pure[Option])(httpApp)
+
   def httpRoutes[F[_]: Async](
       logHeaders: Boolean,
       logBody: Boolean,
@@ -124,6 +204,11 @@ object RequestLogger {
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+
+  def httpRoutesWithLogAction[F[_]: Async](
+      logAction: LogAction[F]
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    withLogAction(logAction, OptionT.liftK[F], logAction.logAction.pure[Option])(httpRoutes)
 
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,

@@ -50,6 +50,16 @@ object Logger {
     )
   }
 
+  def withLogAction[G[_], F[_]](
+      logAction: LogAction[F],
+      fk: F ~> G,
+  )(http: Http[G, F])(implicit G: MonadCancelThrow[G], F: Async[F]): Http[G, F] = {
+    val logF = logAction.logAction.pure[Option]
+    ResponseLogger.withLogAction(logAction, fk, logF)(
+      RequestLogger.withLogAction(logAction, fk, logF)(http)
+    )
+  }
+
   def logBodyText[G[_], F[_]](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
@@ -73,6 +83,11 @@ object Logger {
   )(httpApp: HttpApp[F]): HttpApp[F] =
     apply(logHeaders, logBody, FunctionK.id[F], redactHeadersWhen, logAction)(httpApp)
 
+  def httpAppWithLogAction[F[_]: Async](
+      logAction: LogAction[F]
+  )(httpApp: HttpApp[F]): HttpApp[F] =
+    withLogAction(logAction, FunctionK.id[F])(httpApp)
+
   def httpAppLogBodyText[F[_]: Async](
       logHeaders: Boolean,
       logBody: Stream[F, Byte] => Option[F[String]],
@@ -88,6 +103,11 @@ object Logger {
       logAction: Option[String => F[Unit]] = None,
   )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     apply(logHeaders, logBody, OptionT.liftK[F], redactHeadersWhen, logAction)(httpRoutes)
+
+  def httpRoutesWithLogAction[F[_]: Async](
+      logAction: LogAction[F]
+  )(httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
+    withLogAction(logAction, OptionT.liftK[F])(httpRoutes)
 
   def httpRoutesLogBodyText[F[_]: Async](
       logHeaders: Boolean,
