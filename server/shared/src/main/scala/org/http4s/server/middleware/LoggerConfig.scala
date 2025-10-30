@@ -28,27 +28,27 @@ import org.typelevel.ci.CIString
   * @param redactHeadersWhen Function to determine which headers should be redacted
   * @param logAction The effectful log action that returns a logging function
   */
-final case class LogAction[F[_]] private[middleware] (
+final case class LoggerConfig[F[_]] private[middleware] (
     logHeaders: Boolean,
     logBody: Boolean,
     redactHeadersWhen: CIString => Boolean,
     logAction: F[String => F[Unit]],
 )
 
-object LogAction {
+object LoggerConfig {
   private[this] val logger = Platform.loggerFactory.getLogger
 
-  /** Creates a builder for LogAction.
+  /** Creates a builder for LoggerConfig.
     */
-  def default[F[_]: Async]: LogActionBuilder[F] =
-    new LogActionBuilder[F](
+  def default[F[_]: Async]: LoggerConfigBuilder[F] =
+    new LoggerConfigBuilder[F](
       logHeaders = false,
       logBody = false,
       redactHeadersWhen = Logger.defaultRedactHeadersWhen,
       logAction = Async[F].pure(s => logger.info(s).to[F]),
     )
 
-  final case class LogActionBuilder[F[_]: Async] private[LogAction] (
+  final case class LoggerConfigBuilder[F[_]: Async] private[LoggerConfig] (
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean,
@@ -59,27 +59,27 @@ object LogAction {
       *
       * @param logHeaders
       */
-    def withLogHeaders(logHeaders: Boolean): LogActionBuilder[F] =
+    def withLogHeaders(logHeaders: Boolean): LoggerConfigBuilder[F] =
       copy(logHeaders = logHeaders)
 
     /** Sets whether to log body.
       * @param logBody
       */
-    def withLogBody(logBody: Boolean): LogActionBuilder[F] =
+    def withLogBody(logBody: Boolean): LoggerConfigBuilder[F] =
       copy(logBody = logBody)
 
     /** Sets the function to determine which headers should be redacted.
       *
       * @param redactHeadersWhen function to determine which headers to redact
       */
-    def withRedactHeadersWhen(redactHeadersWhen: CIString => Boolean): LogActionBuilder[F] =
+    def withRedactHeadersWhen(redactHeadersWhen: CIString => Boolean): LoggerConfigBuilder[F] =
       copy(redactHeadersWhen = redactHeadersWhen)
 
     /** Sets the log action function.
       *
       * @param f log action
       */
-    def withLogAction(f: String => F[Unit]): LogActionBuilder[F] =
+    def withLogAction(f: String => F[Unit]): LoggerConfigBuilder[F] =
       copy(logAction = Async[F].pure(f))
 
     /** Sets a deferred log action function.
@@ -99,19 +99,19 @@ object LogAction {
       *     { s => logger.info(s"$ctx $s") }
       *   }
       *
-      * LogAction.default[IO]
+      * LoggerConfig.default[IO]
       *   .withLogBody(true)
-      *   .withDeferredLogAction(logF)
+      *   .withDeferredLoggerConfig(logF)
       *   .build
       * }}}
       *
       * @param ff deferred log action
       */
-    def withDeferredLogAction(ff: F[String => F[Unit]]): LogActionBuilder[F] =
+    def withDeferredLogAction(ff: F[String => F[Unit]]): LoggerConfigBuilder[F] =
       copy(logAction = ff)
 
-    def build: LogAction[F] =
-      LogAction(
+    def build: LoggerConfig[F] =
+      LoggerConfig(
         logHeaders = logHeaders,
         logBody = logBody,
         redactHeadersWhen = redactHeadersWhen,

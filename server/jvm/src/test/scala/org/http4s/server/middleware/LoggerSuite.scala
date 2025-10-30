@@ -93,7 +93,7 @@ class LoggerSuite extends Http4sSuite {
     }.assert
   }
 
-  test("logger with LogAction should retain IOLocal details while logging the body") {
+  test("logger with deferred log action should retain IOLocal details while logging the body") {
     IOLocal(Map.empty[String, String]).flatMap { local =>
       IO.ref(Vector.empty[(String, Map[String, String])]).flatMap { logs =>
         val logF: IO[String => IO[Unit]] =
@@ -101,12 +101,12 @@ class LoggerSuite extends Http4sSuite {
             state <- local.get
           } yield (message: String) => logs.update(_ :+ (message, state))
 
-        val logAction = LogAction.default[IO]
+        val logAction = LoggerConfig.default[IO]
           .withLogBody(true)
           .withDeferredLogAction(logF)
           .build
 
-        val loggerApp = Logger.httpAppWithLogAction(logAction)(testApp)
+        val loggerApp = Logger.httpAppWithConfig(logAction)(testApp)
 
         val traceId = "3239b0fd76624aa7"
         val spanId = "3239b0fd"
