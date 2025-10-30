@@ -28,32 +28,65 @@ import org.typelevel.ci.CIString
   * @param redactHeadersWhen Function to determine which headers should be redacted
   * @param logAction The effectful log action that returns a logging function
   */
-final case class LoggerConfig[F[_]] private[middleware] (
+sealed abstract case class LoggerConfig[F[_]] private[middleware] (
     logHeaders: Boolean,
     logBody: Boolean,
     redactHeadersWhen: CIString => Boolean,
     logAction: F[String => F[Unit]],
-)
+) {
+  private[middleware] def copy(
+      logHeaders: Boolean = this.logHeaders,
+      logBody: Boolean = this.logBody,
+      redactHeadersWhen: CIString => Boolean = this.redactHeadersWhen,
+      logAction: F[String => F[Unit]] = this.logAction,
+  ): LoggerConfig[F] =
+    LoggerConfig(logHeaders, logBody, redactHeadersWhen, logAction)
+}
 
 object LoggerConfig {
   private[this] val logger = Platform.loggerFactory.getLogger
 
+  private def apply[F[_]](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CIString => Boolean,
+      logAction: F[String => F[Unit]],
+  ): LoggerConfig[F] =
+    new LoggerConfig[F](logHeaders, logBody, redactHeadersWhen, logAction) {}
+
   /** Creates a builder for LoggerConfig.
     */
   def default[F[_]: Async]: LoggerConfigBuilder[F] =
-    new LoggerConfigBuilder[F](
+    LoggerConfigBuilder[F](
       logHeaders = false,
       logBody = false,
       redactHeadersWhen = Logger.defaultRedactHeadersWhen,
       logAction = Async[F].pure(s => logger.info(s).to[F]),
     )
 
-  final case class LoggerConfigBuilder[F[_]: Async] private[LoggerConfig] (
+  object LoggerConfigBuilder {
+    private[LoggerConfig] def apply[F[_]: Async](
+        logHeaders: Boolean,
+        logBody: Boolean,
+        redactHeadersWhen: CIString => Boolean,
+        logAction: F[String => F[Unit]],
+    ): LoggerConfigBuilder[F] =
+      new LoggerConfigBuilder[F](logHeaders, logBody, redactHeadersWhen, logAction) {}
+  }
+
+  sealed abstract case class LoggerConfigBuilder[F[_]: Async] private[LoggerConfig] (
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CIString => Boolean,
       logAction: F[String => F[Unit]],
   ) {
+    private def copy(
+        logHeaders: Boolean = this.logHeaders,
+        logBody: Boolean = this.logBody,
+        redactHeadersWhen: CIString => Boolean = this.redactHeadersWhen,
+        logAction: F[String => F[Unit]] = this.logAction,
+    ): LoggerConfigBuilder[F] =
+      LoggerConfigBuilder(logHeaders, logBody, redactHeadersWhen, logAction)
 
     /** Sets whether to log headers.
       *
