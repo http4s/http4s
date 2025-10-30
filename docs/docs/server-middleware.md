@@ -531,23 +531,23 @@ loggerClient.expect[Unit](reverseRequest.withEntity("mood")).unsafeRunSync()
 #### Deferred Log Actions
 
 When you need to capture contextual information (like trace IDs from `IOLocal`) during logging,
-when `logBody = true`, use `LogAction` with a deferred log action of type `F[String => F[Unit]]`:
+when `logBody = true`, use `LoggerConfig` with a deferred log action of type `F[String => F[Unit]]`:
 
 ```scala mdoc:silent
-import org.http4s.server.middleware.LogAction
+import org.http4s.server.middleware.LoggerConfig
 
 // Example with IOLocal for distributed tracing
 IOLocal(Map.empty[String, String]).map { traceContext =>
-  val log = traceContext.get.map { ctx =>
+  val action = traceContext.get.map { ctx =>
       (msg: String) =>
         Console[IO].println(s"[trace=${ctx.get("traceId")}] $msg")
     }
-  val logAction = LogAction.default[IO](
+  val logAction = LoggerConfig.default[IO](
     .withLogBody(true)
-    .withDeferredLogAction(log)
+    .withDeferredLogAction(action)
     .build
 
-  val loggedRoutesWithTraceIds = Logger.httpAppWithLogAction(logAction)(service.orNotFound)
+  val loggedRoutesWithTraceIds = Logger.httpAppWithLoggerConfig(logAction)(service.orNotFound)
 }
 ```
 
