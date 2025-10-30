@@ -79,8 +79,8 @@ object LoggerConfig {
       *
       * @param f log action
       */
-    def withLogAction(f: String => F[Unit]): LoggerConfigBuilder[F] =
-      copy(logAction = Async[F].pure(f))
+    def withLogAction(action: String => F[Unit]): LoggerConfigBuilder[F] =
+      copy(logAction = Async[F].pure(action))
 
     /** Sets a deferred log action function.
       *
@@ -107,8 +107,8 @@ object LoggerConfig {
       *
       * @param ff deferred log action
       */
-    def withDeferredLogAction(ff: F[String => F[Unit]]): LoggerConfigBuilder[F] =
-      copy(logAction = ff)
+    def withDeferredLogAction(action: F[String => F[Unit]]): LoggerConfigBuilder[F] =
+      copy(logAction = action)
 
     def build: LoggerConfig[F] =
       LoggerConfig(
