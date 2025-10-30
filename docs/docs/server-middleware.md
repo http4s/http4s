@@ -547,7 +547,7 @@ IOLocal(Map.empty[String, String]).map { traceContext =>
     .withDeferredLogAction(action)
     .build
 
-  val loggedRoutesWithTraceIds = Logger.httpAppWithLoggerConfig(logAction)(service.orNotFound)
+  val loggedRoutesWithTraceIds = Logger.httpAppWithConfig(logAction)(service.orNotFound)
 }
 ```
 
