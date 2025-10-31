@@ -129,7 +129,7 @@ object LoggerConfig {
       * val logger: Logger[IO] = ...
       * val logF: IO[String => IO[Unit]] =
       *   ioLocal.get.map { ctx =>
-      *     { s => logger.info(s"$ctx $s") }
+      *     { msg => logger.info("log msg and ctx: ...") }
       *   }
       *
       * LoggerConfig.default[IO]
