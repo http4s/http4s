@@ -26,6 +26,7 @@ import cats.syntax.all._
 import org.http4s.Status._
 import org.http4s.headers.`Idempotency-Key`
 import org.http4s.headers.`Retry-After`
+import org.http4s.internal.NonEmptyHotswapHelpers
 import org.typelevel.ci.CIString
 import org.typelevel.vault.Key
 
@@ -79,8 +80,7 @@ object Retry {
               .attempt
               .map(_.some)
           )
-        attempt <- hotswap.get
-          .use(_.liftTo[F](new IllegalStateException("No active attempt")))
+        attempt <- NonEmptyHotswapHelpers.requireCurrent(hotswap, "No active attempt")
       } yield attempt
 
     def nextAttempt(

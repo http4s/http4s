@@ -46,6 +46,7 @@ import org.http4s.ember.core.Util
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
+import org.http4s.internal.NonEmptyHotswapHelpers
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
@@ -253,7 +254,7 @@ private[client] object ClientHelpers {
     def currentManaged(
         hs: NonEmptyHotswap[F, Option[Managed[F, EmberConnection[F]]]]
     ): F[Managed[F, EmberConnection[F]]] =
-      hs.get.use(_.liftTo[F](new IllegalStateException("No managed connection available")))
+      NonEmptyHotswapHelpers.requireCurrent(hs, "No managed connection available")
 
     NonEmptyHotswap
       .empty[F, Managed[F, EmberConnection[F]]]

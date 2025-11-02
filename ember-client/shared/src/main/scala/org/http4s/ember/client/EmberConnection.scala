@@ -23,6 +23,7 @@ import cats.effect.kernel.Ref
 import cats.effect.std.NonEmptyHotswap
 import cats.syntax.all._
 import fs2.Chunk
+import org.http4s.internal.NonEmptyHotswapHelpers
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
@@ -66,8 +67,7 @@ private[ember] final case class EmberConnection[F[_]](
           }
           .map(_.some)
       )
-      deferred <- hotRead.get
-        .use(_.liftTo[F](new IllegalStateException("No active read")))
+      deferred <- NonEmptyHotswapHelpers.requireCurrent(hotRead, "No active read")
       _ <- nextRead.set(deferred)
     } yield ()
 
