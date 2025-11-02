@@ -28,7 +28,8 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
+import cats.effect.std.NonEmptyHotswap.NonEmptyHotswapOptionalResourcesOpt
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
@@ -248,23 +249,34 @@ private[client] object ClientHelpers {
   private[client] def getValidManaged[F[_]: Async](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
-  ): Resource[F, Managed[F, EmberConnection[F]]] =
-    Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
-      def go: F[Managed[F, EmberConnection[F]]] =
-        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
-          managed.value.isValid.ifM(
-            managed.pure,
-            if (managed.isReused) // keep swapping connections until we find a valid one
-              managed.canBeReused.set(Reusable.DontReuse) *> go
-            else
-              Sync[F].raiseError(
-                new fs2.io.net.SocketException("Fresh connection from pool was not open")
-              ),
-          )
-        }
+  ): Resource[F, Managed[F, EmberConnection[F]]] = {
+    def currentManaged(
+        hs: NonEmptyHotswap[F, Option[Managed[F, EmberConnection[F]]]]
+    ): F[Managed[F, EmberConnection[F]]] =
+      hs.get.use(_.liftTo[F](new IllegalStateException("No managed connection available")))
 
-      go
-    }
+    NonEmptyHotswap
+      .empty[F, Managed[F, EmberConnection[F]]]
+      .evalMap { hs =>
+        def go: F[Managed[F, EmberConnection[F]]] =
+          for {
+            _ <- hs.clear
+            _ <- hs.swap(pool.take(RequestKey.fromRequest(request)).map(_.some))
+            managed <- currentManaged(hs)
+            valid <- managed.value.isValid
+            result <-
+              if (valid) managed.pure[F]
+              else if (managed.isReused) // keep swapping connections until we find a valid one
+                managed.canBeReused.set(Reusable.DontReuse) *> go
+              else
+                Sync[F].raiseError[Managed[F, EmberConnection[F]]](
+                  new fs2.io.net.SocketException("Fresh connection from pool was not open")
+                )
+          } yield result
+
+        go
+      }
+  }
 
   private[ember] object RetryLogic {
     private val retryNow = 0.seconds.some
