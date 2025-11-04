@@ -37,7 +37,7 @@ final class NonEmptyHotswapHelpersSuite extends Http4sSuite {
   }
 
   test("requireCurrent returns the current value when present") {
-    NonEmptyHotswap.empty[IO, Int].use { hs: NonEmptyHotswap[IO, Option[Int]] =>
+    NonEmptyHotswap.empty[IO, Int].use { (hs: NonEmptyHotswap[IO, Option[Int]]) =>
       for {
         _ <- hs.swap(Resource.pure(42.some: Option[Int]))
         value <- NonEmptyHotswapHelpers.requireCurrent(hs, "missing")
@@ -47,7 +47,7 @@ final class NonEmptyHotswapHelpersSuite extends Http4sSuite {
   }
 
   test("requireCurrent raises IllegalStateException when empty") {
-    NonEmptyHotswap.empty[IO, Int].use { hs: NonEmptyHotswap[IO, Option[Int]] =>
+    NonEmptyHotswap.empty[IO, Int].use { (hs: NonEmptyHotswap[IO, Option[Int]]) =>
       for {
         _ <- hs.swap(Resource.pure(none[Int]: Option[Int]))
         outcome <- NonEmptyHotswapHelpers.requireCurrent(hs, "missing").attempt

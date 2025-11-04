@@ -21,7 +21,6 @@ import cats.effect._
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
-import com.comcast.ip4s.{UnixSocketAddress => IpUnixSocketAddress}
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
@@ -145,7 +144,8 @@ private[ember] class H2Client[F[_]](
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- address match {
-      case Left(unixAddress) => network.connect(IpUnixSocketAddress(unixAddress.path))
+      case Left(unixAddress) =>
+        network.connect(com.comcast.ip4s.UnixSocketAddress(unixAddress.path))
       case Right(ipAddress) => network.connect(ipAddress)
     }
     socket <- {
