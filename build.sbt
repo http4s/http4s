@@ -238,9 +238,8 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
     ),
   )
   .dependsOn(core)
-  .jsSettings(
-    jsVersionIntroduced("0.23.5")
-  )
+  .jsSettings(jsVersionIntroduced("0.23.5"))
+  .nativeSettings(nativeTestDependencyOverrides)
 
 // Also defines shared test utils in Compile scope
 lazy val tests = libraryCrossProject("tests")
@@ -258,6 +257,7 @@ lazy val tests = libraryCrossProject("tests")
     githubWorkflowArtifactUpload := false,
   )
   .dependsOn(core, laws)
+  .nativeSettings(nativeTestDependencyOverrides)
 
 lazy val server = libraryCrossProject("server")
   .settings(
@@ -943,6 +943,10 @@ lazy val commonSettings = Seq(
 def jsVersionIntroduced(v: String) = Seq(
   tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> v).toMap
 )
+
+def nativeTestDependencyOverrides =
+  // Peg to the current build's Scala Native version
+  dependencyOverrides += "org.scala-native" %%% "test-interface" % buildinfo.BuildBuildInfo.scalaNativeVersion
 
 lazy val skipUnusedDependenciesTestOnScala3 = Seq(
   unusedCompileDependenciesTest := Def.taskDyn {

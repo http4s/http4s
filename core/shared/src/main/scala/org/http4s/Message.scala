@@ -40,13 +40,13 @@ import fs2.text.utf8
 import org.http4s.Message.EntityStreamException
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
+import org.http4s.internal.HashingCompat
 import org.http4s.syntax.KleisliSyntax
 import org.typelevel.ci.CIString
 import org.typelevel.vault._
 
 import java.io.File
 import scala.util.control.NoStackTrace
-import scala.util.hashing.MurmurHash3
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response.
   */
@@ -548,7 +548,7 @@ final class Request[F[_]] private (
   )(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = true)(f)
 
-  override def hashCode(): Int = MurmurHash3.productHash(this)
+  override def hashCode(): Int = HashingCompat.caseClassHash(this)
 
   def canEqual(that: Any): Boolean = that match {
     case _: Request[_] => true
@@ -708,7 +708,7 @@ final class Response[F[_]] private (
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
 
-  override def hashCode(): Int = MurmurHash3.productHash(this)
+  override def hashCode(): Int = HashingCompat.caseClassHash(this)
 
   def copy(
       status: Status = this.status,

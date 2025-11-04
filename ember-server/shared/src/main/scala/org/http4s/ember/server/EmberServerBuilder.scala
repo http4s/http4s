@@ -23,11 +23,9 @@ import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
 import fs2.io.net.Network
-import fs2.io.net.SocketGroup
 import fs2.io.net.SocketOption
 import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.ember.core.EmberException
 import org.http4s.ember.server.internal.ServerHelpers
@@ -43,7 +41,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val port: Port,
     private val httpApp: WebSocketBuilder2[F] => HttpApp[F],
     private val tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
-    private val sgOpt: Option[SocketGroup[F]],
     private val connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
     private val errorHandler: Throwable => F[Response[F]],
     private val onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
@@ -55,7 +52,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
     val shutdownTimeout: Duration,
     val additionalSocketOptions: List[SocketOption],
     private val logger: Logger[F],
-    private val unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)],
+    private val unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)],
     private val enableHttp2: Boolean,
     private val requestLineParseErrorHandler: Throwable => F[Response[F]],
     private val maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
@@ -69,7 +66,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       port: Port = self.port,
       httpApp: WebSocketBuilder2[F] => HttpApp[F] = self.httpApp,
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)] = self.tlsInfoOpt,
-      sgOpt: Option[SocketGroup[F]] = self.sgOpt,
       connectionErrorHandler: PartialFunction[Throwable, F[Unit]] = self.connectionErrorHandler,
       errorHandler: Throwable => F[Response[F]] = self.errorHandler,
       onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit] = self.onWriteFailure,
@@ -81,8 +77,7 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       shutdownTimeout: Duration = self.shutdownTimeout,
       additionalSocketOptions: List[SocketOption] = self.additionalSocketOptions,
       logger: Logger[F] = self.logger,
-      unixSocketConfig: Option[(UnixSockets[F], UnixSocketAddress, Boolean, Boolean)] =
-        self.unixSocketConfig,
+      unixSocketConfig: Option[(UnixSocketAddress, Boolean, Boolean)] = self.unixSocketConfig,
       enableHttp2: Boolean = self.enableHttp2,
       requestLineParseErrorHandler: Throwable => F[Response[F]] = self.requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]] =
@@ -93,7 +88,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
       port = port,
       httpApp = httpApp,
       tlsInfoOpt = tlsInfoOpt,
-      sgOpt = sgOpt,
       connectionErrorHandler = connectionErrorHandler,
       errorHandler = errorHandler,
       onWriteFailure = onWriteFailure,
@@ -120,8 +114,8 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withHttpWebSocketApp(f: WebSocketBuilder2[F] => HttpApp[F]): EmberServerBuilder[F] =
     copy(httpApp = f)
 
-  def withSocketGroup(sg: SocketGroup[F]): EmberServerBuilder[F] =
-    copy(sgOpt = sg.pure[Option])
+  @deprecated("SocketGroup is no longer used; this method is now a no-op.", "0.23.34")
+  def withSocketGroup(sg: fs2.io.net.SocketGroup[F]): EmberServerBuilder[F] = this
 
   def withTLS(
       tlsContext: TLSContext[F],
@@ -197,13 +191,35 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
   def withoutHttp2: EmberServerBuilder[F] = copy(enableHttp2 = false)
 
   // If used will bind to UnixSocket
+  @deprecated(
+    "Unix sockets are now handled automatically via Network[F]; use the overload without UnixSockets.",
+    "0.23.34",
+  )
   def withUnixSocketConfig(
-      unixSockets: UnixSockets[F],
+      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
+      unixSocketAddress: UnixSocketAddress,
+  ): EmberServerBuilder[F] =
+    withUnixSocketConfig(unixSocketAddress)
+
+  @deprecated(
+    "Unix sockets are now handled automatically via Network[F]; use the overload without UnixSockets.",
+    "0.23.34",
+  )
+  def withUnixSocketConfig(
+      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean,
+      deleteOnClose: Boolean,
+  ): EmberServerBuilder[F] =
+    withUnixSocketConfig(unixSocketAddress, deleteIfExists, deleteOnClose)
+
+  /** Configures the server to bind to the supplied Unix domain socket address. */
+  def withUnixSocketConfig(
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean = true,
       deleteOnClose: Boolean = true,
   ): EmberServerBuilder[F] =
-    copy(unixSocketConfig = Some((unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose)))
+    copy(unixSocketConfig = Some((unixSocketAddress, deleteIfExists, deleteOnClose)))
   def withoutUnixSocketConfig: EmberServerBuilder[F] =
     copy(unixSocketConfig = None)
 
@@ -231,7 +247,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
 
   def build: Resource[F, Server] =
     for {
-      sg <- sgOpt.getOrElse(Network[F]).pure[Resource[F, *]]
       ready <- Resource.eval(Deferred[F, Either[Throwable, SocketAddress[IpAddress]]])
       shutdown <- Resource.eval(Shutdown[F](shutdownTimeout))
       wsBuilder <- Resource.eval(WebSocketBuilder2[F])
@@ -242,7 +257,6 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
               host,
               port,
               additionalSocketOptions,
-              sg,
               httpApp(wsBuilder),
               tlsInfoOpt,
               ready,
@@ -264,10 +278,10 @@ final class EmberServerBuilder[F[_]: Async: Network] private (
             .compile
             .drain
         )
-      ) { case (unixSockets, unixSocketAddress, deleteIfExists, deleteOnClose) =>
+      ) { case (unixSocketAddress, deleteIfExists, deleteOnClose) =>
         ServerHelpers
           .unixSocketServer(
-            unixSockets,
+            Network[F],
             unixSocketAddress,
             deleteIfExists,
             deleteOnClose,
@@ -309,7 +323,6 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
       port = Port.fromInt(Defaults.port).get,
       httpApp = _ => Defaults.httpApp[F],
       tlsInfoOpt = None,
-      sgOpt = None,
       connectionErrorHandler = Defaults.connectionErrorHandler[F],
       errorHandler = Defaults.errorHandler[F],
       onWriteFailure = Defaults.onWriteFailure[F],

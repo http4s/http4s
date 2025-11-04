@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 http4s.org
+ * Copyright 2025 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.client
+package org.http4s.internal
 
-import cats.effect.Async
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
+import scala.annotation.nowarn
+import scala.util.hashing.MurmurHash3
 
-private[client] trait EmberClientBuilderPlatform
+private[http4s] object HashingCompat {
 
-private[client] trait EmberClientBuilderCompanionPlatform {
-
-  private[client] def defaultLogger[F[_]: Async]: Logger[F] = NoOpLogger[F]
+  // TODO use `MurmurHash3.caseClassHash` once supported by JS / Native scalalibs
+  @nowarn("msg=deprecated")
+  def caseClassHash[A <: Product](a: A): Int = MurmurHash3.productHash(a)
 
 }

@@ -19,7 +19,8 @@ package client
 package middleware
 
 import cats.effect._
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
+import cats.effect.std.NonEmptyHotswap.NonEmptyHotswapOptionalResourcesOpt
 import cats.syntax.all._
 import org.http4s.Method._
 import org.http4s.headers._
@@ -100,27 +101,37 @@ object FollowRedirect {
     def redirectLoop(
         req: Request[F],
         redirects: Int,
-        hotswap: Hotswap[F, Response[F]],
+        hotswap: NonEmptyHotswap[F, Option[Response[F]]],
     ): F[Response[F]] =
-      hotswap.clear *> // Release the prior connection before allocating a new
-        hotswap.swap(client.run(req)).flatMap { resp =>
-          val l: Option[Location] = resp.headers.get[Location]
-          (methodForRedirect(req, resp), l) match {
+      for {
+        _ <- hotswap.clear // Release the prior connection before allocating a new
+        _ <- hotswap.swap(client.run(req).map(_.some))
+        decision <- hotswap.get.use { optResp =>
+          val resp = optResp.get
+          val location = resp.headers.get[Location]
+          val decision = (methodForRedirect(req, resp), location) match {
             case (Some(method), Some(loc)) if redirects < maxRedirects =>
               val nextReq = nextRequest(req, loc.uri, method, resp.cookies)
-              redirectLoop(nextReq, redirects + 1, hotswap)
-                .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
+              Left(nextReq)
             case _ =>
-              // IF the response is missing the Location header, OR there is no method to redirect,
-              // OR we have exceeded max number of redirections, THEN we redirect no more
-              resp.pure[F]
+              Right(resp)
           }
+          decision.pure[F]
         }
+        result <- decision match {
+          case Right(resp) => F.pure(resp)
+          case Left(nextReq) =>
+            redirectLoop(nextReq, redirects + 1, hotswap)
+              .map(res => res.withAttribute(redirectUrisKey, nextReq.uri +: getRedirectUris(res)))
+        }
+      } yield result
 
     Client { req =>
-      Hotswap.create[F, Response[F]].flatMap { case hotswap =>
-        Resource.eval(redirectLoop(req, 0, hotswap))
-      }
+      NonEmptyHotswap
+        .empty[F, Response[F]]
+        .flatMap { hotswap =>
+          Resource.eval(redirectLoop(req, 0, hotswap))
+        }
     }
   }
 

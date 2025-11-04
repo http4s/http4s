@@ -20,9 +20,10 @@ import cats.effect.Concurrent
 import cats.effect.Resource
 import cats.effect.kernel.Deferred
 import cats.effect.kernel.Ref
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
 import cats.syntax.all._
 import fs2.Chunk
+import org.http4s.internal.NonEmptyHotswapHelpers
 
 private[ember] final case class EmberConnection[F[_]](
     keySocket: RequestKeySocket[F],
@@ -34,21 +35,18 @@ private[ember] final case class EmberConnection[F[_]](
      * On the happy path when we reuse a connection, this will block until the next request is sent.
      * On the less-happy path, this read will complete with EOF, which we check before sending a request.
      */
-    hotRead: Hotswap[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+    hotRead: NonEmptyHotswap[F, Option[Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]]],
     nextRead: Ref[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
 )(implicit F: Concurrent[F]) {
 
   /** For the connection to be valid, the socket must be open,
     * and its pre-emptive read must not have terminated in an error or EOF.
     */
-  def isValid: F[Boolean] = {
-    val isOpen = keySocket.socket.isOpen
-    val isEof = nextRead.get.flatMap(_.tryGet).map {
-      case Some(result) => result.fold(_ => true, _.isEmpty) // if Left or None this socket is dead
-      case None => false // no read yet, which is good!
+  def isValid: F[Boolean] =
+    nextRead.get.flatMap(_.tryGet).map {
+      case Some(result) => result.fold(_ => false, _.nonEmpty)
+      case None => true // no read yet, which is good!
     }
-    (isOpen, isEof).mapN((open, eof) => open && !eof)
-  }
 
   /** We must start the next read after completing a request/response pair,
     * and before returning this connection to the pool.
@@ -56,14 +54,19 @@ private[ember] final case class EmberConnection[F[_]](
     * This way [[isValid]] can check for EOF when the connection is retrieved from the pool.
     */
   def startNextRead: F[Unit] =
-    hotRead
-      .swap {
-        Resource.eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]]).flatTap { result =>
-          val read = keySocket.socket.read(chunkSize)
-          F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
-        }
-      }
-      .flatMap(nextRead.set(_))
+    for {
+      _ <- hotRead.swap(
+        Resource
+          .eval(F.deferred[Either[Throwable, Option[Chunk[Byte]]]])
+          .flatTap { result =>
+            val read = keySocket.socket.read(chunkSize)
+            F.background(read.attempt.flatMap(result.complete(_)).void.voidError)
+          }
+          .map(_.some)
+      )
+      deferred <- NonEmptyHotswapHelpers.requireCurrent(hotRead, "No active read")
+      _ <- nextRead.set(deferred)
+    } yield ()
 
   def cleanup: F[Unit] =
     nextBytes.set(Array.emptyByteArray) >>
@@ -80,7 +83,7 @@ private[ember] object EmberConnection {
     (
       Resource.eval(keySocketResource.allocated),
       Resource.eval(F.ref(Array.emptyByteArray)),
-      Hotswap.create[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
+      NonEmptyHotswap.empty[F, Deferred[F, Either[Throwable, Option[Chunk[Byte]]]]],
       Resource.eval(
         F.deferred[Either[Throwable, Option[Chunk[Byte]]]]
           .flatTap(_.complete(Right(Some(Chunk.empty))))

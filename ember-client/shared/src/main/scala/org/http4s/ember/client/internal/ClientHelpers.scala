@@ -28,14 +28,17 @@ import cats.effect.kernel.Concurrent
 import cats.effect.kernel.Ref
 import cats.effect.kernel.Resource
 import cats.effect.kernel.Sync
-import cats.effect.std.Hotswap
+import cats.effect.std.NonEmptyHotswap
+import cats.effect.std.NonEmptyHotswap.NonEmptyHotswapOptionalResourcesOpt
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.{UnixSocketAddress => IpUnixSocketAddress}
 import fs2.io.ClosedChannelException
 import fs2.io.net._
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
@@ -45,6 +48,7 @@ import org.http4s.ember.core.Util
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
+import org.http4s.internal.NonEmptyHotswapHelpers
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
@@ -52,12 +56,11 @@ import java.io.IOException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: MonadThrow](
+  def requestToSocketWithKey[F[_]: MonadThrow: Network](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
-      sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
@@ -66,23 +69,22 @@ private[client] object ClientHelpers {
       tlsContextOpt,
       enableEndpointValidation,
       enableServerNameIndication,
-      sg,
       additionalSocketOptions,
     )
   }
 
-  def unixSocket[F[_]: MonadThrow](
+  def unixSocket[F[_]: MonadThrow: Network](
       request: Request[F],
-      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
-      address: fs2.io.net.unixsocket.UnixSocketAddress,
+      address: UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
+      additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
-      unixSockets.client(address),
+      Network[F].connect(IpUnixSocketAddress(address.path), additionalSocketOptions),
       tlsContextOpt,
       enableEndpointValidation,
       enableServerNameIndication,
@@ -90,21 +92,20 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: MonadThrow](
+  def requestKeyToSocketWithKey[F[_]: MonadThrow: Network](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
-      sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
-        val s = sg.client(address, options = additionalSocketOptions)
+        val socketResource = Network[F].connect(address, additionalSocketOptions)
         elevateSocket(
           requestKey,
-          s,
+          socketResource,
           tlsContextOpt,
           enableEndpointValidation,
           enableServerNameIndication,
@@ -248,23 +249,34 @@ private[client] object ClientHelpers {
   private[client] def getValidManaged[F[_]: Async](
       pool: KeyPool[F, RequestKey, EmberConnection[F]],
       request: Request[F],
-  ): Resource[F, Managed[F, EmberConnection[F]]] =
-    Hotswap.create[F, Managed[F, EmberConnection[F]]].evalMap { hs =>
-      def go: F[Managed[F, EmberConnection[F]]] =
-        hs.clear *> hs.swap(pool.take(RequestKey.fromRequest(request))).flatMap { managed =>
-          managed.value.isValid.ifM(
-            managed.pure,
-            if (managed.isReused) // keep swapping connections until we find a valid one
-              managed.canBeReused.set(Reusable.DontReuse) *> go
-            else
-              Sync[F].raiseError(
-                new fs2.io.net.SocketException("Fresh connection from pool was not open")
-              ),
-          )
-        }
+  ): Resource[F, Managed[F, EmberConnection[F]]] = {
+    def currentManaged(
+        hs: NonEmptyHotswap[F, Option[Managed[F, EmberConnection[F]]]]
+    ): F[Managed[F, EmberConnection[F]]] =
+      NonEmptyHotswapHelpers.requireCurrent(hs, "No managed connection available")
 
-      go
-    }
+    NonEmptyHotswap
+      .empty[F, Managed[F, EmberConnection[F]]]
+      .evalMap { hs =>
+        def go: F[Managed[F, EmberConnection[F]]] =
+          for {
+            _ <- hs.clear
+            _ <- hs.swap(pool.take(RequestKey.fromRequest(request)).map(_.some))
+            managed <- currentManaged(hs)
+            valid <- managed.value.isValid
+            result <-
+              if (valid) managed.pure[F]
+              else if (managed.isReused) // keep swapping connections until we find a valid one
+                managed.canBeReused.set(Reusable.DontReuse) *> go
+              else
+                Sync[F].raiseError[Managed[F, EmberConnection[F]]](
+                  new fs2.io.net.SocketException("Fresh connection from pool was not open")
+                )
+          } yield result
+
+        go
+      }
+  }
 
   private[ember] object RetryLogic {
     private val retryNow = 0.seconds.some

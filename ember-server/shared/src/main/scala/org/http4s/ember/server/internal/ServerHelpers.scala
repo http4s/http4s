@@ -62,7 +62,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       host: Option[Host],
       port: Port,
       additionalSocketOptions: List[SocketOption],
-      sg: SocketGroup[F],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
@@ -81,10 +80,23 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
-  )(implicit F: Async[F]): Stream[F, Nothing] = {
+  )(implicit F: Async[F], network: Network[F]): Stream[F, Nothing] = {
+    val bindAddress = SocketAddress(host.getOrElse(Ipv4Address.Wildcard), port)
     val server: Stream[F, Socket[F]] =
       Stream
-        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
+        .resource(
+          network
+            .bind(bindAddress, additionalSocketOptions)
+            .flatMap { serverSocket =>
+              Resource
+                .eval(
+                  Either
+                    .catchNonFatal(serverSocket.address.asIpUnsafe)
+                    .liftTo[F]
+                )
+                .map(address => (address, serverSocket.accept))
+            }
+        )
         .attempt
         .evalTap(e => ready.complete(e.map(_._1)))
         .rethrow
@@ -112,6 +124,12 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
+  @deprecated(
+    "Unix sockets are now handled automatically via Network[F]. Use the overload " +
+      "that accepts Network[F] as the first parameter instead, or configure " +
+      "EmberServerBuilder.withUnixSocketConfig with a UnixSocketAddress.",
+    "0.23.34",
+  )
   def unixSocketServer[F[_]: Async](
       unixSockets: UnixSockets[F],
       unixSocketAddress: UnixSocketAddress,
@@ -135,23 +153,36 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
-  ): Stream[F, Nothing] = {
-    val server =
-      // Our interface has an issue
-      Stream
-        .eval(
-          ready.complete( // This is a lie, there isn't any signal from fs2 when the server is actually ready
-            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
-          )
-        ) // Sketchy
-        .drain ++
-        unixSockets
-          .server(unixSocketAddress, deleteIfExists, deleteOnClose)
+  ): Stream[F, Nothing] =
+    unixSocketServerStream(
+      unixSockets.server(unixSocketAddress, deleteIfExists, deleteOnClose),
+      httpApp,
+      tlsInfoOpt,
+      ready,
+      shutdown,
+      connectionErrorHandler,
+      errorHandler,
+      onWriteFailure,
+      maxConnections,
+      receiveBufferSize,
+      maxHeaderSize,
+      requestHeaderReceiveTimeout,
+      idleTimeout,
+      logger,
+      webSocketKey,
+      enableHttp2,
+      requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler,
+    )
 
-    serverInternal(
-      server,
+  def unixSocketServer[F[_]: Async](
+      network: Network[F],
+      unixSocketAddress: UnixSocketAddress,
+      deleteIfExists: Boolean,
+      deleteOnClose: Boolean,
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
       shutdown: Shutdown[F],
       // Defaults
       connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
@@ -163,9 +194,93 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestHeaderReceiveTimeout: Duration,
       idleTimeout: Duration,
       logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+  ): Stream[F, Nothing] = {
+    val ip4sAddress = com.comcast.ip4s.UnixSocketAddress(unixSocketAddress.path)
+    val socketStream =
+      Stream
+        .resource(
+          network.bind(
+            ip4sAddress,
+            List(
+              SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+              SocketOption.unixSocketDeleteOnClose(deleteOnClose),
+            ),
+          )
+        )
+        .flatMap(_.accept)
+
+    unixSocketServerStream(
+      socketStream,
+      httpApp,
+      tlsInfoOpt,
+      ready,
+      shutdown,
+      connectionErrorHandler,
+      errorHandler,
+      onWriteFailure,
+      maxConnections,
+      receiveBufferSize,
+      maxHeaderSize,
+      requestHeaderReceiveTimeout,
+      idleTimeout,
+      logger,
+      webSocketKey,
+      enableHttp2,
+      requestLineParseErrorHandler,
+      maxHeaderSizeErrorHandler,
+    )
+  }
+
+  private def unixSocketServerStream[F[_]: Async](
+      socketStream: Stream[F, Socket[F]],
+      httpApp: HttpApp[F],
+      tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
+      ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
+      shutdown: Shutdown[F],
+      connectionErrorHandler: PartialFunction[Throwable, F[Unit]],
+      errorHandler: Throwable => F[Response[F]],
+      onWriteFailure: (Option[Request[F]], Response[F], Throwable) => F[Unit],
+      maxConnections: Int,
+      receiveBufferSize: Int,
+      maxHeaderSize: Int,
+      requestHeaderReceiveTimeout: Duration,
+      idleTimeout: Duration,
+      logger: Logger[F],
+      webSocketKey: Key[WebSocketContext[F]],
+      enableHttp2: Boolean,
+      requestLineParseErrorHandler: Throwable => F[Response[F]],
+      maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
+  ): Stream[F, Nothing] = {
+    val server =
+      Stream
+        .eval(
+          ready.complete(
+            Either.right(SocketAddress(Ipv4Address.fromBytes(0, 0, 0, 0), port"0"))
+          )
+        )
+        .drain ++ socketStream
+
+    serverInternal(
+      server,
+      httpApp,
+      tlsInfoOpt,
+      shutdown,
+      connectionErrorHandler,
+      errorHandler,
+      onWriteFailure,
+      maxConnections,
+      receiveBufferSize,
+      maxHeaderSize,
+      requestHeaderReceiveTimeout,
+      idleTimeout,
+      logger,
       createRequestVault = false,
       webSocketKey,
-      enableHttp2 = enableHttp2,
+      enableHttp2,
       requestLineParseErrorHandler,
       maxHeaderSizeErrorHandler,
     )
@@ -561,16 +676,22 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
     (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
 
-  private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
-    (socket.localAddress, socket.remoteAddress).mapN { case (local, remote) =>
-      Vault.empty.insert(
-        Request.Keys.ConnectionInfo,
-        Request.Connection(
-          local = local,
-          remote = remote,
-          secure = socket.isInstanceOf[TLSSocket[F]],
-        ),
-      )
+  private def mkConnectionInfo[F[_]: Applicative](socket: Socket[F]) =
+    Applicative[F].pure {
+      val local = Either.catchNonFatal(socket.address.asIpUnsafe).toOption
+      val remote = Either.catchNonFatal(socket.peerAddress.asIpUnsafe).toOption
+      (local, remote) match {
+        case (Some(l), Some(r)) =>
+          Vault.empty.insert(
+            Request.Keys.ConnectionInfo,
+            Request.Connection(
+              local = l,
+              remote = r,
+              secure = socket.isInstanceOf[TLSSocket[F]],
+            ),
+          )
+        case _ => Vault.empty
+      }
     }
 
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =

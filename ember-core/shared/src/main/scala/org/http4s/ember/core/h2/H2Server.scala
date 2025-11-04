@@ -23,6 +23,9 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.effect.syntax.all._
 import cats.syntax.all._
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.{UnixSocketAddress => IpUnixSocketAddress}
 import fs2._
 import fs2.io.IOException
 import fs2.io.net._
@@ -195,10 +198,18 @@ private[ember] object H2Server {
       F.sleep(1.seconds) >> stateRef.get.map(_.closed).ifM(F.unit, holdWhileOpen(stateRef))
 
     def initH2Connection: F[H2Connection[F]] = for {
-      address <- socket.remoteAddress.attempt.map(
-        // TODO, only used for logging
-        _.leftMap(_ => UnixSocketAddress("unknown.sock"))
-      )
+      address <- socket.peerAddress match {
+        case unix: IpUnixSocketAddress =>
+          Applicative[F].pure(Left(UnixSocketAddress(unix.path)))
+        case ip: SocketAddress[_] =>
+          Applicative[F].pure(Right(ip.asInstanceOf[SocketAddress[Host]]))
+        case other =>
+          F.raiseError[Either[UnixSocketAddress, SocketAddress[Host]]](
+            new IllegalStateException(
+              s"Unsupported socket address for HTTP/2 connection: ${other.getClass.getName}"
+            )
+          )
+      }
       ref <- Concurrent[F].ref(Map[Int, H2Stream[F]]())
       stateRef <- H2Connection.initState[F](
         initialRemoteSettings,

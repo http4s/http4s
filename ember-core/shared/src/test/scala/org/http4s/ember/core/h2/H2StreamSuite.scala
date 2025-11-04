@@ -265,7 +265,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
       _ <- stream.sendMessageBody(resp)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
@@ -277,7 +277,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
         .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
       _ <- stream.sendMessageBody(resp)
@@ -293,7 +293,7 @@ class H2StreamSuite extends Http4sSuite {
 
     for {
       sq <- streamAndQueue(config)
-      (stream, queue) = sq
+      (stream, _) = sq
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
         .withTrailerHeaders(IO.pure(Headers("Trailer" -> "Expires")))
         .withEntity("0" * frameSize * 2)
