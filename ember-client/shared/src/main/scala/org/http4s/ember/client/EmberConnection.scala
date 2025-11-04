@@ -42,14 +42,11 @@ private[ember] final case class EmberConnection[F[_]](
   /** For the connection to be valid, the socket must be open,
     * and its pre-emptive read must not have terminated in an error or EOF.
     */
-  def isValid: F[Boolean] = {
-    val isOpen = keySocket.socket.isOpen
-    val isEof = nextRead.get.flatMap(_.tryGet).map {
-      case Some(result) => result.fold(_ => true, _.isEmpty) // if Left or None this socket is dead
-      case None => false // no read yet, which is good!
+  def isValid: F[Boolean] =
+    nextRead.get.flatMap(_.tryGet).map {
+      case Some(result) => result.fold(_ => false, _.nonEmpty)
+      case None => true // no read yet, which is good!
     }
-    (isOpen, isEof).mapN((open, eof) => open && !eof)
-  }
 
   /** We must start the next read after completing a request/response pair,
     * and before returning this connection to the pool.

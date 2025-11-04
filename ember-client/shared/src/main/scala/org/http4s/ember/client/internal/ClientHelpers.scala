@@ -35,8 +35,10 @@ import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.{UnixSocketAddress => IpUnixSocketAddress}
 import fs2.io.ClosedChannelException
 import fs2.io.net._
+import fs2.io.net.unixsocket.UnixSocketAddress
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
@@ -54,12 +56,11 @@ import java.io.IOException
 import scala.concurrent.duration._
 
 private[client] object ClientHelpers {
-  def requestToSocketWithKey[F[_]: MonadThrow](
+  def requestToSocketWithKey[F[_]: MonadThrow: Network](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
-      sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
@@ -68,23 +69,22 @@ private[client] object ClientHelpers {
       tlsContextOpt,
       enableEndpointValidation,
       enableServerNameIndication,
-      sg,
       additionalSocketOptions,
     )
   }
 
-  def unixSocket[F[_]: MonadThrow](
+  def unixSocket[F[_]: MonadThrow: Network](
       request: Request[F],
-      unixSockets: fs2.io.net.unixsocket.UnixSockets[F],
-      address: fs2.io.net.unixsocket.UnixSocketAddress,
+      address: UnixSocketAddress,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
+      additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] = {
     val requestKey = RequestKey.fromRequest(request)
     elevateSocket(
       requestKey,
-      unixSockets.client(address),
+      Network[F].connect(IpUnixSocketAddress(address.path), additionalSocketOptions),
       tlsContextOpt,
       enableEndpointValidation,
       enableServerNameIndication,
@@ -92,21 +92,20 @@ private[client] object ClientHelpers {
     )
   }
 
-  def requestKeyToSocketWithKey[F[_]: MonadThrow](
+  def requestKeyToSocketWithKey[F[_]: MonadThrow: Network](
       requestKey: RequestKey,
       tlsContextOpt: Option[TLSContext[F]],
       enableEndpointValidation: Boolean,
       enableServerNameIndication: Boolean,
-      sg: SocketGroup[F],
       additionalSocketOptions: List[SocketOption],
   ): Resource[F, RequestKeySocket[F]] =
     Resource
       .eval(getAddress(requestKey))
       .flatMap { address =>
-        val s = sg.client(address, options = additionalSocketOptions)
+        val socketResource = Network[F].connect(address, additionalSocketOptions)
         elevateSocket(
           requestKey,
-          s,
+          socketResource,
           tlsContextOpt,
           enableEndpointValidation,
           enableServerNameIndication,

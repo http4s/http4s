@@ -24,6 +24,7 @@ import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
 import fs2._
 import fs2.concurrent.Channel
+import fs2.io.ClosedChannelException
 import fs2.io.net.Socket
 import fs2.io.net.SocketException
 import fs2.io.net.unixsocket.UnixSocketAddress
@@ -148,6 +149,11 @@ private[h2] class H2Connection[F[_]](
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
+  private[h2] def writeWithClosedCheck(bytes: Chunk[Byte]): F[Unit] =
+    socket
+      .write(bytes)
+      .handleErrorWith(err => F.raiseError(H2Connection.adaptSocketWriteFailure(err)))
+
   private[this] def writeChunk(chunk: Chunk[H2Frame]): F[Unit] = {
     def go(chunk: Chunk[H2Frame]): F[Unit] = state.get.flatMap { s =>
       val fullDataSize = chunk.foldLeft(0) {
@@ -161,11 +167,8 @@ private[h2] class H2Connection[F[_]](
           acc ++ H2Frame.toByteVector(frame)
         }
         state.update(s => s.copy(writeWindow = s.writeWindow - fullDataSize)) >>
-          socket.isOpen.ifM(
-            socket.write(Chunk.byteVector(bv)) >>
-              chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-            new SocketException("Socket closed when attempting to write").raiseError,
-          )
+          writeWithClosedCheck(Chunk.byteVector(bv)) >>
+          chunk.traverse_(frame => logger.debug(s"$addrStr Write - $frame"))
       } else {
         val (nonData, after) = chunk.indexWhere(_.isInstanceOf[H2Frame.Data]) match {
           case None => (chunk, Chunk.empty[H2Frame])
@@ -175,11 +178,8 @@ private[h2] class H2Connection[F[_]](
         val bv = nonData.foldLeft(ByteVector.empty) { case (acc, frame) =>
           acc ++ H2Frame.toByteVector(frame)
         }
-        socket.isOpen.ifM(
-          socket.write(Chunk.byteVector(bv)) >>
-            nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")),
-          new SocketException("Socket closed when attempting to write").raiseError,
-        ) >>
+        writeWithClosedCheck(Chunk.byteVector(bv)) >>
+          nonData.traverse_(frame => logger.debug(s"$addrStr Write - $frame")) >>
           s.writeBlock.get.rethrow >>
           go(after)
       }
@@ -553,6 +553,16 @@ private[h2] class H2Connection[F[_]](
 }
 
 private[h2] object H2Connection {
+  private val ClosedChannelMessage = "Socket closed when attempting to write"
+
+  private[ember] def adaptSocketWriteFailure(t: Throwable): Throwable = t match {
+    case ex: ClosedChannelException =>
+      val socketEx = new SocketException(ClosedChannelMessage)
+      socketEx.initCause(ex)
+      socketEx
+    case other => other
+  }
+
   final case class State[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: Int,

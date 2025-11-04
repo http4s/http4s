@@ -21,11 +21,11 @@ import cats.effect._
 import cats.effect.syntax.all._
 import cats.syntax.all._
 import com.comcast.ip4s._
+import com.comcast.ip4s.{UnixSocketAddress => IpUnixSocketAddress}
 import fs2._
 import fs2.io.net._
 import fs2.io.net.tls._
 import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s.Uri.Authority
 import org.http4s.Uri.Scheme
 import org.http4s._
@@ -69,8 +69,7 @@ Connection
 
  */
 private[ember] class H2Client[F[_]](
-    sg: SocketGroup[F],
-    unix: Option[UnixSockets[F]],
+    network: Network[F],
     localSettings: H2Frame.Settings.ConnectionSettings,
     tls: TLSContext[F],
     connections: Ref[
@@ -146,15 +145,8 @@ private[ember] class H2Client[F[_]](
   ): Resource[F, (Socket[F], SocketType)] = for {
     address <- Resource.eval(RequestKey.getAddress(key))
     baseSocket <- address match {
-      case Left(address) =>
-        unix
-          .liftTo[Resource[F, *]](
-            new RuntimeException(
-              "No UnixSockets implementation available; use .withUnixSockets(...) to provide one"
-            )
-          )
-          .flatMap(_.client(address))
-      case Right(address) => sg.client(address)
+      case Left(unixAddress) => network.connect(IpUnixSocketAddress(unixAddress.path))
+      case Right(ipAddress) => network.connect(ipAddress)
     }
     socket <- {
       if (useTLS) {
@@ -329,7 +321,6 @@ private[ember] object H2Client {
           F[org.http4s.Response[F]],
       ) => F[Outcome[F, Throwable, Unit]],
       tlsContext: TLSContext[F],
-      unixSockets: Option[UnixSockets[F]],
       logger: Logger[F],
       settings: H2Frame.Settings.ConnectionSettings = defaultSettings,
       enableEndpointValidation: Boolean,
@@ -359,7 +350,14 @@ private[ember] object H2Client {
         .compile
         .drain
         .background
-      h2 = new H2Client(Network[F], unixSockets, settings, tlsContext, mapH2, onPushPromise, logger)
+      h2 = new H2Client(
+        Network[F],
+        settings,
+        tlsContext,
+        mapH2,
+        onPushPromise,
+        logger,
+      )
     } yield (http1Client: TinyClient[F]) => { (req: Request[F]) =>
       val key = H2Client.RequestKey.fromRequest(req)
       val priorKnowledge = req.attributes.contains(Http2PriorKnowledge)
