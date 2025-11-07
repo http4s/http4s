@@ -3,6 +3,34 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.33 (2025-10-30)
+
+## What's Changed
+### http4s-core
+* fix: proxy authorization header instantiation with basic credentials by @tpetillot in https://github.com/http4s/http4s/pull/7742
+* Introduce MultipartReceiver for custom, fail-fast multipart decoding by @dylemma in https://github.com/http4s/http4s/pull/7411
+### http4s-dsl
+* Add uncheckedStable to Statuses.UnprocessableContent by @rossabaker in https://github.com/http4s/http4s/pull/7726
+### Documentation
+* Make `[bot]` a link in changelog.md by @valencik in https://github.com/http4s/http4s/pull/7724
+* Update sbt-http4s-org to 2.0.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7739
+### Behind the scenes
+<details>
+
+* Drop codecov action by @rossabaker in https://github.com/http4s/http4s/pull/7727
+* Update http4s-circe, http4s-ember-client to 0.23.32 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7725
+* Update sbt-jmh to 0.4.8 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7730
+* Update sbt, scripted-plugin to 1.11.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7736
+* Update sbt-native-packager to 1.11.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7731
+
+</details>
+
+## New Contributors
+* @tpetillot made their first contribution in https://github.com/http4s/http4s/pull/7742
+* @dylemma made their first contribution in https://github.com/http4s/http4s/pull/7411
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.32...v0.23.33
+
 # v0.23.32 (2025-09-24)
 
 ## What's Changed
