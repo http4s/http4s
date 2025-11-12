@@ -695,7 +695,7 @@ lazy val bench = http4sProject("bench")
     unusedCompileDependenciesTest := {},
     coverageEnabled := false,
   )
-  .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
+  .dependsOn(core.jvm, circe.jvm, emberCore.jvm, client.jvm)
 
 lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
