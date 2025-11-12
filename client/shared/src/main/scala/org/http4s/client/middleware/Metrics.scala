@@ -151,36 +151,13 @@ object Metrics {
             )
           )
       )
-      resp <- client.run(req)
+      resp <- runRequest(client, ops, bodySizeBytesRef, classifier, customLabelValues, req)
       _ <- Resource.eval(statusRef.set(Some(resp.status)))
       end <- Resource.eval(F.monotonic)
       _ <- Resource.eval(
         ops.recordHeadersTime(req.method, end.toNanos - start, classifier, customLabelValues)
       )
-      respWithMetrics = resp.copy(body =
-        resp.body.chunks
-          .flatMap { chunk =>
-            fs2.Stream.eval(bodySizeBytesRef.update(_ + chunk.size.toLong)).as(chunk)
-          }
-          .flatMap(fs2.Stream.chunk) ++
-          fs2.Stream
-            .eval(
-              bodySizeBytesRef.get.flatMap { bodySizeBytes =>
-                if (bodySizeBytes > 0L)
-                  ops.recordResponseBodySize(
-                    req.method,
-                    resp.status,
-                    bodySizeBytes,
-                    classifier,
-                    customLabelValues,
-                  )
-                else
-                  C.unit
-              }
-            )
-            .drain
-      )
-    } yield respWithMetrics).handleErrorWith { (e: Throwable) =>
+    } yield resp).handleErrorWith { (e: Throwable) =>
       Resource.eval(
         classifierF(req).flatMap(registerError(start, ops, customLabelValues, _)(e)) *>
           C.raiseError[Response[F]](e)
