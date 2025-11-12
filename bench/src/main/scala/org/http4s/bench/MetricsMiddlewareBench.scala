@@ -113,7 +113,7 @@ object MetricsMiddlewareBench {
     override def recordResponseBodySize(
         method: Method,
         status: Status,
-        bodySize: Long,
+        bodySizeBytes: Long,
         classifier: Option[String],
     ): IO[Unit] = IO.unit
   }

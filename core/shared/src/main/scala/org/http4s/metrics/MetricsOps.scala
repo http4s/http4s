@@ -76,13 +76,13 @@ trait MetricsOps[F[_]] {
     *
     * @param method the http method of the request
     * @param status the http status code of the response
-    * @param bodySize the size of the response body in bytes
+    * @param bodySizeBytes the size of the response body in bytes
     * @param classifier the classifier to apply
     */
   def recordResponseBodySize(
       method: Method,
       status: Status,
-      bodySize: Long,
+      bodySizeBytes: Long,
       classifier: Option[String],
   ): F[Unit]
 
@@ -120,9 +120,9 @@ trait MetricsOps[F[_]] {
       override def recordResponseBodySize(
           method: Method,
           status: Status,
-          bodySize: Long,
+          bodySizeBytes: Long,
           classifier: Option[String],
-      ): G[Unit] = fk(ops.recordResponseBodySize(method, status, bodySize, classifier))
+      ): G[Unit] = fk(ops.recordResponseBodySize(method, status, bodySizeBytes, classifier))
     }
   }
 }

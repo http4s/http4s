@@ -113,24 +113,24 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
     *
     * @param method the http method of the request
     * @param status the http status code of the response
-    * @param bodySize the size of the response body in bytes
+    * @param bodySizeBytes the size of the response body in bytes
     * @param classifier the classifier to apply
     * @param customLabelValues values for custom labels
     */
   def recordResponseBodySize(
       method: Method,
       status: Status,
-      bodySize: Long,
+      bodySizeBytes: Long,
       classifier: Option[String],
       customLabelValues: SL,
   ): F[Unit]
   override def recordResponseBodySize(
       method: Method,
       status: Status,
-      bodySize: Long,
+      bodySizeBytes: Long,
       classifier: Option[String],
   ): F[Unit] =
-    recordResponseBodySize(method, status, bodySize, classifier, definingCustomLabels.values)
+    recordResponseBodySize(method, status, bodySizeBytes, classifier, definingCustomLabels.values)
 
   /** Transform the effect of MetricOps using the supplied natural transformation
     *
@@ -180,11 +180,11 @@ trait CustomMetricsOps[F[_], SL <: SizedSeq[String]] extends MetricsOps[F] {
       override def recordResponseBodySize(
           method: Method,
           status: Status,
-          bodySize: Long,
+          bodySizeBytes: Long,
           classifier: Option[String],
           customLabelValues: SL,
       ): G[Unit] =
-        fk(ops.recordResponseBodySize(method, status, bodySize, classifier, customLabelValues))
+        fk(ops.recordResponseBodySize(method, status, bodySizeBytes, classifier, customLabelValues))
     }
   }
 }
@@ -232,10 +232,10 @@ object CustomMetricsOps {
       override def recordResponseBodySize(
           method: Method,
           status: Status,
-          bodySize: Long,
+          bodySizeBytes: Long,
           classifier: Option[String],
           customLabelValues: SizedSeq0[String],
-      ): F[Unit] = ops.recordResponseBodySize(method, status, bodySize, classifier)
+      ): F[Unit] = ops.recordResponseBodySize(method, status, bodySizeBytes, classifier)
     }
   }
 }

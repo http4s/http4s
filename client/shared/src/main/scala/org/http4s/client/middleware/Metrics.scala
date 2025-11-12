@@ -33,6 +33,8 @@ import org.http4s.util.SizedSeq
 import org.http4s.util.SizedSeq0
 
 import scala.concurrent.TimeoutException
+import org.http4s.Method
+import cats.Monad
 
 /** Client middleware to record metrics for the http4s client.
   *
@@ -129,6 +131,7 @@ object Metrics {
   )(implicit F: Clock[F], C: Concurrent[F]): Resource[F, Response[F]] =
     (for {
       classifier <- Resource.eval(classifierF(req))
+      bodySizeBytesRef <- Resource.eval(C.ref(0L))
       _ <- Resource.make(ops.increaseActiveRequests(classifier, customLabelValues))(_ =>
         ops.decreaseActiveRequests(classifier, customLabelValues)
       )
@@ -154,11 +157,87 @@ object Metrics {
       _ <- Resource.eval(
         ops.recordHeadersTime(req.method, end.toNanos - start, classifier, customLabelValues)
       )
-    } yield resp).handleErrorWith { (e: Throwable) =>
+      respWithMetrics = resp.copy(body =
+        resp.body.chunks
+          .flatMap { chunk =>
+            fs2.Stream.eval(bodySizeBytesRef.update(_ + chunk.size.toLong)).as(chunk)
+          }
+          .flatMap(fs2.Stream.chunk) ++
+          fs2.Stream
+            .eval(
+              bodySizeBytesRef.get.flatMap { bodySizeBytes =>
+                if (bodySizeBytes > 0L)
+                  ops.recordResponseBodySize(
+                    req.method,
+                    resp.status,
+                    bodySizeBytes,
+                    classifier,
+                    customLabelValues,
+                  )
+                else
+                  C.unit
+              }
+            )
+            .drain
+      )
+    } yield respWithMetrics).handleErrorWith { (e: Throwable) =>
       Resource.eval(
         classifierF(req).flatMap(registerError(start, ops, customLabelValues, _)(e)) *>
           C.raiseError[Response[F]](e)
       )
+    }
+
+  private def runRequest[F[_], SL <: SizedSeq[String]](
+      client: Client[F],
+      metricsOps: CustomMetricsOps[F, SL],
+      bodySizeBytesRef: Ref[F, Long],
+      classifier: Option[String],
+      customLabelValues: SL,
+      req: Request[F],
+  )(implicit
+      C: Concurrent[F]
+  ) =
+    client.run(req).map { res =>
+      res
+        .copy(body =
+          res.body.chunks
+            .evalTap(chunk => bodySizeBytesRef.update(_ + chunk.size.toLong))
+            .flatMap(fs2.Stream.chunk) ++ (
+            fs2.Stream
+              .eval(
+                recordBodySize(
+                  metricsOps,
+                  bodySizeBytesRef.get,
+                  req.method,
+                  res.status,
+                  classifier,
+                  customLabelValues,
+                )
+              )
+              .drain
+          )
+        )
+    }
+
+  private def recordBodySize[F[_], SL <: SizedSeq[String]](
+      ops: CustomMetricsOps[F, SL],
+      bytesLongF: F[Long],
+      method: Method,
+      status: Status,
+      classifier: Option[String],
+      customLabelValues: SL,
+  )(implicit F: Monad[F]) =
+    bytesLongF.flatMap { bodySizeBytes =>
+      if (bodySizeBytes > 0L)
+        ops.recordResponseBodySize(
+          method,
+          status,
+          bodySizeBytes,
+          classifier,
+          customLabelValues,
+        )
+      else
+        F.unit
     }
 
   private def registerError[F[_], SL <: SizedSeq[String]](
