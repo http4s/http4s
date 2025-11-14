@@ -28,11 +28,11 @@ import org.typelevel.ci.CIString
   * @param redactHeadersWhen Function to determine which headers should be redacted
   * @param logAction The effectful log action that returns a logging function
   */
-sealed abstract case class LoggerConfig[F[_]] private[middleware] (
-    logHeaders: Boolean,
-    logBody: Boolean,
-    redactHeadersWhen: CIString => Boolean,
-    logAction: F[String => F[Unit]],
+sealed abstract class LoggerConfig[F[_]] private[middleware] (
+    val logHeaders: Boolean,
+    val logBody: Boolean,
+    val redactHeadersWhen: CIString => Boolean,
+    val logAction: F[String => F[Unit]],
 ) {
   private[middleware] def copy(
       logHeaders: Boolean = this.logHeaders,
@@ -74,11 +74,11 @@ object LoggerConfig {
       new LoggerConfigBuilder[F](logHeaders, logBody, redactHeadersWhen, logAction) {}
   }
 
-  sealed abstract case class LoggerConfigBuilder[F[_]: Async] private[LoggerConfig] (
-      logHeaders: Boolean,
-      logBody: Boolean,
-      redactHeadersWhen: CIString => Boolean,
-      logAction: F[String => F[Unit]],
+  sealed abstract class LoggerConfigBuilder[F[_]: Async] private[LoggerConfig] (
+      val logHeaders: Boolean,
+      val logBody: Boolean,
+      val redactHeadersWhen: CIString => Boolean,
+      val logAction: F[String => F[Unit]],
   ) {
     private def copy(
         logHeaders: Boolean = this.logHeaders,
