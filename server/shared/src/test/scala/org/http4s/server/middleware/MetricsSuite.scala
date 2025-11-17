@@ -57,7 +57,7 @@ class MetricsSuite extends Http4sSuite {
           terminationType: TerminationType,
           classifier: Option[String],
       ): IO[Unit] = IO.unit
-      def recordResponseBodySize(
+      override def recordResponseBodySize(
           method: Method,
           status: Status,
           bodySizeBytes: Long,
