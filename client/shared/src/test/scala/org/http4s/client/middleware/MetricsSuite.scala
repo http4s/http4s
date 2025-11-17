@@ -61,7 +61,7 @@ class MetricsSuite extends Http4sSuite {
           status: Status,
           bodySizeBytes: Long,
           classifier: Option[String],
-      ): IO[Unit] =
+      )(implicit F: Applicative[IO]): IO[Unit] =
         bodySizeRef.update(_ :+ RecordedBodySize(method, status, bodySizeBytes, classifier))
     }
 

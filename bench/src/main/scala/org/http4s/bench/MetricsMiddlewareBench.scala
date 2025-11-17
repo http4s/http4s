@@ -27,6 +27,7 @@ import org.http4s.syntax.all._
 import org.openjdk.jmh.annotations._
 
 import java.util.concurrent.TimeUnit
+import cats.Applicative
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.MetricsMiddlewareBench"
 @BenchmarkMode(Array(Mode.Throughput))
@@ -115,6 +116,6 @@ object MetricsMiddlewareBench {
         status: Status,
         bodySizeBytes: Long,
         classifier: Option[String],
-    ): IO[Unit] = IO.unit
+    )(implicit F: Applicative[IO]): IO[Unit] = IO.unit
   }
 }
