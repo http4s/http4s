@@ -24,6 +24,7 @@ import org.http4s.dsl.io._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
 import org.http4s.syntax.all._
+import cats.Applicative
 
 class MetricsSuite extends Http4sSuite {
 
@@ -61,7 +62,7 @@ class MetricsSuite extends Http4sSuite {
           status: Status,
           bodySizeBytes: Long,
           classifier: Option[String],
-      ): IO[Unit] =
+      )(implicit F: Applicative[IO]): IO[Unit] =
         bodySizeRef.update(_ :+ RecordedBodySize(method, status, bodySizeBytes, classifier))
     }
 

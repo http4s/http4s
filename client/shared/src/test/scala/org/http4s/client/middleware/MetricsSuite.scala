@@ -20,6 +20,7 @@ package middleware
 
 import cats.effect.IO
 import cats.effect.Ref
+import cats.Applicative
 import org.http4s.dsl.io._
 import org.http4s.metrics.MetricsOps
 import org.http4s.metrics.TerminationType
