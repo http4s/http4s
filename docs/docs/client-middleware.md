@@ -161,6 +161,24 @@ val loggerClient = Logger[IO](
 loggerClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
 ```
 
+## Basic authentication
+
+Adds support for basic authentication. The client will introduce the Authorization header matching the provided 
+credentials to the outgoing requests.
+
+```scala mdoc:silent
+import org.http4s.client.middleware.BasicAuth
+import org.http4s.BasicCredentials
+
+val credentials     = BasicCredentials("username", "password")
+val basicAuthClient = BasicAuth(credentials)(client)
+
+```
+
+```scala mdoc
+basicAuthClient.expect[Unit](Request[IO](Method.GET, uri"/ok")).unsafeRunSync()
+```
+
 ## GZip
 
 Adds support for gzip compression. The client will indicate it can read gzip responses
