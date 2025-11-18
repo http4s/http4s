@@ -32,9 +32,10 @@ class BasicAuthSuite extends Http4sSuite {
 
   private val service = {
     val authStore = (incomingCredentials: BasicCredentials) =>
-      IO.pure(
-        Option.when(incomingCredentials == validCredentials)(incomingCredentials.username)
-      )
+      if (incomingCredentials == validCredentials)
+        IO.some(incomingCredentials.username)
+      else
+        IO.none
     val basicAuth = ServerBasicAuth("test-realm", authStore)
     basicAuth(
       AuthedRoutes.of[String, IO] {
