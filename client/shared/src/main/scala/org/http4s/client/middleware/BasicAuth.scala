@@ -19,8 +19,6 @@ package client
 package middleware
 
 import cats.effect.Async
-import org.http4s.BasicCredentials
-import org.http4s.client.Client
 import org.http4s.headers.Authorization
 
 /** Client middleware for enabling basic authentication
