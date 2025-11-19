@@ -36,6 +36,8 @@ import org.typelevel.ci.CIString
   */
 object ResponseLogger {
   private[this] val logger = Platform.loggerFactory.getLogger
+  private[this] val errorLogger =
+    Platform.loggerFactory.getLoggerFromName("org.http4s.server.service-errors")
 
   def apply[G[_], F[_], A](
       logHeaders: Boolean,
@@ -59,6 +61,7 @@ object ResponseLogger {
   )(implicit G: MonadCancelThrow[G], F: Async[F]): Kleisli[G, A, Response[F]] = {
     val fallback: String => F[Unit] = s => logger.info(s).to[F]
     val log = logAction.fold(fallback)(identity)
+    val errLog: (String, Throwable) => F[Unit] = (msg, th) => errorLogger.error(th)(msg).to[F]
 
     def logMessage(resp: Response[F]): F[Unit] =
       logBodyText match {
@@ -93,8 +96,8 @@ object ResponseLogger {
       http(req)
         .flatMap((response: Response[F]) => fk(logResponse(response)))
         .guaranteeCase {
-          case Outcome.Errored(t) => fk(log(s"service raised an error: ${t.getClass}"))
-          case Outcome.Canceled() => fk(log(s"service canceled response for request"))
+          case Outcome.Errored(th) => fk(errLog(s"Service raised an error", th))
+          case Outcome.Canceled() => fk(log(s"Service canceled response for request"))
           case Outcome.Succeeded(_) => G.unit
         }
     }

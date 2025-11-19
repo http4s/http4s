@@ -28,27 +28,6 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
-ThisBuild / githubWorkflowAddedJobs ++= Seq(
-  WorkflowJob(
-    id = "coverage",
-    name = "Generate coverage report",
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-    steps = githubWorkflowJobSetup.value.toList ++
-      List(
-        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
-        WorkflowStep.Use(
-          UseRef.Public(
-            "codecov",
-            "codecov-action",
-            "v3",
-          ),
-          cond = Some("github.event_name != 'pull_request'"),
-        ),
-      ),
-  )
-)
-
 ThisBuild / githubWorkflowArtifactUpload := false
 
 ThisBuild / jsEnv := {
@@ -670,14 +649,6 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.org$http4s$dsl$impl$Statuses$_setter_$UnprocessableContent_="
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.UnprocessableContent"
-      ),
-    ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
