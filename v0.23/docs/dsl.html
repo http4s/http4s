@@ -282,11 +282,11 @@
         <p>But here in the REPL, it&#39;s up to us to run it:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">response</span><span> = </span><span class="identifier">serviceIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// response: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@54e5016e
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@39994592
 // )</span></code></pre>
         <p>Cool.</p>
         
@@ -305,11 +305,11 @@
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Ok</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res0: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@50ab393a
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@3dd798aa
 // )</span></code></pre>
         <p>This syntax works for other status codes as well.  In our example, we
         don&#39;t return a body, so a <code>204 No Content</code> would be a more appropriate
@@ -318,42 +318,42 @@
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">NoContent</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[[A]IO[A]] = (
-//    = Status(code = 204),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@649f208e
+//   `` = Status(code = 204),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@2b97ee9d
 // )</span></code></pre>
         <p>Some other examples are:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Conflict</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res2: Response[[A]IO[A]] = (
-//    = Status(code = 409),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@77c6ab77
+//   `` = Status(code = 409),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@79d3edeb
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Created</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[[A]IO[A]] = (
-//    = Status(code = 201),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@f475979
+//   `` = Status(code = 201),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@18bdb581
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">HttpRoutes</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">IO</span><span>] {
   </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Forbidden</span><span>()
 }.</span><span class="identifier">orNotFound</span><span>.</span><span class="identifier">run</span><span>(</span><span class="identifier">getRoot</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res4: Response[[A]IO[A]] = (
-//    = Status(code = 403),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@11c45317
+//   `` = Status(code = 403),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@6f968a4e
 // )</span></code></pre>
         
         <h3 id="headers" class="section"><a class="anchor-link left" href="#headers"><i class="icofont-laika link">&#xef71;</i></a>Headers</h3>
@@ -389,7 +389,7 @@
       </span><span class="identifier">expires</span><span> = </span><span class="type-name">Some</span><span>(</span><span class="identifier">now</span><span>), </span><span class="identifier">httpOnly</span><span> = </span><span class="boolean-literal">true</span><span>, </span><span class="identifier">secure</span><span> = </span><span class="boolean-literal">true</span><span>))
 }</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">cookieResp</span><span>.</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
-</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 24 Dec 2025 05:21:34 GMT; Secure; HttpOnly)</span></code></pre>
+</span><span class="comment">// res9: Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 24 Dec 2025 05:31:45 GMT; Secure; HttpOnly)</span></code></pre>
         <p>To request a cookie to be removed on the client, you need to set the cookie value
         to empty. http4s can do that with <code>removeCookie</code>:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Ok response.&quot;</span><span>).</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">removeCookie</span><span>(</span><span class="string-literal">&quot;foo&quot;</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>().</span><span class="identifier">headers</span><span>
@@ -410,21 +410,21 @@
         box:</p>
         <pre><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Received request.&quot;</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res11: Response[IO] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@1df18898
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@1cbe5799
 // )
 </span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">nio</span><span>.</span><span class="identifier">charset</span><span>.</span><span class="type-name">StandardCharsets</span><span>.</span><span class="type-name">UTF_8</span><span>
 </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;binary&quot;</span><span>.</span><span class="identifier">getBytes</span><span>(</span><span class="type-name">UTF_8</span><span>)).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res12: Response[IO] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: application/octet-stream, Content-Length: 6),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@41da1b4f
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: application/octet-stream, Content-Length: 6),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@4d240ba4
 // )</span></code></pre>
         <p>Per the HTTP specification, some status codes don&#39;t support a body.
         http4s prevents such nonsense at compile time:</p>
@@ -452,11 +452,11 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">ioFuture</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// I run when the future is constructed.
 // res14: Response[IO] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@398bfb17
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@7f94c625
 // )</span></code></pre>
         <p>As good functional programmers who like to delay our side effects, we
         of course prefer to operate in <code>F</code>s:</p>
@@ -467,11 +467,11 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">io</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// I run when the IO is run.
 // res15: Response[IO] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@6c9c33aa
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@2acda707
 // )</span></code></pre>
         <p>Note that in both cases, a <code>Content-Length</code> header is calculated.
         http4s waits for the <code>Future</code> or <code>F</code> to complete before wrapping it
@@ -497,11 +497,11 @@
   .</span><span class="identifier">compile</span><span>
   .</span><span class="identifier">drain</span><span>
 </span><span class="comment">// dripOutIO: IO[Unit] = Uncancelable(
-//   body = cats.effect.IO$$$Lambda$23768/0x00000008057c5840@a6dfbb4,
+//   body = cats.effect.IO$$$Lambda$20325/0x0000000804cc9040@291524e6,
 //   event = cats.effect.tracing.TracingEvent$StackTrace
 // )
 </span><span class="identifier">dripOutIO</span><span>.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// 101602825 nanoseconds200778000 nanoseconds300766443 nanoseconds400562839 nanoseconds500767936 nanoseconds600756703 nanoseconds700605235 nanoseconds800778754 nanoseconds900773171 nanoseconds1000556251 nanoseconds</span></code></pre>
+</span><span class="comment">// 101840387 nanoseconds201107681 nanoseconds300863544 nanoseconds400733587 nanoseconds500811267 nanoseconds600857406 nanoseconds700798559 nanoseconds800937284 nanoseconds900799464 nanoseconds1000787165 nanoseconds</span></code></pre>
         <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
         <code>Stream</code> as they are emitted.  Note that a stream&#39;s length can&#39;t
         generally be anticipated before it runs, so this triggers chunked
@@ -509,11 +509,11 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="type-name">Ok</span><span>(</span><span class="identifier">drip</span><span>)
 </span><span class="comment">// res17: IO[Response[IO]] = Pure(
 //   value = (
-//      = Status(code = 200),
-//      = HttpVersion(major = 1, minor = 1),
-//      = Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
-//      = Stream(..),
-//      = org.typelevel.vault.Vault@8814b8e
+//     `` = Status(code = 200),
+//     `` = HttpVersion(major = 1, minor = 1),
+//     `` = Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked),
+//     `` = Stream(..),
+//     `` = org.typelevel.vault.Vault@7a06854d
 //   )
 // )</span></code></pre>
         
@@ -610,11 +610,11 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">request</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/weather/temperature/2016-11-05&quot;</span><span>)</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">dailyWeatherService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">request</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res23: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@41cb082
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@290f6672
 // )</span></code></pre>
         
         <h3 id="handling-matrix-path-parameters" class="section"><a class="anchor-link left" href="#handling-matrix-path-parameters"><i class="icofont-laika link">&#xef71;</i></a>Handling Matrix Path Parameters</h3>
@@ -635,11 +635,11 @@
     </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe/greeting&quot;</span><span>
   )).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res24: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@1e1f3a36
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 16),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@25ba944c
 // )</span></code></pre>
         <p>Like standard path parameters, matrix path parameters can be extracted as numeric types using <code>IntVar</code> or <code>LongVar</code>.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">FullNameAndIDExtractor</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">MatrixVar</span><span>(</span><span class="string-literal">&quot;name&quot;</span><span>, </span><span class="type-name">List</span><span>(</span><span class="string-literal">&quot;first&quot;</span><span>, </span><span class="string-literal">&quot;last&quot;</span><span>, </span><span class="string-literal">&quot;id&quot;</span><span>))
@@ -654,11 +654,11 @@
     </span><span class="identifier">uri</span><span> = </span><span class="string-literal">uri&quot;/hello/name;first=john;last=doe;id=123/greeting&quot;</span><span>
   )).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res25: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 37),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@b72d5c5
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 37),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@22dad5b1
 // )</span></code></pre>
         
         <h3 id="handling-query-parameters" class="section"><a class="anchor-link left" href="#handling-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Handling Query Parameters</h3>
@@ -675,7 +675,7 @@
 
 </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
   </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@67e0b60
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@4acd36d3
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">QueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
@@ -687,7 +687,7 @@
       .</span><span class="identifier">map</span><span>(</span><span class="string-literal">s&quot;Average temperature for </span><span class="substitution">$country</span><span class="string-literal"> in </span><span class="substitution">$year</span><span class="string-literal"> was: &quot;</span><span> + </span><span class="identifier">_</span><span>))
 }
 </span><span class="comment">// averageTemperatureService: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@8b39ecb
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@cbaed5e
 // )</span></code></pre>
         <p>To support a <code>QueryParamDecoderMatcher[Instant]</code>, consider <code>QueryParamCodec#instantQueryParamCodec</code>. That
         outputs a <code>QueryParamCodec[Instant]</code>, which offers both a <code>QueryParamEncoder[Instant]</code> and <code>QueryParamDecoder[Instant]</code>.</p>
@@ -711,7 +711,7 @@
       </span><span class="type-name">Ok</span><span>(</span><span class="string-literal">&quot;Showing no clouds on the weather map.&quot;</span><span>)
 }
 </span><span class="comment">// serviceWithFlags: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@55f95e3a
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@44531f3c
 // )</span></code></pre>
         <p>Please note that you have to use the same syntax as with the other query parameters (i.e. <code>MyFlag(value)</code>) in the routes definition.</p>
         
@@ -720,7 +720,7 @@
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">java</span><span>.</span><span class="identifier">time</span><span>.</span><span class="type-name">Year</span></code></pre>
         <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">yearQueryParamDecoder</span><span>: </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Year</span><span>] =
   </span><span class="type-name">QueryParamDecoder</span><span>[</span><span class="type-name">Int</span><span>].</span><span class="identifier">map</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>)
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@63ea409f
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$7@2c182f43
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">OptionalYearQueryParamMatcher</span><span> 
   </span><span class="keyword">extends</span><span> </span><span class="type-name">OptionalQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
@@ -738,7 +738,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@1af0d05d
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@436fd921
 // )</span></code></pre>
         
         <h4 id="optional-multiple-query-paramters" class="section"><a class="anchor-link left" href="#optional-multiple-query-paramters"><i class="icofont-laika link">&#xef71;</i></a>Optional Multiple Query Paramters</h4>
@@ -760,7 +760,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@67a63b71
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@2c36d128
 // )</span></code></pre>
         
         <h4 id="missing-required-query-parameters" class="section"><a class="anchor-link left" href="#missing-required-query-parameters"><i class="icofont-laika link">&#xef71;</i></a>Missing Required Query Parameters</h4>
@@ -773,7 +773,7 @@
     .</span><span class="identifier">emap</span><span>(</span><span class="identifier">i</span><span> =&gt; </span><span class="type-name">Try</span><span>(</span><span class="type-name">Year</span><span>.</span><span class="identifier">of</span><span>(</span><span class="identifier">i</span><span>))
     .</span><span class="identifier">toEither</span><span>
     .</span><span class="identifier">leftMap</span><span>(</span><span class="identifier">t</span><span> =&gt; </span><span class="type-name">ParseFailure</span><span>(</span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>, </span><span class="identifier">t</span><span>.</span><span class="identifier">getMessage</span><span>)))
-</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@615aa952
+</span><span class="comment">// yearQueryParamDecoder: QueryParamDecoder[Year] = org.http4s.QueryParamDecoder$$anon$9@335043b5
 </span><span>
 </span><span class="keyword">object</span><span> </span><span class="type-name">YearQueryParamMatcher</span><span> </span><span class="keyword">extends</span><span> </span><span class="type-name">ValidatingQueryParamDecoderMatcher</span><span>[</span><span class="type-name">Year</span><span>](</span><span class="string-literal">&quot;year&quot;</span><span>)
 
@@ -785,7 +785,7 @@
     )
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@69561103
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@7cfa76
 // )</span></code></pre>
         
         <h4 id="optional-invalid-query-parameter-handling" class="section"><a class="anchor-link left" href="#optional-invalid-query-parameter-handling"><i class="icofont-laika link">&#xef71;</i></a>Optional Invalid Query Parameter Handling</h4>
@@ -808,7 +808,7 @@
     }
 }
 </span><span class="comment">// routes: HttpRoutes[IO] = Kleisli(
-//   run = org.http4s.HttpRoutes$$$Lambda$23279/0x00000008055ef840@6f71898b
+//   run = org.http4s.HttpRoutes$$$Lambda$19837/0x0000000804a2f040@aaa44a0
 // )</span></code></pre>
 
         

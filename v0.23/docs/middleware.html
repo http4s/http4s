@@ -261,37 +261,37 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">badRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/bad&quot;</span><span>)</span></code></pre>
         <pre><code class="nohighlight"><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res0: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@4d5c2f4c
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@51b9f970
 // )
 </span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res1: Response[[A]IO[A]] = (
-//    = Status(code = 400),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@3f15ebd2
+//   `` = Status(code = 400),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@a700a85
 // )</span></code></pre>
         <p>Now, we&#39;ll apply the service to our middleware function to create a new service, and try it out.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">modifiedService</span><span> = </span><span class="identifier">myMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>);</span></code></pre>
         <pre><code class="nohighlight"><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res2: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, SomeKey: SomeValue),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@2eef26ea
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0, SomeKey: SomeValue),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@4b79e8b5
 // )
 </span><span class="identifier">modifiedService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res3: Response[[A]IO[A]] = (
-//    = Status(code = 400),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@5128ad0c
+//   `` = Status(code = 400),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@35e78a3e
 // )</span></code></pre>
         <p>Note that the successful response has your header added to it.</p>
         <p>If you intend to use you middleware in multiple places, you may want to implement
@@ -310,19 +310,19 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">newService</span><span> = </span><span class="type-name">MyMiddle</span><span>(</span><span class="identifier">service</span><span>, </span><span class="string-literal">&quot;SomeKey&quot;</span><span> -&gt; </span><span class="string-literal">&quot;SomeValue&quot;</span><span>)</span></code></pre>
         <pre><code class="nohighlight"><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res4: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, SomeKey: SomeValue),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@61614217
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0, SomeKey: SomeValue),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@7b76c177
 // )
 </span><span class="identifier">newService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">badRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res5: Response[[A]IO[A]] = (
-//    = Status(code = 400),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@316085af
+//   `` = Status(code = 400),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@776bc81c
 // )</span></code></pre>
         <p>Let&#39;s consider Authentication middleware as an example. Authentication
         middleware is a function that takes <code>AuthedRoutes[F]</code> 
@@ -352,19 +352,19 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">apiRequest</span><span> = </span><span class="type-name">Request</span><span>[</span><span class="type-name">IO</span><span>](</span><span class="type-name">Method</span><span>.</span><span class="type-name">GET</span><span>, </span><span class="string-literal">uri&quot;/api&quot;</span><span>)</span></code></pre>
         <pre><code class="nohighlight"><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">goodRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res6: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0, SomeKey: SomeValue),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@38292e7d
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0, SomeKey: SomeValue),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@4e3d4c95
 // )
 </span><span class="identifier">aggregateService</span><span>.</span><span class="identifier">orNotFound</span><span>(</span><span class="identifier">apiRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// res7: Response[[A]IO[A]] = (
-//    = Status(code = 200),
-//    = HttpVersion(major = 1, minor = 1),
-//    = Headers(Content-Length: 0),
-//    = Stream(..),
-//    = org.typelevel.vault.Vault@4238e1ff
+//   `` = Status(code = 200),
+//   `` = HttpVersion(major = 1, minor = 1),
+//   `` = Headers(Content-Length: 0),
+//   `` = Stream(..),
+//   `` = org.typelevel.vault.Vault@4c818eb5
 // )</span></code></pre>
         <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had
         our header added to it. But, <code>apiRequest</code> did not go through the middleware and did
