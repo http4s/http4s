@@ -28,27 +28,6 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
 
-ThisBuild / githubWorkflowAddedJobs ++= Seq(
-  WorkflowJob(
-    id = "coverage",
-    name = "Generate coverage report",
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-    steps = githubWorkflowJobSetup.value.toList ++
-      List(
-        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
-        WorkflowStep.Use(
-          UseRef.Public(
-            "codecov",
-            "codecov-action",
-            "v3",
-          ),
-          cond = Some("github.event_name != 'pull_request'"),
-        ),
-      ),
-  )
-)
-
 ThisBuild / githubWorkflowArtifactUpload := false
 
 ThisBuild / jsEnv := {
@@ -675,14 +654,6 @@ lazy val theDsl = libraryCrossProject("dsl", CrossType.Pure)
   .settings(
     description := "Simple DSL for writing http4s services",
     startYear := Some(2013),
-    mimaBinaryIssueFilters ++= Seq(
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.org$http4s$dsl$impl$Statuses$_setter_$UnprocessableContent_="
-      ),
-      ProblemFilters.exclude[ReversedMissingMethodProblem](
-        "org.http4s.dsl.impl.Statuses.UnprocessableContent"
-      ),
-    ),
   )
   .jsSettings(
     jsVersionIntroduced("0.23.5")
@@ -727,7 +698,6 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
-    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
@@ -782,7 +752,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
-    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -816,7 +785,6 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -827,7 +795,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     tlFatalWarnings := false,
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -841,7 +808,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
@@ -945,7 +911,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.32").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.34").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

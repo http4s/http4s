@@ -26,8 +26,8 @@ object Http4sPlugin extends AutoPlugin {
 
   override def requires = Http4sOrgPlugin
 
-  val scala_213 = "2.13.16"
-  val scala_212 = "2.12.20"
+  val scala_213 = "2.13.18"
+  val scala_212 = "2.12.21"
   val scala_3 = "3.3.6"
 
   override lazy val globalSettings = Seq(
@@ -114,7 +114,7 @@ object Http4sPlugin extends AutoPlugin {
     val javaWebSocket = "1.6.0"
     val jawn = "1.6.0"
     val jawnFs2 = "2.5.0-RC1"
-    val jnrUnixSocket = "0.38.23"
+    val jnrUnixSocket = "0.38.24"
     val keypool = "0.5.0-RC1"
     val literally = "1.2.0"
     val logback = "1.2.6"
@@ -123,7 +123,7 @@ object Http4sPlugin extends AutoPlugin {
     val munit = "1.1.1"
     val munitCatsEffect = "2.2.0-RC1"
     val munitDiscipline = "2.0.0"
-    val netty = "4.2.6.Final"
+    val netty = "4.2.9.Final"
     val quasiquotes = "2.1.0"
     val scalacheck = "1.18.1"
     val scalacheckEffect = "2.1.0-RC1"
