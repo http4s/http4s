@@ -16,9 +16,6 @@
 
 package org.http4s.headers
 import org.http4s.laws.discipline.arbitrary._
-import cats.syntax.show._
-import cats.Show._
-import org.http4s.syntax.header._
 
 class ECTSuite extends HeaderLaws {
   checkAll("ECT", headerLaws[ECT])
