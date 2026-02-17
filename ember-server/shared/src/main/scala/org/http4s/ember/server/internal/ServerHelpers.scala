@@ -392,8 +392,9 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       requestVault <- if (createRequestVault) mkRequestVault(socket) else Vault.empty.pure[F]
       resp <- httpApp
         .run(req.withAttributes(requestVault))
-        .recover { case Parser.HeaderP.ParseHeadersError(_) =>
-          badRequest.covary[F]
+        .recover {
+          case Parser.HeaderP.ParseHeadersError(_) => badRequest.covary[F]
+          case mf: MessageFailure => mf.toHttpResponse[F](req.httpVersion)
         }
         .handleErrorWith(errorHandler)
         .handleError(_ => serverFailure.covary[F])
