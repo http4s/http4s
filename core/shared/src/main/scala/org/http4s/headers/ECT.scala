@@ -20,13 +20,15 @@ package headers
 import cats.parse.Parser.string
 import org.typelevel.ci._
 
-sealed abstract case class ECT(value: String)
+sealed abstract class ECT(val value: String)
+  extends Product
+  with Serializable
 
 object ECT {
-  object `slow-2g` extends ECT("slow-2g")
-  object `2g` extends ECT("2g")
-  object `3g` extends ECT("3g")
-  object `4g` extends ECT("4g")
+  case object `slow-2g` extends ECT("slow-2g")
+  case object `2g` extends ECT("2g")
+  case object `3g` extends ECT("3g")
+  case object `4g` extends ECT("4g")
 
   private[http4s] val parser = {
     val parser2gSlow = string("slow-2g").as(`slow-2g`)
