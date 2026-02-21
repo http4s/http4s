@@ -20,9 +20,7 @@ package headers
 import cats.parse.Parser.string
 import org.typelevel.ci._
 
-sealed abstract class ECT(val value: String)
-  extends Product
-  with Serializable
+sealed abstract class ECT(val value: String) extends Product with Serializable
 
 object ECT {
   case object `slow-2g` extends ECT("slow-2g")
