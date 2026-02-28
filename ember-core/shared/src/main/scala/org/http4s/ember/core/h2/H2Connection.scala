@@ -101,7 +101,7 @@ private[h2] class H2Connection[F[_]](
 
   def initiateRemoteStreamById(id: Int): F[H2Stream[F]] = for {
     t <- state.get.map(s => (s.remoteSettings, s.remoteHighestStream))
-    (settings, highestStream) = t
+    (settings, _) = t
     writeBlock <- Deferred[F, Either[Throwable, Unit]]
     request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
     response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]

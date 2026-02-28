@@ -1022,10 +1022,11 @@ private[discipline] trait ArbitraryInstances {
         httpVersion <- getArbitrary[HttpVersion]
         headers <- getArbitrary[Headers]
         body <- http4sTestingGenForPureByteStream
-      } yield try Request(method, uri, httpVersion, headers, body)
-      catch {
-        case t: Throwable => t.printStackTrace(); throw t
-      }
+      } yield
+        try Request(method, uri, httpVersion, headers, body)
+        catch {
+          case t: Throwable => t.printStackTrace(); throw t
+        }
     }
 
   implicit private[http4s] def http4sTestingArbitraryForContextRequest[F[_], A: Arbitrary]
