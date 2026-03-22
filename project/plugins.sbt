@@ -5,8 +5,8 @@ classpathTypes += "maven-plugin"
 
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "4.2.5")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
-addSbtPlugin("io.github.sbt-doctest" % "sbt-doctest" % "0.12.3")
-addSbtPlugin("org.http4s" % "sbt-http4s-org" % "2.0.4")
+addSbtPlugin("io.github.sbt-doctest" % "sbt-doctest" % "0.12.4")
+addSbtPlugin("org.http4s" % "sbt-http4s-org" % "2.0.5")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.7")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.8")
