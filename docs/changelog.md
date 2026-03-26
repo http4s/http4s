@@ -18,7 +18,7 @@ ordered chronologically, so each release contains all changes described below it
 <details>
 
 * Drop codecov action by @rossabaker in https://github.com/http4s/http4s/pull/7727
-* Update http4s-circe, http4s-ember-client to 0.23.32 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7725
+* Update http4s-circe, http4s-ember-client to 0.23.34 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7725
 * Update sbt-jmh to 0.4.8 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7730
 * Update sbt, scripted-plugin to 1.11.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7736
 * Update sbt-native-packager to 1.11.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7731
@@ -29,9 +29,9 @@ ordered chronologically, so each release contains all changes described below it
 * @tpetillot made their first contribution in https://github.com/http4s/http4s/pull/7742
 * @dylemma made their first contribution in https://github.com/http4s/http4s/pull/7411
 
-**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.32...v0.23.33
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.34...v0.23.33
 
-# v0.23.32 (2025-09-24)
+# v0.23.34 (2025-09-24)
 
 ## What's Changed
 ### http4s-dsl
@@ -43,7 +43,7 @@ ordered chronologically, so each release contains all changes described below it
 
 </details>
 
-**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.31...v0.23.32
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.31...v0.23.34
 
 # v0.23.31 (2025-09-22)
 
@@ -1500,9 +1500,9 @@ Be aware that versions of these modules will be untethered from the core version
 
 # v0.22.13 (2022-05-20)
 
-This release is binary compatible with 0.22.x series. 
+This release is binary compatible with 0.22.x series.
 Routine maintenance has stopped on 0.22.x, but we'll continue to entertain patches from the community.
-All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3). 
+All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-Effect 3).
 
 
 * http4s-core
@@ -1544,10 +1544,10 @@ All users are encouraged to upgrade to 0.23 (the latest stable series, on Cats-E
 
 * http4s-tomcat
     * Update tomcat-catalina, tomcat-coyote, ... to 9.0.62 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6214
-    
+
 * http4s-scala-xml
     * Update scala-xml to 2.1.0 in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6234
-    
+
 * http4s-async-http-client
     * Update netty-buffer, netty-codec-http to 4.1.76.Final in series/0.22 by @scala-steward in https://github.com/http4s/http4s/pull/6292
 
