@@ -345,7 +345,7 @@ object EmberServerBuilder extends EmberServerBuilderCompanionPlatform {
 
     // Effectful Handler - Perhaps a Logger
     // Will only arrive at this code if your HttpApp fails or the request receiving fails for some reason
-    def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case (_: Throwable) =>
+    def errorHandler[F[_]: Applicative]: Throwable => F[Response[F]] = { case _: Throwable =>
       serverFailure.covary[F].pure[F]
     }
 

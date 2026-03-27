@@ -22,37 +22,11 @@ ThisBuild / githubWorkflowJobSetup ~= { steps =>
     WorkflowStep.Use(
       UseRef.Public("cachix", "install-nix-action", "v27"),
       name = Some("Install Nix"),
-    ),
-    WorkflowStep.Use(
-      UseRef.Public("cachix", "cachix-action", "v15"),
-      name = Some("Install Cachix"),
-      params = Map("name" -> "http4s", "authToken" -> "${{ secrets.CACHIX_AUTH_TOKEN }}"),
-    ),
+    )
   ) ++ steps
 }
 
 ThisBuild / githubWorkflowSbtCommand := "nix develop .#${{ matrix.java }} -c sbt"
-
-ThisBuild / githubWorkflowAddedJobs ++= Seq(
-  WorkflowJob(
-    id = "coverage",
-    name = "Generate coverage report",
-    scalas = List(scala_213),
-    javas = List(JavaSpec.temurin("8")),
-    steps = githubWorkflowJobSetup.value.toList ++
-      List(
-        WorkflowStep.Sbt(List("coverage", "rootJVM/test", "coverageAggregate")),
-        WorkflowStep.Use(
-          UseRef.Public(
-            "codecov",
-            "codecov-action",
-            "v3",
-          ),
-          cond = Some("github.event_name != 'pull_request'"),
-        ),
-      ),
-  )
-)
 
 ThisBuild / githubWorkflowArtifactUpload := false
 
@@ -719,7 +693,6 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
-    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
@@ -774,7 +747,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
-    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -808,7 +780,6 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -819,7 +790,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     tlFatalWarnings := false,
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -833,7 +803,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
