@@ -19,6 +19,8 @@ package org.http4s.ember.core.h2
 import cats._
 import cats.effect._
 import cats.effect.kernel.Outcome
+import cats.effect.std.Mutex
+import cats.effect.std.Queue
 import cats.syntax.all._
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.SocketAddress
@@ -36,24 +38,21 @@ private[h2] class H2Connection[F[_]](
     address: Either[UnixSocketAddress, SocketAddress[Host]],
     connectionType: H2Connection.ConnectionType,
     localSettings: H2Frame.Settings.ConnectionSettings,
-    val mapRef: Ref[F, Map[Int, H2Stream[F]]],
+    mapRef: Ref[F, Map[Int, H2Stream[F]]],
     val state: Ref[F, H2Connection.State[F]], // odd if client, even if server
-    val outgoing: cats.effect.std.Queue[F, Chunk[H2Frame]],
-    // val outgoingData: cats.effect.std.Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
-
+    outgoing: Queue[F, Chunk[H2Frame]],
+    // val outgoingData: Queue[F, Frame.Data], // TODO split data rather than backpressuring frames totally
     val createdStreams: cats.effect.std.Queue[F, Int],
-    val closedStreams: cats.effect.std.Queue[F, Int],
+    closedStreams: cats.effect.std.Queue[F, Int],
     hpack: Hpack[F],
-    val streamCreateAndHeaders: Resource[F, Unit],
-    val settingsAck: Deferred[F, Either[Throwable, H2Frame.Settings.ConnectionSettings]],
-    acc: ByteVector, // Any Bytes Already Read
+    streamCreateAndHeaders: Resource[F, Unit],
     socket: Socket[F],
     logger: Logger[F],
 )(implicit F: Temporal[F]) {
 
   private[this] def addrStr = address.fold(_.toString, _.toString)
 
-  def initiateLocalStream: F[H2Stream[F]] = for {
+  private def initiateLocalStream: F[H2Stream[F]] = for {
     t <- state.modify { s =>
       val highestIsEven = s.highestStream % 2 == 0
       val newHighest = connectionType match {
@@ -65,25 +64,7 @@ private[h2] class H2Connection[F[_]](
       (s.copy(highestStream = newHighest), (s.remoteSettings, newHighest))
     }
     (settings, id) = t
-
-    writeBlock <- Deferred[F, Either[Throwable, Unit]]
-    request <- Deferred[F, Either[Throwable, org.http4s.Request[fs2.Pure]]]
-    response <- Deferred[F, Either[Throwable, org.http4s.Response[fs2.Pure]]]
-    trailers <- Deferred[F, Either[Throwable, org.http4s.Headers]]
-    body <- Channel.unbounded[F, Either[Throwable, ByteVector]]
-    refState <- Ref.of[F, H2Stream.State[F]](
-      H2Stream.State(
-        H2Stream.StreamState.Idle,
-        settings.initialWindowSize.windowSize,
-        writeBlock,
-        localSettings.initialWindowSize.windowSize,
-        request,
-        response,
-        trailers,
-        body,
-        None,
-      )
-    )
+    refState <- H2Stream.initState[F](localSettings = localSettings, remoteSettings = settings)
     stream = new H2Stream(
       id,
       localSettings,
@@ -96,7 +77,7 @@ private[h2] class H2Connection[F[_]](
       goAway,
       logger,
     )
-    _ <- mapRef.update(m => m + (id -> stream))
+    _ <- addStream(id, stream)
   } yield stream
 
   def initiateRemoteStreamById(id: Int): F[H2Stream[F]] = for {
@@ -132,7 +113,7 @@ private[h2] class H2Connection[F[_]](
       goAway,
       logger,
     )
-    _ <- mapRef.update(m => m + (id -> stream))
+    _ <- addStream(id, stream)
     _ <- state.update(s =>
       s.copy(
         highestStream = Math.max(s.highestStream, id),
@@ -144,7 +125,7 @@ private[h2] class H2Connection[F[_]](
   def goAway(error: H2Error): F[Unit] =
     state.get.map(_.remoteHighestStream).flatMap { i =>
       val g = error.toGoAway(i)
-      outgoing.offer(Chunk.singleton(g))
+      sendOutgoingFrame(g)
     } >>
       H2Connection.KillWithoutMessage().raiseError
 
@@ -185,9 +166,7 @@ private[h2] class H2Connection[F[_]](
       }
     }
     val firstGoAway = chunk.collectFirst { case g: H2Frame.GoAway =>
-      mapRef.get.flatMap { m =>
-        m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-      } >> state.update(s => s.copy(closed = true))
+      foreachStream(_.receiveGoAway(g)) >> close
     }
     firstGoAway.getOrElse(F.unit) >> go(chunk)
   }
@@ -238,17 +217,11 @@ private[h2] class H2Connection[F[_]](
           ) =>
         if (h.identifier == id) {
           state.update(s => s.copy(headersInProgress = None)) >>
-            mapRef.get.map(_.get(id)).flatMap {
+            getStream(id).flatMap {
               case Some(s) =>
                 s.receiveHeaders(h, cs ::: c :: Nil: _*)
               case None =>
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(id)
-                    _ <- createdStreams.offer(id)
-                    _ <- stream.receiveHeaders(h, cs ::: c :: Nil: _*)
-                  } yield ()
-                )
+                createRemoteStream(id).use(_.receiveHeaders(h, cs ::: c :: Nil: _*))
             }
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -260,18 +233,11 @@ private[h2] class H2Connection[F[_]](
           ) =>
         if (p.promisedStreamId == id) {
           state.update(s => s.copy(headersInProgress = None)) >>
-            mapRef.get.map(_.get(id)).flatMap {
+            getStream(id).flatMap {
               case Some(s) =>
                 s.receivePushPromise(p, cs ::: c :: Nil: _*)
               case None =>
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(id)
-                    _ <- createdStreams.offer(id)
-                    _ <- stream.receivePushPromise(p, cs ::: c :: Nil: _*)
-
-                  } yield ()
-                )
+                createRemoteStream(id).use(_.receivePushPromise(p, cs ::: c :: Nil: _*))
             }
         } else {
           logger.warn("Invalid Continuation - Protocol Error - Issuing GoAway") >>
@@ -319,7 +285,7 @@ private[h2] class H2Connection[F[_]](
         } else if (sd.exists(s => s.dependency == i)) {
           goAway(H2Error.ProtocolError)
         } else {
-          mapRef.get.map(_.get(i)).flatMap {
+          getStream(i).flatMap {
             case Some(s) =>
               s.receiveHeaders(h)
             case None =>
@@ -333,14 +299,7 @@ private[h2] class H2Connection[F[_]](
                 ) >>
                   goAway(H2Error.ProtocolError)
               } else {
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(i)
-                    _ <- createdStreams.offer(i)
-                    _ <- stream.receiveHeaders(h)
-
-                  } yield ()
-                )
+                createRemoteStream(i).use(_.receiveHeaders(h))
               }
           }
         }
@@ -362,7 +321,7 @@ private[h2] class H2Connection[F[_]](
           logger.warn("Header Size too large for frame size - FrameSizeError - Issuing GoAway") >>
             goAway(H2Error.FrameSizeError)
         } else {
-          mapRef.get.map(_.get(i)).flatMap {
+          getStream(i).flatMap {
             case Some(s) =>
               s.receivePushPromise(h)
             case None =>
@@ -373,13 +332,7 @@ private[h2] class H2Connection[F[_]](
                 )
                 goAway(H2Error.ProtocolError)
               } else {
-                streamCreateAndHeaders.use(_ =>
-                  for {
-                    stream <- initiateRemoteStreamById(i)
-                    _ <- createdStreams.offer(i)
-                    _ <- stream.receivePushPromise(h)
-                  } yield ()
-                )
+                createRemoteStream(i).use(_.receivePushPromise(h))
               }
           }
         }
@@ -411,27 +364,19 @@ private[h2] class H2Connection[F[_]](
           }
           (settings, difference, oldWriteBlock) = t
           _ <- oldWriteBlock.complete(Either.unit)
-          _ <- mapRef.get.flatMap { map =>
-            map.toList.traverse { case (_, stream) =>
-              stream.modifyWriteWindow(difference)
-            }
-          }
-          _ <- outgoing.offer(Chunk.singleton(H2Frame.Settings.Ack))
-          _ <- settingsAck.complete(Either.right(settings)).void
-
+          _ <- foreachStream(_.modifyWriteWindow(difference))
+          _ <- sendOutgoingFrame(H2Frame.Settings.Ack)
         } yield ()
       case (H2Frame.Settings(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Settings(_, _, _), _) =>
         logger.warn("Received Settings Not Oriented at Identifier 0 - Issuing goAway") >>
           goAway(H2Error.ProtocolError)
       case (g @ H2Frame.GoAway(0, _, _, _), _) =>
-        mapRef.get.flatMap { m =>
-          m.values.toList.traverse_(connection => connection.receiveGoAway(g))
-        } >> outgoing.offer(Chunk.singleton(H2Frame.Ping.ack))
+        foreachStream(_.receiveGoAway(g)) >> sendOutgoingFrame(H2Frame.Ping.ack)
       case (_: H2Frame.GoAway, _) =>
         goAway(H2Error.ProtocolError)
       case (H2Frame.Ping(0, false, bv), _) =>
-        outgoing.offer(Chunk.singleton(H2Frame.Ping.ack.copy(data = bv)))
+        sendOutgoingFrame(H2Frame.Ping.ack.copy(data = bv))
       case (H2Frame.Ping(0, true, _), _) => Applicative[F].unit
       case (H2Frame.Ping(_, _, _), _) =>
         goAway(H2Error.ProtocolError)
@@ -461,7 +406,7 @@ private[h2] class H2Connection[F[_]](
               }
             } yield ()
           case otherwise =>
-            mapRef.get.map(_.get(otherwise)).flatMap {
+            getStream(otherwise).flatMap {
               case Some(s) =>
                 s.receiveWindowUpdate(w)
               case None =>
@@ -478,7 +423,7 @@ private[h2] class H2Connection[F[_]](
           ) >>
             goAway(H2Error.FrameSizeError)
         } else {
-          mapRef.get.map(_.get(i)).flatMap {
+          getStream(i).flatMap {
             case Some(s) =>
               for {
                 st <- state.get
@@ -493,12 +438,10 @@ private[h2] class H2Connection[F[_]](
                 )
                 _ <-
                   if (needsWindowUpdate)
-                    outgoing.offer(
-                      Chunk.singleton(
-                        H2Frame.WindowUpdate(
-                          0,
-                          st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
-                        )
+                    sendOutgoingFrame(
+                      H2Frame.WindowUpdate(
+                        0,
+                        st.remoteSettings.initialWindowSize.windowSize - newSize.toInt,
                       )
                     )
                   else Applicative[F].unit
@@ -513,7 +456,7 @@ private[h2] class H2Connection[F[_]](
         }
 
       case (rst @ H2Frame.RstStream(i, _), _) =>
-        mapRef.get.map(_.get(i)).flatMap {
+        getStream(i).flatMap {
           case Some(s) =>
             s.receiveRstStream(rst)
           case None =>
@@ -537,18 +480,58 @@ private[h2] class H2Connection[F[_]](
         case None => F.unit
       }
 
-    F.guaranteeCase(readLoopAux(acc)) {
+    F.guaranteeCase(readLoopAux(ByteVector.empty)) {
       case Outcome.Errored(H2Connection.KillWithoutMessage()) =>
-        logger.debug(s"ReadLoop has received that is should kill") >>
-          state.update(s => s.copy(closed = true))
+        logger.debug(s"ReadLoop has received that is should kill") >> close
       case Outcome.Errored(e) =>
         logger.error(e)(s"ReadLoop has errored") >>
           goAway(H2Error.InternalError) >>
-          state.update(s => s.copy(closed = true))
-
-      case _ => state.update(s => s.copy(closed = true))
+          close
+      case _ => close
     }
   }
+
+  // stream map
+
+  def getStream(id: Int): F[Option[H2Stream[F]]] =
+    mapRef.get.map(_.get(id))
+
+  def removeStream(id: Int): F[Unit] =
+    mapRef.update(_ - id)
+
+  private def addStream(id: Int, stream: H2Stream[F]): F[Unit] =
+    mapRef.update(_.updated(id, stream))
+
+  private def foreachStream(f: H2Stream[F] => F[Unit]): F[Unit] =
+    mapRef.get.flatMap { map =>
+      map.valuesIterator.foldLeft(F.unit)((acc, stream) => F.productR(acc)(f(stream)))
+    }
+
+  // stream creation with lock
+
+  private def createRemoteStream[A](id: Int): Resource[F, H2Stream[F]] =
+    streamCreateAndHeaders.evalMap(_ => initiateRemoteStreamById(id) <* createdStreams.offer(id))
+
+  def createLocalStream: Resource[F, H2Stream[F]] =
+    streamCreateAndHeaders.evalMap(_ => initiateLocalStream)
+
+  // created and closed streams
+
+  def getCreatedStreams: Stream[F, Int] = Stream.fromQueueUnterminated(createdStreams)
+
+  def getClosedStreams: Stream[F, Int] = Stream.fromQueueUnterminated(closedStreams)
+
+  // connection state
+
+  private def close: F[Unit] = state.update(_.copy(closed = true))
+
+  def isClosed: F[Boolean] =
+    state.get.map(_.closed)
+
+  // outgoing frames
+
+  def sendOutgoingFrame(frame: H2Frame): F[Unit] =
+    outgoing.offer(Chunk.singleton(frame))
 
 }
 
@@ -565,7 +548,7 @@ private[h2] object H2Connection {
       pushPromiseInProgress: Option[(H2Frame.PushPromise, List[H2Frame.Continuation])],
   )
 
-  def initState[F[_]](
+  private def initState[F[_]](
       remoteSettings: H2Frame.Settings.ConnectionSettings,
       writeWindow: SettingsInitialWindowSize,
       readWindow: SettingsInitialWindowSize,
@@ -584,6 +567,39 @@ private[h2] object H2Connection {
       )
       F.ref(state)
     }
+
+  def init[F[_]: Async](
+      address: Either[UnixSocketAddress, SocketAddress[Host]],
+      connectionType: H2Connection.ConnectionType,
+      localSettings: H2Frame.Settings.ConnectionSettings,
+      remoteSettings: H2Frame.Settings.ConnectionSettings,
+      writeWindow: SettingsInitialWindowSize,
+      readWindow: SettingsInitialWindowSize,
+      socket: Socket[F],
+      logger: Logger[F],
+  ): F[H2Connection[F]] = for {
+    ref <- Concurrent[F].ref(Map.empty[Int, H2Stream[F]])
+    stateRef <- H2Connection.initState[F](remoteSettings, writeWindow, readWindow)
+    queue <- Queue.unbounded[F, Chunk[H2Frame]] // TODO revisit
+    hpack <- Hpack.create[F]
+    streamCreationLock <- Mutex[F]
+    // data <- Queue.unbounded[F, Frame.Data]
+    created <- Queue.unbounded[F, Int]
+    closed <- Queue.unbounded[F, Int]
+  } yield new H2Connection(
+    address,
+    connectionType,
+    localSettings,
+    ref,
+    stateRef,
+    queue,
+    created,
+    closed,
+    hpack,
+    streamCreationLock.lock,
+    socket,
+    logger,
+  )
 
   final case class KillWithoutMessage()
       extends RuntimeException
