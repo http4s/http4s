@@ -412,11 +412,11 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
       timeout = Defaults.timeout,
       additionalSocketOptions = Defaults.additionalSocketOptions,
       userAgent = Defaults.userAgent,
-      checkEndpointIdentification = true,
-      serverNameIndication = true,
+      checkEndpointIdentification = Defaults.checkEndpointIdentification,
+      serverNameIndication = Defaults.serverNameIndication,
       retryPolicy = Defaults.retryPolicy,
       unixSockets = None,
-      enableHttp2 = false,
+      enableHttp2 = Defaults.enableHttp2,
       pushPromiseSupport = None,
     )
 
@@ -424,12 +424,16 @@ object EmberClientBuilder extends EmberClientBuilderCompanionPlatform {
   def default[F[_]](async: Async[F]): EmberClientBuilder[F] =
     default(async, Network.forAsync(async))
 
-  private object Defaults {
+  private[client] object Defaults {
     val acgFixedThreadPoolSize: Int = 100
     val chunkSize: Int = 32 * 1024
     val maxResponseHeaderSize: Int = 4096
     val idleConnectionTime: FiniteDuration = org.http4s.ember.core.Defaults.IdleTimeout
     val timeout: Duration = org.http4s.client.defaults.RequestTimeout
+
+    val checkEndpointIdentification: Boolean = true
+    val serverNameIndication: Boolean = true
+    val enableHttp2: Boolean = false
 
     // Pool Settings
     val maxPerKey: RequestKey => Int = { (_: RequestKey) =>
