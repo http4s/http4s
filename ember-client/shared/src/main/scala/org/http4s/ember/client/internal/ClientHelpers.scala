@@ -16,10 +16,6 @@
 
 package org.http4s.ember.client.internal
 
-import _root_.fs2.io.net.tls._
-import _root_.org.http4s.ember.core.Encoder
-import _root_.org.http4s.ember.core.Parser
-import _root_.org.http4s.ember.core.Util._
 import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Async
@@ -35,23 +31,28 @@ import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
 import fs2.io.ClosedChannelException
+import fs2.io.IOException
 import fs2.io.net._
+import fs2.io.net.tls._
 import org.http4s._
 import org.http4s.client.RequestKey
 import org.http4s.client.middleware._
 import org.http4s.ember.client._
+import org.http4s.ember.core.Drain
 import org.http4s.ember.core.EmberException
+import org.http4s.ember.core.Encoder
+import org.http4s.ember.core.Parser
 import org.http4s.ember.core.Util
+import org.http4s.ember.core.Util._
 import org.http4s.headers.Connection
 import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool._
 
-import java.io.IOException
 import scala.concurrent.duration._
 
-private[client] object ClientHelpers {
+private[client] object ClientHelpers extends ClientHelpersPlatform {
   def requestToSocketWithKey[F[_]: MonadThrow](
       request: Request[F],
       tlsContextOpt: Option[TLSContext[F]],
@@ -151,15 +152,27 @@ private[client] object ClientHelpers {
       userAgent: Option[`User-Agent`],
   ): F[(Response[F], F[Option[Array[Byte]]])] = {
 
-    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] =
+    def writeRequestToSocket(req: Request[F], socket: Socket[F]): F[Unit] = {
+      def wrt(c: fs2.Chunk[Byte]): F[Unit] =
+        socket.isOpen.flatMap {
+          case true =>
+            socket.write(c).adaptError {
+              case e: Exception if isClosedChannelException(e) =>
+                new ClosedChannelException
+            }
+          case false =>
+            Async[F].raiseError(new ClosedChannelException)
+        }
+
       Encoder
         .reqToBytes(req)
-        .through(_.chunks.foreach(c => timeoutMaybe(socket.write(c), idleTimeout)))
+        .through(_.chunks.foreach(c => timeoutMaybe(wrt(c), idleTimeout)))
         .compile
         .drain
+    }
 
-    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] =
-      writeRequestToSocket(req, connection.keySocket.socket).productR {
+    def writeRead(req: Request[F]): F[(Response[F], F[Option[Array[Byte]]])] = {
+      def read: F[(Response[F], Drain[F])] = {
         val parse = (
           // leftover bytes from last request
           connection.nextBytes.getAndSet(Array.emptyByteArray),
@@ -184,6 +197,13 @@ private[client] object ClientHelpers {
           ),
         )
       }
+
+      writeRequestToSocket(req, connection.keySocket.socket).attempt
+        .flatMap {
+          case Left(_: ClosedChannelException) | Right(_) => read
+          case Left(err) => Async[F].raiseError(err)
+        }
+    }
 
     for {
       processedReq <- preprocessRequest(request, userAgent)
@@ -283,9 +303,7 @@ private[client] object ClientHelpers {
       result match {
         case Right(_) => false
         case Left(_: ClosedChannelException) => true
-        case Left(ex: IOException) =>
-          val msg = ex.getMessage()
-          msg == "Connection reset by peer" || msg == "Broken pipe" || msg == "Connection reset"
+        case Left(ex: IOException) => isClosedChannelException(ex)
         case _ => false
       }
   }
