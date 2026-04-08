@@ -249,7 +249,7 @@
         <p>First, let&#39;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="json.html">json</a> for details.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">libraryDependencies</span><span> ++= </span><span class="type-name">Seq</span><span>(
   </span><span class="string-literal">&quot;org.http4s&quot;</span><span> %% </span><span class="string-literal">&quot;http4s-circe&quot;</span><span> % </span><span class="string-literal">&quot;0.23.33&quot;</span><span>,
-  </span><span class="string-literal">&quot;io.circe&quot;</span><span> %% </span><span class="string-literal">&quot;circe-generic&quot;</span><span> % </span><span class="string-literal">&quot;0.14.8&quot;</span><span>
+  </span><span class="string-literal">&quot;io.circe&quot;</span><span> %% </span><span class="string-literal">&quot;circe-generic&quot;</span><span> % </span><span class="string-literal">&quot;0.14.12&quot;</span><span>
 )</span></code></pre>
         <p>Next, we want <em>streaming</em> JSON. Because http4s is streaming in its bones, it relies on <a href="https://github.com/non/jawn">jawn</a> for
         streaming JSON support. Most popular JSON libraries, including Circe, provide jawn support, as
@@ -267,13 +267,14 @@
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">effect</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="type-name">Stream</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">net</span><span>.</span><span class="type-name">Network</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">stdout</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">text</span><span>.{</span><span class="identifier">lines</span><span>, </span><span class="identifier">utf8</span><span>}
 </span><span class="keyword">import</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="type-name">Json</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">jawn</span><span>.</span><span class="identifier">fs2</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">typelevel</span><span>.</span><span class="identifier">jawn</span><span>.</span><span class="type-name">Facade</span><span>
 
-</span><span class="keyword">class</span><span> </span><span class="type-name">TWStream</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]: </span><span class="type-name">Async</span><span>] {
+</span><span class="keyword">class</span><span> </span><span class="type-name">TWStream</span><span>[</span><span class="type-name">F</span><span>[</span><span class="identifier">_</span><span>]: </span><span class="type-name">Async</span><span>: </span><span class="type-name">Network</span><span>] {
   </span><span class="comment">// jawn-fs2 needs to know what JSON AST you want
 </span><span>  </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">f</span><span>: </span><span class="type-name">Facade</span><span>[</span><span class="type-name">Json</span><span>] = </span><span class="keyword">new</span><span> </span><span class="identifier">io</span><span>.</span><span class="identifier">circe</span><span>.</span><span class="identifier">jawn</span><span>.</span><span class="type-name">CirceSupportParser</span><span>(</span><span class="type-name">None</span><span>, </span><span class="boolean-literal">false</span><span>).</span><span class="identifier">facade</span><span>
 

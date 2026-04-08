@@ -282,7 +282,7 @@
   .</span><span class="identifier">void</span><span>
   .</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// The rhino is the second largest land animal, after the elephant.
-// Rhinoceros horns are made from keratin, just like human fingernails.
+// The gestation period for a rhinoceros baby is almost 15 months.
 // The rhino is the second largest land animal, after the elephant.
 // Rhinoceros horns are made from keratin, just like human fingernails.
 </span><span>
@@ -290,8 +290,8 @@
 </span><span class="type-name">CookieJar</span><span>.</span><span class="identifier">impl</span><span>(</span><span class="identifier">client</span><span>).</span><span class="identifier">flatMap</span><span> { </span><span class="identifier">cl</span><span> =&gt;
   </span><span class="identifier">cl</span><span>.</span><span class="identifier">expect</span><span>[</span><span class="type-name">String</span><span>](</span><span class="identifier">factRequest</span><span>).</span><span class="identifier">flatMap</span><span>(</span><span class="type-name">Console</span><span>[</span><span class="type-name">IO</span><span>].</span><span class="identifier">println</span><span>).</span><span class="identifier">replicateA</span><span>(</span><span class="number-literal">4</span><span>).</span><span class="identifier">void</span><span>
 }.</span><span class="identifier">unsafeRunSync</span><span>()
-</span><span class="comment">// The rhino is the second largest land animal, after the elephant.
-// Rhinoceros horns are made from keratin, just like human fingernails.
+</span><span class="comment">// Rhinoceros horns are made from keratin, just like human fingernails.
+// The rhino is the second largest land animal, after the elephant.
 // The gestation period for a rhinoceros baby is almost 15 months.
 // You know all the facts!</span></code></pre>
         
@@ -418,9 +418,8 @@
         <p><a href="https://en.wikipedia.org/wiki/Unix_domain_socket">Unix domain sockets</a> are an operating system feature which allows communication between processes
         while not needing to use the network.</p>
         <p>This middleware allows a client to make requests to a domain socket.</p>
-        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">file</span><span>.</span><span class="identifier">_</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">net</span><span>.</span><span class="identifier">unixsocket</span><span>.</span><span class="type-name">UnixSocketAddress</span><span>
-</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">net</span><span>.</span><span class="identifier">unixsocket</span><span>.</span><span class="type-name">UnixSockets</span><span>
+        <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">com</span><span>.</span><span class="identifier">comcast</span><span>.</span><span class="identifier">ip4s</span><span>.</span><span class="type-name">UnixSocketAddress</span><span>
+</span><span class="keyword">import</span><span> </span><span class="identifier">fs2</span><span>.</span><span class="identifier">io</span><span>.</span><span class="identifier">file</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">client</span><span>.</span><span class="identifier">middleware</span><span>.</span><span class="type-name">UnixSocket</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">client</span><span>.</span><span class="type-name">EmberClientBuilder</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">org</span><span>.</span><span class="identifier">http4s</span><span>.</span><span class="identifier">ember</span><span>.</span><span class="identifier">server</span><span>.</span><span class="type-name">EmberServerBuilder</span><span>
@@ -430,7 +429,7 @@
 
 </span><span class="keyword">def</span><span> </span><span class="declaration-name">server</span><span>(</span><span class="identifier">socket</span><span>: </span><span class="type-name">UnixSocketAddress</span><span>) = </span><span class="type-name">EmberServerBuilder</span><span>
   .</span><span class="keyword">default</span><span>[</span><span class="type-name">IO</span><span>]
-  .</span><span class="identifier">withUnixSocketConfig</span><span>(</span><span class="type-name">UnixSockets</span><span>[</span><span class="type-name">IO</span><span>], </span><span class="identifier">socket</span><span>) </span><span class="comment">// bind to a domain socket
+  .</span><span class="identifier">withUnixSocketConfig</span><span>(</span><span class="identifier">socket</span><span>) </span><span class="comment">// bind to a domain socket
 </span><span>  .</span><span class="identifier">withHttpApp</span><span>(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)
   .</span><span class="identifier">withShutdownTimeout</span><span>(</span><span class="number-literal">1</span><span>.</span><span class="identifier">second</span><span>)
   .</span><span class="identifier">build</span><span>
