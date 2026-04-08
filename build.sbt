@@ -37,6 +37,9 @@ ThisBuild / jsEnv := {
   )
 }
 
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
@@ -223,7 +226,6 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       catsLaws.value,
       disciplineCore.value,
       ip4sTestKit.value,
-      scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value,
     ),
@@ -251,7 +253,6 @@ lazy val tests = libraryCrossProject("tests")
     libraryDependencies ++= Seq(
       munitCatsEffect.value,
       munitDiscipline.value,
-      scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
@@ -419,8 +420,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      munit.value,
-      munitCatsEffect.value,
+      munitCatsEffect.value
     ),
     mimaPreviousArtifacts := Set.empty,
   )
@@ -629,6 +629,9 @@ lazy val emberClient = libraryCrossProject("ember-client")
       ProblemFilters
         .exclude[DirectMissingMethodProblem]("org.http4s.ember.client.EmberClientBuilder.this"),
       ProblemFilters.exclude[Problem]("org.http4s.ember.client.internal.*"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.http4s.ember.client.EmberClientBuilder.defaultUnixSockets"
+      ),
     ),
   )
   .jvmSettings(
@@ -906,7 +909,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.34").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },
