@@ -22,7 +22,6 @@ import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
 import org.http4s.EntityBody
-import org.http4s.Header
 
 /** Generic representation of typical Multipart Part bodies, as either a string or a file path.
   * Produced by [[MultipartReceiver.auto]].

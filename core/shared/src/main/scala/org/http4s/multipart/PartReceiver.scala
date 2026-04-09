@@ -27,10 +27,6 @@ import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
-import org.http4s.DecodeFailure
-import org.http4s.EntityDecoder
-import org.http4s.Headers
-import org.http4s.InvalidMessageBodyFailure
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *

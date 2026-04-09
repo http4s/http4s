@@ -23,8 +23,6 @@ import cats.effect.Concurrent
 import cats.syntax.foldable._
 import fs2.io.file.Files
 import org.http4s.DecodeFailure
-import org.http4s.Headers
-import org.http4s.InvalidMessageBodyFailure
 
 /** Composable logic for receiving data from `multipart/form-data` request bodies.
   *
