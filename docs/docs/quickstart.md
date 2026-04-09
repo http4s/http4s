@@ -50,7 +50,7 @@ Or instead with [Mill Build Tool]:
 
 ```sh
 # for Scala 2.x
-$ mill -i init http4s/http4s.g8 --branch 0.23-mill
+$ mill init http4s/http4s.g8 --branch 0.23-mill
 ```
 
 Follow the prompts.  For every step along the way, a default value is
