@@ -3,6 +3,60 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
+# v0.23.34 (2026-04-09)
+
+This release brings support for Scala Native 0.5.
+
+## What's Changed
+### http4s-core
+* Update Scala Native to 0.5.10 by @iRevive in https://github.com/http4s/http4s/pull/7708
+### http4s-client
+* Enhance the HMAC generation to be able to return ByteVector, Base64 encoded String and Hex encoded String by @mayman in https://github.com/http4s/http4s/pull/7530
+### Behind the scenes
+* Update http4s-circe, http4s-ember-client to 0.23.33 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7753
+* Update netty-buffer, netty-codec-http to 4.2.7.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7752
+* Update sbt-scoverage to 2.4.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7759
+* Update scalafmt-core to 3.9.10 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7758
+* Update sbt-scalajs, scalajs-compiler, ... to 1.20.1 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7754
+* Update scalafmt-core to 3.10.1 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7761
+* Update scala-library-2.13.18, sbt-http4s-org-2.0.4 by @rossabaker in https://github.com/http4s/http4s/pull/7762
+* Update jnr-unixsocket to 0.38.24 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7751
+* Update netty-buffer, netty-codec-http to 4.2.8.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7766
+* Update netty-buffer, netty-codec-http to 4.2.9.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7768
+* Update scalafmt-core to 3.10.3 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7770
+* Update sbt-doctest to 0.12.3 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7771
+* scoverage, scram! by @rossabaker in https://github.com/http4s/http4s/pull/7775
+* Update scalafmt-core to 3.10.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7780
+* Update scalafmt-core to 3.10.5 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7784
+* Update sbt-http4s-org to 2.0.5 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7792
+* Update scalafmt-core to 3.10.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7791
+* Update sbt, scripted-plugin to 1.12.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7793
+* Update doctest-runtime, sbt-doctest to 0.12.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7788
+* Update netty-buffer, netty-codec-http to 4.2.10.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7789
+* Update sbt, scripted-plugin to 1.12.5 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7794
+* Plug host library leakage by @rossabaker in https://github.com/http4s/http4s/pull/7795
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7647
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7797
+* Update sbt, scripted-plugin to 1.12.6 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7799
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7800
+* Update sbt-native-packager to 1.11.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7779
+* Update sbt, scripted-plugin to 1.12.7 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7801
+* Update sbt, scripted-plugin to 1.12.8 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7803
+* Update netty-buffer, netty-codec-http to 4.2.12.Final in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7804
+* flake.lock: Update by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7806
+* Update jnr-unixsocket to 0.38.25 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7807
+* Update sbt, scripted-plugin to 1.12.9 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7810
+* Update auxlib, clib, javalib, nativelib, ... to 0.5.11 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7812
+* Update scalacheck to 1.19.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7813
+* Update munit to 1.2.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7814
+* Update circe-core, circe-generic, ... to 0.14.15 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7811
+* Update sbt-scalajs, scalajs-compiler, ... to 1.20.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7774
+
+## New Contributors
+* @mayman made their first contribution in https://github.com/http4s/http4s/pull/7530
+
+**Full Changelog**: https://github.com/http4s/http4s/compare/v0.23.33...v0.23.34
+
 # v0.23.33 (2025-10-30)
 
 ## What's Changed
