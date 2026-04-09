@@ -188,10 +188,9 @@ To run this code create a file (it should have the `.scala` extension) with the 
 `scala-cli file.scala`.
 
 ```scala mdoc:compile-only
-//> using scala 2.13
-//> using dep org.http4s::http4s-ember-client::@VERSION@
-//> using dep org.http4s::http4s-ember-server::@VERSION@
-//> using dep org.http4s::http4s-dsl::@VERSION@
+//> using dep "org.http4s::http4s-ember-client:@VERSION@"
+//> using dep "org.http4s::http4s-ember-server:@VERSION@"
+//> using dep "org.http4s::http4s-dsl:@VERSION@"
 
 import cats.effect._
 import cats.syntax.all._

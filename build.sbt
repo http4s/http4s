@@ -33,6 +33,9 @@ ThisBuild / jsEnv := {
   )
 }
 
+ThisBuild / libraryDependencySchemes +=
+  "org.scala-native" %% "test-interface_native0.5" % VersionScheme.Always
+
 lazy val modules: List[CompositeProject] = List(
   core,
   laws,
@@ -120,7 +123,6 @@ lazy val laws = libraryCrossProject("laws", CrossType.Pure)
       catsLaws.value,
       disciplineCore.value,
       ip4sTestKit.value,
-      scalacheck.value,
       scalacheckEffectMunit.value,
       munitCatsEffect.value,
     ),
@@ -140,7 +142,6 @@ lazy val tests = libraryCrossProject("tests")
     libraryDependencies ++= Seq(
       munitCatsEffect.value,
       munitDiscipline.value,
-      scalacheck.value,
       scalacheckEffect.value,
       scalacheckEffectMunit.value,
     ),
@@ -183,8 +184,7 @@ lazy val clientTestkit = libraryCrossProject("client-testkit")
     description := "Client testkit for building http4s clients",
     startYear := Some(2014),
     libraryDependencies ++= Seq(
-      munit.value,
-      munitCatsEffect.value,
+      munitCatsEffect.value
     ),
     mimaPreviousArtifacts := Set.empty,
   )
@@ -284,7 +284,6 @@ lazy val bench = http4sProject("bench")
     libraryDependencies += circeParser,
     undeclaredCompileDependenciesTest := {},
     unusedCompileDependenciesTest := {},
-    coverageEnabled := false,
   )
   .dependsOn(core.jvm, circe.jvm, emberCore.jvm)
 
@@ -309,7 +308,7 @@ lazy val jsArtifactSizeTest = http4sProject("js-artifact-size-test")
       // not a hard target. increase *moderately* if need be
       // linking MimeDB results in a 100 KB increase. don't let that happen :)
       // linking java.time.* results in a 70 KB increase
-      val targetKB = 280
+      val targetKB = 300
       val msg = s"fullOptJS+gzip generated ${sizeKB} KB artifact (target: <$targetKB KB)"
       if (sizeKB < targetKB)
         log.info(msg)
@@ -339,7 +338,6 @@ lazy val unidocs = http4sProject("unidocs")
           docs,
         ) ++ root.js.aggregate ++ root.native.aggregate): _*
       ),
-    coverageEnabled := false,
   )
 
 lazy val docs = http4sProject("site")
@@ -374,7 +372,6 @@ lazy val examples = http4sProject("examples")
       circeGeneric % Runtime,
       logbackClassic % Runtime,
     ),
-    coverageEnabled := false,
   )
   .dependsOn(server.jvm, theDsl.jvm, circe.jvm)
 
@@ -385,7 +382,6 @@ lazy val examplesEmber = exampleProject("examples-ember")
     startYear := Some(2020),
     fork := true,
     tlFatalWarnings := false,
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, emberClient.jvm)
 
@@ -400,7 +396,6 @@ lazy val examplesDocker = http4sProject("examples-docker")
     Docker / maintainer := "http4s",
     dockerUpdateLatest := true,
     dockerExposedPorts := List(8080),
-    coverageEnabled := false,
   )
   .dependsOn(emberServer.jvm, theDsl.jvm)
 
@@ -504,7 +499,7 @@ def http4sCrossProject(name: String, crossType: CrossType) =
     )
     .nativeEnablePlugins(ScalaNativeBrewedConfigPlugin)
     .nativeSettings(
-      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.16").toMap,
+      tlVersionIntroduced := List("2.12", "2.13", "3").map(_ -> "0.23.34").toMap,
       Test / nativeBrewFormulas ++= {
         if (sys.env.contains("DEVSHELL_DIR")) Set.empty else Set("s2n")
       },

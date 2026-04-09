@@ -25,8 +25,6 @@ import fs2.Chunk
 import fs2.Stream
 import fs2.io.net._
 import fs2.io.net.tls._
-import fs2.io.net.unixsocket.UnixSocketAddress
-import fs2.io.net.unixsocket.UnixSockets
 import org.http4s._
 import org.http4s.ember.core.ChunkedEncoding
 import org.http4s.ember.core.Drain
@@ -64,7 +62,6 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       host: Option[Host],
       port: Port,
       additionalSocketOptions: List[SocketOption],
-      sg: SocketGroup[F],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
@@ -83,14 +80,19 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
       enableHttp2: Boolean,
       requestLineParseErrorHandler: Throwable => F[Response[F]],
       maxHeaderSizeErrorHandler: EmberException.MessageTooLong => F[Response[F]],
-  )(implicit F: Async[F]): Stream[F, Nothing] = {
+  )(implicit F: Async[F], F2: Network[F]): Stream[F, Nothing] = {
     val server: Stream[F, Socket[F]] =
       Stream
-        .resource(sg.serverResource(host, Some(port), additionalSocketOptions))
+        .resource(
+          Network[F].bind(
+            SocketAddress(host.getOrElse(Ipv4Address.Wildcard), port),
+            additionalSocketOptions,
+          )
+        )
         .attempt
-        .evalTap(e => ready.complete(e.map(_._1)))
+        .evalTap(e => ready.complete(e.map(_.address.asIpUnsafe)))
         .rethrow
-        .flatMap(_._2)
+        .flatMap(_.accept)
     serverInternal(
       server,
       httpApp: HttpApp[F],
@@ -114,11 +116,11 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
     )
   }
 
-  def unixSocketServer[F[_]: Async](
-      unixSockets: UnixSockets[F],
+  def unixSocketServer[F[_]: Network: Async](
       unixSocketAddress: UnixSocketAddress,
       deleteIfExists: Boolean,
       deleteOnClose: Boolean,
+      additionalSocketOptions: List[SocketOption],
       httpApp: HttpApp[F],
       tlsInfoOpt: Option[(TLSContext[F], TLSParameters)],
       ready: Deferred[F, Either[Throwable, SocketAddress[IpAddress]]],
@@ -147,8 +149,13 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
           )
         ) // Sketchy
         .drain ++
-        unixSockets
-          .server(unixSocketAddress, deleteIfExists, deleteOnClose)
+        Network[F].bindAndAccept(
+          unixSocketAddress,
+          List(
+            SocketOption.unixSocketDeleteIfExists(deleteIfExists),
+            SocketOption.unixSocketDeleteOnClose(deleteOnClose),
+          ) ++ additionalSocketOptions,
+        )
 
     serverInternal(
       server,
@@ -582,19 +589,17 @@ private[server] object ServerHelpers extends ServerHelpersPlatform {
   }
 
   private def mkRequestVault[F[_]: Applicative](socket: Socket[F]): F[Vault] =
-    (mkConnectionInfo(socket), mkSecureSession(socket)).mapN(_ ++ _)
+    mkSecureSession(socket).map(mkConnectionInfo(socket) ++ _)
 
-  private def mkConnectionInfo[F[_]: Apply](socket: Socket[F]) =
-    (socket.localAddress, socket.remoteAddress).mapN { case (local, remote) =>
-      Vault.empty.insert(
-        Request.Keys.ConnectionInfo,
-        Request.Connection(
-          local = local,
-          remote = remote,
-          secure = socket.isInstanceOf[TLSSocket[F]],
-        ),
-      )
-    }
+  private def mkConnectionInfo[F[_]](socket: Socket[F]) =
+    Vault.empty.insert(
+      Request.Keys.ConnectionInfo,
+      Request.Connection(
+        local = socket.address.asIpUnsafe, // mkConnectionInfo is only used with TCP sockets
+        remote = socket.peerAddress.asIpUnsafe,
+        secure = socket.isInstanceOf[TLSSocket[F]],
+      ),
+    )
 
   private def mkSecureSession[F[_]: Applicative](socket: Socket[F]) =
     socket match {

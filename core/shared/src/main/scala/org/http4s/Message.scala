@@ -26,16 +26,19 @@ import com.comcast.ip4s.Hostname
 import com.comcast.ip4s.IpAddress
 import com.comcast.ip4s.Port
 import com.comcast.ip4s.SocketAddress
+import com.comcast.ip4s.UnixSocketAddress
 import fs2.Pipe
 import fs2.Pull
 import fs2.Pure
 import fs2.Stream
-import fs2.io.net.unixsocket.UnixSocketAddress
+import fs2.io.net.unixsocket.{UnixSocketAddress => DeprecatedUnixSocketAddress}
 import org.http4s.Message.EntityStreamException
 import org.http4s.headers._
 import org.http4s.internal.CurlConverter
 import org.http4s.syntax.KleisliSyntax
 import org.typelevel.ci.CIString
+import org.typelevel.scalaccompat.annotation.nowarn213
+import org.typelevel.scalaccompat.annotation.nowarn3
 import org.typelevel.vault._
 import scodec.bits._
 
@@ -533,6 +536,8 @@ final class Request[+F[_]] private (
   )(implicit F: Monad[F2], decoder: EntityDecoder[F2, A]): F2[Response[F2]] =
     decodeWith(decoder, strict = true)(f)
 
+  @nowarn213("cat=deprecation")
+  @nowarn3("cat=deprecation")
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
   def canEqual(that: Any): Boolean = that match {
@@ -618,8 +623,13 @@ object Request {
     val PathTranslated: Key[File] = Key.newKey[SyncIO, File].unsafeRunSync()
     val ConnectionInfo: Key[Connection] = Key.newKey[SyncIO, Connection].unsafeRunSync()
     val ServerSoftware: Key[ServerSoftware] = Key.newKey[SyncIO, ServerSoftware].unsafeRunSync()
-    val UnixSocketAddress: Key[UnixSocketAddress] =
+    val ForcedUnixSocketAddress: Key[UnixSocketAddress] =
       Key.newKey[SyncIO, UnixSocketAddress].unsafeRunSync()
+    @deprecated("Use ForcedUnixSocketAddress instead", "0.23.34")
+    val UnixSocketAddress: Key[DeprecatedUnixSocketAddress] =
+      ForcedUnixSocketAddress.imap(a => DeprecatedUnixSocketAddress(a.path))(a =>
+        com.comcast.ip4s.UnixSocketAddress(a.path)
+      )
   }
 
   implicit class RequestOps[F[_]](request: Request[F]) {
@@ -704,6 +714,8 @@ final class Response[+F[_]] private (
   def cookies: List[ResponseCookie] =
     headers.get[`Set-Cookie`].foldMap(_.toList).map(_.cookie)
 
+  @nowarn213("cat=deprecation")
+  @nowarn3("cat=deprecation")
   override def hashCode(): Int = MurmurHash3.productHash(this)
 
   def copy[F1[_]](

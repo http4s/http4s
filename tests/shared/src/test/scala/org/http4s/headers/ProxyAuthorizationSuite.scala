@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 http4s.org
+ * Copyright 2013 http4s.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
-package org.http4s.ember.client
+package org.http4s.headers
 
-private[client] trait EmberClientBuilderPlatform {}
+import org.http4s.BasicCredentials
+import org.http4s.implicits._
+import org.scalacheck.Prop._
+
+class ProxyAuthorizationSuite extends HeaderLaws {
+  test("fromBasicCredentials proper header render") {
+    forAll { (username: String, password: String) =>
+      val basicCredentials = BasicCredentials(username, password)
+      val header = `Proxy-Authorization`.fromBasicCredentials(basicCredentials)
+      header.renderString == s"Proxy-Authorization: Basic ${basicCredentials.token}"
+    }
+  }
+}
