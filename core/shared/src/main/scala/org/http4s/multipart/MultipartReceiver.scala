@@ -22,7 +22,6 @@ import cats.Functor
 import cats.effect.Concurrent
 import cats.syntax.foldable._
 import fs2.io.file.Files
-import org.http4s.DecodeFailure
 
 /** Composable logic for receiving data from `multipart/form-data` request bodies.
   *
