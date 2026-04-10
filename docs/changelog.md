@@ -3,7 +3,7 @@
 Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below it.
 
-# v0.23.34 (2026-04-09)
+# v0.23.34 (2026-04-10)
 
 This release brings support for Scala Native 0.5.
 
@@ -51,6 +51,7 @@ This release brings support for Scala Native 0.5.
 * Update munit to 1.2.4 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7814
 * Update circe-core, circe-generic, ... to 0.14.15 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7811
 * Update sbt-scalajs, scalajs-compiler, ... to 1.20.2 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7774
+* Update sbt-scalajs, scalajs-compiler, ... to 1.21.0 in series/0.23 by @http4s-steward[bot] in https://github.com/http4s/http4s/pull/7815
 
 ## New Contributors
 * @mayman made their first contribution in https://github.com/http4s/http4s/pull/7530
