@@ -51,7 +51,7 @@ The `sbt lint` alias runs the full set of checks that CI runs:
 
 * `clean` and `+test:compile`: compiles all code across Scala versions
 * `scalafixAll --triggered` and `scalafixAll`: runs Scalafix rules
-* `+scalafmtAll` and `scalafmtSbt`: checks code formatting
+* `+scalafmtAll` and `scalafmtSbt`: formats all sources and `.sbt` files
 * `+mimaReportBinaryIssues`: checks for binary compatibility changes
 
 For quicker feedback while iterating locally, `sbt quicklint` runs the same
