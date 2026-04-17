@@ -17,9 +17,10 @@
 package org.http4s
 package multipart
 
+import java.nio.file.{Files => NioFiles}
 import cats.Applicative
 import cats.ApplicativeError
-import cats.effect.Concurrent
+import cats.effect.{Async, Concurrent}
 import cats.effect.kernel.Resource
 import fs2.Chunk
 import fs2.Pull
@@ -27,6 +28,8 @@ import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
+
+import scala.util.Using
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *
@@ -91,14 +94,37 @@ object PartReceiver {
     *
     * The decoding will use UTF-8 unless the part provides a `Content-Type` header indicating otherwise.
     */
-  def bodyText[F[_]](implicit F: Concurrent[F]): PartReceiver[F, String] =
-    part => Resource.eval(part.bodyText.compile.string).map(Right(_))
+  def bodyText[F[_]](implicit F: Async[F]): PartReceiver[F, String] = part =>
+    part.entity match {
+      case Entity.Empty =>
+        Resource.pure(Right(""))
+
+      case Entity.Strict(bv) =>
+        val cs = part.charset.getOrElse(Charset.`UTF-8`).nioCharset
+        Resource.eval(F.delay(bv.decodeStringLenient()(cs))).map(Right(_))
+
+      case Entity.Streamed(_, _) =>
+        Resource.eval(part.bodyText.compile.string).map(Right(_))
+    }
 
   /** Creates a PartReceiver which writes the part body to a temporary file, then returns that file's `Path`. */
-  def toTempFile[F[_]](implicit F: Files[F], c: Concurrent[F]): PartReceiver[F, Path] =
+  def toTempFile[F[_]](implicit F: Files[F], A: Async[F]): PartReceiver[F, Path] =
     part =>
       F.tempFile
-        .evalTap(path => part.body.through(F.writeAll(path)).compile.drain)
+        .evalTap(path =>
+          part.entity match {
+            case Entity.Empty =>
+              A.unit
+            case Entity.Strict(bv) =>
+              A.blocking {
+                Using.resource(NioFiles.newOutputStream(path.toNioPath)) { out =>
+                  bv.copyToStream(out)
+                }
+              }
+            case Entity.Streamed(body, _) =>
+              body.through(F.writeAll(path)).compile.drain
+          }
+        )
         .map(Right(_))
 
   /** Creates a PartReceiver that ignores the part body. */
