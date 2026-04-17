@@ -17,10 +17,10 @@
 package org.http4s
 package multipart
 
-import java.nio.file.{Files => NioFiles}
 import cats.Applicative
 import cats.ApplicativeError
-import cats.effect.{Async, Concurrent}
+import cats.effect.Async
+import cats.effect.Concurrent
 import cats.effect.kernel.Resource
 import fs2.Chunk
 import fs2.Pull
@@ -28,8 +28,6 @@ import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
-
-import scala.util.Using
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *
@@ -88,7 +86,7 @@ trait PartReceiver[F[_], A] {
       }
 }
 
-object PartReceiver {
+object PartReceiver extends PartReceiverPlatform {
 
   /** Creates a PartReceiver which decodes the part body to a String.
     *
@@ -108,24 +106,10 @@ object PartReceiver {
     }
 
   /** Creates a PartReceiver which writes the part body to a temporary file, then returns that file's `Path`. */
-  def toTempFile[F[_]](implicit F: Files[F], A: Async[F]): PartReceiver[F, Path] =
-    part =>
-      F.tempFile
-        .evalTap(path =>
-          part.entity match {
-            case Entity.Empty =>
-              A.unit
-            case Entity.Strict(bv) =>
-              A.blocking {
-                Using.resource(NioFiles.newOutputStream(path.toNioPath)) { out =>
-                  bv.copyToStream(out)
-                }
-              }
-            case Entity.Streamed(body, _) =>
-              body.through(F.writeAll(path)).compile.drain
-          }
-        )
-        .map(Right(_))
+  def toTempFile[F[_]](implicit F: Files[F], A: Async[F]): PartReceiver[F, Path] = part =>
+    F.tempFile
+      .evalTap(path => writeToFile(path, part.entity))
+      .map(Right(_))
 
   /** Creates a PartReceiver that ignores the part body. */
   def ignore[F[_]]: PartReceiver[F, Unit] =
