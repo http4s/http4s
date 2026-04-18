@@ -22,12 +22,17 @@ import cats.ApplicativeError
 import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.kernel.Resource
+import cats.syntax.applicativeError._
+import cats.syntax.either._
+import cats.syntax.functor._
 import fs2.Chunk
 import fs2.Pull
 import fs2.Stream
 import fs2.io.file.Files
 import fs2.io.file.Flags
 import fs2.io.file.Path
+
+import java.nio.charset.CharacterCodingException
 
 /** Represents the decoding process of a single "part" in a `multipart/form-data` message.
   *
@@ -90,7 +95,7 @@ object PartReceiver extends PartReceiverPlatform {
 
   /** Creates a PartReceiver which decodes the part body to a String.
     *
-    * The decoding will use UTF-8 unless the part provides a `Content-Type` header indicating otherwise.
+    * The decoding will use `UTF-8` unless the part's `Content-Type` specifies a different charset.
     */
   def bodyText[F[_]](implicit F: Async[F]): PartReceiver[F, String] = part =>
     part.entity match {
@@ -98,12 +103,29 @@ object PartReceiver extends PartReceiverPlatform {
         Resource.pure(Right(""))
 
       case Entity.Strict(bv) =>
-        val cs = part.charset.getOrElse(Charset.`UTF-8`).nioCharset
-        Resource.eval(F.delay(bv.decodeStringLenient()(cs))).map(Right(_))
+        // mirrors `Media#bodyText`: UTF-8 bodies are decoded leniently,
+        // other charsets are decoded strictly
+        val decoded = part.charset.getOrElse(Charset.`UTF-8`) match {
+          case Charset.`UTF-8` => F.delay(Right(bv.decodeUtf8Lenient))
+          case cs =>
+            F
+              .delay(bv.decodeString(cs.nioCharset))
+              .map(_.leftMap(malformedPartFailure))
+        }
+        Resource.eval(decoded)
 
       case Entity.Streamed(_, _) =>
-        Resource.eval(part.bodyText.compile.string).map(Right(_))
+        Resource.eval(
+          part.bodyText.compile.string
+            .map[Either[DecodeFailure, String]](Right(_))
+            .recover { case ex: CharacterCodingException =>
+              Left(malformedPartFailure(ex))
+            }
+        )
     }
+
+  private def malformedPartFailure(ex: CharacterCodingException): DecodeFailure =
+    MalformedMessageBodyFailure("Malformed part body", Some(ex))
 
   /** Creates a PartReceiver which writes the part body to a temporary file, then returns that file's `Path`. */
   def toTempFile[F[_]](implicit F: Files[F], A: Async[F]): PartReceiver[F, Path] = part =>
