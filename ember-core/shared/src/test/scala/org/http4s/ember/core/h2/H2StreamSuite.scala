@@ -23,7 +23,9 @@ import cats.effect.Ref
 import cats.effect.std.Queue
 import cats.syntax.all._
 import fs2.Chunk
+import fs2.Stream
 import fs2.concurrent.Channel
+import fs2.text.utf8
 import org.http4s.Headers
 import org.http4s.Http4sSuite
 import org.http4s.HttpVersion
@@ -32,6 +34,8 @@ import org.http4s.Response
 import org.http4s.Status
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
+
+import scala.concurrent.duration._
 
 class H2StreamSuite extends Http4sSuite {
   val defaultSettings = H2Frame.Settings.ConnectionSettings.default
@@ -299,6 +303,26 @@ class H2StreamSuite extends Http4sSuite {
         .withEntity("0" * frameSize * 2)
       _ <- stream.sendMessageBody(resp)
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
+    } yield ()
+  }
+
+  test(
+    "H2Stream sendMessageBody should flush data without waiting for the next chunk".fail
+  ) {
+    for {
+      sq <- streamAndQueue(defaultSettings)
+      (stream, queue) = sq
+      gate <- Deferred[IO, Unit]
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
+        .withBodyStream(
+          Stream("hello").through(utf8.encode) ++
+            Stream.eval(gate.get).drain ++
+            Stream("world").through(utf8.encode)
+        )
+      _ <- stream.sendMessageBody(resp).start
+      firstFrame <- queue.take.timeout(3.seconds)
+      _ <- gate.complete(())
+      _ <- IO(assert(clue(firstFrame).toList.nonEmpty))
     } yield ()
   }
 }
