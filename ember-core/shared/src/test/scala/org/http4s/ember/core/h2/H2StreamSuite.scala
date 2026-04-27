@@ -307,7 +307,7 @@ class H2StreamSuite extends Http4sSuite {
   }
 
   test(
-    "H2Stream sendMessageBody should flush data without waiting for the next chunk".fail
+    "H2Stream sendMessageBody should flush data without waiting for the next chunk"
   ) {
     for {
       sq <- streamAndQueue(defaultSettings)
