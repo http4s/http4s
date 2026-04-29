@@ -307,17 +307,17 @@ class H2StreamSuite extends Http4sSuite {
   test(
     "H2Stream sendMessageBody should flush data without waiting for the next chunk"
   ) {
-    def dataFrame(chunk: Chunk[H2Frame]): H2Frame.Data = {
-      assert(chunk.size == 1)
-      chunk.collectFirst { case data: H2Frame.Data => data }.get
-    }
 
     def bodyStream(gate: Deferred[IO, Unit]): Stream[IO, Byte] =
       Stream("hello").through(utf8.encode) ++
         Stream.eval(gate.get).drain ++
         Stream("world").through(utf8.encode)
 
-    def assertFrame(frame: H2Frame.Data, expected: String, endStream: Boolean) = {
+
+    def assertFrame(chunk: Chunk[H2Frame], expected: String, endStream: Boolean) = {
+      assert(chunk.size == 1)
+      val frame = chunk.collectFirst { case data: H2Frame.Data => data }.get
+
       assertEquals(frame.data.decodeUtf8, Right(expected))
       assertEquals(frame.endStream, endStream)
     }
@@ -328,14 +328,14 @@ class H2StreamSuite extends Http4sSuite {
       gate <- Deferred[IO, Unit]
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream(gate))
       fiber <- stream.sendMessageBody(resp).start
-      firstFrame <- queue.take.map(dataFrame)
-      _ <- IO(assertFrame(firstFrame, "hello", endStream = false))
+      firstChunk <- queue.take
+      _ <- IO(assertFrame(firstChunk, "hello", endStream = false))
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- gate.complete(())
-      secondFrame <- queue.take.map(dataFrame)
-      _ <- IO(assertFrame(secondFrame, "world", endStream = false))
-      lastFrame <- queue.take.map(dataFrame)
-      _ <- IO(assertFrame(lastFrame, "", endStream = true))
+      secondChunk <- queue.take
+      _ <- IO(assertFrame(secondChunk, "world", endStream = false))
+      lastChunk <- queue.take
+      _ <- IO(assertFrame(lastChunk, "", endStream = true))
       _ <- fiber.joinWithNever
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
