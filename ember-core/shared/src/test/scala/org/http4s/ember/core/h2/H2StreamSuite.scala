@@ -35,8 +35,6 @@ import org.http4s.Status
 import org.typelevel.log4cats
 import scodec.bits.ByteVector
 
-import scala.concurrent.duration._
-
 class H2StreamSuite extends Http4sSuite {
   val defaultSettings = H2Frame.Settings.ConnectionSettings.default
 
@@ -309,20 +307,29 @@ class H2StreamSuite extends Http4sSuite {
   test(
     "H2Stream sendMessageBody should flush data without waiting for the next chunk"
   ) {
+    def dataFrame(chunk: Chunk[H2Frame]): H2Frame.Data = {
+      assert(chunk.size == 1)
+      chunk.collectFirst { case data: H2Frame.Data => data }.get
+    }
+
+    def bodyStream(gate: Deferred[IO, Unit]): Stream[IO, Byte] =
+      Stream("hello").through(utf8.encode) ++
+        Stream.eval(gate.get).drain ++
+        Stream("world").through(utf8.encode)
+
     for {
       sq <- streamAndQueue(defaultSettings)
       (stream, queue) = sq
       gate <- Deferred[IO, Unit]
-      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`)
-        .withBodyStream(
-          Stream("hello").through(utf8.encode) ++
-            Stream.eval(gate.get).drain ++
-            Stream("world").through(utf8.encode)
-        )
-      _ <- stream.sendMessageBody(resp).start
-      firstFrame <- queue.take.timeout(3.seconds)
+      resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream(gate))
+      fiber <- stream.sendMessageBody(resp).start
+      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), false)
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- gate.complete(())
-      _ <- IO(assert(clue(firstFrame).toList.nonEmpty))
+      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), false)
+      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), true)
+      _ <- fiber.joinWithNever
+      _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
   }
 }
