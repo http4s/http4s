@@ -317,17 +317,25 @@ class H2StreamSuite extends Http4sSuite {
         Stream.eval(gate.get).drain ++
         Stream("world").through(utf8.encode)
 
+    def assertFrame(frame: H2Frame.Data, expected: String, endStream: Boolean) = {
+      assertEquals(frame.data.decodeUtf8, Right(expected))
+      assertEquals(frame.endStream, endStream)
+    }
+
     for {
       sq <- streamAndQueue(defaultSettings)
       (stream, queue) = sq
       gate <- Deferred[IO, Unit]
       resp = Response[IO](Status.Ok, HttpVersion.`HTTP/2`).withBodyStream(bodyStream(gate))
       fiber <- stream.sendMessageBody(resp).start
-      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), false)
+      firstFrame <- queue.take.map(dataFrame)
+      _ <- IO(assertFrame(firstFrame, "hello", endStream = false))
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.Open)
       _ <- gate.complete(())
-      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), false)
-      _ <- assertIO(queue.take.map(dataFrame).map(_.endStream), true)
+      secondFrame <- queue.take.map(dataFrame)
+      _ <- IO(assertFrame(secondFrame, "world", endStream = false))
+      lastFrame <- queue.take.map(dataFrame)
+      _ <- IO(assertFrame(lastFrame, "", endStream = true))
       _ <- fiber.joinWithNever
       _ <- assertIO(stream.state.get.map(_.state), H2Stream.StreamState.HalfClosedLocal)
     } yield ()
