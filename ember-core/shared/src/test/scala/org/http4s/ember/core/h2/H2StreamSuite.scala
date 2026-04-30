@@ -313,7 +313,6 @@ class H2StreamSuite extends Http4sSuite {
         Stream.eval(gate.get).drain ++
         Stream("world").through(utf8.encode)
 
-
     def assertFrame(chunk: Chunk[H2Frame], expected: String, endStream: Boolean) = {
       assert(chunk.size == 1)
       val frame = chunk.collectFirst { case data: H2Frame.Data => data }.get
