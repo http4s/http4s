@@ -29,6 +29,7 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
+import org.http4s.headers.`Sec-WebSocket-Protocol`
 import org.http4s.server.Server
 import org.http4s.server.websocket._
 import org.http4s.syntax.all._
@@ -60,6 +61,13 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         case GET -> Root / "ws-close" =>
           val send = Stream.eval(F.pure(WebSocketFrame.Text("foo")))
           wsBuilder.build(send, _.void)
+        case req @ GET -> Root / "ws-subprotocol-echo" =>
+          val responseHeaders =
+            req.headers
+              .get[`Sec-WebSocket-Protocol`]
+              .map(p => Headers(`Sec-WebSocket-Protocol`(p.values.head)))
+              .getOrElse(Headers.empty)
+          wsBuilder.withHeaders(responseHeaders).build(Stream.empty, _.void)
       }
       .orNotFound
   }
@@ -257,6 +265,25 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
             Left("Not found HTTP Status 101 Switching Protocol."),
           )
         )
+  }
+
+  fixture.test("subprotocol surfaces the server-selected value") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-subprotocol-echo"))
+        .withHeaders(Headers(`Sec-WebSocket-Protocol`("v4.channel.k8s.io")))
+
+      wsClient
+        .connect(wsRequest)
+        .use(conn => IO(assertEquals(conn.subprotocol, Some("v4.channel.k8s.io"))))
+  }
+
+  fixture.test("subprotocol is None when no subprotocol is negotiated") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+
+      wsClient
+        .connect(wsRequest)
+        .use(conn => IO(assertEquals(conn.subprotocol, None)))
   }
 
   fixture2.test("always use HTTP/1") { case (_, (_, wsClient), _) =>

@@ -70,7 +70,10 @@ private[client] object EmberWSClient {
             .withAttribute(WebSocketUpgradeIdentifier, ())
 
           socketOption <- getSocket(emberClient, httpWSRequest)
-          socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
+          socketAndSubprotocol <- socketOption
+            .liftTo[F](new RuntimeException("Not an Ember client"))
+            .toResource
+          (socket, negotiatedSubprotocol) = socketAndSubprotocol
 
           closeFrameDeferred <- F.deferred[WebSocketFrame.Close].toResource
 
@@ -129,7 +132,8 @@ private[client] object EmberWSClient {
           def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
               evidence$1: cats.Foldable[G]
           ): F[Unit] = wsfs.traverse_(send(_))
-          def subprotocol: Option[String] = ???
+          def subprotocol: Option[String] =
+            negotiatedSubprotocol.map(_.values.head)
         }
       }
     }

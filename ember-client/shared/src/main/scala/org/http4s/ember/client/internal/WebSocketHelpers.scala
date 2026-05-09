@@ -66,7 +66,7 @@ private[internal] object WebSocketHelpers {
 
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]
-  ): Resource[F, Option[Socket[F]]] = {
+  ): Resource[F, Option[(Socket[F], Option[`Sec-WebSocket-Protocol`])]] = {
     val webSocketKey = WebSocketKey.webSocketConnection[F]
     client
       .run(request)
@@ -78,7 +78,8 @@ private[internal] object WebSocketHelpers {
             .map(_.hashString)
           isValid <- validateServerHandshake(res, secWebSocketKeyString)
           _ <- isValid.liftTo[F]
-        } yield res.attributes.lookup(webSocketKey)
+          negotiatedSubprotocol = res.headers.get[`Sec-WebSocket-Protocol`]
+        } yield res.attributes.lookup(webSocketKey).map(_ -> negotiatedSubprotocol)
       }
   }
 
