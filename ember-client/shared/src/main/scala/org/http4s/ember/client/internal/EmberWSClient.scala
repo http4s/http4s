@@ -37,8 +37,6 @@ import org.http4s.headers.`Sec-WebSocket-Key`
 import org.http4s.websocket.WebSocketFrame
 import scodec.bits.ByteVector
 
-import java.util.Base64
-
 private[client] object EmberWSClient {
   def apply[F[_]](
       emberClient: Client[F]
@@ -64,7 +62,7 @@ private[client] object EmberWSClient {
                 upgradeWebSocket,
                 connectionUpgrade,
                 supportedWebSocketVersionHeader,
-                new `Sec-WebSocket-Key`(ByteVector(Base64.getEncoder().encode(randomByteArray))),
+                new `Sec-WebSocket-Key`(ByteVector(randomByteArray)),
               )
             )
             .withMethod(Method.GET)
