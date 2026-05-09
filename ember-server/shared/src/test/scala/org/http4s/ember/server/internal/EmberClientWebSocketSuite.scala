@@ -243,6 +243,22 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         .map(frames => assertEquals(frames, List(WSFrame.Text("foo"))))
   }
 
+  fixture.test("propagate ServerHandshakeError when the server does not upgrade") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/"))
+
+      wsClient
+        .connect(wsRequest)
+        .use(_ => IO.unit)
+        .attempt
+        .map(attempt =>
+          assertEquals(
+            attempt.left.map(_.getMessage),
+            Left("Not found HTTP Status 101 Switching Protocol."),
+          )
+        )
+  }
+
   fixture2.test("always use HTTP/1") { case (_, (_, wsClient), _) =>
     // val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsRequest = WSRequest(uri"wss://ws.postman-echo.com/raw")
