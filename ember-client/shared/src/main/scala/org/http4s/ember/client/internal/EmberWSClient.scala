@@ -97,11 +97,17 @@ private[client] object EmberWSClient {
             }
             .compile
             .drain
+            .recover { case EndOfStreamError() => () }
             .guarantee(
               closeFrameDeferred.tryGet.flatMap {
                 case None =>
-                  clientReceiveQueue
-                    .offer(None) // Connection stopped without a close frame from the server.
+                  // Connection closed without a close frame:
+                  // synthesize an abnormal-closure frame (RFC 6455 §7.1.5).
+                  F.fromEither(WebSocketFrame.Close(1006, "abnormal closure")).flatMap { abnormal =>
+                    closeFrameDeferred.complete(abnormal) *>
+                      clientReceiveQueue.offer(Some(abnormal)) *>
+                      clientReceiveQueue.offer(None)
+                  }
                 case Some(_) => F.unit
               }
             )
