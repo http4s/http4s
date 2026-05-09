@@ -165,6 +165,22 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         )
   }
 
+  fixture.test("raise when sending after a close frame") { case (server, (_, wsClient), _) =>
+    val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
+
+    wsClient
+      .connect(wsRequest)
+      .use(conn =>
+        for {
+          _ <- conn.send(WSFrame.Close(1000, ""))
+          attempt <- conn.send(WSFrame.Text("after close")).attempt
+        } yield assertEquals(
+          attempt.left.map(_.getMessage),
+          Left("Connection already closed"),
+        )
+      )
+  }
+
   fixture.test("open and close high-level connection to server") {
     case (server, (_, wsClient), _) =>
       val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
