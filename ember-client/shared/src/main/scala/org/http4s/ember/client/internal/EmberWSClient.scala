@@ -72,7 +72,7 @@ private[client] object EmberWSClient {
           socketOption <- getSocket(emberClient, httpWSRequest)
           socket <- socketOption.liftTo[F](new RuntimeException("Not an Ember client")).toResource
 
-          closeFrameDeffered <- F.deferred[WebSocketFrame.Close].toResource
+          closeFrameDeferred <- F.deferred[WebSocketFrame.Close].toResource
 
           clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
           clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
@@ -81,9 +81,9 @@ private[client] object EmberWSClient {
             .through(decodeFrames(true))
             .foreach {
               case f @ WebSocketFrame.Close(_) =>
-                closeFrameDeffered.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
+                closeFrameDeferred.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
               case f =>
-                closeFrameDeffered.tryGet.flatMap { x =>
+                closeFrameDeferred.tryGet.flatMap { x =>
                   if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
                 }
             }
