@@ -17,6 +17,7 @@
 package org.http4s.ember.client.internal
 
 import cats.MonadThrow
+import cats.data.EitherT
 import cats.effect.Async
 import cats.effect.implicits._
 import cats.effect.kernel.Resource
@@ -113,7 +114,8 @@ private[client] object EmberWSClient {
               case WebSocketFrame.Close(_) =>
                 closeChannelWithCloseFrame(clientSendChannel)
               case f =>
-                clientSendChannel.send(f).void
+                EitherT(clientSendChannel.send(f))
+                  .getOrRaise(new RuntimeException("Connection already closed"))
             }
           def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
               evidence$1: cats.Foldable[G]
