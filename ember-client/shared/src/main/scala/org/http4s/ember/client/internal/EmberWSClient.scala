@@ -74,21 +74,34 @@ private[client] object EmberWSClient {
 
           closeFrameDeferred <- F.deferred[WebSocketFrame.Close].toResource
 
-          clientReceiveQueue <- Queue.bounded[F, WebSocketFrame](100).toResource
+          clientReceiveQueue <- Queue.bounded[F, Option[WebSocketFrame]](100).toResource
           clientSendChannel <- Channel.bounded[F, WebSocketFrame](100).toResource
 
           _ <- socket.reads
             .through(decodeFrames(true))
             .foreach {
               case f @ WebSocketFrame.Close(_) =>
-                closeFrameDeferred.complete(f).ifM(clientReceiveQueue.offer(f), F.unit)
+                closeFrameDeferred
+                  .complete(f)
+                  .ifM(
+                    clientReceiveQueue.offer(Some(f)) *> clientReceiveQueue.offer(None),
+                    F.unit,
+                  )
               case f =>
                 closeFrameDeferred.tryGet.flatMap { x =>
-                  if (x.isDefined) F.unit else clientReceiveQueue.offer(f)
+                  if (x.isDefined) F.unit else clientReceiveQueue.offer(Some(f))
                 }
             }
             .compile
             .drain
+            .guarantee(
+              closeFrameDeferred.tryGet.flatMap {
+                case None =>
+                  clientReceiveQueue
+                    .offer(None) // Connection stopped without a close frame from the server.
+                case Some(_) => F.unit
+              }
+            )
             .background
 
           sendingFinished <- clientSendChannel.stream
@@ -103,12 +116,8 @@ private[client] object EmberWSClient {
               .flatMap(clientSendChannel.closeWithElement(_)) *> sendingFinished.void
           }
         } yield new WSConnection[F] {
-          def receive: F[Option[WSFrame]] = clientReceiveQueue.take.flatMap {
-            case f @ WebSocketFrame.Close(_) =>
-              closeChannelWithCloseFrame(clientSendChannel).as(toWSFrame(f).some)
-            case f =>
-              toWSFrame(f).some.pure[F]
-          }
+          def receive: F[Option[WSFrame]] =
+            clientReceiveQueue.take.map(_.map(toWSFrame))
           def send(wsf: WSFrame): F[Unit] =
             toWebSocketFrame(wsf).flatMap {
               case WebSocketFrame.Close(_) =>

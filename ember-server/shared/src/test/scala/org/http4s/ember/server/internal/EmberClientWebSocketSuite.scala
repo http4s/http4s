@@ -218,6 +218,31 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       )
   }
 
+  fixture.test("low-level receiveStream terminates after the server closes") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-close"))
+
+      wsClient
+        .connect(wsRequest)
+        .use(_.receiveStream.compile.toList)
+        .map(frames =>
+          assertEquals(
+            frames,
+            List(WSFrame.Text("foo"): WSFrame, WSFrame.Close(1000, "")),
+          )
+        )
+  }
+
+  fixture.test("high-level receiveStream terminates after the server closes") {
+    case (server, (_, wsClient), _) =>
+      val wsRequest = WSRequest(url(server.addressIp4s, "/ws-close"))
+
+      wsClient
+        .connectHighLevel(wsRequest)
+        .use(_.receiveStream.compile.toList)
+        .map(frames => assertEquals(frames, List(WSFrame.Text("foo"))))
+  }
+
   fixture2.test("always use HTTP/1") { case (_, (_, wsClient), _) =>
     // val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))
     val wsRequest = WSRequest(uri"wss://ws.postman-echo.com/raw")
