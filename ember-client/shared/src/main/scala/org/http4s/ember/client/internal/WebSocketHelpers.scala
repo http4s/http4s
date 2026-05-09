@@ -77,7 +77,8 @@ private[internal] object WebSocketHelpers {
             .liftTo[F](new RuntimeException("Sec-WebSocket-Key header not found"))
             .map(_.hashString)
           isValid <- validateServerHandshake(res, secWebSocketKeyString)
-        } yield isValid.toOption *> res.attributes.lookup(webSocketKey)
+          _ <- isValid.liftTo[F]
+        } yield res.attributes.lookup(webSocketKey)
       }
   }
 
@@ -152,6 +153,7 @@ private[internal] object WebSocketHelpers {
   }
 
   sealed abstract class ServerHandshakeError(val status: Status, val message: String)
+      extends RuntimeException(message)
   case object InvalidStatus
       extends ServerHandshakeError(
         Status.BadRequest,
