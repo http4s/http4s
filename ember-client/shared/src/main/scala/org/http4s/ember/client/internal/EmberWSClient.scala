@@ -58,7 +58,8 @@ private[client] object EmberWSClient {
 
           httpWSRequest = Request[F]()
             .withUri(wsRequest.uri.copy(uriScheme))
-            .withHeaders(
+            .withHeaders(wsRequest.headers)
+            .putHeaders(
               Headers(
                 upgradeWebSocket,
                 connectionUpgrade,
