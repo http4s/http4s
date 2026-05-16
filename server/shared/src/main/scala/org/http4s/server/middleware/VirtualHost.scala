@@ -24,6 +24,8 @@ import org.http4s.Status.BadRequest
 import org.http4s.Status.NotFound
 import org.http4s.headers.Host
 
+import scala.util.matching.Regex
+
 /** Middleware for virtual host mapping
   *
   * The `VirtualHost` middleware allows multiple services to be mapped
@@ -54,6 +56,7 @@ object VirtualHost {
     * for wildcard matching of the lowercase host string and port, if the port is
     * given. If the port is not given, it is ignored.
     */
+  @deprecated(message = "Use VirtualHost.glob instead", since = "0.23.33")
   def wildcard[F[_], G[_]](
       http: Http[F, G],
       wildcardHost: String,
@@ -61,9 +64,38 @@ object VirtualHost {
   ): HostService[F, G] =
     regex(http, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
-  /** Create a [[HostService]] that uses a regular expression to match the host
+  /** Create a [[HostService]] that will match based on the host string allowing
+    * for simple glob-style matching with domain name segments and port, if the
+    * port is given. If the port is not given, it is ignored. A `*` character
+    * matches a single segment and `**` matches any number of segments. Other
+    * character sequences are matched literally.
+    */
+  def glob[F[_], G[_]](
+      http: Http[F, G],
+      globHost: String,
+      port: Option[Int] = None,
+  ): HostService[F, G] = {
+    val validDomainNameSegment = """\p{Alnum}([\p{Alnum}-]*\p{Alnum})?"""
+
+    // Chop the input into sequences of "*", or anything else
+    val hostRegex = """\*+|[^\*]+""".r
+      .findAllIn(globHost)
+      .map {
+        case "*" => validDomainNameSegment
+        case "**" => s"$validDomainNameSegment+(\\.$validDomainNameSegment)*"
+        case other => Regex.quote(other.toLowerCase())
+      }
+      .mkString("^", "", "$")
+
+    regex(http, hostRegex, port)
+  }
+
+  /** Create a [[HostService]] that uses a regular expression to find a match in the host
     * string (which will be provided in lower case form) and port, if the port
     * is given. If the port is not given, it is ignored.
+    *
+    * Note: the pattern may only match a substring. To match the entire string, use anchors
+    * in the expression. e.g. `^.*\.example.com$`
     */
   def regex[F[_], G[_]](
       http: Http[F, G],
