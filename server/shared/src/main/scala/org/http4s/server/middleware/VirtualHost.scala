@@ -82,7 +82,7 @@ object VirtualHost {
       .findAllIn(globHost)
       .map {
         case "*" => validDomainNameSegment
-        case "**" => s"$validDomainNameSegment+(\\.$validDomainNameSegment)*"
+        case "**" => s"($validDomainNameSegment)+(\\.$validDomainNameSegment)*"
         case other => Regex.quote(other.toLowerCase())
       }
       .mkString("^", "", "$")
