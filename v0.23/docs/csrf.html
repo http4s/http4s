@@ -165,8 +165,8 @@
     <li class="level2 nav-leaf"><a href="testing.html">Testing</a></li>
     <li class="level2 nav-leaf"><a href="uri.html">URI Handling</a></li>
     <li class="level2 nav-leaf"><a href="deployment.html">Deployment</a></li>
-    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level2 nav-leaf"><a href="methods.html">HTTP Methods</a></li>
+    <li class="level2 nav-leaf"><a href="error-handling.html">Error Handling</a></li>
     <li class="level2 nav-leaf"><a href="multipart.html">Multipart and Form Handling</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://github.com/http4s/blaze">blaze</a></li>
@@ -237,7 +237,7 @@
 //   `` = HttpVersion(major = 1, minor = 1),
 //   `` = Headers(Content-Length: 0),
 //   `` = Stream(..),
-//   `` = org.typelevel.vault.Vault@248d953f
+//   `` = org.typelevel.vault.Vault@6fcb270e
 // )</span></code></pre>
         <p>That didn&#39;t do all that much. Lets build out our CSRF Middleware by creating a <code>CSRFBuilder</code></p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookieName</span><span> = </span><span class="string-literal">&quot;csrf-token&quot;</span><span>
@@ -259,9 +259,9 @@
 </span><span class="comment">// resp: Response[IO] = (
 //   `` = Status(code = 200),
 //   `` = HttpVersion(major = 1, minor = 1),
-//   `` = Headers(Content-Length: 0, Set-Cookie: csrf-token=9EC3284E8EEA49738C1F3C8005549C2692D16010B690781C420ACB29675BB632-1778618196512-B44CB6171F1B51BB0E10CFFD3FA94BBC8583C0E9; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//   `` = Headers(Content-Length: 0, Set-Cookie: csrf-token=5796AAC2435C6848AEB8382E5CC3E8B2C09BEE2873D6ED184EF446686276C5F1-1779198104567-C033E281A5825EE748BAE08BE9E52B7344B24B44; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //   `` = Stream(..),
-//   `` = org.typelevel.vault.Vault@64758347
+//   `` = org.typelevel.vault.Vault@7c386fa1
 // )</span></code></pre>
         <p>Notice how the response has the CSRF cookies added. How easy was
         that? And, as described in <a href="middleware.html">Middleware</a>, services and middleware can be
@@ -277,7 +277,7 @@
         <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">cookie</span><span> = </span><span class="identifier">resp</span><span>.</span><span class="identifier">cookies</span><span>.</span><span class="identifier">head</span><span>
 </span><span class="comment">// cookie: ResponseCookie = ResponseCookie(
 //   name = &quot;csrf-token&quot;,
-//   content = &quot;9EC3284E8EEA49738C1F3C8005549C2692D16010B690781C420ACB29675BB632-1778618196512-B44CB6171F1B51BB0E10CFFD3FA94BBC8583C0E9&quot;,
+//   content = &quot;5796AAC2435C6848AEB8382E5CC3E8B2C09BEE2873D6ED184EF446686276C5F1-1779198104567-C033E281A5825EE748BAE08BE9E52B7344B24B44&quot;,
 //   expires = None,
 //   maxAge = None,
 //   domain = Some(value = &quot;localhost&quot;),
@@ -296,18 +296,18 @@
 //   `` = POST,
 //   `` = Uri(scheme = None, authority = None, path = /, query = , fragment = None),
 //   `` = HttpVersion(major = 1, minor = 1),
-//   `` = Headers(Origin: http://localhost, X-Csrf-Token: 9EC3284E8EEA49738C1F3C8005549C2692D16010B690781C420ACB29675BB632-1778618196512-B44CB6171F1B51BB0E10CFFD3FA94BBC8583C0E9, Cookie: csrf-token=9EC3284E8EEA49738C1F3C8005549C2692D16010B690781C420ACB29675BB632-1778618196512-B44CB6171F1B51BB0E10CFFD3FA94BBC8583C0E9),
+//   `` = Headers(Origin: http://localhost, X-Csrf-Token: 5796AAC2435C6848AEB8382E5CC3E8B2C09BEE2873D6ED184EF446686276C5F1-1779198104567-C033E281A5825EE748BAE08BE9E52B7344B24B44, Cookie: csrf-token=5796AAC2435C6848AEB8382E5CC3E8B2C09BEE2873D6ED184EF446686276C5F1-1779198104567-C033E281A5825EE748BAE08BE9E52B7344B24B44),
 //   `` = Stream(..),
-//   `` = org.typelevel.vault.Vault@31b7d99a
+//   `` = org.typelevel.vault.Vault@1d39078f
 // )
 </span><span class="keyword">val</span><span> </span><span class="identifier">validateResp</span><span> =
   </span><span class="identifier">csrf</span><span>.</span><span class="identifier">validate</span><span>()(</span><span class="identifier">service</span><span>.</span><span class="identifier">orNotFound</span><span>)(</span><span class="identifier">dummyPostRequest</span><span>).</span><span class="identifier">unsafeRunSync</span><span>()
 </span><span class="comment">// validateResp: Response[IO] = (
 //   `` = Status(code = 200),
 //   `` = HttpVersion(major = 1, minor = 1),
-//   `` = Headers(Content-Length: 0, Set-Cookie: csrf-token=9EC3284E8EEA49738C1F3C8005549C2692D16010B690781C420ACB29675BB632-1778618196537-13E41754F833805EFC81E1FA911BAECAF7F52A6E; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
+//   `` = Headers(Content-Length: 0, Set-Cookie: csrf-token=5796AAC2435C6848AEB8382E5CC3E8B2C09BEE2873D6ED184EF446686276C5F1-1779198104592-614A63CAAAB3EA155F0DAA95D91A31443200E317; Domain=localhost; Path=/; SameSite=Lax; HttpOnly),
 //   `` = Stream(..),
-//   `` = org.typelevel.vault.Vault@4a204e5e
+//   `` = org.typelevel.vault.Vault@780303b3
 // )</span></code></pre>
 
         
