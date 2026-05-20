@@ -18,6 +18,7 @@ package org.http4s.ember.client.internal
 
 import cats.data.NonEmptyList
 import cats.effect._
+import fs2.Stream
 import org.http4s._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Connection
@@ -25,8 +26,12 @@ import org.http4s.headers.Date
 import org.http4s.headers.`User-Agent`
 import org.typelevel.ci._
 import org.typelevel.keypool.Reusable
+import org.typelevel.log4cats.noop.NoOpFactory
+
+import scala.concurrent.duration._
 
 class ClientHelpersSuite extends Http4sSuite {
+  private[this] val logger = NoOpFactory[IO].getLogger
 
   test("Request Preprocessing should add a date header if not present") {
     ClientHelpers
@@ -116,6 +121,9 @@ class ClientHelpersSuite extends Http4sSuite {
           nextBytes,
           reuse,
           IO.unit,
+          maxDrainBytes = 1024L,
+          drainTimeout = 5.seconds,
+          logger = logger,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.Reuse)
@@ -135,6 +143,9 @@ class ClientHelpersSuite extends Http4sSuite {
         nextBytes,
         reuse,
         IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
       )
       drained <- nextBytes.get
     } yield assertEquals(drained.toList, List[Byte](1, 2, 3))
@@ -152,6 +163,9 @@ class ClientHelpersSuite extends Http4sSuite {
           nextBytes,
           reuse,
           IO.unit,
+          maxDrainBytes = 1024L,
+          drainTimeout = 5.seconds,
+          logger = logger,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -171,6 +185,9 @@ class ClientHelpersSuite extends Http4sSuite {
           nextBytes,
           reuse,
           IO.unit,
+          maxDrainBytes = 1024L,
+          drainTimeout = 5.seconds,
+          logger = logger,
         )
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
@@ -178,22 +195,65 @@ class ClientHelpersSuite extends Http4sSuite {
     } yield testResult
   }
 
-  test("Postprocess response should do not reuse when drain is None") {
+  test(
+    "Postprocess response should reuse when body is partially consumed but within drain limit and timeout"
+  ) {
     for {
       nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
-      _ <- ClientHelpers
-        .postProcessResponse[IO](
-          Request[IO](),
-          Response[IO](),
-          IO.pure(None),
-          nextBytes,
-          reuse,
-          IO.unit,
-        )
-      testResult <- reuse.get.map { case r =>
-        assertEquals(r, Reusable.DontReuse)
-      }
+      body = Stream.emit('.'.toByte).repeat.take(128).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body),
+        IO.pure(None), // body not consumed by user
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.Reuse))
+    } yield testResult
+  }
+
+  test("Postprocess response should not reuse when body exceeds drain limit") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.emit('.'.toByte).repeat.take(2048).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body),
+        IO.pure(None),
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.DontReuse))
+    } yield testResult
+  }
+
+  test("Postprocess response should not reuse when drain times out") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.never[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body),
+        IO.pure(None),
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 100.milliseconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.DontReuse))
     } yield testResult
   }
 }
