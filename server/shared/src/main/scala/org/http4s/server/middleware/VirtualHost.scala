@@ -105,10 +105,10 @@ object VirtualHost {
       hostRegex: String,
       port: Option[Int] = None,
   ): HostService[F, G] = {
-    val r = hostRegex.r
+    val pattern = hostRegex.r.pattern
     HostService(
       http,
-      h => r.matches(h.host.toLowerCase) && (port.isEmpty || port == h.port),
+      h => pattern.matcher(h.host.toLowerCase).matches && (port.isEmpty || port == h.port),
     )
   }
 
