@@ -82,6 +82,31 @@ class VirtualHostSuite extends Http4sSuite {
     vhostExact(req).map(_.status).assertEquals(NotFound)
   }
 
+  private val vhostEndsWith = VirtualHost(
+    VirtualHost.endsWith(routesA, "routesA", None)
+  ).orNotFound
+
+  test("endsWith should match exact") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesA"))
+
+    vhostEndsWith(req).flatMap(_.as[String]).assertEquals("routesA")
+  }
+
+  test("endsWith should match prefix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("www.routesA"))
+
+    vhostEndsWith(req).flatMap(_.as[String]).assertEquals("routesA")
+  }
+
+  test("endsWith should not match suffix") {
+    val req = Request[IO](GET, uri"/numbers/1")
+      .withHeaders(Host("routesA.service"))
+
+    vhostEndsWith(req).map(_.status).assertEquals(NotFound)
+  }
+
   @annotation.nowarn("cat=deprecation")
   private val vhostWildcard = VirtualHost(
     VirtualHost.wildcard(routesA, "routesa", None),
@@ -116,7 +141,7 @@ class VirtualHostSuite extends Http4sSuite {
     }
   }
 
-  test("wildcard not match a route with an abscent wildcard") {
+  test("wildcard not match a route with an absent wildcard") {
     val req = Request[IO](GET, uri"/numbers/1")
     val reqs =
       List(req.withHeaders(Host(".service", Some(80))), req.withHeaders(Host("service", Some(80))))
@@ -126,6 +151,7 @@ class VirtualHostSuite extends Http4sSuite {
     }
   }
 
+  @annotation.nowarn("cat=deprecation")
   private val vhostRegex = VirtualHost(
     VirtualHost.regex(routesA, "routesa", None),
     VirtualHost.regex(routesB, """.*\.service""", Some(80)),
@@ -139,73 +165,43 @@ class VirtualHostSuite extends Http4sSuite {
     vhostRegex(req).flatMap(_.as[String]).assertEquals("routesA")
   }
 
-  test("regex matches when not anchored") {
+  test("regex should match when not anchored") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("test.service.example.com", Some(80)))
 
     vhostRegex(req).flatMap(_.as[String]).assertEquals("routesB")
   }
 
-  test("regex does not match suffix when anchored") {
+  test("regex should not match suffix when anchored") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("test.anchored-service.example.com", Some(80)))
 
     vhostRegex(req).map(_.status).assertEquals(NotFound)
   }
 
-  private val vhostGlob = VirtualHost(
-    VirtualHost.glob(routesA, "*.serviceA", None),
-    VirtualHost.glob(routesB, "**.serviceB", Some(80)),
-    VirtualHost.glob(default, "**.default-service.*", Some(80)),
+  private val vhostPattern = VirtualHost(
+    VirtualHost.pattern(routesA, "routesa", None),
+    VirtualHost.pattern(routesB, """route-.\.service""", Some(80)),
   ).orNotFound
 
-  test("glob matches *") {
+  test("pattern should match an exact route") {
     val req = Request[IO](GET, uri"/numbers/1")
-      .withHeaders(Host("glob.serviceA", Some(80)))
+      .withHeaders(Host("routesa", Some(80)))
 
-    vhostGlob(req).flatMap(_.as[String]).assertEquals("routesA")
+    vhostPattern(req).flatMap(_.as[String]).assertEquals("routesA")
   }
 
-  test("glob matches **") {
+  test("pattern should match a wildcard route") {
     val req = Request[IO](GET, uri"/numbers/1")
-      .withHeaders(Host("g.l.o.b.serviceB", Some(80)))
+      .withHeaders(Host("route-b.service", Some(80)))
 
-    vhostGlob(req).flatMap(_.as[String]).assertEquals("routesB")
+    vhostPattern(req).flatMap(_.as[String]).assertEquals("routesB")
   }
 
-  test("glob matches * and **") {
+  test("pattern does not match when not anchored") {
     val req = Request[IO](GET, uri"/numbers/1")
-      .withHeaders(Host("g.l.o.b.default-service.com", Some(80)))
+      .withHeaders(Host("route-b.service.prod", Some(80)))
 
-    vhostGlob(req).flatMap(_.as[String]).assertEquals("default")
-  }
-
-  test("glob does not match other routes") {
-    val req = Request[IO](GET, uri"/numbers/1")
-    val reqs = List(
-      req.withHeaders(Host("a.b.serviceA", Some(80))),
-      req.withHeaders(Host("a.serviceB.com", Some(80))),
-      req.withHeaders(Host("b.service.on.ca", Some(80))),
-    )
-
-    reqs.parTraverse_ { req =>
-      vhostGlob(req).map(_.status).assertEquals(NotFound)
-    }
-  }
-
-  test("glob treats regex characters literally") {
-    val regexGlobs = VirtualHost(
-      VirtualHost.glob(routesA, "*.serviceA.\\w+", None),
-      VirtualHost.glob(routesB, ".*", Some(80)),
-    ).orNotFound
-    val req = Request[IO](GET, uri"/numbers/1")
-    val reqs = List(
-      req.withHeaders(Host("a.serviceA.com", Some(80))),
-      req.withHeaders(Host("any-service", Some(80))),
-    )
-
-    reqs.parTraverse_ { req =>
-      regexGlobs(req).map(_.status).assertEquals(NotFound)
-    }
+    vhostPattern(req).map(_.status).assertEquals(NotFound)
   }
 }
