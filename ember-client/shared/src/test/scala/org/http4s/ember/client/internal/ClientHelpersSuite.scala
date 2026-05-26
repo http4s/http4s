@@ -33,6 +33,8 @@ import scala.concurrent.duration._
 class ClientHelpersSuite extends Http4sSuite {
   private[this] val logger = NoOpFactory[IO].getLogger
 
+  private[this] val CloseHeader = Connection(NonEmptyList.of(ci"close"))
+
   test("Request Preprocessing should add a date header if not present") {
     ClientHelpers
       .preprocessRequest(Request[IO](), None)
@@ -71,7 +73,7 @@ class ClientHelpersSuite extends Http4sSuite {
   test("Request Preprocessing should not add a connection header if already present") {
     ClientHelpers
       .preprocessRequest(
-        Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+        Request[IO](headers = Headers(CloseHeader)),
         None,
       )
       .map { req =>
@@ -157,7 +159,7 @@ class ClientHelpersSuite extends Http4sSuite {
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
-          Request[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+          Request[IO](headers = Headers(CloseHeader)),
           Response[IO](),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
@@ -173,14 +175,36 @@ class ClientHelpersSuite extends Http4sSuite {
     } yield testResult
   }
 
-  test("Postprocess response should do not reuse when connection close is set on response") {
+  test(
+    "Postprocess response should not reuse when connection close is set on request and response body is drained in postprocessing"
+  ) {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.emit('.'.toByte).repeat.take(128).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](headers = Headers(CloseHeader)),
+        Response[IO](body = body),
+        IO.pure(None),
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.DontReuse))
+    } yield testResult
+  }
+
+  test("Postprocess response should not reuse when connection close is set on response") {
     for {
       nextBytes <- Ref[IO].of(Array.emptyByteArray)
       reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
       _ <- ClientHelpers
         .postProcessResponse[IO](
           Request[IO](),
-          Response[IO](headers = Headers(Connection(NonEmptyList.of(ci"close")))),
+          Response[IO](headers = Headers(CloseHeader)),
           IO.pure(Some(Array.emptyByteArray)),
           nextBytes,
           reuse,
@@ -192,6 +216,28 @@ class ClientHelpersSuite extends Http4sSuite {
       testResult <- reuse.get.map { case r =>
         assertEquals(r, Reusable.DontReuse)
       }
+    } yield testResult
+  }
+
+  test(
+    "Postprocess response should not reuse when connection close is set on response and response body is drained in postprocessing"
+  ) {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.emit('.'.toByte).repeat.take(128).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body, headers = Headers(CloseHeader)),
+        IO.pure(None),
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      testResult <- reuse.get.map(r => assertEquals(r, Reusable.DontReuse))
     } yield testResult
   }
 
