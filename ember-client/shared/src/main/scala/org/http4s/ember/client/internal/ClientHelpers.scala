@@ -221,32 +221,31 @@ private[client] object ClientHelpers {
       maxDrainBytes: Long,
       drainTimeout: Duration,
       logger: Logger[F],
-  )(implicit F: Temporal[F]): F[Unit] = {
-    def reuse(bytes: Array[Byte]) =
-      nextBytes.set(bytes) *>
-        startNextRead *> // start the next read before returning to pool
-        canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
-
+  )(implicit F: Temporal[F]): F[Unit] =
     drain.flatMap {
       case Some(bytes) =>
         val requestClose = connectionFor(req.httpVersion, req.headers).hasClose
         val responseClose = connectionFor(resp.httpVersion, resp.headers).hasClose
         if (requestClose || responseClose) F.unit
-        else reuse(bytes)
+        else
+          nextBytes.set(bytes) *>
+            startNextRead *> // start the next read before returning to pool
+            canBeReused.set(Reusable.Reuse) // now it is safe to mark as re-usable
       case None =>
         F.timeout(
           resp.body
             .take(maxDrainBytes)
             .compile
-            .to(Array)
-            .flatMap { bytes =>
-              if (bytes.size < maxDrainBytes) reuse(bytes)
-              else F.unit
+            .count
+            .flatMap { count =>
+              if (count < maxDrainBytes) {
+                startNextRead *>
+                  canBeReused.set(Reusable.Reuse)
+              } else F.unit
             },
           drainTimeout,
         ).handleErrorWith(e => logger.error(e)("Error draining response"))
     }
-  }
 
   private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {

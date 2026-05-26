@@ -256,4 +256,24 @@ class ClientHelpersSuite extends Http4sSuite {
       testResult <- reuse.get.map(r => assertEquals(r, Reusable.DontReuse))
     } yield testResult
   }
+
+  test("Postprocess response should not retain drained bytes for next response") {
+    for {
+      nextBytes <- Ref[IO].of(Array.emptyByteArray)
+      reuse <- Ref[IO].of(Reusable.DontReuse: Reusable)
+      body = Stream.emit('.'.toByte).repeat.take(128).covary[IO]
+      _ <- ClientHelpers.postProcessResponse[IO](
+        Request[IO](),
+        Response[IO](body = body),
+        IO.pure(None),
+        nextBytes,
+        reuse,
+        IO.unit,
+        maxDrainBytes = 1024L,
+        drainTimeout = 5.seconds,
+        logger = logger,
+      )
+      bytes <- nextBytes.get
+    } yield assert(bytes.isEmpty)
+  }
 }
