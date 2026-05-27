@@ -222,12 +222,10 @@ private[client] object ClientHelpers {
       drainTimeout: Duration,
       logger: Logger[F],
   )(implicit F: Temporal[F]): F[Unit] =
-    if (
+    F.unlessA(
       connectionFor(req.httpVersion, req.headers).hasClose ||
-      connectionFor(resp.httpVersion, resp.headers).hasClose
-    )
-      F.unit
-    else {
+        connectionFor(resp.httpVersion, resp.headers).hasClose
+    )(
       drain.flatMap {
         case Some(bytes) =>
           nextBytes.set(bytes) *>
@@ -248,7 +246,7 @@ private[client] object ClientHelpers {
             drainTimeout,
           ).handleErrorWith(e => logger.error(e)("Error draining response"))
       }
-    }
+    )
 
   private def getAddress[F[_]: MonadThrow](requestKey: RequestKey): F[SocketAddress[Host]] =
     requestKey match {
