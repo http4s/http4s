@@ -151,32 +151,31 @@ class VirtualHostSuite extends Http4sSuite {
     }
   }
 
-  @annotation.nowarn("cat=deprecation")
-  private val vhostRegex = VirtualHost(
-    VirtualHost.regex(routesA, "routesa", None),
-    VirtualHost.regex(routesB, """.*\.service""", Some(80)),
-    VirtualHost.regex(default, """^.*\.anchored-service$""", Some(80)),
+  private val vhostPatternUnanchored = VirtualHost(
+    VirtualHost.patternUnanchored(routesA, "routesa", None),
+    VirtualHost.patternUnanchored(routesB, """.*\.service""", Some(80)),
+    VirtualHost.patternUnanchored(default, """^.*\.anchored-service$""", Some(80)),
   ).orNotFound
 
   test("regex match an exact route") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("routesa", Some(80)))
 
-    vhostRegex(req).flatMap(_.as[String]).assertEquals("routesA")
+    vhostPatternUnanchored(req).flatMap(_.as[String]).assertEquals("routesA")
   }
 
   test("regex should match when not anchored") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("test.service.example.com", Some(80)))
 
-    vhostRegex(req).flatMap(_.as[String]).assertEquals("routesB")
+    vhostPatternUnanchored(req).flatMap(_.as[String]).assertEquals("routesB")
   }
 
   test("regex should not match suffix when anchored") {
     val req = Request[IO](GET, uri"/numbers/1")
       .withHeaders(Host("test.anchored-service.example.com", Some(80)))
 
-    vhostRegex(req).map(_.status).assertEquals(NotFound)
+    vhostPatternUnanchored(req).map(_.status).assertEquals(NotFound)
   }
 
   private val vhostPattern = VirtualHost(

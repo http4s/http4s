@@ -80,10 +80,26 @@ object VirtualHost {
     * string (which will be provided in lower case form) and port, if the port
     * is given. If the port is not given, it is ignored.
     *
-    * Note: the pattern may only match a substring. Use `VirtualHost.pattern` for anchored matching.
+    * Note: the pattern may only match a substring. Use `VirtualHost.pattern` to require the entire string to match.
     */
-  @deprecated(message = "Use VirtualHost.pattern instead", since = "0.23.33")
+  @deprecated(
+    message =
+      "Use VirtualHost.pattern for entire string matching, or VirtualHost.patternUnanchored to preserve the current substring matching behavior",
+    since = "0.23.33",
+  )
   def regex[F[_], G[_]](
+      http: Http[F, G],
+      hostRegex: String,
+      port: Option[Int] = None,
+  ): HostService[F, G] = patternUnanchored(http, hostRegex, port)
+
+  /** Create a [[HostService]] that uses a regular expression to find a substring match in the host
+    * string (which will be provided in lower case form) and port, if the port
+    * is given. If the port is not given, it is ignored.
+    *
+    * Note: the pattern may only match a substring. Use `VirtualHost.pattern` to require the entire string to match.
+    */
+  def patternUnanchored[F[_], G[_]](
       http: Http[F, G],
       hostRegex: String,
       port: Option[Int] = None,
