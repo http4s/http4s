@@ -18,13 +18,11 @@ package org.http4s.ember.client.internal
 
 import cats.Applicative
 import cats.MonadThrow
-import cats.data.EitherT
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.MonadCancel
 import cats.effect.Resource
 import cats.syntax.all._
-import fs2.concurrent.Channel
 import fs2.io.net.Socket
 import org.http4s.Request
 import org.http4s.Status
@@ -51,18 +49,6 @@ private[internal] object WebSocketHelpers {
   val webSocketProtocol: Protocol = Protocol(ci"websocket", None)
   val connectionUpgrade: Connection = Connection(NonEmptyList.of(upgradeCi))
   val upgradeWebSocket: Upgrade = Upgrade(webSocketProtocol)
-
-  def closeChannelWithCloseFrame[F[_]: MonadThrow](
-      clientSendChannel: Channel[F, WebSocketFrame]
-  ): F[Unit] =
-    for {
-      closeFrame <-
-        MonadThrow[F]
-          .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
-
-      _ <- EitherT(clientSendChannel.closeWithElement(closeFrame))
-        .getOrRaise(new RuntimeException("Connection already closed"))
-    } yield ()
 
   def getSocket[F[_]](client: Client[F], request: Request[F])(implicit
       F: MonadCancel[F, Throwable]

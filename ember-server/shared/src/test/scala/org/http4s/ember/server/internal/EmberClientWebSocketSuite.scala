@@ -18,14 +18,22 @@ package org.http4s.ember.server.internal
 
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.std.Queue
 import cats.syntax.all._
 import com.comcast.ip4s._
+import fs2.Chunk
 import fs2.Pipe
 import fs2.Stream
+import fs2.io.net.Network
+import fs2.io.net.Socket
 import org.http4s._
 import org.http4s.client.websocket._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.ember.core.WebSocketHelpers.EndOfStreamError
+import org.http4s.ember.core.WebSocketHelpers.decodeFrames
+import org.http4s.ember.core.WebSocketHelpers.frameToBytes
+import org.http4s.ember.core.WebSocketHelpers.serverHandshake
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.Connection
 import org.http4s.headers.Upgrade
@@ -37,6 +45,8 @@ import org.http4s.testing.DispatcherIOFixture
 import org.http4s.websocket._
 import org.typelevel.ci._
 import scodec.bits.ByteVector
+
+import java.nio.charset.StandardCharsets
 
 class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
 
@@ -109,6 +119,56 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
       case WebSocketFrame.Text(data, last) => WSFrame.Text(data, last)
       case WebSocketFrame.Binary(data, last) => WSFrame.Binary(data, last)
     }
+
+  /** A bare-bones WebSocket server speaking directly over TCP, recording every frame it receives,
+    * so that tests can observe the exact frames the client puts on the wire.
+    */
+  def rawWebSocketServer(
+      receivedFrames: Queue[IO, WebSocketFrame],
+      sendOnOpen: List[WebSocketFrame],
+  ): Resource[IO, SocketAddress[IpAddress]] =
+    Network[IO].serverResource(address = Some(ip"127.0.0.1")).flatMap { case (address, sockets) =>
+      sockets
+        .foreach { socket =>
+          for {
+            requestHead <- readRequestHead(socket)
+            key <- secWebSocketKeyPattern
+              .findFirstMatchIn(requestHead)
+              .map(_.group(1))
+              .liftTo[IO](new RuntimeException("Sec-WebSocket-Key header not found"))
+            accept <- serverHandshake[IO](key)
+            response =
+              "HTTP/1.1 101 Switching Protocols\r\n" +
+                "Connection: Upgrade\r\n" +
+                "Upgrade: websocket\r\n" +
+                s"Sec-WebSocket-Accept: ${accept.toBase64}\r\n" +
+                "\r\n"
+            _ <- socket.write(Chunk.array(response.getBytes(StandardCharsets.UTF_8)))
+            _ <- sendOnOpen.traverse_(frame => frameToBytes(frame, false).traverse_(socket.write))
+            _ <- socket.reads
+              .through(decodeFrames[IO](false))
+              .foreach(receivedFrames.offer)
+              .compile
+              .drain
+              .recover { case EndOfStreamError() => () }
+          } yield ()
+        }
+        .compile
+        .drain
+        .background
+        .as(address)
+    }
+
+  private val secWebSocketKeyPattern = "(?i)Sec-WebSocket-Key:\\s*(\\S+)".r
+
+  private def readRequestHead(socket: Socket[IO], acc: String = ""): IO[String] =
+    if (acc.contains("\r\n\r\n")) IO.pure(acc)
+    else
+      socket.read(4096).flatMap {
+        case Some(chunk) =>
+          readRequestHead(socket, acc + new String(chunk.toArray, StandardCharsets.UTF_8))
+        case None => IO.raiseError(new RuntimeException("Connection closed during handshake"))
+      }
 
   private def fixture =
     (ResourceFunFixture(serverResource), ResourceFunFixture(clientResource), dispatcher).mapN(
@@ -188,6 +248,25 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         )
       )
   }
+
+  test("send transmits the close code and reason supplied by the user") {
+    val resources = for {
+      receivedFrames <- Resource.eval(Queue.unbounded[IO, WebSocketFrame])
+      address <- rawWebSocketServer(receivedFrames, sendOnOpen = Nil)
+      clientAndWsClient <- EmberClientBuilder.default[IO].buildWebSocket
+    } yield (receivedFrames, address, clientAndWsClient._2)
+
+    resources.use { case (receivedFrames, address, wsClient) =>
+      for {
+        _ <- wsClient
+          .connect(WSRequest(url(address)))
+          .use(_.send(WSFrame.Close(4000, "test reason")))
+        expected <- IO.fromEither(WebSocketFrame.Close(4000, "test reason"))
+        received <- receivedFrames.take
+      } yield assertEquals(received, expected: WebSocketFrame)
+    }
+  }
+
 
   fixture.test("open and close high-level connection to server") {
     case (server, (_, wsClient), _) =>
@@ -285,6 +364,7 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
         .connect(wsRequest)
         .use(conn => IO(assertEquals(conn.subprotocol, None)))
   }
+
 
   fixture2.test("always use HTTP/1") { case (_, (_, wsClient), _) =>
     // val wsRequest = WSRequest(url(server.addressIp4s, "/ws-echo"))

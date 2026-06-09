@@ -128,12 +128,13 @@ private[client] object EmberWSClient {
           def receive: F[Option[WSFrame]] =
             clientReceiveQueue.take.map(_.map(toWSFrame))
           def send(wsf: WSFrame): F[Unit] =
-            toWebSocketFrame(wsf).flatMap {
-              case WebSocketFrame.Close(_) =>
-                closeChannelWithCloseFrame(clientSendChannel)
-              case f =>
-                EitherT(clientSendChannel.send(f))
-                  .getOrRaise(new RuntimeException("Connection already closed"))
+            toWebSocketFrame(wsf).flatMap { f =>
+              val sent = f match {
+                // A close frame must be the last frame sent on the channel.
+                case _: WebSocketFrame.Close => clientSendChannel.closeWithElement(f)
+                case _ => clientSendChannel.send(f)
+              }
+              EitherT(sent).getOrRaise(new RuntimeException("Connection already closed"))
             }
           def sendMany[G[_], A <: WSFrame](wsfs: G[A])(implicit
               evidence$1: cats.Foldable[G]
