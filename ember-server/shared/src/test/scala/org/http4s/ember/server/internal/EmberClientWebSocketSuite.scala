@@ -267,6 +267,25 @@ class EmberClientWebSocketSuite extends Http4sSuite with DispatcherIOFixture {
     }
   }
 
+  test("connection release echoes the close code received from the server") {
+    val resources = for {
+      receivedFrames <- Resource.eval(Queue.unbounded[IO, WebSocketFrame])
+      serverClose <- Resource.eval(IO.fromEither(WebSocketFrame.Close(4001, "going away")))
+      address <- rawWebSocketServer(receivedFrames, sendOnOpen = List(serverClose))
+      clientAndWsClient <- EmberClientBuilder.default[IO].buildWebSocket
+    } yield (receivedFrames, serverClose, address, clientAndWsClient._2)
+
+    resources.use { case (receivedFrames, serverClose, address, wsClient) =>
+      for {
+        received <- wsClient.connect(WSRequest(url(address))).use(_.receive)
+        echoed <- receivedFrames.take
+      } yield {
+        assertEquals(received, Some(WSFrame.Close(4001, "going away"): WSFrame))
+        assertEquals(echoed, serverClose: WebSocketFrame)
+      }
+    }
+  }
+
 
   fixture.test("open and close high-level connection to server") {
     case (server, (_, wsClient), _) =>

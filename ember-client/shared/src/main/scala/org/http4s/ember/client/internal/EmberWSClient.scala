@@ -120,8 +120,15 @@ private[client] object EmberWSClient {
             .background
 
           _ <- Resource.onFinalize {
-            MonadThrow[F]
-              .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
+            closeFrameDeferred.tryGet
+              .flatMap {
+                // RFC 6455 §5.5.1: echo the close code received from the server,
+                // except 1006, which must never appear on the wire.
+                case Some(close) if close.closeCode != 1006 => close.pure[F]
+                case _ =>
+                  MonadThrow[F]
+                    .fromEither(WebSocketFrame.Close(1000, "Connection automatically closed"))
+              }
               .flatMap(clientSendChannel.closeWithElement(_)) *> sendingFinished.void
           }
         } yield new WSConnection[F] {
